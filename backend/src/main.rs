@@ -1,7 +1,13 @@
+use crate::config::settings::Settings;
 use axum::{Router, routing::get};
+
+mod config;
 
 #[tokio::main]
 async fn main() {
+    let _settings = Settings::new().expect("Failed to load settings");
+    println!("{}", _settings.database_url);
+
     // build our application with a single route
     let app = Router::new().route("/", get(|| async { "Hello, World!" }));
 

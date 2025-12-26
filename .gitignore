@@ -22,3 +22,6 @@ target
 
 # Rust artifacts
 /target
+
+# Env file
+.env
