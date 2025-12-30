@@ -6,6 +6,8 @@ pub struct Settings {
 
     pub server_host: String,
     pub server_port: u16,
+
+    pub git_project_root: String,
 }
 
 impl Settings {
@@ -19,6 +21,9 @@ impl Settings {
                 .unwrap_or_else(|_| "3000".to_string())
                 .parse()
                 .unwrap_or(3000),
+
+            git_project_root: env::var("GIT_PROJECT_ROOT")
+                .unwrap_or_else(|_| "/srv/git".to_string()),
         })
     }
 }
