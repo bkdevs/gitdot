@@ -8,6 +8,9 @@ use axum::{
 use std::io::Write;
 use std::process::{Command, Stdio};
 
+// repo is expected to contain .git suffix
+static REPO_SUFFIX: &str = ".git";
+
 #[derive(serde::Deserialize)]
 pub struct InfoRefsQuery {
     service: String,
@@ -18,21 +21,18 @@ pub async fn git_info_refs(
     Path((owner, repo)): Path<(String, String)>,
     Query(params): Query<InfoRefsQuery>,
 ) -> Result<Response<Body>, StatusCode> {
+    if !repo.ends_with(REPO_SUFFIX) {
+        return Err(StatusCode::BAD_REQUEST);
+    }
+
     if params.service != "git-upload-pack" && params.service != "git-receive-pack" {
         return Err(StatusCode::BAD_REQUEST);
     }
 
-    // Strip .git suffix if present, or add it if not
-    let repo_path = if repo.ends_with(".git") {
-        repo.clone()
-    } else {
-        format!("{}.git", repo)
-    };
-
     let child = Command::new("git")
         .arg("http-backend")
         .env("REQUEST_METHOD", "GET")
-        .env("PATH_INFO", format!("/{}/{}/info/refs", owner, repo_path))
+        .env("PATH_INFO", format!("/{}/{}/info/refs", owner, repo))
         .env("QUERY_STRING", format!("service={}", params.service))
         .env("GIT_PROJECT_ROOT", &settings.git_project_root)
         .env("GIT_HTTP_EXPORT_ALL", "1")
@@ -76,12 +76,9 @@ async fn git_service_rpc(
     headers: HeaderMap,
     body: Body,
 ) -> Result<Response<Body>, StatusCode> {
-    // Strip .git suffix if present, or add it if not
-    let repo_path = if repo.ends_with(".git") {
-        repo.clone()
-    } else {
-        format!("{}.git", repo)
-    };
+    if !repo.ends_with(REPO_SUFFIX) {
+        return Err(StatusCode::BAD_REQUEST);
+    }
 
     let body_bytes = axum::body::to_bytes(body, usize::MAX)
         .await
@@ -94,10 +91,7 @@ async fn git_service_rpc(
     let mut child = Command::new("git")
         .arg("http-backend")
         .env("REQUEST_METHOD", "POST")
-        .env(
-            "PATH_INFO",
-            format!("/{}/{}/git-{}", owner, repo_path, service),
-        )
+        .env("PATH_INFO", format!("/{}/{}/git-{}", owner, repo, service))
         .env("CONTENT_TYPE", content_type)
         .env("CONTENT_LENGTH", body_bytes.len().to_string())
         .env("GIT_PROJECT_ROOT", &settings.git_project_root)
