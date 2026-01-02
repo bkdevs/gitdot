@@ -1,11 +1,11 @@
+mod config;
+mod handlers;
+
 use axum::{
     Router,
     routing::{get, post},
 };
 use config::settings::Settings;
-
-mod config;
-mod git;
 
 #[tokio::main]
 async fn main() {
@@ -17,15 +17,15 @@ async fn main() {
         .route("/", get(|| async { "Hello, World!" }))
         .route(
             "/{owner}/{repo}/info/refs",
-            get(git::smart_http::git_info_refs),
+            get(handlers::git_smart_http::git_info_refs),
         )
         .route(
             "/{owner}/{repo}/git-upload-pack",
-            post(git::smart_http::git_upload_pack),
+            post(handlers::git_smart_http::git_upload_pack),
         )
         .route(
             "/{owner}/{repo}/git-receive-pack",
-            post(git::smart_http::git_receive_pack),
+            post(handlers::git_smart_http::git_receive_pack),
         )
         .with_state(settings.clone());
 

@@ -14,7 +14,7 @@ impl Settings {
     pub fn new() -> Result<Self, env::VarError> {
         dotenvy::dotenv().ok();
         Ok(Self {
-            database_url: env::var("DATABASE_URL")?,
+            database_url: env::var("DATABASE_URL").unwrap_or_else(|_| "".to_string()),
 
             server_host: env::var("SERVER_HOST").unwrap_or_else(|_| "0.0.0.0".to_string()),
             server_port: env::var("SERVER_PORT")
