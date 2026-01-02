@@ -7,6 +7,7 @@ use axum::{
 };
 use std::io::Write;
 use std::process::{Command, Stdio};
+use std::sync::Arc;
 
 // repo is expected to contain .git suffix
 static REPO_SUFFIX: &str = ".git";
@@ -17,7 +18,7 @@ pub struct InfoRefsQuery {
 }
 
 pub async fn git_info_refs(
-    State(settings): State<Settings>,
+    State(settings): State<Arc<Settings>>,
     Path((owner, repo)): Path<(String, String)>,
     Query(params): Query<InfoRefsQuery>,
 ) -> Result<Response<Body>, StatusCode> {
@@ -51,7 +52,7 @@ pub async fn git_info_refs(
 }
 
 pub async fn git_upload_pack(
-    State(settings): State<Settings>,
+    State(settings): State<Arc<Settings>>,
     Path((owner, repo)): Path<(String, String)>,
     headers: HeaderMap,
     body: Body,
@@ -60,7 +61,7 @@ pub async fn git_upload_pack(
 }
 
 pub async fn git_receive_pack(
-    State(settings): State<Settings>,
+    State(settings): State<Arc<Settings>>,
     Path((owner, repo)): Path<(String, String)>,
     headers: HeaderMap,
     body: Body,
@@ -69,7 +70,7 @@ pub async fn git_receive_pack(
 }
 
 async fn git_service_rpc(
-    settings: Settings,
+    settings: Arc<Settings>,
     owner: String,
     repo: String,
     service: &str,
