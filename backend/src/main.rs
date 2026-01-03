@@ -10,7 +10,16 @@ use axum::{
 use config::settings::Settings;
 use handlers::git_smart_http::{git_info_refs, git_receive_pack, git_upload_pack};
 use handlers::repository::{create_repository, get_repository_file, get_repository_tree};
+use http::StatusCode;
 use std::sync::Arc;
+use std::time::Duration;
+use tower::ServiceBuilder;
+use tower_http::{
+    cors::CorsLayer,
+    request_id::{MakeRequestUuid, PropagateRequestIdLayer, SetRequestIdLayer},
+    timeout::TimeoutLayer,
+    trace::TraceLayer,
+};
 
 fn create_router(settings: Arc<Settings>) -> Router {
     let git_router = Router::new()
@@ -27,13 +36,33 @@ fn create_router(settings: Arc<Settings>) -> Router {
         .route("/health", get(|| async { "OK" }))
         .merge(git_router)
         .merge(repo_router)
+        .layer(
+            ServiceBuilder::new()
+                .layer(SetRequestIdLayer::x_request_id(MakeRequestUuid))
+                .layer(TraceLayer::new_for_http())
+                .layer(CorsLayer::permissive())
+                .layer(TimeoutLayer::with_status_code(
+                    StatusCode::REQUEST_TIMEOUT,
+                    Duration::from_secs(10),
+                ))
+                .layer(PropagateRequestIdLayer::x_request_id()),
+        )
         .with_state(settings)
 }
 
 #[tokio::main]
 async fn main() {
+    tracing_subscriber::fmt()
+        .with_env_filter(
+            tracing_subscriber::EnvFilter::try_from_default_env()
+                .unwrap_or_else(|_| "gitdot=debug,tower_http=debug".into()),
+        )
+        .init();
+
     let settings = Settings::new().expect("Failed to load settings");
     let address = settings.get_server_address();
+    tracing::info!("Starting server on {}", address);
+
     let app = create_router(settings);
     let listener = tokio::net::TcpListener::bind(&address).await.unwrap();
     axum::serve(listener, app).await.unwrap();
