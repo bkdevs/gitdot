@@ -8,6 +8,7 @@ pub struct RepositoryTree {
 
 #[derive(serde::Serialize)]
 pub struct RepositoryTreeEntry {
+    pub path: String,
     pub name: String,
     pub entry_type: String,
     pub sha: String,

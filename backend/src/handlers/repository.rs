@@ -38,23 +38,7 @@ pub async fn get_repository_tree(
 
     let subtree = get_tree_at_path(&repository, &tree, &query.path)?;
     let mut entries = Vec::new();
-    for entry in subtree.iter() {
-        let name = entry.name().unwrap_or("").to_string();
-        let entry_type = match entry.kind() {
-            Some(git2::ObjectType::Blob) => "blob",
-            Some(git2::ObjectType::Tree) => "tree",
-            Some(git2::ObjectType::Commit) => "commit", // for Git submodule
-            _ => "unknown",
-        }
-        .to_string();
-        let sha = entry.id().to_string();
-        entries.push(RepositoryTreeEntry {
-            name,
-            entry_type,
-            sha,
-        });
-    }
-
+    walk_tree_recursive(&repository, &subtree, &query.path, &mut entries)?;
     Ok(Json(RepositoryTree {
         ref_name: query.ref_name,
         commit_sha,
@@ -160,6 +144,45 @@ fn get_blob_at_path<'repo>(
 
     repo.find_blob(tree_entry.id())
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
+}
+
+fn walk_tree_recursive(
+    repo: &git2::Repository,
+    tree: &git2::Tree,
+    base_path: &str,
+    entries: &mut Vec<RepositoryTreeEntry>,
+) -> Result<(), StatusCode> {
+    for entry in tree.iter() {
+        let name = entry.name().unwrap_or("").to_string();
+        let entry_path = if base_path.is_empty() {
+            name.clone()
+        } else {
+            format!("{}/{}", base_path, name)
+        };
+
+        let entry_type = match entry.kind() {
+            Some(git2::ObjectType::Blob) => "blob",
+            Some(git2::ObjectType::Tree) => "tree",
+            Some(git2::ObjectType::Commit) => "commit", // for Git submodule
+            _ => "unknown",
+        }
+        .to_string();
+        let sha = entry.id().to_string();
+
+        entries.push(RepositoryTreeEntry {
+            path: entry_path.clone(),
+            name,
+            entry_type: entry_type.clone(),
+            sha,
+        });
+
+        if entry_type == "tree" {
+            if let Ok(subtree) = repo.find_tree(entry.id()) {
+                walk_tree_recursive(repo, &subtree, &entry_path, entries)?;
+            }
+        }
+    }
+    Ok(())
 }
 
 fn is_binary(data: &[u8]) -> bool {
