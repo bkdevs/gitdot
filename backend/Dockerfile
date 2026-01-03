@@ -34,7 +34,7 @@ RUN git config --system user.name "Git Server" && \
     git config --system uploadpack.allowAnySHA1InWant true
 
 # Copy the binary from builder
-COPY --from=builder /app/target/release/backend /app/backend
+COPY --from=builder /app/target/release/gitdot /app/gitdot
 
 # Create directory for git repositories
 RUN mkdir -p /srv/git && chmod 755 /srv/git
@@ -49,4 +49,4 @@ ENV SERVER_PORT="8080"
 EXPOSE 8080
 
 # Run the binary
-CMD ["/app/backend"]
+CMD ["/app/gitdot"]
