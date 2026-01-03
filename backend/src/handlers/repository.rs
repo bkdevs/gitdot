@@ -18,29 +18,42 @@ pub async fn create_repository(
 ) -> Result<Json<CreateRepositoryResponse>, StatusCode> {
     let repo_name = normalize_repo_name(&repo);
     let repo_path = format!("{}/{}/{}", settings.git_project_root, owner, repo_name);
-    if std::path::Path::new(&repo_path).exists() {
+    if tokio::fs::try_exists(&repo_path).await.unwrap_or(false) {
         return Err(StatusCode::CONFLICT);
     }
 
     let owner_path = format!("{}/{}", settings.git_project_root, owner);
-    std::fs::create_dir_all(&owner_path).map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-
-    let repo =
-        git2::Repository::init_bare(&repo_path).map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-    repo.set_head(&format!("refs/heads/{}", request.default_branch))
+    tokio::fs::create_dir_all(&owner_path)
+        .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
-    // Configure the repository for HTTP access
-    let mut config = repo
-        .config()
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-    config
-        .set_bool("http.receivepack", true)
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    // Initialize bare repository (blocking operation, spawn on blocking thread)
+    let repo_path_clone = repo_path.clone();
+    let default_branch = request.default_branch.clone();
+    tokio::task::spawn_blocking(move || {
+        let repo = git2::Repository::init_bare(&repo_path_clone)
+            .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+        repo.set_head(&format!("refs/heads/{}", default_branch))
+            .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+        // Configure the repository for HTTP access
+        let mut config = repo
+            .config()
+            .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+        config
+            .set_bool("http.receivepack", true)
+            .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+        Ok::<(), StatusCode>(())
+    })
+    .await
+    .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)??;
 
     // Create git-daemon-export-ok file to allow HTTP access
     let export_ok_path = format!("{}/git-daemon-export-ok", repo_path);
-    std::fs::write(&export_ok_path, "").map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    tokio::fs::write(&export_ok_path, "")
+        .await
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
     Ok(Json(CreateRepositoryResponse {
         owner: owner,
