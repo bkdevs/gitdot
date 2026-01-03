@@ -1,4 +1,5 @@
 use crate::config::settings::Settings;
+use crate::utils::git::normalize_repo_name;
 use axum::{
     body::Body,
     extract::{Path, Query, State},
@@ -8,9 +9,6 @@ use axum::{
 use std::io::Write;
 use std::process::{Command, Stdio};
 use std::sync::Arc;
-
-// repo is expected to contain .git suffix
-static REPO_SUFFIX: &str = ".git";
 
 #[derive(serde::Deserialize)]
 pub struct InfoRefsQuery {
@@ -22,18 +20,15 @@ pub async fn git_info_refs(
     Path((owner, repo)): Path<(String, String)>,
     Query(params): Query<InfoRefsQuery>,
 ) -> Result<Response<Body>, StatusCode> {
-    if !repo.ends_with(REPO_SUFFIX) {
-        return Err(StatusCode::BAD_REQUEST);
-    }
-
     if params.service != "git-upload-pack" && params.service != "git-receive-pack" {
         return Err(StatusCode::BAD_REQUEST);
     }
 
+    let repo_name = normalize_repo_name(&repo);
     let child = Command::new("git")
         .arg("http-backend")
         .env("REQUEST_METHOD", "GET")
-        .env("PATH_INFO", format!("/{}/{}/info/refs", owner, repo))
+        .env("PATH_INFO", format!("/{}/{}/info/refs", owner, repo_name))
         .env("QUERY_STRING", format!("service={}", params.service))
         .env("GIT_PROJECT_ROOT", &settings.git_project_root)
         .env("GIT_HTTP_EXPORT_ALL", "1")
@@ -77,10 +72,6 @@ async fn git_service_rpc(
     headers: HeaderMap,
     body: Body,
 ) -> Result<Response<Body>, StatusCode> {
-    if !repo.ends_with(REPO_SUFFIX) {
-        return Err(StatusCode::BAD_REQUEST);
-    }
-
     let body_bytes = axum::body::to_bytes(body, usize::MAX)
         .await
         .map_err(|_| StatusCode::BAD_REQUEST)?;
@@ -89,10 +80,17 @@ async fn git_service_rpc(
         .and_then(|v| v.to_str().ok())
         .unwrap_or("");
 
+    let repo_name = normalize_repo_name(&repo);
+
+    // TODO: instead of spawning a separate process that calls git-http-backend,
+    // implement in process logic to handle Git HTTP protocol in server.
     let mut child = Command::new("git")
         .arg("http-backend")
         .env("REQUEST_METHOD", "POST")
-        .env("PATH_INFO", format!("/{}/{}/git-{}", owner, repo, service))
+        .env(
+            "PATH_INFO",
+            format!("/{}/{}/git-{}", owner, repo_name, service),
+        )
         .env("CONTENT_TYPE", content_type)
         .env("CONTENT_LENGTH", body_bytes.len().to_string())
         .env("GIT_PROJECT_ROOT", &settings.git_project_root)
