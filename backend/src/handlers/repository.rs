@@ -1,5 +1,8 @@
 use crate::config::settings::Settings;
-use crate::models::repository::{RepositoryFile, RepositoryTree, RepositoryTreeEntry};
+use crate::dto::repository::{
+    CreateRepositoryRequest, CreateRepositoryResponse, RepositoryFile, RepositoryFileQuery,
+    RepositoryTree, RepositoryTreeEntry, RepositoryTreeQuery,
+};
 use crate::utils::git::normalize_repo_name;
 use axum::{
     Json,
@@ -8,19 +11,42 @@ use axum::{
 };
 use std::sync::Arc;
 
-#[derive(serde::Deserialize)]
-pub struct RepositoryTreeQuery {
-    #[serde(default = "default_ref")]
-    pub ref_name: String,
-    #[serde(default)]
-    pub path: String,
-}
+pub async fn create_repository(
+    State(settings): State<Arc<Settings>>,
+    Path((owner, repo)): Path<(String, String)>,
+    Json(request): Json<CreateRepositoryRequest>,
+) -> Result<Json<CreateRepositoryResponse>, StatusCode> {
+    let repo_name = normalize_repo_name(&repo);
+    let repo_path = format!("{}/{}/{}", settings.git_project_root, owner, repo_name);
+    if std::path::Path::new(&repo_path).exists() {
+        return Err(StatusCode::CONFLICT);
+    }
 
-#[derive(serde::Deserialize)]
-pub struct RepositoryFileQuery {
-    #[serde(default = "default_ref")]
-    pub ref_name: String,
-    pub path: String,
+    let owner_path = format!("{}/{}", settings.git_project_root, owner);
+    std::fs::create_dir_all(&owner_path).map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+    let repo =
+        git2::Repository::init_bare(&repo_path).map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    repo.set_head(&format!("refs/heads/{}", request.default_branch))
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+    // Configure the repository for HTTP access
+    let mut config = repo
+        .config()
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    config
+        .set_bool("http.receivepack", true)
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+    // Create git-daemon-export-ok file to allow HTTP access
+    let export_ok_path = format!("{}/git-daemon-export-ok", repo_path);
+    std::fs::write(&export_ok_path, "").map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+    Ok(Json(CreateRepositoryResponse {
+        owner: owner,
+        name: repo_name,
+        default_branch: request.default_branch,
+    }))
 }
 
 pub async fn get_repository_tree(
@@ -83,10 +109,6 @@ pub async fn get_repository_file(
         content,
         encoding,
     }))
-}
-
-fn default_ref() -> String {
-    "HEAD".to_string()
 }
 
 fn open_repository(

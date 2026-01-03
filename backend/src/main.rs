@@ -1,6 +1,6 @@
 mod config;
+mod dto;
 mod handlers;
-mod models;
 mod utils;
 
 use axum::{
@@ -9,7 +9,7 @@ use axum::{
 };
 use config::settings::Settings;
 use handlers::git_smart_http::{git_info_refs, git_receive_pack, git_upload_pack};
-use handlers::repository::{get_repository_file, get_repository_tree};
+use handlers::repository::{create_repository, get_repository_file, get_repository_tree};
 use std::sync::Arc;
 
 fn create_router(settings: Arc<Settings>) -> Router {
@@ -19,6 +19,7 @@ fn create_router(settings: Arc<Settings>) -> Router {
         .route("/{owner}/{repo}/git-receive-pack", post(git_receive_pack));
 
     let repo_router = Router::new()
+        .route("/repository/{owner}/{repo}", post(create_repository))
         .route("/repository/{owner}/{repo}/tree", get(get_repository_tree))
         .route("/repository/{owner}/{repo}/file", get(get_repository_file));
 
