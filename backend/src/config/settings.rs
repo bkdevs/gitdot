@@ -15,9 +15,9 @@ impl Settings {
         Ok(Arc::new(Self {
             server_host: env::var("SERVER_HOST").unwrap_or_else(|_| "0.0.0.0".to_string()),
             server_port: env::var("SERVER_PORT")
-                .unwrap_or_else(|_| "3000".to_string())
+                .unwrap_or_else(|_| "8080".to_string())
                 .parse()
-                .unwrap_or(3000),
+                .unwrap_or(8080),
 
             git_project_root: env::var("GIT_PROJECT_ROOT")
                 .unwrap_or_else(|_| "/srv/git".to_string()),
