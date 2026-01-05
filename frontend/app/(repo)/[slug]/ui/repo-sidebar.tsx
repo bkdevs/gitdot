@@ -68,7 +68,6 @@ export function RepoSidebar({
       className="overflow-hidden flex-row"
       {...props}
     >
-      {/* Primary icon sidebar */}
       <Sidebar
         className="border-r"
         style={{ width: `calc(${SIDEBAR_ICON_WIDTH} + 1px)` }}
@@ -101,9 +100,8 @@ export function RepoSidebar({
         </SidebarContent>
       </Sidebar>
 
-      {/* Secondary content sidebar */}
       <Sidebar
-        className="hidden md:flex border-r"
+        className="border-r"
         style={{ width: SIDEBAR_CONTENT_WIDTH }}
       >
         <SidebarHeader className="border-b h-9 flex flex-row items-center justify-between">

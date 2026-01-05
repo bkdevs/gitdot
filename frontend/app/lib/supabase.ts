@@ -1,7 +1,9 @@
 import "server-only";
+
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
+import { JwtPayload } from "@supabase/supabase-js";
 
 function getSupabaseConfig() {
   const supabaseUrl = process.env.SUPABASE_URL;
@@ -86,10 +88,11 @@ export async function updateSession(request: NextRequest) {
 }
 
 /**
- * for use in server-components and checks if the user is authenticated.
+ * for use in server-components
  */
-export async function isAuthenticated(): Promise<boolean> {
+export async function getSession(): Promise<JwtPayload | null> {
   const supabase = await createSupabaseClient();
   const { data } = await supabase.auth.getClaims();
-  return !!data?.claims;
+
+  return data?.claims || null;
 }
