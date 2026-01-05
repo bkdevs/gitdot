@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Sans, Inconsolata } from "next/font/google";
 import "./globals.css";
+import { Providers } from "./providers";
 
 export const metadata: Metadata = {
   title: "gitdot",
@@ -27,7 +28,9 @@ export default function RootLayout({
       lang="en"
       className={`${ibm_plex_sans.variable} ${inconsolata.variable}`}
     >
-      <body>{children}</body>
+      <body>
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }

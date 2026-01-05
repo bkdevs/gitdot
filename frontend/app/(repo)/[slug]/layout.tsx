@@ -1,4 +1,3 @@
-import { SidebarProvider } from "@/ui/sidebar";
 import { RepoSidebar } from "./ui/repo-sidebar";
 
 export default function Layout({
@@ -7,9 +6,15 @@ export default function Layout({
   children: React.ReactNode;
 }>) {
   return (
-    <SidebarProvider>
+    <div
+      className="flex min-h-svh w-full"
+      style={{
+        "--sidebar-width": "12.5rem",
+        "--sidebar-width-icon": "2.25rem",
+      } as React.CSSProperties}
+    >
       <RepoSidebar />
       <main className="flex-1 w-full">{children}</main>
-    </SidebarProvider>
+    </div>
   );
 }
