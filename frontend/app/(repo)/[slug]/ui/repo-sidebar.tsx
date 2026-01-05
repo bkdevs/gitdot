@@ -24,6 +24,9 @@ import { RepoPulls } from "./repo-pulls";
 import { RepoSwitcher } from "./repo-switcher";
 import { cn } from "@/util/cn";
 
+const SIDEBAR_ICON_WIDTH = "2.25rem";
+const SIDEBAR_CONTENT_WIDTH = "12.5rem"
+
 type ViewType = "code" | "history" | "issues" | "pulls";
 
 function getViewFromPathname(path: string): ViewType {
@@ -67,7 +70,8 @@ export function RepoSidebar({
     >
       {/* Primary icon sidebar */}
       <Sidebar
-        className="w-[calc(var(--sidebar-width-icon)+1px)]! border-r"
+        className="border-r"
+        style={{ width: `calc(${SIDEBAR_ICON_WIDTH} + 1px)` }}
       >
         <SidebarContent>
           <SidebarGroup className="p-0!">
@@ -98,7 +102,10 @@ export function RepoSidebar({
       </Sidebar>
 
       {/* Secondary content sidebar */}
-      <Sidebar className="hidden w-(--sidebar-width) md:flex border-r">
+      <Sidebar
+        className="hidden md:flex border-r"
+        style={{ width: SIDEBAR_CONTENT_WIDTH }}
+      >
         <SidebarHeader className="border-b h-9 flex flex-row items-center justify-between">
           <RepoSwitcher />
         </SidebarHeader>

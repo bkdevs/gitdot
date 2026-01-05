@@ -6,13 +6,7 @@ export default function Layout({
   children: React.ReactNode;
 }>) {
   return (
-    <div
-      className="flex min-h-svh w-full"
-      style={{
-        "--sidebar-width": "12.5rem",
-        "--sidebar-width-icon": "2.25rem",
-      } as React.CSSProperties}
-    >
+    <div className="flex min-h-svh w-full">
       <RepoSidebar />
       <main className="flex-1 w-full">{children}</main>
     </div>
