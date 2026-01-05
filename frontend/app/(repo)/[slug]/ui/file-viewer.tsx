@@ -1,170 +1,168 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { codeToHtml } from "shiki";
 
-const fileStructure: Record<
-  string,
-  Array<{ name: string; type: "folder" | "file" }>
-> = {
-  root: [
-    { name: "app", type: "folder" },
-    { name: "components", type: "folder" },
-    { name: "lib", type: "folder" },
-    { name: "public", type: "folder" },
-    { name: "README.md", type: "file" },
-    { name: "package.json", type: "file" },
-    { name: "next.config.ts", type: "file" },
-    { name: "tsconfig.json", type: "file" },
-  ],
-  app: [
-    { name: "(auth)", type: "folder" },
-    { name: "(repo)", type: "folder" },
-    { name: "ui", type: "folder" },
-    { name: "layout.tsx", type: "file" },
-    { name: "page.tsx", type: "file" },
-    { name: "globals.css", type: "file" },
-  ],
-  "(auth)": [
-    { name: "login", type: "folder" },
-    { name: "signup", type: "folder" },
-    { name: "ui", type: "folder" },
-  ],
-  "(repo)": [{ name: "[slug]", type: "folder" }],
-  "[slug]": [
-    { name: "issues", type: "folder" },
-    { name: "pulls", type: "folder" },
-    { name: "ui", type: "folder" },
-    { name: "layout.tsx", type: "file" },
-    { name: "page.tsx", type: "file" },
-  ],
-  ui: [
-    { name: "file-header.tsx", type: "file" },
-    { name: "file-viewer.tsx", type: "file" },
-    { name: "repo-commits.tsx", type: "file" },
-    { name: "repo-sidebar.tsx", type: "file" },
-  ],
-  components: [
-    { name: "ui", type: "folder" },
-    { name: "header.tsx", type: "file" },
-    { name: "footer.tsx", type: "file" },
-  ],
-  lib: [
-    { name: "utils.ts", type: "file" },
-    { name: "hooks.ts", type: "file" },
-    { name: "constants.ts", type: "file" },
-  ],
-  public: [
-    { name: "favicon.ico", type: "file" },
-    { name: "vercel.svg", type: "file" },
-    { name: "images", type: "folder" },
-  ],
-};
+const sampleCode = `"use client";
 
-const filePreviews: Record<string, string> = {
-  "layout.tsx": `export default function Layout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
-  return (
-    <html lang="en">
-      <body className="antialiased">
-        {children}
-      </body>
-    </html>
+import { Code2, CircleDot, GitPullRequest, DownloadIcon, SearchIcon } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarHeader,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  useSidebar,
+} from "@/ui/sidebar";
+import { RepoFileTree } from "./repo-file-tree";
+import { RepoIssues } from "./repo-issues";
+import { RepoPulls } from "./repo-pulls";
+import { RepoSwitcher } from "./repo-switcher";
+
+type ViewType = "code" | "issues" | "pulls";
+
+export function RepoSidebar({
+  ...props
+}: React.ComponentProps<typeof Sidebar>) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const { setOpen } = useSidebar();
+
+  // Determine initial view from pathname
+  const getViewFromPathname = (path: string): ViewType => {
+    if (path.includes("/issues")) return "issues";
+    if (path.includes("/pulls")) return "pulls";
+    return "code";
+  };
+
+  const [selectedView, setSelectedView] = useState<ViewType>(() =>
+    getViewFromPathname(pathname),
   );
-}`,
-  "page.tsx": `export default function Page() {
+
+  // Sync view with pathname changes
+  useEffect(() => {
+    setSelectedView(getViewFromPathname(pathname));
+  }, [pathname]);
+
+  const handleViewChange = (view: ViewType) => {
+    setSelectedView(view);
+
+    // Navigate to the appropriate route
+    const baseSlug = pathname.split("/").slice(0, 2).join("/");
+    if (view === "issues") {
+      router.push(\`\${baseSlug}/issues/1\`);
+    } else if (view === "pulls") {
+      router.push(\`\${baseSlug}/pulls/1\`);
+    } else {
+      router.push(baseSlug);
+    }
+    setOpen(true);
+  };
+
+  const navItems = [
+    { id: "code" as const, icon: Code2, label: "Code" },
+    { id: "issues" as const, icon: CircleDot, label: "Issues" },
+    { id: "pulls" as const, icon: GitPullRequest, label: "Pull Requests" },
+  ];
+
+  const renderContent = () => {
+    if (selectedView === "issues") {
+      return <RepoIssues />;
+    }
+    if (selectedView === "pulls") {
+      return <RepoPulls />;
+    }
+    return <RepoFileTree />;
+  };
+
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold">
-        Welcome to the page
-      </h1>
-    </div>
+    <Sidebar
+      collapsible="icon"
+      className="overflow-hidden *:data-[sidebar=sidebar]:flex-row"
+      {...props}
+    >
+      {/* Primary icon sidebar */}
+      <Sidebar
+        collapsible="none"
+        className="w-[calc(var(--sidebar-width-icon)+1px)]! border-r"
+      >
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupContent className="px-1.5 md:px-0">
+              <SidebarMenu>
+                {navItems.map((item) => (
+                  <SidebarMenuItem key={item.id}>
+                    <SidebarMenuButton
+                      tooltip={{
+                        children: item.label,
+                        hidden: false,
+                      }}
+                      onClick={() => handleViewChange(item.id)}
+                      isActive={selectedView === item.id}
+                      className="px-2.5 md:px-2"
+                    >
+                      <item.icon />
+                      <span>{item.label}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
+      </Sidebar>
+
+      {/* Secondary content sidebar */}
+      <Sidebar collapsible="none" className="hidden flex-1 md:flex">
+        <SidebarHeader className="border-b h-9 flex flex-row items-center justify-between">
+          <RepoSwitcher />
+          <div className="flex items-center mr-1">
+            <button
+              type="button"
+              className="text-muted-foreground hover:text-foreground p-1 transition-colors"
+            >
+              <SearchIcon className="size-4" />
+            </button>
+            <button
+              type="button"
+              className="text-muted-foreground hover:text-foreground p-1 transition-colors"
+            >
+              <DownloadIcon className="size-4" />
+            </button>
+          </div>
+        </SidebarHeader>
+        <SidebarContent>{renderContent()}</SidebarContent>
+      </Sidebar>
+    </Sidebar>
   );
-}`,
-  "utils.ts": `export function cn(...inputs: string[]) {
-  return inputs.filter(Boolean).join(' ');
-}
-
-export function formatDate(date: Date) {
-  return new Intl.DateTimeFormat('en-US').format(date);
-}`,
-  "README.md": `# Project Name
-
-This is a sample README file for the project.
-
-## Getting Started
-
-Run \`npm install\` to install dependencies.`,
-  "package.json": `{
-  "name": "gitdot-web",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build"
-  }
-}`,
-};
+}`;
 
 export function FileViewer() {
-  const [selectedLeft, setSelectedLeft] = useState("app");
-  const [selectedMiddle, setSelectedMiddle] = useState("layout.tsx");
+  const [highlightedCode, setHighlightedCode] = useState("");
 
-  const leftItems = fileStructure.root;
-  const middleItems = fileStructure[selectedLeft] || [];
-  const preview = filePreviews[selectedMiddle] || "// No preview available";
-
-  const handleLeftClick = (name: string) => {
-    setSelectedLeft(name);
-    setSelectedMiddle("");
-  };
-
-  const handleMiddleClick = (name: string) => {
-    setSelectedMiddle(name);
-  };
+  useEffect(() => {
+    async function highlight() {
+      const html = await codeToHtml(sampleCode, {
+        lang: "tsx",
+        theme: "github-light",
+      });
+      setHighlightedCode(html);
+    }
+    highlight();
+  }, []);
 
   return (
-    <div className="w-full h-full flex">
-      {/* Left column */}
-      <div className="w-48 h-full border-r overflow-auto">
-        {leftItems.map((item) => (
-          <button
-            key={item.name}
-            type="button"
-            onClick={() => handleLeftClick(item.name)}
-            className={`w-full px-3 py-1.5 text-sm text-left border-b font-mono hover:bg-accent/50 transition-colors ${
-              item.name === selectedLeft ? "bg-accent" : ""
-            }`}
-          >
-            {item.type === "folder" ? `${item.name}/` : item.name}
-          </button>
-        ))}
-      </div>
-
-      {/* Middle column */}
-      <div className="w-48 h-full border-r overflow-auto">
-        {middleItems.map((item) => (
-          <button
-            key={item.name}
-            type="button"
-            onClick={() => handleMiddleClick(item.name)}
-            className={`w-full px-3 py-1.5 text-sm text-left border-b font-mono hover:bg-accent/50 transition-colors ${
-              item.name === selectedMiddle ? "bg-accent" : ""
-            }`}
-          >
-            {item.type === "folder" ? `${item.name}/` : item.name}
-          </button>
-        ))}
-      </div>
-
-      {/* Right column - preview */}
-      <div className="flex-1 h-full p-3 overflow-auto">
-        <pre className="text-sm font-mono whitespace-pre text-muted-foreground">
-          {preview}
-        </pre>
-      </div>
+    <div className="w-full h-full overflow-auto px-2">
+      <div
+        className="text-sm"
+        // biome-ignore lint: required for shiki
+        dangerouslySetInnerHTML={{ __html: highlightedCode }}
+      />
     </div>
   );
 }

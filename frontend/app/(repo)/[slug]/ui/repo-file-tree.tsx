@@ -68,7 +68,7 @@ function Tree({ item }: { item: TreeItem }) {
     return (
       <button
         type="button"
-        className="flex items-center gap-2 w-full px-2 py-1 text-sm hover:bg-accent rounded-md transition-colors text-left"
+        className="flex items-center gap-2 w-full py-1 text-sm hover:bg-accent rounded-md transition-colors text-left"
       >
         <File className="h-4 w-4 shrink-0" />
         {name}
@@ -82,7 +82,7 @@ function Tree({ item }: { item: TreeItem }) {
         <CollapsibleTrigger asChild>
           <button
             type="button"
-            className="flex items-center gap-2 w-full px-2 py-1 text-sm hover:bg-accent rounded-md transition-colors text-left"
+            className="flex items-center gap-2 w-full px-1 py-1 text-sm hover:bg-accent rounded-md transition-colors text-left"
           >
             {isOpen ? (
               <FolderOpen className="h-4 w-4 shrink-0" />
