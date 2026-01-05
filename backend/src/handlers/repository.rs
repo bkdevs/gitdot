@@ -95,7 +95,8 @@ pub async fn get_repository_file(
         return Err(StatusCode::BAD_REQUEST);
     }
 
-    let repository = open_repository(&settings, &owner, &repo)?;
+    let repo_name = normalize_repo_name(&repo);
+    let repository = open_repository(&settings, &owner, &repo_name)?;
     let commit = resolve_ref(&repository, &query.ref_name)?;
     let commit_sha = commit.id().to_string();
     let tree = commit
