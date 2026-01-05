@@ -1,17 +1,20 @@
-#[derive(serde::Deserialize)]
+use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
+
+#[derive(Deserialize)]
 pub struct CreateRepositoryRequest {
     #[serde(default = "default_branch")]
     pub default_branch: String,
 }
 
-#[derive(serde::Serialize)]
+#[derive(Serialize)]
 pub struct CreateRepositoryResponse {
     pub owner: String,
     pub name: String,
     pub default_branch: String,
 }
 
-#[derive(serde::Deserialize)]
+#[derive(Deserialize)]
 pub struct RepositoryTreeQuery {
     #[serde(default = "default_ref")]
     pub ref_name: String,
@@ -19,7 +22,7 @@ pub struct RepositoryTreeQuery {
     pub path: String,
 }
 
-#[derive(serde::Serialize)]
+#[derive(Serialize)]
 pub struct RepositoryTree {
     pub ref_name: String,
     pub commit_sha: String,
@@ -27,7 +30,7 @@ pub struct RepositoryTree {
     pub entries: Vec<RepositoryTreeEntry>,
 }
 
-#[derive(serde::Serialize)]
+#[derive(Serialize)]
 pub struct RepositoryTreeEntry {
     pub path: String,
     pub name: String,
@@ -35,14 +38,14 @@ pub struct RepositoryTreeEntry {
     pub sha: String,
 }
 
-#[derive(serde::Deserialize)]
+#[derive(Deserialize)]
 pub struct RepositoryFileQuery {
     #[serde(default = "default_ref")]
     pub ref_name: String,
     pub path: String,
 }
 
-#[derive(serde::Serialize)]
+#[derive(Serialize)]
 pub struct RepositoryFile {
     pub ref_name: String,
     pub commit_sha: String,
@@ -52,10 +55,42 @@ pub struct RepositoryFile {
     pub encoding: String,
 }
 
+#[derive(Deserialize)]
+pub struct RepositoryCommitsQuery {
+    #[serde(default = "default_ref")]
+    pub ref_name: String,
+    #[serde(default = "default_page")]
+    pub page: u32,
+    #[serde(default = "default_per_page")]
+    pub per_page: u32,
+}
+
+#[derive(Serialize)]
+pub struct RepositoryCommits {
+    pub commits: Vec<RepositoryCommit>,
+    pub has_next: bool,
+}
+
+#[derive(Serialize)]
+pub struct RepositoryCommit {
+    pub sha: String,
+    pub message: String,
+    pub author: String,
+    pub date: DateTime<Utc>,
+}
+
 fn default_branch() -> String {
     "main".to_string()
 }
 
 fn default_ref() -> String {
     "HEAD".to_string()
+}
+
+fn default_page() -> u32 {
+    1
+}
+
+fn default_per_page() -> u32 {
+    30
 }

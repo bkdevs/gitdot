@@ -9,7 +9,9 @@ use axum::{
 };
 use config::settings::Settings;
 use handlers::git_smart_http::{git_info_refs, git_receive_pack, git_upload_pack};
-use handlers::repository::{create_repository, get_repository_file, get_repository_tree};
+use handlers::repository::{
+    create_repository, get_repository_commits, get_repository_file, get_repository_tree,
+};
 use http::StatusCode;
 use std::sync::Arc;
 use std::time::Duration;
@@ -30,7 +32,11 @@ fn create_router(settings: Arc<Settings>) -> Router {
     let repo_router = Router::new()
         .route("/repository/{owner}/{repo}", post(create_repository))
         .route("/repository/{owner}/{repo}/tree", get(get_repository_tree))
-        .route("/repository/{owner}/{repo}/file", get(get_repository_file));
+        .route("/repository/{owner}/{repo}/file", get(get_repository_file))
+        .route(
+            "/repository/{owner}/{repo}/commits",
+            get(get_repository_commits),
+        );
 
     Router::new()
         .route("/health", get(|| async { "OK" }))

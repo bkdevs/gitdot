@@ -1,7 +1,8 @@
 use crate::config::settings::Settings;
 use crate::dto::repository::{
-    CreateRepositoryRequest, CreateRepositoryResponse, RepositoryFile, RepositoryFileQuery,
-    RepositoryTree, RepositoryTreeEntry, RepositoryTreeQuery,
+    CreateRepositoryRequest, CreateRepositoryResponse, RepositoryCommit, RepositoryCommits,
+    RepositoryCommitsQuery, RepositoryFile, RepositoryFileQuery, RepositoryTree,
+    RepositoryTreeEntry, RepositoryTreeQuery,
 };
 use crate::utils::git::normalize_repo_name;
 use axum::{
@@ -9,6 +10,7 @@ use axum::{
     extract::{Path, Query, State},
     http::StatusCode,
 };
+use chrono::DateTime;
 use std::sync::Arc;
 
 pub async fn create_repository(
@@ -125,6 +127,22 @@ pub async fn get_repository_file(
     }))
 }
 
+pub async fn get_repository_commits(
+    State(settings): State<Arc<Settings>>,
+    Path((owner, repo)): Path<(String, String)>,
+    Query(query): Query<RepositoryCommitsQuery>,
+) -> Result<Json<RepositoryCommits>, StatusCode> {
+    let repo_name = normalize_repo_name(&repo);
+    let repository = open_repository(&settings, &owner, &repo_name)?;
+    let commit = resolve_ref(&repository, &query.ref_name)?;
+
+    let skip = ((query.page.saturating_sub(1)) * query.per_page) as usize;
+    let take = query.per_page as usize;
+    let (commits, has_next) = get_commits(&repository, commit, skip, take)?;
+
+    Ok(Json(RepositoryCommits { commits, has_next }))
+}
+
 fn open_repository(
     settings: &Settings,
     owner: &str,
@@ -223,4 +241,55 @@ fn walk_tree_recursive(
 
 fn is_binary(data: &[u8]) -> bool {
     data.iter().take(8000).any(|&b| b == 0)
+}
+
+fn get_commits(
+    repo: &git2::Repository,
+    start_commit: git2::Commit,
+    skip: usize,
+    take: usize,
+) -> Result<(Vec<RepositoryCommit>, bool), StatusCode> {
+    let mut revwalk = repo
+        .revwalk()
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+    revwalk
+        .push(start_commit.id())
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+    revwalk.set_sorting(git2::Sort::TIME).ok();
+
+    let commits: Result<Vec<RepositoryCommit>, StatusCode> = revwalk
+        .skip(skip)
+        .take(take + 1)
+        .map(|oid| {
+            let oid = oid.map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+            let commit = repo
+                .find_commit(oid)
+                .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+            let sha = commit.id().to_string();
+            let message = commit.message().unwrap_or("").to_string();
+            let author = commit.author();
+            let author_name = author.name().unwrap_or("Unknown").to_string();
+            let timestamp = author.when().seconds();
+            let date = DateTime::from_timestamp(timestamp, 0).unwrap_or_default();
+
+            Ok(RepositoryCommit {
+                sha,
+                message,
+                author: author_name,
+                date,
+            })
+        })
+        .collect();
+
+    let mut commits = commits?;
+    let has_next = commits.len() > take;
+
+    // hack to check if there are more commits to fetch
+    if has_next {
+        commits.pop();
+    }
+    Ok((commits, has_next))
 }
