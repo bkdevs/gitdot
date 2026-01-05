@@ -25,6 +25,7 @@ import { RepoFileTree } from "./repo-file-tree";
 import { RepoIssues } from "./repo-issues";
 import { RepoPulls } from "./repo-pulls";
 import { RepoSwitcher } from "./repo-switcher";
+import { cn } from "@/util/cn";
 
 type ViewType = "code" | "history" | "issues" | "pulls";
 
@@ -106,7 +107,7 @@ export function RepoSidebar({
             <SidebarGroupContent>
               <SidebarMenu className="gap-0">
                 {navItems.map((item) => (
-                  <SidebarMenuItem className="w-10 h-9 border-b p-0!" key={item.id}>
+                  <SidebarMenuItem className="w-9 h-9 border-b p-0!" key={item.id}>
                     <SidebarMenuButton
                       tooltip={{
                         children: item.label,
@@ -114,7 +115,10 @@ export function RepoSidebar({
                       }}
                       onClick={() => handleViewChange(item.id)}
                       isActive={selectedView === item.id}
-                      className="w-full h-full flex items-center justify-center p-0! rounded-none"
+                      className={cn(
+                        "w-full h-full flex items-center justify-center p-0! rounded-none",
+                        selectedView === item.id && "bg-primary/80! text-background!"
+                      )}
                     >
                       <item.icon />
                     </SidebarMenuButton>
