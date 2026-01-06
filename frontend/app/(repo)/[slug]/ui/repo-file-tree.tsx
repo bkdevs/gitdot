@@ -1,7 +1,9 @@
 "use client";
 
 import { File, Folder, FolderOpen } from "lucide-react";
-import { useState } from "react";
+import Link from "next/link";
+import { useMemo, useState } from "react";
+import type { RepositoryTree, RepositoryTreeEntry } from "@/lib/dto";
 import {
   Collapsible,
   CollapsibleContent,
@@ -15,64 +17,75 @@ import {
   SidebarMenuSub,
 } from "@/ui/sidebar";
 
-const data = {
-  changes: [
-    {
-      file: "README.md",
-      state: "M",
-    },
-    {
-      file: "api/hello/route.ts",
-      state: "U",
-    },
-    {
-      file: "app/layout.tsx",
-      state: "M",
-    },
-  ],
-  tree: [
-    [
-      "app",
-      [
-        "api",
-        ["hello", ["route.ts"]],
-        "page.tsx",
-        "layout.tsx",
-        ["blog", ["page.tsx"]],
-      ],
-    ],
-    [
-      "components",
-      ["ui", "button.tsx", "card.tsx"],
-      "header.tsx",
-      "footer.tsx",
-    ],
-    ["lib", ["util.ts"]],
-    ["public", "favicon.ico", "vercel.svg"],
-    ".eslintrc.json",
-    ".gitignore",
-    "next.config.js",
-    "tailwind.config.js",
-    "package.json",
-    "README.md",
-  ],
+type TreeNode = RepositoryTreeEntry & {
+  children?: TreeNode[];
 };
 
-type TreeItem = string | TreeItem[];
+function buildFileTree(entries: RepositoryTreeEntry[]): TreeNode[] {
+  const root: TreeNode[] = [];
+  const map = new Map<string, TreeNode>();
 
-function Tree({ item }: { item: TreeItem }) {
-  const [name, ...items] = Array.isArray(item) ? item : [item];
-  const [isOpen, setIsOpen] = useState(name === "components" || name === "ui");
+  entries.forEach((entry) => {
+    map.set(entry.path, { ...entry, children: [] });
+  });
 
-  if (!items.length) {
+  // 2. Build relationships
+  entries.forEach((entry) => {
+    const node = map.get(entry.path);
+    if (!node) return;
+    const parts = entry.path.split("/");
+
+    if (parts.length === 1) {
+      // If it's a root item (no slashes or just one part)
+      root.push(node);
+    } else {
+      // Find the parent folder
+      const parentPath = parts.slice(0, -1).join("/");
+      const parent = map.get(parentPath);
+
+      if (parent) {
+        parent.children?.push(node);
+      } else {
+        root.push(node);
+      }
+    }
+  });
+
+  const sortNodes = (nodes: TreeNode[]) => {
+    nodes.sort((a, b) => {
+      const aIsFolder = a.entry_type === "tree";
+      const bIsFolder = b.entry_type === "tree";
+
+      if (aIsFolder === bIsFolder) {
+        return a.name.localeCompare(b.name);
+      }
+      return aIsFolder ? -1 : 1;
+    });
+
+    nodes.forEach((node) => {
+      if (node.children) sortNodes(node.children);
+    });
+  };
+
+  sortNodes(root);
+  return root;
+}
+
+function FileTreeNode({ repo, item }: { repo: string; item: TreeNode }) {
+  const isFolder = item.entry_type === "tree";
+  const [isOpen, setIsOpen] = useState(false);
+
+  if (!isFolder) {
     return (
-      <button
-        type="button"
-        className="flex items-center gap-2 w-full py-1 text-sm hover:bg-accent rounded-md transition-colors text-left"
-      >
-        <File className="h-4 w-4 shrink-0" />
-        {name}
-      </button>
+      <SidebarMenuItem>
+        <Link
+          href={`/${repo}/${item.path}`}
+          className="flex items-center gap-2 w-full py-1 text-sm hover:bg-accent hover:text-accent-foreground rounded-md transition-colors text-left pl-2 cursor-default"
+        >
+          <File className="h-4 w-4 shrink-0 opacity-70" />
+          <span className="truncate">{item.name}</span>
+        </Link>
+      </SidebarMenuItem>
     );
   }
 
@@ -82,20 +95,20 @@ function Tree({ item }: { item: TreeItem }) {
         <CollapsibleTrigger asChild>
           <button
             type="button"
-            className="flex items-center gap-2 w-full px-1 py-1 text-sm hover:bg-accent rounded-md transition-colors text-left"
+            className="flex items-center gap-2 w-full px-1 py-1 text-sm hover:bg-accent hover:text-accent-foreground rounded-md transition-colors text-left"
           >
             {isOpen ? (
               <FolderOpen className="h-4 w-4 shrink-0" />
             ) : (
               <Folder className="h-4 w-4 shrink-0" />
             )}
-            {name}
+            <span className="font-medium truncate">{item.name}</span>
           </button>
         </CollapsibleTrigger>
         <CollapsibleContent>
-          <SidebarMenuSub>
-            {items.map((subItem) => (
-              <Tree key={String(subItem)} item={subItem} />
+          <SidebarMenuSub className="mr-0 pr-0 border-l-slate-200 ml-3.5 border-l">
+            {item.children?.map((subItem) => (
+              <FileTreeNode key={subItem.path} repo={repo} item={subItem} />
             ))}
           </SidebarMenuSub>
         </CollapsibleContent>
@@ -104,13 +117,25 @@ function Tree({ item }: { item: TreeItem }) {
   );
 }
 
-export function RepoFileTree() {
+export function RepoFileTree({
+  repo,
+  tree,
+}: {
+  repo: string;
+  tree: RepositoryTree;
+}) {
+  const treeStructure = useMemo(() => {
+    return tree?.entries ? buildFileTree(tree.entries) : [];
+  }, [tree]);
+
+  if (!tree || !tree.entries) return null;
+
   return (
     <SidebarGroup>
       <SidebarGroupContent>
         <SidebarMenu>
-          {data.tree.map((item) => (
-            <Tree key={String(item)} item={item} />
+          {treeStructure.map((item) => (
+            <FileTreeNode key={item.path} repo={repo} item={item} />
           ))}
         </SidebarMenu>
       </SidebarGroupContent>

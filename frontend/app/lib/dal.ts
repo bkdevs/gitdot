@@ -4,6 +4,9 @@ import {
   type RepositoryFile,
   type RepositoryFileQuery,
   RepositoryFileSchema,
+  type RepositoryTree,
+  type RepositoryTreeQuery,
+  RepositoryTreeSchema,
 } from "./dto";
 import { getSession } from "./supabase";
 
@@ -15,15 +18,16 @@ export async function getRepositoryFile(
   query: RepositoryFileQuery,
 ): Promise<RepositoryFile | null> {
   if (!owner || !repo || !query.path) {
-    console.error("Invalid getFile request: ", { owner, repo, query });
+    console.error("Invalid getRepositoryFile request:", {
+      owner,
+      repo,
+      query,
+    });
     return null;
   }
 
   const session = await getSession();
-  if (!session) {
-    // for now, reject unauthenticated requests
-    return null;
-  }
+  if (!session) return null;
 
   const queryParams = new URLSearchParams(query).toString();
   const response = await fetch(
@@ -32,7 +36,7 @@ export async function getRepositoryFile(
 
   if (!response.ok) {
     console.error(
-      "getFile request failed: ",
+      "wgetRepositoryFile failed:",
       response.status,
       response.statusText,
     );
@@ -40,4 +44,38 @@ export async function getRepositoryFile(
   }
 
   return RepositoryFileSchema.parse(await response.json());
+}
+
+export async function getRepositoryTree(
+  owner: string,
+  repo: string,
+  query?: RepositoryTreeQuery,
+): Promise<RepositoryTree | null> {
+  if (!owner || !repo) {
+    console.error("Invalid getRepositoryTree request: ", {
+      owner,
+      repo,
+      query,
+    });
+    return null;
+  }
+
+  const session = await getSession();
+  if (!session) return null;
+
+  const queryParams = new URLSearchParams(query).toString();
+  const response = await fetch(
+    `${API_BASE_URL}/repository/${owner}/${repo}/tree?${queryParams}`,
+  );
+
+  if (!response.ok) {
+    console.error(
+      "getRepositoryTree failed:",
+      response.status,
+      response.statusText,
+    );
+    return null;
+  }
+
+  return RepositoryTreeSchema.parse(await response.json());
 }

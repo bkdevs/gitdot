@@ -3,6 +3,7 @@
 import { CircleDot, Code2, GitPullRequest, History } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import type { RepositoryTree } from "@/lib/dto";
 import {
   Sidebar,
   SidebarContent,
@@ -32,31 +33,34 @@ function getViewFromPathname(path: string): ViewType {
 }
 
 export function RepoSidebar({
-  ...props
-}: React.ComponentProps<typeof Sidebar>) {
+  repo,
+  tree,
+}: {
+  repo: string;
+  tree: RepositoryTree;
+}) {
   const pathname = usePathname();
   const currentView = getViewFromPathname(pathname);
-  const baseSlug = pathname.split("/").slice(0, 2).join("/");
 
   const navItems = [
-    { id: "code" as const, icon: Code2, label: "Code", href: baseSlug },
+    { id: "code" as const, icon: Code2, label: "Code", href: repo },
     {
       id: "history" as const,
       icon: History,
       label: "History",
-      href: `${baseSlug}/history`,
+      href: `${repo}/history`,
     },
     {
       id: "issues" as const,
       icon: CircleDot,
       label: "Issues",
-      href: `${baseSlug}/issues/1`,
+      href: `${repo}/issues/1`,
     },
     {
       id: "pulls" as const,
       icon: GitPullRequest,
       label: "Pull Requests",
-      href: `${baseSlug}/pulls/1`,
+      href: `${repo}/pulls/1`,
     },
   ];
 
@@ -70,11 +74,11 @@ export function RepoSidebar({
     if (currentView === "history") {
       return <div className="p-4 text-muted-foreground">History view</div>;
     }
-    return <RepoFileTree />;
+    return <RepoFileTree repo={repo} tree={tree} />;
   };
 
   return (
-    <Sidebar className="overflow-hidden flex-row" {...props}>
+    <Sidebar className="overflow-hidden flex-row">
       <Sidebar
         className="border-r"
         style={{ width: `calc(${SIDEBAR_ICON_WIDTH} + 1px)` }}

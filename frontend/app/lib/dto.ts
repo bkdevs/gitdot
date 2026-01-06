@@ -19,8 +19,8 @@ export type CreateRepositoryResponse = z.infer<
 >;
 
 export const RepositoryTreeQuerySchema = z.object({
-  ref_name: z.string().default("HEAD"),
-  path: z.string().default(""),
+  ref_name: z.string().default("HEAD").optional(),
+  path: z.string().default("").optional(),
 });
 
 export type RepositoryTreeQuery = z.infer<typeof RepositoryTreeQuerySchema>;

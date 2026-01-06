@@ -6,7 +6,7 @@ import { FileViewer } from "./ui/file-viewer";
 export default async function Page({
   params,
 }: {
-  params: Promise<{ slug: string; filePath: Array<string> }>;
+  params: Promise<{ slug: string; filePath: string[] }>;
 }) {
   const { slug, filePath: filePathArray } = await params;
   const filePath = filePathArray.join("/");
