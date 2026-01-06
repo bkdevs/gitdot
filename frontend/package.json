@@ -44,6 +44,7 @@
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
     "shiki": "^3.20.0",
+    "tailwind-scrollbar": "^4.0.2",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

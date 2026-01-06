@@ -21,7 +21,7 @@ import { RepoPulls } from "./repo-pulls";
 import { RepoSwitcher } from "./repo-switcher";
 
 const SIDEBAR_ICON_WIDTH = "2.25rem";
-const SIDEBAR_CONTENT_WIDTH = "12.5rem";
+const SIDEBAR_CONTENT_WIDTH = "13rem";
 
 type ViewType = "code" | "history" | "issues" | "pulls";
 
