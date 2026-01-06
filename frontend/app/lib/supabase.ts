@@ -1,9 +1,9 @@
 import "server-only";
 
 import { createServerClient } from "@supabase/ssr";
+import type { JwtPayload } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
-import { JwtPayload } from "@supabase/supabase-js";
 
 function getSupabaseConfig() {
   const supabaseUrl = process.env.SUPABASE_URL;

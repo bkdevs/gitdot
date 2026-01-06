@@ -5,11 +5,7 @@ import * as React from "react";
 import { Input } from "@/ui/input";
 import { Separator } from "@/ui/separator";
 import { Skeleton } from "@/ui/skeleton";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/ui/tooltip";
 import { cn } from "@/util";
 
 function Sidebar({

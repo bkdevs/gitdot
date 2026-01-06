@@ -75,7 +75,7 @@ export const RepositoryCommitSchema = z.object({
   sha: z.string(),
   message: z.string(),
   author: z.string(),
-  date: z.iso.datetime()
+  date: z.iso.datetime(),
 });
 
 export type RepositoryCommit = z.infer<typeof RepositoryCommitSchema>;

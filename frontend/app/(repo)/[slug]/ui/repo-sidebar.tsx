@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  CircleDot,
-  Code2,
-  GitPullRequest,
-  History,
-} from "lucide-react";
+import { CircleDot, Code2, GitPullRequest, History } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -18,14 +13,14 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/ui/sidebar";
+import { cn } from "@/util";
 import { RepoFileTree } from "./repo-file-tree";
 import { RepoIssues } from "./repo-issues";
 import { RepoPulls } from "./repo-pulls";
 import { RepoSwitcher } from "./repo-switcher";
-import { cn } from "@/util/cn";
 
 const SIDEBAR_ICON_WIDTH = "2.25rem";
-const SIDEBAR_CONTENT_WIDTH = "12.5rem"
+const SIDEBAR_CONTENT_WIDTH = "12.5rem";
 
 type ViewType = "code" | "history" | "issues" | "pulls";
 
@@ -45,9 +40,24 @@ export function RepoSidebar({
 
   const navItems = [
     { id: "code" as const, icon: Code2, label: "Code", href: baseSlug },
-    { id: "history" as const, icon: History, label: "History", href: `${baseSlug}/history` },
-    { id: "issues" as const, icon: CircleDot, label: "Issues", href: `${baseSlug}/issues/1` },
-    { id: "pulls" as const, icon: GitPullRequest, label: "Pull Requests", href: `${baseSlug}/pulls/1` },
+    {
+      id: "history" as const,
+      icon: History,
+      label: "History",
+      href: `${baseSlug}/history`,
+    },
+    {
+      id: "issues" as const,
+      icon: CircleDot,
+      label: "Issues",
+      href: `${baseSlug}/issues/1`,
+    },
+    {
+      id: "pulls" as const,
+      icon: GitPullRequest,
+      label: "Pull Requests",
+      href: `${baseSlug}/pulls/1`,
+    },
   ];
 
   const renderContent = () => {
@@ -64,10 +74,7 @@ export function RepoSidebar({
   };
 
   return (
-    <Sidebar
-      className="overflow-hidden flex-row"
-      {...props}
-    >
+    <Sidebar className="overflow-hidden flex-row" {...props}>
       <Sidebar
         className="border-r"
         style={{ width: `calc(${SIDEBAR_ICON_WIDTH} + 1px)` }}
@@ -77,14 +84,18 @@ export function RepoSidebar({
             <SidebarGroupContent>
               <SidebarMenu className="gap-0">
                 {navItems.map((item) => (
-                  <SidebarMenuItem className="w-9 h-9 border-b p-0!" key={item.id}>
+                  <SidebarMenuItem
+                    className="w-9 h-9 border-b p-0!"
+                    key={item.id}
+                  >
                     <SidebarMenuButton
                       asChild
                       isActive={currentView === item.id}
                       tooltip={item.label}
                       className={cn(
                         "w-full h-full flex items-center justify-center p-0! rounded-none cursor-default",
-                        currentView === item.id && "bg-primary/80! text-background!"
+                        currentView === item.id &&
+                          "bg-primary/80! text-background!",
                       )}
                     >
                       <Link href={item.href}>
@@ -100,10 +111,7 @@ export function RepoSidebar({
         </SidebarContent>
       </Sidebar>
 
-      <Sidebar
-        className="border-r"
-        style={{ width: SIDEBAR_CONTENT_WIDTH }}
-      >
+      <Sidebar className="border-r" style={{ width: SIDEBAR_CONTENT_WIDTH }}>
         <SidebarHeader className="border-b h-9 flex flex-row items-center justify-between">
           <RepoSwitcher />
         </SidebarHeader>
