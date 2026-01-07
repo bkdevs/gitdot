@@ -23,7 +23,7 @@ export function FileLine({
     >
       <button
         type="button"
-        className="w-8 text-right shrink-0 pr-2 mr-1 text-primary/60 border-r select-none cursor-pointer"
+        className="w-8 text-right shrink-0 pr-2 mr-1 text-primary/60 border-r select-none outline-none cursor-pointer"
         onMouseDown={() => handleLineMouseDown(lineNumber)}
       >
         {lineNumber}

@@ -5,15 +5,18 @@ import { jsx, jsxs } from "react/jsx-runtime";
 import { codeToHast } from "shiki";
 import { getRepositoryFile } from "@/lib/dal";
 import { inferLanguage } from "@/util";
+import type { LineSelection } from "../util";
 import { FileLine } from "./file-line";
 import { FileViewerClient } from "./file-viewer-client";
 
 export async function FileViewer({
   repo,
   filePath,
+  selectedLines,
 }: {
   repo: string;
   filePath: string;
+  selectedLines: LineSelection | null;
 }) {
   const file = await getRepositoryFile("bkdevs", repo, { path: filePath });
   if (!file) {
@@ -47,7 +50,9 @@ export async function FileViewer({
 
   return (
     <div className="w-full h-full overflow-auto text-sm">
-      <FileViewerClient>{content}</FileViewerClient>
+      <FileViewerClient selectedLines={selectedLines}>
+        {content}
+      </FileViewerClient>
     </div>
   );
 }

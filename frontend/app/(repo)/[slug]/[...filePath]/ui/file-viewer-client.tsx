@@ -8,11 +8,7 @@ import {
   useState,
 } from "react";
 
-import {
-  formatLineSelection,
-  type LineSelection,
-  parseLineSelection,
-} from "../util";
+import { formatLineSelection, type LineSelection } from "../util";
 
 type FileViewerContextType = {
   isLineSelected: (lineNumber: number) => boolean;
@@ -29,32 +25,32 @@ export function useFileViewer() {
   }
   return context;
 }
-export function FileViewerClient({ children }: { children: React.ReactNode }) {
+
+export function FileViewerClient({
+  children,
+  selectedLines: initialSelectedLines,
+}: {
+  children: React.ReactNode;
+  selectedLines: LineSelection | null;
+}) {
   const [selectedLines, setSelectedLines] = useState<LineSelection | null>(
-    null,
+    initialSelectedLines,
   );
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState<number | null>(null);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const linesParam = params.get("lines");
-
-    if (linesParam) {
-      const parsed = parseLineSelection(linesParam);
-      if (parsed) {
-        setSelectedLines(parsed);
-        setTimeout(() => {
-          const element = document.querySelector(
-            `[data-line-number="${parsed.start}"]`,
-          );
-          if (element) {
-            element.scrollIntoView({ behavior: "smooth", block: "center" });
-          }
-        }, 100);
-      }
+    if (selectedLines) {
+      setTimeout(() => {
+        const element = document.querySelector(
+          `[data-line-number="${selectedLines.start}"]`,
+        );
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 100);
     }
-  }, []);
+  }, [selectedLines]);
 
   const updateUrl = useCallback((selection: LineSelection | null) => {
     const params = new URLSearchParams(window.location.search);
@@ -108,11 +104,6 @@ export function FileViewerClient({ children }: { children: React.ReactNode }) {
         setSelectedLines(null);
         setDragStart(null);
         updateUrl(null);
-
-        // Blur any focused element to prevent outline ring
-        if (document.activeElement instanceof HTMLElement) {
-          document.activeElement.blur();
-        }
       }
     };
 
