@@ -3,9 +3,9 @@ import type { JSX } from "react";
 import { Fragment } from "react";
 import { jsx, jsxs } from "react/jsx-runtime";
 import { codeToHast } from "shiki";
-import { getRepositoryFile } from "@/lib/dal";
-import { inferLanguage } from "@/util";
+import { getRepositoryCommits, getRepositoryFile } from "@/lib/dal";
 import type { LineSelection } from "../util";
+import { inferLanguage } from "../util";
 import { FileLine } from "./file-line";
 import { FileViewerClient } from "./file-viewer-client";
 
@@ -22,6 +22,9 @@ export async function FileViewer({
   if (!file) {
     return <div>File not found.</div>;
   }
+
+  const commits = await getRepositoryCommits("bkdevs", repo);
+  console.log(commits);
 
   const hast = await codeToHast(file.content, {
     lang: inferLanguage(filePath) ?? "plaintext",

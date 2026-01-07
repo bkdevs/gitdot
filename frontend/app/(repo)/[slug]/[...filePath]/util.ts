@@ -1,3 +1,5 @@
+import type { BundledLanguage } from "shiki";
+
 export type LineSelection = {
   start: number;
   end: number;
@@ -28,4 +30,102 @@ export function formatLineSelection(selection: LineSelection): string {
   return selection.start === selection.end
     ? `${selection.start}`
     : `${selection.start}-${selection.end}`;
+}
+
+export function inferLanguage(filePath: string): BundledLanguage | null {
+  console.log(filePath);
+  const extension = filePath.split(".").pop()?.toLowerCase();
+  const fileName = filePath.split("/").pop()?.toLowerCase();
+
+  if (fileName === "dockerfile") return "dockerfile";
+  if (fileName === "makefile") return "makefile";
+  if (fileName === "codeowners") return "codeowners";
+  if (fileName === ".env" || fileName?.startsWith(".env.")) return "dotenv";
+
+  const extensionMap: Record<string, BundledLanguage> = {
+    ts: "typescript",
+    tsx: "tsx",
+    js: "javascript",
+    jsx: "jsx",
+    mjs: "mjs",
+    cjs: "cjs",
+    py: "python",
+    rs: "rust",
+    go: "go",
+    java: "java",
+    c: "c",
+    cpp: "cpp",
+    cc: "cpp",
+    cxx: "cpp",
+    h: "c",
+    hpp: "cpp",
+    cs: "csharp",
+    rb: "ruby",
+    php: "php",
+    swift: "swift",
+    kt: "kotlin",
+    kts: "kts",
+    scala: "scala",
+    r: "r",
+    dart: "dart",
+    lua: "lua",
+    sql: "sql",
+    html: "html",
+    css: "css",
+    scss: "scss",
+    sass: "sass",
+    less: "less",
+    json: "json",
+    jsonc: "jsonc",
+    json5: "json5",
+    yaml: "yaml",
+    yml: "yml",
+    toml: "toml",
+    xml: "xml",
+    md: "markdown",
+    mdx: "mdx",
+    sh: "bash",
+    bash: "bash",
+    zsh: "zsh",
+    fish: "fish",
+    ps1: "powershell",
+    bat: "batch",
+    cmd: "cmd",
+    vue: "vue",
+    svelte: "svelte",
+    astro: "astro",
+    elm: "elm",
+    erl: "erlang",
+    ex: "elixir",
+    exs: "elixir",
+    fs: "fsharp",
+    hs: "haskell",
+    clj: "clojure",
+    coffee: "coffeescript",
+    nim: "nim",
+    v: "v",
+    zig: "zig",
+    graphql: "graphql",
+    gql: "graphql",
+    proto: "protobuf",
+    tf: "terraform",
+    tfvars: "tfvars",
+    hcl: "hcl",
+    dockerfile: "dockerfile",
+    tex: "latex",
+    vim: "vim",
+    asm: "asm",
+    sol: "solidity",
+    vy: "vyper",
+    move: "move",
+    cairo: "cairo",
+    prisma: "prisma",
+    adoc: "asciidoc",
+    rst: "rst",
+    diff: "diff",
+    csv: "csv",
+    tsv: "tsv",
+  };
+
+  return extension && extensionMap[extension] ? extensionMap[extension] : null;
 }
