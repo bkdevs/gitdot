@@ -43,7 +43,7 @@ export function RepoSidebar({
   const currentView = getViewFromPathname(pathname);
 
   const navItems = [
-    { id: "code" as const, icon: Code2, label: "Code", href: repo },
+    { id: "code" as const, icon: Code2, label: "Code", href: `/${repo}` },
     {
       id: "history" as const,
       icon: History,

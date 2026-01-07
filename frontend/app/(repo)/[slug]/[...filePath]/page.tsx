@@ -1,4 +1,5 @@
 import { getRepositoryCommits, getRepositoryFile } from "@/lib/dal";
+import { FileCommits } from "./ui/file-commits";
 import { FileHeader } from "./ui/file-header";
 import { FileViewer } from "./ui/file-viewer";
 import { type LineSelection, parseLineSelection } from "./util";
@@ -36,8 +37,11 @@ export default async function Page({
   return (
     <div className="flex flex-col w-full h-screen">
       <FileHeader repo={repo} file={file} commit={mostRecentCommit} />
-      <div className="flex-1 overflow-hidden">
-        <FileViewer repo={repo} file={file} selectedLines={selectedLines} />
+      <div className="flex-1 overflow-hidden flex">
+        <div className="flex-1 min-w-0">
+          <FileViewer repo={repo} file={file} selectedLines={selectedLines} />
+        </div>
+        <FileCommits commits={[mostRecentCommit]} />
       </div>
     </div>
   );

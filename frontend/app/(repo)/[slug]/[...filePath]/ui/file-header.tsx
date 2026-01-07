@@ -1,15 +1,7 @@
 "use client";
 
-import { Copy, GitBranch, History, Menu } from "lucide-react";
 import Link from "next/link";
 import type { RepositoryCommit, RepositoryFile } from "@/lib/dto";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/ui/dropdown-menu";
-import { timeAgo } from "@/util";
 
 export function FileHeader({
   repo,
@@ -35,53 +27,11 @@ export function FileHeader({
     }
   });
 
-  const handleCopyFile = () => {
-    // TODO: Implement copy file functionality
-    console.log("Copy file");
-  };
-
-  const handleOpenBlame = () => {
-    // TODO: Implement open blame functionality
-    console.log("Open blame");
-  };
-
-  const handleShowHistory = () => {
-    // TODO: Implement show history functionality
-    console.log("Show history");
-  };
-
   return (
     <div className="flex flex-row w-full h-9 items-center border-b">
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button
-            type="button"
-            className="flex w-9 border-r h-9 items-center justify-center hover:bg-accent"
-          >
-            <Menu className="size-3" />
-          </button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="start">
-          <DropdownMenuItem onClick={handleCopyFile}>
-            <Copy />
-            Copy file
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleOpenBlame}>
-            <GitBranch />
-            Open blame
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleShowHistory}>
-            <History />
-            Show history
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-      <div className="ml-1 text-sm font-mono">{pathLinks}</div>
-      <div className="ml-auto mr-3 text-sm font-mono">
-        {commit.author} • {commit.message}
-        <span className="text-muted-foreground">
-          {timeAgo(new Date(commit.date))}
-        </span>
+      <div className="flex-1 ml-2 text-sm font-mono">{pathLinks}</div>
+      <div className="border-l w-64 flex flex-row items-center h-full pl-2 text-sm">
+        History
       </div>
     </div>
   );

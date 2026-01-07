@@ -44,7 +44,7 @@ export async function FileViewer({
   }) as JSX.Element;
 
   return (
-    <div className="w-full h-full overflow-auto text-sm scrollbar-thin">
+    <div className="w-full h-full overflow-auto text-sm scrollbar-none">
       <FileViewerClient selectedLines={selectedLines}>
         {content}
       </FileViewerClient>
