@@ -1,5 +1,4 @@
 use std::env;
-use std::sync::Arc;
 
 #[derive(Debug)]
 pub struct Settings {
@@ -10,9 +9,9 @@ pub struct Settings {
 }
 
 impl Settings {
-    pub fn new() -> Result<Arc<Self>, env::VarError> {
+    pub fn new() -> Result<Self, env::VarError> {
         dotenvy::dotenv().ok();
-        Ok(Arc::new(Self {
+        Ok(Self {
             server_host: env::var("SERVER_HOST").unwrap_or_else(|_| "0.0.0.0".to_string()),
             server_port: env::var("SERVER_PORT")
                 .unwrap_or_else(|_| "8080".to_string())
@@ -21,7 +20,7 @@ impl Settings {
 
             git_project_root: env::var("GIT_PROJECT_ROOT")
                 .unwrap_or_else(|_| "/srv/git".to_string()),
-        }))
+        })
     }
 
     pub fn get_server_address(&self) -> String {

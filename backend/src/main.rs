@@ -3,18 +3,14 @@ mod dto;
 mod handlers;
 mod utils;
 
+use http::StatusCode;
+use std::sync::Arc;
+use std::time::Duration;
+
 use axum::{
     Router,
     routing::{get, post},
 };
-use config::settings::Settings;
-use handlers::git_smart_http::{git_info_refs, git_receive_pack, git_upload_pack};
-use handlers::repository::{
-    create_repository, get_repository_commits, get_repository_file, get_repository_tree,
-};
-use http::StatusCode;
-use std::sync::Arc;
-use std::time::Duration;
 use tower::ServiceBuilder;
 use tower_http::{
     cors::CorsLayer,
@@ -23,7 +19,13 @@ use tower_http::{
     trace::TraceLayer,
 };
 
-fn create_router(settings: Arc<Settings>) -> Router {
+use crate::config::{app_state::AppState, settings::Settings};
+use crate::handlers::git_smart_http::{git_info_refs, git_receive_pack, git_upload_pack};
+use crate::handlers::repository::{
+    create_repository, get_repository_commits, get_repository_file, get_repository_tree,
+};
+
+fn create_router(app_state: AppState) -> Router {
     let git_router = Router::new()
         .route("/{owner}/{repo}/info/refs", get(git_info_refs))
         .route("/{owner}/{repo}/git-upload-pack", post(git_upload_pack))
@@ -53,7 +55,7 @@ fn create_router(settings: Arc<Settings>) -> Router {
                 ))
                 .layer(PropagateRequestIdLayer::x_request_id()),
         )
-        .with_state(settings)
+        .with_state(app_state)
 }
 
 #[tokio::main]
@@ -65,11 +67,12 @@ async fn main() {
         )
         .init();
 
-    let settings = Settings::new().expect("Failed to load settings");
+    let settings = Arc::new(Settings::new().expect("Failed to load settings"));
     let address = settings.get_server_address();
+    let state = AppState::new(settings);
     tracing::info!("Starting server on {}", address);
 
-    let app = create_router(settings);
+    let app = create_router(state);
     let listener = tokio::net::TcpListener::bind(&address).await.unwrap();
     axum::serve(listener, app).await.unwrap();
 }
