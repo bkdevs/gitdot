@@ -12,13 +12,22 @@ export default async function Page({
   params: Promise<{ slug: string; filePath: string[] }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const { slug, filePath } = await params;
-  const file = await getRepositoryFile("bkdevs", slug, { path: filePath.join("/") });
+  const { slug: repo, filePath } = await params;
+
+  const file = await getRepositoryFile("bkdevs", repo, {
+    path: filePath.join("/"),
+  });
   if (!file) {
-    return <div>File not found.</div>
+    return <div>File not found.</div>;
   }
-  const commits = await getRepositoryCommits("bkdevs", slug);
-  const mostRecentCommit = commits?.commits.find(commit => commit.sha === file.commit_sha)!;
+
+  const commits = await getRepositoryCommits("bkdevs", repo);
+  const mostRecentCommit = commits?.commits.find(
+    (commit) => commit.sha === file.commit_sha,
+  );
+  if (!mostRecentCommit) {
+    return <div>Commit not found.</div>;
+  }
 
   const { lines } = await searchParams;
   const selectedLines: LineSelection | null =
@@ -26,13 +35,9 @@ export default async function Page({
 
   return (
     <div className="flex flex-col w-full h-screen">
-      <FileHeader file={file} commit={mostRecentCommit}  />
+      <FileHeader repo={repo} file={file} commit={mostRecentCommit} />
       <div className="flex-1 overflow-hidden">
-        <FileViewer
-          repo={slug}
-          file={file}
-          selectedLines={selectedLines}
-        />
+        <FileViewer repo={repo} file={file} selectedLines={selectedLines} />
       </div>
     </div>
   );
