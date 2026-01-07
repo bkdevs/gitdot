@@ -2,10 +2,11 @@ import { toJsxRuntime } from "hast-util-to-jsx-runtime";
 import type { JSX } from "react";
 import { Fragment } from "react";
 import { jsx, jsxs } from "react/jsx-runtime";
-import { codeToHast, codeToHtml, codeToTokens } from "shiki";
+import { codeToHast } from "shiki";
 import { getRepositoryFile } from "@/lib/dal";
 import { inferLanguage } from "@/util";
 import { FileLine } from "./file-line";
+import { FileViewerClient } from "./file-viewer-client";
 
 export async function FileViewer({
   repo,
@@ -24,6 +25,9 @@ export async function FileViewer({
     theme: "vitesse-light",
     transformers: [
       {
+        pre(node) {
+          this.addClassToHast(node, "outline-none");
+        },
         line(node, line) {
           node.tagName = "fileline";
           node.properties["data-line-number"] = line;
@@ -42,6 +46,8 @@ export async function FileViewer({
   }) as JSX.Element;
 
   return (
-    <div className="w-full h-full overflow-auto px-2 text-sm">{content}</div>
+    <div className="w-full h-full overflow-auto text-sm">
+      <FileViewerClient>{content}</FileViewerClient>
+    </div>
   );
 }
