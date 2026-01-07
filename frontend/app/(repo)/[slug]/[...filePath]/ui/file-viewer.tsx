@@ -1,6 +1,11 @@
-import { codeToHtml } from "shiki";
+import { toJsxRuntime } from "hast-util-to-jsx-runtime";
+import type { JSX } from "react";
+import { Fragment } from "react";
+import { jsx, jsxs } from "react/jsx-runtime";
+import { codeToHast, codeToHtml, codeToTokens } from "shiki";
 import { getRepositoryFile } from "@/lib/dal";
 import { inferLanguage } from "@/util";
+import { FileLine } from "./file-line";
 
 export async function FileViewer({
   repo,
@@ -14,21 +19,29 @@ export async function FileViewer({
     return <div>File not found.</div>;
   }
 
-  const html = await codeToHtml(file.content, {
+  const hast = await codeToHast(file.content, {
     lang: inferLanguage(filePath) ?? "plaintext",
-    themes: {
-      light: "vitesse-light",
-      dark: "vitesse-dark",
-    },
+    theme: "vitesse-light",
+    transformers: [
+      {
+        line(node, line) {
+          node.tagName = "fileline";
+          node.properties["data-line-number"] = line;
+        },
+      },
+    ],
   });
 
+  const content = toJsxRuntime(hast, {
+    Fragment,
+    jsx,
+    jsxs,
+    components: {
+      fileline: (props) => <FileLine {...props} />,
+    },
+  }) as JSX.Element;
+
   return (
-    <div className="w-full h-full overflow-auto px-2">
-      <div
-        className="text-sm"
-        // biome-ignore lint: required for shiki
-        dangerouslySetInnerHTML={{ __html: html }}
-      />
-    </div>
+    <div className="w-full h-full overflow-auto px-2 text-sm">{content}</div>
   );
 }
