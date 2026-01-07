@@ -78,49 +78,51 @@ export function RepoSidebar({
   };
 
   return (
-    <Sidebar className="overflow-hidden flex-row">
-      <Sidebar
-        className="border-r"
-        style={{ width: `calc(${SIDEBAR_ICON_WIDTH} + 1px)` }}
-      >
-        <SidebarContent>
-          <SidebarGroup className="p-0!">
-            <SidebarGroupContent>
-              <SidebarMenu className="gap-0">
-                {navItems.map((item) => (
-                  <SidebarMenuItem
-                    className="w-9 h-9 border-b p-0!"
-                    key={item.id}
-                  >
-                    <SidebarMenuButton
-                      asChild
-                      isActive={currentView === item.id}
-                      tooltip={item.label}
-                      className={cn(
-                        "w-full h-full flex items-center justify-center p-0! rounded-none cursor-default",
-                        currentView === item.id &&
-                          "bg-primary/80! text-background!",
-                      )}
+    <div className="hidden md:flex md:flex-col h-svh">
+      <Sidebar className="overflow-hidden flex-row">
+        <Sidebar
+          className="border-r"
+          style={{ width: `calc(${SIDEBAR_ICON_WIDTH} + 1px)` }}
+        >
+          <SidebarContent>
+            <SidebarGroup className="p-0!">
+              <SidebarGroupContent>
+                <SidebarMenu className="gap-0">
+                  {navItems.map((item) => (
+                    <SidebarMenuItem
+                      className="w-9 h-9 border-b p-0!"
+                      key={item.id}
                     >
-                      <Link href={item.href}>
-                        <item.icon />
-                        <span className="sr-only">{item.label}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        </SidebarContent>
-      </Sidebar>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={currentView === item.id}
+                        tooltip={item.label}
+                        className={cn(
+                          "w-full h-full flex items-center justify-center p-0! rounded-none cursor-default",
+                          currentView === item.id &&
+                            "bg-primary/80! text-background!",
+                        )}
+                      >
+                        <Link href={item.href}>
+                          <item.icon />
+                          <span className="sr-only">{item.label}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </SidebarContent>
+        </Sidebar>
 
-      <Sidebar className="border-r" style={{ width: SIDEBAR_CONTENT_WIDTH }}>
-        <SidebarHeader className="border-b h-9 flex flex-row items-center justify-between">
-          <RepoSwitcher />
-        </SidebarHeader>
-        <SidebarContent>{renderContent()}</SidebarContent>
+        <Sidebar className="border-r" style={{ width: SIDEBAR_CONTENT_WIDTH }}>
+          <SidebarHeader className="border-b h-9 flex flex-row items-center justify-between">
+            <RepoSwitcher />
+          </SidebarHeader>
+          <SidebarContent>{renderContent()}</SidebarContent>
+        </Sidebar>
       </Sidebar>
-    </Sidebar>
+    </div>
   );
 }

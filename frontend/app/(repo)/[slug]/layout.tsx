@@ -16,9 +16,9 @@ export default async function Layout({
   }
 
   return (
-    <div className="flex min-h-svh w-full">
+    <div className="flex min-h-svh w-full max-w-screen overflow-hidden">
       <RepoSidebar repo={slug} tree={tree} />
-      <main className="flex-1 w-full">{children}</main>
+      <main className="flex-1 w-full min-w-0 overflow-auto">{children}</main>
     </div>
   );
 }
