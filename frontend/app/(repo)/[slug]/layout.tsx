@@ -14,6 +14,7 @@ export default async function Layout({
   if (!tree) {
     return null;
   }
+
   return (
     <div className="flex min-h-svh w-full">
       <RepoSidebar repo={slug} tree={tree} />

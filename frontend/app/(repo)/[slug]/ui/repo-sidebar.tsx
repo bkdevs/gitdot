@@ -48,19 +48,19 @@ export function RepoSidebar({
       id: "history" as const,
       icon: History,
       label: "History",
-      href: `${repo}/history`,
+      href: `/${repo}/history`,
     },
     {
       id: "issues" as const,
       icon: CircleDot,
       label: "Issues",
-      href: `${repo}/issues/1`,
+      href: `/${repo}/issues/1`,
     },
     {
       id: "pulls" as const,
       icon: GitPullRequest,
       label: "Pull Requests",
-      href: `${repo}/pulls/1`,
+      href: `/${repo}/pulls/1`,
     },
   ];
 
