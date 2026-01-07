@@ -1,3 +1,4 @@
+import { getRepositoryCommits, getRepositoryFile } from "@/lib/dal";
 import { FileHeader } from "./ui/file-header";
 import { FileViewer } from "./ui/file-viewer";
 import { type LineSelection, parseLineSelection } from "./util";
@@ -11,8 +12,13 @@ export default async function Page({
   params: Promise<{ slug: string; filePath: string[] }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const { slug, filePath: filePathArray } = await params;
-  const filePath = filePathArray.join("/");
+  const { slug, filePath } = await params;
+  const file = await getRepositoryFile("bkdevs", slug, { path: filePath.join("/") });
+  if (!file) {
+    return <div>File not found.</div>
+  }
+  const commits = await getRepositoryCommits("bkdevs", slug);
+  const mostRecentCommit = commits?.commits.find(commit => commit.sha === file.commit_sha)!;
 
   const { lines } = await searchParams;
   const selectedLines: LineSelection | null =
@@ -20,11 +26,11 @@ export default async function Page({
 
   return (
     <div className="flex flex-col w-full h-screen">
-      <FileHeader filePath={filePath} />
+      <FileHeader file={file} commit={mostRecentCommit}  />
       <div className="flex-1 overflow-hidden">
         <FileViewer
           repo={slug}
-          filePath={filePath}
+          file={file}
           selectedLines={selectedLines}
         />
       </div>

@@ -8,26 +8,21 @@ import type { LineSelection } from "../util";
 import { inferLanguage } from "../util";
 import { FileLine } from "./file-line";
 import { FileViewerClient } from "./file-viewer-client";
+import { RepositoryFile } from "@/lib/dto";
 
 export async function FileViewer({
   repo,
-  filePath,
+  file,
   selectedLines,
 }: {
   repo: string;
-  filePath: string;
+  file: RepositoryFile;
   selectedLines: LineSelection | null;
 }) {
-  const file = await getRepositoryFile("bkdevs", repo, { path: filePath });
-  if (!file) {
-    return <div>File not found.</div>;
-  }
-
   const commits = await getRepositoryCommits("bkdevs", repo);
-  console.log(commits);
 
   const hast = await codeToHast(file.content, {
-    lang: inferLanguage(filePath) ?? "plaintext",
+    lang: inferLanguage(file.path) ?? "plaintext",
     theme: "vitesse-light",
     transformers: [
       {
