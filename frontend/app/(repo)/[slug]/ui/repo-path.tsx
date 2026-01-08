@@ -1,5 +1,8 @@
 import Link from "next/link";
 
+// the number of monspaced characters that will fit in a sidebar width of 13 rem
+const MAX_CHARACTERS = 28;
+
 export function RepoPath({
   repo,
   currentPath,
@@ -7,33 +10,75 @@ export function RepoPath({
   repo: string;
   currentPath: string;
 }) {
-  var path = "";
   const pathSegments = currentPath.split("/").slice(0, -1);
-  const pathLinks: React.ReactNode[] = [];
+  const pathLinks: React.ReactNode[] = [
+    <Link className="hover:underline" href={`/${repo}`} key="repo-root">
+      {repo}
+    </Link>,
+  ];
 
-  if (pathSegments.length === 0) {
+  let remainingCharacters = MAX_CHARACTERS - repo.length;
+  let totalChars = 0;
+  for (const segment of pathSegments) {
+    totalChars += segment.length + 1;
+  }
+
+  // truncating, reserve 3 chars for "/.."
+  if (totalChars > remainingCharacters) {
+    remainingCharacters -= 3;
+  }
+
+  let charsNeeded = 0;
+  let segmentsFit = 0;
+
+  for (let i = pathSegments.length - 1; i >= 0; i--) {
+    const segment = pathSegments[i];
+    const segmentChars = segment.length + 1;
+
+    if (charsNeeded + segmentChars > remainingCharacters) {
+      break;
+    }
+
+    charsNeeded += segmentChars;
+    segmentsFit++;
+  }
+
+  const startIndex = pathSegments.length - segmentsFit;
+
+  let truncatedPath = "";
+  for (let i = 0; i < startIndex; i++) {
+    truncatedPath += `/${pathSegments[i]}`;
+  }
+
+  if (startIndex > 0) {
+    pathLinks.push(<span key="separator-truncate">/</span>);
     pathLinks.push(
-      <Link className="hover:underline" href={`/${repo}`} key="repo-root">
-        {repo}
-      </Link>,
-    );
-  } else {
-    pathLinks.push(
-      <Link className="hover-underline" href={`/${repo}`} key="home">
-        ~
+      <Link
+        className="hover:underline"
+        href={`/${repo}${truncatedPath}`}
+        key="truncate"
+      >
+        ..
       </Link>,
     );
   }
 
-  pathSegments.forEach((segment) => {
+  let path = truncatedPath;
+
+  for (let i = startIndex; i < pathSegments.length; i++) {
+    const segment = pathSegments[i];
     path += `/${segment}`;
-    pathLinks.push(<span key={`${segment}-separator`}>/</span>);
+    pathLinks.push(<span key={`${segment}-separator-${i}`}>/</span>);
     pathLinks.push(
-      <Link className="hover:underline" href={`/${repo}${path}`} key={segment}>
+      <Link
+        className="hover:underline"
+        href={`/${repo}${path}`}
+        key={`${segment}-${i}`}
+      >
         {segment}
       </Link>,
     );
-  });
+  }
 
   return (
     <div className="flex flex-row w-full h-9 items-center border-b">
