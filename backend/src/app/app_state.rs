@@ -4,7 +4,7 @@ use axum::extract::FromRef;
 
 use super::settings::Settings;
 
-#[derive(FromRef, Clone)]
+#[derive(FromRef, Debug, Clone)]
 pub struct AppState {
     settings: Arc<Settings>,
 }
