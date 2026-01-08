@@ -1,4 +1,4 @@
-use crate::config::settings::Settings;
+use crate::app::settings::Settings;
 use crate::utils::git::normalize_repo_name;
 use axum::{
     body::Body,
