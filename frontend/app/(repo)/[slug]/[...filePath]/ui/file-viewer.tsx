@@ -18,7 +18,11 @@ export async function FileViewer({
     return <div>Failed to fetch file.</div>;
   }
 
-  const commits = await getRepositoryCommits("bkdevs", repo);
+  const commits = await getRepositoryCommits("bkdevs", repo, {
+    ref_name: "HEAD",
+    page: 1,
+    per_page: 100,
+  });
   const latestCommit = commits?.commits.find(
     (commit) => commit.sha === file.commit_sha,
   );
@@ -33,7 +37,7 @@ export async function FileViewer({
         <div className="flex-1 min-w-0">
           <FileBody file={file} selectedLines={selectedLines} />
         </div>
-        {/*<FileCommits commits={[latestCommit]} />*/}
+        <FileCommits commits={[latestCommit]} />
       </div>
     </div>
   );

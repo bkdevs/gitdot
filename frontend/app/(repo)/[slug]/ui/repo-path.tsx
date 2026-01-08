@@ -1,6 +1,7 @@
 import Link from "next/link";
 
-const MAX_CHARACTERS = 32;
+// TODO: make this actually calculate width using individual character widths
+const MAX_CHARACTERS = 30;
 
 export function RepoPath({
   repo,

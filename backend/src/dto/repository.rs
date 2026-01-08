@@ -65,6 +65,17 @@ pub struct RepositoryCommitsQuery {
     pub per_page: u32,
 }
 
+#[derive(Deserialize)]
+pub struct RepositoryFileHistoryQuery {
+    pub path: String,
+    #[serde(default = "default_ref")]
+    pub ref_name: String,
+    #[serde(default = "default_page")]
+    pub page: u32,
+    #[serde(default = "default_per_page")]
+    pub per_page: u32,
+}
+
 #[derive(Serialize)]
 pub struct RepositoryCommits {
     pub commits: Vec<RepositoryCommit>,
@@ -77,6 +88,18 @@ pub struct RepositoryCommit {
     pub message: String,
     pub author: String,
     pub date: DateTime<Utc>,
+}
+
+#[derive(Serialize)]
+pub struct RepositoryFileHistory {
+    pub history: Vec<FileHistoryEntry>,
+    pub has_next: bool,
+}
+
+#[derive(Serialize)]
+pub struct FileHistoryEntry {
+    pub file: RepositoryFile,
+    pub commit: RepositoryCommit,
 }
 
 fn default_branch() -> String {
