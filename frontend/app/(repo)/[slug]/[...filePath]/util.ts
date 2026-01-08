@@ -146,7 +146,14 @@ export function parseRepositoryTree(tree: RepositoryTree): {
     const segments = entry.path.split("/");
     const fileName = segments[segments.length - 1];
 
-    if (segments.length > 1) {
+    if (segments.length === 1) {
+      // Root-level entry - add to root folder ("")
+      if (!folders.has("")) {
+        folders.set("", []);
+      }
+      folders.get("")?.push(fileName);
+    } else if (segments.length > 1) {
+      // Nested entry - add to parent folder
       const folder = segments.slice(0, -1).join("/");
       if (!folders.has(folder)) {
         folders.set(folder, []);
@@ -178,3 +185,16 @@ export const getFolderFiles = (
     })) || []
   );
 };
+
+export function getParentPath(currentPath: string): string {
+  if (!currentPath) {
+    return "";
+  }
+
+  const segments = currentPath.split("/");
+  if (segments.length === 1) {
+    return "";
+  } else {
+    return segments.slice(0, -1).join("/");
+  }
+}

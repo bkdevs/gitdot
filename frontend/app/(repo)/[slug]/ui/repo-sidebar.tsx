@@ -15,7 +15,8 @@ import {
   SidebarMenuItem,
 } from "@/ui/sidebar";
 import { cn } from "@/util";
-import { RepoFileTree } from "./repo-file-tree";
+import { parseRepositoryTree } from "../[...filePath]/util";
+import { RepoContextFiles } from "./repo-context-files";
 import { RepoIssues } from "./repo-issues";
 import { RepoPulls } from "./repo-pulls";
 import { RepoSwitcher } from "./repo-switcher";
@@ -41,6 +42,7 @@ export function RepoSidebar({
 }) {
   const pathname = usePathname();
   const currentView = getViewFromPathname(pathname);
+  const currentPath = pathname.replace(`/${repo}`, "").replace(/^\//, "");
 
   const navItems = [
     { id: "code" as const, icon: Code2, label: "Code", href: `/${repo}` },
@@ -74,7 +76,15 @@ export function RepoSidebar({
     if (currentView === "history") {
       return <div className="p-4 text-muted-foreground">History view</div>;
     }
-    return <RepoFileTree repo={repo} tree={tree} />;
+
+    const { folders } = parseRepositoryTree(tree);
+    return (
+      <RepoContextFiles
+        repo={repo}
+        folders={folders}
+        currentPath={currentPath}
+      />
+    );
   };
 
   return (

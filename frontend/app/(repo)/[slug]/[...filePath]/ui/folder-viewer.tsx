@@ -1,6 +1,6 @@
 import { File, Folder } from "lucide-react";
 import Link from "next/link";
-import type { FolderFile } from "../util";
+import { type FolderFile } from "../util";
 import { FolderHeader } from "./folder-header";
 
 export async function FolderViewer({
@@ -12,16 +12,10 @@ export async function FolderViewer({
   folderPath: string;
   folderFiles: FolderFile[];
 }) {
-  const parentFolder = folderPath.split("/").slice(0, -1).join("/") || "/";
   return (
     <div className="flex flex-col w-full h-screen">
       <FolderHeader repo={repo} folderPath={folderPath} />
       <div className="flex-1 overflow-hidden flex flex-col">
-        <FolderFileRow
-          file={{ path: "..", type: "folder" }}
-          href={`/${repo}/${parentFolder}`}
-          showCommit={false}
-        />
         {folderFiles.map((file) => (
           <FolderFileRow
             key={file.path}
