@@ -1,18 +1,14 @@
 "use client";
 
 import { useRouter, usePathname } from "next/navigation";
-import type { FileHistoryEntry } from "@/lib/dto";
 import { timeAgo } from "@/util";
+import { RepositoryCommits } from "@/lib/dto";
 
 export function FileCommits({
-  repo,
-  filePath,
-  history,
+  commits,
   selectedCommitSha,
 }: {
-  repo: string;
-  filePath: string;
-  history: FileHistoryEntry[];
+  commits: RepositoryCommits;
   selectedCommitSha: string;
 }) {
   const router = useRouter();
@@ -21,16 +17,12 @@ export function FileCommits({
   const handleCommitClick = (sha: string) => {
     const params = new URLSearchParams(window.location.search);
 
-    // Check if clicking the currently selected commit (latest)
-    const isLatest = sha === history[0]?.commit.sha;
+    const isLatest = sha === commits.commits[0]?.sha;
 
     if (isLatest) {
-      // Remove commit param to show latest
-      params.delete("commit");
+      params.delete("ref");
     } else {
-      // Set commit param for historical view
-      params.set("commit", sha);
-      // Clear lines param when viewing historical commit
+      params.set("ref", sha.substring(0, 7));
       params.delete("lines");
     }
 
@@ -44,12 +36,12 @@ export function FileCommits({
   return (
     <div className="w-64 h-full border-l flex flex-col">
       <div className="flex-1 overflow-auto scrollbar-none">
-        {history.map((entry) => (
+        {commits.commits.map((commit) => (
           <FileCommit
-            key={entry.commit.sha}
-            commit={entry.commit}
-            isSelected={selectedCommitSha === entry.commit.sha}
-            onClick={() => handleCommitClick(entry.commit.sha)}
+            key={commit.sha}
+            commit={commit}
+            isSelected={selectedCommitSha === commit.sha.substring(0, 7)}
+            onClick={() => handleCommitClick(commit.sha)}
           />
         ))}
       </div>

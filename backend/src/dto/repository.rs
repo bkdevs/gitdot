@@ -66,7 +66,7 @@ pub struct RepositoryCommitsQuery {
 }
 
 #[derive(Deserialize)]
-pub struct RepositoryFileHistoryQuery {
+pub struct RepositoryFileCommitsQuery {
     pub path: String,
     #[serde(default = "default_ref")]
     pub ref_name: String,
@@ -88,18 +88,6 @@ pub struct RepositoryCommit {
     pub message: String,
     pub author: String,
     pub date: DateTime<Utc>,
-}
-
-#[derive(Serialize)]
-pub struct RepositoryFileHistory {
-    pub history: Vec<FileHistoryEntry>,
-    pub has_next: bool,
-}
-
-#[derive(Serialize)]
-pub struct FileHistoryEntry {
-    pub file: RepositoryFile,
-    pub commit: RepositoryCommit,
 }
 
 fn default_branch() -> String {

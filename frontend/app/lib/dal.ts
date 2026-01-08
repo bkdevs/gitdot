@@ -6,9 +6,7 @@ import {
   type RepositoryCommitsQuery,
   RepositoryCommitsSchema,
   type RepositoryFile,
-  type RepositoryFileHistory,
-  type RepositoryFileHistoryQuery,
-  RepositoryFileHistorySchema,
+  type RepositoryFileCommitsQuery,
   type RepositoryFileQuery,
   RepositoryFileSchema,
   type RepositoryTree,
@@ -121,13 +119,13 @@ export async function getRepositoryCommits(
   return RepositoryCommitsSchema.parse(await response.json());
 }
 
-export async function getRepositoryFileHistory(
+export async function getRepositoryFileCommits(
   owner: string,
   repo: string,
-  query: RepositoryFileHistoryQuery,
-): Promise<RepositoryFileHistory | null> {
+  query: RepositoryFileCommitsQuery,
+): Promise<RepositoryCommits | null> {
   if (!owner || !repo || !query.path) {
-    console.error("Invalid getRepositoryFileHistory request:", {
+    console.error("Invalid getRepositoryFileCommits request:", {
       owner,
       repo,
       query,
@@ -140,17 +138,17 @@ export async function getRepositoryFileHistory(
 
   const queryString = toQueryString(query);
   const response = await fetch(
-    `${API_BASE_URL}/repository/${owner}/${repo}/file/history?${queryString}`,
+    `${API_BASE_URL}/repository/${owner}/${repo}/file/commits?${queryString}`,
   );
 
   if (!response.ok) {
     console.error(
-      "getRepositoryFileHistory failed:",
+      "getRepositoryFileCommits failed:",
       response.status,
       response.statusText,
     );
     return null;
   }
 
-  return RepositoryFileHistorySchema.parse(await response.json());
+  return RepositoryCommitsSchema.parse(await response.json());
 }

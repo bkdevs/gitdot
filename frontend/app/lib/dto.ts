@@ -87,29 +87,13 @@ export const RepositoryCommitsSchema = z.object({
 
 export type RepositoryCommits = z.infer<typeof RepositoryCommitsSchema>;
 
-export const RepositoryFileHistoryQuerySchema = z.object({
+export const RepositoryFileCommitsQuerySchema = z.object({
   path: z.string(),
   ref_name: z.string().default("HEAD").optional(),
   page: z.number().int().positive().default(1).optional(),
   per_page: z.number().int().positive().default(30).optional(),
 });
 
-export type RepositoryFileHistoryQuery = z.infer<
-  typeof RepositoryFileHistoryQuerySchema
->;
-
-export const FileHistoryEntrySchema = z.object({
-  file: RepositoryFileSchema,
-  commit: RepositoryCommitSchema,
-});
-
-export type FileHistoryEntry = z.infer<typeof FileHistoryEntrySchema>;
-
-export const RepositoryFileHistorySchema = z.object({
-  history: z.array(FileHistoryEntrySchema),
-  has_next: z.boolean(),
-});
-
-export type RepositoryFileHistory = z.infer<
-  typeof RepositoryFileHistorySchema
+export type RepositoryFileCommitsQuery = z.infer<
+  typeof RepositoryFileCommitsQuerySchema
 >;

@@ -12,7 +12,10 @@ export default async function Page({
   searchParams,
 }: {
   params: Promise<{ slug: string; filePath: string[] }>;
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+  searchParams: Promise<{
+    lines?: string | string[];
+    ref?: string;
+  }>;
 }) {
   const { slug: repo, filePath } = await params;
   const tree = await getRepositoryTree("bkdevs", repo);
@@ -32,14 +35,13 @@ export default async function Page({
       />
     );
   } else {
-    const { lines, commit } = await searchParams;
-    const selectedCommit = typeof commit === "string" ? commit : undefined;
+    const { lines, ref } = await searchParams;
     return (
       <FileViewer
         repo={repo}
         filePath={filePathString}
         selectedLines={parseLineSelection(lines)}
-        selectedCommit={selectedCommit}
+        selectedCommit={ref}
       />
     );
   }

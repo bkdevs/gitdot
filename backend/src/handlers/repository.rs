@@ -1,9 +1,8 @@
 use crate::app::Settings;
 use crate::dto::repository::{
-    CreateRepositoryRequest, CreateRepositoryResponse, FileHistoryEntry, RepositoryCommit,
-    RepositoryCommits, RepositoryCommitsQuery, RepositoryFile, RepositoryFileHistory,
-    RepositoryFileHistoryQuery, RepositoryFileQuery, RepositoryTree, RepositoryTreeEntry,
-    RepositoryTreeQuery,
+    CreateRepositoryRequest, CreateRepositoryResponse, RepositoryCommit, RepositoryCommits,
+    RepositoryCommitsQuery, RepositoryFile, RepositoryFileCommitsQuery, RepositoryFileQuery,
+    RepositoryTree, RepositoryTreeEntry, RepositoryTreeQuery,
 };
 use crate::utils::git::normalize_repo_name;
 use axum::{
@@ -101,7 +100,7 @@ pub async fn get_repository_file(
     let repo_name = normalize_repo_name(&repo);
     let repository = open_repository(&settings, &owner, &repo_name)?;
     let commit = resolve_ref(&repository, &query.ref_name)?;
-    let commit_sha = get_latest_file_commit_sha(&repository, commit.clone(), &query.path)?;
+    let commit_sha = commit.id().to_string();
 
     let tree = commit
         .tree()
@@ -145,11 +144,11 @@ pub async fn get_repository_commits(
     Ok(Json(RepositoryCommits { commits, has_next }))
 }
 
-pub async fn get_repository_file_history(
+pub async fn get_repository_file_commits(
     State(settings): State<Arc<Settings>>,
     Path((owner, repo)): Path<(String, String)>,
-    Query(query): Query<RepositoryFileHistoryQuery>,
-) -> Result<Json<RepositoryFileHistory>, StatusCode> {
+    Query(query): Query<RepositoryFileCommitsQuery>,
+) -> Result<Json<RepositoryCommits>, StatusCode> {
     if query.path.is_empty() {
         return Err(StatusCode::BAD_REQUEST);
     }
@@ -160,16 +159,9 @@ pub async fn get_repository_file_history(
 
     let skip = ((query.page.saturating_sub(1)) * query.per_page) as usize;
     let take = query.per_page as usize;
-    let (history, has_next) = get_file_history(
-        &repository,
-        commit,
-        &query.path,
-        query.ref_name.clone(),
-        skip,
-        take,
-    )?;
+    let (commits, has_next) = get_file_commits(&repository, commit, &query.path, skip, take)?;
 
-    Ok(Json(RepositoryFileHistory { history, has_next }))
+    Ok(Json(RepositoryCommits { commits, has_next }))
 }
 
 fn open_repository(
@@ -272,105 +264,13 @@ fn is_binary(data: &[u8]) -> bool {
     data.iter().take(8000).any(|&b| b == 0)
 }
 
-fn get_latest_file_commit_sha(
+fn get_file_commits(
     repo: &git2::Repository,
     start_commit: git2::Commit,
     file_path: &str,
-) -> Result<String, StatusCode> {
-    let mut revwalk = repo
-        .revwalk()
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-
-    revwalk
-        .push(start_commit.id())
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-
-    revwalk.set_sorting(git2::Sort::TIME).ok();
-
-    let mut current_path = file_path.to_string();
-
-    for oid_result in revwalk {
-        let oid = oid_result.map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-        let commit = repo
-            .find_commit(oid)
-            .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-
-        let mut modified = false;
-
-        if commit.parent_count() == 0 {
-            let tree = commit
-                .tree()
-                .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-            if tree.get_path(std::path::Path::new(&current_path)).is_ok() {
-                modified = true;
-            }
-        } else {
-            for parent in commit.parents() {
-                let parent_tree = parent
-                    .tree()
-                    .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-                let commit_tree = commit
-                    .tree()
-                    .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-
-                let mut diff_opts = git2::DiffOptions::new();
-                diff_opts.pathspec(&current_path);
-
-                let diff = repo
-                    .diff_tree_to_tree(Some(&parent_tree), Some(&commit_tree), Some(&mut diff_opts))
-                    .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-
-                // Check if diff contains our path
-                if diff.deltas().any(|delta| {
-                    delta
-                        .new_file()
-                        .path()
-                        .and_then(|p| p.to_str())
-                        .map(|p| p == current_path)
-                        .unwrap_or(false)
-                        || delta
-                            .old_file()
-                            .path()
-                            .and_then(|p| p.to_str())
-                            .map(|p| p == current_path)
-                            .unwrap_or(false)
-                }) {
-                    modified = true;
-
-                    // Check for renames and update path for next iteration
-                    for delta in diff.deltas() {
-                        if delta.status() == git2::Delta::Renamed {
-                            if let Some(new_path) = delta.new_file().path() {
-                                if new_path.to_str() == Some(&current_path) {
-                                    if let Some(old_path) = delta.old_file().path() {
-                                        current_path = old_path.to_str().unwrap().to_string();
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    break; // Found modification, no need to check other parents
-                }
-            }
-        }
-
-        if modified {
-            return Ok(commit.id().to_string());
-        }
-    }
-
-    Err(StatusCode::NOT_FOUND)
-}
-
-fn get_file_history(
-    repo: &git2::Repository,
-    start_commit: git2::Commit,
-    file_path: &str,
-    ref_name: String,
     skip: usize,
     take: usize,
-) -> Result<(Vec<FileHistoryEntry>, bool), StatusCode> {
+) -> Result<(Vec<RepositoryCommit>, bool), StatusCode> {
     let mut revwalk = repo
         .revwalk()
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
@@ -382,7 +282,7 @@ fn get_file_history(
     revwalk.set_sorting(git2::Sort::TIME).ok();
 
     let mut current_path = file_path.to_string();
-    let mut history = Vec::new();
+    let mut commits = Vec::new();
     let mut count = 0;
 
     for oid_result in revwalk {
@@ -452,38 +352,7 @@ fn get_file_history(
         }
 
         if modified {
-            if count >= skip && history.len() < take + 1 {
-                // Get the commit tree
-                let tree = commit
-                    .tree()
-                    .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-
-                // Get the file blob at this commit
-                let blob = get_blob_at_path(repo, &tree, &current_path)?;
-                let content_bytes = blob.content();
-                let sha = blob.id().to_string();
-
-                let (content, encoding) = if is_binary(content_bytes) {
-                    use base64::prelude::*;
-                    (BASE64_STANDARD.encode(content_bytes), "base64".to_string())
-                } else {
-                    (
-                        String::from_utf8_lossy(content_bytes).to_string(),
-                        "utf-8".to_string(),
-                    )
-                };
-
-                // Create RepositoryFile
-                let repository_file = RepositoryFile {
-                    ref_name: ref_name.clone(),
-                    commit_sha: commit.id().to_string(),
-                    path: current_path.clone(),
-                    sha,
-                    content,
-                    encoding,
-                };
-
-                // Create RepositoryCommit
+            if count >= skip && commits.len() < take + 1 {
                 let commit_sha = commit.id().to_string();
                 let message = commit.message().unwrap_or("").to_string();
                 let author = commit.author();
@@ -491,33 +360,28 @@ fn get_file_history(
                 let timestamp = author.when().seconds();
                 let date = DateTime::from_timestamp(timestamp, 0).unwrap_or_default();
 
-                let repository_commit = RepositoryCommit {
+                commits.push(RepositoryCommit {
                     sha: commit_sha,
                     message,
                     author: author_name,
                     date,
-                };
-
-                history.push(FileHistoryEntry {
-                    file: repository_file,
-                    commit: repository_commit,
                 });
             }
             count += 1;
         }
 
         // Early exit when we have enough results
-        if history.len() > take {
+        if commits.len() > take {
             break;
         }
     }
 
-    let has_next = history.len() > take;
+    let has_next = commits.len() > take;
     if has_next {
-        history.pop();
+        commits.pop();
     }
 
-    Ok((history, has_next))
+    Ok((commits, has_next))
 }
 
 fn get_commits(
