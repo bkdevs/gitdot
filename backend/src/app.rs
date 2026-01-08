@@ -22,7 +22,7 @@ use tower_http::{
 
 use crate::handlers::git_smart_http::{git_info_refs, git_receive_pack, git_upload_pack};
 use crate::handlers::repository::{
-    create_repository, get_repository_commits, get_repository_file, get_repository_file_history,
+    create_repository, get_repository_commits, get_repository_file, get_repository_file_commits,
     get_repository_tree,
 };
 
@@ -74,8 +74,8 @@ pub fn create_router(app_state: AppState) -> Router {
             get(get_repository_commits),
         )
         .route(
-            "/repository/{owner}/{repo}/file/history",
-            get(get_repository_file_history),
+            "/repository/{owner}/{repo}/file/commits",
+            get(get_repository_file_commits),
         );
 
     let middleware = ServiceBuilder::new()
