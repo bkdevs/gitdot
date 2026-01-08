@@ -11,7 +11,13 @@ export function FolderHeader({
 }) {
   var path = "";
   const pathSegments = folderPath.split("/");
-  const pathLinks: React.ReactNode[] = [];
+  const pathLinks: React.ReactNode[] = [
+    <Link className="hover:underline" href={`/${repo}`} key="repo-root">
+      {repo}
+    </Link>,
+    <span key="repo-separator">/</span>,
+  ];
+
   pathSegments.forEach((segment, index) => {
     path += `/${segment}`;
     pathLinks.push(
