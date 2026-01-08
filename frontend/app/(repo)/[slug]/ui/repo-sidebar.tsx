@@ -9,7 +9,6 @@ import {
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -18,8 +17,8 @@ import { cn } from "@/util";
 import { parseRepositoryTree } from "../[...filePath]/util";
 import { RepoContextFiles } from "./repo-context-files";
 import { RepoIssues } from "./repo-issues";
+import { RepoPath } from "./repo-path";
 import { RepoPulls } from "./repo-pulls";
-import { RepoSwitcher } from "./repo-switcher";
 
 const SIDEBAR_ICON_WIDTH = "2.25rem";
 const SIDEBAR_CONTENT_WIDTH = "13rem";
@@ -43,6 +42,7 @@ export function RepoSidebar({
   const pathname = usePathname();
   const currentView = getViewFromPathname(pathname);
   const currentPath = pathname.replace(`/${repo}`, "").replace(/^\//, "");
+  const { folders } = parseRepositoryTree(tree);
 
   const navItems = [
     { id: "code" as const, icon: Code2, label: "Code", href: `/${repo}` },
@@ -75,16 +75,15 @@ export function RepoSidebar({
     }
     if (currentView === "history") {
       return <div className="p-4 text-muted-foreground">History view</div>;
+    } else {
+      return (
+        <RepoContextFiles
+          repo={repo}
+          folders={folders}
+          currentPath={currentPath}
+        />
+      );
     }
-
-    const { folders } = parseRepositoryTree(tree);
-    return (
-      <RepoContextFiles
-        repo={repo}
-        folders={folders}
-        currentPath={currentPath}
-      />
-    );
   };
 
   return (
@@ -127,9 +126,7 @@ export function RepoSidebar({
         </Sidebar>
 
         <Sidebar className="border-r" style={{ width: SIDEBAR_CONTENT_WIDTH }}>
-          <SidebarHeader className="border-b h-9 flex flex-row items-center justify-between">
-            <RepoSwitcher />
-          </SidebarHeader>
+          <RepoPath repo={repo} currentPath={currentPath} />
           <SidebarContent>{renderContent()}</SidebarContent>
         </Sidebar>
       </Sidebar>
