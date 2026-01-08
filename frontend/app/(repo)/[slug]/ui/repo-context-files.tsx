@@ -1,6 +1,6 @@
 "use client";
 
-import { File, Folder } from "lucide-react";
+import { File, Folder, FolderOpen } from "lucide-react";
 import Link from "next/link";
 import { useMemo } from "react";
 import {
@@ -21,11 +21,12 @@ function FileTreeItem({
   currentPath: string;
 }) {
   const isFolder = file.type === "folder";
-  const fullPath = file.path === ".." || file.path === "."
-    ? contextPath
-    : contextPath
-      ? `${contextPath}/${file.path}`
-      : file.path;
+  const fullPath =
+    file.path === ".." || file.path === "."
+      ? contextPath
+      : contextPath
+        ? `${contextPath}/${file.path}`
+        : file.path;
   const isActive = currentPath === fullPath;
 
   return (
@@ -33,13 +34,17 @@ function FileTreeItem({
       href={`/${repo}/${fullPath}`}
       className={`flex flex-row w-full px-2 h-9 items-center border-b select-none cursor-default text-sm font-mono ${
         isActive
-          ? "bg-primary/80 text-background"
+          ? "bg-sidebar-primary text-sidebar-primary-foreground"
           : "hover:bg-accent/50"
       }`}
       prefetch={true}
     >
       {isFolder ? (
-        <Folder className="size-4" />
+        isActive ? (
+          <FolderOpen className="size-4" />
+        ) : (
+          <Folder className="size-4" />
+        )
       ) : (
         <File className="size-4" />
       )}

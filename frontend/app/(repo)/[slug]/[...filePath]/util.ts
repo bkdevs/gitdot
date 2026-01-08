@@ -147,13 +147,11 @@ export function parseRepositoryTree(tree: RepositoryTree): {
     const fileName = segments[segments.length - 1];
 
     if (segments.length === 1) {
-      // Root-level entry - add to root folder ("")
       if (!folders.has("")) {
         folders.set("", []);
       }
       folders.get("")?.push(fileName);
     } else if (segments.length > 1) {
-      // Nested entry - add to parent folder
       const folder = segments.slice(0, -1).join("/");
       if (!folders.has(folder)) {
         folders.set(folder, []);
@@ -181,7 +179,9 @@ export const getFolderFiles = (
   return (
     files?.map((filePath) => ({
       path: filePath,
-      type: folders.has(`${folderPath}/${filePath}`) ? "folder" : "file",
+      type: folders.has(folderPath ? `${folderPath}/${filePath}` : filePath)
+        ? "folder"
+        : "file",
     })) || []
   );
 };

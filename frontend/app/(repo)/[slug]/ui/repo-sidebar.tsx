@@ -110,7 +110,7 @@ export function RepoSidebar({
                         className={cn(
                           "w-full h-full flex items-center justify-center p-0! rounded-none cursor-default",
                           currentView === item.id &&
-                            "bg-primary/80! text-background!",
+                            "bg-primary! text-background!",
                         )}
                       >
                         <Link href={item.href}>
