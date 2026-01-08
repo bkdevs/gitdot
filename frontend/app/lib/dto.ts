@@ -18,6 +18,32 @@ export type CreateRepositoryResponse = z.infer<
   typeof CreateRepositoryResponseSchema
 >;
 
+export const RepositoryCommitsQuerySchema = z.object({
+  ref_name: z.string().default("HEAD"),
+  page: z.number().int().positive().default(1),
+  per_page: z.number().int().positive().default(30),
+});
+
+export type RepositoryCommitsQuery = z.infer<
+  typeof RepositoryCommitsQuerySchema
+>;
+
+export const RepositoryCommitSchema = z.object({
+  sha: z.string(),
+  message: z.string(),
+  author: z.string(),
+  date: z.iso.datetime(),
+});
+
+export type RepositoryCommit = z.infer<typeof RepositoryCommitSchema>;
+
+export const RepositoryCommitsSchema = z.object({
+  commits: z.array(RepositoryCommitSchema),
+  has_next: z.boolean(),
+});
+
+export type RepositoryCommits = z.infer<typeof RepositoryCommitsSchema>;
+
 export const RepositoryTreeQuerySchema = z.object({
   ref_name: z.string().default("HEAD").optional(),
   path: z.string().default("").optional(),
@@ -30,6 +56,7 @@ export const RepositoryTreeEntrySchema = z.object({
   name: z.string(),
   entry_type: z.string(),
   sha: z.string(),
+  commit: RepositoryCommitSchema,
 });
 
 export type RepositoryTreeEntry = z.infer<typeof RepositoryTreeEntrySchema>;
@@ -60,32 +87,6 @@ export const RepositoryFileSchema = z.object({
 });
 
 export type RepositoryFile = z.infer<typeof RepositoryFileSchema>;
-
-export const RepositoryCommitsQuerySchema = z.object({
-  ref_name: z.string().default("HEAD"),
-  page: z.number().int().positive().default(1),
-  per_page: z.number().int().positive().default(30),
-});
-
-export type RepositoryCommitsQuery = z.infer<
-  typeof RepositoryCommitsQuerySchema
->;
-
-export const RepositoryCommitSchema = z.object({
-  sha: z.string(),
-  message: z.string(),
-  author: z.string(),
-  date: z.iso.datetime(),
-});
-
-export type RepositoryCommit = z.infer<typeof RepositoryCommitSchema>;
-
-export const RepositoryCommitsSchema = z.object({
-  commits: z.array(RepositoryCommitSchema),
-  has_next: z.boolean(),
-});
-
-export type RepositoryCommits = z.infer<typeof RepositoryCommitsSchema>;
 
 export const RepositoryFileCommitsQuerySchema = z.object({
   path: z.string(),

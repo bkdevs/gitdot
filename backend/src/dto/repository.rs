@@ -36,6 +36,7 @@ pub struct RepositoryTreeEntry {
     pub name: String,
     pub entry_type: String,
     pub sha: String,
+    pub commit: RepositoryCommit,
 }
 
 #[derive(Deserialize)]
@@ -82,7 +83,7 @@ pub struct RepositoryCommits {
     pub has_next: bool,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Clone)]
 pub struct RepositoryCommit {
     pub sha: String,
     pub message: String,

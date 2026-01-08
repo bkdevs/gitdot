@@ -11,6 +11,7 @@ use axum::{
     http::StatusCode,
 };
 use chrono::DateTime;
+use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 
 pub async fn create_repository(
@@ -78,8 +79,30 @@ pub async fn get_repository_tree(
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
     let subtree = get_tree_at_path(&repository, &tree, &query.path)?;
+    let fallback_commit = RepositoryCommit {
+        sha: commit_sha.clone(),
+        message: commit.message().unwrap_or("").to_string(),
+        author: commit.author().name().unwrap_or("Unknown").to_string(),
+        date: DateTime::from_timestamp(commit.author().when().seconds(), 0).unwrap_or_default(),
+    };
+
+    let mut path_collector = Vec::new();
+
+    // note: it may be unnecessary to iterate like this
+    collect_paths(&repository, &subtree, &query.path, &mut path_collector)?;
+    let needed_paths: HashSet<String> = path_collector.into_iter().collect();
+    let commit_map = build_path_commit_map(&repository, commit, &needed_paths)?;
+
     let mut entries = Vec::new();
-    walk_tree_recursive(&repository, &subtree, &query.path, &mut entries)?;
+    walk_tree_recursive(
+        &repository,
+        &subtree,
+        &query.path,
+        &mut entries,
+        &commit_map,
+        &fallback_commit,
+    )?;
+
     Ok(Json(RepositoryTree {
         ref_name: query.ref_name,
         commit_sha,
@@ -221,11 +244,39 @@ fn get_blob_at_path<'repo>(
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
 }
 
+fn collect_paths(
+    repo: &git2::Repository,
+    tree: &git2::Tree,
+    base_path: &str,
+    paths: &mut Vec<String>,
+) -> Result<(), StatusCode> {
+    for entry in tree.iter() {
+        let name = entry.name().unwrap_or("").to_string();
+        let entry_path = if base_path.is_empty() {
+            name.clone()
+        } else {
+            format!("{}/{}", base_path, name)
+        };
+
+        paths.push(entry_path.clone());
+
+        // Recursively collect paths from subdirectories
+        if entry.kind() == Some(git2::ObjectType::Tree) {
+            if let Ok(subtree) = repo.find_tree(entry.id()) {
+                collect_paths(repo, &subtree, &entry_path, paths)?;
+            }
+        }
+    }
+    Ok(())
+}
+
 fn walk_tree_recursive(
     repo: &git2::Repository,
     tree: &git2::Tree,
     base_path: &str,
     entries: &mut Vec<RepositoryTreeEntry>,
+    commit_map: &HashMap<String, RepositoryCommit>,
+    fallback_commit: &RepositoryCommit,
 ) -> Result<(), StatusCode> {
     for entry in tree.iter() {
         let name = entry.name().unwrap_or("").to_string();
@@ -244,16 +295,30 @@ fn walk_tree_recursive(
         .to_string();
         let sha = entry.id().to_string();
 
+        // Get commit for this path, fallback to HEAD commit if not found
+        let commit = commit_map
+            .get(&entry_path)
+            .cloned()
+            .unwrap_or_else(|| fallback_commit.clone());
+
         entries.push(RepositoryTreeEntry {
             path: entry_path.clone(),
             name,
             entry_type: entry_type.clone(),
             sha,
+            commit,
         });
 
         if entry_type == "tree" {
             if let Ok(subtree) = repo.find_tree(entry.id()) {
-                walk_tree_recursive(repo, &subtree, &entry_path, entries)?;
+                walk_tree_recursive(
+                    repo,
+                    &subtree,
+                    &entry_path,
+                    entries,
+                    commit_map,
+                    fallback_commit,
+                )?;
             }
         }
     }
@@ -382,6 +447,117 @@ fn get_file_commits(
     }
 
     Ok((commits, has_next))
+}
+
+fn build_path_commit_map(
+    repo: &git2::Repository,
+    start_commit: git2::Commit,
+    needed_paths: &HashSet<String>,
+) -> Result<HashMap<String, RepositoryCommit>, StatusCode> {
+    let mut path_commit_map = HashMap::new();
+    let mut found_paths = HashSet::new();
+
+    let mut revwalk = repo
+        .revwalk()
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+    revwalk
+        .push(start_commit.id())
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+    revwalk.set_sorting(git2::Sort::TIME).ok();
+
+    for oid_result in revwalk {
+        let oid = oid_result.map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+        let commit = repo
+            .find_commit(oid)
+            .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+        let commit_sha = commit.id().to_string();
+        let message = commit.message().unwrap_or("").to_string();
+        let author = commit.author();
+        let author_name = author.name().unwrap_or("Unknown").to_string();
+        let timestamp = author.when().seconds();
+        let date = DateTime::from_timestamp(timestamp, 0).unwrap_or_default();
+
+        let repo_commit = RepositoryCommit {
+            sha: commit_sha,
+            message,
+            author: author_name,
+            date,
+        };
+
+        // Handle initial commit (no parents)
+        if commit.parent_count() == 0 {
+            let tree = commit
+                .tree()
+                .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+            // All paths in the initial commit were created by it
+            for path in needed_paths.iter() {
+                if path_commit_map.contains_key(path) {
+                    continue;
+                }
+
+                if tree.get_path(std::path::Path::new(path)).is_ok() {
+                    path_commit_map.insert(path.clone(), repo_commit.clone());
+                    found_paths.insert(path.clone());
+                }
+            }
+        } else {
+            // Check diff against all parents
+            for parent in commit.parents() {
+                let parent_tree = parent
+                    .tree()
+                    .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+                let commit_tree = commit
+                    .tree()
+                    .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+                let diff = repo
+                    .diff_tree_to_tree(Some(&parent_tree), Some(&commit_tree), None)
+                    .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+                // Process each modified file
+                for delta in diff.deltas() {
+                    let modified_path = delta
+                        .new_file()
+                        .path()
+                        .or_else(|| delta.old_file().path())
+                        .and_then(|p| p.to_str())
+                        .map(|s| s.to_string());
+
+                    if let Some(path) = modified_path {
+                        // Add commit for this exact path if needed
+                        if needed_paths.contains(&path) && !path_commit_map.contains_key(&path) {
+                            path_commit_map.insert(path.clone(), repo_commit.clone());
+                            found_paths.insert(path.clone());
+                        }
+
+                        // Add commit for all parent folder paths
+                        let mut parent_path = path.as_str();
+                        while let Some(idx) = parent_path.rfind('/') {
+                            parent_path = &parent_path[..idx];
+                            if needed_paths.contains(parent_path)
+                                && !path_commit_map.contains_key(parent_path)
+                            {
+                                path_commit_map
+                                    .insert(parent_path.to_string(), repo_commit.clone());
+                                found_paths.insert(parent_path.to_string());
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Early exit optimization
+        if found_paths.len() == needed_paths.len() {
+            break;
+        }
+    }
+
+    Ok(path_commit_map)
 }
 
 fn get_commits(

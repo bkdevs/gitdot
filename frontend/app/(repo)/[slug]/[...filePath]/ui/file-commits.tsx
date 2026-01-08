@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { timeAgo } from "@/util";
 import { RepositoryCommits } from "@/lib/dto";
 
@@ -15,6 +15,10 @@ function FileCommit({
   href: string;
 }) {
   return (
+    // TODO: if we move this to be a client-side component and fetches we can safe on things
+    //  1: making it a single call to fetch all files (getRepositoryFiles)
+    //  2: avoid re-fetching getRepositoryFileCommits for each of the prelinks
+    // we likely need to do this at the point that we also consider movingn into more diff-based functionality and etc.
     <Link
       href={href}
       prefetch={true}
@@ -46,22 +50,21 @@ export function FileCommits({
   selectedCommitSha: string;
 }) {
   const pathname = usePathname();
+  const params = useSearchParams();
 
   const getCommitHref = (sha: string) => {
-    const params = new URLSearchParams(window.location.search);
-
     const isLatest = sha === commits.commits[0]?.sha;
+    const newParams = new URLSearchParams(params);
 
     if (isLatest) {
-      params.delete("ref");
+      newParams.delete("ref");
     } else {
-      params.set("ref", sha.substring(0, 7));
-      params.delete("lines");
+      newParams.set("ref", sha.substring(0, 7));
+      newParams.delete("lines");
     }
 
-    return params.toString()
-      ? `${pathname}?${params.toString()}`
-      : pathname;
+    const queryString = newParams.toString();
+    return queryString ? `${pathname}?${queryString}` : pathname;
   };
 
   return (
