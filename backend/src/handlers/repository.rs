@@ -1,4 +1,4 @@
-use crate::app::settings::Settings;
+use crate::app::Settings;
 use crate::dto::repository::{
     CreateRepositoryRequest, CreateRepositoryResponse, FileHistoryEntry, RepositoryCommit,
     RepositoryCommits, RepositoryCommitsQuery, RepositoryFile, RepositoryFileHistory,
