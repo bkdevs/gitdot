@@ -32,12 +32,14 @@ export default async function Page({
       />
     );
   } else {
-    const { lines } = await searchParams;
+    const { lines, commit } = await searchParams;
+    const selectedCommit = typeof commit === "string" ? commit : undefined;
     return (
       <FileViewer
         repo={repo}
         filePath={filePathString}
         selectedLines={parseLineSelection(lines)}
+        selectedCommit={selectedCommit}
       />
     );
   }

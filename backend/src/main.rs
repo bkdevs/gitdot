@@ -22,8 +22,8 @@ use tower_http::{
 use crate::config::{app_state::AppState, settings::Settings};
 use crate::handlers::git_smart_http::{git_info_refs, git_receive_pack, git_upload_pack};
 use crate::handlers::repository::{
-    create_repository, get_repository_commits, get_repository_file,
-    get_repository_file_history, get_repository_tree,
+    create_repository, get_repository_commits, get_repository_file, get_repository_file_history,
+    get_repository_tree,
 };
 
 fn create_router(app_state: AppState) -> Router {

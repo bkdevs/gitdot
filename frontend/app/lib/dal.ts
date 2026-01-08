@@ -6,6 +6,9 @@ import {
   type RepositoryCommitsQuery,
   RepositoryCommitsSchema,
   type RepositoryFile,
+  type RepositoryFileHistory,
+  type RepositoryFileHistoryQuery,
+  RepositoryFileHistorySchema,
   type RepositoryFileQuery,
   RepositoryFileSchema,
   type RepositoryTree,
@@ -116,4 +119,38 @@ export async function getRepositoryCommits(
   }
 
   return RepositoryCommitsSchema.parse(await response.json());
+}
+
+export async function getRepositoryFileHistory(
+  owner: string,
+  repo: string,
+  query: RepositoryFileHistoryQuery,
+): Promise<RepositoryFileHistory | null> {
+  if (!owner || !repo || !query.path) {
+    console.error("Invalid getRepositoryFileHistory request:", {
+      owner,
+      repo,
+      query,
+    });
+    return null;
+  }
+
+  const session = await getSession();
+  if (!session) return null;
+
+  const queryString = toQueryString(query);
+  const response = await fetch(
+    `${API_BASE_URL}/repository/${owner}/${repo}/file/history?${queryString}`,
+  );
+
+  if (!response.ok) {
+    console.error(
+      "getRepositoryFileHistory failed:",
+      response.status,
+      response.statusText,
+    );
+    return null;
+  }
+
+  return RepositoryFileHistorySchema.parse(await response.json());
 }

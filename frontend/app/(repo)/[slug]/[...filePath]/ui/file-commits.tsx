@@ -1,21 +1,55 @@
 "use client";
 
-import { useState } from "react";
-import type { RepositoryCommit } from "@/lib/dto";
+import { useRouter, usePathname } from "next/navigation";
+import type { FileHistoryEntry } from "@/lib/dto";
 import { timeAgo } from "@/util";
 
-export function FileCommits({ commits }: { commits: RepositoryCommit[] }) {
-  const [selectedSha, setSelectedSha] = useState<string | null>(null);
+export function FileCommits({
+  repo,
+  filePath,
+  history,
+  selectedCommitSha,
+}: {
+  repo: string;
+  filePath: string;
+  history: FileHistoryEntry[];
+  selectedCommitSha: string;
+}) {
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const handleCommitClick = (sha: string) => {
+    const params = new URLSearchParams(window.location.search);
+
+    // Check if clicking the currently selected commit (latest)
+    const isLatest = sha === history[0]?.commit.sha;
+
+    if (isLatest) {
+      // Remove commit param to show latest
+      params.delete("commit");
+    } else {
+      // Set commit param for historical view
+      params.set("commit", sha);
+      // Clear lines param when viewing historical commit
+      params.delete("lines");
+    }
+
+    const newUrl = params.toString()
+      ? `${pathname}?${params.toString()}`
+      : pathname;
+
+    router.push(newUrl);
+  };
 
   return (
     <div className="w-64 h-full border-l flex flex-col">
       <div className="flex-1 overflow-auto scrollbar-none">
-        {commits.map((commit) => (
+        {history.map((entry) => (
           <FileCommit
-            key={commit.sha}
-            commit={commit}
-            isSelected={selectedSha === commit.sha}
-            onClick={() => setSelectedSha(commit.sha)}
+            key={entry.commit.sha}
+            commit={entry.commit}
+            isSelected={selectedCommitSha === entry.commit.sha}
+            onClick={() => handleCommitClick(entry.commit.sha)}
           />
         ))}
       </div>
@@ -28,7 +62,7 @@ function FileCommit({
   isSelected,
   onClick,
 }: {
-  commit: RepositoryCommit;
+  commit: { sha: string; message: string; author: string; date: string };
   isSelected: boolean;
   onClick: () => void;
 }) {
