@@ -1,11 +1,12 @@
-import { getRepositoryCommits, getRepositoryFile } from "@/lib/dal";
-import { FileCommits } from "./ui/file-commits";
-import { FileHeader } from "./ui/file-header";
+import { getRepositoryTree } from "@/lib/dal";
 import { FileViewer } from "./ui/file-viewer";
-import { type LineSelection, parseLineSelection } from "./util";
+import { FolderViewer } from "./ui/folder-viewer";
+import {
+  getFolderFiles,
+  parseLineSelection,
+  parseRepositoryTree,
+} from "./util";
 
-// generateStaticParams: https://nextjs.org/docs/app/api-reference/file-conventions/dynamic-routes#with-generatestaticparams
-// if we provide a list of things here at build-time, we'll pre-generate static pages at build time.
 export default async function Page({
   params,
   searchParams,
@@ -14,35 +15,30 @@ export default async function Page({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const { slug: repo, filePath } = await params;
+  const tree = await getRepositoryTree("bkdevs", repo);
+  if (!tree) return null;
 
-  const file = await getRepositoryFile("bkdevs", repo, {
-    path: filePath.join("/"),
-  });
-  if (!file) {
+  const filePathString = filePath.join("/");
+  const { filePaths, folders } = parseRepositoryTree(tree);
+
+  if (!folders.has(filePathString) && !filePaths.has(filePathString)) {
     return <div>File not found.</div>;
+  } else if (folders.has(filePathString)) {
+    return (
+      <FolderViewer
+        repo={repo}
+        folderPath={filePathString}
+        folderFiles={getFolderFiles(filePathString, folders)}
+      />
+    );
+  } else {
+    const { lines } = await searchParams;
+    return (
+      <FileViewer
+        repo={repo}
+        filePath={filePathString}
+        selectedLines={parseLineSelection(lines)}
+      />
+    );
   }
-
-  const commits = await getRepositoryCommits("bkdevs", repo);
-  const mostRecentCommit = commits?.commits.find(
-    (commit) => commit.sha === file.commit_sha,
-  );
-  if (!mostRecentCommit) {
-    return <div>Commit not found.</div>;
-  }
-
-  const { lines } = await searchParams;
-  const selectedLines: LineSelection | null =
-    typeof lines === "string" ? parseLineSelection(lines) : null;
-
-  return (
-    <div className="flex flex-col w-full h-screen">
-      <FileHeader repo={repo} file={file} commit={mostRecentCommit} />
-      <div className="flex-1 overflow-hidden flex">
-        <div className="flex-1 min-w-0">
-          <FileViewer repo={repo} file={file} selectedLines={selectedLines} />
-        </div>
-        <FileCommits commits={[mostRecentCommit]} />
-      </div>
-    </div>
-  );
 }

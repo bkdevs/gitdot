@@ -1,12 +1,15 @@
 import type { BundledLanguage } from "shiki";
+import type { RepositoryTree } from "@/lib/dto";
 
 export type LineSelection = {
   start: number;
   end: number;
 };
 
-export function parseLineSelection(param: string): LineSelection | null {
-  if (!param) return null;
+export function parseLineSelection(
+  param: string | string[] | undefined,
+): LineSelection | null {
+  if (!param || typeof param !== "string") return null;
   if (param.includes("-")) {
     const [start, end] = param.split("-").map(Number);
     if (
@@ -129,3 +132,49 @@ export function inferLanguage(filePath: string): BundledLanguage | null {
 
   return extension && extensionMap[extension] ? extensionMap[extension] : null;
 }
+
+export function parseRepositoryTree(tree: RepositoryTree): {
+  filePaths: Set<string>;
+  folders: Map<string, string[]>;
+} {
+  const filePaths = new Set<string>();
+  const folders = new Map<string, string[]>();
+
+  for (const entry of tree.entries) {
+    filePaths.add(entry.path);
+
+    const segments = entry.path.split("/");
+    const fileName = segments[segments.length - 1];
+
+    if (segments.length > 1) {
+      const folder = segments.slice(0, -1).join("/");
+      if (!folders.has(folder)) {
+        folders.set(folder, []);
+      }
+      folders.get(folder)?.push(fileName);
+    }
+  }
+
+  for (const arr of folders.values()) {
+    arr.sort();
+  }
+  return { filePaths, folders };
+}
+
+export type FolderFile = {
+  path: string;
+  type: "file" | "folder";
+};
+
+export const getFolderFiles = (
+  folderPath: string,
+  folders: Map<string, string[]>,
+): FolderFile[] => {
+  const files = folders.get(folderPath);
+  return (
+    files?.map((filePath) => ({
+      path: filePath,
+      type: folders.has(`${folderPath}/${filePath}`) ? "folder" : "file",
+    })) || []
+  );
+};

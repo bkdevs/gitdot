@@ -1,53 +1,40 @@
-import { toJsxRuntime } from "hast-util-to-jsx-runtime";
-import type { JSX } from "react";
-import { Fragment } from "react";
-import { jsx, jsxs } from "react/jsx-runtime";
-import { codeToHast } from "shiki";
-import type { RepositoryFile } from "@/lib/dto";
+import { getRepositoryCommits, getRepositoryFile } from "@/lib/dal";
 import type { LineSelection } from "../util";
-import { inferLanguage } from "../util";
-import { FileLine } from "./file-line";
-import { FileViewerClient } from "./file-viewer-client";
+import { FileBody } from "./file-body";
+import { FileCommits } from "./file-commits";
+import { FileHeader } from "./file-header";
 
 export async function FileViewer({
   repo,
-  file,
+  filePath,
   selectedLines,
 }: {
   repo: string;
-  file: RepositoryFile;
+  filePath: string;
   selectedLines: LineSelection | null;
 }) {
-  const hast = await codeToHast(file.content, {
-    lang: inferLanguage(file.path) ?? "plaintext",
-    theme: "vitesse-light",
-    transformers: [
-      {
-        pre(node) {
-          this.addClassToHast(node, "outline-none");
-        },
-        line(node, line) {
-          node.tagName = "fileline";
-          node.properties["data-line-number"] = line;
-        },
-      },
-    ],
-  });
+  const file = await getRepositoryFile("bkdevs", repo, { path: filePath });
+  if (!file) {
+    return <div>Failed to fetch file.</div>;
+  }
 
-  const content = toJsxRuntime(hast, {
-    Fragment,
-    jsx,
-    jsxs,
-    components: {
-      fileline: (props) => <FileLine {...props} />,
-    },
-  }) as JSX.Element;
+  const commits = await getRepositoryCommits("bkdevs", repo);
+  const mostRecentCommit = commits?.commits.find(
+    (commit) => commit.sha === file.commit_sha,
+  );
+  if (!mostRecentCommit) {
+    return <div>Commit not found.</div>;
+  }
 
   return (
-    <div className="w-full h-full overflow-auto text-sm scrollbar-none">
-      <FileViewerClient selectedLines={selectedLines}>
-        {content}
-      </FileViewerClient>
+    <div className="flex flex-col w-full h-screen">
+      <FileHeader repo={repo} filePath={filePath} />
+      <div className="flex-1 overflow-hidden flex">
+        <div className="flex-1 min-w-0">
+          <FileBody file={file} selectedLines={selectedLines} />
+        </div>
+        <FileCommits commits={[mostRecentCommit]} />
+      </div>
     </div>
   );
 }
