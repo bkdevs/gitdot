@@ -125,7 +125,10 @@ export function RepoSidebar({
           </SidebarContent>
         </Sidebar>
 
-        <Sidebar className="border-r" style={{ width: SIDEBAR_CONTENT_WIDTH }}>
+        <Sidebar
+          className="border-r bg-white!"
+          style={{ width: SIDEBAR_CONTENT_WIDTH }}
+        >
           <RepoPath repo={repo} currentPath={currentPath} />
           <SidebarContent>{renderContent()}</SidebarContent>
         </Sidebar>

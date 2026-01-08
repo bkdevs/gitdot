@@ -1,7 +1,6 @@
 import Link from "next/link";
 
-// the number of monspaced characters that will fit in a sidebar width of 13 rem
-const MAX_CHARACTERS = 28;
+const MAX_CHARACTERS = 32;
 
 export function RepoPath({
   repo,
@@ -22,9 +21,8 @@ export function RepoPath({
   for (const segment of pathSegments) {
     totalChars += segment.length + 1;
   }
-
-  // truncating, reserve 3 chars for "/.."
   if (totalChars > remainingCharacters) {
+    // truncating, reserve 3 chars for "/.."
     remainingCharacters -= 3;
   }
 
@@ -34,17 +32,14 @@ export function RepoPath({
   for (let i = pathSegments.length - 1; i >= 0; i--) {
     const segment = pathSegments[i];
     const segmentChars = segment.length + 1;
-
     if (charsNeeded + segmentChars > remainingCharacters) {
       break;
     }
-
     charsNeeded += segmentChars;
     segmentsFit++;
   }
 
   const startIndex = pathSegments.length - segmentsFit;
-
   let truncatedPath = "";
   for (let i = 0; i < startIndex; i++) {
     truncatedPath += `/${pathSegments[i]}`;
@@ -64,7 +59,6 @@ export function RepoPath({
   }
 
   let path = truncatedPath;
-
   for (let i = startIndex; i < pathSegments.length; i++) {
     const segment = pathSegments[i];
     path += `/${segment}`;
@@ -82,7 +76,7 @@ export function RepoPath({
 
   return (
     <div className="flex flex-row w-full h-9 items-center border-b">
-      <div className="flex-1 ml-2 text-sm font-mono">{pathLinks}</div>
+      <div className="flex-1 ml-2 text-sm text-nowrap">{pathLinks}</div>
     </div>
   );
 }
