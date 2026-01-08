@@ -15,7 +15,12 @@ export function FileHeader({
   pathSegments.forEach((segment, index) => {
     path += `/${segment}`;
     pathLinks.push(
-      <Link className="hover:underline" href={`/${repo}${path}`} key={segment}>
+      <Link
+        className="hover:underline"
+        href={`/${repo}${path}`}
+        key={segment}
+        prefetch={true}
+      >
         {segment}
       </Link>,
     );

@@ -20,6 +20,7 @@ export async function FolderViewer({
         <FolderFileRow
           file={{ path: "..", type: "folder" }}
           href={`/${repo}/${parentFolder}`}
+          showCommit={false}
         />
         {folderFiles.map((file) => (
           <FolderFileRow
@@ -33,18 +34,35 @@ export async function FolderViewer({
   );
 }
 
-function FolderFileRow({ file, href }: { file: FolderFile; href: string }) {
+function FolderFileRow({
+  file,
+  href,
+  showCommit = true,
+}: {
+  file: FolderFile;
+  href: string;
+  showCommit?: boolean;
+}) {
   return (
     <Link
-      className="flex flex-row w-full px-2 h-9 items-center border-b hover:bg-accent/50 select-none cursor-default"
+      className="flex flex-row w-full px-2 h-9 items-center border-b hover:bg-accent/50 select-none cursor-default text-sm font-mono"
       href={href}
+      prefetch={true}
     >
       {file.type === "file" ? (
         <File className="size-4" />
       ) : (
         <Folder className="size-4" />
       )}
-      <span className="ml-2 text-sm font-mono">{file.path}</span>
+      <span className="ml-2">{file.path}</span>
+      {showCommit && (
+        <>
+          <span className="ml-auto w-96 truncate">
+            add user authentication with JWT token support
+          </span>
+          <span className="text-primary/60 ml-2">4 months ago</span>
+        </>
+      )}
     </Link>
   );
 }
