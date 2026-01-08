@@ -14,7 +14,7 @@ export async function FolderViewer({
 }) {
   return (
     <div className="flex flex-col w-full h-screen">
-      <FolderHeader folderPath={folderPath} />
+      <FolderHeader repo={repo} folderPath={folderPath} />
       <div className="flex-1 overflow-hidden flex flex-col">
         {folderFiles.map((file) => (
           <FolderFileRow

@@ -16,12 +16,12 @@ import {
 import { cn } from "@/util";
 import { parseRepositoryTree } from "../[...filePath]/util";
 import { RepoContextFiles } from "./repo-context-files";
+import { RepoHeader } from "./repo-header";
 import { RepoIssues } from "./repo-issues";
-import { RepoPath } from "./repo-path";
 import { RepoPulls } from "./repo-pulls";
 
 const SIDEBAR_ICON_WIDTH = "2.25rem";
-const SIDEBAR_CONTENT_WIDTH = "13rem";
+const SIDEBAR_CONTENT_WIDTH = "15rem";
 
 type ViewType = "code" | "history" | "issues" | "pulls";
 
@@ -126,10 +126,10 @@ export function RepoSidebar({
         </Sidebar>
 
         <Sidebar
-          className="border-r bg-white!"
+          className="border-r bg-background"
           style={{ width: SIDEBAR_CONTENT_WIDTH }}
         >
-          <RepoPath repo={repo} currentPath={currentPath} />
+          <RepoHeader repo={repo} />
           <SidebarContent>{renderContent()}</SidebarContent>
         </Sidebar>
       </Sidebar>

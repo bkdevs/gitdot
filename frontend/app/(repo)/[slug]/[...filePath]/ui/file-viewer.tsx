@@ -32,7 +32,7 @@ export async function FileViewer({
 
   return (
     <div className="flex flex-col w-full h-screen">
-      <FileHeader filePath={file.path} latestCommit={latestCommit} />
+      <FileHeader repo={repo} filePath={file.path} />
       <div className="flex-1 overflow-hidden flex">
         <div className="flex-1 min-w-0">
           <FileBody file={file} selectedLines={selectedLines} />
