@@ -15,7 +15,6 @@ export async function FileViewer({
   selectedLines: LineSelection | null;
   selectedCommit?: string;
 }) {
-  // Fetch file history
   const fileHistory = await getRepositoryFileHistory("bkdevs", repo, {
     path: filePath,
     ref_name: "HEAD",

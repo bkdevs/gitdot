@@ -35,11 +35,11 @@ fn create_router(app_state: AppState) -> Router {
     let repo_router = Router::new()
         .route("/repository/{owner}/{repo}", post(create_repository))
         .route("/repository/{owner}/{repo}/tree", get(get_repository_tree))
-        .route("/repository/{owner}/{repo}/file", get(get_repository_file))
         .route(
             "/repository/{owner}/{repo}/commits",
             get(get_repository_commits),
         )
+        .route("/repository/{owner}/{repo}/file", get(get_repository_file))
         .route(
             "/repository/{owner}/{repo}/file/history",
             get(get_repository_file_history),

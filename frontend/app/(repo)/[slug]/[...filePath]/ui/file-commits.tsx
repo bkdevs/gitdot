@@ -70,7 +70,7 @@ function FileCommit({
     <button
       type="button"
       className={`flex w-full border-b hover:bg-accent/50 select-none py-2 px-2 text-left ${
-        isSelected ? "bg-accent" : ""
+        isSelected ? "bg-sidebar" : ""
       }`}
       onClick={onClick}
     >

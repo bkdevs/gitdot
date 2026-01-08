@@ -32,10 +32,8 @@ function FileTreeItem({
   return (
     <Link
       href={`/${repo}/${fullPath}`}
-      className={`flex flex-row w-full px-2 h-9 items-center border-b select-none cursor-default text-sm ${
-        isActive
-          ? "bg-sidebar text-sidebar-primary-foreground"
-          : "hover:bg-accent/50"
+      className={`flex flex-row w-full px-2 h-9 items-center border-b select-none cursor-default text-sm hover:bg-accent/50 ${
+        isActive && "bg-sidebar"
       }`}
       prefetch={true}
     >
