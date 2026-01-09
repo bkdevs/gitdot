@@ -1,5 +1,7 @@
 mod app_state;
 mod bootstrap;
+mod error;
+mod response;
 mod settings;
 
 use http::StatusCode;
@@ -29,6 +31,8 @@ use crate::handlers::repository::{
 use bootstrap::bootstrap;
 
 pub use app_state::AppState;
+pub use error::{AppError, AppErrorMessage};
+pub use response::AppResponse;
 pub use settings::Settings;
 
 pub struct GitdotServer {
