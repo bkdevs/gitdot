@@ -50,7 +50,7 @@ function FolderEntryRow({
       <span className="ml-2">{entry.path.split("/").pop()}</span>
       <span className="ml-auto w-96 truncate">{entry.commit.message}</span>
       <span className="text-primary/60 ml-2">
-        {timeAgo(new Date(entry.commit.date))}
+        {entry.commit.author} • {timeAgo(new Date(entry.commit.date))}
       </span>
     </Link>
   );
