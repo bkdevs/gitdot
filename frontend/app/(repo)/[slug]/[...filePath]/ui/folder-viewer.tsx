@@ -1,6 +1,7 @@
 import { File, Folder } from "lucide-react";
 import Link from "next/link";
 import type { RepositoryTreeEntry } from "@/lib/dto";
+import { timeAgo } from "@/util";
 import { FolderHeader } from "./folder-header";
 
 export async function FolderViewer({
@@ -31,11 +32,9 @@ export async function FolderViewer({
 function FolderEntryRow({
   entry,
   href,
-  showCommit = true,
 }: {
   entry: RepositoryTreeEntry;
   href: string;
-  showCommit?: boolean;
 }) {
   return (
     <Link
@@ -49,14 +48,10 @@ function FolderEntryRow({
         <Folder className="size-4" />
       )}
       <span className="ml-2">{entry.path.split("/").pop()}</span>
-      {showCommit && (
-        <>
-          <span className="ml-auto w-96 truncate">
-            add user authentication with JWT token support
-          </span>
-          <span className="text-primary/60 ml-2">4 months ago</span>
-        </>
-      )}
+      <span className="ml-auto w-96 truncate">{entry.commit.message}</span>
+      <span className="text-primary/60 ml-2">
+        {timeAgo(new Date(entry.commit.date))}
+      </span>
     </Link>
   );
 }
