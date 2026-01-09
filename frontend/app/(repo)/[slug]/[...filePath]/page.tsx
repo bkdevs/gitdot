@@ -2,7 +2,7 @@ import { getRepositoryTree } from "@/lib/dal";
 import { FileViewer } from "./ui/file-viewer";
 import { FolderViewer } from "./ui/folder-viewer";
 import {
-  getFolderFiles,
+  getFolderEntries,
   parseLineSelection,
   parseRepositoryTree,
 } from "./util";
@@ -19,20 +19,19 @@ export default async function Page({
 }) {
   const { slug: repo, filePath } = await params;
   const tree = await getRepositoryTree("bkdevs", repo);
-  console.log(tree);
   if (!tree) return null;
 
   const filePathString = filePath.join("/");
-  const { filePaths, folders } = parseRepositoryTree(tree);
+  const { entries, folders } = parseRepositoryTree(tree);
 
-  if (!folders.has(filePathString) && !filePaths.has(filePathString)) {
+  if (!entries.has(filePathString)) {
     return <div>File not found.</div>;
   } else if (folders.has(filePathString)) {
     return (
       <FolderViewer
         repo={repo}
         folderPath={filePathString}
-        folderFiles={getFolderFiles(filePathString, folders)}
+        folderEntries={getFolderEntries(filePathString, folders, entries)}
       />
     );
   } else {

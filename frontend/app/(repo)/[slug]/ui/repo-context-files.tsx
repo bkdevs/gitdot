@@ -3,35 +3,23 @@
 import { File, Folder, FolderOpen } from "lucide-react";
 import Link from "next/link";
 import { useMemo } from "react";
-import {
-  type FolderFile,
-  getFolderFiles,
-  getParentPath,
-} from "../[...filePath]/util";
+import type { RepositoryTreeEntry } from "@/lib/dto";
+import { getFolderEntries, getParentPath } from "../[...filePath]/util";
 
 function FileTreeItem({
-  repo,
-  file,
-  contextPath,
-  currentPath,
+  filePath,
+  href,
+  isFolder,
+  isActive,
 }: {
-  repo: string;
-  file: FolderFile;
-  contextPath: string;
-  currentPath: string;
+  filePath: string;
+  href: string;
+  isFolder: boolean;
+  isActive: boolean;
 }) {
-  const isFolder = file.type === "folder";
-  const fullPath =
-    file.path === ".." || file.path === "."
-      ? contextPath
-      : contextPath
-        ? `${contextPath}/${file.path}`
-        : file.path;
-  const isActive = currentPath === fullPath;
-
   return (
     <Link
-      href={`/${repo}/${fullPath}`}
+      href={href}
       className={`flex flex-row w-full px-2 h-9 items-center border-b select-none cursor-default text-sm hover:bg-accent/50 ${
         isActive && "bg-sidebar"
       }`}
@@ -46,7 +34,7 @@ function FileTreeItem({
       ) : (
         <File className="size-4" />
       )}
-      <span className="ml-2">{file.path}</span>
+      <span className="ml-2">{filePath}</span>
     </Link>
   );
 }
@@ -54,23 +42,25 @@ function FileTreeItem({
 export function RepoContextFiles({
   repo,
   folders,
+  entries,
   currentPath,
 }: {
   repo: string;
   folders: Map<string, string[]>;
+  entries: Map<string, RepositoryTreeEntry>;
   currentPath: string;
 }) {
   const contextFiles = useMemo(() => {
     const parentPath = getParentPath(currentPath);
 
-    const files = getFolderFiles(parentPath, folders);
+    const files = getFolderEntries(parentPath, folders, entries);
     return files.sort((a, b) => {
-      if (a.type === b.type) {
+      if (a.entry_type === b.entry_type) {
         return a.path.localeCompare(b.path);
       }
-      return a.type === "folder" ? -1 : 1;
+      return a.entry_type === "tree" ? -1 : 1;
     });
-  }, [folders, currentPath]);
+  }, [folders, entries, currentPath]);
 
   const parentPath = getParentPath(currentPath);
 
@@ -81,21 +71,27 @@ export function RepoContextFiles({
       {parentPath && (
         <FileTreeItem
           key=".."
-          repo={repo}
-          file={{ path: "..", type: "folder" }}
-          contextPath={parentPath}
-          currentPath={currentPath}
+          filePath={".."}
+          href={`/${repo}/${parentPath}`}
+          isFolder={true}
+          isActive={false}
         />
       )}
-      {contextFiles.map((file) => (
-        <FileTreeItem
-          key={file.path}
-          repo={repo}
-          file={file}
-          contextPath={parentPath}
-          currentPath={currentPath}
-        />
-      ))}
+      {contextFiles.map((file) => {
+        const filePath = file.path.split("/").pop();
+        if (!filePath) return null;
+        const fullPath = parentPath ? `${parentPath}/${filePath}` : filePath; // account for root files
+
+        return (
+          <FileTreeItem
+            key={file.path}
+            filePath={filePath}
+            href={`/${repo}/${parentPath}/${filePath}`}
+            isFolder={file.entry_type === "tree"}
+            isActive={currentPath === fullPath}
+          />
+        );
+      })}
     </div>
   );
 }

@@ -1,26 +1,26 @@
 import { File, Folder } from "lucide-react";
 import Link from "next/link";
-import type { FolderFile } from "../util";
+import type { RepositoryTreeEntry } from "@/lib/dto";
 import { FolderHeader } from "./folder-header";
 
 export async function FolderViewer({
   repo,
   folderPath,
-  folderFiles,
+  folderEntries,
 }: {
   repo: string;
   folderPath: string;
-  folderFiles: FolderFile[];
+  folderEntries: RepositoryTreeEntry[];
 }) {
   return (
     <div className="flex flex-col w-full h-screen">
       <FolderHeader repo={repo} folderPath={folderPath} />
       <div className="flex-1 overflow-hidden flex flex-col">
-        {folderFiles.map((file) => (
-          <FolderFileRow
-            key={file.path}
-            file={file}
-            href={`/${repo}/${folderPath}/${file.path}`}
+        {folderEntries.map((entry) => (
+          <FolderEntryRow
+            key={entry.path}
+            entry={entry}
+            href={`/${repo}/${entry.path}`}
           />
         ))}
       </div>
@@ -28,12 +28,12 @@ export async function FolderViewer({
   );
 }
 
-function FolderFileRow({
-  file,
+function FolderEntryRow({
+  entry,
   href,
   showCommit = true,
 }: {
-  file: FolderFile;
+  entry: RepositoryTreeEntry;
   href: string;
   showCommit?: boolean;
 }) {
@@ -43,12 +43,12 @@ function FolderFileRow({
       href={href}
       prefetch={true}
     >
-      {file.type === "file" ? (
+      {entry.entry_type === "blob" ? (
         <File className="size-4" />
       ) : (
         <Folder className="size-4" />
       )}
-      <span className="ml-2">{file.path}</span>
+      <span className="ml-2">{entry.path.split("/").pop()}</span>
       {showCommit && (
         <>
           <span className="ml-auto w-96 truncate">

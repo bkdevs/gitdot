@@ -1,5 +1,5 @@
 import type { BundledLanguage } from "shiki";
-import type { RepositoryTree } from "@/lib/dto";
+import type { RepositoryTree, RepositoryTreeEntry } from "@/lib/dto";
 
 export type LineSelection = {
   start: number;
@@ -36,7 +36,6 @@ export function formatLineSelection(selection: LineSelection): string {
 }
 
 export function inferLanguage(filePath: string): BundledLanguage | null {
-  console.log(filePath);
   const extension = filePath.split(".").pop()?.toLowerCase();
   const fileName = filePath.split("/").pop()?.toLowerCase();
 
@@ -134,14 +133,14 @@ export function inferLanguage(filePath: string): BundledLanguage | null {
 }
 
 export function parseRepositoryTree(tree: RepositoryTree): {
-  filePaths: Set<string>;
+  entries: Map<string, RepositoryTreeEntry>;
   folders: Map<string, string[]>;
 } {
-  const filePaths = new Set<string>();
+  const entries = new Map<string, RepositoryTreeEntry>();
   const folders = new Map<string, string[]>();
 
   for (const entry of tree.entries) {
-    filePaths.add(entry.path);
+    entries.set(entry.path, entry);
 
     const segments = entry.path.split("/");
     const fileName = segments[segments.length - 1];
@@ -163,7 +162,7 @@ export function parseRepositoryTree(tree: RepositoryTree): {
   for (const arr of folders.values()) {
     arr.sort();
   }
-  return { filePaths, folders };
+  return { entries, folders };
 }
 
 export type FolderFile = {
@@ -171,19 +170,18 @@ export type FolderFile = {
   type: "file" | "folder";
 };
 
-export const getFolderFiles = (
+export const getFolderEntries = (
   folderPath: string,
   folders: Map<string, string[]>,
-): FolderFile[] => {
+  entries: Map<string, RepositoryTreeEntry>,
+): RepositoryTreeEntry[] => {
   const files = folders.get(folderPath);
-  return (
-    files?.map((filePath) => ({
-      path: filePath,
-      type: folders.has(folderPath ? `${folderPath}/${filePath}` : filePath)
-        ? "folder"
-        : "file",
-    })) || []
-  );
+  if (!files) return [];
+  return files
+    .map((fileName) =>
+      entries.get(folderPath ? `${folderPath}/${fileName}` : fileName),
+    )
+    .filter((entry): entry is RepositoryTreeEntry => entry !== undefined);
 };
 
 export function getParentPath(currentPath: string): string {

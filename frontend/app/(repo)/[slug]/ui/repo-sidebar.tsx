@@ -42,7 +42,7 @@ export function RepoSidebar({
   const pathname = usePathname();
   const currentView = getViewFromPathname(pathname);
   const currentPath = pathname.replace(`/${repo}`, "").replace(/^\//, "");
-  const { folders } = parseRepositoryTree(tree);
+  const { folders, entries } = parseRepositoryTree(tree);
 
   const navItems = [
     { id: "code" as const, icon: Code2, label: "Code", href: `/${repo}` },
@@ -80,6 +80,7 @@ export function RepoSidebar({
         <RepoContextFiles
           repo={repo}
           folders={folders}
+          entries={entries}
           currentPath={currentPath}
         />
       );
