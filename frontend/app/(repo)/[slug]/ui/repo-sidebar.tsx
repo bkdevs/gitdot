@@ -3,7 +3,7 @@
 import { CircleDot, Code2, GitPullRequest, History } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { RepositoryTree } from "@/lib/dto";
+import type { RepositoryTree, RepositoryTreeEntry } from "@/lib/dto";
 import {
   Sidebar,
   SidebarContent,
@@ -34,15 +34,16 @@ function getViewFromPathname(path: string): ViewType {
 
 export function RepoSidebar({
   repo,
-  tree,
+  folders,
+  entries,
 }: {
   repo: string;
-  tree: RepositoryTree;
+  folders: Map<string, string[]>;
+  entries: Map<string, RepositoryTreeEntry>;
 }) {
   const pathname = usePathname();
   const currentView = getViewFromPathname(pathname);
   const currentPath = pathname.replace(`/${repo}`, "").replace(/^\//, "");
-  const { folders, entries } = parseRepositoryTree(tree);
 
   const navItems = [
     { id: "code" as const, icon: Code2, label: "Code", href: `/${repo}` },
