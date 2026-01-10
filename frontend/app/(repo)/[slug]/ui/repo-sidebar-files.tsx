@@ -39,7 +39,7 @@ function FileTreeItem({
   );
 }
 
-export function RepoContextFiles({
+export function RepoSidebarFiles({
   repo,
   folders,
   entries,

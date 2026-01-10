@@ -24,7 +24,7 @@ const EXAMPLE_ISSUES = [
   { id: 12, title: "Improve error handling" },
 ];
 
-export function RepoIssues() {
+export function RepoSidebarIssues() {
   const params = useParams();
   const slug = params.slug as string;
 

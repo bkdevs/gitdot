@@ -15,10 +15,10 @@ import {
 } from "@/ui/sidebar";
 import { cn } from "@/util";
 import { parseRepositoryTree } from "../[...filePath]/util";
-import { RepoContextFiles } from "./repo-context-files";
-import { RepoHeader } from "./repo-header";
-import { RepoIssues } from "./repo-issues";
-import { RepoPulls } from "./repo-pulls";
+import { RepoSidebarFiles } from "./repo-sidebar-files";
+import { RepoSidebarHeader } from "./repo-sidebar-header";
+import { RepoSidebarIssues } from "./repo-sidebar-issues";
+import { RepoSidebarPulls } from "./repo-sidebar-pulls";
 
 const SIDEBAR_ICON_WIDTH = "2.25rem";
 const SIDEBAR_CONTENT_WIDTH = "15rem";
@@ -68,16 +68,16 @@ export function RepoSidebar({
 
   const renderContent = () => {
     if (currentView === "issues") {
-      return <RepoIssues />;
+      return <RepoSidebarIssues />;
     }
     if (currentView === "pulls") {
-      return <RepoPulls />;
+      return <RepoSidebarPulls />;
     }
     if (currentView === "history") {
       return <div className="p-4 text-muted-foreground">History view</div>;
     } else {
       return (
-        <RepoContextFiles
+        <RepoSidebarFiles
           repo={repo}
           folders={folders}
           entries={entries}
@@ -130,7 +130,7 @@ export function RepoSidebar({
           className="border-r bg-background"
           style={{ width: SIDEBAR_CONTENT_WIDTH }}
         >
-          <RepoHeader repo={repo} />
+          <RepoSidebarHeader repo={repo} />
           <SidebarContent>{renderContent()}</SidebarContent>
         </Sidebar>
       </Sidebar>

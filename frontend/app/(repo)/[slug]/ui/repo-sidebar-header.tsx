@@ -3,7 +3,7 @@
 import { ChevronDown, GitBranch } from "lucide-react";
 import { useState } from "react";
 
-export function RepoHeader({ repo }: { repo: string }) {
+export function RepoSidebarHeader({ repo }: { repo: string }) {
   const [isOpen, setIsOpen] = useState(false);
   const [currentBranch, setCurrentBranch] = useState("main");
 
@@ -29,6 +29,7 @@ export function RepoHeader({ repo }: { repo: string }) {
             <div className="py-1">
               {branches.map((branch) => (
                 <button
+                  type="submit"
                   key={branch}
                   onClick={() => {
                     setCurrentBranch(branch);

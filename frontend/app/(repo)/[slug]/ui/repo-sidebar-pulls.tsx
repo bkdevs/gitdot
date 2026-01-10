@@ -24,7 +24,7 @@ const EXAMPLE_PULLS = [
   { id: 12, title: "feat: Add user notifications" },
 ];
 
-export function RepoPulls() {
+export function RepoSidebarPulls() {
   const params = useParams();
   const slug = params.slug as string;
 
