@@ -26,20 +26,20 @@ export function getMockPreview(entry: RepositoryTreeEntry): string {
   const ext = entry.path.split(".").pop() || "";
 
   if (ext === "yaml" || ext === "yml") {
-    return `# ${entry.name}\n\npackages:\n  - example\n\ndependencies:\n  - typescript: ^5.0.0\n  - react: ^19.0.0`;
+    return `# \n\npackages:\n  - example\n\ndependencies:\n  - typescript: ^5.0.0\n  - react: ^19.0.0`;
   }
 
   if (ext === "json") {
-    return `{\n  "name": "${entry.name}",\n  "version": "1.0.0",\n  "description": "Mock preview"\n}`;
+    return `{\n  "name": "",\n  "version": "1.0.0",\n  "description": "Mock preview"\n}`;
   }
 
   if (ext === "ts" || ext === "tsx" || ext === "js" || ext === "jsx") {
-    return `// ${entry.name}\n\nexport default function Component() {\n  return <div>Preview coming soon</div>;\n}`;
+    return `// \n\nexport default function Component() {\n  return <div>Preview coming soon</div>;\n}`;
   }
 
   if (ext === "md") {
-    return `# ${entry.name}\n\nThis is a mock preview of the file content.\n\nActual content will be loaded soon.`;
+    return `# \n\nThis is a mock preview of the file content.\n\nActual content will be loaded soon.`;
   }
 
-  return `// ${entry.name}\n// File preview will be available soon\n// Type: ${entry.entry_type}\n// SHA: ${entry.sha}`;
+  return `// \n// File preview will be available soon\n// Type: ${entry.entry_type}\n// SHA: ${entry.sha}`;
 }
