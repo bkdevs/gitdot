@@ -301,13 +301,21 @@ fn walk_tree_recursive(
             .cloned()
             .unwrap_or_else(|| fallback_commit.clone());
 
-        entries.push(RepositoryTreeEntry {
+        let mut tree_entry = RepositoryTreeEntry {
             path: entry_path.clone(),
             name,
             entry_type: entry_type.clone(),
             sha,
             commit,
-        });
+            preview: None,
+        };
+
+        if tree_entry.entry_type == "blob" {
+            if let Ok(blob) = repo.find_blob(entry.id()) {
+                tree_entry.preview = generate_blob_preview(&blob);
+            }
+        }
+        entries.push(tree_entry);
 
         if entry_type == "tree" {
             if let Ok(subtree) = repo.find_tree(entry.id()) {
@@ -327,6 +335,19 @@ fn walk_tree_recursive(
 
 fn is_binary(data: &[u8]) -> bool {
     data.iter().take(8000).any(|&b| b == 0)
+}
+
+fn generate_blob_preview(blob: &git2::Blob) -> Option<String> {
+    if is_binary(blob.content()) {
+        return None;
+    }
+    let content = String::from_utf8_lossy(blob.content());
+    let preview: Vec<&str> = content.lines().take(100).collect();
+
+    if preview.is_empty() {
+        return None;
+    }
+    Some(preview.join("\n"))
 }
 
 fn get_file_commits(

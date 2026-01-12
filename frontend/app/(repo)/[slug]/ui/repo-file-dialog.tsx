@@ -1,26 +1,30 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { use, useCallback, useEffect, useMemo, useState } from "react";
 import type { RepositoryTreeEntry } from "@/lib/dto";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
 import { fuzzyMatch, getMockPreview } from "../util";
+import type { JSX } from "react";
 
 export function RepoFileDialog({
   open,
   setOpen,
   repo,
   files,
+  filePreviewsPromise
 }: {
   open: boolean;
   setOpen: (open: boolean) => void;
   repo: string;
   files: RepositoryTreeEntry[];
+  filePreviewsPromise: Promise<Map<string, JSX.Element>>;
 }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [mouseMoved, setMouseMoved] = useState(false);
+  const filePreviews = use(filePreviewsPromise);
 
   const filteredFiles = useMemo(() => {
     if (!query) return files;
@@ -133,16 +137,12 @@ export function RepoFileDialog({
             </div>
           </div>
 
-          <div className="w-3/5 bg-muted/30 flex flex-col">
-            <div className="overflow-y-auto flex-1">
-              {selectedFile && (
-                <div className="px-2 py-2">
-                  <pre className="text-sm font-mono whitespace-pre-wrap">
-                    {getMockPreview(selectedFile)}
-                  </pre>
-                </div>
-              )}
-            </div>
+          <div className="w-3/5 flex flex-col text-sm scrollbar-none overflow-y-hidden">
+            {selectedFile && (
+              <div className="px-2 py-2">
+                {filePreviews.get(selectedFile.path)}
+              </div>
+            )}
           </div>
         </div>
       </DialogContent>

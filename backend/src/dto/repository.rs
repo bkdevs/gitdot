@@ -37,6 +37,8 @@ pub struct RepositoryTreeEntry {
     pub entry_type: String,
     pub sha: String,
     pub commit: RepositoryCommit,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub preview: Option<String>,
 }
 
 #[derive(Deserialize)]

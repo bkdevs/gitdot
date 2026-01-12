@@ -3,9 +3,9 @@ import { FileViewer } from "./ui/file-viewer";
 import { FolderViewer } from "./ui/folder-viewer";
 import {
   getFolderEntries,
-  parseLineSelection,
   parseRepositoryTree,
-} from "./util";
+} from "@/(repo)/[slug]/util";
+import { parseLineSelection } from "./util";
 
 export default async function Page({
   params,

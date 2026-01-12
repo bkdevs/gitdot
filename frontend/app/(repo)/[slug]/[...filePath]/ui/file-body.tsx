@@ -5,7 +5,7 @@ import { jsx, jsxs } from "react/jsx-runtime";
 import { codeToHast } from "shiki";
 import type { RepositoryFile } from "@/lib/dto";
 import type { LineSelection } from "../util";
-import { inferLanguage } from "../util";
+import { inferLanguage } from "@/(repo)/[slug]/util";
 import { FileLine } from "./file-line";
 import { FileViewerClient } from "./file-viewer-client";
 

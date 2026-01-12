@@ -57,6 +57,7 @@ export const RepositoryTreeEntrySchema = z.object({
   entry_type: z.enum(["blob", "tree"]),
   sha: z.string(),
   commit: RepositoryCommitSchema,
+  preview: z.string().optional(),
 });
 
 export type RepositoryTreeEntry = z.infer<typeof RepositoryTreeEntrySchema>;

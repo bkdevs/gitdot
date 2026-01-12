@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { timeAgo } from "@/util";
-import { RepositoryCommits } from "@/lib/dto";
+import type { RepositoryCommits } from "@/lib/dto";
 
 function FileCommit({
   commit,

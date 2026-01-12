@@ -1,24 +1,29 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import type { RepositoryTreeEntry } from "@/lib/dto";
 import { RepoFileDialog } from "./repo-file-dialog";
+import type { JSX } from "react";
 
 export function RepoDialogs({
   repo,
-  folders,
-  entries,
+  files,
+  filePreviewsPromise
 }: {
-  repo: string;
-  folders: Map<string, string[]>;
-  entries: Map<string, RepositoryTreeEntry>;
+    repo: string;
+    files: RepositoryTreeEntry[];
+    filePreviewsPromise: Promise<Map<string, JSX.Element>>;
 }) {
   const [fileDialogOpen, setFileDialogOpen] = useState(false);
-  const files = Array.from(entries.values()).filter(
-    (entry) => entry.entry_type === "blob",
-  );
+  const [previewsReady, setPreviewsReady] = useState(false);
 
   useEffect(() => {
+    filePreviewsPromise.then(() => setPreviewsReady(true));
+  }, [filePreviewsPromise]);
+
+  useEffect(() => {
+    if (!previewsReady) return;
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "p") {
         const target = e.target as HTMLElement;
@@ -29,17 +34,19 @@ export function RepoDialogs({
         setFileDialogOpen(true);
       }
     };
-
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [previewsReady]);
 
   return (
-    <RepoFileDialog
-      open={fileDialogOpen}
-      setOpen={setFileDialogOpen}
-      repo={repo}
-      files={files}
-    />
+    <Suspense fallback={null}>
+      <RepoFileDialog
+        open={fileDialogOpen}
+        setOpen={setFileDialogOpen}
+        repo={repo}
+        files={files}
+        filePreviewsPromise={filePreviewsPromise}
+      />
+    </Suspense>
   );
 }
