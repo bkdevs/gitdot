@@ -3,7 +3,7 @@
 import { CircleDot, Code2, GitPullRequest, History } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { RepositoryTree, RepositoryTreeEntry } from "@/lib/dto";
+import type { RepositoryTreeEntry } from "@/lib/dto";
 import {
   Sidebar,
   SidebarContent,
@@ -14,7 +14,6 @@ import {
   SidebarMenuItem,
 } from "@/ui/sidebar";
 import { cn } from "@/util";
-import { parseRepositoryTree } from "../[...filePath]/util";
 import { RepoSidebarFiles } from "./repo-sidebar-files";
 import { RepoSidebarHeader } from "./repo-sidebar-header";
 import { RepoSidebarIssues } from "./repo-sidebar-issues";
