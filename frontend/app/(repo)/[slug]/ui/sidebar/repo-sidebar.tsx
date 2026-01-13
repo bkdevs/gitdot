@@ -18,16 +18,17 @@ import { RepoSidebarFiles } from "./repo-sidebar-files";
 import { RepoSidebarHeader } from "./repo-sidebar-header";
 import { RepoSidebarIssues } from "./repo-sidebar-issues";
 import { RepoSidebarPulls } from "./repo-sidebar-pulls";
+import { RepoSidebarCommits } from "./repo-sidebar-commits";
 
 const SIDEBAR_ICON_WIDTH = "2.25rem";
 const SIDEBAR_CONTENT_WIDTH = "15rem";
 
-type ViewType = "code" | "history" | "issues" | "pulls";
+type ViewType = "code" | "commits" | "issues" | "pulls";
 
 function getViewFromPathname(path: string): ViewType {
+  if (path.includes("/commits")) return "commits";
   if (path.includes("/issues")) return "issues";
   if (path.includes("/pulls")) return "pulls";
-  if (path.includes("/history")) return "history";
   return "code";
 }
 
@@ -47,10 +48,10 @@ export function RepoSidebar({
   const navItems = [
     { id: "code" as const, icon: Code2, label: "Code", href: `/${repo}` },
     {
-      id: "history" as const,
+      id: "commits" as const,
       icon: History,
-      label: "History",
-      href: `/${repo}/history`,
+      label: "Commits",
+      href: `/${repo}/commits`,
     },
     {
       id: "issues" as const,
@@ -73,8 +74,8 @@ export function RepoSidebar({
     if (currentView === "pulls") {
       return <RepoSidebarPulls />;
     }
-    if (currentView === "history") {
-      return <div className="p-4 text-muted-foreground">History view</div>;
+    if (currentView === "commits") {
+      return <RepoSidebarCommits />;
     } else {
       return (
         <RepoSidebarFiles

@@ -4,8 +4,8 @@ import { toJsxRuntime } from "hast-util-to-jsx-runtime";
 import { Suspense, Fragment, JSX } from "react";
 import { jsx, jsxs } from "react/jsx-runtime";
 import { codeToHast, codeToHtml } from "shiki";
-import { RepoDialogs } from "./ui/repo-dialogs";
-import { RepoSidebar } from "./ui/repo-sidebar";
+import { RepoDialogs } from "./ui/dialog/repo-dialogs";
+import { RepoSidebar } from "./ui/sidebar/repo-sidebar";
 import { inferLanguage, parseRepositoryTree } from "./util";
 
 async function renderFilePreviews(

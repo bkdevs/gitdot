@@ -42,7 +42,7 @@ export function FileHeader({
     <div className="flex flex-row w-full h-9 items-center border-b">
       <div className="flex-1 ml-2 text-sm font-mono">{pathLinks}</div>
       <div className="border-l w-64 flex flex-row items-center h-full pl-2 text-sm">
-        History
+        Commits
       </div>
     </div>
   );

@@ -4,7 +4,7 @@ import { File, Folder, FolderOpen } from "lucide-react";
 import Link from "next/link";
 import { useMemo } from "react";
 import type { RepositoryTreeEntry } from "@/lib/dto";
-import { getFolderEntries, getParentPath } from "../util";
+import { getFolderEntries, getParentPath } from "../../util";
 
 function FileTreeItem({
   filePath,
