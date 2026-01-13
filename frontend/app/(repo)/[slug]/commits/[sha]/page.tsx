@@ -246,12 +246,12 @@ export default function Page() {
   return (
     <div className="flex flex-col w-full h-screen">
       <div className="px-2 py-3">
-        <div className="flex items-center gap-3 text-xs text-gray-600 mb-2">
-          <span className="font-mono">a7f2e9c</span>
-          <span>•</span>
+        <div className="flex items-center gap-2 text-xs text-gray-600 mb-2">
           <span>Jane Developer</span>
           <span>•</span>
           <span>2 hours ago</span>
+          <span>•</span>
+          <span className="font-mono">a7f2e9c</span>
         </div>
         <div className="text-sm font-semibold mb-1">feat: improve button styling and date formatting</div>
         <div className="text-sm text-gray-700 leading-relaxed">

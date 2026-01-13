@@ -1,8 +1,9 @@
 "use client";
 
+import React from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { timeAgo } from "@/util";
+import { groupCommitsByDate, formatDateHeader } from "@/util";
 
 const EXAMPLE_COMMITS = [
   {
@@ -67,30 +68,52 @@ const EXAMPLE_COMMITS = [
   },
 ];
 
+function DateHeader({ dateKey }: { dateKey: string }) {
+  return (
+    <div className="sticky top-0 bg-background border-b px-2 py-1.5 z-10">
+      <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+        {formatDateHeader(dateKey)}
+      </h3>
+    </div>
+  );
+}
+
 export function RepoSidebarCommits() {
   const params = useParams();
   const slug = params.slug as string;
 
+  // Group commits by date with memoization
+  const groupedCommits = React.useMemo(
+    () => groupCommitsByDate(EXAMPLE_COMMITS),
+    [], // TODO: Add real commits dependency when dynamic
+  );
+
   return (
     <div className="flex flex-col">
-      {EXAMPLE_COMMITS.map((commit) => (
-        <Link
-          key={commit.sha}
-          href={`/${slug}/commits/${commit.sha.substring(0, 7)}`}
-          className="flex w-full border-b hover:bg-accent/50 select-none cursor-default py-2 px-2"
-        >
-          <div className="flex flex-col w-full justify-start items-start min-w-0">
-            <div className="text-sm truncate mb-0.5 w-full">{commit.message}</div>
-            <div className="text-xs text-muted-foreground flex items-center gap-1 w-full min-w-0">
-              <span className="truncate min-w-0">{commit.author}</span>
-              <span className="shrink-0">•</span>
-              <span className="shrink-0">{commit.sha.substring(0, 7)}</span>
-              <span className="ml-auto shrink-0">
-                {timeAgo(new Date(commit.date))}
-              </span>
-            </div>
-          </div>
-        </Link>
+      {groupedCommits.map(([dateKey, commits]) => (
+        <React.Fragment key={dateKey}>
+          <DateHeader dateKey={dateKey} />
+          {commits.map((commit) => (
+            <Link
+              key={commit.sha}
+              href={`/${slug}/commits/${commit.sha.substring(0, 7)}`}
+              className="flex w-full border-b hover:bg-accent/50 select-none cursor-default py-2 px-2"
+            >
+              <div className="flex flex-col w-full justify-start items-start min-w-0">
+                <div className="text-sm truncate mb-0.5 w-full">
+                  {commit.message}
+                </div>
+                <div className="text-xs text-muted-foreground flex items-center gap-1 w-full min-w-0">
+                  <span className="truncate min-w-0">{commit.author}</span>
+                  <span className="shrink-0">•</span>
+                  <span className="shrink-0">
+                    {commit.sha.substring(0, 7)}
+                  </span>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </React.Fragment>
       ))}
     </div>
   );
