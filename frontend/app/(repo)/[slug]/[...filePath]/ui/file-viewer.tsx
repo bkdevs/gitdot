@@ -16,8 +16,11 @@ export async function FileViewer({
   selectedCommit?: string;
 }) {
   const [commits, file] = await Promise.all([
-    getRepositoryFileCommits("bkdevs", repo, { path: filePath, }),
-    getRepositoryFile("bkdevs", repo, { path: filePath, ref_name: selectedCommit }),
+    getRepositoryFileCommits("bkdevs", repo, { path: filePath }),
+    getRepositoryFile("bkdevs", repo, {
+      path: filePath,
+      ref_name: selectedCommit,
+    }),
   ]);
 
   if (!commits || !file) {
@@ -33,7 +36,10 @@ export async function FileViewer({
         </div>
         <FileCommits
           commits={commits}
-          selectedCommitSha={selectedCommit || commits.commits[0].sha.substring(0, 7)} />
+          selectedCommitSha={
+            selectedCommit || commits.commits[0].sha.substring(0, 7)
+          }
+        />
       </div>
     </div>
   );

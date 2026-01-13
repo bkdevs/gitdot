@@ -3,16 +3,15 @@
 import { Suspense, useEffect, useState } from "react";
 import type { RepositoryTreeEntry } from "@/lib/dto";
 import { RepoFileDialog } from "./repo-file-dialog";
-import type { JSX } from "react";
 
 export function RepoDialogs({
   repo,
   files,
-  filePreviewsPromise
+  filePreviewsPromise,
 }: {
-    repo: string;
-    files: RepositoryTreeEntry[];
-    filePreviewsPromise: Promise<Map<string, JSX.Element>>;
+  repo: string;
+  files: RepositoryTreeEntry[];
+  filePreviewsPromise: Promise<Map<string, string>>;
 }) {
   const [fileDialogOpen, setFileDialogOpen] = useState(false);
   const [previewsReady, setPreviewsReady] = useState(false);

@@ -5,20 +5,19 @@ import { use, useCallback, useEffect, useMemo, useState } from "react";
 import type { RepositoryTreeEntry } from "@/lib/dto";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
 import { fuzzyMatch, getMockPreview } from "../util";
-import type { JSX } from "react";
 
 export function RepoFileDialog({
   open,
   setOpen,
   repo,
   files,
-  filePreviewsPromise
+  filePreviewsPromise,
 }: {
   open: boolean;
   setOpen: (open: boolean) => void;
   repo: string;
   files: RepositoryTreeEntry[];
-  filePreviewsPromise: Promise<Map<string, JSX.Element>>;
+  filePreviewsPromise: Promise<Map<string, string>>;
 }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
@@ -138,10 +137,13 @@ export function RepoFileDialog({
           </div>
 
           <div className="w-3/5 flex flex-col text-sm scrollbar-none overflow-y-hidden">
-            {selectedFile && (
-              <div className="px-2 py-2">
-                {filePreviews.get(selectedFile.path)}
-              </div>
+            {selectedFile && filePreviews.has(selectedFile.path) && (
+              <div
+                className="px-2 py-2"
+                dangerouslySetInnerHTML={{
+                  __html: filePreviews.get(selectedFile.path)!,
+                }}
+              />
             )}
           </div>
         </div>

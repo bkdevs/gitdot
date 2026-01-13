@@ -1,4 +1,8 @@
-import type { RepositoryFile, RepositoryTree, RepositoryTreeEntry } from "@/lib/dto";
+import type {
+  RepositoryFile,
+  RepositoryTree,
+  RepositoryTreeEntry,
+} from "@/lib/dto";
 import { toJsxRuntime } from "hast-util-to-jsx-runtime";
 import type { JSX } from "react";
 import { Fragment } from "react";
@@ -148,8 +152,10 @@ export function inferLanguage(filePath: string): BundledLanguage | null {
   return extension && extensionMap[extension] ? extensionMap[extension] : null;
 }
 
-export async function fileToJsx(content: string, path: string): Promise<JSX.Element> {
-}
+export async function fileToJsx(
+  content: string,
+  path: string,
+): Promise<JSX.Element> {}
 
 export function parseRepositoryTree(tree: RepositoryTree): {
   entries: Map<string, RepositoryTreeEntry>;
