@@ -1,15 +1,8 @@
 import type {
-  RepositoryFile,
   RepositoryTree,
-  RepositoryTreeEntry,
+  RepositoryTreeEntry
 } from "@/lib/dto";
-import { toJsxRuntime } from "hast-util-to-jsx-runtime";
-import type { JSX } from "react";
-import { Fragment } from "react";
-import { jsx, jsxs } from "react/jsx-runtime";
 import type { BundledLanguage } from "shiki";
-import { codeToHast } from "shiki";
-import { FileLine } from "./[...filePath]/ui/file-line";
 
 export function fuzzyMatch(query: string, target: string): boolean {
   const lowerQuery = query.toLowerCase();
@@ -151,11 +144,6 @@ export function inferLanguage(filePath: string): BundledLanguage | null {
 
   return extension && extensionMap[extension] ? extensionMap[extension] : null;
 }
-
-export async function fileToJsx(
-  content: string,
-  path: string,
-): Promise<JSX.Element> {}
 
 export function parseRepositoryTree(tree: RepositoryTree): {
   entries: Map<string, RepositoryTreeEntry>;
