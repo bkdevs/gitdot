@@ -1,0 +1,17 @@
+steps:
+  - id: "Build Docker Image"
+    name: "gcr.io/cloud-builders/docker"
+    args:
+      - "build"
+      - "-t"
+      - "${_AR_REPO_URL}/gitdot:$COMMIT_SHA"
+      - "-t"
+      - "${_AR_REPO_URL}/gitdot:latest"
+      - "."
+    dir: "backend"
+
+images:
+  - "${_AR_REPO_URL}/gitdot:$COMMIT_SHA"
+  - "${_AR_REPO_URL}/gitdot:latest"
+
+timeout: 1200s
