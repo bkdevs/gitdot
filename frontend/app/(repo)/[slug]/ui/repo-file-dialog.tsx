@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { use, useCallback, useEffect, useMemo, useState } from "react";
 import type { RepositoryTreeEntry } from "@/lib/dto";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
-import { fuzzyMatch, getMockPreview } from "../util";
+import { fuzzyMatch } from "../util";
 
 export function RepoFileDialog({
   open,
@@ -27,7 +27,15 @@ export function RepoFileDialog({
 
   const filteredFiles = useMemo(() => {
     if (!query) return files;
-    return files.filter((file) => fuzzyMatch(query, file.path));
+
+    return files
+      .map((file) => ({
+        file,
+        result: fuzzyMatch(query, file.path),
+      }))
+      .filter(({ result }) => result !== null)
+      .sort((a, b) => b.result!.score - a.result!.score)
+      .map(({ file }) => file);
   }, [files, query]);
 
   const selectedFile = filteredFiles[selectedIndex];
