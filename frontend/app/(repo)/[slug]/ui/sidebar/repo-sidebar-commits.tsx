@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { groupCommitsByDate, formatDateHeader } from "@/util";
+import { groupCommitsByDate, formatDateHeader, formatTime } from "@/util";
 
 const EXAMPLE_COMMITS = [
   {
@@ -107,7 +107,7 @@ export function RepoSidebarCommits() {
                   <span className="truncate min-w-0">{commit.author}</span>
                   <span className="shrink-0">•</span>
                   <span className="shrink-0">
-                    {commit.sha.substring(0, 7)}
+                    {formatTime(new Date(commit.date))}
                   </span>
                 </div>
               </div>
