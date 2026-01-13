@@ -53,6 +53,10 @@ export default async function Layout({
   const files = Array.from(entries.values()).filter(
     (entry) => entry.entry_type === "blob",
   );
+
+   // this still seems to incur _some_ latency, roughly 2-300 ms? setting up this promise stream does incur some blocking operation on the server,
+   // even though there is no await being done and just awaited on in the client-side
+   // TODO: test refactoring this to be a plain old client-side ajax request, may work better.
   const filePreviewsPromise = renderFilePreviews(files);
 
   return (
