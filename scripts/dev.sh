@@ -15,6 +15,8 @@ PROJECT_ROOT="$( cd "$SCRIPT_DIR/.." && pwd )"
 
 echo "Starting tmux session '$SESSION_NAME'..."
 
-tmux new-session -d -s $SESSION_NAME -c "$PROJECT_ROOT/frontend" "pnpm run dev"
-tmux split-window -h -t $SESSION_NAME -c "$PROJECT_ROOT/backend" "cargo run"
+tmux new-session -d -s $SESSION_NAME -c "$PROJECT_ROOT/frontend" -n "frontend" "pnpm run dev"
+tmux new-window -t $SESSION_NAME -c "$PROJECT_ROOT/backend" -n "backend" "cargo run"
+
+tmux select-window -t $SESSION_NAME:0
 tmux attach-session -t $SESSION_NAME

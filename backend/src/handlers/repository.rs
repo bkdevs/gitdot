@@ -1,8 +1,9 @@
 use crate::app::Settings;
 use crate::dto::repository::{
-    CreateRepositoryRequest, CreateRepositoryResponse, RepositoryCommit, RepositoryCommits,
-    RepositoryCommitsQuery, RepositoryFile, RepositoryFileCommitsQuery, RepositoryFileQuery,
-    RepositoryTree, RepositoryTreeEntry, RepositoryTreeQuery,
+    CreateRepositoryRequest, CreateRepositoryResponse, RepositoryCommit, RepositoryCommitDiff,
+    RepositoryCommits, RepositoryCommitsQuery, RepositoryFile, RepositoryFileCommitsQuery,
+    RepositoryFileDiff, RepositoryFileQuery, RepositoryTree, RepositoryTreeEntry,
+    RepositoryTreeQuery,
 };
 use crate::utils::git::normalize_repo_name;
 use axum::{
@@ -630,4 +631,126 @@ fn get_commits(
         commits.pop();
     }
     Ok((commits, has_next))
+}
+
+pub async fn get_repository_commit_diff(
+    State(settings): State<Arc<Settings>>,
+    Path((owner, repo, sha)): Path<(String, String, String)>,
+) -> Result<Json<RepositoryCommitDiff>, StatusCode> {
+    if sha.len() < 4 || sha.len() > 40 {
+        return Err(StatusCode::BAD_REQUEST);
+    }
+
+    let repo_name = normalize_repo_name(&repo);
+    let repository = open_repository(&settings, &owner, &repo_name)?;
+    let commit = resolve_ref(&repository, &sha)?;
+    let full_sha = commit.id().to_string();
+
+    let commit_info = RepositoryCommit {
+        sha: full_sha.clone(),
+        message: commit.message().unwrap_or("").to_string(),
+        author: commit.author().name().unwrap_or("Unknown").to_string(),
+        date: DateTime::from_timestamp(commit.author().when().seconds(), 0).unwrap_or_default(),
+    };
+
+    let parent = commit.parent(0).ok();
+    let parent_sha = parent.as_ref().map(|p| p.id().to_string());
+
+    let current_tree = commit
+        .tree()
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    let parent_tree = match &parent {
+        Some(p) => Some(p.tree().map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?),
+        None => None,
+    };
+
+    let diff = repository
+        .diff_tree_to_tree(parent_tree.as_ref(), Some(&current_tree), None)
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+    let mut diffs = Vec::new();
+
+    for delta in diff.deltas() {
+        let new_path = delta
+            .new_file()
+            .path()
+            .and_then(|p| p.to_str())
+            .map(String::from);
+        let old_path = delta
+            .old_file()
+            .path()
+            .and_then(|p| p.to_str())
+            .map(String::from);
+
+        let left = get_repository_file_at_path(
+            &repository,
+            parent_tree.as_ref(),
+            old_path.as_deref(),
+            parent_sha.as_deref().unwrap_or(""),
+        );
+
+        let right = get_repository_file_at_path(
+            &repository,
+            Some(&current_tree),
+            new_path.as_deref(),
+            &full_sha,
+        );
+
+        diffs.push(RepositoryFileDiff {
+            old_path: if delta.status() == git2::Delta::Renamed
+                || delta.status() == git2::Delta::Copied
+            {
+                old_path
+            } else {
+                None
+            },
+            left,
+            right,
+        });
+    }
+
+    Ok(Json(RepositoryCommitDiff {
+        sha: full_sha,
+        parent_sha,
+        commit: commit_info,
+        diffs,
+    }))
+}
+
+fn get_repository_file_at_path(
+    repo: &git2::Repository,
+    tree: Option<&git2::Tree>,
+    path: Option<&str>,
+    commit_sha: &str,
+) -> Option<RepositoryFile> {
+    let tree = tree?;
+    let path = path?;
+    let entry = tree.get_path(std::path::Path::new(path)).ok()?;
+
+    if entry.kind() != Some(git2::ObjectType::Blob) {
+        return None;
+    }
+
+    let blob = repo.find_blob(entry.id()).ok()?;
+    let content_bytes = blob.content();
+    let sha = blob.id().to_string();
+
+    let (content, encoding) = if is_binary(content_bytes) {
+        use base64::prelude::*;
+        (BASE64_STANDARD.encode(content_bytes), "base64".to_string())
+    } else {
+        (
+            String::from_utf8_lossy(content_bytes).to_string(),
+            "utf-8".to_string(),
+        )
+    };
+
+    Some(RepositoryFile {
+        ref_name: commit_sha.to_string(),
+        commit_sha: commit_sha.to_string(),
+        path: path.to_string(),
+        sha,
+        content,
+        encoding,
+    })
 }

@@ -48,7 +48,7 @@ pub struct RepositoryFileQuery {
     pub path: String,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Clone)]
 pub struct RepositoryFile {
     pub ref_name: String,
     pub commit_sha: String,
@@ -91,6 +91,25 @@ pub struct RepositoryCommit {
     pub message: String,
     pub author: String,
     pub date: DateTime<Utc>,
+}
+
+#[derive(Serialize, Clone)]
+pub struct RepositoryFileDiff {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub old_path: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub left: Option<RepositoryFile>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub right: Option<RepositoryFile>,
+}
+
+#[derive(Serialize)]
+pub struct RepositoryCommitDiff {
+    pub sha: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub parent_sha: Option<String>,
+    pub commit: RepositoryCommit,
+    pub diffs: Vec<RepositoryFileDiff>,
 }
 
 fn default_branch() -> String {

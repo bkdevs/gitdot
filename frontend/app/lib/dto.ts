@@ -99,3 +99,20 @@ export const RepositoryFileCommitsQuerySchema = z.object({
 export type RepositoryFileCommitsQuery = z.infer<
   typeof RepositoryFileCommitsQuerySchema
 >;
+
+export const RepositoryFileDiffSchema = z.object({
+  old_path: z.string().optional(),
+  left: RepositoryFileSchema.optional(),
+  right: RepositoryFileSchema.optional(),
+});
+
+export type RepositoryFileDiff = z.infer<typeof RepositoryFileDiffSchema>;
+
+export const RepositoryCommitDiffSchema = z.object({
+  sha: z.string(),
+  parent_sha: z.string().optional(),
+  commit: RepositoryCommitSchema,
+  diffs: z.array(RepositoryFileDiffSchema),
+});
+
+export type RepositoryCommitDiff = z.infer<typeof RepositoryCommitDiffSchema>;

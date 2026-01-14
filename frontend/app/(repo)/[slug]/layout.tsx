@@ -1,6 +1,6 @@
+import { codeToHtml } from "shiki";
 import { getRepositoryCommits, getRepositoryTree } from "@/lib/dal";
 import type { RepositoryTreeEntry } from "@/lib/dto";
-import { codeToHtml } from "shiki";
 import { RepoDialogs } from "./ui/dialog/repo-dialogs";
 import { RepoSidebar } from "./ui/sidebar/repo-sidebar";
 import { inferLanguage, parseRepositoryTree } from "./util";
@@ -64,7 +64,12 @@ export default async function Layout({
   return (
     <>
       <div className="flex min-h-svh w-full max-w-screen overflow-hidden">
-        <RepoSidebar repo={repo} folders={folders} entries={entries} commits={commits.commits}  />
+        <RepoSidebar
+          repo={repo}
+          folders={folders}
+          entries={entries}
+          commits={commits.commits}
+        />
         <main className="flex-1 w-full min-w-0 overflow-auto">{children}</main>
       </div>
       <RepoDialogs

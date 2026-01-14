@@ -2,6 +2,8 @@ import "server-only";
 
 import { toQueryString } from "@/util";
 import {
+  type RepositoryCommitDiff,
+  RepositoryCommitDiffSchema,
   type RepositoryCommits,
   type RepositoryCommitsQuery,
   RepositoryCommitsSchema,
@@ -151,4 +153,37 @@ export async function getRepositoryFileCommits(
   }
 
   return RepositoryCommitsSchema.parse(await response.json());
+}
+
+export async function getRepositoryCommitDiff(
+  owner: string,
+  repo: string,
+  sha: string,
+): Promise<RepositoryCommitDiff | null> {
+  if (!owner || !repo || !sha) {
+    console.error("Invalid getRepositoryCommitDiff request:", {
+      owner,
+      repo,
+      sha,
+    });
+    return null;
+  }
+
+  const session = await getSession();
+  if (!session) return null;
+
+  const response = await fetch(
+    `${API_BASE_URL}/repository/${owner}/${repo}/commits/${sha}/diff`,
+  );
+
+  if (!response.ok) {
+    console.error(
+      "getRepositoryCommitDiff failed:",
+      response.status,
+      response.statusText,
+    );
+    return null;
+  }
+
+  return RepositoryCommitDiffSchema.parse(await response.json());
 }

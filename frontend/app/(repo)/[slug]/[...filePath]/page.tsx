@@ -1,7 +1,7 @@
+import { getFolderEntries, parseRepositoryTree } from "@/(repo)/[slug]/util";
 import { getRepositoryTree } from "@/lib/dal";
 import { FileViewer } from "./ui/file-viewer";
 import { FolderViewer } from "./ui/folder-viewer";
-import { getFolderEntries, parseRepositoryTree } from "@/(repo)/[slug]/util";
 import { parseLineSelection } from "./util";
 
 export default async function Page({
