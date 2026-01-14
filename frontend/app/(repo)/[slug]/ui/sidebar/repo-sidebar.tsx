@@ -14,11 +14,11 @@ import {
   SidebarMenuItem,
 } from "@/ui/sidebar";
 import { cn } from "@/util";
+import { RepoSidebarCommits } from "./repo-sidebar-commits";
 import { RepoSidebarFiles } from "./repo-sidebar-files";
 import { RepoSidebarHeader } from "./repo-sidebar-header";
 import { RepoSidebarIssues } from "./repo-sidebar-issues";
 import { RepoSidebarPulls } from "./repo-sidebar-pulls";
-import { RepoSidebarCommits } from "./repo-sidebar-commits";
 
 const SIDEBAR_ICON_WIDTH = "2.25rem";
 const SIDEBAR_CONTENT_WIDTH = "15rem";
@@ -41,7 +41,7 @@ export function RepoSidebar({
   repo: string;
   folders: Map<string, string[]>;
   entries: Map<string, RepositoryTreeEntry>;
-  commits: RepositoryCommit[]
+  commits: RepositoryCommit[];
 }) {
   const pathname = usePathname();
   const currentView = getViewFromPathname(pathname);
@@ -77,7 +77,13 @@ export function RepoSidebar({
       return <RepoSidebarPulls />;
     }
     if (currentView === "commits") {
-      return <RepoSidebarCommits repo={repo} commits={commits} />;
+      return (
+        <RepoSidebarCommits
+          repo={repo}
+          commits={commits}
+          currentPath={currentPath}
+        />
+      );
     } else {
       return (
         <RepoSidebarFiles

@@ -6,7 +6,7 @@ import { useMemo } from "react";
 import type { RepositoryTreeEntry } from "@/lib/dto";
 import { getFolderEntries, getParentPath } from "../../util";
 
-function FileTreeItem({
+function FileRow({
   filePath,
   href,
   isFolder,
@@ -69,7 +69,7 @@ export function RepoSidebarFiles({
   return (
     <div className="flex flex-col w-full">
       {parentPath && (
-        <FileTreeItem
+        <FileRow
           key=".."
           filePath={".."}
           href={`/${repo}/${parentPath}`}
@@ -83,7 +83,7 @@ export function RepoSidebarFiles({
         const fullPath = parentPath ? `${parentPath}/${filePath}` : filePath; // account for root files
 
         return (
-          <FileTreeItem
+          <FileRow
             key={file.path}
             filePath={filePath}
             href={`/${repo}/${parentPath}/${filePath}`}
