@@ -21,7 +21,7 @@ export function RepoSidebarCommits({
     <div className="flex flex-col">
       {commitsByDate.map(([date, commits]) => (
         <Fragment key={date}>
-          <div className="sticky top-0 bg-background border-b px-2 py-1.5 z-10">
+          <div className="sticky top-0 bg-background flex items-center border-b px-2 h-9 z-10">
             <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
               {formatDate(date)}
             </h3>
@@ -31,6 +31,7 @@ export function RepoSidebarCommits({
               key={commit.sha}
               href={`/${repo}/commits/${commit.sha.substring(0, 7)}`}
               className={`flex w-full border-b hover:bg-accent/50 select-none cursor-default py-2 px-2 ${currentPath.includes(commit.sha.substring(0, 7)) && "bg-sidebar"}`}
+              prefetch={true}
             >
               <div className="flex flex-col w-full justify-start items-start min-w-0">
                 <div className="text-sm truncate mb-0.5 w-full">

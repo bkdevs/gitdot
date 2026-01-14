@@ -101,6 +101,9 @@ pub struct RepositoryFileDiff {
     pub left: Option<RepositoryFile>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub right: Option<RepositoryFile>,
+
+    pub lines_added: u32,
+    pub lines_removed: u32,
 }
 
 #[derive(Serialize)]

@@ -670,7 +670,7 @@ pub async fn get_repository_commit_diffs(
 
     let mut diffs = Vec::new();
 
-    for delta in diff.deltas() {
+    for (idx, delta) in diff.deltas().enumerate() {
         let new_path = delta
             .new_file()
             .path()
@@ -696,6 +696,13 @@ pub async fn get_repository_commit_diffs(
             &full_sha,
         );
 
+        let (lines_added, lines_removed) = git2::Patch::from_diff(&diff, idx)
+            .ok()
+            .flatten()
+            .and_then(|p| p.line_stats().ok())
+            .map(|(_, additions, deletions)| (additions as u32, deletions as u32))
+            .unwrap_or((0, 0));
+
         diffs.push(RepositoryFileDiff {
             old_path: if delta.status() == git2::Delta::Renamed
                 || delta.status() == git2::Delta::Copied
@@ -706,6 +713,8 @@ pub async fn get_repository_commit_diffs(
             },
             left,
             right,
+            lines_added,
+            lines_removed,
         });
     }
 

@@ -1,21 +1,91 @@
-import type { RepositoryCommit } from "@/lib/dto";
-import { timeAgo } from "@/util";
+import type { RepositoryCommit, RepositoryFileDiff } from "@/lib/dto";
+import { formatDateTime } from "@/util";
 
-export default function CommitHeader({ commit }: { commit: RepositoryCommit }) {
+function DiffStatBar({ added, removed }: { added: number; removed: number }) {
+  const total = added + removed;
+  if (total === 0) return null;
+
+  const linesPerBar = 5;
+  const hasAdded = added > 0;
+  const hasRemoved = removed > 0;
+  const minBars = hasAdded && hasRemoved ? 2 : 1;
+  const barCount = Math.max(
+    minBars,
+    Math.min(Math.ceil(total / linesPerBar), 10),
+  );
+
+  let addedBars = Math.round((added / total) * barCount);
+  // Ensure at least 1 bar for each type when both exist
+  if (hasAdded && addedBars < 1) addedBars = 1;
+  if (hasRemoved && addedBars > barCount - 1) addedBars = barCount - 1;
+  const removedBars = barCount - addedBars;
+
   return (
-    <div className="px-2 py-3">
-      <div className="flex items-center gap-2 text-xs text-gray-600 mb-2">
-        <span>{commit.author}</span>
-        <span>•</span>
-        <span>{timeAgo(new Date(commit.date))}</span>
-        <span>•</span>
-        <span className="font-mono">{commit.sha.slice(0, 7)}</span>
-      </div>
-      <div className="text-sm font-semibold mb-1">
-        {commit.message.split("\n")[0]}
-      </div>
-      <div className="text-sm text-gray-700 leading-relaxed">
-        {commit.message.split("\n").slice(1).join("\n")}
+    <span className="font-mono">
+      <span className="text-green-600">{"+".repeat(addedBars)}</span>
+      <span className="text-red-600">{"-".repeat(removedBars)}</span>
+    </span>
+  );
+}
+
+export default function CommitHeader({
+  commit,
+  diffs,
+}: {
+  commit: RepositoryCommit;
+  diffs: RepositoryFileDiff[];
+}) {
+  const maxPathLength = Math.max(
+    ...diffs.map((d) => (d.left?.path || d.right?.path || "").length),
+  );
+
+  return (
+    // height to match first height of header + three rows in commit history
+    <div className="h-59.25 border-border border-b">
+      <div className="flex flex-row-reverse w-full h-full">
+        <div className="flex flex-col w-2/3 h-full p-2 border-l border-border overflow-y-auto scrollbar-thin">
+          <p className="font-mono text-xs text-muted-foreground h-4 mb-1">
+            {diffs.length} files changed
+          </p>
+          <ul className="">
+            {diffs.map((diff) => {
+              const path = diff.left?.path || diff.right?.path || "";
+              return (
+                <li
+                  key={diff.left?.sha || diff.right?.sha}
+                  className="font-mono text-sm flex items-center"
+                >
+                  <span
+                    className="inline-block border-r border-border pr-3 mr-1 box-content"
+                    style={{ width: `${maxPathLength}ch` }}
+                  >
+                    {path}
+                  </span>
+                  <span className="text-muted-foreground w-6 text-right mr-1.5">
+                    {diff.lines_added + diff.lines_removed}
+                  </span>
+                  <DiffStatBar
+                    added={diff.lines_added}
+                    removed={diff.lines_removed}
+                  />
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+        <div className="flex flex-col w-1/3 h-full p-2">
+          <div className="flex items-center gap-1 text-xs text-muted-foreground h-4 mb-1">
+            <span>{commit.author}</span>
+            <span>•</span>
+            <span>{formatDateTime(new Date(commit.date))}</span>
+          </div>
+          <div className="text-sm text-primary mb-2">
+            {commit.message.split("\n")[0]}
+          </div>
+          <div className="text-sm text-primary">
+            {commit.message.split("\n").slice(1).join("\n")}
+          </div>
+        </div>
       </div>
     </div>
   );

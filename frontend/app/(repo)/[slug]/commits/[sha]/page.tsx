@@ -727,14 +727,16 @@ export default async function Page({
   params: Promise<{ slug: string; sha: string }>;
 }) {
   const { slug: repo, sha } = await params;
-  const { commit, diffs } = await getRepositoryCommitDiffs("bkdevs", repo, sha);
 
-  console.log(JSON.stringify(diffs, null, 2));
+  const commitDiffs = await getRepositoryCommitDiffs("bkdevs", repo, sha);
+  if (!commitDiffs) return null;
+
+  const { commit, diffs } = commitDiffs;
 
   return (
     <div className="flex flex-col w-full h-screen">
-      <CommitHeader commit={commit} />
-      <div className="flex-1 overflow-auto">
+      <CommitHeader commit={commit} diffs={diffs} />
+      <div className="flex-1 overflow-auto scrollbar-thin">
         {mockDiffs.map((diff, idx) => (
           <div key={idx} className="mb-8">
             <div className="bg-gray-100 px-2 py-0.5 text-sm font-mono sticky top-0 z-10">
