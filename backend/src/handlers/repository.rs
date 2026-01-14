@@ -1,9 +1,9 @@
 use crate::app::Settings;
 use crate::dto::repository::{
-    CreateRepositoryRequest, CreateRepositoryResponse, RepositoryCommit, RepositoryCommitDiffs,
-    RepositoryCommits, RepositoryCommitsQuery, RepositoryFile, RepositoryFileCommitsQuery,
-    RepositoryFileDiff, RepositoryFileQuery, RepositoryTree, RepositoryTreeEntry,
-    RepositoryTreeQuery,
+    CreateRepositoryRequest, CreateRepositoryResponse, FileDiff, RepositoryCommit,
+    RepositoryCommitDiffs, RepositoryCommits, RepositoryCommitsQuery, RepositoryFile,
+    RepositoryFileCommitsQuery, RepositoryFileDiff, RepositoryFileQuery, RepositoryTree,
+    RepositoryTreeEntry, RepositoryTreeQuery,
 };
 use crate::utils::git::normalize_repo_name;
 use axum::{
@@ -703,6 +703,12 @@ pub async fn get_repository_commit_diffs(
             .map(|(_, additions, deletions)| (additions as u32, deletions as u32))
             .unwrap_or((0, 0));
 
+        let left_content = left.as_ref().map(|f| f.content.as_str()).unwrap_or("");
+        let right_content = right.as_ref().map(|f| f.content.as_str()).unwrap_or("");
+        let file_path_for_diff = new_path.as_deref().or(old_path.as_deref());
+        let diff = execute_difftastic(left_content, right_content, file_path_for_diff);
+        println!("diff: {:?}", diff);
+
         diffs.push(RepositoryFileDiff {
             old_path: if delta.status() == git2::Delta::Renamed
                 || delta.status() == git2::Delta::Copied
@@ -715,6 +721,7 @@ pub async fn get_repository_commit_diffs(
             right,
             lines_added,
             lines_removed,
+            diff,
         });
     }
 
@@ -762,4 +769,45 @@ fn get_repository_file_at_path(
         content,
         encoding,
     })
+}
+
+/**
+ * runs difft in a process with tempfiles as that's the only API we can use
+ * TODO: quite brittle, copy over internal code and maintain ourselves.
+ */
+fn execute_difftastic(
+    left_content: &str,
+    right_content: &str,
+    file_path: Option<&str>,
+) -> Option<FileDiff> {
+    use std::io::Write;
+    use tempfile::Builder;
+
+    let extension = file_path
+        .and_then(|p| std::path::Path::new(p).extension())
+        .and_then(|ext| ext.to_str())
+        .unwrap_or("txt");
+
+    let mut left_file = Builder::new()
+        .suffix(&format!(".{}", extension))
+        .tempfile()
+        .ok()?;
+    let mut right_file = Builder::new()
+        .suffix(&format!(".{}", extension))
+        .tempfile()
+        .ok()?;
+
+    left_file.write_all(left_content.as_bytes()).ok()?;
+    right_file.write_all(right_content.as_bytes()).ok()?;
+
+    let output = std::process::Command::new("difft")
+        .arg(left_file.path())
+        .arg(right_file.path())
+        .arg("--display")
+        .arg("json")
+        .env("DFT_UNSTABLE", "yes")
+        .output()
+        .ok()?;
+
+    serde_json::from_slice(&output.stdout).ok()
 }

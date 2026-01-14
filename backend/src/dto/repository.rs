@@ -1,6 +1,22 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+fn default_branch() -> String {
+    "main".to_string()
+}
+
+fn default_ref() -> String {
+    "HEAD".to_string()
+}
+
+fn default_page() -> u32 {
+    1
+}
+
+fn default_per_page() -> u32 {
+    30
+}
+
 #[derive(Deserialize)]
 pub struct CreateRepositoryRequest {
     #[serde(default = "default_branch")]
@@ -93,6 +109,15 @@ pub struct RepositoryCommit {
     pub date: DateTime<Utc>,
 }
 
+#[derive(Serialize)]
+pub struct RepositoryCommitDiffs {
+    pub sha: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub parent_sha: Option<String>,
+    pub commit: RepositoryCommit,
+    pub diffs: Vec<RepositoryFileDiff>,
+}
+
 #[derive(Serialize, Clone)]
 pub struct RepositoryFileDiff {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -104,29 +129,60 @@ pub struct RepositoryFileDiff {
 
     pub lines_added: u32,
     pub lines_removed: u32,
-}
 
-#[derive(Serialize)]
-pub struct RepositoryCommitDiffs {
-    pub sha: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub parent_sha: Option<String>,
-    pub commit: RepositoryCommit,
-    pub diffs: Vec<RepositoryFileDiff>,
+    pub diff: Option<FileDiff>,
 }
 
-fn default_branch() -> String {
-    "main".to_string()
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum DiffStatus {
+    Unchanged,
+    Changed,
+    Created,
+    Deleted,
 }
 
-fn default_ref() -> String {
-    "HEAD".to_string()
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum SyntaxHighlight {
+    Delimiter,
+    Normal,
+    String,
+    Type,
+    Comment,
+    Keyword,
+    TreeSitterError,
 }
 
-fn default_page() -> u32 {
-    1
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DiffChange {
+    pub start: u32,
+    pub end: u32,
+    pub content: String,
+    pub highlight: SyntaxHighlight,
 }
 
-fn default_per_page() -> u32 {
-    30
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DiffSide {
+    pub line_number: u32,
+    pub changes: Vec<DiffChange>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DiffLine {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub lhs: Option<DiffSide>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub rhs: Option<DiffSide>,
+}
+
+pub type DiffChunk = Vec<DiffLine>;
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FileDiff {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub chunks: Option<Vec<DiffChunk>>,
+    pub language: String,
+    pub status: DiffStatus,
 }
