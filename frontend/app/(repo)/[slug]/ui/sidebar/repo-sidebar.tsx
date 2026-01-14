@@ -3,7 +3,7 @@
 import { CircleDot, Code2, GitPullRequest, History } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { RepositoryTreeEntry } from "@/lib/dto";
+import type { RepositoryCommit, RepositoryTreeEntry } from "@/lib/dto";
 import {
   Sidebar,
   SidebarContent,
@@ -36,10 +36,12 @@ export function RepoSidebar({
   repo,
   folders,
   entries,
+  commits,
 }: {
   repo: string;
   folders: Map<string, string[]>;
   entries: Map<string, RepositoryTreeEntry>;
+  commits: RepositoryCommit[]
 }) {
   const pathname = usePathname();
   const currentView = getViewFromPathname(pathname);
@@ -75,7 +77,7 @@ export function RepoSidebar({
       return <RepoSidebarPulls />;
     }
     if (currentView === "commits") {
-      return <RepoSidebarCommits />;
+      return <RepoSidebarCommits repo={repo} commits={commits} />;
     } else {
       return (
         <RepoSidebarFiles

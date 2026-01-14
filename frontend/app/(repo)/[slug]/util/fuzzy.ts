@@ -508,8 +508,6 @@ function fuzzyMatchV2(
   };
 }
 
-
-
 /**
  * Fuzzy match a query against a target string
  *

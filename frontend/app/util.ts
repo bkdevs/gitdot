@@ -38,38 +38,6 @@ export function timeAgo(date: Date) {
   return `${Math.floor(seconds / 31536000)}y ago`;
 }
 
-/**
- * Normalize date to start of day for grouping
- */
-export function getDateKey(date: Date): string {
-  const normalized = new Date(date);
-  normalized.setHours(0, 0, 0, 0);
-  return normalized.toISOString().split("T")[0]; // "YYYY-MM-DD"
-}
-
-/**
- * Group commits by date (most recent first)
- */
-export function groupCommitsByDate<T extends { date: string }>(
-  commits: T[],
-): [string, T[]][] {
-  const groups = new Map<string, T[]>();
-
-  for (const commit of commits) {
-    const date = new Date(commit.date);
-    const key = getDateKey(date);
-
-    if (!groups.has(key)) {
-      groups.set(key, []);
-    }
-    groups.get(key)!.push(commit);
-  }
-
-  // Return sorted entries (most recent first)
-  return Array.from(groups.entries()).sort((a, b) =>
-    b[0].localeCompare(a[0]),
-  );
-}
 
 /**
  * Format date header: "Today", "Yesterday", or "Jan 12"

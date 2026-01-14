@@ -1,7 +1,4 @@
-import type {
-  RepositoryTree,
-  RepositoryTreeEntry
-} from "@/lib/dto";
+import type { RepositoryTree, RepositoryTreeEntry } from "@/lib/dto";
 
 export function parseRepositoryTree(tree: RepositoryTree): {
   entries: Map<string, RepositoryTreeEntry>;

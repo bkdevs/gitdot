@@ -20,7 +20,4 @@ echo "Running pnpm install"
 echo "Running cargo build"
 (cd backend && cargo build)
 
-echo "Setting up symlinks"
-ln -sf frontend/biome.json biome.json # zed looks for biome.json in the top-level directory
-
 echo "Setup complete!"
