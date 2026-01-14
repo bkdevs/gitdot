@@ -1,4 +1,5 @@
-import { getRepositoryCommitDiff } from "@/lib/dal";
+import { getRepositoryCommitDiffs } from "@/lib/dal";
+import CommitHeader from "../ui/commit-header";
 
 const mockDiffs = [
   {
@@ -726,33 +727,13 @@ export default async function Page({
   params: Promise<{ slug: string; sha: string }>;
 }) {
   const { slug: repo, sha } = await params;
-  const diffs = await getRepositoryCommitDiff("bkdevs", repo, sha);
+  const { commit, diffs } = await getRepositoryCommitDiffs("bkdevs", repo, sha);
+
   console.log(JSON.stringify(diffs, null, 2));
 
   return (
     <div className="flex flex-col w-full h-screen">
-      <div className="px-2 py-3">
-        <div className="flex items-center gap-2 text-xs text-gray-600 mb-2">
-          <span>Jane Developer</span>
-          <span>•</span>
-          <span>2 hours ago</span>
-          <span>•</span>
-          <span className="font-mono">a7f2e9c</span>
-        </div>
-        <div className="text-sm font-semibold mb-1">
-          feat: improve button styling and date formatting
-        </div>
-        <div className="text-sm text-gray-700 leading-relaxed">
-          Updated the Button component to use a darker blue shade and added
-          rounded corners for better visual consistency. Also refactored the
-          date formatting utilities to provide more control over the output
-          format, replacing simple toLocaleDateString calls with explicit
-          formatting options. This improves consistency across different locales
-          and gives us better control over how dates and times are displayed
-          throughout the application.
-        </div>
-      </div>
-
+      <CommitHeader commit={commit} />
       <div className="flex-1 overflow-auto">
         {mockDiffs.map((diff, idx) => (
           <div key={idx} className="mb-8">

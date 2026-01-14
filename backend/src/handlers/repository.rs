@@ -1,6 +1,6 @@
 use crate::app::Settings;
 use crate::dto::repository::{
-    CreateRepositoryRequest, CreateRepositoryResponse, RepositoryCommit, RepositoryCommitDiff,
+    CreateRepositoryRequest, CreateRepositoryResponse, RepositoryCommit, RepositoryCommitDiffs,
     RepositoryCommits, RepositoryCommitsQuery, RepositoryFile, RepositoryFileCommitsQuery,
     RepositoryFileDiff, RepositoryFileQuery, RepositoryTree, RepositoryTreeEntry,
     RepositoryTreeQuery,
@@ -633,10 +633,10 @@ fn get_commits(
     Ok((commits, has_next))
 }
 
-pub async fn get_repository_commit_diff(
+pub async fn get_repository_commit_diffs(
     State(settings): State<Arc<Settings>>,
     Path((owner, repo, sha)): Path<(String, String, String)>,
-) -> Result<Json<RepositoryCommitDiff>, StatusCode> {
+) -> Result<Json<RepositoryCommitDiffs>, StatusCode> {
     if sha.len() < 4 || sha.len() > 40 {
         return Err(StatusCode::BAD_REQUEST);
     }
@@ -709,7 +709,7 @@ pub async fn get_repository_commit_diff(
         });
     }
 
-    Ok(Json(RepositoryCommitDiff {
+    Ok(Json(RepositoryCommitDiffs {
         sha: full_sha,
         parent_sha,
         commit: commit_info,

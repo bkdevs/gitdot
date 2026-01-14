@@ -24,7 +24,7 @@ use tower_http::{
 
 use crate::handlers::git_smart_http::{git_info_refs, git_receive_pack, git_upload_pack};
 use crate::handlers::repository::{
-    create_repository, get_repository_commit_diff, get_repository_commits, get_repository_file,
+    create_repository, get_repository_commit_diffs, get_repository_commits, get_repository_file,
     get_repository_file_commits, get_repository_tree,
 };
 
@@ -78,8 +78,8 @@ pub fn create_router(app_state: AppState) -> Router {
             get(get_repository_commits),
         )
         .route(
-            "/repository/{owner}/{repo}/commits/{sha}/diff",
-            get(get_repository_commit_diff),
+            "/repository/{owner}/{repo}/commits/{sha}/diffs",
+            get(get_repository_commit_diffs),
         )
         .route(
             "/repository/{owner}/{repo}/file/commits",

@@ -108,11 +108,11 @@ export const RepositoryFileDiffSchema = z.object({
 
 export type RepositoryFileDiff = z.infer<typeof RepositoryFileDiffSchema>;
 
-export const RepositoryCommitDiffSchema = z.object({
+export const RepositoryCommitDiffsSchema = z.object({
   sha: z.string(),
   parent_sha: z.string().optional(),
   commit: RepositoryCommitSchema,
   diffs: z.array(RepositoryFileDiffSchema),
 });
 
-export type RepositoryCommitDiff = z.infer<typeof RepositoryCommitDiffSchema>;
+export type RepositoryCommitDiffs = z.infer<typeof RepositoryCommitDiffsSchema>;

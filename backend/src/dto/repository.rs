@@ -104,7 +104,7 @@ pub struct RepositoryFileDiff {
 }
 
 #[derive(Serialize)]
-pub struct RepositoryCommitDiff {
+pub struct RepositoryCommitDiffs {
     pub sha: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub parent_sha: Option<String>,
