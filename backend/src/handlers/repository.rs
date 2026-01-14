@@ -1,6 +1,6 @@
 use crate::app::Settings;
 use crate::dto::repository::{
-    CreateRepositoryRequest, CreateRepositoryResponse, FileDiff, RepositoryCommit,
+    CreateRepositoryRequest, CreateRepositoryResponse, DifftasticOutput, RepositoryCommit,
     RepositoryCommitDiffs, RepositoryCommits, RepositoryCommitsQuery, RepositoryFile,
     RepositoryFileCommitsQuery, RepositoryFileDiff, RepositoryFileQuery, RepositoryTree,
     RepositoryTreeEntry, RepositoryTreeQuery,
@@ -706,8 +706,10 @@ pub async fn get_repository_commit_diffs(
         let left_content = left.as_ref().map(|f| f.content.as_str()).unwrap_or("");
         let right_content = right.as_ref().map(|f| f.content.as_str()).unwrap_or("");
         let file_path_for_diff = new_path.as_deref().or(old_path.as_deref());
-        let diff = execute_difftastic(left_content, right_content, file_path_for_diff);
-        println!("diff: {:?}", diff);
+        let diff = execute_difftastic(left_content, right_content, file_path_for_diff)
+            .expect("Failed to generate diff");
+
+        let chunks = diff.chunks.expect("Diff chunks are missing");
 
         diffs.push(RepositoryFileDiff {
             old_path: if delta.status() == git2::Delta::Renamed
@@ -721,7 +723,7 @@ pub async fn get_repository_commit_diffs(
             right,
             lines_added,
             lines_removed,
-            diff,
+            chunks,
         });
     }
 
@@ -779,7 +781,7 @@ fn execute_difftastic(
     left_content: &str,
     right_content: &str,
     file_path: Option<&str>,
-) -> Option<FileDiff> {
+) -> Option<DifftasticOutput> {
     use std::io::Write;
     use tempfile::Builder;
 

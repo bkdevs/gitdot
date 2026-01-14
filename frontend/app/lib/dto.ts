@@ -100,6 +100,45 @@ export type RepositoryFileCommitsQuery = z.infer<
   typeof RepositoryFileCommitsQuerySchema
 >;
 
+export const SyntaxHighlightSchema = z.enum([
+  "delimiter",
+  "normal",
+  "string",
+  "type",
+  "comment",
+  "keyword",
+  "tree_sitter_error",
+]);
+
+export type SyntaxHighlight = z.infer<typeof SyntaxHighlightSchema>;
+
+export const DiffChangeSchema = z.object({
+  start: z.number(),
+  end: z.number(),
+  content: z.string(),
+  highlight: SyntaxHighlightSchema,
+});
+
+export type DiffChange = z.infer<typeof DiffChangeSchema>;
+
+export const DiffSideSchema = z.object({
+  line_number: z.number(),
+  changes: z.array(DiffChangeSchema),
+});
+
+export type DiffSide = z.infer<typeof DiffSideSchema>;
+
+export const DiffLineSchema = z.object({
+  lhs: DiffSideSchema.optional(),
+  rhs: DiffSideSchema.optional(),
+});
+
+export type DiffLine = z.infer<typeof DiffLineSchema>;
+
+export const DiffChunkSchema = z.array(DiffLineSchema);
+
+export type DiffChunk = z.infer<typeof DiffChunkSchema>;
+
 export const RepositoryFileDiffSchema = z.object({
   old_path: z.string().optional(),
   left: RepositoryFileSchema.optional(),
@@ -107,6 +146,7 @@ export const RepositoryFileDiffSchema = z.object({
 
   lines_added: z.number(),
   lines_removed: z.number(),
+  chunks: z.array(DiffChunkSchema)
 });
 
 export type RepositoryFileDiff = z.infer<typeof RepositoryFileDiffSchema>;
