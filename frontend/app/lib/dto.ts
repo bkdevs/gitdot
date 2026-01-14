@@ -140,10 +140,8 @@ export const DiffChunkSchema = z.array(DiffLineSchema);
 export type DiffChunk = z.infer<typeof DiffChunkSchema>;
 
 export const RepositoryFileDiffSchema = z.object({
-  old_path: z.string().optional(),
   left: RepositoryFileSchema.optional(),
   right: RepositoryFileSchema.optional(),
-
   lines_added: z.number(),
   lines_removed: z.number(),
   chunks: z.array(DiffChunkSchema)

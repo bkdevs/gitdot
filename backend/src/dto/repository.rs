@@ -121,8 +121,6 @@ pub struct RepositoryCommitDiffs {
 #[derive(Serialize, Clone)]
 pub struct RepositoryFileDiff {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub old_path: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub left: Option<RepositoryFile>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub right: Option<RepositoryFile>,

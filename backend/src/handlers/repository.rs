@@ -671,13 +671,13 @@ pub async fn get_repository_commit_diffs(
     let mut diffs = Vec::new();
 
     for (idx, delta) in diff.deltas().enumerate() {
-        let new_path = delta
-            .new_file()
+        let old_path = delta
+            .old_file()
             .path()
             .and_then(|p| p.to_str())
             .map(String::from);
-        let old_path = delta
-            .old_file()
+        let new_path = delta
+            .new_file()
             .path()
             .and_then(|p| p.to_str())
             .map(String::from);
@@ -709,21 +709,12 @@ pub async fn get_repository_commit_diffs(
         let diff = execute_difftastic(left_content, right_content, file_path_for_diff)
             .expect("Failed to generate diff");
 
-        let chunks = diff.chunks.expect("Diff chunks are missing");
-
         diffs.push(RepositoryFileDiff {
-            old_path: if delta.status() == git2::Delta::Renamed
-                || delta.status() == git2::Delta::Copied
-            {
-                old_path
-            } else {
-                None
-            },
             left,
             right,
             lines_added,
             lines_removed,
-            chunks,
+            chunks: diff.chunks.unwrap_or(Vec::new()),
         });
     }
 
