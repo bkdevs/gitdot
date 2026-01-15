@@ -31,8 +31,8 @@ export function DiffChunk({
   const pairedLines = pairLines(chunk);
 
   for (const [left, right] of pairedLines) {
-    leftSpansChunk.push(left ? leftSpans[left] : sentinelSpan);
-    rightSpansChunk.push(right ? rightSpans[right] : sentinelSpan);
+    leftSpansChunk.push(left !== null ? leftSpans[left] : sentinelSpan);
+    rightSpansChunk.push(right !== null ? rightSpans[right] : sentinelSpan);
   }
 
   const container: Element = {
