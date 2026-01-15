@@ -185,21 +185,29 @@ export function pairLines(chunk: DiffChunk): LinePair[] {
   return linePairs;
 }
 
-export function alignFiles(
+export function getVisibleLines(
   left: RepositoryFile,
   right: RepositoryFile,
   chunks: DiffChunk[],
-): { leftContent: string; rightContent: string } {
-  const leftLines = left.content.split("\n");
-  const rightLines = right.content.split("\n");
+): { leftVisibleLines: Set<number>; rightVisibleLines: Set<number> } {
+  const leftVisibleLines = new Set<number>();
+  const rightVisibleLines = new Set<number>();
 
   for (const chunk of chunks) {
     const linePairs = pairLines(chunk);
+    console.log(chunk);
+    console.log(linePairs);
+    for (const linePair of linePairs) {
+      if (linePair[0]) leftVisibleLines.add(linePair[0]);
+      if (linePair[1]) rightVisibleLines.add(linePair[1]);
+    }
   }
 
+  console.log("=================")
+
   return {
-    leftContent: left?.content || "",
-    rightContent: right?.content || "",
+    leftVisibleLines,
+    rightVisibleLines,
   };
 }
 

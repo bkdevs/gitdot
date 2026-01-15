@@ -3,7 +3,7 @@ import type { JSX } from "react";
 import { Fragment } from "react";
 import { jsx, jsxs } from "react/jsx-runtime";
 import { codeToHast } from "shiki";
-import { alignFiles, inferLanguage } from "@/(repo)/[slug]/util";
+import { getVisibleLines, inferLanguage } from "@/(repo)/[slug]/util";
 import type { RepositoryFileDiff } from "@/lib/dto";
 import { DiffLine } from "./diff-line";
 
@@ -12,6 +12,7 @@ const CONTEXT_LINES = 5;
 async function renderDiffSide(
   language: string,
   content: string,
+  visibleLines: Set<number>
 ): Promise<JSX.Element | null> {
   const hast = await codeToHast(content, {
     lang: language,
@@ -28,6 +29,7 @@ async function renderDiffSide(
         line(node, lineNumber) {
           node.tagName = "diffline";
           node.properties["data-line-number"] = lineNumber;
+          node.properties["data-visible"] = visibleLines.has(lineNumber - 1);
         },
       },
     ],
@@ -58,11 +60,11 @@ export async function FileDiff({ diff }: { diff: RepositoryFileDiff }) {
   }
 
   const language = inferLanguage(path) || "plaintext";
-  const { leftContent, rightContent } = alignFiles(left, right, chunks);
+  const { leftVisibleLines, rightVisibleLines } = getVisibleLines(left, right, chunks);
 
   const [leftComponent, rightComponent] = await Promise.all([
-    renderDiffSide(language, leftContent),
-    renderDiffSide(language, rightContent),
+    renderDiffSide(language, left.content, leftVisibleLines),
+    renderDiffSide(language, right.content, rightVisibleLines),
   ]);
 
   return (
