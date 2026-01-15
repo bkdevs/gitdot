@@ -3,18 +3,17 @@ import { cn } from "@/util";
 export function DiffLine({
   children,
   "data-line-number": lineNumber,
-  "data-visible": visible,
+  "data-line-type": lineType,
 }: {
   children: React.ReactNode;
   "data-line-number": number;
-  "data-visible": boolean;
+  "data-line-type": "sentinel" | "normal";
 }) {
-  if (!visible) return null;
 
   return (
     <span className={cn("inline-flex w-full")}>
       <span className="w-9 text-right shrink-0 pr-1.5 mr-1 text-primary/60 select-none">
-        {lineNumber}
+        {lineType === "sentinel" ? ".." : lineNumber}
       </span>
       {children}
     </span>
