@@ -1,4 +1,201 @@
-import type { DiffChunk, RepositoryFile } from "@/lib/dto";
+import type { DiffChunk, DiffLine, RepositoryFile } from "@/lib/dto";
+
+/**
+ * a tad complicated and heuristic function.
+ *
+ * diffd --display JSON returns hunks, which are sequence of changed, added, removed lines separate a 4 line radius
+ * each hunk composes of a list of lines, and a line can be of three forms:
+ * - added [rhs only]
+ * - removed [lhs only]
+ * - modified [lhs + rhs]
+ *
+ * diffd _also_ returns line numbers along with each diff line, which is important in particular for
+ * modified lines as it indicates the matching of each line sequence, e.g., [15, 20] means that this line should be aligned to file line 15 on the left and 20 on the rhs.
+ *
+ * this schema allows for diffd to match seeming unrelated and non-contiguous lines, which allows for smarter syntax based mapping, but makes the schema's interpretation ambiguous.
+ * for example, with a pair of [15, 20], to have the result be aligned in the UI, we need to pad the left side by 5 lines.
+ *
+ * but the question of where to pad is ambiguous (e.g., could be at the top of the file, could be right before, could be somewhere in the middle).
+ * so this code attempts to re-construct what diffd is doing in the terminal to return sensible alignment and formatting.
+ *
+ * output:
+ *  - LinePair[], a list of line numbers that indicate which left line maps to what right line (and what lines should be sentinelled)
+ *
+ * example output:
+ *  - [1, 2] # showing offset at beginning of file
+ *  - [2, 3]
+ *  - [null, 4] # indicating added on rhs
+ *  - [3, 5]
+ *  - [4, null] # indicating removal on lhs
+ *
+ * a few invariants must hold with this list, which make reasoning about it easier:
+ * - each side must contain the full range of indices from min, max provided in diffd (inclusive)
+ * - each side must be monotonically increasing, exlcuding null sentinels
+ * this also implies that the size of the list _may_ be greater than the full range of indices as a result of padding, which is fine.
+ */
+function pairLines(chunk: DiffChunk): LinePair[] {
+  const chunkPairs: LinePair[] = [];
+
+  // we first add all paired lines (those that are matched) and use those as anchors to generate the full alignment
+  for (const line of chunk) {
+    if (line.lhs && line.rhs) {
+      chunkPairs.push([line.lhs.line_number, line.rhs.line_number]);
+    }
+  }
+
+  // then insert lhs only lines by sorted order of the left index
+  for (const line of chunk) {
+    if (line.lhs && !line.rhs) {
+      insertLhsInOrder(chunkPairs, line.lhs.line_number);
+    }
+  }
+
+  // then do the same for rhs
+  for (const line of chunk) {
+    if (!line.lhs && line.rhs) {
+      insertRhsInOrder(chunkPairs, line.rhs.line_number);
+    }
+  }
+
+  const linePairs: LinePair[] = [];
+
+  for (const pair of chunkPairs) {
+    console.log(pair);
+  }
+  console.log("====");
+  // now we need to start filling in gaps
+  // we do this from the first paired index to give preference to showing sentinels at the top and the bottom
+  // this as opposed to doing filling from the top, where we will show matched lines, then sentinels, and then lines again
+  const firstPairIdx = chunkPairs.findIndex(
+    (p) => p[0] !== null && p[1] !== null,
+  );
+  if (firstPairIdx !== -1) {
+    const anchor = chunkPairs[firstPairIdx];
+    linePairs.push(anchor);
+
+    // biome-ignore lint/style/noNonNullAssertion: anchor verified non-null by findIndex
+    let leftPos = anchor[0]!;
+    // biome-ignore lint/style/noNonNullAssertion: anchor verified non-null by findIndex
+    let rightPos = anchor[1]!;
+
+    for (let i = firstPairIdx + 1; i < chunkPairs.length; i++) {
+      const entry = chunkPairs[i];
+      while (true) {
+        const leftMatches = entry[0] !== null && leftPos + 1 === entry[0];
+        const rightMatches = entry[1] !== null && rightPos + 1 === entry[1];
+
+        if (leftMatches || rightMatches) {
+          if (entry[0] !== null) leftPos = entry[0];
+          if (entry[1] !== null) rightPos = entry[1];
+          linePairs.push(entry);
+          break;
+        }
+
+        leftPos++;
+        rightPos++;
+        linePairs.push([leftPos, rightPos]);
+      }
+    }
+  }
+
+  // now, we fill in all the gaps remaining in the list of pairs with sentinel entries by iterating backwards
+  const [minLine, maxLine] = getChunkRange(chunk);
+
+  let hasGaps = true;
+  while (hasGaps) {
+    for (const pair of linePairs) {
+      console.log(pair);
+    }
+    console.log("====");
+    hasGaps = false;
+
+    // check start: prepend if either side starts before minLine
+    const first = linePairs[0];
+    if (first[0] !== null && first[0] > minLine) {
+      linePairs.unshift([first[0] - 1, null]);
+      hasGaps = true;
+      continue;
+    }
+    if (first[1] !== null && first[1] > minLine) {
+      linePairs.unshift([null, first[1] - 1]);
+      hasGaps = true;
+      continue;
+    }
+
+    // check the middle by iterating backwards
+    for (let i = linePairs.length - 1; i > 0; i--) {
+      const current = linePairs[i];
+      const prev = linePairs[i - 1];
+
+      if (current[1] !== null && prev[1] !== null && current[1] - prev[1] > 1) {
+        linePairs.splice(i, 0, [null, current[1] - 1]);
+        hasGaps = true;
+        break;
+      }
+      if (current[0] !== null && prev[0] !== null && current[0] - prev[0] > 1) {
+        linePairs.splice(i, 0, [current[0] - 1, null]);
+        hasGaps = true;
+        break;
+      }
+    }
+    if (hasGaps) continue;
+
+    // check end: append if either side ends before maxLine
+    const last = linePairs[linePairs.length - 1];
+    if (
+      (last[0] !== null && last[0] < maxLine) ||
+      (last[1] !== null && last[1] < maxLine)
+    ) {
+      linePairs.push([
+        last[0] !== null ? last[0] + 1 : null,
+        last[1] !== null ? last[1] + 1 : null,
+      ]);
+      hasGaps = true;
+    }
+  }
+
+  return linePairs;
+}
+
+export function alignFiles(
+  left: RepositoryFile,
+  right: RepositoryFile,
+  chunks: DiffChunk[],
+): { leftContent: string; rightContent: string } {
+  const leftLines = left.content.split("\n");
+  const rightLines = right.content.split("\n");
+
+  for (const chunk of chunks) {
+    const linePairs = pairLines(chunk);
+    for (const pair of linePairs) {
+      console.log(pair);
+    }
+    console.log("\n=== CHUNK DEBUG ===");
+    console.log("Left".padEnd(80) + " | " + "Right");
+    console.log("=".repeat(80) + " | " + "=".repeat(80));
+
+    for (const pair of linePairs) {
+      const [leftIdx, rightIdx] = pair;
+
+      const leftContent =
+        leftIdx !== null
+          ? (leftLines[leftIdx] || "").substring(0, 80).padEnd(80)
+          : "-------".padEnd(80);
+
+      const rightContent =
+        rightIdx !== null
+          ? (rightLines[rightIdx] || "").substring(0, 80).padEnd(80)
+          : "-------".padEnd(80);
+
+      console.log(`${leftContent} | ${rightContent}`);
+    }
+  }
+
+  return {
+    leftContent: left?.content || "",
+    rightContent: right?.content || "",
+  };
+}
 
 export const SENTINEL_LINE = "---";
 
@@ -20,166 +217,24 @@ function getChunkRange(chunk: DiffChunk): [number, number] {
   return min === Infinity ? [0, 0] : [min, max];
 }
 
-function processRemovedChunk(
-  chunk: DiffChunk,
-  leftLines: string[],
-  leftOffset: number,
-): [string[], string[]] {
-  const [chunkStart, chunkEnd] = getChunkRange(chunk);
+type LinePair = [number | null, number | null]; // null represents SENTINEL
 
-  const leftChunkLines = new Array(chunkEnd - chunkStart + 1);
-  const rightChunkLines = new Array(chunkEnd - chunkStart + 1);
-
-  for (let i = 0; i < leftChunkLines.length; i++) {
-    leftChunkLines[i] = leftLines[chunkStart + i + leftOffset];
-    rightChunkLines[i] = SENTINEL_LINE;
+function insertLhsInOrder(pairs: LinePair[], lhs: number): void {
+  let i = 0;
+  while (i < pairs.length) {
+    const currentLeft = pairs[i][0];
+    if (currentLeft !== null && currentLeft >= lhs) break;
+    i++;
   }
-
-  return [leftChunkLines, rightChunkLines];
+  pairs.splice(i, 0, [lhs, null]);
 }
 
-function processAddedChunk(
-  chunk: DiffChunk,
-  rightLines: string[],
-  rightOffset: number,
-): [string[], string[]] {
-  const [chunkStart, chunkEnd] = getChunkRange(chunk);
-
-  const leftChunkLines = new Array(chunkEnd - chunkStart + 1);
-  const rightChunkLines = new Array(chunkEnd - chunkStart + 1);
-
-  for (let i = 0; i < rightChunkLines.length; i++) {
-    leftChunkLines[i] = SENTINEL_LINE;
-    rightChunkLines[i] = rightLines[chunkStart + i + rightOffset];
+function insertRhsInOrder(pairs: LinePair[], rhs: number): void {
+  let i = 0;
+  while (i < pairs.length) {
+    const currentRight = pairs[i][1];
+    if (currentRight !== null && currentRight >= rhs) break;
+    i++;
   }
-
-  return [leftChunkLines, rightChunkLines];
-}
-
-function processModifiedChunk(
-  chunk: DiffChunk,
-  leftLines: string[],
-  leftOffset: number,
-  rightLines: string[],
-  rightOffset: number,
-): [string[], string[]] {
-  const [chunkStart, chunkEnd] = getChunkRange(chunk);
-
-  const leftChunkLines = new Array(chunkEnd - chunkStart + 1);
-  const rightChunkLines = new Array(chunkEnd - chunkStart + 1);
-
-  let leftPadding = leftOffset;
-  let rightPadding = rightOffset;
-
-  for (const line of chunk) {
-    if (line.lhs && line.rhs) {
-      let leftLine = line.lhs.line_number + leftPadding;
-      let rightLine = line.rhs.line_number + rightPadding;
-
-      while (leftLine < rightLine) {
-        leftChunkLines[leftLine - chunkStart] = SENTINEL_LINE;
-        leftPadding += 1;
-        leftLine += 1;
-      }
-      while (rightLine < leftLine) {
-        rightChunkLines[rightLine - chunkStart] = SENTINEL_LINE;
-        rightPadding += 1;
-        rightLine += 1;
-      }
-    } else if (line.lhs) {
-      const rightLine = line.lhs.line_number + rightPadding;
-      rightChunkLines[rightLine - chunkStart] = SENTINEL_LINE;
-    } else if (line.rhs) {
-      const leftLine = line.rhs.line_number + leftPadding;
-      leftChunkLines[leftLine - chunkStart] = SENTINEL_LINE;
-    }
-  }
-
-  let leftPointer = chunkStart + rightOffset;
-  for (let i = 0; i < leftChunkLines.length; i++) {
-    if (!leftChunkLines[i]) {
-      leftChunkLines[i] = leftLines[leftPointer++];
-    }
-  }
-
-  let rightPointer = chunkStart + leftOffset;
-  for (let i = 0; i < rightChunkLines.length; i++) {
-    if (!rightChunkLines[i]) {
-      rightChunkLines[i] = rightLines[rightPointer++];
-    }
-  }
-
-  return [leftChunkLines, rightChunkLines];
-}
-
-function processChunk(
-  chunk: DiffChunk,
-  leftLines: string[],
-  rightLines: string[],
-  leftOffset: number,
-  rightOffset: number,
-): [string[], string[]] {
-  if (chunk.every((line) => line.lhs && !line.rhs)) {
-    return processRemovedChunk(chunk, leftLines, leftOffset);
-  } else if (chunk.every((line) => line.rhs && !line.lhs)) {
-    return processAddedChunk(chunk, rightLines, rightOffset);
-  } else {
-    return processModifiedChunk(
-      chunk,
-      leftLines,
-      leftOffset,
-      rightLines,
-      rightOffset,
-    );
-  }
-}
-
-export function alignFiles(
-  left: RepositoryFile,
-  right: RepositoryFile,
-  chunks: DiffChunk[],
-): { leftContent: string; rightContent: string } {
-  const leftLines = left.content.split("\n");
-  const rightLines = right.content.split("\n");
-
-  let leftOffset = 0;
-  let rightOffset = 0;
-
-  for (const chunk of chunks) {
-    const [leftChunkLines, rightChunkLines] = processChunk(
-      chunk,
-      leftLines,
-      rightLines,
-      leftOffset,
-      rightOffset,
-    );
-
-    leftOffset += leftChunkLines.filter(
-      (line) => line === SENTINEL_LINE,
-    ).length;
-    rightOffset += rightChunkLines.filter(
-      (line) => line === SENTINEL_LINE,
-    ).length;
-
-    const columnWidth = 80; // Adjust as needed
-    const separator = " | ";
-
-    console.log("LEFT".padEnd(columnWidth) + separator + "RIGHT");
-    console.log("-".repeat(columnWidth) + separator + "-".repeat(columnWidth));
-
-    const maxLines = Math.max(leftChunkLines.length, rightChunkLines.length);
-
-    for (let i = 0; i < maxLines; i++) {
-      const left = (leftChunkLines[i] || "")
-        .substring(0, columnWidth)
-        .padEnd(columnWidth);
-      const right = (rightChunkLines[i] || "").substring(0, columnWidth);
-      console.log(left + separator + right);
-    }
-  }
-
-  return {
-    leftContent: left?.content || "",
-    rightContent: right?.content || "",
-  };
+  pairs.splice(i, 0, [null, rhs]);
 }

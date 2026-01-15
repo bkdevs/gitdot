@@ -60,8 +60,6 @@ export async function FileDiff({ diff }: { diff: RepositoryFileDiff }) {
   const language = inferLanguage(path) || "plaintext";
   const { leftContent, rightContent } = alignFiles(left, right, chunks);
 
-  console.log(JSON.stringify(chunks, null, 2));
-
   const [leftComponent, rightComponent] = await Promise.all([
     renderDiffSide(language, leftContent),
     renderDiffSide(language, rightContent),
