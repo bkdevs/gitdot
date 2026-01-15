@@ -1,5 +1,7 @@
 import type { DiffChunk, DiffLine, RepositoryFile } from "@/lib/dto";
 
+export type LinePair = [number | null, number | null]; // null represents SENTINEL
+
 /**
  * a tad complicated and heuristic function.
  *
@@ -33,7 +35,7 @@ import type { DiffChunk, DiffLine, RepositoryFile } from "@/lib/dto";
  * - each side must be monotonically increasing, exlcuding null sentinels
  * this also implies that the size of the list _may_ be greater than the full range of indices as a result of padding, which is fine.
  */
-function pairLines(chunk: DiffChunk): LinePair[] {
+export function pairLines(chunk: DiffChunk): LinePair[] {
   const chunkPairs: LinePair[] = [];
 
   // we first add all paired lines (those that are matched) and use those as anchors to generate the full alignment
@@ -122,6 +124,10 @@ function pairLines(chunk: DiffChunk): LinePair[] {
         linePairs.unshift([leftPos, rightPos]);
       }
     }
+  } else {
+    // No paired lines (all one-sided) - just use chunkPairs directly
+    // and let the gap-filling logic below handle filling in missing lines
+    linePairs.push(...chunkPairs);
   }
 
   // now, we fill in all the gaps remaining in the list of pairs with sentinel entries by iterating backwards
@@ -189,28 +195,6 @@ export function alignFiles(
 
   for (const chunk of chunks) {
     const linePairs = pairLines(chunk);
-    for (const pair of linePairs) {
-      console.log(pair);
-    }
-    console.log("\n=== CHUNK DEBUG ===");
-    console.log("Left".padEnd(80) + " | " + "Right");
-    console.log("=".repeat(80) + " | " + "=".repeat(80));
-
-    for (const pair of linePairs) {
-      const [leftIdx, rightIdx] = pair;
-
-      const leftContent =
-        leftIdx !== null
-          ? (leftLines[leftIdx] || "").substring(0, 80).padEnd(80)
-          : "-------".padEnd(80);
-
-      const rightContent =
-        rightIdx !== null
-          ? (rightLines[rightIdx] || "").substring(0, 80).padEnd(80)
-          : "-------".padEnd(80);
-
-      console.log(`${leftContent} | ${rightContent}`);
-    }
   }
 
   return {
@@ -238,8 +222,6 @@ function getChunkRange(chunk: DiffChunk): [number, number] {
 
   return min === Infinity ? [0, 0] : [min, max];
 }
-
-type LinePair = [number | null, number | null]; // null represents SENTINEL
 
 function insertLhsInOrder(pairs: LinePair[], lhs: number): void {
   let i = 0;
