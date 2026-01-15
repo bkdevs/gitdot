@@ -1,30 +1,29 @@
-import { toJsxRuntime } from "hast-util-to-jsx-runtime";
 import type { Element, Root } from "hast";
+import { toJsxRuntime } from "hast-util-to-jsx-runtime";
 import type { JSX } from "react";
 import { Fragment } from "react";
 import { jsx, jsxs } from "react/jsx-runtime";
 import { codeToHast } from "shiki";
-import type { RepositoryFile, DiffChunk } from "@/lib/dto";
 import { inferLanguage } from "@/(repo)/[slug]/util";
-import { RepositoryFileDiff } from "@/lib/dto";
-import { DiffLine } from "./diff-line";
-import { ChunkSeparator } from "./chunk-separator";
+import type { DiffChunk, RepositoryFile, RepositoryFileDiff } from "@/lib/dto";
 import {
-  extractLineNumbers,
-  expandWithContext,
   buildLineTypeMap,
-  isLineInRanges,
   countLines,
-  type LineRange,
   type DiffLineType,
+  expandWithContext,
+  extractLineNumbers,
+  isLineInRanges,
+  type LineRange,
 } from "../lib/diff-utils";
+import { ChunkSeparator } from "./chunk-separator";
+import { DiffLine } from "./diff-line";
 
 const CONTEXT_LINES = 5;
 
 async function renderDiffSide(
   file: RepositoryFile | undefined,
   chunks: DiffChunk[],
-  side: "lhs" | "rhs"
+  side: "lhs" | "rhs",
 ): Promise<JSX.Element | null> {
   if (!file?.content) {
     return null;
@@ -34,7 +33,11 @@ async function renderDiffSide(
 
   // Extract line numbers and expand with context
   const changedLines = extractLineNumbers(chunks, side);
-  const visibleRanges = expandWithContext(changedLines, CONTEXT_LINES, totalLines);
+  const visibleRanges = expandWithContext(
+    changedLines,
+    CONTEXT_LINES,
+    totalLines,
+  );
 
   // Build line type map for styling
   const lineTypeMap = buildLineTypeMap(chunks, side);
@@ -46,6 +49,9 @@ async function renderDiffSide(
       {
         pre(node) {
           this.addClassToHast(node, "outline-none");
+        },
+        code(node) {
+          this.addClassToHast(node, "flex flex-col");
         },
         line(node, lineNumber) {
           node.tagName = "diffline";
@@ -64,7 +70,6 @@ async function renderDiffSide(
       },
     ],
   });
-
   // Insert separators between non-contiguous ranges
   const processedHast = insertChunkSeparators(hast, visibleRanges);
 
@@ -87,12 +92,12 @@ function insertChunkSeparators(hast: Root, ranges: LineRange[]): Root {
 
   // Find the <pre> -> <code> element that contains lines
   const preElement = hast.children.find(
-    (c): c is Element => c.type === "element" && c.tagName === "pre"
+    (c): c is Element => c.type === "element" && c.tagName === "pre",
   );
   if (!preElement) return hast;
 
   const codeElement = preElement.children.find(
-    (c): c is Element => c.type === "element" && c.tagName === "code"
+    (c): c is Element => c.type === "element" && c.tagName === "code",
   );
   if (!codeElement) return hast;
 

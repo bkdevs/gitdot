@@ -38,6 +38,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.2.0",
+    "@shikijs/transformers": "^3.21.0",
     "@tailwindcss/postcss": "^4",
     "@types/jest": "^30.0.0",
     "@types/node": "^20",
