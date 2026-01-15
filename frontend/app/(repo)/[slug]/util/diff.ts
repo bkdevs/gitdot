@@ -1,4 +1,4 @@
-import type { DiffChunk, DiffLine, RepositoryFile } from "@/lib/dto";
+import type { DiffChunk, RepositoryFile } from "@/lib/dto";
 
 export type LinePair = [number | null, number | null]; // null represents SENTINEL
 
@@ -185,33 +185,63 @@ export function pairLines(chunk: DiffChunk): LinePair[] {
   return linePairs;
 }
 
-export function getVisibleLines(
+/**
+ * - visible lines are 0-indexed set of all visible lines in chunks
+ * - sentinel counts are the number of sentinels that should be inserted _before_ a line
+ */
+export function processChunks(
   left: RepositoryFile,
   right: RepositoryFile,
   chunks: DiffChunk[],
-): { leftVisibleLines: Set<number>; rightVisibleLines: Set<number> } {
+): { leftVisibleLines: Set<number>; leftSentinelCounts: Map<number, number>; rightVisibleLines: Set<number>; rightSentinelCounts: Map<number, number> } {
   const leftVisibleLines = new Set<number>();
   const rightVisibleLines = new Set<number>();
+  const leftSentinelCounts = new Map<number, number>();
+  const rightSentinelCounts = new Map<number, number>();
 
   for (const chunk of chunks) {
     const linePairs = pairLines(chunk);
-    console.log(chunk);
-    console.log(linePairs);
-    for (const linePair of linePairs) {
-      if (linePair[0]) leftVisibleLines.add(linePair[0]);
-      if (linePair[1]) rightVisibleLines.add(linePair[1]);
+
+    let leftSentinelCount = 0;
+    let rightSentinelCount = 0;
+
+    for (const [left, right] of linePairs) {
+      if (left === null) {
+        leftSentinelCount++;
+      } else {
+        leftVisibleLines.add(left);
+        if (leftSentinelCount > 0) {
+          leftSentinelCounts.set(
+            left,
+            (leftSentinelCounts.get(left) ?? 0) + leftSentinelCount,
+          );
+          leftSentinelCount = 0;
+        }
+      }
+
+      if (right === null) {
+        rightSentinelCount++;
+      } else {
+        rightVisibleLines.add(right);
+        if (rightSentinelCount > 0) {
+          rightSentinelCounts.set(
+            right,
+            (rightSentinelCounts.get(right) ?? 0) + rightSentinelCount,
+          );
+          rightSentinelCount = 0;
+        }
+      }
     }
   }
 
-  console.log("=================")
-
   return {
     leftVisibleLines,
+    leftSentinelCounts,
     rightVisibleLines,
+    rightSentinelCounts,
   };
 }
 
-export const SENTINEL_LINE = "---";
 
 function getChunkRange(chunk: DiffChunk): [number, number] {
   let min = Infinity;

@@ -3,7 +3,7 @@ import type { JSX } from "react";
 import { Fragment } from "react";
 import { jsx, jsxs } from "react/jsx-runtime";
 import { codeToHast } from "shiki";
-import { getVisibleLines, inferLanguage } from "@/(repo)/[slug]/util";
+import { processChunks, inferLanguage } from "@/(repo)/[slug]/util";
 import type { RepositoryFileDiff } from "@/lib/dto";
 import { DiffLine } from "./diff-line";
 
@@ -51,6 +51,11 @@ export async function FileDiff({ diff }: { diff: RepositoryFileDiff }) {
   if (!path) {
     throw new Error("File path or chunks are missing");
   }
+  if (!left?.content || !right?.content) {
+    return <div>
+      one of the two files are missing, this is unimplemented as of now, should show a single file view
+    </div>
+  }
   if (!chunks || chunks.length === 0) {
     return (
       <div className="w-full">
@@ -60,7 +65,7 @@ export async function FileDiff({ diff }: { diff: RepositoryFileDiff }) {
   }
 
   const language = inferLanguage(path) || "plaintext";
-  const { leftVisibleLines, rightVisibleLines } = getVisibleLines(left, right, chunks);
+  const { leftVisibleLines, leftSentinelCounts, rightVisibleLines, rightSentinelCounts } = processChunks(left, right, chunks);
 
   const [leftComponent, rightComponent] = await Promise.all([
     renderDiffSide(language, left.content, leftVisibleLines),

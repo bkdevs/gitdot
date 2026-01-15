@@ -1,5 +1,5 @@
-import type { DiffChunk } from "@/lib/dto";
-import { pairLines, type LinePair } from "../diff";
+import type { DiffChunk, RepositoryFile } from "@/lib/dto";
+import { pairLines, processChunks, type LinePair } from "../diff";
 
 interface TestCase {
   name: string;
@@ -60,5 +60,127 @@ describe("pairLines", () => {
   test.each(testCases)("$name", ({ input, expected }) => {
     const result = pairLines(input);
     expect(result).toEqual(expected);
+  });
+});
+
+describe("processChunks", () => {
+  const mockFile: RepositoryFile = {
+    path: "test.ts",
+    content: "line1\nline2\nline3\nline4\nline5",
+  };
+
+  test("left-only chunk - all right side sentinels, no anchor", () => {
+    // pairLines returns: [[1, null], [2, null], [3, null]]
+    const chunks: DiffChunk[] = [
+      chunk([{ lhs: 1 }, { lhs: 2 }, { lhs: 3 }]),
+    ];
+    const result = processChunks(mockFile, mockFile, chunks);
+
+    expect(result.leftVisibleLines).toEqual(new Set([1, 2, 3]));
+    expect(result.rightVisibleLines).toEqual(new Set());
+    expect(result.leftSentinelCounts).toEqual(new Map());
+    // All 3 right sentinels become trailing sentinels (no right lines to anchor)
+    expect(result.rightSentinelCounts).toEqual(new Map());
+  });
+
+  test("right-only chunk - all left side sentinels, no anchor", () => {
+    // pairLines returns: [[null, 1], [null, 2], [null, 3]]
+    const chunks: DiffChunk[] = [
+      chunk([{ rhs: 1 }, { rhs: 2 }, { rhs: 3 }]),
+    ];
+    const result = processChunks(mockFile, mockFile, chunks);
+
+    expect(result.leftVisibleLines).toEqual(new Set());
+    expect(result.rightVisibleLines).toEqual(new Set([1, 2, 3]));
+    // All 3 left sentinels become trailing sentinels (no left lines to anchor)
+    expect(result.leftSentinelCounts).toEqual(new Map());
+    expect(result.rightSentinelCounts).toEqual(new Map());
+  });
+
+  test("paired lines with left sentinel before", () => {
+    // pairLines returns: [[null, 1], [1, 2], [2, 3]]
+    const chunks: DiffChunk[] = [
+      chunk([{ rhs: 1 }, { lhs: 1, rhs: 2 }]),
+    ];
+    const result = processChunks(mockFile, mockFile, chunks);
+
+    expect(result.leftVisibleLines).toEqual(new Set([1, 2]));
+    expect(result.rightVisibleLines).toEqual(new Set([1, 2, 3]));
+    // Before left line 1, there's 1 sentinel
+    expect(result.leftSentinelCounts).toEqual(new Map([[1, 1]]));
+    expect(result.rightSentinelCounts).toEqual(new Map());
+  });
+
+  test("paired lines with right sentinel before", () => {
+    // pairLines returns: [[1, null], [2, 1], [3, 2]]
+    const chunks: DiffChunk[] = [
+      chunk([{ lhs: 1 }, { lhs: 2, rhs: 1 }]),
+    ];
+    const result = processChunks(mockFile, mockFile, chunks);
+
+    expect(result.leftVisibleLines).toEqual(new Set([1, 2, 3]));
+    expect(result.rightVisibleLines).toEqual(new Set([1, 2]));
+    expect(result.leftSentinelCounts).toEqual(new Map());
+    // Before right line 1, there's 1 sentinel
+    expect(result.rightSentinelCounts).toEqual(new Map([[1, 1]]));
+  });
+
+  test("multiple consecutive sentinels on left side", () => {
+    // pairLines returns: [[null, 1], [null, 2], [1, 3], [2, 4], [3, 5]]
+    const chunks: DiffChunk[] = [
+      chunk([{ rhs: 1 }, { rhs: 2 }, { lhs: 1, rhs: 3 }]),
+    ];
+    const result = processChunks(mockFile, mockFile, chunks);
+
+    expect(result.leftVisibleLines).toEqual(new Set([1, 2, 3]));
+    expect(result.rightVisibleLines).toEqual(new Set([1, 2, 3, 4, 5]));
+    // Before left line 1, there are 2 sentinels
+    expect(result.leftSentinelCounts).toEqual(new Map([[1, 2]]));
+    expect(result.rightSentinelCounts).toEqual(new Map());
+  });
+
+  test("sentinels interspersed between real lines", () => {
+    // pairLines returns: [[1, 1], [null, 2], [2, 3], [3, 4]]
+    const chunks: DiffChunk[] = [
+      chunk([{ lhs: 1, rhs: 1 }, { rhs: 2 }, { lhs: 2, rhs: 3 }]),
+    ];
+    const result = processChunks(mockFile, mockFile, chunks);
+
+    expect(result.leftVisibleLines).toEqual(new Set([1, 2, 3]));
+    expect(result.rightVisibleLines).toEqual(new Set([1, 2, 3, 4]));
+    // Before left line 2, there's 1 sentinel
+    expect(result.leftSentinelCounts).toEqual(new Map([[2, 1]]));
+    expect(result.rightSentinelCounts).toEqual(new Map());
+  });
+
+  test("offset anchor creates leading right sentinels", () => {
+    // pairLines returns: [[1, null], [2, null], [3, 1], [4, 2], [5, 3]]
+    const chunks: DiffChunk[] = [
+      chunk([{ lhs: 3, rhs: 1 }]),
+    ];
+    const result = processChunks(mockFile, mockFile, chunks);
+
+    expect(result.leftVisibleLines).toEqual(new Set([1, 2, 3, 4, 5]));
+    expect(result.rightVisibleLines).toEqual(new Set([1, 2, 3]));
+    expect(result.leftSentinelCounts).toEqual(new Map());
+    // Before right line 1, there are 2 sentinels
+    expect(result.rightSentinelCounts).toEqual(new Map([[1, 2]]));
+  });
+
+  test("complex mixed case from pairLines test", () => {
+    // Expected pairs: [[null,729],[729,730],[730,null],[731,731],[null,732],[null,733],[732,734],[733,735],[734,736],[735,737],[736,738],[737,739],[738,740]]
+    const complexChunk: DiffChunk = [{ "rhs": { "line_number": 733, "changes": [] } }, { "lhs": { "line_number": 729, "changes": [] }, "rhs": { "line_number": 730, "changes": [] } }, { "lhs": { "line_number": 731, "changes": [] }, "rhs": { "line_number": 731, "changes": [] } }, { "lhs": { "line_number": 735, "changes": [] }, "rhs": { "line_number": 737, "changes": [] } }, { "lhs": { "line_number": 736, "changes": [] }, "rhs": { "line_number": 738, "changes": [] } }];
+    const chunks: DiffChunk[] = [complexChunk];
+    const result = processChunks(mockFile, mockFile, chunks);
+
+    // Left visible: 729, 730, 731, 732, 733, 734, 735, 736, 737, 738
+    expect(result.leftVisibleLines).toEqual(new Set([729, 730, 731, 732, 733, 734, 735, 736, 737, 738]));
+    // Right visible: 729, 730, 731, 732, 733, 734, 735, 736, 737, 738, 739, 740
+    expect(result.rightVisibleLines).toEqual(new Set([729, 730, 731, 732, 733, 734, 735, 736, 737, 738, 739, 740]));
+
+    // Left sentinels: 1 before 729, 2 before 732
+    expect(result.leftSentinelCounts).toEqual(new Map([[729, 1], [732, 2]]));
+    // Right sentinels: 1 before 731
+    expect(result.rightSentinelCounts).toEqual(new Map([[731, 1]]));
   });
 });
