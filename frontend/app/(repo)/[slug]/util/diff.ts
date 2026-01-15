@@ -1,162 +1,111 @@
-import type { DiffChunk, DiffLine } from "@/lib/dto";
-
-export type LineRange = {
-  start: number;
-  end: number;
-};
-
-export type DiffLineType = "added" | "removed" | "modified" | "context";
-
-/**
- * Extract all line numbers from chunks for a given side
- */
-export function extractLineNumbers(
-  chunks: DiffChunk[],
-  side: "lhs" | "rhs",
-): number[] {
-  const lineNumbers: number[] = [];
-
-  for (const chunk of chunks) {
-    for (const line of chunk) {
-      const sideData = line[side];
-      if (sideData) {
-        lineNumbers.push(sideData.line_number);
-      }
-    }
-  }
-
-  return lineNumbers;
-}
-
-/**
- * Expand line numbers with context padding and return ranges
- */
-export function expandWithContext(
-  lineNumbers: number[],
-  contextLines: number,
-  maxLine: number,
-): LineRange[] {
-  if (lineNumbers.length === 0) return [];
-
-  // Expand each line with context
-  const expanded = lineNumbers.flatMap((line) => {
-    const start = Math.max(1, line - contextLines);
-    const end = Math.min(maxLine, line + contextLines);
-    return { start, end };
-  });
-
-  return mergeRanges(expanded);
-}
-
-/**
- * Merge overlapping or adjacent ranges
- */
-export function mergeRanges(ranges: LineRange[]): LineRange[] {
-  if (ranges.length === 0) return [];
-
-  // Sort by start
-  const sorted = [...ranges].sort((a, b) => a.start - b.start);
-  const merged: LineRange[] = [sorted[0]];
-
-  for (let i = 1; i < sorted.length; i++) {
-    const current = sorted[i];
-    const last = merged[merged.length - 1];
-
-    // Merge if overlapping or adjacent
-    if (current.start <= last.end + 1) {
-      last.end = Math.max(last.end, current.end);
-    } else {
-      merged.push(current);
-    }
-  }
-
-  return merged;
-}
-
-/**
- * Build a map from line number to diff type for styling purposes
- */
-export function buildLineTypeMap(
-  chunks: DiffChunk[],
-  side: "lhs" | "rhs",
-): Map<number, DiffLineType> {
-  const map = new Map<number, DiffLineType>();
-
-  for (const chunk of chunks) {
-    for (const line of chunk) {
-      const sideData = line[side];
-      if (!sideData) continue;
-
-      const lineNumber = sideData.line_number;
-      const otherSide = side === "lhs" ? line.rhs : line.lhs;
-
-      let type: DiffLineType;
-      if (!otherSide) {
-        // Line only exists on one side
-        type = side === "lhs" ? "removed" : "added";
-      } else {
-        // Line exists on both sides - it's modified
-        type = "modified";
-      }
-
-      map.set(lineNumber, type);
-    }
-  }
-
-  return map;
-}
-
-/**
- * Check if a line number is within any of the given ranges
- */
-export function isLineInRanges(
-  lineNumber: number,
-  ranges: LineRange[],
-): boolean {
-  return ranges.some((r) => lineNumber >= r.start && lineNumber <= r.end);
-}
-
-/**
- * Count total lines in file content
- */
-export function countLines(content: string): number {
-  return content.split("\n").length;
-}
+import type { DiffChunk, RepositoryFile } from "@/lib/dto";
 
 export const SENTINEL_LINE = "---";
+
+function getChunkRange(chunk: DiffChunk): [number, number] {
+  let min = Infinity;
+  let max = -Infinity;
+
+  for (const line of chunk) {
+    if (line.lhs) {
+      min = Math.min(min, line.lhs.line_number);
+      max = Math.max(max, line.lhs.line_number);
+    }
+    if (line.rhs) {
+      min = Math.min(min, line.rhs.line_number);
+      max = Math.max(max, line.rhs.line_number);
+    }
+  }
+
+  return min === Infinity ? [0, 0] : [min, max];
+}
 
 /**
  * Align chunks so both sides have the same number of lines.
  * Only renders the chunk lines, no context.
  */
 export function alignFiles(
-  lhsContent: string,
-  rhsContent: string,
+  left: RepositoryFile,
+  right: RepositoryFile,
   chunks: DiffChunk[],
 ): { leftContent: string; rightContent: string } {
-  const lhsLines = lhsContent.split("\n");
-  const rhsLines = rhsContent.split("\n");
+  // so some logic like iterate chunk by chunk
+  // for each chunk, we do the following
+  // if the chunk has lhs or rhs only, don't do anything.
+  // if the chunk has lhs and rhs, and both are the same lines, don't do anything
+  // if the chunk has lhs and rhs and they have different lines, then pad the smaller side by the difference
+  // for now, don't return full left content and full right content, but just do it for me
+  //
+  const leftFileLines = left.content.split("\n");
+  const rightFileLines = right.content.split("\n");
 
-  const outputLhs: string[] = [];
-  const outputRhs: string[] = [];
+  let leftTotalPadding = 0;
+  let rightTotalPadding = 0;
 
   for (const chunk of chunks) {
+    const [chunkStart, chunkEnd] = getChunkRange(chunk);
+
+    const leftChunkLines = new Array(chunkEnd - chunkStart + 1);
+    const rightChunkLines = new Array(chunkEnd - chunkStart + 1);
+
+    let leftPadding = leftTotalPadding;
+    let rightPadding = rightTotalPadding;
+
     for (const line of chunk) {
       if (line.lhs && line.rhs) {
-        outputLhs.push(lhsLines[line.lhs.line_number]);
-        outputRhs.push(rhsLines[line.rhs.line_number]);
+        // not accumulative, but take the results rather
+        let leftLine = line.lhs.line_number + leftPadding;
+        let rightLine = line.rhs.line_number + rightPadding;
+
+        while (leftLine < rightLine) {
+          leftChunkLines[leftLine - chunkStart] = SENTINEL_LINE;
+          leftPadding += 1;
+          leftLine += 1;
+        }
+        while (rightLine < leftLine) {
+          rightChunkLines[rightLine - chunkStart] = SENTINEL_LINE;
+          rightPadding += 1;
+          rightLine += 1;
+        }
       } else if (line.lhs) {
-        outputLhs.push(lhsLines[line.lhs.line_number]);
-        outputRhs.push(SENTINEL_LINE);
+        const rightLine = line.lhs.line_number + rightPadding;
+        rightChunkLines[rightLine - chunkStart] = SENTINEL_LINE;
       } else if (line.rhs) {
-        outputLhs.push(SENTINEL_LINE);
-        outputRhs.push(rhsLines[line.rhs.line_number]);
+        const leftLine = line.rhs.line_number + leftPadding;
+        leftChunkLines[leftLine - chunkStart] = SENTINEL_LINE;
       }
+    }
+
+    let leftPointer = chunkStart + rightTotalPadding;
+    for (let i = 0; i < leftChunkLines.length; i++) {
+      if (!leftChunkLines[i]) {
+        leftChunkLines[i] = leftFileLines[leftPointer++];
+      }
+    }
+
+    let rightPointer = chunkStart + leftTotalPadding;
+    for (let i = 0; i < rightChunkLines.length; i++) {
+      if (!rightChunkLines[i]) {
+        rightChunkLines[i] = rightFileLines[rightPointer++];
+      }
+    }
+
+    leftTotalPadding += leftPadding - leftTotalPadding;
+    rightTotalPadding += rightPadding - rightTotalPadding;
+
+    console.log("LEFT:");
+    for (let i = 0; i < leftChunkLines.length; i++) {
+      console.log(leftChunkLines[i]);
+    }
+
+    console.log("RIGHT:");
+    for (let i = 0; i < rightChunkLines.length; i++) {
+      console.log(rightChunkLines[i]);
     }
   }
 
   return {
-    leftContent: outputLhs.join("\n"),
-    rightContent: outputRhs.join("\n"),
+    leftContent: left?.content || "",
+    rightContent: right?.content || "",
   };
 }

@@ -3,16 +3,8 @@ import type { JSX } from "react";
 import { Fragment } from "react";
 import { jsx, jsxs } from "react/jsx-runtime";
 import { codeToHast } from "shiki";
-import {
-  alignFiles,
-  buildLineTypeMap,
-  countLines,
-  expandWithContext,
-  extractLineNumbers,
-  inferLanguage,
-  isLineInRanges,
-} from "@/(repo)/[slug]/util";
-import type { DiffChunk, RepositoryFile, RepositoryFileDiff } from "@/lib/dto";
+import { alignFiles, inferLanguage } from "@/(repo)/[slug]/util";
+import type { RepositoryFileDiff } from "@/lib/dto";
 import { DiffLine } from "./diff-line";
 
 const CONTEXT_LINES = 5;
@@ -20,22 +12,7 @@ const CONTEXT_LINES = 5;
 async function renderDiffSide(
   language: string,
   content: string,
-  chunks: DiffChunk[],
-  side: "lhs" | "rhs",
 ): Promise<JSX.Element | null> {
-  const totalLines = countLines(content);
-
-  // Extract line numbers and expand with context
-  const changedLines = extractLineNumbers(chunks, side);
-  const visibleRanges = expandWithContext(
-    changedLines,
-    CONTEXT_LINES,
-    totalLines,
-  );
-
-  // Build line type map for styling
-  const lineTypeMap = buildLineTypeMap(chunks, side);
-
   const hast = await codeToHast(content, {
     lang: language,
     theme: "vitesse-light",
@@ -51,16 +28,6 @@ async function renderDiffSide(
         line(node, lineNumber) {
           node.tagName = "diffline";
           node.properties["data-line-number"] = lineNumber;
-
-          // Mark visibility
-          const isVisible = isLineInRanges(lineNumber, visibleRanges);
-          node.properties["data-visible"] = true;
-
-          // Set diff type if this line is in the chunks
-          const diffType = lineTypeMap.get(lineNumber);
-          if (diffType) {
-            node.properties["data-diff-type"] = diffType;
-          }
         },
       },
     ],
@@ -84,17 +51,13 @@ export async function FileDiff({ diff }: { diff: RepositoryFileDiff }) {
   }
 
   const language = inferLanguage(path) || "plaintext";
-  const { leftContent, rightContent } = alignFiles(
-    left?.content || "",
-    right?.content || "",
-    chunks,
-  );
+  const { leftContent, rightContent } = alignFiles(left, right, chunks);
 
   console.log(JSON.stringify(chunks, null, 2));
 
   const [leftComponent, rightComponent] = await Promise.all([
-    renderDiffSide(language, leftContent, chunks, "lhs"),
-    renderDiffSide(language, rightContent, chunks, "rhs"),
+    renderDiffSide(language, leftContent),
+    renderDiffSide(language, rightContent),
   ]);
 
   return (

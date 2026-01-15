@@ -16,7 +16,7 @@ export default async function Page({
     <div className="flex flex-col w-full h-screen overflow-y-auto scrollbar-thin">
       <CommitHeader commit={commit} diffs={diffs} />
       {/* TODO: consider suspense here? await seems cpu blocking.. */}
-      {diffs.map((diff) => (
+      {diffs.slice(0, 1).map((diff) => (
         <FileDiff key={diff.left?.path || diff.right?.path} diff={diff} />
       ))}
     </div>
