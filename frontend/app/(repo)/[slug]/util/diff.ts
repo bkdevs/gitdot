@@ -59,13 +59,39 @@ function pairLines(chunk: DiffChunk): LinePair[] {
 
   const linePairs: LinePair[] = [];
 
-  for (const pair of chunkPairs) {
-    console.log(pair);
-  }
-  console.log("====");
-
-  // now we need to start filling in gaps
-  // we do this from the last paired index and iterate backwards to give preference to showing sentinels at the top and the bottom
+  // TODO: the algorithm below is naive and can be made better
+  // rather than thinking of "filling in gaps", it is better to identify ranges between paired lines where sentinels must be inserted
+  // and then attempting to insert the sentinels in places where it makes sense (e.g., grou pgaps together) and/or try and do some word-matching thing as well
+  //
+  // to illustrate, say you have the pairs
+  // [1, 1]
+  // [2, 3]
+  //
+  // because [1, 1] and [2, 3] are both matched lines,
+  // they constitute a range in which a sentinel _may_ be added and since 2 - 1 != 3 - 1, a sentinel must be haddded
+  //
+  // this also applies to ranges that have lhs / rhs only provided already, e.g.,
+  //
+  // [1, 1]
+  // [null, 3]
+  // [5, 7]
+  //
+  // because (7 - 1) - (5 - 1) - 1 (from the null) == 1, we still need to add one more sentinel on the left side.
+  // we have several solutions here, we could do
+  // [1, 1]
+  // [2, 2]
+  // [null, 3]
+  // [3, 4]
+  // [4, 5]
+  // [null, 6]
+  // [5, 7]
+  //
+  //
+  // but that is potentially ugly as the sentinels are on split lines.
+  // so we can write a potentially better looking algorithm by identifying the ranges
+  // where sentinels must be placed and then trying to place them smartly.
+  //
+  // as of now, the below implementation just fills in lines from back to top and places sentinels a bit arbitrarily.
   const lastPairIdx = chunkPairs.findLastIndex(
     (p) => p[0] !== null && p[1] !== null,
   );
@@ -103,10 +129,6 @@ function pairLines(chunk: DiffChunk): LinePair[] {
 
   let hasGaps = true;
   while (hasGaps) {
-    for (const pair of linePairs) {
-      console.log(pair);
-    }
-    console.log("====");
     hasGaps = false;
 
     // check start: prepend if either side starts before minLine
