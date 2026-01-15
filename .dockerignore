@@ -5,3 +5,8 @@ target/
 *.md
 Dockerfile
 .dockerignore
+frontend/
+scripts/
+.claude/
+node_modules/
+.next/
