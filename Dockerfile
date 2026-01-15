@@ -8,14 +8,31 @@ RUN apt-get update && \
     apt-get install -y pkg-config libssl-dev && \
     rm -rf /var/lib/apt/lists/*
 
-# Copy manifests
+# Copy workspace manifests
 COPY Cargo.toml Cargo.lock ./
+COPY backend/Cargo.toml ./backend/
+COPY core/Cargo.toml ./core/
+COPY cli/Cargo.toml ./cli/
 
-# Copy source code
-COPY src ./src
+# Create dummy source files to cache dependencies
+RUN mkdir -p backend/src core/src cli/src && \
+    echo "fn main() {}" > backend/src/main.rs && \
+    echo "fn main() {}" > cli/src/main.rs && \
+    echo "" > core/src/lib.rs
+
+# Build dependencies (this layer will be cached)
+RUN cargo build --release -p gitdot_server
+
+# Remove dummy files
+RUN rm -rf backend/src core/src cli/src
+
+# Copy actual source code
+COPY backend/src ./backend/src
+COPY core/src ./core/src
+COPY cli/src ./cli/src
 
 # Build the application
-RUN cargo build --release
+RUN cargo build --release -p gitdot_server
 
 # Runtime stage
 FROM debian:bookworm-slim
@@ -34,10 +51,7 @@ RUN git config --system user.name "Git Server" && \
     git config --system uploadpack.allowAnySHA1InWant true
 
 # Copy the binary from builder
-COPY --from=builder /app/target/release/gitdot /app/gitdot
-
-# Create directory for git repositories
-RUN mkdir -p /srv/git && chmod 755 /srv/git
+COPY --from=builder /app/target/release/gitdot_server /app/gitdot_server
 
 # Set environment variables with defaults for Cloud Run
 ENV DATABASE_URL=""
@@ -49,4 +63,4 @@ ENV SERVER_PORT="8080"
 EXPOSE 8080
 
 # Run the binary
-CMD ["/app/gitdot"]
+CMD ["/app/gitdot_server"]

@@ -1,4 +1,4 @@
-use gitdot::app::GitdotServer;
+use gitdot_server::app::GitdotServer;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
