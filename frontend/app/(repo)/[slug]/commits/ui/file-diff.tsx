@@ -46,8 +46,15 @@ async function renderDiffSide(
 export async function FileDiff({ diff }: { diff: RepositoryFileDiff }) {
   const { left, right, chunks } = diff;
   const path = left?.path || right?.path;
-  if (!path || !chunks || chunks.length === 0) {
+  if (!path) {
     throw new Error("File path or chunks are missing");
+  }
+  if (!chunks || chunks.length === 0) {
+    return (
+      <div className="w-full">
+        TK, this gets returned when files are deleted, created, or renamed
+      </div>
+    );
   }
 
   const language = inferLanguage(path) || "plaintext";
