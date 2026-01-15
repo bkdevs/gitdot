@@ -63,37 +63,37 @@ function pairLines(chunk: DiffChunk): LinePair[] {
     console.log(pair);
   }
   console.log("====");
+
   // now we need to start filling in gaps
-  // we do this from the first paired index to give preference to showing sentinels at the top and the bottom
-  // this as opposed to doing filling from the top, where we will show matched lines, then sentinels, and then lines again
-  const firstPairIdx = chunkPairs.findIndex(
+  // we do this from the last paired index and iterate backwards to give preference to showing sentinels at the top and the bottom
+  const lastPairIdx = chunkPairs.findLastIndex(
     (p) => p[0] !== null && p[1] !== null,
   );
-  if (firstPairIdx !== -1) {
-    const anchor = chunkPairs[firstPairIdx];
-    linePairs.push(anchor);
+  if (lastPairIdx !== -1) {
+    const anchor = chunkPairs[lastPairIdx];
+    linePairs.unshift(anchor);
 
-    // biome-ignore lint/style/noNonNullAssertion: anchor verified non-null by findIndex
+    // biome-ignore lint/style/noNonNullAssertion: anchor verified non-null by findLastIndex
     let leftPos = anchor[0]!;
-    // biome-ignore lint/style/noNonNullAssertion: anchor verified non-null by findIndex
+    // biome-ignore lint/style/noNonNullAssertion: anchor verified non-null by findLastIndex
     let rightPos = anchor[1]!;
 
-    for (let i = firstPairIdx + 1; i < chunkPairs.length; i++) {
+    for (let i = lastPairIdx - 1; i >= 0; i--) {
       const entry = chunkPairs[i];
       while (true) {
-        const leftMatches = entry[0] !== null && leftPos + 1 === entry[0];
-        const rightMatches = entry[1] !== null && rightPos + 1 === entry[1];
+        const leftMatches = entry[0] !== null && leftPos - 1 === entry[0];
+        const rightMatches = entry[1] !== null && rightPos - 1 === entry[1];
 
         if (leftMatches || rightMatches) {
           if (entry[0] !== null) leftPos = entry[0];
           if (entry[1] !== null) rightPos = entry[1];
-          linePairs.push(entry);
+          linePairs.unshift(entry);
           break;
         }
 
-        leftPos++;
-        rightPos++;
-        linePairs.push([leftPos, rightPos]);
+        leftPos--;
+        rightPos--;
+        linePairs.unshift([leftPos, rightPos]);
       }
     }
   }
