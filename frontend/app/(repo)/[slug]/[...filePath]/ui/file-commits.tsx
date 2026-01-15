@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { timeAgo } from "@/util";
 import type { RepositoryCommits } from "@/lib/dto";
+import { timeAgo } from "@/util";
 
 function FileCommit({
   commit,

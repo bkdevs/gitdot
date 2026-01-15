@@ -79,7 +79,7 @@ function initAsciiCharClasses() {
 initAsciiCharClasses();
 
 function charClassOfNonAscii(char: string): CharClass {
-  const code = char.charCodeAt(0);
+  const _code = char.charCodeAt(0);
 
   // Check Unicode categories
   if (/[a-z]/.test(char.toLowerCase()) && char === char.toLowerCase()) {
@@ -155,7 +155,7 @@ function initBonusMatrix() {
 
 initBonusMatrix();
 
-function bonusAt(text: string, idx: number): number {
+function _bonusAt(text: string, idx: number): number {
   if (idx === 0) {
     return BONUS_BOUNDARY_WHITE;
   }
@@ -166,7 +166,7 @@ function bonusAt(text: string, idx: number): number {
 // Helper Functions
 // ============================================================================
 
-function indexAt(index: number, max: number, forward: boolean): number {
+function _indexAt(index: number, max: number, forward: boolean): number {
   if (forward) {
     return index;
   }

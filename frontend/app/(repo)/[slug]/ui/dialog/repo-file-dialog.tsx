@@ -34,7 +34,7 @@ export function RepoFileDialog({
         result: fuzzyMatch(query, file.path),
       }))
       .filter(({ result }) => result !== null)
-      .sort((a, b) => b.result!.score - a.result!.score)
+      .sort((a, b) => b.result?.score - a.result?.score)
       .map(({ file }) => file);
   }, [files, query]);
 

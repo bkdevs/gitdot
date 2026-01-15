@@ -3,7 +3,7 @@
  * Based on: https://github.com/junegunn/fzf/blob/master/src/algo/algo_test.go
  */
 
-import { fuzzyMatch, type FuzzyResult } from "../fuzzy";
+import { fuzzyMatch } from "../fuzzy";
 
 const SCORE_MATCH = 16;
 const SCORE_GAP_START = -3;
@@ -259,16 +259,16 @@ describe("EmptyPattern", () => {
 
 describe("LongString", () => {
   test("should handle very long strings", () => {
-    const bytes = new Array(Math.pow(2, 16) * 2).fill("x");
-    bytes[Math.pow(2, 16)] = "z";
+    const bytes = new Array(2 ** 16 * 2).fill("x");
+    bytes[2 ** 16] = "z";
     const str = bytes.join("");
 
     assertMatch(
       true,
       str,
       "zx",
-      Math.pow(2, 16),
-      Math.pow(2, 16) + 2,
+      2 ** 16,
+      2 ** 16 + 2,
       SCORE_MATCH * 2 + BONUS_CONSECUTIVE,
     );
   });

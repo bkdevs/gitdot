@@ -144,7 +144,7 @@ export const RepositoryFileDiffSchema = z.object({
   right: RepositoryFileSchema.optional(),
   lines_added: z.number(),
   lines_removed: z.number(),
-  chunks: z.array(DiffChunkSchema)
+  chunks: z.array(DiffChunkSchema),
 });
 
 export type RepositoryFileDiff = z.infer<typeof RepositoryFileDiffSchema>;

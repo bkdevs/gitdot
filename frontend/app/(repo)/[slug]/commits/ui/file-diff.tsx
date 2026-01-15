@@ -1,14 +1,10 @@
-import { inferLanguage, pairLines } from "@/(repo)/[slug]/util";
-import type { RepositoryFileDiff } from "@/lib/dto";
-import { Element, Root } from "hast";
-import { toJsxRuntime } from "hast-util-to-jsx-runtime";
-import type { JSX } from "react";
-import { Fragment } from "react";
-import { jsx, jsxs } from "react/jsx-runtime";
+import type { Element, Root } from "hast";
 import { codeToHast } from "shiki";
-import { DiffLine } from "./diff-line";
+import { inferLanguage } from "@/(repo)/[slug]/util";
+import type { RepositoryFileDiff } from "@/lib/dto";
+import { DiffChunk } from "./diff-chunk";
 
-async function renderContent(
+async function renderSpans(
   language: string,
   content: string,
 ): Promise<Element[]> {
@@ -27,7 +23,7 @@ async function renderContent(
         line(node, lineNumber) {
           node.tagName = "diffline";
           node.properties["data-line-number"] = lineNumber;
-          node.type = "element"
+          node.type = "element";
         },
       },
     ],
@@ -37,7 +33,9 @@ async function renderContent(
   const pre = root.children[0] as Element;
   const code = pre.children[0] as Element;
 
-  return code.children.filter((child): child is Element => child.type === 'element');
+  return code.children.filter(
+    (child): child is Element => child.type === "element",
+  );
 }
 
 export async function FileDiff({ diff }: { diff: RepositoryFileDiff }) {
@@ -47,9 +45,12 @@ export async function FileDiff({ diff }: { diff: RepositoryFileDiff }) {
     throw new Error("File path or chunks are missing");
   }
   if (!left?.content || !right?.content) {
-    return <div>
-      one of the two files are missing, this is unimplemented as of now, should show a single file view
-    </div>
+    return (
+      <div>
+        one of the two files are missing, this is unimplemented as of now,
+        should show a single file view
+      </div>
+    );
   }
   if (!chunks || chunks.length === 0) {
     return (
@@ -60,80 +61,26 @@ export async function FileDiff({ diff }: { diff: RepositoryFileDiff }) {
   }
 
   const language = inferLanguage(path) || "plaintext";
-
   const [leftSpans, rightSpans] = await Promise.all([
-    renderContent(language, left.content),
-    renderContent(language, right.content)
+    renderSpans(language, left.content),
+    renderSpans(language, right.content),
   ]);
-
-  console.log(JSON.stringify(leftSpans.slice(0, 1)));
-
-  const emptySpan: Element = {
-    type: "element",
-    tagName: "diffline",
-    properties: {
-      class: "line w-full",
-      "data-line-type": "sentinel"
-    },
-    children: []
-  };
-
-  const chunkComponents = [];
-
-  for (const chunk of chunks) {
-    const leftSpansChunk: Element[] = [];
-    const rightSpansChunk: Element[] = [];
-    const pairedLines = pairLines(chunk);
-
-    for (const [left, right] of pairedLines) {
-      leftSpansChunk.push(left ? leftSpans[left] : emptySpan);
-      rightSpansChunk.push(right ? rightSpans[right] : emptySpan);
-    }
-
-    const container: Element = {
-      type: "element",
-      tagName: "div",
-      properties: {
-        className: "flex w-full mb-8 border-t border-b border-border"
-      },
-      children: [
-        {
-          type: "element",
-          tagName: "pre",
-          properties: {
-            className: "flex flex-col w-1/2 overflow-auto border-border border-r text-sm font-mono"
-          },
-          children: leftSpansChunk
-        },
-        {
-          type: "element",
-          tagName: "pre",
-          properties: {
-            className: "flex flex-col overflow-auto w-1/2 text-sm font-mono"
-          },
-          children: rightSpansChunk
-        }
-      ]
-    };
-
-    const chunkElement = toJsxRuntime(container, {
-      Fragment,
-      jsx,
-      jsxs,
-      components: {
-        diffline: (props) => <DiffLine {...props} />,
-      },
-    }) as JSX.Element;
-
-    chunkComponents.push(chunkElement);
-  }
 
   return (
     <div className="flex flex-col w-full">
       <div className="flex flex-row w-full h-9 items-center px-2 border-b border-t border-border text-sm font-mono sticky top-0 z-10 bg-sidebar">
         {path}
       </div>
-      {chunkComponents.map((chunkElement) => chunkElement)}
+      <div className="flex flex-col w-full gap-8">
+        {chunks.map((chunk, index) => (
+          <DiffChunk
+          key={index}
+          chunk={chunk}
+          leftSpans={leftSpans}
+          rightSpans={rightSpans}
+          />
+        ))}
+      </div>
     </div>
   );
 }

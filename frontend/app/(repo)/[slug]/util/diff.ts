@@ -190,10 +190,15 @@ export function pairLines(chunk: DiffChunk): LinePair[] {
  * - sentinel counts are the number of sentinels that should be inserted _before_ a line
  */
 export function processChunks(
-  left: RepositoryFile,
-  right: RepositoryFile,
+  _left: RepositoryFile,
+  _right: RepositoryFile,
   chunks: DiffChunk[],
-): { leftVisibleLines: Set<number>; leftSentinelCounts: Map<number, number>; rightVisibleLines: Set<number>; rightSentinelCounts: Map<number, number> } {
+): {
+  leftVisibleLines: Set<number>;
+  leftSentinelCounts: Map<number, number>;
+  rightVisibleLines: Set<number>;
+  rightSentinelCounts: Map<number, number>;
+} {
   const leftVisibleLines = new Set<number>();
   const rightVisibleLines = new Set<number>();
   const leftSentinelCounts = new Map<number, number>();
@@ -241,7 +246,6 @@ export function processChunks(
     rightSentinelCounts,
   };
 }
-
 
 function getChunkRange(chunk: DiffChunk): [number, number] {
   let min = Infinity;

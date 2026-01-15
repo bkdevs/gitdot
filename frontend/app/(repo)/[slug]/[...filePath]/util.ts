@@ -1,5 +1,3 @@
-import type { RepositoryTree, RepositoryTreeEntry } from "@/lib/dto";
-
 export type LineSelection = {
   start: number;
   end: number;
