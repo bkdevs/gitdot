@@ -1,8 +1,4 @@
-export { fuzzyMatch } from "./fuzzy";
-export { inferLanguage } from "./language";
-export {
-  getParentPath,
-  parseRepositoryTree,
-  getFolderEntries,
-  type FolderFile,
-} from "./repo";
+export * from "./diff";
+export * from "./fuzzy";
+export * from "./language";
+export * from "./repo";

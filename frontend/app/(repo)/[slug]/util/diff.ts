@@ -12,7 +12,7 @@ export type DiffLineType = "added" | "removed" | "modified" | "context";
  */
 export function extractLineNumbers(
   chunks: DiffChunk[],
-  side: "lhs" | "rhs"
+  side: "lhs" | "rhs",
 ): number[] {
   const lineNumbers: number[] = [];
 
@@ -34,7 +34,7 @@ export function extractLineNumbers(
 export function expandWithContext(
   lineNumbers: number[],
   contextLines: number,
-  maxLine: number
+  maxLine: number,
 ): LineRange[] {
   if (lineNumbers.length === 0) return [];
 
@@ -78,7 +78,7 @@ export function mergeRanges(ranges: LineRange[]): LineRange[] {
  */
 export function buildLineTypeMap(
   chunks: DiffChunk[],
-  side: "lhs" | "rhs"
+  side: "lhs" | "rhs",
 ): Map<number, DiffLineType> {
   const map = new Map<number, DiffLineType>();
 
@@ -109,7 +109,10 @@ export function buildLineTypeMap(
 /**
  * Check if a line number is within any of the given ranges
  */
-export function isLineInRanges(lineNumber: number, ranges: LineRange[]): boolean {
+export function isLineInRanges(
+  lineNumber: number,
+  ranges: LineRange[],
+): boolean {
   return ranges.some((r) => lineNumber >= r.start && lineNumber <= r.end);
 }
 
@@ -118,4 +121,42 @@ export function isLineInRanges(lineNumber: number, ranges: LineRange[]): boolean
  */
 export function countLines(content: string): number {
   return content.split("\n").length;
+}
+
+export const SENTINEL_LINE = "---";
+
+/**
+ * Align chunks so both sides have the same number of lines.
+ * Only renders the chunk lines, no context.
+ */
+export function alignFiles(
+  lhsContent: string,
+  rhsContent: string,
+  chunks: DiffChunk[],
+): { leftContent: string; rightContent: string } {
+  const lhsLines = lhsContent.split("\n");
+  const rhsLines = rhsContent.split("\n");
+
+  const outputLhs: string[] = [];
+  const outputRhs: string[] = [];
+
+  for (const chunk of chunks) {
+    for (const line of chunk) {
+      if (line.lhs && line.rhs) {
+        outputLhs.push(lhsLines[line.lhs.line_number]);
+        outputRhs.push(rhsLines[line.rhs.line_number]);
+      } else if (line.lhs) {
+        outputLhs.push(lhsLines[line.lhs.line_number]);
+        outputRhs.push(SENTINEL_LINE);
+      } else if (line.rhs) {
+        outputLhs.push(SENTINEL_LINE);
+        outputRhs.push(rhsLines[line.rhs.line_number]);
+      }
+    }
+  }
+
+  return {
+    leftContent: outputLhs.join("\n"),
+    rightContent: outputRhs.join("\n"),
+  };
 }

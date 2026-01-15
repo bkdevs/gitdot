@@ -1,5 +1,5 @@
+import type { DiffLineType } from "@/(repo)/[slug]/util";
 import { cn } from "@/util";
-import type { DiffLineType } from "../lib/diff-utils";
 
 export function DiffLine({
   children,
