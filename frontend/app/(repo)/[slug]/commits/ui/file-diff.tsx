@@ -2,7 +2,7 @@ import type { Element, Root } from "hast";
 import { codeToHast } from "shiki";
 import { inferLanguage } from "@/(repo)/[slug]/util";
 import type { RepositoryFileDiff } from "@/lib/dto";
-import { DiffChunk } from "./diff-chunk";
+import { DiffSection } from "./diff-section";
 
 async function renderSpans(
   language: string,
@@ -66,6 +66,14 @@ export async function FileDiff({ diff }: { diff: RepositoryFileDiff }) {
     renderSpans(language, right.content),
   ]);
 
+  console.log("file lengths");
+  console.log(left.content.split("\n").length);
+  console.log(right.content.split("\n").length);
+
+  console.log("span lengths");
+  console.log(leftSpans.length);
+  console.log(rightSpans.length);
+
   return (
     <div className="flex flex-col w-full">
       <div className="flex flex-row w-full h-9 items-center px-2 border-b border-t border-border text-sm font-mono sticky top-0 z-10 bg-sidebar">
@@ -73,11 +81,11 @@ export async function FileDiff({ diff }: { diff: RepositoryFileDiff }) {
       </div>
       <div className="flex flex-col w-full gap-8">
         {chunks.map((chunk, index) => (
-          <DiffChunk
-          key={index}
-          chunk={chunk}
-          leftSpans={leftSpans}
-          rightSpans={rightSpans}
+          <DiffSection
+            key={index}
+            chunk={chunk}
+            leftSpans={leftSpans}
+            rightSpans={rightSpans}
           />
         ))}
       </div>

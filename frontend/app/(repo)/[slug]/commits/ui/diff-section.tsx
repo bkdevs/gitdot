@@ -17,7 +17,7 @@ const sentinelSpan: Element = {
   children: [],
 };
 
-export function DiffChunk({
+export function DiffSection({
   chunk,
   leftSpans,
   rightSpans,
@@ -29,15 +29,11 @@ export function DiffChunk({
   const leftSpansChunk: Element[] = [];
   const rightSpansChunk: Element[] = [];
   const pairedLines = pairLines(chunk);
-  const expandedLines = expandLines(pairedLines, leftSpans.length, rightSpans.length);
-
-  if (pairedLines !== expandedLines) {
-    console.log("EXPANDED!");
-    console.log(pairedLines);
-    console.log(expandedLines);
-    console.log("----")
-  }
-
+  const expandedLines = expandLines(
+    pairedLines,
+    leftSpans.length,
+    rightSpans.length,
+  );
   for (const [left, right] of expandedLines) {
     leftSpansChunk.push(left !== null ? leftSpans[left] : sentinelSpan);
     rightSpansChunk.push(right !== null ? rightSpans[right] : sentinelSpan);

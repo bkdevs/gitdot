@@ -130,27 +130,9 @@ export function pairLines(chunk: DiffChunk): LinePair[] {
     linePairs.push(...chunkPairs);
   }
 
-  // now, we fill in all the gaps remaining in the list of pairs with sentinel entries by iterating backwards
-  const [minLine, maxLine] = getChunkRange(chunk);
-
   let hasGaps = true;
   while (hasGaps) {
     hasGaps = false;
-
-    // check start: prepend if either side starts before minLine
-    const first = linePairs[0];
-    if (first[0] !== null && first[0] > minLine) {
-      linePairs.unshift([first[0] - 1, null]);
-      hasGaps = true;
-      continue;
-    }
-    if (first[1] !== null && first[1] > minLine) {
-      linePairs.unshift([null, first[1] - 1]);
-      hasGaps = true;
-      continue;
-    }
-
-    // check the middle by iterating backwards
     for (let i = linePairs.length - 1; i > 0; i--) {
       const current = linePairs[i];
       const prev = linePairs[i - 1];
@@ -166,41 +148,8 @@ export function pairLines(chunk: DiffChunk): LinePair[] {
         break;
       }
     }
-    if (hasGaps) continue;
-
-    // check end: append if either side ends before maxLine
-    const last = linePairs[linePairs.length - 1];
-    if (
-      (last[0] !== null && last[0] < maxLine) ||
-      (last[1] !== null && last[1] < maxLine)
-    ) {
-      linePairs.push([
-        last[0] !== null ? last[0] + 1 : null,
-        last[1] !== null ? last[1] + 1 : null,
-      ]);
-      hasGaps = true;
-    }
   }
-
   return linePairs;
-}
-
-function getChunkRange(chunk: DiffChunk): [number, number] {
-  let min = Infinity;
-  let max = -Infinity;
-
-  for (const line of chunk) {
-    if (line.lhs) {
-      min = Math.min(min, line.lhs.line_number);
-      max = Math.max(max, line.lhs.line_number);
-    }
-    if (line.rhs) {
-      min = Math.min(min, line.rhs.line_number);
-      max = Math.max(max, line.rhs.line_number);
-    }
-  }
-
-  return min === Infinity ? [0, 0] : [min, max];
 }
 
 function insertLhsInOrder(pairs: LinePair[], lhs: number): void {
@@ -223,6 +172,7 @@ function insertRhsInOrder(pairs: LinePair[], rhs: number): void {
   pairs.splice(i, 0, [null, rhs]);
 }
 
+
 const CONTEXT_LINES = 4;
 
 /**
@@ -244,7 +194,9 @@ export function expandLines(
 
     // expand lines before
     const context: LinePair[] = [];
-    for (let j = Math.max(0, first - CONTEXT_LINES - 1); j < first; j++) {
+    const startLine = Math.max(0, first - CONTEXT_LINES - 1);
+    for (let j = startLine; j < first; j++) {
+      if (j >= leftMax || j >= rightMax) continue;
       context.push([j, j]);
     }
     pairs.unshift(...context);
@@ -266,7 +218,6 @@ export function expandLines(
     }
   } else {
     // at least one matched lines in the pairs
-
     const [leftNullsBefore, rightNullsBefore] = countNulls(pairs.slice(0, i));
     const topLeft = pairs[i][0]! - leftNullsBefore;
     const topRight = pairs[i][1]! - rightNullsBefore;
