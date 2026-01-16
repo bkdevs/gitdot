@@ -390,4 +390,161 @@ describe("expandLines", () => {
       ]);
     });
   });
+
+  describe("with matched lines", () => {
+    test("single match surrounded by nulls", () => {
+      const input: LinePair[] = [
+        [1, null],
+        [2, 2],
+        [3, null],
+      ];
+      const result = expandLines(input, Infinity, Infinity);
+      expect(result).toEqual([
+        [0, 1],
+        [1, null],
+        [2, 2],
+        [3, null],
+        [4, 3],
+        [5, 4],
+        [6, 5],
+        [7, 6],
+      ]);
+    });
+
+    test("match at start followed by nulls", () => {
+      const input: LinePair[] = [
+        [5, 5],
+        [6, null],
+        [7, null],
+      ];
+      const result = expandLines(input, Infinity, Infinity);
+      expect(result).toEqual([
+        [1, 1],
+        [2, 2],
+        [3, 3],
+        [4, 4],
+        [5, 5],
+        [6, null],
+        [7, null],
+        [8, 6],
+        [9, 7],
+        [10, 8],
+        [11, 9],
+      ]);
+    });
+
+    test("nulls followed by match at end", () => {
+      const input: LinePair[] = [
+        [null, 3],
+        [null, 4],
+        [5, 5],
+      ];
+      const result = expandLines(input, Infinity, Infinity);
+      expect(result).toEqual([
+        [2, 0],
+        [3, 1],
+        [4, 2],
+        [null, 3],
+        [null, 4],
+        [5, 5],
+        [6, 6],
+        [7, 7],
+        [8, 8],
+        [9, 9],
+      ]);
+    });
+
+    test("match with different line numbers (offset)", () => {
+      const input: LinePair[] = [
+        [1, null],
+        [2, 5],
+        [3, null],
+      ];
+      const result = expandLines(input, Infinity, Infinity);
+      expect(result).toEqual([
+        [0, 4],
+        [1, null],
+        [2, 5],
+        [3, null],
+        [4, 6],
+        [5, 7],
+        [6, 8],
+        [7, 9],
+      ]);
+    });
+
+    test("multiple matches with nulls interspersed", () => {
+      const input: LinePair[] = [
+        [1, 1],
+        [2, null],
+        [3, 3],
+        [null, 4],
+        [5, 5],
+      ];
+      const result = expandLines(input, Infinity, Infinity);
+      expect(result).toEqual([
+        [0, 0],
+        [1, 1],
+        [2, null],
+        [3, 3],
+        [null, 4],
+        [5, 5],
+        [6, 6],
+        [7, 7],
+        [8, 8],
+        [9, 9],
+      ]);
+    });
+
+    test("match at line 0 - no context before", () => {
+      const input: LinePair[] = [
+        [0, null],
+        [1, 1],
+        [2, null],
+      ];
+      const result = expandLines(input, Infinity, Infinity);
+      expect(result).toEqual([
+        [0, null],
+        [1, 1],
+        [2, null],
+        [3, 2],
+        [4, 3],
+        [5, 4],
+        [6, 5],
+      ]);
+    });
+
+    test("respects leftMax with matched lines", () => {
+      const input: LinePair[] = [
+        [1, null],
+        [2, 2],
+        [3, null],
+      ];
+      const result = expandLines(input, 5, Infinity);
+      expect(result).toEqual([
+        [0, 1],
+        [1, null],
+        [2, 2],
+        [3, null],
+        [4, 3],
+      ]);
+    });
+
+    test("respects rightMax with matched lines", () => {
+      const input: LinePair[] = [
+        [1, null],
+        [2, 2],
+        [3, null],
+      ];
+      const result = expandLines(input, Infinity, 5);
+      expect(result).toEqual([
+        [0, 1],
+        [1, null],
+        [2, 2],
+        [3, null],
+        [4, 3],
+        [5, 4],
+      ]);
+    });
+  });
 });

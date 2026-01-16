@@ -234,11 +234,11 @@ export function expandLines(
   rightMax: number,
 ): LinePair[] {
   let i = 0;
-  while (i < pairs.length && (pairs[i][0] == null || pairs[i][1] === null)) i++;
+  while (i < pairs.length && (pairs[i][0] === null || pairs[i][1] === null))
+    i++;
 
   if (i === pairs.length) {
     // lhs or rhs-only pairs
-    //
     const offset = pairs.length;
     const first = pairs[0][0] || pairs[0][1]!;
 
@@ -250,30 +250,67 @@ export function expandLines(
     pairs.unshift(...context);
 
     // expand lines after
-    const lastPair = pairs.at(-1)!;
-    if (lastPair[0] !== null) {
-      for (let j = 1; j <= CONTEXT_LINES; j++) {
-        const left = lastPair[0] + j;
-        const right = left - offset;
-        if (left >= leftMax || right >= rightMax) {
-          break;
-        }
-        pairs.push([left, right]);
-      }
-    } else if (lastPair[1] !== null) {
-      for (let j = 1; j <= CONTEXT_LINES; j++) {
-        const right = lastPair[1] + j;
-        const left = right - offset;
-        if (left >= leftMax || right >= rightMax) {
-          break;
-        }
-        pairs.push([left, right]);
-      }
+    const [lastLeft, lastRight] = pairs.at(-1)!;
+    const lastValue = lastLeft !== null ? lastLeft : lastRight!;
+
+    const effectiveOffset = lastLeft !== null ? offset : -offset;
+    for (let j = 1; j <= CONTEXT_LINES; j++) {
+      const currentBase = lastValue + j;
+      const left =
+        lastLeft !== null ? currentBase : currentBase + effectiveOffset;
+      const right =
+        lastLeft !== null ? currentBase - effectiveOffset : currentBase;
+
+      if (left >= leftMax || right >= rightMax) break;
+      pairs.push([left, right]);
     }
   } else {
-    // we found a match pair from the start
-    // TK
+    // at least one matched lines in the pairs
+
+    const [leftNullsBefore, rightNullsBefore] = countNulls(pairs.slice(0, i));
+    const topLeft = pairs[i][0]! - leftNullsBefore;
+    const topRight = pairs[i][1]! - rightNullsBefore;
+
+    const context: LinePair[] = [];
+    for (let j = 1; j <= CONTEXT_LINES; j++) {
+      const left = topLeft - j;
+      const right = topRight - j;
+      if (left < 0 || right < 0) {
+        break;
+      }
+      context.push([left, right]);
+    }
+    context.reverse();
+    pairs.unshift(...context);
+
+    // find closest match from the ends
+    let j = pairs.length - 1;
+    while (j >= 0 && (pairs[j][0] === null || pairs[j][1] === null)) j--;
+
+    // Count non-null entries after last matched line
+    const [leftNullsAfter, rightNullsAfter] = countNulls(pairs.slice(j + 1));
+    const bottomLeft = pairs[j][0]! + leftNullsAfter;
+    const bottomRight = pairs[j][1]! + rightNullsAfter;
+
+    for (let k = 1; k <= CONTEXT_LINES; k++) {
+      const left = bottomLeft + k;
+      const right = bottomRight + k;
+      if (left >= leftMax || right >= rightMax) {
+        break;
+      }
+      pairs.push([left, right]);
+    }
   }
 
   return pairs;
+}
+
+function countNulls(pairs: LinePair[]): [number, number] {
+  let leftCount = 0;
+  let rightCount = 0;
+  for (const pair of pairs) {
+    if (pair[0] !== null) leftCount++;
+    if (pair[1] !== null) rightCount++;
+  }
+  return [leftCount, rightCount];
 }
