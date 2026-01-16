@@ -22,6 +22,10 @@ export async function DiffSplit({
   right: RepositoryFile;
   hunks: DiffHunk[];
 }) {
+  if (!hunks || hunks.length === 0) {
+    return <div className="text-sm font-mono px-2">No changes made</div>;
+  }
+
   const language = inferLanguage(left.path) || "plaintext";
   const [leftSpans, rightSpans] = await Promise.all([
     renderSpans(language, left.content),

@@ -36,7 +36,7 @@ export function CommitHeader({
         </div>
 
         <div className="flex flex-col w-2/3 h-full p-2 overflow-y-auto scrollbar-thin">
-          <p className="font-mono text-xs text-muted-foreground h-4 mb-1">
+          <p className="font-mono text-xs text-muted-foreground h-4 mb-1 select-none">
             {diffs.length} files changed
           </p>
           <ul className="">
@@ -53,7 +53,7 @@ export function CommitHeader({
                   >
                     {path}
                   </span>
-                  <span className="text-muted-foreground w-6 text-right mr-1.5">
+                  <span className="text-muted-foreground w-6 text-right mr-1.5 select-none">
                     {diff.lines_added + diff.lines_removed}
                   </span>
                   <DiffStatBar

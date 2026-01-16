@@ -11,8 +11,8 @@ export async function DiffFile({ diff }: { diff: RepositoryFileDiff }) {
       <DiffHeader
         leftPath={left?.path}
         rightPath={right?.path}
-        linesAdded={diff.lines_added}
-        linesRemoved={diff.lines_removed}
+        linesAdded={lines_added}
+        linesRemoved={lines_removed}
       />
 
       {left && !right && <DiffSingle file={left} side="left" />}

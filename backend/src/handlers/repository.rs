@@ -664,8 +664,14 @@ pub async fn get_repository_commit_diffs(
         None => None,
     };
 
-    let diff = repository
+    let mut diff = repository
         .diff_tree_to_tree(parent_tree.as_ref(), Some(&current_tree), None)
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+    let mut find_opts = git2::DiffFindOptions::new();
+    find_opts.renames(true);
+    find_opts.rename_threshold(50); // 50% similarity (git default)
+    diff.find_similar(Some(&mut find_opts))
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
     let mut diffs = Vec::new();

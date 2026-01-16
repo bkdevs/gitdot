@@ -15,9 +15,11 @@ export default async function Page({
   return (
     <div className="flex flex-col w-full h-screen overflow-y-auto scrollbar-thin">
       <CommitHeader commit={commit} diffs={diffs} />
-      {diffs.map((diff) => (
-        <DiffFile key={diff.left?.path || diff.right?.path} diff={diff} />
-      ))}
+      <div className="flex flex-col gap-8">
+        {diffs.map((diff) => (
+          <DiffFile key={diff.left?.path || diff.right?.path} diff={diff} />
+        ))}
+      </div>
     </div>
   );
 }

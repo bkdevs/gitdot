@@ -1,5 +1,4 @@
 import { ChevronDown } from "lucide-react";
-import type { RepositoryFileDiff } from "@/lib/dto";
 import { DiffStatBar } from "./diff-stat-bar";
 
 export function DiffHeader({
@@ -17,15 +16,27 @@ export function DiffHeader({
 
   return (
     <div className="flex flex-row w-full h-9 shrink-0 items-center px-2 border-t border-b border-border text-sm font-mono sticky top-0 z-10 bg-sidebar">
-      <span className="mr-auto">{path}</span>
+      {leftPath && rightPath && leftPath !== rightPath ? (
+        <span className="mr-auto">
+          <span>{leftPath}</span>
+          <span className="mx-1.25">{"→"}</span>
+          {rightPath}
+        </span>
+      ) : (
+        <span className="mr-auto">{path}</span>
+      )}
 
       {leftPath && !rightPath && <span className="text-red-600">deleted</span>}
       {!leftPath && rightPath && (
         <span className="text-green-600">created</span>
       )}
-      {leftPath && rightPath && (
-        <DiffStatBar added={linesAdded} removed={linesRemoved} />
-      )}
+      {leftPath &&
+        rightPath &&
+        (leftPath !== rightPath ? (
+          <span className="text-muted-foreground">renamed</span>
+        ) : (
+          <DiffStatBar added={linesAdded} removed={linesRemoved} />
+        ))}
       <ChevronDown className="ml-1.5 size-3" />
     </div>
   );

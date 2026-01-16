@@ -23,7 +23,7 @@ export function DiffStatBar({
   const removedBars = barCount - addedBars;
 
   return (
-    <span className="font-mono">
+    <span className="font-mono select-none">
       <span className="text-green-600">{"+".repeat(addedBars)}</span>
       <span className="text-red-600">{"-".repeat(removedBars)}</span>
     </span>
