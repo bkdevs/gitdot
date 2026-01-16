@@ -1,4 +1,4 @@
-import type { DiffChunk, RepositoryFile } from "@/lib/dto";
+import type { DiffChunk } from "@/lib/dto";
 
 export type LinePair = [number | null, number | null]; // null represents SENTINEL
 
@@ -223,39 +223,51 @@ function insertRhsInOrder(pairs: LinePair[], rhs: number): void {
   pairs.splice(i, 0, [null, rhs]);
 }
 
-const CONTEXT_LINES = 5;
+const CONTEXT_LINES = 4;
 
 /**
  * expands line pairs to include additional context lines.
  */
-export function expandLines(pairs: LinePair[], leftMax: number, rightMax: number): LinePair[] {
+export function expandLines(
+  pairs: LinePair[],
+  leftMax: number,
+  rightMax: number,
+): LinePair[] {
   let i = 0;
   while (i < pairs.length && (pairs[i][0] == null || pairs[i][1] === null)) i++;
 
-  if (i == pairs.length) {
+  if (i === pairs.length) {
+    // lhs or rhs-only pairs
+    //
     const offset = pairs.length;
-
-    // for both lhs and rhs, we assume that the first line is correctly inserted for both lines
-    // e.g., [5, null], [6, null] -> [3, 3], [4, 4], [5, null], [6, null]
     const first = pairs[0][0] || pairs[0][1]!;
+
+    // expand lines before
     const context: LinePair[] = [];
-    for (let j = Math.max(0, first - CONTEXT_LINES); j < first; j++) {
+    for (let j = Math.max(0, first - CONTEXT_LINES - 1); j < first; j++) {
       context.push([j, j]);
     }
     pairs.unshift(...context);
 
-    // now add new entries while subtracting the offset from the other side
-    // e.g., [3, 3], [4, 4], [5, null], [6, null], [7, 5]
+    // expand lines after
     const lastPair = pairs.at(-1)!;
     if (lastPair[0] !== null) {
-      const last = lastPair[0];
-      for (let j = last + 1; j < Math.min(leftMax - 1, last + CONTEXT_LINES); j++) {
-        pairs.push([j, j - offset]);
+      for (let j = 1; j <= CONTEXT_LINES; j++) {
+        const left = lastPair[0] + j;
+        const right = left - offset;
+        if (left >= leftMax || right >= rightMax) {
+          break;
+        }
+        pairs.push([left, right]);
       }
     } else if (lastPair[1] !== null) {
-      const last = lastPair[1];
-      for (let j = last + 1; j < Math.min(rightMax - 1, last + CONTEXT_LINES); j++) {
-        pairs.push([j - offset, j]);
+      for (let j = 1; j <= CONTEXT_LINES; j++) {
+        const right = lastPair[1] + j;
+        const left = right - offset;
+        if (left >= leftMax || right >= rightMax) {
+          break;
+        }
+        pairs.push([left, right]);
       }
     }
   } else {

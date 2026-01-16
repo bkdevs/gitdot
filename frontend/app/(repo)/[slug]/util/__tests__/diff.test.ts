@@ -1,5 +1,5 @@
-import type { DiffChunk, RepositoryFile } from "@/lib/dto";
-import { type LinePair, expandLines, pairLines } from "../diff";
+import type { DiffChunk } from "@/lib/dto";
+import { expandLines, type LinePair, pairLines } from "../diff";
 
 interface TestCase {
   name: string;
@@ -226,16 +226,14 @@ describe("pairLines", () => {
 });
 
 describe("expandLines", () => {
-  describe("all one-sided pairs (implemented case)", () => {
+  describe("all one-sided pairs", () => {
     test("lhs only - adds context before and after", () => {
       const input: LinePair[] = [
         [5, null],
         [6, null],
         [7, null],
       ];
-      const result = expandLines(input);
-      // Context before is added via unshift in reverse order (4,3,2,1,0)
-      // After lines: offset is 3 (original length), so [8, 8-3=5], [9, 6], [10, 7], [11, 8]
+      const result = expandLines(input, Infinity, Infinity);
       expect(result).toEqual([
         [0, 0],
         [1, 1],
@@ -258,9 +256,7 @@ describe("expandLines", () => {
         [null, 6],
         [null, 7],
       ];
-      const result = expandLines(input);
-      // Should add 5 context lines before (0-4) and 4 context lines after
-      // After lines: offset is 3, so [5-3=2, 8], [3, 9], [4, 10], [5, 11]
+      const result = expandLines(input, Infinity, Infinity);
       expect(result).toEqual([
         [0, 0],
         [1, 1],
@@ -282,8 +278,7 @@ describe("expandLines", () => {
         [1, null],
         [2, null],
       ];
-      const result = expandLines(input);
-      // Only 1 context line before (line 0), then 4 after
+      const result = expandLines(input, Infinity, Infinity);
       expect(result).toEqual([
         [0, 0],
         [1, null],
@@ -300,8 +295,7 @@ describe("expandLines", () => {
         [0, null],
         [1, null],
       ];
-      const result = expandLines(input);
-      // No context before since first line is 0, only 4 after
+      const result = expandLines(input, Infinity, Infinity);
       expect(result).toEqual([
         [0, null],
         [1, null],
@@ -314,8 +308,7 @@ describe("expandLines", () => {
 
     test("single lhs line", () => {
       const input: LinePair[] = [[10, null]];
-      const result = expandLines(input);
-      // 5 context lines before (5-9) and 4 after (11-14)
+      const result = expandLines(input, Infinity, Infinity);
       expect(result).toEqual([
         [5, 5],
         [6, 6],
@@ -332,8 +325,7 @@ describe("expandLines", () => {
 
     test("single rhs line", () => {
       const input: LinePair[] = [[null, 10]];
-      const result = expandLines(input);
-      // 5 context lines before (5-9) and 4 after
+      const result = expandLines(input, Infinity, Infinity);
       expect(result).toEqual([
         [5, 5],
         [6, 6],
@@ -353,8 +345,7 @@ describe("expandLines", () => {
         [3, null],
         [4, null],
       ];
-      const result = expandLines(input);
-      // 3 context lines before (0-2), 4 after
+      const result = expandLines(input, Infinity, Infinity);
       expect(result).toEqual([
         [0, 0],
         [1, 1],
@@ -365,6 +356,37 @@ describe("expandLines", () => {
         [6, 4],
         [7, 5],
         [8, 6],
+      ]);
+    });
+
+    test("respects left max", () => {
+      const input: LinePair[] = [
+        [3, null],
+        [4, null],
+      ];
+      const result = expandLines(input, 5, Infinity);
+      expect(result).toEqual([
+        [0, 0],
+        [1, 1],
+        [2, 2],
+        [3, null],
+        [4, null],
+      ]);
+    });
+
+    test("respects right max", () => {
+      const input: LinePair[] = [
+        [3, null],
+        [4, null],
+      ];
+      const result = expandLines(input, Infinity, 4);
+      expect(result).toEqual([
+        [0, 0],
+        [1, 1],
+        [2, 2],
+        [3, null],
+        [4, null],
+        [5, 3],
       ]);
     });
   });
