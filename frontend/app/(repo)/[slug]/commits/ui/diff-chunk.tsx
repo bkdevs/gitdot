@@ -3,7 +3,7 @@ import { toJsxRuntime } from "hast-util-to-jsx-runtime";
 import type { JSX } from "react";
 import { Fragment } from "react";
 import { jsx, jsxs } from "react/jsx-runtime";
-import { pairLines } from "@/(repo)/[slug]/util";
+import { expandLines, pairLines } from "@/(repo)/[slug]/util";
 import type { DiffChunk } from "@/lib/dto";
 import { DiffLine } from "./diff-line";
 
@@ -29,8 +29,16 @@ export function DiffChunk({
   const leftSpansChunk: Element[] = [];
   const rightSpansChunk: Element[] = [];
   const pairedLines = pairLines(chunk);
+  const expandedLines = expandLines(pairedLines, leftSpans.length, rightSpans.length);
 
-  for (const [left, right] of pairedLines) {
+  if (pairedLines !== expandedLines) {
+    console.log("EXPANDED!");
+    console.log(pairedLines);
+    console.log(expandedLines);
+    console.log("----")
+  }
+
+  for (const [left, right] of expandedLines) {
     leftSpansChunk.push(left !== null ? leftSpans[left] : sentinelSpan);
     rightSpansChunk.push(right !== null ? rightSpans[right] : sentinelSpan);
   }

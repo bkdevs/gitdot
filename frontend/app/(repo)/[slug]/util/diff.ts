@@ -228,7 +228,7 @@ const CONTEXT_LINES = 5;
 /**
  * expands line pairs to include additional context lines.
  */
-export function expandLines(pairs: LinePair[]): LinePair[] {
+export function expandLines(pairs: LinePair[], leftMax: number, rightMax: number): LinePair[] {
   let i = 0;
   while (i < pairs.length && (pairs[i][0] == null || pairs[i][1] === null)) i++;
 
@@ -249,12 +249,12 @@ export function expandLines(pairs: LinePair[]): LinePair[] {
     const lastPair = pairs.at(-1)!;
     if (lastPair[0] !== null) {
       const last = lastPair[0];
-      for (let j = last + 1; j < last + CONTEXT_LINES; j++) {
+      for (let j = last + 1; j < Math.min(leftMax - 1, last + CONTEXT_LINES); j++) {
         pairs.push([j, j - offset]);
       }
     } else if (lastPair[1] !== null) {
       const last = lastPair[1];
-      for (let j = last + 1; j < last + CONTEXT_LINES; j++) {
+      for (let j = last + 1; j < Math.min(rightMax - 1, last + CONTEXT_LINES); j++) {
         pairs.push([j - offset, j]);
       }
     }
