@@ -26,12 +26,8 @@ export async function DiffSingle({
         line(node, line) {
           node.tagName = "diffline";
           node.properties["data-line-number"] = line;
-
-          // hues taken from tailwind red-50 and green-50, then adjusting chroma down and brightness to be equal =
-          node.properties["data-bg-color"] =
-            side === "left"
-              ? "oklch(98.5% 0.01 17.38)"
-              : "oklch(98.5% 0.01 155.826)";
+          node.properties["data-line-type"] =
+            side === "left" ? "removed" : "added";
         },
       },
     ],

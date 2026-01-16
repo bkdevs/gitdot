@@ -1,16 +1,16 @@
-import type { Element } from "hast";
+import type { Element, Root } from "hast";
 import { toJsxRuntime } from "hast-util-to-jsx-runtime";
 import type { JSX } from "react";
 import { Fragment } from "react";
 import { jsx, jsxs } from "react/jsx-runtime";
+import { codeToHast } from "shiki";
 import {
+  createChangeMaps,
   expandLines,
   inferLanguage,
   pairLines,
-  renderSpans,
-  sentinelSpan,
 } from "@/(repo)/[slug]/util";
-import type { DiffHunk, RepositoryFile } from "@/lib/dto";
+import type { DiffChange, DiffHunk, RepositoryFile } from "@/lib/dto";
 import { DiffLine } from "./diff-line";
 
 export async function DiffSplit({
@@ -23,9 +23,10 @@ export async function DiffSplit({
   hunks: DiffHunk[];
 }) {
   const language = inferLanguage(left.path) || "plaintext";
+  const { leftChangeMap, rightChangeMap } = createChangeMaps(hunks);
   const [leftSpans, rightSpans] = await Promise.all([
-    renderSpans(language, left.content),
-    renderSpans(language, right.content),
+    renderSpans("left", language, leftChangeMap, left.content),
+    renderSpans("right", language, rightChangeMap, right.content),
   ]);
 
   return (
@@ -46,7 +47,7 @@ export async function DiffSplit({
             >
               <div className="w-1/2 border-border border-r h-full" />
               <div className="absolute left-0 right-0 flex items-center justify-center">
-                <div className="w-10 border-t border-border" />
+                <div className="w-20 border-t border-border" />
               </div>
             </span>
           ),
@@ -55,6 +56,57 @@ export async function DiffSplit({
     </div>
   );
 }
+
+async function renderSpans(
+  side: "left" | "right",
+  language: string,
+  changeMap: Map<number, DiffChange[]>,
+  content: string,
+): Promise<Element[]> {
+  const hast = await codeToHast(content, {
+    lang: language,
+    theme: "vitesse-light",
+    transformers: [
+      {
+        pre(node) {
+          this.addClassToHast(node, "outline-none");
+        },
+        code(node) {
+          // required as shiki by default renders code as a line
+          this.addClassToHast(node, "flex flex-col");
+        },
+        line(node, lineNumber) {
+          node.type = "element";
+          node.tagName = "diffline";
+
+          node.properties["data-line-number"] = lineNumber;
+          if (changeMap.has(lineNumber - 1)) {
+            node.properties["data-line-type"] =
+              side === "left" ? "removed" : "added";
+          }
+        },
+      },
+    ],
+  });
+
+  const root = hast as Root;
+  const pre = root.children[0] as Element;
+  const code = pre.children[0] as Element;
+
+  return code.children.filter(
+    (child): child is Element => child.type === "element",
+  );
+}
+
+const sentinelSpan: Element = {
+  type: "element",
+  tagName: "diffline",
+  properties: {
+    class: "line w-full",
+    "data-line-type": "sentinel",
+  },
+  children: [],
+};
 
 function DiffSection({
   hunk,

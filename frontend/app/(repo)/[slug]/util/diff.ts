@@ -1,7 +1,7 @@
-import type { DiffHunk } from "@/lib/dto";
+import type { DiffChange, DiffHunk } from "@/lib/dto";
 
 // ============================================================================
-// pairLines
+// diffing utils
 // ============================================================================
 
 export type LinePair = [number | null, number | null];
@@ -279,4 +279,33 @@ function countNulls(pairs: LinePair[]): [number, number] {
     if (pair[1] !== null) rightCount++;
   }
   return [leftCount, rightCount];
+}
+
+// ============================================================================
+// highlighting utils
+// ============================================================================
+
+/**
+ * parses diff hunks into line number indexed change maps
+ *
+ * used by syntax highlighting functions
+ */
+export function createChangeMaps(hunks: DiffHunk[]): {
+  leftChangeMap: Map<number, DiffChange[]>;
+  rightChangeMap: Map<number, DiffChange[]>;
+} {
+  const leftLines = new Map<number, DiffChange[]>();
+  const rightLines = new Map<number, DiffChange[]>();
+  for (const hunk of hunks) {
+    for (const line of hunk) {
+      if (line.lhs) {
+        leftLines.set(line.lhs.line_number, line.lhs.changes);
+      }
+      if (line.rhs) {
+        rightLines.set(line.rhs.line_number, line.rhs.changes);
+      }
+    }
+  }
+
+  return { leftChangeMap: leftLines, rightChangeMap: rightLines };
 }
