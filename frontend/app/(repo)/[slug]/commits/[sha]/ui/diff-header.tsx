@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronRight, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import { cn } from "@/util";
 import { DiffStatBar } from "./diff-stat-bar";
 

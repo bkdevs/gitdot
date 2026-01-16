@@ -29,15 +29,29 @@ export async function DiffSplit({
   ]);
 
   return (
-    <div className="flex flex-col w-full gap-8">
-      {hunks.map((hunk) => (
-        <DiffSection
-          key={`${hunk[0].lhs?.line_number}-${hunk[0].rhs?.line_number}`}
-          hunk={hunk}
-          leftSpans={leftSpans}
-          rightSpans={rightSpans}
-        />
-      ))}
+    <div className="flex flex-col w-full">
+      {hunks.flatMap((hunk, index) => {
+        const key = `${hunk[0].lhs?.line_number}-${hunk[0].rhs?.line_number}`;
+        return [
+          <DiffSection
+            key={key}
+            hunk={hunk}
+            leftSpans={leftSpans}
+            rightSpans={rightSpans}
+          />,
+          index < hunks.length - 1 && (
+            <span
+              key={`separator-${key}`}
+              className="flex flex-row w-full h-20 items-center relative"
+            >
+              <div className="w-1/2 border-border border-r h-full" />
+              <div className="absolute left-0 right-0 flex items-center justify-center">
+                <div className="w-10 border-t border-border" />
+              </div>
+            </span>
+          ),
+        ];
+      })}
     </div>
   );
 }
