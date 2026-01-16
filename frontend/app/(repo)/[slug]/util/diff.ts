@@ -185,68 +185,6 @@ export function pairLines(chunk: DiffChunk): LinePair[] {
   return linePairs;
 }
 
-/**
- * - visible lines are 0-indexed set of all visible lines in chunks
- * - sentinel counts are the number of sentinels that should be inserted _before_ a line
- */
-export function processChunks(
-  _left: RepositoryFile,
-  _right: RepositoryFile,
-  chunks: DiffChunk[],
-): {
-  leftVisibleLines: Set<number>;
-  leftSentinelCounts: Map<number, number>;
-  rightVisibleLines: Set<number>;
-  rightSentinelCounts: Map<number, number>;
-} {
-  const leftVisibleLines = new Set<number>();
-  const rightVisibleLines = new Set<number>();
-  const leftSentinelCounts = new Map<number, number>();
-  const rightSentinelCounts = new Map<number, number>();
-
-  for (const chunk of chunks) {
-    const linePairs = pairLines(chunk);
-
-    let leftSentinelCount = 0;
-    let rightSentinelCount = 0;
-
-    for (const [left, right] of linePairs) {
-      if (left === null) {
-        leftSentinelCount++;
-      } else {
-        leftVisibleLines.add(left);
-        if (leftSentinelCount > 0) {
-          leftSentinelCounts.set(
-            left,
-            (leftSentinelCounts.get(left) ?? 0) + leftSentinelCount,
-          );
-          leftSentinelCount = 0;
-        }
-      }
-
-      if (right === null) {
-        rightSentinelCount++;
-      } else {
-        rightVisibleLines.add(right);
-        if (rightSentinelCount > 0) {
-          rightSentinelCounts.set(
-            right,
-            (rightSentinelCounts.get(right) ?? 0) + rightSentinelCount,
-          );
-          rightSentinelCount = 0;
-        }
-      }
-    }
-  }
-
-  return {
-    leftVisibleLines,
-    leftSentinelCounts,
-    rightVisibleLines,
-    rightSentinelCounts,
-  };
-}
-
 function getChunkRange(chunk: DiffChunk): [number, number] {
   let min = Infinity;
   let max = -Infinity;
@@ -283,4 +221,47 @@ function insertRhsInOrder(pairs: LinePair[], rhs: number): void {
     i++;
   }
   pairs.splice(i, 0, [null, rhs]);
+}
+
+const CONTEXT_LINES = 5;
+
+/**
+ * expands line pairs to include additional context lines.
+ */
+export function expandLines(pairs: LinePair[]): LinePair[] {
+  let i = 0;
+  while (i < pairs.length && (pairs[i][0] == null || pairs[i][1] === null)) i++;
+
+  if (i == pairs.length) {
+    const offset = pairs.length;
+
+    // for both lhs and rhs, we assume that the first line is correctly inserted for both lines
+    // e.g., [5, null], [6, null] -> [3, 3], [4, 4], [5, null], [6, null]
+    const first = pairs[0][0] || pairs[0][1]!;
+    const context: LinePair[] = [];
+    for (let j = Math.max(0, first - CONTEXT_LINES); j < first; j++) {
+      context.push([j, j]);
+    }
+    pairs.unshift(...context);
+
+    // now add new entries while subtracting the offset from the other side
+    // e.g., [3, 3], [4, 4], [5, null], [6, null], [7, 5]
+    const lastPair = pairs.at(-1)!;
+    if (lastPair[0] !== null) {
+      const last = lastPair[0];
+      for (let j = last + 1; j < last + CONTEXT_LINES; j++) {
+        pairs.push([j, j - offset]);
+      }
+    } else if (lastPair[1] !== null) {
+      const last = lastPair[1];
+      for (let j = last + 1; j < last + CONTEXT_LINES; j++) {
+        pairs.push([j - offset, j]);
+      }
+    }
+  } else {
+    // we found a match pair from the start
+    // TK
+  }
+
+  return pairs;
 }

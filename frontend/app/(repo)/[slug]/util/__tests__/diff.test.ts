@@ -1,5 +1,5 @@
 import type { DiffChunk, RepositoryFile } from "@/lib/dto";
-import { type LinePair, pairLines, processChunks } from "../diff";
+import { type LinePair, expandLines, pairLines } from "../diff";
 
 interface TestCase {
   name: string;
@@ -225,141 +225,147 @@ describe("pairLines", () => {
   });
 });
 
-describe("processChunks", () => {
-  const mockFile: RepositoryFile = {
-    path: "test.ts",
-    content: "line1\nline2\nline3\nline4\nline5",
-  };
+describe("expandLines", () => {
+  describe("all one-sided pairs (implemented case)", () => {
+    test("lhs only - adds context before and after", () => {
+      const input: LinePair[] = [
+        [5, null],
+        [6, null],
+        [7, null],
+      ];
+      const result = expandLines(input);
+      // Context before is added via unshift in reverse order (4,3,2,1,0)
+      // After lines: offset is 3 (original length), so [8, 8-3=5], [9, 6], [10, 7], [11, 8]
+      expect(result).toEqual([
+        [0, 0],
+        [1, 1],
+        [2, 2],
+        [3, 3],
+        [4, 4],
+        [5, null],
+        [6, null],
+        [7, null],
+        [8, 5],
+        [9, 6],
+        [10, 7],
+        [11, 8],
+      ]);
+    });
 
-  test("left-only chunk - all right side sentinels, no anchor", () => {
-    // pairLines returns: [[1, null], [2, null], [3, null]]
-    const chunks: DiffChunk[] = [chunk([{ lhs: 1 }, { lhs: 2 }, { lhs: 3 }])];
-    const result = processChunks(mockFile, mockFile, chunks);
+    test("rhs only - adds context before and after", () => {
+      const input: LinePair[] = [
+        [null, 5],
+        [null, 6],
+        [null, 7],
+      ];
+      const result = expandLines(input);
+      // Should add 5 context lines before (0-4) and 4 context lines after
+      // After lines: offset is 3, so [5-3=2, 8], [3, 9], [4, 10], [5, 11]
+      expect(result).toEqual([
+        [0, 0],
+        [1, 1],
+        [2, 2],
+        [3, 3],
+        [4, 4],
+        [null, 5],
+        [null, 6],
+        [null, 7],
+        [5, 8],
+        [6, 9],
+        [7, 10],
+        [8, 11],
+      ]);
+    });
 
-    expect(result.leftVisibleLines).toEqual(new Set([1, 2, 3]));
-    expect(result.rightVisibleLines).toEqual(new Set());
-    expect(result.leftSentinelCounts).toEqual(new Map());
-    // All 3 right sentinels become trailing sentinels (no right lines to anchor)
-    expect(result.rightSentinelCounts).toEqual(new Map());
-  });
+    test("lhs only starting at line 1 - limited context before", () => {
+      const input: LinePair[] = [
+        [1, null],
+        [2, null],
+      ];
+      const result = expandLines(input);
+      // Only 1 context line before (line 0), then 4 after
+      expect(result).toEqual([
+        [0, 0],
+        [1, null],
+        [2, null],
+        [3, 1],
+        [4, 2],
+        [5, 3],
+        [6, 4],
+      ]);
+    });
 
-  test("right-only chunk - all left side sentinels, no anchor", () => {
-    // pairLines returns: [[null, 1], [null, 2], [null, 3]]
-    const chunks: DiffChunk[] = [chunk([{ rhs: 1 }, { rhs: 2 }, { rhs: 3 }])];
-    const result = processChunks(mockFile, mockFile, chunks);
+    test("lhs only starting at line 0 - no context before", () => {
+      const input: LinePair[] = [
+        [0, null],
+        [1, null],
+      ];
+      const result = expandLines(input);
+      // No context before since first line is 0, only 4 after
+      expect(result).toEqual([
+        [0, null],
+        [1, null],
+        [2, 0],
+        [3, 1],
+        [4, 2],
+        [5, 3],
+      ]);
+    });
 
-    expect(result.leftVisibleLines).toEqual(new Set());
-    expect(result.rightVisibleLines).toEqual(new Set([1, 2, 3]));
-    // All 3 left sentinels become trailing sentinels (no left lines to anchor)
-    expect(result.leftSentinelCounts).toEqual(new Map());
-    expect(result.rightSentinelCounts).toEqual(new Map());
-  });
+    test("single lhs line", () => {
+      const input: LinePair[] = [[10, null]];
+      const result = expandLines(input);
+      // 5 context lines before (5-9) and 4 after (11-14)
+      expect(result).toEqual([
+        [5, 5],
+        [6, 6],
+        [7, 7],
+        [8, 8],
+        [9, 9],
+        [10, null],
+        [11, 10],
+        [12, 11],
+        [13, 12],
+        [14, 13],
+      ]);
+    });
 
-  test("paired lines with left sentinel before", () => {
-    // pairLines returns: [[null, 1], [1, 2], [2, 3]]
-    const chunks: DiffChunk[] = [chunk([{ rhs: 1 }, { lhs: 1, rhs: 2 }])];
-    const result = processChunks(mockFile, mockFile, chunks);
+    test("single rhs line", () => {
+      const input: LinePair[] = [[null, 10]];
+      const result = expandLines(input);
+      // 5 context lines before (5-9) and 4 after
+      expect(result).toEqual([
+        [5, 5],
+        [6, 6],
+        [7, 7],
+        [8, 8],
+        [9, 9],
+        [null, 10],
+        [10, 11],
+        [11, 12],
+        [12, 13],
+        [13, 14],
+      ]);
+    });
 
-    expect(result.leftVisibleLines).toEqual(new Set([1, 2]));
-    expect(result.rightVisibleLines).toEqual(new Set([1, 2, 3]));
-    // Before left line 1, there's 1 sentinel
-    expect(result.leftSentinelCounts).toEqual(new Map([[1, 1]]));
-    expect(result.rightSentinelCounts).toEqual(new Map());
-  });
-
-  test("paired lines with right sentinel before", () => {
-    // pairLines returns: [[1, null], [2, 1], [3, 2]]
-    const chunks: DiffChunk[] = [chunk([{ lhs: 1 }, { lhs: 2, rhs: 1 }])];
-    const result = processChunks(mockFile, mockFile, chunks);
-
-    expect(result.leftVisibleLines).toEqual(new Set([1, 2, 3]));
-    expect(result.rightVisibleLines).toEqual(new Set([1, 2]));
-    expect(result.leftSentinelCounts).toEqual(new Map());
-    // Before right line 1, there's 1 sentinel
-    expect(result.rightSentinelCounts).toEqual(new Map([[1, 1]]));
-  });
-
-  test("multiple consecutive sentinels on left side", () => {
-    // pairLines returns: [[null, 1], [null, 2], [1, 3], [2, 4], [3, 5]]
-    const chunks: DiffChunk[] = [
-      chunk([{ rhs: 1 }, { rhs: 2 }, { lhs: 1, rhs: 3 }]),
-    ];
-    const result = processChunks(mockFile, mockFile, chunks);
-
-    expect(result.leftVisibleLines).toEqual(new Set([1, 2, 3]));
-    expect(result.rightVisibleLines).toEqual(new Set([1, 2, 3, 4, 5]));
-    // Before left line 1, there are 2 sentinels
-    expect(result.leftSentinelCounts).toEqual(new Map([[1, 2]]));
-    expect(result.rightSentinelCounts).toEqual(new Map());
-  });
-
-  test("sentinels interspersed between real lines", () => {
-    // pairLines returns: [[1, 1], [null, 2], [2, 3], [3, 4]]
-    const chunks: DiffChunk[] = [
-      chunk([{ lhs: 1, rhs: 1 }, { rhs: 2 }, { lhs: 2, rhs: 3 }]),
-    ];
-    const result = processChunks(mockFile, mockFile, chunks);
-
-    expect(result.leftVisibleLines).toEqual(new Set([1, 2, 3]));
-    expect(result.rightVisibleLines).toEqual(new Set([1, 2, 3, 4]));
-    // Before left line 2, there's 1 sentinel
-    expect(result.leftSentinelCounts).toEqual(new Map([[2, 1]]));
-    expect(result.rightSentinelCounts).toEqual(new Map());
-  });
-
-  test("offset anchor creates leading right sentinels", () => {
-    // pairLines returns: [[1, null], [2, null], [3, 1], [4, 2], [5, 3]]
-    const chunks: DiffChunk[] = [chunk([{ lhs: 3, rhs: 1 }])];
-    const result = processChunks(mockFile, mockFile, chunks);
-
-    expect(result.leftVisibleLines).toEqual(new Set([1, 2, 3, 4, 5]));
-    expect(result.rightVisibleLines).toEqual(new Set([1, 2, 3]));
-    expect(result.leftSentinelCounts).toEqual(new Map());
-    // Before right line 1, there are 2 sentinels
-    expect(result.rightSentinelCounts).toEqual(new Map([[1, 2]]));
-  });
-
-  test("complex mixed case from pairLines test", () => {
-    // Expected pairs: [[null,729],[729,730],[730,null],[731,731],[null,732],[null,733],[732,734],[733,735],[734,736],[735,737],[736,738],[737,739],[738,740]]
-    const complexChunk: DiffChunk = [
-      { rhs: { line_number: 733, changes: [] } },
-      {
-        lhs: { line_number: 729, changes: [] },
-        rhs: { line_number: 730, changes: [] },
-      },
-      {
-        lhs: { line_number: 731, changes: [] },
-        rhs: { line_number: 731, changes: [] },
-      },
-      {
-        lhs: { line_number: 735, changes: [] },
-        rhs: { line_number: 737, changes: [] },
-      },
-      {
-        lhs: { line_number: 736, changes: [] },
-        rhs: { line_number: 738, changes: [] },
-      },
-    ];
-    const chunks: DiffChunk[] = [complexChunk];
-    const result = processChunks(mockFile, mockFile, chunks);
-
-    // Left visible: 729, 730, 731, 732, 733, 734, 735, 736, 737, 738
-    expect(result.leftVisibleLines).toEqual(
-      new Set([729, 730, 731, 732, 733, 734, 735, 736, 737, 738]),
-    );
-    // Right visible: 729, 730, 731, 732, 733, 734, 735, 736, 737, 738, 739, 740
-    expect(result.rightVisibleLines).toEqual(
-      new Set([729, 730, 731, 732, 733, 734, 735, 736, 737, 738, 739, 740]),
-    );
-
-    // Left sentinels: 1 before 729, 2 before 732
-    expect(result.leftSentinelCounts).toEqual(
-      new Map([
-        [729, 1],
-        [732, 2],
-      ]),
-    );
-    // Right sentinels: 1 before 731
-    expect(result.rightSentinelCounts).toEqual(new Map([[731, 1]]));
+    test("lhs only - consecutive lines starting at 3", () => {
+      const input: LinePair[] = [
+        [3, null],
+        [4, null],
+      ];
+      const result = expandLines(input);
+      // 3 context lines before (0-2), 4 after
+      expect(result).toEqual([
+        [0, 0],
+        [1, 1],
+        [2, 2],
+        [3, null],
+        [4, null],
+        [5, 3],
+        [6, 4],
+        [7, 5],
+        [8, 6],
+      ]);
+    });
   });
 });
