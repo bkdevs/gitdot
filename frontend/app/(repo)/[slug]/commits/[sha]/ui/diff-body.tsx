@@ -12,6 +12,6 @@ export async function DiffBody({ diff }: { diff: RepositoryFileDiff }) {
   } else if (!left && right) {
     return <DiffSingle file={right} side="right" />;
   } else {
-    return <div className="text-sm font-mono px-8">No changes made</div>;
+    return <div className="text-sm font-mono px-2">No changes made</div>;
   }
 }
