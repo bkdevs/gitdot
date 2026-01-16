@@ -1,18 +1,17 @@
-import { start } from "node:repl";
-import type { Element, Root } from "hast";
+import type { Element } from "hast";
 import { toJsxRuntime } from "hast-util-to-jsx-runtime";
 import type { JSX } from "react";
 import { Fragment } from "react";
 import { jsx, jsxs } from "react/jsx-runtime";
-import { codeToHast } from "shiki";
 import {
   CONTEXT_LINES,
   createChangeMaps,
   expandLines,
   inferLanguage,
   pairLines,
+  renderSpans,
 } from "@/(repo)/[slug]/util";
-import type { DiffChange, DiffHunk, RepositoryFile } from "@/lib/dto";
+import type { DiffHunk, RepositoryFile } from "@/lib/dto";
 import { DiffLine } from "./diff-line";
 
 export async function DiffSplit({
@@ -58,47 +57,6 @@ export async function DiffSplit({
         );
       })}
     </div>
-  );
-}
-
-async function renderSpans(
-  side: "left" | "right",
-  language: string,
-  changeMap: Map<number, DiffChange[]>,
-  content: string,
-): Promise<Element[]> {
-  const hast = await codeToHast(content, {
-    lang: language,
-    theme: "vitesse-light",
-    transformers: [
-      {
-        pre(node) {
-          this.addClassToHast(node, "outline-none");
-        },
-        code(node) {
-          // required as shiki by default renders code as a line
-          this.addClassToHast(node, "flex flex-col");
-        },
-        line(node, lineNumber) {
-          node.type = "element";
-          node.tagName = "diffline";
-
-          node.properties["data-line-number"] = lineNumber;
-          if (changeMap.has(lineNumber - 1)) {
-            node.properties["data-line-type"] =
-              side === "left" ? "removed" : "added";
-          }
-        },
-      },
-    ],
-  });
-
-  const root = hast as Root;
-  const pre = root.children[0] as Element;
-  const code = pre.children[0] as Element;
-
-  return code.children.filter(
-    (child): child is Element => child.type === "element",
   );
 }
 
