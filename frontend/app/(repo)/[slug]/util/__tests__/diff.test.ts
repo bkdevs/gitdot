@@ -1,9 +1,9 @@
-import type { DiffChunk } from "@/lib/dto";
+import type { DiffHunk } from "@/lib/dto";
 import { expandLines, type LinePair, pairLines } from "../diff";
 
 interface TestCase {
   name: string;
-  input: DiffChunk;
+  input: DiffHunk;
   expected: LinePair[];
 }
 
@@ -17,7 +17,7 @@ function chunk(
   entries: Array<
     { lhs: number } | { rhs: number } | { lhs: number; rhs: number }
   >,
-): DiffChunk {
+): DiffHunk {
   return entries.map((entry) => ({
     lhs: "lhs" in entry ? { line_number: entry.lhs, changes: [] } : undefined,
     rhs: "rhs" in entry ? { line_number: entry.rhs, changes: [] } : undefined,

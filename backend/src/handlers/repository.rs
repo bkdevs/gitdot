@@ -712,8 +712,6 @@ pub async fn get_repository_commit_diffs(
         if diff.chunks.is_none() {
             println!("No changes detected");
             println!("{}", file_path_for_diff.unwrap_or(""));
-        } else {
-            // println!("{:?}", diff.chunks);
         }
 
         diffs.push(RepositoryFileDiff {
@@ -721,7 +719,7 @@ pub async fn get_repository_commit_diffs(
             right,
             lines_added,
             lines_removed,
-            chunks: diff.chunks.unwrap_or(Vec::new()),
+            hunks: diff.chunks.unwrap_or(Vec::new()),
         });
     }
 

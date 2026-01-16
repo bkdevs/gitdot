@@ -4,7 +4,7 @@ import type { JSX } from "react";
 import { Fragment } from "react";
 import { jsx, jsxs } from "react/jsx-runtime";
 import { expandLines, pairLines } from "@/(repo)/[slug]/util";
-import type { DiffChunk } from "@/lib/dto";
+import type { DiffHunk } from "@/lib/dto";
 import { DiffLine } from "./diff-line";
 
 const sentinelSpan: Element = {
@@ -18,17 +18,17 @@ const sentinelSpan: Element = {
 };
 
 export function DiffSection({
-  chunk,
+  hunk,
   leftSpans,
   rightSpans,
 }: {
-  chunk: DiffChunk;
+  hunk: DiffHunk;
   leftSpans: Element[];
   rightSpans: Element[];
 }) {
   const leftSpansChunk: Element[] = [];
   const rightSpansChunk: Element[] = [];
-  const pairedLines = pairLines(chunk);
+  const pairedLines = pairLines(hunk);
   const expandedLines = expandLines(
     pairedLines,
     leftSpans.length,

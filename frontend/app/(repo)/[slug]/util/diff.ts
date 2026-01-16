@@ -1,4 +1,4 @@
-import type { DiffChunk } from "@/lib/dto";
+import type { DiffHunk } from "@/lib/dto";
 
 export type LinePair = [number | null, number | null]; // null represents SENTINEL
 
@@ -35,27 +35,27 @@ export type LinePair = [number | null, number | null]; // null represents SENTIN
  * - each side must be monotonically increasing, exlcuding null sentinels
  * this also implies that the size of the list _may_ be greater than the full range of indices as a result of padding, which is fine.
  */
-export function pairLines(chunk: DiffChunk): LinePair[] {
-  const chunkPairs: LinePair[] = [];
+export function pairLines(hunk: DiffHunk): LinePair[] {
+  const hunkPairs: LinePair[] = [];
 
   // we first add all paired lines (those that are matched) and use those as anchors to generate the full alignment
-  for (const line of chunk) {
+  for (const line of hunk) {
     if (line.lhs && line.rhs) {
-      chunkPairs.push([line.lhs.line_number, line.rhs.line_number]);
+      hunkPairs.push([line.lhs.line_number, line.rhs.line_number]);
     }
   }
 
   // then insert lhs only lines by sorted order of the left index
-  for (const line of chunk) {
+  for (const line of hunk) {
     if (line.lhs && !line.rhs) {
-      insertLhsInOrder(chunkPairs, line.lhs.line_number);
+      insertLhsInOrder(hunkPairs, line.lhs.line_number);
     }
   }
 
   // then do the same for rhs
-  for (const line of chunk) {
+  for (const line of hunk) {
     if (!line.lhs && line.rhs) {
-      insertRhsInOrder(chunkPairs, line.rhs.line_number);
+      insertRhsInOrder(hunkPairs, line.rhs.line_number);
     }
   }
 
@@ -94,11 +94,11 @@ export function pairLines(chunk: DiffChunk): LinePair[] {
   // where sentinels must be placed and then trying to place them smartly.
   //
   // as of now, the below implementation just fills in lines from back to top and places sentinels a bit arbitrarily.
-  const lastPairIdx = chunkPairs.findLastIndex(
+  const lastPairIdx = hunkPairs.findLastIndex(
     (p) => p[0] !== null && p[1] !== null,
   );
   if (lastPairIdx !== -1) {
-    const anchor = chunkPairs[lastPairIdx];
+    const anchor = hunkPairs[lastPairIdx];
     linePairs.unshift(anchor);
 
     // biome-ignore lint/style/noNonNullAssertion: anchor verified non-null by findLastIndex
@@ -107,7 +107,7 @@ export function pairLines(chunk: DiffChunk): LinePair[] {
     let rightPos = anchor[1]!;
 
     for (let i = lastPairIdx - 1; i >= 0; i--) {
-      const entry = chunkPairs[i];
+      const entry = hunkPairs[i];
       while (true) {
         const leftMatches = entry[0] !== null && leftPos - 1 === entry[0];
         const rightMatches = entry[1] !== null && rightPos - 1 === entry[1];
@@ -125,9 +125,9 @@ export function pairLines(chunk: DiffChunk): LinePair[] {
       }
     }
   } else {
-    // No paired lines (all one-sided) - just use chunkPairs directly
+    // No paired lines (all one-sided) - just use hunkPairs directly
     // and let the gap-filling logic below handle filling in missing lines
-    linePairs.push(...chunkPairs);
+    linePairs.push(...hunkPairs);
   }
 
   let hasGaps = true;

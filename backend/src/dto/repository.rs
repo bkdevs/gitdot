@@ -127,7 +127,7 @@ pub struct RepositoryFileDiff {
 
     pub lines_added: u32,
     pub lines_removed: u32,
-    pub chunks: Vec<DiffChunk>,
+    pub hunks: Vec<DiffHunk>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -173,12 +173,12 @@ pub struct DiffLine {
     pub rhs: Option<DiffSide>,
 }
 
-pub type DiffChunk = Vec<DiffLine>;
+pub type DiffHunk = Vec<DiffLine>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DifftasticOutput {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub chunks: Option<Vec<DiffChunk>>,
+    pub chunks: Option<Vec<DiffHunk>>,
     pub language: String,
     pub path: String,
     pub status: DiffStatus,

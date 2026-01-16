@@ -39,7 +39,7 @@ async function renderSpans(
 }
 
 export async function FileDiff({ diff }: { diff: RepositoryFileDiff }) {
-  const { left, right, chunks } = diff;
+  const { left, right, hunks } = diff;
   const path = left?.path || right?.path;
   if (!path) {
     throw new Error("File path or chunks are missing");
@@ -52,7 +52,7 @@ export async function FileDiff({ diff }: { diff: RepositoryFileDiff }) {
       </div>
     );
   }
-  if (!chunks || chunks.length === 0) {
+  if (!hunks || hunks.length === 0) {
     return (
       <div className="w-full">
         TK, this gets returned when files are deleted, created, or renamed
@@ -80,10 +80,10 @@ export async function FileDiff({ diff }: { diff: RepositoryFileDiff }) {
         {path}
       </div>
       <div className="flex flex-col w-full gap-8">
-        {chunks.map((chunk, index) => (
+        {hunks.map((hunk, index) => (
           <DiffSection
             key={index}
-            chunk={chunk}
+            hunk={hunk}
             leftSpans={leftSpans}
             rightSpans={rightSpans}
           />
