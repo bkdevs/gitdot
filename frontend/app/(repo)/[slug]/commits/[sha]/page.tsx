@@ -1,6 +1,7 @@
 import { getRepositoryCommitDiffs } from "@/lib/dal";
 import { CommitHeader } from "./ui/commit-header";
-import { DiffFile } from "./ui/diff-file";
+import { DiffBody } from "./ui/diff-body";
+import { DiffFileClient } from "./ui/diff-file-client";
 
 export default async function Page({
   params,
@@ -15,9 +16,17 @@ export default async function Page({
   return (
     <div className="flex flex-col w-full h-screen overflow-y-auto scrollbar-thin">
       <CommitHeader commit={commit} diffs={diffs} />
-      <div className="flex flex-col gap-8">
+      <div className="flex flex-col">
         {diffs.map((diff) => (
-          <DiffFile key={diff.left?.path || diff.right?.path} diff={diff} />
+          <DiffFileClient
+            key={diff.left?.path || diff.right?.path}
+            leftPath={diff.left?.path}
+            rightPath={diff.right?.path}
+            linesAdded={diff.lines_added}
+            linesRemoved={diff.lines_removed}
+          >
+            <DiffBody diff={diff} />
+          </DiffFileClient>
         ))}
       </div>
     </div>
