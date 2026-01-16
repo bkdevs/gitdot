@@ -709,11 +709,6 @@ pub async fn get_repository_commit_diffs(
         let diff = execute_difftastic(left_content, right_content, file_path_for_diff)
             .expect("Failed to generate diff");
 
-        if diff.chunks.is_none() {
-            println!("No changes detected");
-            println!("{}", file_path_for_diff.unwrap_or(""));
-        }
-
         diffs.push(RepositoryFileDiff {
             left,
             right,

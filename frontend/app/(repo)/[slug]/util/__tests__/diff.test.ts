@@ -8,7 +8,7 @@ interface TestCase {
 }
 
 /**
- * Helper to create a DiffChunk from a more readable format.
+ * Helper to create a DiffHunk from a more readable format.
  * - { lhs: lineNum } for left-only (removed)
  * - { rhs: lineNum } for right-only (added)
  * - { lhs: lineNum, rhs: lineNum } for modified/matched

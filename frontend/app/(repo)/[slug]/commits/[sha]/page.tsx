@@ -1,6 +1,6 @@
 import { getRepositoryCommitDiffs } from "@/lib/dal";
-import { CommitHeader } from "../ui/commit-header";
-import { FileDiff } from "../ui/file-diff";
+import { CommitHeader } from "./ui/commit-header";
+import { DiffFile } from "./ui/diff-file";
 
 export default async function Page({
   params,
@@ -15,9 +15,8 @@ export default async function Page({
   return (
     <div className="flex flex-col w-full h-screen overflow-y-auto scrollbar-thin">
       <CommitHeader commit={commit} diffs={diffs} />
-      {/* TODO: consider suspense here? await seems cpu blocking.. */}
       {diffs.map((diff) => (
-        <FileDiff key={diff.left?.path || diff.right?.path} diff={diff} />
+        <DiffFile key={diff.left?.path || diff.right?.path} diff={diff} />
       ))}
     </div>
   );

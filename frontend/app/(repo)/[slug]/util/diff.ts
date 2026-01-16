@@ -1,6 +1,10 @@
 import type { DiffHunk } from "@/lib/dto";
 
-export type LinePair = [number | null, number | null]; // null represents SENTINEL
+// ============================================================================
+// pairLines
+// ============================================================================
+
+export type LinePair = [number | null, number | null];
 
 /**
  * a tad complicated and heuristic function.
@@ -112,6 +116,8 @@ export function pairLines(hunk: DiffHunk): LinePair[] {
         const leftMatches = entry[0] !== null && leftPos - 1 === entry[0];
         const rightMatches = entry[1] !== null && rightPos - 1 === entry[1];
 
+        console.log(" we are in an infinite loop"); // TODO: fix
+
         if (leftMatches || rightMatches) {
           if (entry[0] !== null) leftPos = entry[0];
           if (entry[1] !== null) rightPos = entry[1];
@@ -172,11 +178,20 @@ function insertRhsInOrder(pairs: LinePair[], rhs: number): void {
   pairs.splice(i, 0, [null, rhs]);
 }
 
+// ============================================================================
+// expandLines
+// ============================================================================
 
 const CONTEXT_LINES = 4;
 
 /**
- * expands line pairs to include additional context lines.
+ * once we have paired lines, we must expand them to include additional context in each diff section
+ *
+ * note that the result of pairLines is a minimal set (e.g., top line is a change and bottom line is also change)
+ * the logic of this function is relatively straightforward, but also accounts for cases where the lines that are passed in
+ * are already exceeding a side's max (happens when content is inserted at the end of a file)
+ *
+ * hence, we need the number of lines in both the left side and the right side to be passed in
  */
 export function expandLines(
   pairs: LinePair[],

@@ -3,21 +3,46 @@ import { toJsxRuntime } from "hast-util-to-jsx-runtime";
 import type { JSX } from "react";
 import { Fragment } from "react";
 import { jsx, jsxs } from "react/jsx-runtime";
-import { expandLines, pairLines } from "@/(repo)/[slug]/util";
-import type { DiffHunk } from "@/lib/dto";
+import {
+  expandLines,
+  inferLanguage,
+  pairLines,
+  renderSpans,
+  sentinelSpan,
+} from "@/(repo)/[slug]/util";
+import type { DiffHunk, RepositoryFile } from "@/lib/dto";
 import { DiffLine } from "./diff-line";
 
-const sentinelSpan: Element = {
-  type: "element",
-  tagName: "diffline",
-  properties: {
-    class: "line w-full",
-    "data-line-type": "sentinel",
-  },
-  children: [],
-};
+export async function DiffSplit({
+  left,
+  right,
+  hunks,
+}: {
+  left: RepositoryFile;
+  right: RepositoryFile;
+  hunks: DiffHunk[];
+}) {
+  const language = inferLanguage(left.path) || "plaintext";
+  const [leftSpans, rightSpans] = await Promise.all([
+    renderSpans(language, left.content),
+    renderSpans(language, right.content),
+  ]);
 
-export function DiffSection({
+  return (
+    <div className="flex flex-col w-full gap-8">
+      {hunks.map((hunk) => (
+        <DiffSection
+          key={`${hunk[0].lhs?.line_number}-${hunk[0].rhs?.line_number}`}
+          hunk={hunk}
+          leftSpans={leftSpans}
+          rightSpans={rightSpans}
+        />
+      ))}
+    </div>
+  );
+}
+
+function DiffSection({
   hunk,
   leftSpans,
   rightSpans,
@@ -26,14 +51,14 @@ export function DiffSection({
   leftSpans: Element[];
   rightSpans: Element[];
 }) {
-  const leftSpansChunk: Element[] = [];
-  const rightSpansChunk: Element[] = [];
-  const pairedLines = pairLines(hunk);
   const expandedLines = expandLines(
-    pairedLines,
+    pairLines(hunk),
     leftSpans.length,
     rightSpans.length,
   );
+
+  const leftSpansChunk: Element[] = [];
+  const rightSpansChunk: Element[] = [];
   for (const [left, right] of expandedLines) {
     leftSpansChunk.push(left !== null ? leftSpans[left] : sentinelSpan);
     rightSpansChunk.push(right !== null ? rightSpans[right] : sentinelSpan);
@@ -51,7 +76,7 @@ export function DiffSection({
         tagName: "pre",
         properties: {
           className:
-            "flex flex-col w-1/2 overflow-auto border-border border-r text-sm font-mono",
+            "flex flex-col w-1/2 overflow-auto scrollbar-none border-border border-r text-sm font-mono",
         },
         children: leftSpansChunk,
       },
@@ -59,7 +84,8 @@ export function DiffSection({
         type: "element",
         tagName: "pre",
         properties: {
-          className: "flex flex-col overflow-auto w-1/2 text-sm font-mono",
+          className:
+            "flex flex-col w-1/2 overflow-auto scrollbar-none text-sm font-mono",
         },
         children: rightSpansChunk,
       },
