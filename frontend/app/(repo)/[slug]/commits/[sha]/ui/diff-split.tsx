@@ -68,7 +68,7 @@ function DiffSection({
     type: "element",
     tagName: "div",
     properties: {
-      className: "flex w-full border-t border-b border-border",
+      className: "flex w-full",
     },
     children: [
       {
