@@ -182,7 +182,7 @@ function insertRhsInOrder(pairs: LinePair[], rhs: number): void {
 // expandLines
 // ============================================================================
 
-const CONTEXT_LINES = 4;
+export const CONTEXT_LINES = 4;
 
 /**
  * once we have paired lines, we must expand them to include additional context in each diff section
