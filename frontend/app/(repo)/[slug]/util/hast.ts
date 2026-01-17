@@ -1,6 +1,7 @@
 import type { Element, ElementContent, Root } from "hast";
-import { codeToHast } from "shiki";
+import { addClassToHast } from "shiki";
 import type { DiffChange } from "@/lib/dto";
+import { highlighter } from "@/lib/shiki";
 
 export async function renderSpans(
   side: "left" | "right",
@@ -8,9 +9,9 @@ export async function renderSpans(
   changeMap: Map<number, DiffChange[]>,
   content: string,
 ): Promise<Element[]> {
-  const hast = await codeToHast(content, {
+  const hast = highlighter.codeToHast(content, {
     lang: language,
-    theme: "vitesse-light",
+    theme: "gitdot-light",
     transformers: [
       {
         pre(node) {
@@ -26,9 +27,7 @@ export async function renderSpans(
           node.properties["data-line-number"] = lineNumber;
           const changes = changeMap.get(lineNumber - 1);
           if (changes && changes.length > 0) {
-            node.properties["data-line-type"] =
-              side === "left" ? "removed" : "added";
-            highlightChanges(node, changes);
+            highlightChanges(side, node, changes);
           }
         },
       },
@@ -44,7 +43,11 @@ export async function renderSpans(
   );
 }
 
-function highlightChanges(lineNode: Element, changes: DiffChange[]): void {
+function highlightChanges(
+  side: "left" | "right",
+  lineNode: Element,
+  changes: DiffChange[],
+): void {
   if (changes.length === 0) return;
 
   let charOffset = 0;
@@ -63,15 +66,10 @@ function highlightChanges(lineNode: Element, changes: DiffChange[]): void {
 
     for (const change of changes) {
       if (change.start >= spanStart && change.end <= spanEnd) {
-        const existingStyle = child.properties.style;
-        if (typeof existingStyle === "string") {
-          const trimmed = existingStyle.trim();
-          const sep = trimmed && !trimmed.endsWith(";") ? ";" : "";
-          child.properties.style = `${trimmed}${sep}font-weight:bold`;
-        } else {
-          child.properties.style = "font-weight:bold";
-        }
-        break;
+        addClassToHast(
+          child,
+          side === "left" ? "text-red-600!" : "text-green-600!",
+        );
       }
     }
 
