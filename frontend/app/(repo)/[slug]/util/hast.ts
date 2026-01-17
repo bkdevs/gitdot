@@ -7,6 +7,12 @@ import {
 import type { DiffChange, RepositoryFile } from "@/lib/dto";
 import { inferLanguage } from "./language";
 
+/**
+ * shiki short hands (e.g., shiki.codeToHast) internally manages a singleton instance and lazily loads themes and bundles as required
+ *
+ * that is all what we'd like to leverage as well, with the exception that we want to inject our own custom themes when requested
+ * so we consolidate on the following API for our own internal usage
+ */
 export async function fileToHast(
   file: RepositoryFile,
   theme: "vitesse-light" | "gitdot-light",

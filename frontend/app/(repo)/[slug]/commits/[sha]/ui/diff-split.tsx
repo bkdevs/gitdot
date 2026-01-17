@@ -7,7 +7,6 @@ import {
   CONTEXT_LINES,
   createChangeMaps,
   expandLines,
-  inferLanguage,
   pairLines,
   renderSpans,
 } from "@/(repo)/[slug]/util";

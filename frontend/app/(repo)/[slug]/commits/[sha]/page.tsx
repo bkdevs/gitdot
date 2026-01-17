@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { getRepositoryCommitDiffs } from "@/lib/dal";
 import { CommitHeader } from "./ui/commit-header";
 import { DiffBody } from "./ui/diff-body";
@@ -17,17 +18,44 @@ export default async function Page({
     <div className="flex flex-col w-full h-screen overflow-y-auto scrollbar-thin">
       <CommitHeader commit={commit} diffs={diffs} />
       <div className="flex flex-col">
-        {diffs.map((diff) => (
-          <DiffFileClient
-            key={diff.left?.path || diff.right?.path}
-            leftPath={diff.left?.path}
-            rightPath={diff.right?.path}
-            linesAdded={diff.lines_added}
-            linesRemoved={diff.lines_removed}
+        {diffs.slice(0, 2).map((diff) => {
+          const key = diff.left?.path || diff.right?.path;
+          return (
+            <DiffFileClient
+              key={key}
+              leftPath={diff.left?.path}
+              rightPath={diff.right?.path}
+              linesAdded={diff.lines_added}
+              linesRemoved={diff.lines_removed}
+            >
+              <DiffBody diff={diff} />
+            </DiffFileClient>
+          );
+        })}
+        {diffs.length > 2 && (
+          <Suspense
+            fallback={
+              <div className="text-muted-foreground font-mono text-sm px-2">
+                loading...
+              </div>
+            }
           >
-            <DiffBody diff={diff} />
-          </DiffFileClient>
-        ))}
+            {diffs.slice(3).map((diff) => {
+              const key = diff.left?.path || diff.right?.path;
+              return (
+                <DiffFileClient
+                  key={key}
+                  leftPath={diff.left?.path}
+                  rightPath={diff.right?.path}
+                  linesAdded={diff.lines_added}
+                  linesRemoved={diff.lines_removed}
+                >
+                  <DiffBody diff={diff} />
+                </DiffFileClient>
+              );
+            })}
+          </Suspense>
+        )}
       </div>
     </div>
   );

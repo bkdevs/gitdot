@@ -13,7 +13,7 @@ export async function DiffSingle({
   file: RepositoryFile;
   side: "left" | "right";
 }) {
-  const hast = await fileToHast(file, "gitdot-light", [
+  const hast = await fileToHast(file, "vitesse-light", [
     {
       pre(node) {
         this.addClassToHast(node, "outline-none");
