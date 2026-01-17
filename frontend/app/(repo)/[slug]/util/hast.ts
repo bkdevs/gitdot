@@ -27,7 +27,7 @@ export async function renderSpans(
 
           const changes = changeMap.get(lineNumber - 1);
           if (changes) {
-            highlightChanges(side, node, changes);
+            highlightWords(side, node, changes);
           }
         },
       },
@@ -43,13 +43,21 @@ export async function renderSpans(
   );
 }
 
-export function highlightChanges(
+/**
+ * apply word-level highlighting from difftastic output
+ *
+ * in general, we want our spans to be _wider_ than the changes, and then we create subspans within each span
+ * with highlighting applied
+ */
+export function highlightWords(
   side: "left" | "right",
   lineNode: Element,
   changes: DiffChange[],
 ): void {
-  let charOffset = 0;
+  const processedChanges = processChanges(changes);
+  const colorClass = side === "left" ? "text-red-600!" : "text-green-600!";
 
+  let charOffset = 0;
   for (const child of lineNode.children) {
     if (child.type !== "element") {
       throw new Error("Unexpected non-element child");
@@ -59,17 +67,80 @@ export function highlightChanges(
     const spanStart = charOffset;
     const spanEnd = charOffset + spanLength;
 
-    for (const change of changes) {
-      if (change.start >= spanStart && change.end <= spanEnd) {
-        addClassToHast(
-          child,
-          side === "left" ? "text-red-600!" : "text-green-600!",
-        );
+    const changesInSpan = processedChanges.filter(
+      (change) => change.start >= spanStart && change.end <= spanEnd,
+    );
+
+    if (changesInSpan.length > 0) {
+      const coversEntireSpan = changesInSpan.some(
+        (change) => change.start === spanStart && change.end === spanEnd,
+      );
+
+      if (coversEntireSpan) {
+        addClassToHast(child, colorClass);
+      } else {
+        splitSpan(child, spanStart, changesInSpan, colorClass);
       }
     }
 
     charOffset = spanEnd;
   }
+}
+
+/**
+ * occasionally difft will return string changes as contiugous chunks,
+ * e.g., "a string here" -> is one change
+ *
+ * that doesn't fit well into our spans, as we split out quotes as separate spans:
+ * <span>"</span><span>a string here</span><span>"</span>
+ *
+ * so we process the changes to split out quotes
+ */
+function processChanges(changes: DiffChange[]): DiffChange[] {
+  const result: DiffChange[] = [];
+
+  for (const change of changes) {
+    if (change.highlight !== "string") {
+      result.push(change);
+      continue;
+    }
+
+    const content = change.content;
+    const quote = content[0];
+
+    if (
+      (quote === '"' || quote === "'" || quote === "`") &&
+      content.length >= 2 &&
+      content[content.length - 1] === quote
+    ) {
+      result.push({
+        start: change.start,
+        end: change.start + 1,
+        content: quote,
+        highlight: "string",
+      });
+
+      if (content.length > 2) {
+        result.push({
+          start: change.start + 1,
+          end: change.end - 1,
+          content: content.slice(1, -1),
+          highlight: "string",
+        });
+      }
+
+      result.push({
+        start: change.end - 1,
+        end: change.end,
+        content: quote,
+        highlight: "string",
+      });
+    } else {
+      result.push(change);
+    }
+  }
+
+  return result;
 }
 
 function getSpanLength(node: ElementContent): number {
@@ -81,4 +152,55 @@ function getSpanLength(node: ElementContent): number {
     throw new Error("Span must have one text child");
   }
   return child.value.length;
+}
+
+function getSpanText(node: Element): string {
+  const child = node.children[0];
+  if (child.type !== "text") {
+    throw new Error("Span must have one text child");
+  }
+  return child.value;
+}
+
+function splitSpan(
+  span: Element,
+  spanStart: number,
+  changes: DiffChange[],
+  colorClass: string,
+): void {
+  const text = getSpanText(span);
+  const sortedChanges = [...changes].sort((a, b) => a.start - b.start);
+
+  const newChildren: ElementContent[] = [];
+  let currentPos = spanStart;
+
+  for (const change of sortedChanges) {
+    if (change.start > currentPos) {
+      const beforeText = text.slice(
+        currentPos - spanStart,
+        change.start - spanStart,
+      );
+      newChildren.push({ type: "text", value: beforeText });
+    }
+
+    const changeText = text.slice(
+      change.start - spanStart,
+      change.end - spanStart,
+    );
+    newChildren.push({
+      type: "element",
+      tagName: "span",
+      properties: { class: [colorClass] },
+      children: [{ type: "text", value: changeText }],
+    });
+
+    currentPos = change.end;
+  }
+
+  if (currentPos < spanStart + text.length) {
+    const afterText = text.slice(currentPos - spanStart);
+    newChildren.push({ type: "text", value: afterText });
+  }
+
+  span.children = newChildren;
 }
