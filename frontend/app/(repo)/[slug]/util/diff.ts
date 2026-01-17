@@ -1,4 +1,4 @@
-import type { DiffChange, DiffHunk } from "@/lib/dto";
+import type { DiffChange, DiffHunk, DiffLine } from "@/lib/dto";
 
 export type LinePair = [number | null, number | null];
 export const CONTEXT_LINES = 4;
@@ -38,7 +38,73 @@ export function sortHunks(hunks: DiffHunk[]): DiffHunk[] {
  * we _may_ find logically conflicting pairs (e.g., we accounted for gaps in one hunk, but are unaware in the second)
  */
 export function mergeHunks(hunks: DiffHunk[]): DiffHunk[] {
-  return hunks;
+  if (hunks.length <= 1) return hunks;
+
+  const sortedHunks = sortHunks(hunks);
+  const result: DiffHunk[] = [];
+  let current = [...sortedHunks[0]];
+
+  for (let i = 1; i < sortedHunks.length; i++) {
+    const next = sortedHunks[i];
+
+    if (hunksOverlap(current, next)) {
+      current = [...current, ...next];
+    } else {
+      result.push(current);
+      current = [...next];
+    }
+  }
+
+  result.push(current);
+  return result;
+}
+
+
+function hunksOverlap(left: DiffHunk, right: DiffHunk): boolean {
+  const lastLine = left[left.length - 1];
+  const firstLine = right[0];
+
+  const [lastLhs, lastRhs] = getEffectivePosition(
+    lastLine,
+    left,
+    left.length - 1,
+  );
+  const [firstLhs, firstRhs] = getEffectivePosition(firstLine, right, 0);
+
+  // Overlap if either side's difference is within CONTEXT_LINES * 2
+  const lhsDiff = firstLhs - lastLhs;
+  const rhsDiff = firstRhs - lastRhs;
+
+  return lhsDiff <= CONTEXT_LINES * 2 || rhsDiff <= CONTEXT_LINES * 2;
+}
+
+// todo: rename this
+function getEffectivePosition(
+  line: DiffLine,
+  hunk: DiffHunk,
+  lineIndex: number,
+): [number, number] {
+  if (line.lhs && line.rhs) {
+    return [line.lhs.line_number, line.rhs.line_number];
+  }
+
+  // look for an anchor (a line with both lhs and rhs above) and if found, use that
+  for (let i = lineIndex - 1; i >= 0; i--) {
+    const anchor = hunk[i];
+    if (anchor.lhs && anchor.rhs) {
+      return [anchor.lhs.line_number, line.rhs!.line_number];
+    }
+  }
+
+  // else there is no anchor, must be a lhs only or a rhs only line
+  const firstLine = hunk[0];
+  if (line.lhs) {
+    const firstLhs = firstLine.lhs?.line_number ?? line.lhs.line_number;
+    return [line.lhs.line_number, firstLhs - 1];
+  } else {
+    const firstRhs = firstLine.rhs?.line_number ?? line.rhs!.line_number;
+    return [firstRhs - 1, line.rhs!.line_number];
+  }
 }
 
 

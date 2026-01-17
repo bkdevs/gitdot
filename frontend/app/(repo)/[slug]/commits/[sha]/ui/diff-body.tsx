@@ -1,13 +1,16 @@
 import type { RepositoryFileDiff } from "@/lib/dto";
 import { DiffSingle } from "./diff-single";
 import { DiffSplit } from "./diff-split";
+import { sortHunks } from "@/(repo)/[slug]/util";
 
 export async function DiffBody({ diff }: { diff: RepositoryFileDiff }) {
   const { left, right, hunks } = diff;
 
+  const processedHunks = sortHunks(hunks);
+
   const renderDiff = () => {
     if (left && right && hunks.length > 0) {
-      return <DiffSplit left={left} right={right} hunks={hunks} />;
+      return <DiffSplit left={left} right={right} hunks={processedHunks} />;
     } else if (left && !right) {
       return <DiffSingle file={left} side="left" />;
     } else if (!left && right) {
