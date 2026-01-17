@@ -39,8 +39,6 @@ impl<R: OrganizationRepository> OrganizationService for OrganizationServiceImpl<
 
         let org = self.org_repo.create(request).await?;
 
-        // TODO: add caller as admin
-
         Ok(org)
     }
 }
