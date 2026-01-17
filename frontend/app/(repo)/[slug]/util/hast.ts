@@ -23,10 +23,10 @@ export async function renderSpans(
         line(node, lineNumber) {
           node.type = "element";
           node.tagName = "diffline";
-
           node.properties["data-line-number"] = lineNumber;
+
           const changes = changeMap.get(lineNumber - 1);
-          if (changes && changes.length > 0) {
+          if (changes) {
             highlightChanges(side, node, changes);
           }
         },
@@ -43,21 +43,16 @@ export async function renderSpans(
   );
 }
 
-function highlightChanges(
+export function highlightChanges(
   side: "left" | "right",
   lineNode: Element,
   changes: DiffChange[],
 ): void {
-  if (changes.length === 0) return;
-
   let charOffset = 0;
 
   for (const child of lineNode.children) {
     if (child.type !== "element") {
-      if (child.type === "text") {
-        charOffset += child.value.length;
-      }
-      continue;
+      throw new Error("Unexpected non-element child");
     }
 
     const spanLength = getSpanLength(child);
@@ -78,15 +73,12 @@ function highlightChanges(
 }
 
 function getSpanLength(node: ElementContent): number {
-  if (node.type === "text") {
-    return node.value.length;
+  if (node.type !== "element" || node.children.length !== 1) {
+    throw new Error("Span must have one child");
   }
-  if (node.type === "element") {
-    let length = 0;
-    for (const child of node.children) {
-      length += getSpanLength(child);
-    }
-    return length;
+  const child = node.children[0];
+  if (child.type !== "text") {
+    throw new Error("Span must have one text child");
   }
-  return 0;
+  return child.value.length;
 }
