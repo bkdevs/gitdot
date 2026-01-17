@@ -1,28 +1,64 @@
 import type { DiffChange, DiffHunk } from "@/lib/dto";
 
+export type LinePair = [number | null, number | null];
+export const CONTEXT_LINES = 4;
+
 // ============================================================================
 // diffing utils
 // ============================================================================
 
-export type LinePair = [number | null, number | null];
+/**
+* there's a bug in difftastic where lhs removals can be placed after rhs additions
+* which leads to lines showing in weird sequential order
+*
+* so to avoid that, and enable consistent processing in mergeHunks and downstream, sort hunks here
+*/
+export function sortHunks(hunks: DiffHunk[]): DiffHunk[] {
+  const getStartingLine = (hunk: DiffHunk): number => {
+    const firstLine = hunk[0];
+    return firstLine.lhs ? firstLine.lhs.line_number : firstLine.rhs!.line_number;
+  };
+
+  const sortedHunks = [...hunks].sort((a, b) => {
+    return getStartingLine(a) - getStartingLine(b);
+  });
+
+  return sortedHunks;
+}
+
+/**
+ * the set of hunks that difftastic returns is the minimal set
+ * e.g., if line 4 was modified, then only line 4 will be returned in that chunk.
+ *
+ * difftastic does some chunk grouping as well (based off a line number of 4), but we need to do additional merging
+ * as that does not account for the context lines we inject around each chunk
+ * e.g., difftastic will return lines 4 and lines 9 as two hunk, if we expand each to include 4 lines around it, they now overlap and should be merged
+ *
+ * note that this occurs prior to any pairing of lines, as if we were to try and merge lines after they were paired,
+ * we _may_ find logically conflicting pairs (e.g., we accounted for gaps in one hunk, but are unaware in the second)
+ */
+export function mergeHunks(hunks: DiffHunk[]): DiffHunk[] {
+  return hunks;
+}
+
 
 /**
  * a tad complicated and heuristic function.
  *
- * diffd --display JSON returns hunks, which are sequence of changed, added, removed lines separate a 4 line radius
+ * difft --display JSON returns hunks, which are sequence of changed, added, removed lines separate a 4 line radius
  * each hunk composes of a list of lines, and a line can be of three forms:
  * - added [rhs only]
  * - removed [lhs only]
  * - modified [lhs + rhs]
  *
- * diffd _also_ returns line numbers along with each diff line, which is important in particular for
+ * difft _also_ returns line numbers along with each diff line, which is important in particular for
  * modified lines as it indicates the matching of each line sequence, e.g., [15, 20] means that this line should be aligned to file line 15 on the left and 20 on the rhs.
  *
- * this schema allows for diffd to match seeming unrelated and non-contiguous lines, which allows for smarter syntax based mapping, but makes the schema's interpretation ambiguous.
+ * this schema allows for difft to match seeming unrelated and non-contiguous lines, which allows for smarter syntax based mapping, but makes the schema's interpretation ambiguous.
  * for example, with a pair of [15, 20], to have the result be aligned in the UI, we need to pad the left side by 5 lines.
  *
  * but the question of where to pad is ambiguous (e.g., could be at the top of the file, could be right before, could be somewhere in the middle).
- * so this code attempts to re-construct what diffd is doing in the terminal to return sensible alignment and formatting.
+ * so this code attempts to re-construct what difft is doing in the terminal to return sensible alignment and formatting.
  *
  * output:
  *  - LinePair[], a list of line numbers that indicate which left line maps to what right line (and what lines should be sentinelled)
@@ -35,7 +71,7 @@ export type LinePair = [number | null, number | null];
  *  - [4, null] # indicating removal on lhs
  *
  * a few invariants must hold with this list, which make reasoning about it easier:
- * - each side must contain the full range of indices from min, max provided in diffd (inclusive)
+ * - each side must contain the full range of indices from min, max provided in difft (inclusive)
  * - each side must be monotonically increasing, exlcuding null sentinels
  * this also implies that the size of the list _may_ be greater than the full range of indices as a result of padding, which is fine.
  */
@@ -189,8 +225,6 @@ function fillGapsInRange(
 // ============================================================================
 // expandLines
 // ============================================================================
-
-export const CONTEXT_LINES = 4;
 
 /**
  * once we have paired lines, we must expand them to include additional context in each diff section

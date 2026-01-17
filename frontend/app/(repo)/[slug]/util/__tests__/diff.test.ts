@@ -1,5 +1,5 @@
 import type { DiffHunk } from "@/lib/dto";
-import { expandLines, type LinePair, pairLines } from "../diff";
+import { expandLines, type LinePair, pairLines, sortHunks } from "../diff";
 
 interface TestCase {
   name: string;
@@ -543,5 +543,128 @@ describe("expandLines", () => {
         [5, 4],
       ]);
     });
+  });
+});
+
+describe("sortHunks", () => {
+  /**
+   * Helper to get the starting line number for a hunk on a given side
+   */
+  function getStartingLine(hunk: DiffHunk, side: "lhs" | "rhs"): number | null {
+    let min: number | null = null;
+    for (const line of hunk) {
+      const value = line[side]?.line_number;
+      if (value !== undefined && (min === null || value < min)) {
+        min = value;
+      }
+    }
+    return min;
+  }
+
+  /**
+   * Verifies that hunks are sorted correctly on both lhs and rhs independently
+   */
+  function expectBothSidesSorted(hunks: DiffHunk[]) {
+    const lhsStarts = hunks
+      .map((h) => getStartingLine(h, "lhs"))
+      .filter((n): n is number => n !== null);
+    const rhsStarts = hunks
+      .map((h) => getStartingLine(h, "rhs"))
+      .filter((n): n is number => n !== null);
+
+    for (let i = 1; i < lhsStarts.length; i++) {
+      expect(lhsStarts[i]).toBeGreaterThan(lhsStarts[i - 1]);
+    }
+    for (let i = 1; i < rhsStarts.length; i++) {
+      expect(rhsStarts[i]).toBeGreaterThan(rhsStarts[i - 1]);
+    }
+  }
+
+  test("empty hunks array returns empty array", () => {
+    expect(sortHunks([])).toEqual([]);
+  });
+
+  test("single hunk returns unchanged", () => {
+    const hunks: DiffHunk[] = [chunk([{ lhs: 5 }, { lhs: 6 }])];
+    const result = sortHunks(hunks);
+    expect(result).toEqual(hunks);
+    expectBothSidesSorted(result);
+  });
+
+  test("already sorted hunks remain in order", () => {
+    const hunks: DiffHunk[] = [
+      chunk([{ lhs: 1, rhs: 1 }, { lhs: 2, rhs: 2 }]),
+      chunk([{ lhs: 10, rhs: 10 }, { lhs: 11, rhs: 11 }]),
+      chunk([{ lhs: 20, rhs: 20 }, { lhs: 21, rhs: 21 }]),
+    ];
+    const result = sortHunks(hunks);
+    expect(result).toEqual(hunks);
+    expectBothSidesSorted(result);
+  });
+
+  test("sorts hunks by starting line number", () => {
+    const hunks: DiffHunk[] = [
+      chunk([{ lhs: 20, rhs: 22 }, { lhs: 21, rhs: 23 }]),
+      chunk([{ lhs: 1, rhs: 1 }, { lhs: 2, rhs: 2 }]),
+      chunk([{ lhs: 10, rhs: 11 }, { lhs: 11, rhs: 12 }]),
+    ];
+    const result = sortHunks(hunks);
+    expect(result).toEqual([
+      chunk([{ lhs: 1, rhs: 1 }, { lhs: 2, rhs: 2 }]),
+      chunk([{ lhs: 10, rhs: 11 }, { lhs: 11, rhs: 12 }]),
+      chunk([{ lhs: 20, rhs: 22 }, { lhs: 21, rhs: 23 }]),
+    ]);
+    expectBothSidesSorted(result);
+  });
+
+  test("sorts hunks with rhs-only lines", () => {
+    const hunks: DiffHunk[] = [
+      chunk([{ rhs: 15 }, { rhs: 16 }]),
+      chunk([{ rhs: 5 }, { rhs: 6 }]),
+    ];
+    const result = sortHunks(hunks);
+    expect(result).toEqual([
+      chunk([{ rhs: 5 }, { rhs: 6 }]),
+      chunk([{ rhs: 15 }, { rhs: 16 }]),
+    ]);
+    expectBothSidesSorted(result);
+  });
+
+  test("sorts hunks with lhs-only lines", () => {
+    const hunks: DiffHunk[] = [
+      chunk([{ lhs: 25 }, { lhs: 26 }]),
+      chunk([{ lhs: 5 }, { lhs: 6 }]),
+    ];
+    const result = sortHunks(hunks);
+    expect(result).toEqual([
+      chunk([{ lhs: 5 }, { lhs: 6 }]),
+      chunk([{ lhs: 25 }, { lhs: 26 }]),
+    ]);
+    expectBothSidesSorted(result);
+  });
+
+  test("maintains both lhs and rhs sorted with offset lines", () => {
+    const hunks: DiffHunk[] = [
+      chunk([{ lhs: 50, rhs: 55 }]),
+      chunk([{ lhs: 10, rhs: 12 }]),
+      chunk([{ lhs: 30, rhs: 35 }]),
+    ];
+    const result = sortHunks(hunks);
+    expect(result).toEqual([
+      chunk([{ lhs: 10, rhs: 12 }]),
+      chunk([{ lhs: 30, rhs: 35 }]),
+      chunk([{ lhs: 50, rhs: 55 }]),
+    ]);
+    expectBothSidesSorted(result);
+  });
+
+  test("does not mutate original hunks array", () => {
+    const hunks: DiffHunk[] = [
+      chunk([{ lhs: 20, rhs: 20 }]),
+      chunk([{ lhs: 1, rhs: 1 }]),
+    ];
+    const original = [...hunks];
+    sortHunks(hunks);
+    expect(hunks).toEqual(original);
   });
 });
