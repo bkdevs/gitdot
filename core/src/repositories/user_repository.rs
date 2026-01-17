@@ -7,7 +7,8 @@ use crate::models::User;
 
 #[async_trait]
 pub trait UserRepository: Send + Sync + Clone + 'static {
-    async fn find_by_name(&self, request: FindUserByNameRequest) -> Result<User, UserError>;
+    async fn find_by_name(&self, request: FindUserByNameRequest)
+    -> Result<Option<User>, UserError>;
 }
 
 #[derive(Debug, Clone)]
@@ -23,12 +24,15 @@ impl UserRepositoryImpl {
 
 #[async_trait]
 impl UserRepository for UserRepositoryImpl {
-    async fn find_by_name(&self, request: FindUserByNameRequest) -> Result<User, UserError> {
+    async fn find_by_name(
+        &self,
+        request: FindUserByNameRequest,
+    ) -> Result<Option<User>, UserError> {
         let user = sqlx::query_as::<_, User>(
             "SELECT id, email, name, created_at FROM users WHERE name = $1",
         )
         .bind(request.name.as_ref())
-        .fetch_one(&self.pool)
+        .fetch_optional(&self.pool)
         .await?;
 
         Ok(user)

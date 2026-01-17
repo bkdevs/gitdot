@@ -15,6 +15,19 @@ impl CreateOrganizationRequest {
 }
 
 #[derive(Debug, Clone)]
+pub struct FindOrganizationByNameRequest {
+    pub name: OrganizationName,
+}
+
+impl FindOrganizationByNameRequest {
+    pub fn new(org_name: String) -> Self {
+        Self {
+            name: OrganizationName::try_new(org_name).unwrap(),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct AddOrganizationMemberRequest {
     pub user_id: Uuid,
     pub organization_id: Uuid,
