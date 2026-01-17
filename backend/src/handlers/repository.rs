@@ -633,6 +633,103 @@ fn get_commits(
     Ok((commits, has_next))
 }
 
+pub async fn get_repository_commit_stats(
+    State(settings): State<Arc<Settings>>,
+    Path((owner, repo, sha)): Path<(String, String, String)>,
+) -> Result<Json<RepositoryCommitDiffs>, StatusCode> {
+    if sha.len() < 4 || sha.len() > 40 {
+        return Err(StatusCode::BAD_REQUEST);
+    }
+
+    let repo_name = normalize_repo_name(&repo);
+    let repository = open_repository(&settings, &owner, &repo_name)?;
+    let commit = resolve_ref(&repository, &sha)?;
+    let full_sha = commit.id().to_string();
+
+    let commit_info = RepositoryCommit {
+        sha: full_sha.clone(),
+        message: commit.message().unwrap_or("").to_string(),
+        author: commit.author().name().unwrap_or("Unknown").to_string(),
+        date: DateTime::from_timestamp(commit.author().when().seconds(), 0).unwrap_or_default(),
+    };
+
+    let parent = commit.parent(0).ok();
+    let parent_sha = parent.as_ref().map(|p| p.id().to_string());
+
+    let current_tree = commit
+        .tree()
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    let parent_tree = match &parent {
+        Some(p) => Some(p.tree().map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?),
+        None => None,
+    };
+
+    let mut diff = repository
+        .diff_tree_to_tree(parent_tree.as_ref(), Some(&current_tree), None)
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+    let mut find_opts = git2::DiffFindOptions::new();
+    find_opts.renames(true);
+    find_opts.rename_threshold(50);
+    diff.find_similar(Some(&mut find_opts))
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+    let mut diffs = Vec::new();
+
+    for (idx, delta) in diff.deltas().enumerate() {
+        let old_path = delta
+            .old_file()
+            .path()
+            .and_then(|p| p.to_str())
+            .map(String::from);
+        let new_path = delta
+            .new_file()
+            .path()
+            .and_then(|p| p.to_str())
+            .map(String::from);
+
+        let left = old_path.map(|path| RepositoryFile {
+            ref_name: parent_sha.clone().unwrap_or_default(),
+            commit_sha: parent_sha.clone().unwrap_or_default(),
+            path,
+            sha: String::new(),
+            content: String::new(),
+            encoding: String::new(),
+        });
+
+        let right = new_path.map(|path| RepositoryFile {
+            ref_name: full_sha.clone(),
+            commit_sha: full_sha.clone(),
+            path,
+            sha: String::new(),
+            content: String::new(),
+            encoding: String::new(),
+        });
+
+        let (lines_added, lines_removed) = git2::Patch::from_diff(&diff, idx)
+            .ok()
+            .flatten()
+            .and_then(|p| p.line_stats().ok())
+            .map(|(_, additions, deletions)| (additions as u32, deletions as u32))
+            .unwrap_or((0, 0));
+
+        diffs.push(RepositoryFileDiff {
+            left,
+            right,
+            lines_added,
+            lines_removed,
+            hunks: Vec::new(),
+        });
+    }
+
+    Ok(Json(RepositoryCommitDiffs {
+        sha: full_sha,
+        parent_sha,
+        commit: commit_info,
+        diffs,
+    }))
+}
+
 pub async fn get_repository_commit_diffs(
     State(settings): State<Arc<Settings>>,
     Path((owner, repo, sha)): Path<(String, String, String)>,

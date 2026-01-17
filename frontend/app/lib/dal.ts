@@ -155,13 +155,46 @@ export async function getRepositoryFileCommits(
   return RepositoryCommitsSchema.parse(await response.json());
 }
 
+export async function getRepositoryCommitStats(
+  owner: string,
+  repo: string,
+  sha: string,
+): Promise<RepositoryCommitDiffs | null> {
+  if (!owner || !repo || !sha) {
+    console.error("Invalid getRepositoryCommitStats request:", {
+      owner,
+      repo,
+      sha,
+    });
+    return null;
+  }
+
+  const session = await getSession();
+  if (!session) return null;
+
+  const response = await fetch(
+    `${API_BASE_URL}/repository/${owner}/${repo}/commits/${sha}/stats`,
+  );
+
+  if (!response.ok) {
+    console.error(
+      "getRepositoryCommitStats failed:",
+      response.status,
+      response.statusText,
+    );
+    return null;
+  }
+
+  return RepositoryCommitDiffsSchema.parse(await response.json());
+}
+
 export async function getRepositoryCommitDiffs(
   owner: string,
   repo: string,
   sha: string,
 ): Promise<RepositoryCommitDiffs | null> {
   if (!owner || !repo || !sha) {
-    console.error("Invalid getRepositoryCommitDiff request:", {
+    console.error("Invalid getRepositoryCommitDiffs request:", {
       owner,
       repo,
       sha,
@@ -178,7 +211,7 @@ export async function getRepositoryCommitDiffs(
 
   if (!response.ok) {
     console.error(
-      "getRepositoryCommitDiff failed:",
+      "getRepositoryCommitDiffs failed:",
       response.status,
       response.statusText,
     );

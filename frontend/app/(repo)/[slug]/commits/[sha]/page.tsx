@@ -1,8 +1,6 @@
-import { Suspense } from "react";
-import { getRepositoryCommitDiffs } from "@/lib/dal";
+import { getRepositoryCommitStats } from "@/lib/dal";
+import { CommitBody } from "./ui/commit-body";
 import { CommitHeader } from "./ui/commit-header";
-import { DiffBody } from "./ui/diff-body";
-import { DiffFileClient } from "./ui/diff-file-client";
 
 export default async function Page({
   params,
@@ -10,53 +8,20 @@ export default async function Page({
   params: Promise<{ slug: string; sha: string }>;
 }) {
   const { slug: repo, sha } = await params;
-  const commitDiffs = await getRepositoryCommitDiffs("bkdevs", repo, sha);
-  if (!commitDiffs) return null;
-  const { commit, diffs } = commitDiffs;
+  const commitStats = await getRepositoryCommitStats("bkdevs", repo, sha);
+  if (!commitStats) return null;
+
+  // a heuristic, use suspense if either more than 100 modified lines or more than 5 files in the diff
+  const useSuspense =
+    commitStats.diffs
+      .map((diff) => diff.lines_added + diff.lines_removed)
+      .reduce((acc, curr) => acc + curr, 0) > 100 ||
+    commitStats.diffs.length > 5;
 
   return (
     <div className="flex flex-col w-full h-screen overflow-y-auto scrollbar-thin">
-      <CommitHeader commit={commit} diffs={diffs} />
-      <div className="flex flex-col">
-        {diffs.slice(0, 2).map((diff) => {
-          const key = diff.left?.path || diff.right?.path;
-          return (
-            <DiffFileClient
-              key={key}
-              leftPath={diff.left?.path}
-              rightPath={diff.right?.path}
-              linesAdded={diff.lines_added}
-              linesRemoved={diff.lines_removed}
-            >
-              <DiffBody diff={diff} />
-            </DiffFileClient>
-          );
-        })}
-        {diffs.length > 2 && (
-          <Suspense
-            fallback={
-              <div className="text-muted-foreground font-mono text-sm px-2">
-                loading...
-              </div>
-            }
-          >
-            {diffs.slice(3).map((diff) => {
-              const key = diff.left?.path || diff.right?.path;
-              return (
-                <DiffFileClient
-                  key={key}
-                  leftPath={diff.left?.path}
-                  rightPath={diff.right?.path}
-                  linesAdded={diff.lines_added}
-                  linesRemoved={diff.lines_removed}
-                >
-                  <DiffBody diff={diff} />
-                </DiffFileClient>
-              );
-            })}
-          </Suspense>
-        )}
-      </div>
+      <CommitHeader commit={commitStats.commit} diffs={commitStats.diffs} />
+      <CommitBody repo={repo} sha={sha} useSuspense={useSuspense} />
     </div>
   );
 }

@@ -92,6 +92,26 @@ export function pairLines(hunk: DiffHunk): LinePair[] {
   return result;
 }
 
+function insertLhsInOrder(pairs: LinePair[], lhs: number): void {
+  let i = 0;
+  while (i < pairs.length) {
+    const currentLeft = pairs[i][0];
+    if (currentLeft !== null && currentLeft >= lhs) break;
+    i++;
+  }
+  pairs.splice(i, 0, [lhs, null]);
+}
+
+function insertRhsInOrder(pairs: LinePair[], rhs: number): void {
+  let i = 0;
+  while (i < pairs.length) {
+    const currentRight = pairs[i][1];
+    if (currentRight !== null && currentRight >= rhs) break;
+    i++;
+  }
+  pairs.splice(i, 0, [null, rhs]);
+}
+
 /**
  * Fill gaps in one-sided entries (all lhs-only or all rhs-only)
  */
@@ -116,6 +136,9 @@ function fillGapsOneSided(pairs: LinePair[]): LinePair[] {
 
 /**
  * Fill entries between two anchors, grouping sentinels together at the start
+ *
+ * TODO: add test cases specifically for this, this is where we can do advanced / clever things
+ * for heuristic matching and make things look "good"
  */
 function fillGapsInRange(
   startAnchor: LinePair,
@@ -161,26 +184,6 @@ function fillGapsInRange(
   }
 
   return result;
-}
-
-function insertLhsInOrder(pairs: LinePair[], lhs: number): void {
-  let i = 0;
-  while (i < pairs.length) {
-    const currentLeft = pairs[i][0];
-    if (currentLeft !== null && currentLeft >= lhs) break;
-    i++;
-  }
-  pairs.splice(i, 0, [lhs, null]);
-}
-
-function insertRhsInOrder(pairs: LinePair[], rhs: number): void {
-  let i = 0;
-  while (i < pairs.length) {
-    const currentRight = pairs[i][1];
-    if (currentRight !== null && currentRight >= rhs) break;
-    i++;
-  }
-  pairs.splice(i, 0, [null, rhs]);
 }
 
 // ============================================================================

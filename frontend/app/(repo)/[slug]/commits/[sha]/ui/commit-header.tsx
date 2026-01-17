@@ -43,10 +43,7 @@ export function CommitHeader({
             {diffs.map((diff) => {
               const path = diff.left?.path || diff.right?.path || "";
               return (
-                <li
-                  key={diff.left?.sha || diff.right?.sha}
-                  className="font-mono text-sm flex items-center"
-                >
+                <li key={path} className="font-mono text-sm flex items-center">
                   <span
                     className="inline-block border-r border-border pr-3 mr-1 box-content"
                     style={{ width: `${maxPathLength}ch` }}
