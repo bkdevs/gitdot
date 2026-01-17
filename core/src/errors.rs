@@ -1,1 +1,3 @@
-pub mod organization_error;
+mod organization_error;
+
+pub use organization_error::OrganizationError;

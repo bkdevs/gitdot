@@ -1,12 +1,10 @@
 use async_trait::async_trait;
 use sqlx::PgPool;
 
-use crate::dto::organization_dto::CreateOrganizationRequest;
-use crate::errors::organization_error::OrganizationError;
-use crate::models::organization::Organization;
-use crate::repositories::organization_repository::{
-    OrganizationRepository, OrganizationRepositoryImpl,
-};
+use crate::dto::CreateOrganizationRequest;
+use crate::errors::OrganizationError;
+use crate::models::Organization;
+use crate::repositories::{OrganizationRepository, OrganizationRepositoryImpl};
 
 #[async_trait]
 pub trait OrganizationService: Send + Sync + 'static {

@@ -1,1 +1,3 @@
-pub mod organization_repository;
+mod organization_repository;
+
+pub use organization_repository::{OrganizationRepository, OrganizationRepositoryImpl};
