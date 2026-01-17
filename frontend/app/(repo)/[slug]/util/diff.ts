@@ -42,7 +42,7 @@ export type LinePair = [number | null, number | null];
 export function pairLines(hunk: DiffHunk): LinePair[] {
   const hunkPairs: LinePair[] = [];
 
-  // we first add all paired lines (those that are matched) and use those as anchors to generate the full alignment
+  // first add all paired lines (those that are matched) and use those as anchors to generate the full alignment
   for (const line of hunk) {
     if (line.lhs && line.rhs) {
       hunkPairs.push([line.lhs.line_number, line.rhs.line_number]);
@@ -63,99 +63,104 @@ export function pairLines(hunk: DiffHunk): LinePair[] {
     }
   }
 
-  const linePairs: LinePair[] = [];
+  // find anchor indices (lines where both sides are non-null)
+  const anchorIndices = hunkPairs
+    .map((p, i) => (p[0] !== null && p[1] !== null ? i : -1))
+    .filter((i) => i !== -1);
 
-  // TODO: the algorithm below is naive and can be made better
-  // rather than thinking of "filling in gaps", it is better to identify ranges between paired lines where sentinels must be inserted
-  // and then attempting to insert the sentinels in places where it makes sense (e.g., grou pgaps together) and/or try and do some word-matching thing as well
-  //
-  // to illustrate, say you have the pairs
-  // [1, 1]
-  // [2, 3]
-  //
-  // because [1, 1] and [2, 3] are both matched lines,
-  // they constitute a range in which a sentinel _may_ be added and since 2 - 1 != 3 - 1, a sentinel must be haddded
-  //
-  // this also applies to ranges that have lhs / rhs only provided already, e.g.,
-  //
-  // [1, 1]
-  // [null, 3]
-  // [5, 7]
-  //
-  // because (7 - 1) - (5 - 1) - 1 (from the null) == 1, we still need to add one more sentinel on the left side.
-  // we have several solutions here, we could do
-  // [1, 1]
-  // [2, 2]
-  // [null, 3]
-  // [3, 4]
-  // [4, 5]
-  // [null, 6]
-  // [5, 7]
-  //
-  //
-  // but that is potentially ugly as the sentinels are on split lines.
-  // so we can write a potentially better looking algorithm by identifying the ranges
-  // where sentinels must be placed and then trying to place them smartly.
-  //
-  // as of now, the below implementation just fills in lines from back to top and places sentinels a bit arbitrarily.
-  const lastPairIdx = hunkPairs.findLastIndex(
-    (p) => p[0] !== null && p[1] !== null,
-  );
-  if (lastPairIdx !== -1) {
-    const anchor = hunkPairs[lastPairIdx];
-    linePairs.unshift(anchor);
-
-    // biome-ignore lint/style/noNonNullAssertion: anchor verified non-null by findLastIndex
-    let leftPos = anchor[0]!;
-    // biome-ignore lint/style/noNonNullAssertion: anchor verified non-null by findLastIndex
-    let rightPos = anchor[1]!;
-
-    for (let i = lastPairIdx - 1; i >= 0; i--) {
-      const entry = hunkPairs[i];
-      while (true) {
-        const leftMatches = entry[0] !== null && leftPos - 1 === entry[0];
-        const rightMatches = entry[1] !== null && rightPos - 1 === entry[1];
-
-        console.log(" we are in an infinite loop"); // TODO: fix
-
-        if (leftMatches || rightMatches) {
-          if (entry[0] !== null) leftPos = entry[0];
-          if (entry[1] !== null) rightPos = entry[1];
-          linePairs.unshift(entry);
-          break;
-        }
-
-        leftPos--;
-        rightPos--;
-        linePairs.unshift([leftPos, rightPos]);
-      }
-    }
-  } else {
-    // No paired lines (all one-sided) - just use hunkPairs directly
-    // and let the gap-filling logic below handle filling in missing lines
-    linePairs.push(...hunkPairs);
+  // if no anchors, handle all one-sided case
+  if (anchorIndices.length === 0) {
+    return fillGapsOneSided(hunkPairs);
   }
 
-  let hasGaps = true;
-  while (hasGaps) {
-    hasGaps = false;
-    for (let i = linePairs.length - 1; i > 0; i--) {
-      const current = linePairs[i];
-      const prev = linePairs[i - 1];
+  const result: LinePair[] = [];
 
-      if (current[1] !== null && prev[1] !== null && current[1] - prev[1] > 1) {
-        linePairs.splice(i, 0, [null, current[1] - 1]);
-        hasGaps = true;
-        break;
-      }
-      if (current[0] !== null && prev[0] !== null && current[0] - prev[0] > 1) {
-        linePairs.splice(i, 0, [current[0] - 1, null]);
-        hasGaps = true;
-        break;
-      }
+  // process each range between consecutive anchors
+  for (let i = 0; i < anchorIndices.length; i++) {
+    const startIdx = anchorIndices[i];
+    const startAnchor = hunkPairs[startIdx];
+    result.push(startAnchor);
+
+    if (i < anchorIndices.length - 1) {
+      const endIdx = anchorIndices[i + 1];
+      const endAnchor = hunkPairs[endIdx];
+      const entriesBetween = hunkPairs.slice(startIdx + 1, endIdx);
+      result.push(...fillGapsInRange(startAnchor, endAnchor, entriesBetween));
     }
   }
-  return linePairs;
+
+  return result;
+}
+
+/**
+ * Fill gaps in one-sided entries (all lhs-only or all rhs-only)
+ */
+function fillGapsOneSided(pairs: LinePair[]): LinePair[] {
+  if (pairs.length === 0) return [];
+
+  const isLhsOnly = pairs[0][0] !== null;
+  const result: LinePair[] = [];
+
+  for (const pair of pairs) {
+    const value = isLhsOnly ? pair[0]! : pair[1]!;
+    if (result.length > 0) {
+      const lastValue = isLhsOnly ? result.at(-1)![0]! : result.at(-1)![1]!;
+      for (let v = lastValue + 1; v < value; v++) {
+        result.push(isLhsOnly ? [v, null] : [null, v]);
+      }
+    }
+    result.push(pair);
+  }
+  return result;
+}
+
+/**
+ * Fill entries between two anchors, grouping sentinels together at the start
+ */
+function fillGapsInRange(
+  startAnchor: LinePair,
+  endAnchor: LinePair,
+  entriesBetween: LinePair[],
+): LinePair[] {
+  const lhsGap = endAnchor[0]! - startAnchor[0]! - 1;
+  const rhsGap = endAnchor[1]! - startAnchor[1]! - 1;
+
+  const existingLhsNulls = entriesBetween.filter((p) => p[0] === null).length;
+  const existingRhsNulls = entriesBetween.filter((p) => p[1] === null).length;
+
+  // diff > 0 means we need more lhs nulls, diff < 0 means we need more rhs nulls
+  const diff = rhsGap - lhsGap - existingLhsNulls + existingRhsNulls;
+
+  const result: LinePair[] = [];
+  let leftPos = startAnchor[0]! + 1;
+  let rightPos = startAnchor[1]! + 1;
+
+  // Heuristic: place all new sentinels at the beginning, grouped together
+  if (diff > 0) {
+    for (let i = 0; i < diff; i++) {
+      result.push([null, rightPos++]);
+    }
+  } else if (diff < 0) {
+    for (let i = 0; i < -diff; i++) {
+      result.push([leftPos++, null]);
+    }
+  }
+
+  // Add existing one-sided entries
+  for (const entry of entriesBetween) {
+    if (entry[0] === null) {
+      result.push([null, rightPos++]);
+    } else if (entry[1] === null) {
+      result.push([leftPos++, null]);
+    }
+  }
+
+  // Fill remaining paired lines to reach endAnchor
+  while (leftPos < endAnchor[0]! || rightPos < endAnchor[1]!) {
+    result.push([leftPos++, rightPos++]);
+  }
+
+  return result;
 }
 
 function insertLhsInOrder(pairs: LinePair[], lhs: number): void {

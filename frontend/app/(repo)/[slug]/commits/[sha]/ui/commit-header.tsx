@@ -35,7 +35,7 @@ export function CommitHeader({
           </div>
         </div>
 
-        <div className="flex flex-col w-2/3 h-full p-2 overflow-y-auto scrollbar-thin">
+        <div className="flex flex-col w-2/3 h-full p-2 overflow-y-auto scrollbar-none">
           <p className="font-mono text-xs text-muted-foreground h-4 mb-1 select-none">
             {diffs.length} files changed
           </p>
