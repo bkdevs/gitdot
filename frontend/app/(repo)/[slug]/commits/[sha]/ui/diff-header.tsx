@@ -22,8 +22,8 @@ export function DiffHeader({
   return (
     <div
       className={cn(
-        "flex flex-row w-full h-9 shrink-0 items-center px-2 border-b border-t border-border text-sm font-mono sticky top-0 z-10",
-        open ? "bg-sidebar" : "bg-sidebar-primary border-b-transparent",
+        "flex flex-row w-full h-9 shrink-0 items-center px-2 border-b border-border text-sm font-mono sticky top-0 z-10",
+        open ? "bg-sidebar" : "bg-sidebar-primary",
       )}
     >
       {leftPath && rightPath && leftPath !== rightPath ? (

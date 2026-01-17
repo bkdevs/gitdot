@@ -72,7 +72,7 @@ function CommitSuspense({ children }: { children: React.ReactNode }) {
     <Suspense
       fallback={
         // match padding of diff header to avoid layout shift
-        <div className="flex flex-row w-full h-9 shrink-0 items-center p-2 border-border border-t font-mono text-sm text-muted-foreground">
+        <div className="flex flex-row w-full h-9 shrink-0 items-center p-2 font-mono text-sm text-muted-foreground">
           loading...
         </div>
       }
