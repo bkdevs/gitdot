@@ -8,28 +8,8 @@ RUN apt-get update && \
     apt-get install -y pkg-config libssl-dev && \
     rm -rf /var/lib/apt/lists/*
 
-# Copy workspace manifests
-COPY Cargo.toml Cargo.lock ./
-COPY backend/Cargo.toml ./backend/
-COPY core/Cargo.toml ./core/
-COPY cli/Cargo.toml ./cli/
-
-# Create dummy source files to cache dependencies
-RUN mkdir -p backend/src core/src cli/src && \
-    echo "fn main() {}" > backend/src/main.rs && \
-    echo "fn main() {}" > cli/src/main.rs && \
-    echo "" > core/src/lib.rs
-
-# Build dependencies (this layer will be cached)
-RUN cargo build --release -p gitdot_server
-
-# Remove dummy files
-RUN rm -rf backend/src core/src cli/src
-
-# Copy actual source code
-COPY backend/src ./backend/src
-COPY core/src ./core/src
-COPY cli/src ./cli/src
+# Copy everything
+COPY . .
 
 # Build the application
 RUN cargo build --release -p gitdot_server
