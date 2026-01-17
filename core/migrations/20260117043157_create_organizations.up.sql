@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS organizations (
 -- Create organization_members table
 CREATE TABLE IF NOT EXISTS organization_members (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
     role VARCHAR(20) NOT NULL CHECK (role IN ('Admin', 'Member')),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
