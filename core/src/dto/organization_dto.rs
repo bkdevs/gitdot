@@ -6,6 +6,14 @@ pub struct CreateOrganizationRequest {
     pub name: OrganizationName,
 }
 
+impl CreateOrganizationRequest {
+    pub fn new(org_name: String) -> Self {
+        Self {
+            name: OrganizationName::try_new(org_name).unwrap(),
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct AddOrganizationMemberRequest {
     pub user_id: Uuid,

@@ -24,12 +24,11 @@ use tower_http::{
 };
 
 use crate::handlers::git_smart_http::{git_info_refs, git_receive_pack, git_upload_pack};
+use crate::handlers::organization_handlers::create_organization;
 use crate::handlers::repository::{
     create_repository, get_repository_commit_diffs, get_repository_commits, get_repository_file,
     get_repository_file_commits, get_repository_tree,
 };
-
-use bootstrap::bootstrap;
 
 pub use app_state::AppState;
 pub use error::{AppError, AppErrorMessage};
@@ -43,7 +42,7 @@ pub struct GitdotServer {
 
 impl GitdotServer {
     pub async fn new() -> anyhow::Result<Self> {
-        bootstrap()?;
+        bootstrap::bootstrap()?;
 
         let settings = Arc::new(Settings::new()?);
         let pool = PgPool::connect(&settings.database_url).await?;
@@ -70,6 +69,8 @@ pub fn create_router(app_state: AppState) -> Router {
         .route("/{owner}/{repo}/info/refs", get(git_info_refs))
         .route("/{owner}/{repo}/git-upload-pack", post(git_upload_pack))
         .route("/{owner}/{repo}/git-receive-pack", post(git_receive_pack));
+
+    let org_router = Router::new().route("/organization/{org_name}", post(create_organization));
 
     let repo_router = Router::new()
         .route("/repository/{owner}/{repo}", post(create_repository))
@@ -101,6 +102,7 @@ pub fn create_router(app_state: AppState) -> Router {
     Router::new()
         .route("/health", get(|| async { "OK" }))
         .merge(git_router)
+        .merge(org_router)
         .merge(repo_router)
         .layer(middleware)
         .with_state(app_state)
