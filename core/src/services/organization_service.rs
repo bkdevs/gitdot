@@ -1,10 +1,11 @@
 use async_trait::async_trait;
-use sqlx::PgPool;
 
-use crate::dto::CreateOrganizationRequest;
+use crate::dto::{CreateOrganizationRequest, FindOrganizationByNameRequest, FindUserByNameRequest};
 use crate::errors::OrganizationError;
 use crate::models::Organization;
-use crate::repositories::{OrganizationRepository, OrganizationRepositoryImpl};
+use crate::repositories::{
+    OrganizationRepository, OrganizationRepositoryImpl, UserRepository, UserRepositoryImpl,
+};
 
 #[async_trait]
 pub trait OrganizationService: Send + Sync + 'static {
@@ -15,28 +16,57 @@ pub trait OrganizationService: Send + Sync + 'static {
 }
 
 #[derive(Debug, Clone)]
-pub struct OrganizationServiceImpl<R: OrganizationRepository> {
+pub struct OrganizationServiceImpl<R, U>
+where
+    R: OrganizationRepository,
+    U: UserRepository,
+{
     org_repo: R,
+    user_repo: U,
 }
 
-impl OrganizationServiceImpl<OrganizationRepositoryImpl> {
-    pub fn new(pool: PgPool) -> Self {
+impl OrganizationServiceImpl<OrganizationRepositoryImpl, UserRepositoryImpl> {
+    pub fn new(org_repo: OrganizationRepositoryImpl, user_repo: UserRepositoryImpl) -> Self {
         Self {
-            org_repo: OrganizationRepositoryImpl::new(pool),
+            org_repo: org_repo,
+            user_repo: user_repo,
         }
     }
 }
 
 #[async_trait]
-impl<R: OrganizationRepository> OrganizationService for OrganizationServiceImpl<R> {
+impl<R, U> OrganizationService for OrganizationServiceImpl<R, U>
+where
+    R: OrganizationRepository,
+    U: UserRepository,
+{
     async fn create_organization(
         &self,
         request: CreateOrganizationRequest,
     ) -> Result<Organization, OrganizationError> {
-        // TODO: verify any existing user or org with the name
+        let name = request.name.to_string();
+
+        let find_org_request = FindOrganizationByNameRequest::new(name.clone());
+        if self
+            .org_repo
+            .find_by_name(find_org_request)
+            .await?
+            .is_some()
+        {
+            return Err(OrganizationError::Duplicate(name));
+        }
+
+        let find_user_request = FindUserByNameRequest::new(name.clone());
+        if self
+            .user_repo
+            .find_by_name(find_user_request)
+            .await?
+            .is_some()
+        {
+            return Err(OrganizationError::Duplicate(name));
+        }
 
         let org = self.org_repo.create(request).await?;
-
         Ok(org)
     }
 }
