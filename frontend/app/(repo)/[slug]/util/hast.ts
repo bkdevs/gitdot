@@ -1,40 +1,59 @@
 import type { Element, ElementContent, Root } from "hast";
-import { addClassToHast, getSingletonHighlighter } from "shiki";
-import type { DiffChange } from "@/lib/dto";
-import { loadGitdotLight } from "@/lib/shiki";
+import {
+  addClassToHast,
+  getSingletonHighlighter,
+  type ShikiTransformer,
+} from "shiki";
+import type { DiffChange, RepositoryFile } from "@/lib/dto";
+import { inferLanguage } from "./language";
+
+export async function fileToHast(
+  file: RepositoryFile,
+  theme: "vitesse-light" | "gitdot-light",
+  transformers: ShikiTransformer[],
+) {
+  const highlighter = await getSingletonHighlighter();
+  if (
+    theme === "gitdot-light" &&
+    !highlighter.getLoadedThemes().includes("gitdot-light")
+  ) {
+    const gitdotLight = (await import("@/lib/themes/gitdot-light")).default;
+    await highlighter.loadTheme(gitdotLight);
+  }
+
+  const lang = inferLanguage(file.path) || "plaintext";
+  return highlighter.codeToHast(file.content, {
+    lang,
+    theme,
+    transformers,
+  });
+}
 
 export async function renderSpans(
   side: "left" | "right",
-  language: string,
+  file: RepositoryFile,
   changeMap: Map<number, DiffChange[]>,
-  content: string,
 ): Promise<Element[]> {
-  await loadGitdotLight();
-  const highlighter = await getSingletonHighlighter();
-  const hast = highlighter.codeToHast(content, {
-    lang: language,
-    theme: "gitdot-light",
-    transformers: [
-      {
-        pre(node) {
-          this.addClassToHast(node, "outline-none");
-        },
-        code(node) {
-          this.addClassToHast(node, "flex flex-col");
-        },
-        line(node, lineNumber) {
-          node.type = "element";
-          node.tagName = "diffline";
-          node.properties["data-line-number"] = lineNumber;
-
-          const changes = changeMap.get(lineNumber - 1);
-          if (changes) {
-            highlightWords(side, node, changes);
-          }
-        },
+  const hast = await fileToHast(file, "gitdot-light", [
+    {
+      pre(node) {
+        this.addClassToHast(node, "outline-none");
       },
-    ],
-  });
+      code(node) {
+        this.addClassToHast(node, "flex flex-col");
+      },
+      line(node, lineNumber) {
+        node.type = "element";
+        node.tagName = "diffline";
+        node.properties["data-line-number"] = lineNumber;
+
+        const changes = changeMap.get(lineNumber - 1);
+        if (changes) {
+          highlightWords(side, node, changes);
+        }
+      },
+    },
+  ]);
 
   const root = hast as Root;
   const pre = root.children[0] as Element;

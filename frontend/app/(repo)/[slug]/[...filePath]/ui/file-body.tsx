@@ -1,10 +1,9 @@
+import { fileToHast } from "@/(repo)/[slug]/util";
+import type { RepositoryFile } from "@/lib/dto";
 import { toJsxRuntime } from "hast-util-to-jsx-runtime";
 import type { JSX } from "react";
 import { Fragment } from "react";
 import { jsx, jsxs } from "react/jsx-runtime";
-import { codeToHast } from "shiki";
-import { inferLanguage } from "@/(repo)/[slug]/util";
-import type { RepositoryFile } from "@/lib/dto";
 import type { LineSelection } from "../util";
 import { FileLine } from "./file-line";
 import { FileViewerClient } from "./file-viewer-client";
@@ -15,11 +14,9 @@ export async function FileBody({
 }: {
   file: RepositoryFile;
   selectedLines: LineSelection | null;
-  }) {
-  const hast = await codeToHast(file.content, {
-    lang: inferLanguage(file.path) ?? "plaintext",
-    theme: "vitesse-light",
-    transformers: [
+}) {
+  const hast = await fileToHast(file, "vitesse-light",
+    [
       {
         pre(node) {
           this.addClassToHast(node, "outline-none");
@@ -30,7 +27,7 @@ export async function FileBody({
         },
       },
     ],
-  });
+  );
 
   const content = toJsxRuntime(hast, {
     Fragment,

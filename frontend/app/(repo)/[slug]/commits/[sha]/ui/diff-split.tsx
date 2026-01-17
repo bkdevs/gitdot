@@ -23,11 +23,10 @@ export async function DiffSplit({
   right: RepositoryFile;
   hunks: DiffHunk[];
 }) {
-  const language = inferLanguage(left.path) || "plaintext";
   const { leftChangeMap, rightChangeMap } = createChangeMaps(hunks);
   const [leftSpans, rightSpans] = await Promise.all([
-    renderSpans("left", language, leftChangeMap, left.content),
-    renderSpans("right", language, rightChangeMap, right.content),
+    renderSpans("left", left, leftChangeMap),
+    renderSpans("right", right, rightChangeMap),
   ]);
 
   return (
