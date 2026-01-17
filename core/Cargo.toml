@@ -8,6 +8,6 @@ async-trait = { workspace = true }
 chrono = { workspace = true }
 nutype = { workspace = true }
 serde = { workspace = true }
-sqlx = { version = "0.8.6", features = ["runtime-tokio", "postgres", "uuid", "chrono"] }
+sqlx = { workspace = true }
 thiserror = { workspace = true }
 uuid = { workspace = true }

@@ -54,7 +54,6 @@ RUN git config --system user.name "Git Server" && \
 COPY --from=builder /app/target/release/gitdot_server /app/gitdot_server
 
 # Set environment variables with defaults for Cloud Run
-ENV DATABASE_URL=""
 ENV GIT_PROJECT_ROOT="/srv/git"
 ENV SERVER_HOST="0.0.0.0"
 ENV SERVER_PORT="8080"

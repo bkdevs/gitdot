@@ -4,6 +4,7 @@ use std::env;
 pub struct Settings {
     pub port: String,
     pub git_project_root: String,
+    pub database_url: String,
 }
 
 impl Settings {
@@ -12,6 +13,7 @@ impl Settings {
             port: env::var("PORT").unwrap_or_else(|_| "8080".to_string()),
             git_project_root: env::var("GIT_PROJECT_ROOT")
                 .unwrap_or_else(|_| "/srv/git".to_string()),
+            database_url: env::var("DATABASE_URL").expect("DATABASE_URL must be set"),
         })
     }
 

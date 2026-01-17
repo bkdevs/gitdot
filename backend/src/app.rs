@@ -5,6 +5,7 @@ mod response;
 mod settings;
 
 use http::StatusCode;
+use sqlx::PgPool;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -45,11 +46,12 @@ impl GitdotServer {
         bootstrap()?;
 
         let settings = Arc::new(Settings::new()?);
-        let address = settings.get_server_address();
-
-        let state = AppState::new(settings);
+        let pool = PgPool::connect(&settings.database_url).await?;
+        let state = AppState::new(settings.clone(), pool);
         let router = create_router(state);
-        let listener = tokio::net::TcpListener::bind(&address).await.unwrap();
+        let listener = tokio::net::TcpListener::bind(&settings.get_server_address())
+            .await
+            .unwrap();
 
         Ok(Self { router, listener })
     }
