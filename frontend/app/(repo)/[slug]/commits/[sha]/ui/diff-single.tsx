@@ -2,10 +2,10 @@ import { toJsxRuntime } from "hast-util-to-jsx-runtime";
 import type { JSX } from "react";
 import { Fragment } from "react";
 import { jsx, jsxs } from "react/jsx-runtime";
-import { codeToHast } from "shiki";
+import { getSingletonHighlighter } from "shiki";
 import { inferLanguage } from "@/(repo)/[slug]/util";
 import type { RepositoryFile } from "@/lib/dto";
-
+import { loadGitdotLight } from "@/lib/shiki";
 import { DiffLine } from "./diff-line";
 
 export async function DiffSingle({
@@ -15,9 +15,11 @@ export async function DiffSingle({
   file: RepositoryFile;
   side: "left" | "right";
 }) {
-  const hast = await codeToHast(file.content, {
+  await loadGitdotLight();
+  const highlighter = await getSingletonHighlighter();
+  const hast = highlighter.codeToHast(file.content, {
     lang: inferLanguage(file.path) ?? "plaintext",
-    theme: "vitesse-light",
+    theme: "gitdot-light",
     transformers: [
       {
         pre(node) {

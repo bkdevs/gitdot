@@ -72,6 +72,9 @@ importers:
       '@biomejs/biome':
         specifier: 2.2.0
         version: 2.2.0
+      '@shikijs/themes':
+        specifier: ^3.21.0
+        version: 3.21.0
       '@tailwindcss/postcss':
         specifier: ^4
         version: 4.1.18

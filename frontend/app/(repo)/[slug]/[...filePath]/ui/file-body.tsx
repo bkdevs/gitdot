@@ -15,7 +15,7 @@ export async function FileBody({
 }: {
   file: RepositoryFile;
   selectedLines: LineSelection | null;
-}) {
+  }) {
   const hast = await codeToHast(file.content, {
     lang: inferLanguage(file.path) ?? "plaintext",
     theme: "vitesse-light",

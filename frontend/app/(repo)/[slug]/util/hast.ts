@@ -1,7 +1,7 @@
 import type { Element, ElementContent, Root } from "hast";
-import { addClassToHast } from "shiki";
+import { addClassToHast, getSingletonHighlighter } from "shiki";
 import type { DiffChange } from "@/lib/dto";
-import { highlighter } from "@/lib/shiki";
+import { loadGitdotLight } from "@/lib/shiki";
 
 export async function renderSpans(
   side: "left" | "right",
@@ -9,6 +9,8 @@ export async function renderSpans(
   changeMap: Map<number, DiffChange[]>,
   content: string,
 ): Promise<Element[]> {
+  await loadGitdotLight();
+  const highlighter = await getSingletonHighlighter();
   const hast = highlighter.codeToHast(content, {
     lang: language,
     theme: "gitdot-light",

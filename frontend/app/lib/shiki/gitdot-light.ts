@@ -1,7 +1,9 @@
+import type { ThemeInput } from "shiki";
+
 // Grayscale Light Theme
 // Ported from base16-grayscale-light by Alexandre Gavioli
 // https://github.com/chriskempson/base16-vim
-
+//
 // Base16 colors:
 // 00: #f7f7f7 (background)
 // 01: #e3e3e3 (lighter bg)
@@ -19,8 +21,7 @@
 // 0D: #686868 (functions)
 // 0E: #747474 (keywords)
 // 0F: #5e5e5e (delimiters)
-
-export const lightTheme = {
+const theme: ThemeInput = {
   name: "gitdot-light",
   displayName: "gitdot light",
   type: "light",
@@ -163,11 +164,7 @@ export const lightTheme = {
     },
     // Delimiters, Special chars - gui0F
     {
-      scope: [
-        "punctuation.separator",
-        "punctuation.terminator",
-        "meta.brace",
-      ],
+      scope: ["punctuation.separator", "punctuation.terminator", "meta.brace"],
       settings: {
         foreground: "#5e5e5e",
       },
@@ -246,3 +243,5 @@ export const lightTheme = {
     },
   ],
 };
+
+export default theme;

@@ -1,11 +1,10 @@
-import {
-  bundledLanguages,
-  bundledThemes,
-  createHighlighter,
-} from "shiki/bundle/full";
-import { lightTheme } from "./light";
+import { getSingletonHighlighter } from "shiki";
+import gitdotLight from "./gitdot-light";
 
-export const highlighter = await createHighlighter({
-  themes: [lightTheme, ...Object.keys(bundledThemes)],
-  langs: Object.keys(bundledLanguages), // TODO: do this lazily?
-});
+export async function loadGitdotLight() {
+  const highlighter = await getSingletonHighlighter();
+  if (!highlighter.getLoadedThemes().includes("gitdot-light")) {
+    await highlighter.loadTheme(gitdotLight);
+  }
+  console.log(highlighter.getLoadedThemes());
+}
