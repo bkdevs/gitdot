@@ -5,12 +5,15 @@ use axum::{
 use serde::Serialize;
 use thiserror::Error;
 
-use gitdot_core::errors::OrganizationError;
+use gitdot_core::errors::{AuthorizationError, OrganizationError};
 
 use super::response::AppResponse;
 
 #[derive(Debug, Error)]
 pub enum AppError {
+    #[error(transparent)]
+    Authorization(#[from] AuthorizationError),
+
     #[error(transparent)]
     Organization(#[from] OrganizationError),
 
@@ -26,6 +29,15 @@ pub struct AppErrorMessage {
 impl IntoResponse for AppError {
     fn into_response(self) -> Response {
         match self {
+            AppError::Authorization(e) => {
+                let response = AppResponse::new(
+                    StatusCode::UNAUTHORIZED,
+                    AppErrorMessage {
+                        message: e.to_string(),
+                    },
+                );
+                response.into_response()
+            }
             AppError::Organization(e) => {
                 let status_code = match e {
                     OrganizationError::Duplicate(_) => StatusCode::CONFLICT,

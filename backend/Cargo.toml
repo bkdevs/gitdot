@@ -12,6 +12,7 @@ dotenvy = "0.15.7"
 git2 = "0.20.3"
 gitdot_core = { path = "../core" }
 http = "1.4.0"
+jsonwebtoken = { version = "10.2.0", features = ["aws_lc_rs"] }
 serde = { workspace = true }
 serde_json = "1.0.149"
 sqlx = { workspace = true }

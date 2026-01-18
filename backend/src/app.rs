@@ -1,4 +1,5 @@
 mod app_state;
+mod auth;
 mod bootstrap;
 mod error;
 mod response;
@@ -31,6 +32,7 @@ use crate::handlers::repository::{
 };
 
 pub use app_state::AppState;
+pub use auth::AuthenticatedUser;
 pub use error::{AppError, AppErrorMessage};
 pub use response::AppResponse;
 pub use settings::Settings;

@@ -10,8 +10,8 @@ use super::settings::Settings;
 
 #[derive(FromRef, Clone)]
 pub struct AppState {
-    settings: Arc<Settings>,
-    org_service: Arc<dyn OrganizationService>,
+    pub settings: Arc<Settings>,
+    pub org_service: Arc<dyn OrganizationService>,
 }
 
 impl AppState {

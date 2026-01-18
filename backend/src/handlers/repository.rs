@@ -1,4 +1,14 @@
-use crate::app::Settings;
+use std::collections::{HashMap, HashSet};
+use std::sync::Arc;
+
+use axum::{
+    Json,
+    extract::{Path, Query, State},
+    http::StatusCode,
+};
+use chrono::DateTime;
+
+use crate::app::{AuthenticatedUser, Settings};
 use crate::dto::repository::{
     CreateRepositoryRequest, CreateRepositoryResponse, DifftasticOutput, RepositoryCommit,
     RepositoryCommitDiffs, RepositoryCommits, RepositoryCommitsQuery, RepositoryFile,
@@ -6,14 +16,6 @@ use crate::dto::repository::{
     RepositoryTreeEntry, RepositoryTreeQuery,
 };
 use crate::utils::git::normalize_repo_name;
-use axum::{
-    Json,
-    extract::{Path, Query, State},
-    http::StatusCode,
-};
-use chrono::DateTime;
-use std::collections::{HashMap, HashSet};
-use std::sync::Arc;
 
 pub async fn create_repository(
     State(settings): State<Arc<Settings>>,
@@ -70,6 +72,7 @@ pub async fn get_repository_tree(
     State(settings): State<Arc<Settings>>,
     Path((owner, repo)): Path<(String, String)>,
     Query(query): Query<RepositoryTreeQuery>,
+    auth_user: Option<AuthenticatedUser>,
 ) -> Result<Json<RepositoryTree>, StatusCode> {
     let repo_path = normalize_repo_name(&repo);
     let repository = open_repository(&settings, &owner, &repo_path)?;

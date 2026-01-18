@@ -1,22 +1,22 @@
-use std::sync::Arc;
-
 use axum::{
     extract::{Path, State},
     http::StatusCode,
 };
 
 use gitdot_core::dto::CreateOrganizationRequest;
-use gitdot_core::services::OrganizationService;
 
-use crate::app::{AppError, AppResponse};
+use crate::app::{AppError, AppResponse, AppState, AuthenticatedUser};
 use crate::dto::CreateOrganizationResponse;
 
+#[axum::debug_handler]
 pub async fn create_organization(
-    State(org_service): State<Arc<dyn OrganizationService>>,
+    State(state): State<AppState>,
     Path(org_name): Path<String>,
+    auth_user: AuthenticatedUser,
 ) -> Result<AppResponse<CreateOrganizationResponse>, AppError> {
     let request = CreateOrganizationRequest::new(org_name);
-    org_service
+    state
+        .org_service
         .create_organization(request)
         .await
         .map_err(AppError::from)

@@ -5,6 +5,7 @@ pub struct Settings {
     pub port: String,
     pub git_project_root: String,
     pub database_url: String,
+    pub supabase_jwt_public_key: String,
 }
 
 impl Settings {
@@ -14,6 +15,8 @@ impl Settings {
             git_project_root: env::var("GIT_PROJECT_ROOT")
                 .unwrap_or_else(|_| "/srv/git".to_string()),
             database_url: env::var("DATABASE_URL").expect("DATABASE_URL must be set"),
+            supabase_jwt_public_key: env::var("SUPABASE_JWT_PUBLIC_KEY")
+                .expect("SUPABASE_JWT_PUBLIC_KEY must be set"),
         })
     }
 
