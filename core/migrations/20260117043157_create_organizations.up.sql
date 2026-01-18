@@ -1,5 +1,5 @@
 -- Create organization role enum
-CREATE TYPE organization_role AS ENUM ('Admin', 'Member');
+CREATE TYPE organization_role AS ENUM ('admin', 'member');
 
 -- Create organizations table
 CREATE TABLE IF NOT EXISTS organizations (

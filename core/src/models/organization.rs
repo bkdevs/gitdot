@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use sqlx::FromRow;
+use sqlx::{FromRow, Type};
 use uuid::Uuid;
 
 #[derive(Debug, Clone, FromRow)]
@@ -9,12 +9,6 @@ pub struct Organization {
     pub created_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone)]
-pub enum OrganizationRole {
-    Admin,
-    Member,
-}
-
 #[derive(Debug, Clone, FromRow)]
 pub struct OrganizationMember {
     pub id: Uuid,
@@ -22,4 +16,11 @@ pub struct OrganizationMember {
     pub organization_id: Uuid,
     pub role: OrganizationRole,
     pub created_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Type)]
+#[sqlx(type_name = "repository_visibility", rename_all = "lowercase")]
+pub enum OrganizationRole {
+    Admin,
+    Member,
 }

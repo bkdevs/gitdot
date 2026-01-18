@@ -45,7 +45,7 @@ impl OrganizationRepository for OrganizationRepositoryImpl {
         .await?;
 
         sqlx::query(
-            "INSERT INTO organization_members (user_id, organization_id, role) VALUES ($1, $2, 'Admin')",
+            "INSERT INTO organization_members (user_id, organization_id, role) VALUES ($1, $2, 'admin')",
         )
         .bind(request.owner_id)
         .bind(org.id)
