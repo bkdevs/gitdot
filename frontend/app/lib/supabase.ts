@@ -88,11 +88,21 @@ export async function updateSession(request: NextRequest) {
 }
 
 /**
- * for use in server-components
+ * for use in server-components that need user identity info
  */
-export async function getSession(): Promise<JwtPayload | null> {
+export async function getClaims(): Promise<JwtPayload | null> {
   const supabase = await createSupabaseClient();
   const { data } = await supabase.auth.getClaims();
 
   return data?.claims || null;
+}
+
+/**
+ * for use when the full session (including access token) is needed
+ */
+export async function getSession() {
+  const supabase = await createSupabaseClient();
+  const { data } = await supabase.auth.getSession();
+
+  return data.session;
 }

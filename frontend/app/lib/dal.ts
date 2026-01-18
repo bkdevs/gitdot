@@ -19,6 +19,19 @@ import { getSession } from "./supabase";
 
 const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:8080";
 
+async function authFetch(url: string, options?: RequestInit): Promise<Response | null> {
+  const session = await getSession();
+  if (!session) return null;
+
+  return fetch(url, {
+    ...options,
+    headers: {
+      ...options?.headers,
+      Authorization: `Bearer ${session.access_token}`,
+    },
+  });
+}
+
 export async function getRepositoryFile(
   owner: string,
   repo: string,
@@ -33,19 +46,16 @@ export async function getRepositoryFile(
     return null;
   }
 
-  const session = await getSession();
-  if (!session) return null;
-
   const queryString = toQueryString(query);
-  const response = await fetch(
+  const response = await authFetch(
     `${API_BASE_URL}/repository/${owner}/${repo}/file?${queryString}`,
   );
 
-  if (!response.ok) {
+  if (!response?.ok) {
     console.error(
-      "wgetRepositoryFile failed:",
-      response.status,
-      response.statusText,
+      "getRepositoryFile failed:",
+      response?.status,
+      response?.statusText,
     );
     return null;
   }
@@ -67,19 +77,16 @@ export async function getRepositoryTree(
     return null;
   }
 
-  const session = await getSession();
-  if (!session) return null;
-
   const queryString = toQueryString(query);
-  const response = await fetch(
+  const response = await authFetch(
     `${API_BASE_URL}/repository/${owner}/${repo}/tree?${queryString}`,
   );
 
-  if (!response.ok) {
+  if (!response?.ok) {
     console.error(
       "getRepositoryTree failed:",
-      response.status,
-      response.statusText,
+      response?.status,
+      response?.statusText,
     );
     return null;
   }
@@ -101,19 +108,16 @@ export async function getRepositoryCommits(
     return null;
   }
 
-  const session = await getSession();
-  if (!session) return null;
-
   const queryString = toQueryString(query);
-  const response = await fetch(
+  const response = await authFetch(
     `${API_BASE_URL}/repository/${owner}/${repo}/commits?${queryString}`,
   );
 
-  if (!response.ok) {
+  if (!response?.ok) {
     console.error(
-      "getRepositoryTree failed:",
-      response.status,
-      response.statusText,
+      "getRepositoryCommits failed:",
+      response?.status,
+      response?.statusText,
     );
     return null;
   }
@@ -135,19 +139,16 @@ export async function getRepositoryFileCommits(
     return null;
   }
 
-  const session = await getSession();
-  if (!session) return null;
-
   const queryString = toQueryString(query);
-  const response = await fetch(
+  const response = await authFetch(
     `${API_BASE_URL}/repository/${owner}/${repo}/file/commits?${queryString}`,
   );
 
-  if (!response.ok) {
+  if (!response?.ok) {
     console.error(
       "getRepositoryFileCommits failed:",
-      response.status,
-      response.statusText,
+      response?.status,
+      response?.statusText,
     );
     return null;
   }
@@ -169,18 +170,15 @@ export async function getRepositoryCommitStats(
     return null;
   }
 
-  const session = await getSession();
-  if (!session) return null;
-
-  const response = await fetch(
+  const response = await authFetch(
     `${API_BASE_URL}/repository/${owner}/${repo}/commits/${sha}/stats`,
   );
 
-  if (!response.ok) {
+  if (!response?.ok) {
     console.error(
       "getRepositoryCommitStats failed:",
-      response.status,
-      response.statusText,
+      response?.status,
+      response?.statusText,
     );
     return null;
   }
@@ -202,18 +200,15 @@ export async function getRepositoryCommitDiffs(
     return null;
   }
 
-  const session = await getSession();
-  if (!session) return null;
-
-  const response = await fetch(
+  const response = await authFetch(
     `${API_BASE_URL}/repository/${owner}/${repo}/commits/${sha}/diffs`,
   );
 
-  if (!response.ok) {
+  if (!response?.ok) {
     console.error(
       "getRepositoryCommitDiffs failed:",
-      response.status,
-      response.statusText,
+      response?.status,
+      response?.statusText,
     );
     return null;
   }
