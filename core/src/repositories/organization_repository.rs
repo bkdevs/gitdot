@@ -35,12 +35,24 @@ impl OrganizationRepositoryImpl {
 #[async_trait]
 impl OrganizationRepository for OrganizationRepositoryImpl {
     async fn create(&self, request: CreateOrganizationRequest) -> Result<Organization, Error> {
+        let mut tx = self.pool.begin().await?;
+
         let org = sqlx::query_as::<_, Organization>(
             "INSERT INTO organizations (name) VALUES ($1) RETURNING id, name, created_at",
         )
         .bind(request.name.as_ref())
-        .fetch_one(&self.pool)
+        .fetch_one(&mut *tx)
         .await?;
+
+        sqlx::query(
+            "INSERT INTO organization_members (user_id, organization_id, role) VALUES ($1, $2, 'Admin')",
+        )
+        .bind(request.owner_id)
+        .bind(org.id)
+        .execute(&mut *tx)
+        .await?;
+
+        tx.commit().await?;
 
         Ok(org)
     }

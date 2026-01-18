@@ -4,12 +4,14 @@ use uuid::Uuid;
 #[derive(Debug, Clone)]
 pub struct CreateOrganizationRequest {
     pub name: OrganizationName,
+    pub owner_id: Uuid,
 }
 
 impl CreateOrganizationRequest {
-    pub fn new(org_name: String) -> Self {
+    pub fn new(org_name: String, owner_id: Uuid) -> Self {
         Self {
             name: OrganizationName::try_new(org_name).unwrap(),
+            owner_id,
         }
     }
 }

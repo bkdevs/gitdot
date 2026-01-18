@@ -14,7 +14,7 @@ pub async fn create_organization(
     Path(org_name): Path<String>,
     auth_user: AuthenticatedUser,
 ) -> Result<AppResponse<CreateOrganizationResponse>, AppError> {
-    let request = CreateOrganizationRequest::new(org_name);
+    let request = CreateOrganizationRequest::new(org_name, auth_user.id);
     state
         .org_service
         .create_organization(request)
