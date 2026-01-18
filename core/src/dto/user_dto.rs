@@ -25,7 +25,7 @@ impl FindUserByNameRequest {
         Eq,
         TryFrom,
         AsRef,
-        Deref
+        Deref,
     )
 )]
 pub struct UserName(String);

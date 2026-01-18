@@ -47,7 +47,7 @@ pub struct AddOrganizationMemberRequest {
         Eq,
         TryFrom,
         AsRef,
-        Deref
+        Deref,
     )
 )]
 pub struct OrganizationName(String);
