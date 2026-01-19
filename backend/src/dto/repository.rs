@@ -1,10 +1,6 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-fn default_branch() -> String {
-    "main".to_string()
-}
-
 fn default_ref() -> String {
     "HEAD".to_string()
 }
@@ -15,19 +11,6 @@ fn default_page() -> u32 {
 
 fn default_per_page() -> u32 {
     30
-}
-
-#[derive(Deserialize)]
-pub struct CreateRepositoryRequest {
-    #[serde(default = "default_branch")]
-    pub default_branch: String,
-}
-
-#[derive(Serialize)]
-pub struct CreateRepositoryResponse {
-    pub owner: String,
-    pub name: String,
-    pub default_branch: String,
 }
 
 #[derive(Deserialize)]

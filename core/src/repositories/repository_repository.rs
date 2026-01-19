@@ -32,6 +32,21 @@ impl RepositoryRepository for RepositoryRepositoryImpl {
         owner_id: Uuid,
         request: CreateRepositoryRequest,
     ) -> Result<Repository, Error> {
-        todo!();
+        let repository = sqlx::query_as::<_, Repository>(
+            r#"
+            INSERT INTO repositories (name, owner_id, owner_name, owner_type, visibility)
+            VALUES ($1, $2, $3, $4, $5)
+            RETURNING id, name, owner_id, owner_name, owner_type, visibility, created_at
+            "#,
+        )
+        .bind(request.name.as_ref())
+        .bind(owner_id)
+        .bind(&request.owner_name)
+        .bind(&request.owner_type)
+        .bind(&request.visibility)
+        .fetch_one(&self.pool)
+        .await?;
+
+        Ok(repository)
     }
 }

@@ -5,7 +5,7 @@ use axum::{
 use serde::Serialize;
 use thiserror::Error;
 
-use gitdot_core::errors::{AuthorizationError, OrganizationError};
+use gitdot_core::errors::{AuthorizationError, OrganizationError, RepositoryError};
 
 use super::response::AppResponse;
 
@@ -16,6 +16,9 @@ pub enum AppError {
 
     #[error(transparent)]
     Organization(#[from] OrganizationError),
+
+    #[error(transparent)]
+    Repository(#[from] RepositoryError),
 
     #[error(transparent)]
     Internal(#[from] anyhow::Error),
@@ -42,6 +45,21 @@ impl IntoResponse for AppError {
                 let status_code = match e {
                     OrganizationError::Duplicate(_) => StatusCode::CONFLICT,
                     OrganizationError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+                };
+                let response = AppResponse::new(
+                    status_code,
+                    AppErrorMessage {
+                        message: e.to_string(),
+                    },
+                );
+                response.into_response()
+            }
+            AppError::Repository(e) => {
+                let status_code = match e {
+                    RepositoryError::Duplicate(_) => StatusCode::CONFLICT,
+                    RepositoryError::OwnerNotFound(_) => StatusCode::NOT_FOUND,
+                    RepositoryError::GitError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+                    RepositoryError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                 };
                 let response = AppResponse::new(
                     status_code,

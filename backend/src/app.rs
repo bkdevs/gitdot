@@ -27,13 +27,14 @@ use tower_http::{
 use crate::handlers::git_smart_http::{git_info_refs, git_receive_pack, git_upload_pack};
 use crate::handlers::organization_handlers::create_organization;
 use crate::handlers::repository::{
-    create_repository, get_repository_commit_diffs, get_repository_commit_stats,
-    get_repository_commits, get_repository_file, get_repository_file_commits, get_repository_tree,
+    get_repository_commit_diffs, get_repository_commit_stats, get_repository_commits,
+    get_repository_file, get_repository_file_commits, get_repository_tree,
 };
+use crate::handlers::repository_handlers::create_repository;
 
 pub use app_state::AppState;
 pub use auth::AuthenticatedUser;
-pub use error::{AppError, AppErrorMessage};
+pub use error::AppError;
 pub use response::AppResponse;
 pub use settings::Settings;
 
@@ -74,8 +75,9 @@ pub fn create_router(app_state: AppState) -> Router {
 
     let org_router = Router::new().route("/organization/{org_name}", post(create_organization));
 
-    let repo_router = Router::new()
-        .route("/repository/{owner}/{repo}", post(create_repository))
+    let repo_router = Router::new().route("/repository/{owner}/{repo}", post(create_repository));
+
+    let old_repo_router = Router::new()
         .route("/repository/{owner}/{repo}/tree", get(get_repository_tree))
         .route("/repository/{owner}/{repo}/file", get(get_repository_file))
         .route(
@@ -110,6 +112,7 @@ pub fn create_router(app_state: AppState) -> Router {
         .merge(git_router)
         .merge(org_router)
         .merge(repo_router)
+        .merge(old_repo_router)
         .layer(middleware)
         .with_state(app_state)
 }
