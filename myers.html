@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Myers Diff Algorithm</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        svg.edit-graph {
+            font-family: monospace;
+        }
+        .node {
+            fill: #000;
+        }
+        .edge {
+            stroke: #000;
+            stroke-width: 1.5;
+        }
+        .diagonal-edge {
+            stroke: #000;
+            stroke-width: 1.5;
+        }
+        .label {
+            font-size: 16px;
+            font-weight: bold;
+            fill: #000;
+        }
+        .path-line {
+            stroke: #ff0000;
+            stroke-width: 3;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        .path-node {
+            fill: #ff0000;
+        }
+    </style>
+</head>
+<body>
+    <div id="graphContainer"></div>
+
+    <script>
+        const strA = "KITTEN";
+        const strB = "SITTING";
+
+        // Myers algorithm to find shortest edit path
+        function myers(a, b) {
+            const n = a.length;
+            const m = b.length;
+            const max = n + m;
+            const v = { 0: 0 };
+            const trace = [];
+
+            for (let d = 0; d <= max; d++) {
+                trace.push({ ...v });
+
+                for (let k = -d; k <= d; k += 2) {
+                    let x, y;
+
+                    if (k === -d || (k !== d && v[k - 1] < v[k + 1])) {
+                        x = v[k + 1];
+                    } else {
+                        x = v[k - 1] + 1;
+                    }
+
+                    y = x - k;
+
+                    while (x < n && y < m && a[x] === b[y]) {
+                        x++;
+                        y++;
+                    }
+
+                    v[k] = x;
+
+                    if (x >= n && y >= m) {
+                        return backtrack(trace, a, b, d);
+                    }
+                }
+            }
+            return [];
+        }
+
+        function backtrack(trace, a, b, d) {
+            const path = [];
+            let x = a.length;
+            let y = b.length;
+
+            path.push({ x, y });
+
+            for (let i = d; i > 0; i--) {
+                const v = trace[i];
+                const vPrev = trace[i - 1];
+                const k = x - y;
+
+                let prevK;
+                if (k === -i || (k !== i && vPrev[k - 1] < vPrev[k + 1])) {
+                    prevK = k + 1;
+                } else {
+                    prevK = k - 1;
+                }
+
+                const prevX = vPrev[prevK];
+                const prevY = prevX - prevK;
+
+                // Add diagonal moves
+                while (x > prevX + (k > prevK ? 1 : 0) || y > prevY + (k < prevK ? 1 : 0)) {
+                    x--;
+                    y--;
+                    path.unshift({ x, y, diagonal: true });
+                }
+
+                // Add the horizontal or vertical move
+                if (i > 0) {
+                    if (k > prevK) {
+                        x--;
+                        path.unshift({ x, y, delete: true });
+                    } else {
+                        y--;
+                        path.unshift({ x, y, insert: true });
+                    }
+                }
+            }
+
+            while (x > 0 && y > 0 && a[x-1] === b[y-1]) {
+                x--;
+                y--;
+                path.unshift({ x, y, diagonal: true });
+            }
+
+            return path;
+        }
+
+        function buildGraph() {
+            const container = document.getElementById('graphContainer');
+
+            // Hardcoded optimal path for KITTEN -> SITTING
+            // (x = position in A/KITTEN, y = position in B/SITTING)
+            // Favors deletions before insertions
+            const path = [
+                { x: 0, y: 0 },
+                { x: 1, y: 0 },  // delete K
+                { x: 1, y: 1 },  // insert S
+                { x: 2, y: 2 },  // match I
+                { x: 3, y: 3 },  // match T
+                { x: 4, y: 4 },  // match T
+                { x: 5, y: 4 },  // delete E
+                { x: 5, y: 5 },  // insert I
+                { x: 6, y: 6 },  // match N
+                { x: 6, y: 7 },  // insert G
+            ];
+
+            const cellSize = 50;
+            const padding = 60;
+            const nodeRadius = 4;
+
+            const cols = strA.length + 1;
+            const rows = strB.length + 1;
+
+            const width = padding + cols * cellSize + 20;
+            const height = padding + rows * cellSize + 20;
+
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.classList.add('edit-graph');
+            svg.setAttribute('width', width);
+            svg.setAttribute('height', height);
+
+            // Draw labels for string B (top)
+            for (let col = 1; col <= strB.length; col++) {
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', padding + col * cellSize);
+                text.setAttribute('y', 25);
+                text.setAttribute('text-anchor', 'middle');
+                text.classList.add('label');
+                text.textContent = strB[col - 1];
+                svg.appendChild(text);
+            }
+
+            // Draw labels for string A (left)
+            for (let row = 1; row <= strA.length; row++) {
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', 25);
+                text.setAttribute('y', padding + row * cellSize + 5);
+                text.setAttribute('text-anchor', 'middle');
+                text.classList.add('label');
+                text.textContent = strA[row - 1];
+                svg.appendChild(text);
+            }
+
+            // Draw horizontal edges
+            for (let row = 0; row <= strA.length; row++) {
+                for (let col = 0; col < strB.length; col++) {
+                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    line.setAttribute('x1', padding + col * cellSize);
+                    line.setAttribute('y1', padding + row * cellSize);
+                    line.setAttribute('x2', padding + (col + 1) * cellSize);
+                    line.setAttribute('y2', padding + row * cellSize);
+                    line.classList.add('edge');
+                    svg.appendChild(line);
+                }
+            }
+
+            // Draw vertical edges
+            for (let row = 0; row < strA.length; row++) {
+                for (let col = 0; col <= strB.length; col++) {
+                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    line.setAttribute('x1', padding + col * cellSize);
+                    line.setAttribute('y1', padding + row * cellSize);
+                    line.setAttribute('x2', padding + col * cellSize);
+                    line.setAttribute('y2', padding + (row + 1) * cellSize);
+                    line.classList.add('edge');
+                    svg.appendChild(line);
+                }
+            }
+
+            // Draw diagonal edges where characters match
+            for (let row = 0; row < strA.length; row++) {
+                for (let col = 0; col < strB.length; col++) {
+                    if (strA[row] === strB[col]) {
+                        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                        line.setAttribute('x1', padding + col * cellSize);
+                        line.setAttribute('y1', padding + row * cellSize);
+                        line.setAttribute('x2', padding + (col + 1) * cellSize);
+                        line.setAttribute('y2', padding + (row + 1) * cellSize);
+                        line.classList.add('diagonal-edge');
+                        svg.appendChild(line);
+                    }
+                }
+            }
+
+            // Draw all grid nodes
+            for (let row = 0; row <= strA.length; row++) {
+                for (let col = 0; col <= strB.length; col++) {
+                    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    circle.setAttribute('cx', padding + col * cellSize);
+                    circle.setAttribute('cy', padding + row * cellSize);
+                    circle.setAttribute('r', nodeRadius);
+                    circle.classList.add('node');
+                    svg.appendChild(circle);
+                }
+            }
+
+            // Draw the optimal path
+            let pathD = '';
+            path.forEach((p, i) => {
+                const px = padding + p.y * cellSize;
+                const py = padding + p.x * cellSize;
+                if (i === 0) {
+                    pathD += `M ${px} ${py}`;
+                } else {
+                    pathD += ` L ${px} ${py}`;
+                }
+            });
+
+            const pathLine = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            pathLine.setAttribute('d', pathD);
+            pathLine.classList.add('path-line');
+            svg.appendChild(pathLine);
+
+            // Draw path nodes
+            path.forEach((p, i) => {
+                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circle.setAttribute('cx', padding + p.y * cellSize);
+                circle.setAttribute('cy', padding + p.x * cellSize);
+                circle.setAttribute('r', nodeRadius);
+                circle.classList.add('path-node');
+                svg.appendChild(circle);
+            });
+
+            container.appendChild(svg);
+        }
+
+        buildGraph();
+    </script>
+</body>
+</html>
