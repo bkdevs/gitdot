@@ -16,12 +16,12 @@ pub trait OrganizationService: Send + Sync + 'static {
 }
 
 #[derive(Debug, Clone)]
-pub struct OrganizationServiceImpl<R, U>
+pub struct OrganizationServiceImpl<O, U>
 where
-    R: OrganizationRepository,
+    O: OrganizationRepository,
     U: UserRepository,
 {
-    org_repo: R,
+    org_repo: O,
     user_repo: U,
 }
 
@@ -35,9 +35,9 @@ impl OrganizationServiceImpl<OrganizationRepositoryImpl, UserRepositoryImpl> {
 }
 
 #[async_trait]
-impl<R, U> OrganizationService for OrganizationServiceImpl<R, U>
+impl<O, U> OrganizationService for OrganizationServiceImpl<O, U>
 where
-    R: OrganizationRepository,
+    O: OrganizationRepository,
     U: UserRepository,
 {
     async fn create_organization(

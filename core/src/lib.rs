@@ -1,3 +1,4 @@
+pub mod clients;
 pub mod dto;
 pub mod errors;
 pub mod models;

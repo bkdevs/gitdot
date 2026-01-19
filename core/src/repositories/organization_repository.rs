@@ -1,5 +1,6 @@
 use async_trait::async_trait;
 use sqlx::{Error, PgPool};
+use uuid::Uuid;
 
 use crate::dto::{
     AddOrganizationMemberRequest, CreateOrganizationRequest, FindOrganizationByNameRequest,
@@ -9,6 +10,8 @@ use crate::models::{Organization, OrganizationMember};
 #[async_trait]
 pub trait OrganizationRepository: Send + Sync + Clone + 'static {
     async fn create(&self, request: CreateOrganizationRequest) -> Result<Organization, Error>;
+
+    async fn find_by_id(&self, id: Uuid) -> Result<Option<Organization>, Error>;
 
     async fn find_by_name(
         &self,
@@ -53,6 +56,17 @@ impl OrganizationRepository for OrganizationRepositoryImpl {
         .await?;
 
         tx.commit().await?;
+
+        Ok(org)
+    }
+
+    async fn find_by_id(&self, id: Uuid) -> Result<Option<Organization>, Error> {
+        let org = sqlx::query_as::<_, Organization>(
+            "SELECT id, name, created_at FROM organizations WHERE id = $1",
+        )
+        .bind(id)
+        .fetch_optional(&self.pool)
+        .await?;
 
         Ok(org)
     }

@@ -38,9 +38,29 @@ pub enum RepositoryOwnerType {
     Organization,
 }
 
+impl From<String> for RepositoryOwnerType {
+    fn from(owner_type: String) -> Self {
+        match owner_type.as_str() {
+            "user" => RepositoryOwnerType::User,
+            "organization" => RepositoryOwnerType::Organization,
+            _ => panic!("Invalid owner type"),
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Type)]
 #[sqlx(type_name = "repository_visibility", rename_all = "lowercase")]
 pub enum RepositoryVisibility {
     Public,
     Private,
+}
+
+impl From<String> for RepositoryVisibility {
+    fn from(visibility: String) -> Self {
+        match visibility.as_str() {
+            "public" => RepositoryVisibility::Public,
+            "private" => RepositoryVisibility::Private,
+            _ => panic!("Invalid visibility"),
+        }
+    }
 }

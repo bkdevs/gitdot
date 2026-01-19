@@ -5,8 +5,10 @@ resolver = "3"
 [workspace.dependencies]
 async-trait = "0.1.89"
 chrono = { version = "0.4.42", features = ["serde"] }
+git2 = "0.20.3"
 nutype = { version = "0.6.2", features = ["serde"] }
 serde = { version = "1.0", features = ["derive"] }
 sqlx = { version = "0.8.6", features = ["runtime-tokio", "postgres", "uuid", "chrono"] }
 thiserror = "2.0.17"
+tokio = { version = "1", features = ["full"] }
 uuid = { version = "1.19.0", features = ["v4", "serde"] }
