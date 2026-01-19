@@ -13,6 +13,8 @@ pub trait GitClient: Send + Sync + Clone + 'static {
 
     async fn create_repo(&self, owner: &str, repo_name: &str) -> Result<(), GitError>;
 
+    async fn delete_repo(&self, owner: &str, repo_name: &str) -> Result<(), GitError>;
+
     fn normalize_repo_name(&self, repo_name: &str) -> String {
         format!(
             "{}{}",
@@ -74,6 +76,12 @@ impl GitClient for Git2Client {
         let export_ok_path = format!("{}/git-daemon-export-ok", repo_path);
         fs::write(&export_ok_path, "").await?;
 
+        Ok(())
+    }
+
+    async fn delete_repo(&self, owner: &str, repo_name: &str) -> Result<(), GitError> {
+        let repo_path = self.get_repo_path(owner, repo_name);
+        fs::remove_dir_all(&repo_path).await?;
         Ok(())
     }
 }

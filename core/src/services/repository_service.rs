@@ -63,10 +63,6 @@ where
             return Err(RepositoryError::Duplicate(repo_name));
         }
 
-        self.git_client
-            .create_repo(&request.owner_name, &repo_name)
-            .await?;
-
         let owner_id = match request.owner_type {
             RepositoryOwnerType::User => request.user_id,
             RepositoryOwnerType::Organization => {
@@ -80,7 +76,22 @@ where
                 org.id
             }
         };
-        let repository = self.repo_repo.create(owner_id, request).await?;
+
+        // Create git repo first
+        self.git_client
+            .create_repo(&request.owner_name, &repo_name)
+            .await?;
+
+        // Insert into DB, delete git repo on failure
+        let owner_name = request.owner_name.clone();
+        let repository = match self.repo_repo.create(owner_id, request).await {
+            Ok(repo) => repo,
+            Err(e) => {
+                let _ = self.git_client.delete_repo(&owner_name, &repo_name).await;
+                return Err(e.into());
+            }
+        };
+
         Ok(repository)
     }
 }
