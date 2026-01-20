@@ -24,7 +24,7 @@ use tower_http::{
     trace::TraceLayer,
 };
 
-use crate::handlers::git_smart_http::{git_info_refs, git_receive_pack, git_upload_pack};
+use crate::handlers::git_http_handlers::{git_info_refs, git_receive_pack, git_upload_pack};
 use crate::handlers::organization_handlers::create_organization;
 use crate::handlers::repository::{
     get_repository_commit_diffs, get_repository_commit_stats, get_repository_commits,

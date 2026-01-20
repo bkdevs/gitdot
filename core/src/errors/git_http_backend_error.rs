@@ -1,0 +1,22 @@
+use thiserror::Error;
+
+#[derive(Debug, Error)]
+pub enum GitHttpBackendError {
+    #[error("Invalid service: {0}")]
+    InvalidService(String),
+
+    #[error("Failed to spawn git http-backend: {0}")]
+    SpawnError(#[source] std::io::Error),
+
+    #[error("Failed to write request body: {0}")]
+    WriteError(#[source] std::io::Error),
+
+    #[error("Failed to read response: {0}")]
+    ReadError(#[source] std::io::Error),
+
+    #[error("Git http-backend failed with exit code {code}: {stderr}")]
+    ProcessFailed { code: i32, stderr: String },
+
+    #[error("Invalid CGI response: {0}")]
+    InvalidCgiResponse(String),
+}
