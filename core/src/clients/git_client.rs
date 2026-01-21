@@ -4,8 +4,8 @@ use tokio::task;
 
 use crate::errors::GitError;
 
-static REPO_SUFFIX: &str = ".git";
-static DEFAULT_BRANCH: &str = "main";
+const REPO_SUFFIX: &str = ".git";
+const DEFAULT_BRANCH: &str = "main";
 
 #[async_trait]
 pub trait GitClient: Send + Sync + Clone + 'static {

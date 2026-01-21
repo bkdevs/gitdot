@@ -5,7 +5,7 @@ use std::process::{Command, Stdio};
 use crate::dto::GitHttpBackendResponse;
 use crate::errors::GitHttpBackendError;
 
-static REPO_SUFFIX: &str = ".git";
+const REPO_SUFFIX: &str = ".git";
 
 #[async_trait]
 pub trait GitHttpBackendClient: Send + Sync + Clone + 'static {
