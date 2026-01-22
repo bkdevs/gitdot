@@ -1,6 +1,12 @@
 "use client";
 
-import { CircleDot, Code2, GitPullRequest, History } from "lucide-react";
+import {
+  CircleDot,
+  Code2,
+  GitPullRequest,
+  History,
+  MessageCircleQuestion,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { RepositoryCommit, RepositoryTreeEntry } from "@/lib/dto";
@@ -17,17 +23,17 @@ import { cn } from "@/util";
 import { RepoSidebarCommits } from "./repo-sidebar-commits";
 import { RepoSidebarFiles } from "./repo-sidebar-files";
 import { RepoSidebarHeader } from "./repo-sidebar-header";
-import { RepoSidebarIssues } from "./repo-sidebar-issues";
 import { RepoSidebarPulls } from "./repo-sidebar-pulls";
+import { RepoSidebarQuestions } from "./repo-sidebar-questions";
 
 const SIDEBAR_ICON_WIDTH = "2.25rem";
 const SIDEBAR_CONTENT_WIDTH = "15rem";
 
-type ViewType = "code" | "commits" | "issues" | "pulls";
+type ViewType = "code" | "commits" | "questions" | "pulls";
 
 function getViewFromPathname(path: string): ViewType {
   if (path.includes("/commits")) return "commits";
-  if (path.includes("/issues")) return "issues";
+  if (path.includes("/questions")) return "questions";
   if (path.includes("/pulls")) return "pulls";
   return "code";
 }
@@ -56,10 +62,10 @@ export function RepoSidebar({
       href: `/${repo}/commits`,
     },
     {
-      id: "issues" as const,
-      icon: CircleDot,
-      label: "Issues",
-      href: `/${repo}/issues/1`,
+      id: "questions" as const,
+      icon: MessageCircleQuestion,
+      label: "Questions",
+      href: `/${repo}/questions/1`,
     },
     {
       id: "pulls" as const,
@@ -70,8 +76,8 @@ export function RepoSidebar({
   ];
 
   const renderContent = () => {
-    if (currentView === "issues") {
-      return <RepoSidebarIssues />;
+    if (currentView === "questions") {
+      return <RepoSidebarQuestions />;
     }
     if (currentView === "pulls") {
       return <RepoSidebarPulls />;
