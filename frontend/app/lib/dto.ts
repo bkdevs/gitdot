@@ -1,7 +1,8 @@
 import { z } from "zod";
 
 export const CreateRepositoryRequestSchema = z.object({
-  default_branch: z.string().default("main"),
+  owner_type: z.string(),
+  visibility: z.string().default("public"),
 });
 
 export type CreateRepositoryRequest = z.infer<
@@ -9,9 +10,11 @@ export type CreateRepositoryRequest = z.infer<
 >;
 
 export const CreateRepositoryResponseSchema = z.object({
-  owner: z.string(),
+  id: z.uuid(),
   name: z.string(),
-  default_branch: z.string(),
+  owner_name: z.string(),
+  visibility: z.string(),
+  created_at: z.iso.datetime(),
 });
 
 export type CreateRepositoryResponse = z.infer<

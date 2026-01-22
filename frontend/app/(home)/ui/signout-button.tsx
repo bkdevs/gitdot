@@ -1,9 +1,10 @@
 import { signout } from "@/actions";
+import { Button } from "@/ui/button";
 
 export default function SignoutButton() {
   return (
-    <button type="button" onClick={signout}>
+    <Button variant="outline" onClick={signout}>
       Sign Out
-    </button>
+    </Button>
   );
 }

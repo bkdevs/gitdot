@@ -2,6 +2,9 @@ import "server-only";
 
 import { toQueryString } from "@/util";
 import {
+  type CreateRepositoryRequest,
+  type CreateRepositoryResponse,
+  CreateRepositoryResponseSchema,
   type RepositoryCommitDiffs,
   RepositoryCommitDiffsSchema,
   type RepositoryCommits,
@@ -19,7 +22,10 @@ import { getSession } from "./supabase";
 
 const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:8080";
 
-async function authFetch(url: string, options?: RequestInit): Promise<Response | null> {
+async function authFetch(
+  url: string,
+  options?: RequestInit,
+): Promise<Response | null> {
   const session = await getSession();
   if (!session) return null;
 
@@ -30,6 +36,43 @@ async function authFetch(url: string, options?: RequestInit): Promise<Response |
       Authorization: `Bearer ${session.access_token}`,
     },
   });
+}
+
+export async function createRepository(
+  owner: string,
+  repo: string,
+  request: CreateRepositoryRequest,
+): Promise<CreateRepositoryResponse | null> {
+  if (!owner || !repo) {
+    console.error("Invalid createRepository request:", {
+      owner,
+      repo,
+      request,
+    });
+    return null;
+  }
+
+  const response = await authFetch(
+    `${API_BASE_URL}/repository/${owner}/${repo}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(request),
+    },
+  );
+
+  if (!response?.ok) {
+    console.error(
+      "createRepository failed:",
+      response?.status,
+      response?.statusText,
+    );
+    return null;
+  }
+
+  return CreateRepositoryResponseSchema.parse(await response.json());
 }
 
 export async function getRepositoryFile(
