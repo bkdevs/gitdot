@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use tokio::fs;
 use tokio::task;
 
-use crate::errors::GitError;
+use crate::error::GitError;
 
 const REPO_SUFFIX: &str = ".git";
 const DEFAULT_BRANCH: &str = "main";

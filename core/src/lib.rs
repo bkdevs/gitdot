@@ -1,6 +1,6 @@
-pub mod clients;
+pub mod client;
 pub mod dto;
-pub mod errors;
+pub mod error;
 pub mod model;
 pub mod models;
 pub mod repositories;

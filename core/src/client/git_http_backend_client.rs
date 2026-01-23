@@ -3,7 +3,7 @@ use std::io::Write;
 use std::process::{Command, Stdio};
 
 use crate::dto::GitHttpBackendResponse;
-use crate::errors::GitHttpBackendError;
+use crate::error::GitHttpBackendError;
 
 const REPO_SUFFIX: &str = ".git";
 
