@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 
 use crate::dto::{CreateOrganizationRequest, GetOrganizationRequest, OrganizationResponse};
-use crate::errors::OrganizationError;
+use crate::error::OrganizationError;
 use crate::repository::organization::{OrganizationRepository, OrganizationRepositoryImpl};
 use crate::repository::user::{UserRepository, UserRepositoryImpl};
 
@@ -48,24 +48,27 @@ where
         request: CreateOrganizationRequest,
     ) -> Result<OrganizationResponse, OrganizationError> {
         let org_name = request.org_name.to_string();
-
         if self.org_repo.get(&org_name).await?.is_some() {
             return Err(OrganizationError::Duplicate(org_name));
         }
-
         if self.user_repo.get(&org_name).await?.is_some() {
             return Err(OrganizationError::Duplicate(org_name));
         }
 
         let org = self.org_repo.create(&org_name, request.owner_id).await?;
-        Ok(OrganizationResponse::from(org))
+        Ok(org.into())
     }
 
     async fn get_organization(
         &self,
         request: GetOrganizationRequest,
     ) -> Result<OrganizationResponse, OrganizationError> {
-        let org = self.org_repo.get(&request.org_name).await?;
-        Ok(OrganizationResponse::from(org))
+        let org_name = request.org_name.to_string();
+        let org = self
+            .org_repo
+            .get(&org_name)
+            .await?
+            .ok_or_else(|| OrganizationError::NotFound(org_name))?;
+        Ok(org.into())
     }
 }

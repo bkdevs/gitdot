@@ -10,6 +10,12 @@ pub enum RepositoryError {
     #[error("Owner not found: {0}")]
     OwnerNotFound(String),
 
+    #[error("Invalid owner type: {0}")]
+    InvalidOwnerType(String),
+
+    #[error("Invalid visibility: {0}")]
+    InvalidVisibility(String),
+
     #[error("Git error: {0}")]
     GitError(#[from] Git2Error),
 

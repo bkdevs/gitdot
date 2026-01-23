@@ -20,7 +20,7 @@ pub async fn get_repository_tree(
     State(settings): State<Arc<Settings>>,
     Path((owner, repo)): Path<(String, String)>,
     Query(query): Query<RepositoryTreeQuery>,
-    auth_user: Option<AuthenticatedUser>,
+    _auth_user: Option<AuthenticatedUser>,
 ) -> Result<Json<RepositoryTree>, StatusCode> {
     let repo_path = normalize_repo_name(&repo);
     let repository = open_repository(&settings, &owner, &repo_path)?;

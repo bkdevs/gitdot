@@ -1,20 +1,18 @@
 use async_trait::async_trait;
 
-use crate::clients::{Git2Client, GitClient};
-use crate::dto::{CreateRepositoryRequest, FindOrganizationByNameRequest};
-use crate::errors::RepositoryError;
-use crate::models::{Repository, RepositoryOwnerType};
-use crate::repository::{
-    OrganizationRepository, OrganizationRepositoryImpl, RepositoryRepository,
-    RepositoryRepositoryImpl,
-};
+use crate::client::{Git2Client, GitClient};
+use crate::dto::{CreateRepositoryRequest, RepositoryResponse};
+use crate::error::RepositoryError;
+use crate::model::RepositoryOwnerType;
+use crate::repository::organization::{OrganizationRepository, OrganizationRepositoryImpl};
+use crate::repository::repository::{RepositoryRepository, RepositoryRepositoryImpl};
 
 #[async_trait]
 pub trait RepositoryService: Send + Sync + 'static {
     async fn create_repository(
         &self,
         request: CreateRepositoryRequest,
-    ) -> Result<Repository, RepositoryError>;
+    ) -> Result<RepositoryResponse, RepositoryError>;
 }
 
 #[derive(Debug, Clone)]
@@ -53,7 +51,7 @@ where
     async fn create_repository(
         &self,
         request: CreateRepositoryRequest,
-    ) -> Result<Repository, RepositoryError> {
+    ) -> Result<RepositoryResponse, RepositoryError> {
         let repo_name = request.name.to_string();
         if self
             .git_client
@@ -66,13 +64,13 @@ where
         let owner_id = match request.owner_type {
             RepositoryOwnerType::User => request.user_id,
             RepositoryOwnerType::Organization => {
-                let find_org_request =
-                    FindOrganizationByNameRequest::new(request.owner_name.clone());
                 let org = self
                     .org_repo
-                    .find_by_name(find_org_request)
+                    .get(&request.owner_name)
                     .await?
-                    .ok_or_else(|| RepositoryError::OwnerNotFound(request.owner_name.clone()))?;
+                    .ok_or_else(|| {
+                        RepositoryError::OwnerNotFound(request.owner_name.to_string())
+                    })?;
                 org.id
             }
         };
@@ -83,8 +81,18 @@ where
             .await?;
 
         // Insert into DB, delete git repo on failure
-        let owner_name = request.owner_name.clone();
-        let repository = match self.repo_repo.create(owner_id, request).await {
+        let owner_name = request.owner_name.to_string();
+        let repository = match self
+            .repo_repo
+            .create(
+                &repo_name,
+                owner_id,
+                &owner_name,
+                &request.owner_type,
+                &request.visibility,
+            )
+            .await
+        {
             Ok(repo) => repo,
             Err(e) => {
                 let _ = self.git_client.delete_repo(&owner_name, &repo_name).await;
@@ -92,6 +100,6 @@ where
             }
         };
 
-        Ok(repository)
+        Ok(repository.into())
     }
 }

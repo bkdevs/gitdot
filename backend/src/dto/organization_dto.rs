@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 use serde::Serialize;
 use uuid::Uuid;
 
-use gitdot_core::models::Organization;
+use gitdot_core::dto::OrganizationResponse;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct CreateOrganizationResponse {
@@ -11,8 +11,8 @@ pub struct CreateOrganizationResponse {
     pub created_at: DateTime<Utc>,
 }
 
-impl From<&Organization> for CreateOrganizationResponse {
-    fn from(org: &Organization) -> Self {
+impl From<&OrganizationResponse> for CreateOrganizationResponse {
+    fn from(org: &OrganizationResponse) -> Self {
         Self {
             id: org.id,
             name: org.name.clone(),

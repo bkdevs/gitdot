@@ -2,15 +2,17 @@ use async_trait::async_trait;
 use sqlx::{Error, PgPool};
 use uuid::Uuid;
 
-use crate::dto::CreateRepositoryRequest;
-use crate::models::Repository;
+use crate::model::{Repository, RepositoryOwnerType, RepositoryVisibility};
 
 #[async_trait]
 pub trait RepositoryRepository: Send + Sync + Clone + 'static {
     async fn create(
         &self,
+        name: &str,
         owner_id: Uuid,
-        request: CreateRepositoryRequest,
+        owner_name: &str,
+        owner_type: &RepositoryOwnerType,
+        visibility: &RepositoryVisibility,
     ) -> Result<Repository, Error>;
 }
 
@@ -29,8 +31,11 @@ impl RepositoryRepositoryImpl {
 impl RepositoryRepository for RepositoryRepositoryImpl {
     async fn create(
         &self,
+        name: &str,
         owner_id: Uuid,
-        request: CreateRepositoryRequest,
+        owner_name: &str,
+        owner_type: &RepositoryOwnerType,
+        visibility: &RepositoryVisibility,
     ) -> Result<Repository, Error> {
         let repository = sqlx::query_as::<_, Repository>(
             r#"
@@ -39,11 +44,11 @@ impl RepositoryRepository for RepositoryRepositoryImpl {
             RETURNING id, name, owner_id, owner_name, owner_type, visibility, created_at
             "#,
         )
-        .bind(request.name.as_ref())
+        .bind(name)
         .bind(owner_id)
-        .bind(&request.owner_name)
-        .bind(&request.owner_type)
-        .bind(&request.visibility)
+        .bind(owner_name)
+        .bind(owner_type)
+        .bind(visibility)
         .fetch_one(&self.pool)
         .await?;
 

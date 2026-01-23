@@ -2,8 +2,5 @@ pub mod client;
 pub mod dto;
 pub mod error;
 pub mod model;
-pub mod models;
-pub mod repositories;
 pub mod repository;
 pub mod service;
-pub mod services;

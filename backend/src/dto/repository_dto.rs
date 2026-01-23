@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use gitdot_core::models::Repository;
+use gitdot_core::dto::RepositoryResponse;
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 pub struct CreateRepositoryRequest {
@@ -21,13 +21,13 @@ pub struct CreateRepositoryResponse {
     pub created_at: DateTime<Utc>,
 }
 
-impl From<&Repository> for CreateRepositoryResponse {
-    fn from(repo: &Repository) -> Self {
+impl From<&RepositoryResponse> for CreateRepositoryResponse {
+    fn from(repo: &RepositoryResponse) -> Self {
         Self {
             id: repo.id,
             name: repo.name.clone(),
-            owner_name: repo.owner_name.clone(),
-            visibility: repo.visibility.clone().into(),
+            owner_name: repo.owner.clone(),
+            visibility: repo.visibility.clone(),
             created_at: repo.created_at,
         }
     }

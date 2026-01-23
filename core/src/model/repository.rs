@@ -2,6 +2,8 @@ use chrono::{DateTime, Utc};
 use sqlx::{FromRow, Type};
 use uuid::Uuid;
 
+use crate::error::RepositoryError;
+
 #[derive(Debug, Clone, FromRow)]
 pub struct Repository {
     pub id: Uuid,
@@ -38,12 +40,14 @@ pub enum RepositoryOwnerType {
     Organization,
 }
 
-impl From<String> for RepositoryOwnerType {
-    fn from(owner_type: String) -> Self {
-        match owner_type.as_str() {
-            "user" => RepositoryOwnerType::User,
-            "organization" => RepositoryOwnerType::Organization,
-            _ => panic!("Invalid owner type"),
+impl TryFrom<&str> for RepositoryOwnerType {
+    type Error = RepositoryError;
+
+    fn try_from(owner_type: &str) -> Result<Self, Self::Error> {
+        match owner_type {
+            "user" => Ok(RepositoryOwnerType::User),
+            "organization" => Ok(RepositoryOwnerType::Organization),
+            _ => Err(RepositoryError::InvalidOwnerType(owner_type.to_string())),
         }
     }
 }
@@ -64,12 +68,14 @@ pub enum RepositoryVisibility {
     Private,
 }
 
-impl From<String> for RepositoryVisibility {
-    fn from(visibility: String) -> Self {
-        match visibility.as_str() {
-            "public" => RepositoryVisibility::Public,
-            "private" => RepositoryVisibility::Private,
-            _ => panic!("Invalid visibility"),
+impl TryFrom<&str> for RepositoryVisibility {
+    type Error = RepositoryError;
+
+    fn try_from(visibility: &str) -> Result<Self, Self::Error> {
+        match visibility {
+            "public" => Ok(RepositoryVisibility::Public),
+            "private" => Ok(RepositoryVisibility::Private),
+            _ => Err(RepositoryError::InvalidVisibility(visibility.to_string())),
         }
     }
 }

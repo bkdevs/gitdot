@@ -3,11 +3,11 @@ use std::sync::Arc;
 use axum::extract::FromRef;
 use sqlx::PgPool;
 
-use gitdot_core::clients::{Git2Client, GitHttpBackendClientImpl};
-use gitdot_core::repositories::{
+use gitdot_core::client::{Git2Client, GitHttpBackendClientImpl};
+use gitdot_core::repository::{
     OrganizationRepositoryImpl, RepositoryRepositoryImpl, UserRepositoryImpl,
 };
-use gitdot_core::services::{
+use gitdot_core::service::{
     GitHttpBackendService, GitHttpBackendServiceImpl, OrganizationService, OrganizationServiceImpl,
     RepositoryService, RepositoryServiceImpl,
 };

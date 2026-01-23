@@ -18,11 +18,11 @@ pub async fn create_repository(
     Json(request): Json<CreateRepositoryHttpRequest>,
 ) -> Result<AppResponse<CreateRepositoryResponse>, AppError> {
     let request = CreateRepositoryRequest::new(
-        repo,
+        &repo,
         auth_user.id,
-        owner,
-        request.owner_type,
-        request.visibility,
+        &owner,
+        &request.owner_type,
+        &request.visibility,
     );
     state
         .repo_service

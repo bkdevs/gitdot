@@ -5,7 +5,7 @@ use axum::{
 use serde::Serialize;
 use thiserror::Error;
 
-use gitdot_core::errors::{
+use gitdot_core::error::{
     AuthorizationError, GitHttpBackendError, OrganizationError, RepositoryError,
 };
 
@@ -49,6 +49,7 @@ impl IntoResponse for AppError {
             AppError::Organization(e) => {
                 let status_code = match e {
                     OrganizationError::Duplicate(_) => StatusCode::CONFLICT,
+                    OrganizationError::NotFound(_) => StatusCode::NOT_FOUND,
                     OrganizationError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                 };
                 let response = AppResponse::new(
@@ -63,6 +64,8 @@ impl IntoResponse for AppError {
                 let status_code = match e {
                     RepositoryError::Duplicate(_) => StatusCode::CONFLICT,
                     RepositoryError::OwnerNotFound(_) => StatusCode::NOT_FOUND,
+                    RepositoryError::InvalidOwnerType(_) => StatusCode::BAD_REQUEST,
+                    RepositoryError::InvalidVisibility(_) => StatusCode::BAD_REQUEST,
                     RepositoryError::GitError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                     RepositoryError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                 };

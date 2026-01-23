@@ -1,8 +1,8 @@
 use async_trait::async_trait;
 
-use crate::clients::{GitHttpBackendClient, GitHttpBackendClientImpl};
+use crate::client::{GitHttpBackendClient, GitHttpBackendClientImpl};
 use crate::dto::GitHttpBackendResponse;
-use crate::errors::GitHttpBackendError;
+use crate::error::GitHttpBackendError;
 
 #[async_trait]
 pub trait GitHttpBackendService: Send + Sync + 'static {
