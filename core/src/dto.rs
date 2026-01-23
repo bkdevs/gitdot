@@ -1,11 +1,9 @@
 mod git_http_backend_dto;
-mod organization_dto;
+mod organization;
 mod repository_dto;
-mod user_dto;
+mod user;
 
 pub use git_http_backend_dto::GitHttpBackendResponse;
-pub use organization_dto::{
-    AddOrganizationMemberRequest, CreateOrganizationRequest, FindOrganizationByNameRequest,
-};
+pub use organization::{CreateOrganizationRequest, GetOrganizationRequest, OrganizationResponse};
 pub use repository_dto::{CreateRepositoryRequest, RepositoryName};
-pub use user_dto::FindUserByNameRequest;
+pub use user::{GetUserRequest, UserResponse};

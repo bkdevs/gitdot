@@ -4,7 +4,7 @@ use crate::clients::{Git2Client, GitClient};
 use crate::dto::{CreateRepositoryRequest, FindOrganizationByNameRequest};
 use crate::errors::RepositoryError;
 use crate::models::{Repository, RepositoryOwnerType};
-use crate::repositories::{
+use crate::repository::{
     OrganizationRepository, OrganizationRepositoryImpl, RepositoryRepository,
     RepositoryRepositoryImpl,
 };
