@@ -12,7 +12,7 @@ use gitdot_core::service::{
     RepositoryService, RepositoryServiceImpl,
 };
 
-use super::settings::Settings;
+use super::Settings;
 
 #[derive(FromRef, Clone)]
 pub struct AppState {

@@ -2,8 +2,9 @@ use async_trait::async_trait;
 
 use crate::dto::{CreateOrganizationRequest, GetOrganizationRequest, OrganizationResponse};
 use crate::error::OrganizationError;
-use crate::repository::organization::{OrganizationRepository, OrganizationRepositoryImpl};
-use crate::repository::user::{UserRepository, UserRepositoryImpl};
+use crate::repository::{
+    OrganizationRepository, OrganizationRepositoryImpl, UserRepository, UserRepositoryImpl,
+};
 
 #[async_trait]
 pub trait OrganizationService: Send + Sync + 'static {

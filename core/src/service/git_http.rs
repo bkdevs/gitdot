@@ -1,32 +1,24 @@
 use async_trait::async_trait;
 
 use crate::client::{GitHttpBackendClient, GitHttpBackendClientImpl};
-use crate::dto::GitHttpBackendResponse;
+use crate::dto::{GitHttpBackendResponse, InfoRefsRequest, ReceivePackRequest, UploadPackRequest};
 use crate::error::GitHttpBackendError;
 
 #[async_trait]
 pub trait GitHttpBackendService: Send + Sync + 'static {
     async fn info_refs(
         &self,
-        owner: &str,
-        repo: &str,
-        service: &str,
+        request: InfoRefsRequest,
     ) -> Result<GitHttpBackendResponse, GitHttpBackendError>;
 
     async fn upload_pack(
         &self,
-        owner: &str,
-        repo: &str,
-        content_type: &str,
-        body: &[u8],
+        request: UploadPackRequest,
     ) -> Result<GitHttpBackendResponse, GitHttpBackendError>;
 
     async fn receive_pack(
         &self,
-        owner: &str,
-        repo: &str,
-        content_type: &str,
-        body: &[u8],
+        request: ReceivePackRequest,
     ) -> Result<GitHttpBackendResponse, GitHttpBackendError>;
 }
 
@@ -51,36 +43,42 @@ where
 {
     async fn info_refs(
         &self,
-        owner: &str,
-        repo: &str,
-        service: &str,
+        request: InfoRefsRequest,
     ) -> Result<GitHttpBackendResponse, GitHttpBackendError> {
-        self.git_http_client.info_refs(owner, repo, service).await
+        self.git_http_client
+            .info_refs(&request.owner, &request.repo, &request.service)
+            .await
     }
 
     async fn upload_pack(
         &self,
-        owner: &str,
-        repo: &str,
-        content_type: &str,
-        body: &[u8],
+        request: UploadPackRequest,
     ) -> Result<GitHttpBackendResponse, GitHttpBackendError> {
         self.git_http_client
-            .service_rpc(owner, repo, "upload-pack", content_type, body)
+            .service_rpc(
+                &request.owner,
+                &request.repo,
+                "upload-pack",
+                &request.content_type,
+                &request.body,
+            )
             .await
     }
 
     async fn receive_pack(
         &self,
-        owner: &str,
-        repo: &str,
-        content_type: &str,
-        body: &[u8],
+        request: ReceivePackRequest,
     ) -> Result<GitHttpBackendResponse, GitHttpBackendError> {
         // TODO: After successful receive-pack, we can parse the pack data
         // to extract commit information and persist it in DB (e.g. via CommitRepository)
         self.git_http_client
-            .service_rpc(owner, repo, "receive-pack", content_type, body)
+            .service_rpc(
+                &request.owner,
+                &request.repo,
+                "receive-pack",
+                &request.content_type,
+                &request.body,
+            )
             .await
     }
 }

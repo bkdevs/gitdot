@@ -1,6 +1,6 @@
-pub mod organization;
-pub mod repository;
-pub mod user;
+mod organization;
+mod repository;
+mod user;
 
 pub use organization::{OrganizationRepository, OrganizationRepositoryImpl};
 pub use repository::{RepositoryRepository, RepositoryRepositoryImpl};

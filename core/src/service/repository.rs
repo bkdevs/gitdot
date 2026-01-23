@@ -4,8 +4,10 @@ use crate::client::{Git2Client, GitClient};
 use crate::dto::{CreateRepositoryRequest, RepositoryResponse};
 use crate::error::RepositoryError;
 use crate::model::RepositoryOwnerType;
-use crate::repository::organization::{OrganizationRepository, OrganizationRepositoryImpl};
-use crate::repository::repository::{RepositoryRepository, RepositoryRepositoryImpl};
+use crate::repository::{
+    OrganizationRepository, OrganizationRepositoryImpl, RepositoryRepository,
+    RepositoryRepositoryImpl,
+};
 
 #[async_trait]
 pub trait RepositoryService: Send + Sync + 'static {
@@ -81,13 +83,12 @@ where
             .await?;
 
         // Insert into DB, delete git repo on failure
-        let owner_name = request.owner_name.to_string();
         let repository = match self
             .repo_repo
             .create(
                 &repo_name,
                 owner_id,
-                &owner_name,
+                &request.owner_name,
                 &request.owner_type,
                 &request.visibility,
             )
@@ -95,7 +96,10 @@ where
         {
             Ok(repo) => repo,
             Err(e) => {
-                let _ = self.git_client.delete_repo(&owner_name, &repo_name).await;
+                let _ = self
+                    .git_client
+                    .delete_repo(&request.owner_name, &repo_name)
+                    .await;
                 return Err(e.into());
             }
         };

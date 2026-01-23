@@ -9,7 +9,7 @@ use gitdot_core::error::{
     AuthorizationError, GitHttpBackendError, OrganizationError, RepositoryError,
 };
 
-use super::response::AppResponse;
+use super::AppResponse;
 
 #[derive(Debug, Error)]
 pub enum AppError {

@@ -1,5 +1,5 @@
-mod git_client;
-mod git_http_backend_client;
+mod git;
+mod git_http;
 
-pub use git_client::{Git2Client, GitClient};
-pub use git_http_backend_client::{GitHttpBackendClient, GitHttpBackendClientImpl};
+pub use git::{Git2Client, GitClient};
+pub use git_http::{GitHttpBackendClient, GitHttpBackendClientImpl};

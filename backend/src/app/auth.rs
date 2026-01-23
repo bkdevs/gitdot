@@ -10,7 +10,7 @@ use uuid::Uuid;
 
 use gitdot_core::error::AuthorizationError;
 
-use crate::app::{AppError, AppState};
+use super::{AppError, AppState};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct UserClaims {

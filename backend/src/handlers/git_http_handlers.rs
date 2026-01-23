@@ -3,6 +3,7 @@ use axum::{
     extract::{Path, Query, State},
     http::HeaderMap,
 };
+use gitdot_core::dto::{InfoRefsRequest, ReceivePackRequest, UploadPackRequest};
 
 use crate::app::{AppError, AppState};
 use crate::dto::{GitHttpResponse, InfoRefsQuery};
@@ -12,10 +13,12 @@ pub async fn git_info_refs(
     Path((owner, repo)): Path<(String, String)>,
     Query(params): Query<InfoRefsQuery>,
 ) -> Result<GitHttpResponse, AppError> {
-    let response = state
-        .git_http_service
-        .info_refs(&owner, &repo, &params.service)
-        .await?;
+    let request = InfoRefsRequest {
+        owner,
+        repo,
+        service: params.service,
+    };
+    let response = state.git_http_service.info_refs(request).await?;
 
     Ok(GitHttpResponse::from(response))
 }
@@ -33,12 +36,16 @@ pub async fn git_upload_pack(
     let content_type = headers
         .get("content-type")
         .and_then(|v| v.to_str().ok())
-        .unwrap_or("");
+        .unwrap_or("")
+        .to_string();
 
-    let response = state
-        .git_http_service
-        .upload_pack(&owner, &repo, content_type, &body_bytes)
-        .await?;
+    let request = UploadPackRequest {
+        owner,
+        repo,
+        content_type,
+        body: body_bytes.to_vec(),
+    };
+    let response = state.git_http_service.upload_pack(request).await?;
 
     Ok(GitHttpResponse::from(response))
 }
@@ -56,12 +63,16 @@ pub async fn git_receive_pack(
     let content_type = headers
         .get("content-type")
         .and_then(|v| v.to_str().ok())
-        .unwrap_or("");
+        .unwrap_or("")
+        .to_string();
 
-    let response = state
-        .git_http_service
-        .receive_pack(&owner, &repo, content_type, &body_bytes)
-        .await?;
+    let request = ReceivePackRequest {
+        owner,
+        repo,
+        content_type,
+        body: body_bytes.to_vec(),
+    };
+    let response = state.git_http_service.receive_pack(request).await?;
 
     Ok(GitHttpResponse::from(response))
 }
