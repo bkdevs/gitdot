@@ -1,6 +1,7 @@
 mod create_repository;
 mod get_repository_commits;
 mod get_repository_file;
+mod get_repository_file_commits;
 mod get_repository_tree;
 
 use chrono::{DateTime, Utc};
@@ -9,8 +10,9 @@ use uuid::Uuid;
 use crate::model::Repository;
 
 pub use create_repository::CreateRepositoryRequest;
-pub use get_repository_commits::{GetRepositoryCommitsRequest, RepositoryCommitsResponse};
+pub use get_repository_commits::GetRepositoryCommitsRequest;
 pub use get_repository_file::{GetRepositoryFileRequest, RepositoryFileResponse};
+pub use get_repository_file_commits::GetRepositoryFileCommitsRequest;
 pub use get_repository_tree::{
     GetRepositoryTreeRequest, RepositoryTreeEntry, RepositoryTreeResponse,
 };
@@ -34,6 +36,12 @@ impl From<Repository> for RepositoryResponse {
             created_at: repo.created_at,
         }
     }
+}
+
+#[derive(Debug, Clone)]
+pub struct RepositoryCommitsResponse {
+    pub commits: Vec<RepositoryCommitResponse>,
+    pub has_next: bool,
 }
 
 #[derive(Debug, Clone)]

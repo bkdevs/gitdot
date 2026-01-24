@@ -1,18 +1,6 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-fn default_ref() -> String {
-    "HEAD".to_string()
-}
-
-fn default_page() -> u32 {
-    1
-}
-
-fn default_per_page() -> u32 {
-    30
-}
-
 #[derive(Serialize, Clone)]
 pub struct RepositoryFile {
     pub ref_name: String,
@@ -21,23 +9,6 @@ pub struct RepositoryFile {
     pub sha: String,
     pub content: String,
     pub encoding: String,
-}
-
-#[derive(Deserialize)]
-pub struct RepositoryFileCommitsQuery {
-    pub path: String,
-    #[serde(default = "default_ref")]
-    pub ref_name: String,
-    #[serde(default = "default_page")]
-    pub page: u32,
-    #[serde(default = "default_per_page")]
-    pub per_page: u32,
-}
-
-#[derive(Serialize)]
-pub struct RepositoryCommits {
-    pub commits: Vec<RepositoryCommit>,
-    pub has_next: bool,
 }
 
 #[derive(Serialize, Clone)]

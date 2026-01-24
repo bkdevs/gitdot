@@ -43,6 +43,16 @@ pub trait GitClient: Send + Sync + Clone + 'static {
         per_page: u32,
     ) -> Result<RepositoryCommitsResponse, GitError>;
 
+    async fn get_repo_file_commits(
+        &self,
+        owner: &str,
+        repo: &str,
+        ref_name: &str,
+        path: &str,
+        page: u32,
+        per_page: u32,
+    ) -> Result<RepositoryCommitsResponse, GitError>;
+
     fn normalize_repo_name(&self, repo: &str) -> String {
         format!(
             "{}{}",
@@ -430,6 +440,122 @@ impl GitClient for Git2Client {
             let mut commits = commits?;
             let has_next = commits.len() > take;
 
+            if has_next {
+                commits.pop();
+            }
+
+            Ok(RepositoryCommitsResponse { commits, has_next })
+        })
+        .await?
+    }
+
+    async fn get_repo_file_commits(
+        &self,
+        owner: &str,
+        repo: &str,
+        ref_name: &str,
+        path: &str,
+        page: u32,
+        per_page: u32,
+    ) -> Result<RepositoryCommitsResponse, GitError> {
+        let ref_name = ref_name.to_string();
+        let path = path.to_string();
+        let repository = self.open_repository(owner, repo)?;
+
+        let skip = ((page.saturating_sub(1)) * per_page) as usize;
+        let take = per_page as usize;
+
+        task::spawn_blocking(move || {
+            let start_commit = Self::resolve_ref(&repository, &ref_name)?;
+
+            let mut revwalk = repository.revwalk()?;
+            revwalk.push(start_commit.id())?;
+            revwalk.set_sorting(git2::Sort::TIME).ok();
+
+            let mut current_path = path;
+            let mut commits = Vec::new();
+            let mut count = 0;
+
+            for oid_result in revwalk {
+                let oid = oid_result?;
+                let commit = repository.find_commit(oid)?;
+
+                let mut modified = false;
+
+                if commit.parent_count() == 0 {
+                    // Initial commit - check if file exists
+                    let tree = commit.tree()?;
+                    if tree.get_path(std::path::Path::new(&current_path)).is_ok() {
+                        modified = true;
+                    }
+                } else {
+                    // Check diff against parent
+                    for parent in commit.parents() {
+                        let parent_tree = parent.tree()?;
+                        let commit_tree = commit.tree()?;
+
+                        let mut diff_opts = git2::DiffOptions::new();
+                        diff_opts.pathspec(&current_path);
+
+                        let diff = repository.diff_tree_to_tree(
+                            Some(&parent_tree),
+                            Some(&commit_tree),
+                            Some(&mut diff_opts),
+                        )?;
+
+                        // Check if diff contains our path
+                        let path_modified = diff.deltas().any(|delta| {
+                            delta
+                                .new_file()
+                                .path()
+                                .and_then(|p| p.to_str())
+                                .map(|p| p == current_path)
+                                .unwrap_or(false)
+                                || delta
+                                    .old_file()
+                                    .path()
+                                    .and_then(|p| p.to_str())
+                                    .map(|p| p == current_path)
+                                    .unwrap_or(false)
+                        });
+
+                        if path_modified {
+                            modified = true;
+
+                            // Check for renames and update path for next iteration
+                            for delta in diff.deltas() {
+                                if delta.status() == git2::Delta::Renamed {
+                                    if let Some(new_path) = delta.new_file().path() {
+                                        if new_path.to_str() == Some(&current_path) {
+                                            if let Some(old_path) = delta.old_file().path() {
+                                                if let Some(old_path_str) = old_path.to_str() {
+                                                    current_path = old_path_str.to_string();
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            break; // Found modification, no need to check other parents
+                        }
+                    }
+                }
+
+                if modified {
+                    if count >= skip && commits.len() < take + 1 {
+                        commits.push(RepositoryCommitResponse::from(&commit));
+                    }
+                    count += 1;
+                }
+
+                // Early exit when we have enough results
+                if commits.len() > take {
+                    break;
+                }
+            }
+
+            let has_next = commits.len() > take;
             if has_next {
                 commits.pop();
             }

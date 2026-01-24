@@ -1,6 +1,7 @@
 mod create_repository;
 mod get_repository_commits;
 mod get_repository_file;
+mod get_repository_file_commits;
 mod get_repository_tree;
 
 use chrono::{DateTime, Utc};
@@ -11,6 +12,7 @@ use gitdot_core::dto::RepositoryCommitResponse;
 pub use create_repository::{CreateRepositoryServerRequest, CreateRepositoryServerResponse};
 pub use get_repository_commits::{GetRepositoryCommitsQuery, GetRepositoryCommitsServerResponse};
 pub use get_repository_file::{GetRepositoryFileQuery, GetRepositoryFileServerResponse};
+pub use get_repository_file_commits::GetRepositoryFileCommitsQuery;
 pub use get_repository_tree::{GetRepositoryTreeQuery, GetRepositoryTreeServerResponse};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]

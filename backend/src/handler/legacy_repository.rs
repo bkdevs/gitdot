@@ -2,37 +2,16 @@ use std::sync::Arc;
 
 use axum::{
     Json,
-    extract::{Path, Query, State},
+    extract::{Path, State},
     http::StatusCode,
 };
 use chrono::DateTime;
 
 use crate::app::Settings;
 use crate::dto::legacy_repository::{
-    DifftasticOutput, RepositoryCommit, RepositoryCommitDiffs, RepositoryCommits, RepositoryFile,
-    RepositoryFileCommitsQuery, RepositoryFileDiff,
+    DifftasticOutput, RepositoryCommit, RepositoryCommitDiffs, RepositoryFile, RepositoryFileDiff,
 };
 use crate::utils::git::normalize_repo_name;
-
-pub async fn get_repository_file_commits(
-    State(settings): State<Arc<Settings>>,
-    Path((owner, repo)): Path<(String, String)>,
-    Query(query): Query<RepositoryFileCommitsQuery>,
-) -> Result<Json<RepositoryCommits>, StatusCode> {
-    if query.path.is_empty() {
-        return Err(StatusCode::BAD_REQUEST);
-    }
-
-    let repo_name = normalize_repo_name(&repo);
-    let repository = open_repository(&settings, &owner, &repo_name)?;
-    let commit = resolve_ref(&repository, &query.ref_name)?;
-
-    let skip = ((query.page.saturating_sub(1)) * query.per_page) as usize;
-    let take = query.per_page as usize;
-    let (commits, has_next) = get_file_commits(&repository, commit, &query.path, skip, take)?;
-
-    Ok(Json(RepositoryCommits { commits, has_next }))
-}
 
 fn open_repository(
     settings: &Settings,
@@ -55,126 +34,6 @@ fn resolve_ref<'repo>(
 
 fn is_binary(data: &[u8]) -> bool {
     data.iter().take(8000).any(|&b| b == 0)
-}
-
-fn get_file_commits(
-    repo: &git2::Repository,
-    start_commit: git2::Commit,
-    file_path: &str,
-    skip: usize,
-    take: usize,
-) -> Result<(Vec<RepositoryCommit>, bool), StatusCode> {
-    let mut revwalk = repo
-        .revwalk()
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-
-    revwalk
-        .push(start_commit.id())
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-
-    revwalk.set_sorting(git2::Sort::TIME).ok();
-
-    let mut current_path = file_path.to_string();
-    let mut commits = Vec::new();
-    let mut count = 0;
-
-    for oid_result in revwalk {
-        let oid = oid_result.map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-        let commit = repo
-            .find_commit(oid)
-            .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-
-        let mut modified = false;
-
-        if commit.parent_count() == 0 {
-            let tree = commit
-                .tree()
-                .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-            if tree.get_path(std::path::Path::new(&current_path)).is_ok() {
-                modified = true;
-            }
-        } else {
-            for parent in commit.parents() {
-                let parent_tree = parent
-                    .tree()
-                    .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-                let commit_tree = commit
-                    .tree()
-                    .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-
-                let mut diff_opts = git2::DiffOptions::new();
-                diff_opts.pathspec(&current_path);
-
-                let diff = repo
-                    .diff_tree_to_tree(Some(&parent_tree), Some(&commit_tree), Some(&mut diff_opts))
-                    .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-
-                // Check if diff contains our path
-                if diff.deltas().any(|delta| {
-                    delta
-                        .new_file()
-                        .path()
-                        .and_then(|p| p.to_str())
-                        .map(|p| p == current_path)
-                        .unwrap_or(false)
-                        || delta
-                            .old_file()
-                            .path()
-                            .and_then(|p| p.to_str())
-                            .map(|p| p == current_path)
-                            .unwrap_or(false)
-                }) {
-                    modified = true;
-
-                    // Check for renames and update path for next iteration
-                    for delta in diff.deltas() {
-                        if delta.status() == git2::Delta::Renamed {
-                            if let Some(new_path) = delta.new_file().path() {
-                                if new_path.to_str() == Some(&current_path) {
-                                    if let Some(old_path) = delta.old_file().path() {
-                                        current_path = old_path.to_str().unwrap().to_string();
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    break; // Found modification, no need to check other parents
-                }
-            }
-        }
-
-        if modified {
-            if count >= skip && commits.len() < take + 1 {
-                let commit_sha = commit.id().to_string();
-                let message = commit.message().unwrap_or("").to_string();
-                let author = commit.author();
-                let author_name = author.name().unwrap_or("Unknown").to_string();
-                let timestamp = author.when().seconds();
-                let date = DateTime::from_timestamp(timestamp, 0).unwrap_or_default();
-
-                commits.push(RepositoryCommit {
-                    sha: commit_sha,
-                    message,
-                    author: author_name,
-                    date,
-                });
-            }
-            count += 1;
-        }
-
-        // Early exit when we have enough results
-        if commits.len() > take {
-            break;
-        }
-    }
-
-    let has_next = commits.len() > take;
-    if has_next {
-        commits.pop();
-    }
-
-    Ok((commits, has_next))
 }
 
 pub async fn get_repository_commit_stats(

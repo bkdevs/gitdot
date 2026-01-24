@@ -21,9 +21,7 @@ use tower_http::{
     trace::TraceLayer,
 };
 
-use crate::handler::legacy_repository::{
-    get_repository_commit_diffs, get_repository_commit_stats, get_repository_file_commits,
-};
+use crate::handler::legacy_repository::{get_repository_commit_diffs, get_repository_commit_stats};
 use crate::handler::{
     create_git_http_router, create_organization_router, create_repository_router,
 };
@@ -76,10 +74,6 @@ fn create_router(app_state: AppState) -> Router {
         .route(
             "/repository/{owner}/{repo}/commits/{sha}/diffs",
             get(get_repository_commit_diffs),
-        )
-        .route(
-            "/repository/{owner}/{repo}/file/commits",
-            get(get_repository_file_commits),
         );
 
     let middleware = ServiceBuilder::new()

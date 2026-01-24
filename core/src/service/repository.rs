@@ -2,9 +2,9 @@ use async_trait::async_trait;
 
 use crate::client::{Git2Client, GitClient};
 use crate::dto::{
-    CreateRepositoryRequest, GetRepositoryCommitsRequest, GetRepositoryFileRequest,
-    GetRepositoryTreeRequest, RepositoryCommitsResponse, RepositoryFileResponse,
-    RepositoryResponse, RepositoryTreeResponse,
+    CreateRepositoryRequest, GetRepositoryCommitsRequest, GetRepositoryFileCommitsRequest,
+    GetRepositoryFileRequest, GetRepositoryTreeRequest, RepositoryCommitsResponse,
+    RepositoryFileResponse, RepositoryResponse, RepositoryTreeResponse,
 };
 use crate::error::RepositoryError;
 use crate::model::RepositoryOwnerType;
@@ -33,6 +33,11 @@ pub trait RepositoryService: Send + Sync + 'static {
     async fn get_repository_commits(
         &self,
         request: GetRepositoryCommitsRequest,
+    ) -> Result<RepositoryCommitsResponse, RepositoryError>;
+
+    async fn get_repository_file_commits(
+        &self,
+        request: GetRepositoryFileCommitsRequest,
     ) -> Result<RepositoryCommitsResponse, RepositoryError>;
 }
 
@@ -160,6 +165,23 @@ where
                 &request.owner_name,
                 &request.name,
                 &request.ref_name,
+                request.page,
+                request.per_page,
+            )
+            .await
+            .map_err(|e| e.into())
+    }
+
+    async fn get_repository_file_commits(
+        &self,
+        request: GetRepositoryFileCommitsRequest,
+    ) -> Result<RepositoryCommitsResponse, RepositoryError> {
+        self.git_client
+            .get_repo_file_commits(
+                &request.owner_name,
+                &request.name,
+                &request.ref_name,
+                &request.path,
                 request.page,
                 request.per_page,
             )
