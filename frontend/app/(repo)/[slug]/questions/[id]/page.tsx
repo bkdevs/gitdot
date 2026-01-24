@@ -5,7 +5,7 @@ export default function Page({ params }: { params: { id: string } }) {
   return (
     <div className="flex flex-col w-full">
       <QuestionHeader />
-      <div className="flex px-6 py-4">
+      <div className="flex pl-8 py-4 max-w-4xl">
         <div className="flex flex-col items-center gap-0 text-muted-foreground text-xl">
           <button className="text-muted-foreground hover:text-foreground">
             <ChevronUp />
@@ -16,7 +16,7 @@ export default function Page({ params }: { params: { id: string } }) {
           </button>
         </div>
 
-        <div className="flex-1 ml-6 max-w-3xl">
+        <div className="flex-1 ml-8">
           <h1 className="text-xl font-medium mb-2">
             How do I fix authentication bug in login flow?
           </h1>
@@ -48,8 +48,7 @@ export default function Page({ params }: { params: { id: string } }) {
               Has anyone else encountered this? Any help would be appreciated.
             </p>
           </div>
-          <div className="mt-8 mb-2 border border-border" />
-          <div className="flex justify-between text-sm">
+          <div className="flex mt-8 justify-between text-sm">
             <div className="flex gap-4">
               <span>
                 <span className="text-muted-foreground">Asked</span> today
@@ -65,6 +64,115 @@ export default function Page({ params }: { params: { id: string } }) {
               <span className="underline">johndoe</span>
               <span>1,234</span>
             </div>
+          </div>
+
+          <div className="mt-2 mb-2 border border-gray-100" />
+        </div>
+      </div>
+
+      <div className="flex justify-between items-center pl-4 py-8 max-w-4xl">
+        <span className="text-lg font-medium">2 Answers</span>
+        <div className="flex items-center gap-2 text-sm">
+          <span className="text-muted-foreground">Sorted by:</span>
+          <select className="bg-transparent border border-border rounded px-2 py-1">
+            <option>Highest score</option>
+            <option>Date modified</option>
+            <option>Date created</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-16">
+        {/* Answer 1 */}
+        <div className="flex pl-8 max-w-4xl">
+          <div className="flex flex-col items-center gap-0 text-muted-foreground text-xl">
+            <button className="text-muted-foreground hover:text-foreground">
+              <ChevronUp />
+            </button>
+            <span>28</span>
+            <button className="text-muted-foreground hover:text-foreground">
+              <ChevronDown />
+            </button>
+          </div>
+
+          <div className="flex-1 ml-8">
+            <div className="text-sm">
+              <p className="mb-4">
+                This is a known issue with the latest OAuth library update. The
+                token validation endpoint changed their response format.
+              </p>
+              <p className="mb-4">
+                You need to update your validateToken function to handle the new
+                response structure:
+              </p>
+              <pre className="bg-muted p-3 rounded text-sm overflow-x-auto mb-4">{`export async function validateToken(token: string) {
+  const response = await fetch('/api/validate', {
+    headers: { Authorization: \`Bearer \${token}\` }
+  });
+  const data = await response.json();
+  // New format wraps user in a 'data' object
+  return data.data.user;
+}`}</pre>
+              <p>
+                This fixed the issue for me in production. Make sure to also
+                clear your Redis cache if you're caching tokens.
+              </p>
+            </div>
+            <div className="flex justify-between text-sm mt-8">
+              <div className="flex gap-4">
+                <span>
+                  <span className="text-muted-foreground">Answered</span> 2
+                  hours ago
+                </span>
+              </div>
+              <div className="flex gap-2 text-muted-foreground">
+                <span className="underline">janedoe</span>
+                <span>5,678</span>
+              </div>
+            </div>
+
+            <div className="mt-2 mb-2 border border-gray-100" />
+          </div>
+        </div>
+
+        {/* Answer 2 */}
+        <div className="flex pl-8 py-4 max-w-4xl">
+          <div className="flex flex-col items-center gap-0 text-muted-foreground text-xl">
+            <button className="text-muted-foreground hover:text-foreground">
+              <ChevronUp />
+            </button>
+            <span>12</span>
+            <button className="text-muted-foreground hover:text-foreground">
+              <ChevronDown />
+            </button>
+          </div>
+
+          <div className="flex-1 ml-8">
+            <div className="text-sm">
+              <p className="mb-4">
+                I had the same problem. In my case, it was a CORS issue in
+                production. The OAuth callback URL was being blocked.
+              </p>
+              <p>
+                Check your CORS configuration and make sure your production
+                domain is whitelisted in both your OAuth provider settings and
+                your server configuration.
+              </p>
+            </div>
+            <div className="flex justify-between text-sm mt-8">
+              <div className="flex gap-4">
+                <span>
+                  <span className="text-muted-foreground">Answered</span> 1 hour
+                  ago
+                </span>
+              </div>
+              <div className="flex gap-2 text-muted-foreground">
+                <span className="underline">bobsmith</span>
+                <span>892</span>
+              </div>
+            </div>
+
+            <div className="mt-2 mb-2 border border-gray-100" />
           </div>
         </div>
       </div>
