@@ -6,14 +6,14 @@ use axum::{
 use gitdot_core::dto::CreateOrganizationRequest;
 
 use crate::app::{AppError, AppResponse, AppState, AuthenticatedUser};
-use crate::dto::CreateOrganizationResponse;
+use crate::dto::CreateOrganizationServerResponse;
 
 #[axum::debug_handler]
 pub async fn create_organization(
     auth_user: AuthenticatedUser,
     State(state): State<AppState>,
     Path(org_name): Path<String>,
-) -> Result<AppResponse<CreateOrganizationResponse>, AppError> {
+) -> Result<AppResponse<CreateOrganizationServerResponse>, AppError> {
     let request = CreateOrganizationRequest::new(&org_name, auth_user.id)?;
     state
         .org_service

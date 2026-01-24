@@ -1,8 +1,8 @@
 mod git_http;
+pub mod legacy_repository;
 mod organization;
-pub mod repository;
-mod repository_dto;
+mod repository;
 
 pub use git_http::{GitHttpServerResponse, InfoRefsQuery};
-pub use organization::CreateOrganizationResponse;
-pub use repository_dto::{CreateRepositoryRequest, CreateRepositoryResponse};
+pub use organization::CreateOrganizationServerResponse;
+pub use repository::{CreateRepositoryServerRequest, CreateRepositoryServerResponse};

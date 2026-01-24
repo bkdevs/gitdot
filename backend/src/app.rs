@@ -11,10 +11,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use anyhow::Context;
-use axum::{
-    Router,
-    routing::{get, post},
-};
+use axum::{Router, routing::get};
 use tokio::net;
 use tower::ServiceBuilder;
 use tower_http::{
@@ -25,12 +22,12 @@ use tower_http::{
 };
 
 use crate::handlers::git_http::create_git_http_router;
-use crate::handlers::organization::create_organization_router;
-use crate::handlers::repository::{
+use crate::handlers::legacy_repository::{
     get_repository_commit_diffs, get_repository_commit_stats, get_repository_commits,
     get_repository_file, get_repository_file_commits, get_repository_tree,
 };
-use crate::handlers::repository_handlers::create_repository;
+use crate::handlers::organization::create_organization_router;
+use crate::handlers::repository::create_repository_router;
 
 pub use app_state::AppState;
 pub use auth::AuthenticatedUser;
@@ -70,8 +67,7 @@ impl GitdotServer {
 pub fn create_router(app_state: AppState) -> Router {
     let git_router = create_git_http_router();
     let org_router = create_organization_router();
-
-    let repo_router = Router::new().route("/repository/{owner}/{repo}", post(create_repository));
+    let repo_router = create_repository_router();
 
     let old_repo_router = Router::new()
         .route("/repository/{owner}/{repo}/tree", get(get_repository_tree))

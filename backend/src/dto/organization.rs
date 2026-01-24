@@ -1,3 +1,3 @@
 mod create_organization;
 
-pub use create_organization::CreateOrganizationResponse;
+pub use create_organization::CreateOrganizationServerResponse;

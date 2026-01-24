@@ -5,7 +5,7 @@ use uuid::Uuid;
 use gitdot_core::dto::RepositoryResponse;
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
-pub struct CreateRepositoryRequest {
+pub struct CreateRepositoryServerRequest {
     pub owner_type: String,
 
     #[serde(default = "default_visibility")]
@@ -13,7 +13,7 @@ pub struct CreateRepositoryRequest {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub struct CreateRepositoryResponse {
+pub struct CreateRepositoryServerResponse {
     pub id: Uuid,
     pub name: String,
     pub owner_name: String,
@@ -21,13 +21,13 @@ pub struct CreateRepositoryResponse {
     pub created_at: DateTime<Utc>,
 }
 
-impl From<&RepositoryResponse> for CreateRepositoryResponse {
-    fn from(repo: &RepositoryResponse) -> Self {
+impl From<RepositoryResponse> for CreateRepositoryServerResponse {
+    fn from(repo: RepositoryResponse) -> Self {
         Self {
             id: repo.id,
-            name: repo.name.clone(),
-            owner_name: repo.owner.clone(),
-            visibility: repo.visibility.clone(),
+            name: repo.name,
+            owner_name: repo.owner,
+            visibility: repo.visibility,
             created_at: repo.created_at,
         }
     }

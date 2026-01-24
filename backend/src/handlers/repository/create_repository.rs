@@ -6,17 +6,15 @@ use axum::{
 use gitdot_core::dto::CreateRepositoryRequest;
 
 use crate::app::{AppError, AppResponse, AppState, AuthenticatedUser};
-use crate::dto::{
-    CreateRepositoryRequest as CreateRepositoryHttpRequest, CreateRepositoryResponse,
-};
+use crate::dto::{CreateRepositoryServerRequest, CreateRepositoryServerResponse};
 
 #[axum::debug_handler]
 pub async fn create_repository(
     auth_user: AuthenticatedUser,
     State(state): State<AppState>,
     Path((owner, repo)): Path<(String, String)>,
-    Json(request): Json<CreateRepositoryHttpRequest>,
-) -> Result<AppResponse<CreateRepositoryResponse>, AppError> {
+    Json(request): Json<CreateRepositoryServerRequest>,
+) -> Result<AppResponse<CreateRepositoryServerResponse>, AppError> {
     let request = CreateRepositoryRequest::new(
         &repo,
         auth_user.id,
@@ -29,5 +27,5 @@ pub async fn create_repository(
         .create_repository(request)
         .await
         .map_err(AppError::from)
-        .map(|ref repo| AppResponse::new(StatusCode::CREATED, repo.into()))
+        .map(|repo| AppResponse::new(StatusCode::CREATED, repo.into()))
 }
