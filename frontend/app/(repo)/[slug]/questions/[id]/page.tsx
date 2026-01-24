@@ -1,7 +1,11 @@
+"use client";
+
 import { ChevronDown, ChevronUp } from "lucide-react";
+import { useState } from "react";
 import { QuestionHeader } from "./ui/question-header";
 
 export default function Page({ params }: { params: { id: string } }) {
+  const [showCommentInput, setShowCommentInput] = useState(false);
   return (
     <div className="flex flex-col w-full">
       <QuestionHeader />
@@ -56,9 +60,6 @@ export default function Page({ params }: { params: { id: string } }) {
               <span>
                 <span className="text-muted-foreground">Modified</span> today
               </span>
-              <span>
-                <span className="text-muted-foreground">Viewed</span> 3 times
-              </span>
             </div>
             <div className="flex gap-2 text-muted-foreground">
               <span className="underline">johndoe</span>
@@ -67,6 +68,67 @@ export default function Page({ params }: { params: { id: string } }) {
           </div>
 
           <div className="mt-2 mb-2 border border-gray-100" />
+
+          {/* Comments */}
+          <div className="flex flex-col gap-2 text-xs">
+            <div className="flex items-start gap-1">
+              <span className="w-4 text-right text-muted-foreground">5</span>
+              <button className="text-muted-foreground hover:text-foreground">
+                <ChevronUp className="w-4 h-4" />
+              </button>
+              <p className="flex-1">
+                Have you checked if the OAuth provider changed their API
+                recently? I remember seeing a similar issue last month when they
+                updated their token validation endpoint and changed the response
+                format.
+              </p>
+              <span className="text-muted-foreground shrink-0">
+                <span className="underline">devuser123</span> 2 hours ago
+              </span>
+            </div>
+            <div className="flex items-start gap-1">
+              <span className="w-4 text-right text-muted-foreground">3</span>
+              <button className="text-muted-foreground hover:text-foreground">
+                <ChevronUp className="w-4 h-4" />
+              </button>
+              <p className="flex-1">
+                @devuser123 yes, that was my first thought too. The changelog
+                doesn't mention any breaking changes though.
+              </p>
+              <span className="text-muted-foreground shrink-0">
+                <span className="underline">johndoe</span> 1 hour ago
+              </span>
+            </div>
+            <div className="flex items-start gap-1">
+              <span className="w-4 text-right text-muted-foreground">1</span>
+              <button className="text-muted-foreground hover:text-foreground">
+                <ChevronUp className="w-4 h-4" />
+              </button>
+              <p className="flex-1">
+                Can you share your environment variables (redacted)? Might be a
+                config issue.
+              </p>
+              <span className="text-muted-foreground shrink-0">
+                <span className="underline">helpfuldev</span> 45 min ago
+              </span>
+            </div>
+            {showCommentInput ? (
+              <input
+                type="text"
+                placeholder="Write a comment..."
+                className="w-full mt-2 px-2 py-1 text-xs border border-border rounded bg-transparent"
+                autoFocus
+                onBlur={() => setShowCommentInput(false)}
+              />
+            ) : (
+              <button
+                onClick={() => setShowCommentInput(true)}
+                className="text-xs text-muted-foreground hover:text-foreground mt-2 block text-left"
+              >
+                Add a comment...
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -132,6 +194,36 @@ export default function Page({ params }: { params: { id: string } }) {
             </div>
 
             <div className="mt-2 mb-2 border border-gray-100" />
+
+            {/* Comments */}
+            <div className="flex flex-col gap-2 text-xs">
+              <div className="flex items-start gap-1">
+                <span className="w-4 text-right text-muted-foreground">8</span>
+                <button className="text-muted-foreground hover:text-foreground">
+                  <ChevronUp className="w-4 h-4" />
+                </button>
+                <p className="flex-1">
+                  This worked perfectly! The data.data.user change was exactly
+                  what I needed.
+                </p>
+                <span className="text-muted-foreground shrink-0">
+                  <span className="underline">johndoe</span> 1 hour ago
+                </span>
+              </div>
+              <div className="flex items-start gap-1">
+                <span className="w-4 text-right text-muted-foreground">2</span>
+                <button className="text-muted-foreground hover:text-foreground">
+                  <ChevronUp className="w-4 h-4" />
+                </button>
+                <p className="flex-1">
+                  Don't forget to also update the types if you're using
+                  TypeScript!
+                </p>
+                <span className="text-muted-foreground shrink-0">
+                  <span className="underline">tsdev</span> 30 min ago
+                </span>
+              </div>
+            </div>
           </div>
         </div>
 
