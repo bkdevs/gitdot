@@ -13,40 +13,6 @@ fn default_per_page() -> u32 {
     30
 }
 
-#[derive(Deserialize)]
-pub struct RepositoryTreeQuery {
-    #[serde(default = "default_ref")]
-    pub ref_name: String,
-    #[serde(default)]
-    pub path: String,
-}
-
-#[derive(Serialize)]
-pub struct RepositoryTree {
-    pub ref_name: String,
-    pub commit_sha: String,
-    pub path: String,
-    pub entries: Vec<RepositoryTreeEntry>,
-}
-
-#[derive(Serialize)]
-pub struct RepositoryTreeEntry {
-    pub path: String,
-    pub name: String,
-    pub entry_type: String,
-    pub sha: String,
-    pub commit: RepositoryCommit,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub preview: Option<String>,
-}
-
-#[derive(Deserialize)]
-pub struct RepositoryFileQuery {
-    #[serde(default = "default_ref")]
-    pub ref_name: String,
-    pub path: String,
-}
-
 #[derive(Serialize, Clone)]
 pub struct RepositoryFile {
     pub ref_name: String,

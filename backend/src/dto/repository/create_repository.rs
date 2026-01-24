@@ -14,11 +14,11 @@ pub struct CreateRepositoryServerRequest {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct CreateRepositoryServerResponse {
-    pub id: Uuid,
-    pub name: String,
-    pub owner_name: String,
-    pub visibility: String,
-    pub created_at: DateTime<Utc>,
+    id: Uuid,
+    name: String,
+    owner_name: String,
+    visibility: String,
+    created_at: DateTime<Utc>,
 }
 
 impl From<RepositoryResponse> for CreateRepositoryServerResponse {

@@ -12,6 +12,7 @@ pub use git_http::{GitHttpResponse, InfoRefsRequest, ReceivePackRequest, UploadP
 pub use organization::{CreateOrganizationRequest, GetOrganizationRequest, OrganizationResponse};
 pub use repository::{
     CreateRepositoryRequest, GetRepositoryFileRequest, GetRepositoryTreeRequest,
-    RepositoryFileResponse, RepositoryResponse, RepositoryTreeEntry, RepositoryTreeResponse,
+    RepositoryCommitResponse, RepositoryFileResponse, RepositoryResponse, RepositoryTreeEntry,
+    RepositoryTreeResponse,
 };
 pub use user::{GetUserRequest, UserResponse};

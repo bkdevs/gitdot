@@ -33,3 +33,23 @@ impl From<Repository> for RepositoryResponse {
         }
     }
 }
+
+#[derive(Debug, Clone)]
+pub struct RepositoryCommitResponse {
+    pub sha: String,
+    pub message: String,
+    pub author: String,
+    pub date: DateTime<Utc>,
+}
+
+impl From<&git2::Commit<'_>> for RepositoryCommitResponse {
+    fn from(commit: &git2::Commit) -> Self {
+        let author = commit.author();
+        Self {
+            sha: commit.id().to_string(),
+            message: commit.message().unwrap_or("").to_string(),
+            author: author.name().unwrap_or("Unknown").to_string(),
+            date: DateTime::from_timestamp(author.when().seconds(), 0).unwrap_or_default(),
+        }
+    }
+}

@@ -68,7 +68,6 @@ export type RepositoryTreeEntry = z.infer<typeof RepositoryTreeEntrySchema>;
 export const RepositoryTreeSchema = z.object({
   ref_name: z.string(),
   commit_sha: z.string(),
-  path: z.string(),
   entries: z.array(RepositoryTreeEntrySchema),
 });
 

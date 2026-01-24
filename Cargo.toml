@@ -4,6 +4,7 @@ resolver = "3"
 
 [workspace.dependencies]
 async-trait = "0.1.89"
+base64 = "0.22"
 chrono = { version = "0.4.42", features = ["serde"] }
 git2 = "0.20.3"
 nutype = { version = "0.6.2", features = ["serde"] }

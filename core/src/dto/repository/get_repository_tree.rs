@@ -1,4 +1,4 @@
-use crate::dto::{OwnerName, RepositoryName};
+use crate::dto::{OwnerName, RepositoryCommitResponse, RepositoryName};
 use crate::error::RepositoryError;
 
 #[derive(Debug, Clone)]
@@ -39,7 +39,5 @@ pub struct RepositoryTreeEntry {
     pub name: String,
     pub entry_type: String,
     pub sha: String,
-    // pub commit: RepositoryCommit,
-    // #[serde(skip_serializing_if = "Option::is_none")]
-    // pub preview: Option<String>,
+    pub commit: RepositoryCommitResponse,
 }
