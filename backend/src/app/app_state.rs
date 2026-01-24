@@ -8,8 +8,8 @@ use gitdot_core::repository::{
     OrganizationRepositoryImpl, RepositoryRepositoryImpl, UserRepositoryImpl,
 };
 use gitdot_core::service::{
-    GitHttpService, GitHttpServiceImpl, OrganizationService, OrganizationServiceImpl,
-    RepositoryService, RepositoryServiceImpl,
+    AuthorizationService, AuthorizationServiceImpl, GitHttpService, GitHttpServiceImpl,
+    OrganizationService, OrganizationServiceImpl, RepositoryService, RepositoryServiceImpl,
 };
 
 use super::Settings;
@@ -17,6 +17,7 @@ use super::Settings;
 #[derive(FromRef, Clone)]
 pub struct AppState {
     pub settings: Arc<Settings>,
+    pub auth_service: Arc<dyn AuthorizationService>,
     pub org_service: Arc<dyn OrganizationService>,
     pub repo_service: Arc<dyn RepositoryService>,
     pub git_http_service: Arc<dyn GitHttpService>,
@@ -31,6 +32,10 @@ impl AppState {
         let repo_repo = RepositoryRepositoryImpl::new(pool.clone());
         let user_repo = UserRepositoryImpl::new(pool.clone());
 
+        let auth_service = Arc::new(AuthorizationServiceImpl::new(
+            org_repo.clone(),
+            repo_repo.clone(),
+        ));
         let org_service = Arc::new(OrganizationServiceImpl::new(
             org_repo.clone(),
             user_repo.clone(),
@@ -44,6 +49,7 @@ impl AppState {
 
         Self {
             settings,
+            auth_service,
             org_service,
             repo_service,
             git_http_service,

@@ -59,14 +59,19 @@ where
             return Ok(());
         }
 
+        if request.user_id.is_none() {
+            return Err(AuthorizationError::Unauthorized);
+        }
+
+        let user_id = request.user_id.unwrap();
         if repository.is_owned_by_user() {
-            if repository.owner_id != request.user_id {
+            if repository.owner_id != user_id {
                 return Err(AuthorizationError::Unauthorized);
             }
         } else {
             let is_member = self
                 .org_repo
-                .is_member(repository.owner_id, request.user_id)
+                .is_member(repository.owner_id, user_id)
                 .await?;
             if !is_member {
                 return Err(AuthorizationError::Unauthorized);

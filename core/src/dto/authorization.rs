@@ -5,14 +5,14 @@ use crate::error::AuthorizationError;
 
 #[derive(Debug, Clone)]
 pub struct RepositoryAuthorizationRequest {
-    pub user_id: Uuid,
+    pub user_id: Option<Uuid>,
     pub owner_name: OwnerName,
     pub repo_name: RepositoryName,
 }
 
 impl RepositoryAuthorizationRequest {
     pub fn new(
-        user_id: Uuid,
+        user_id: Option<Uuid>,
         owner_name: &str,
         repo_name: &str,
     ) -> Result<Self, AuthorizationError> {
