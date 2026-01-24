@@ -11,7 +11,16 @@ use crate::app::Settings;
 use crate::dto::legacy_repository::{
     DifftasticOutput, RepositoryCommit, RepositoryCommitDiffs, RepositoryFile, RepositoryFileDiff,
 };
-use crate::utils::git::normalize_repo_name;
+
+const REPO_SUFFIX: &str = ".git";
+
+fn normalize_repo_name(repo_name: &str) -> String {
+    format!(
+        "{}{}",
+        repo_name.strip_suffix(REPO_SUFFIX).unwrap_or(repo_name),
+        REPO_SUFFIX
+    )
+}
 
 fn open_repository(
     settings: &Settings,
