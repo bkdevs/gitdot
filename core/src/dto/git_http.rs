@@ -7,7 +7,7 @@ pub use receive_pack::ReceivePackRequest;
 pub use upload_pack::UploadPackRequest;
 
 #[derive(Debug, Clone)]
-pub struct GitHttpBackendResponse {
+pub struct GitHttpResponse {
     pub status_code: u16,
     pub headers: Vec<(String, String)>,
     pub body: Vec<u8>,

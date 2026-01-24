@@ -5,9 +5,7 @@ use axum::{
 use serde::Serialize;
 use thiserror::Error;
 
-use gitdot_core::error::{
-    AuthorizationError, GitHttpBackendError, OrganizationError, RepositoryError,
-};
+use gitdot_core::error::{AuthorizationError, GitHttpError, OrganizationError, RepositoryError};
 
 use super::AppResponse;
 
@@ -23,7 +21,7 @@ pub enum AppError {
     Repository(#[from] RepositoryError),
 
     #[error(transparent)]
-    GitHttpBackend(#[from] GitHttpBackendError),
+    GitHttp(#[from] GitHttpError),
 
     #[error(transparent)]
     Internal(#[from] anyhow::Error),
@@ -80,11 +78,11 @@ impl IntoResponse for AppError {
                 );
                 response.into_response()
             }
-            AppError::GitHttpBackend(e) => {
+            AppError::GitHttp(e) => {
                 let status_code = match e {
-                    GitHttpBackendError::InvalidOwnerName(_) => StatusCode::BAD_REQUEST,
-                    GitHttpBackendError::InvalidRepositoryName(_) => StatusCode::BAD_REQUEST,
-                    GitHttpBackendError::InvalidService(_) => StatusCode::BAD_REQUEST,
+                    GitHttpError::InvalidOwnerName(_) => StatusCode::BAD_REQUEST,
+                    GitHttpError::InvalidRepositoryName(_) => StatusCode::BAD_REQUEST,
+                    GitHttpError::InvalidService(_) => StatusCode::BAD_REQUEST,
                     _ => StatusCode::INTERNAL_SERVER_ERROR,
                 };
                 let response = AppResponse::new(

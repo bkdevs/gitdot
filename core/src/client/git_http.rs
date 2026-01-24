@@ -2,19 +2,19 @@ use async_trait::async_trait;
 use std::io::Write;
 use std::process::{Command, Stdio};
 
-use crate::dto::GitHttpBackendResponse;
-use crate::error::GitHttpBackendError;
+use crate::dto::GitHttpResponse;
+use crate::error::GitHttpError;
 
 const REPO_SUFFIX: &str = ".git";
 
 #[async_trait]
-pub trait GitHttpBackendClient: Send + Sync + Clone + 'static {
+pub trait GitHttpClient: Send + Sync + Clone + 'static {
     async fn info_refs(
         &self,
         owner: &str,
         repo: &str,
         service: &str,
-    ) -> Result<GitHttpBackendResponse, GitHttpBackendError>;
+    ) -> Result<GitHttpResponse, GitHttpError>;
 
     async fn service_rpc(
         &self,
@@ -23,7 +23,7 @@ pub trait GitHttpBackendClient: Send + Sync + Clone + 'static {
         service: &str,
         content_type: &str,
         body: &[u8],
-    ) -> Result<GitHttpBackendResponse, GitHttpBackendError>;
+    ) -> Result<GitHttpResponse, GitHttpError>;
 
     fn normalize_repo_name(&self, repo_name: &str) -> String {
         format!(
@@ -35,21 +35,18 @@ pub trait GitHttpBackendClient: Send + Sync + Clone + 'static {
 }
 
 #[derive(Debug, Clone)]
-pub struct GitHttpBackendClientImpl {
+pub struct GitHttpClientImpl {
     project_root: String,
 }
 
-impl GitHttpBackendClientImpl {
+impl GitHttpClientImpl {
     pub fn new(project_root: String) -> Self {
         Self { project_root }
     }
 
-    fn parse_cgi_response(
-        &self,
-        output: Vec<u8>,
-    ) -> Result<GitHttpBackendResponse, GitHttpBackendError> {
+    fn parse_cgi_response(&self, output: Vec<u8>) -> Result<GitHttpResponse, GitHttpError> {
         let separator_pos = self.find_header_separator(&output).ok_or_else(|| {
-            GitHttpBackendError::InvalidCgiResponse("Missing header/body separator".to_string())
+            GitHttpError::InvalidCgiResponse("Missing header/body separator".to_string())
         })?;
 
         let (header_section, rest) = output.split_at(separator_pos.0);
@@ -71,7 +68,7 @@ impl GitHttpBackendClientImpl {
             }
         }
 
-        Ok(GitHttpBackendResponse {
+        Ok(GitHttpResponse {
             status_code,
             headers,
             body: body.to_vec(),
@@ -96,13 +93,13 @@ impl GitHttpBackendClientImpl {
 }
 
 #[async_trait]
-impl GitHttpBackendClient for GitHttpBackendClientImpl {
+impl GitHttpClient for GitHttpClientImpl {
     async fn info_refs(
         &self,
         owner: &str,
         repo: &str,
         service: &str,
-    ) -> Result<GitHttpBackendResponse, GitHttpBackendError> {
+    ) -> Result<GitHttpResponse, GitHttpError> {
         let repo_name = self.normalize_repo_name(repo);
 
         let child = Command::new("git")
@@ -116,14 +113,12 @@ impl GitHttpBackendClient for GitHttpBackendClientImpl {
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
             .spawn()
-            .map_err(GitHttpBackendError::SpawnError)?;
+            .map_err(GitHttpError::SpawnError)?;
 
-        let output = child
-            .wait_with_output()
-            .map_err(GitHttpBackendError::ReadError)?;
+        let output = child.wait_with_output().map_err(GitHttpError::ReadError)?;
 
         if !output.status.success() {
-            return Err(GitHttpBackendError::ProcessFailed {
+            return Err(GitHttpError::ProcessFailed {
                 code: output.status.code().unwrap_or(-1),
                 stderr: String::from_utf8_lossy(&output.stderr).to_string(),
             });
@@ -139,7 +134,7 @@ impl GitHttpBackendClient for GitHttpBackendClientImpl {
         service: &str,
         content_type: &str,
         body: &[u8],
-    ) -> Result<GitHttpBackendResponse, GitHttpBackendError> {
+    ) -> Result<GitHttpResponse, GitHttpError> {
         let repo_name = self.normalize_repo_name(repo);
 
         let mut child = Command::new("git")
@@ -157,21 +152,17 @@ impl GitHttpBackendClient for GitHttpBackendClientImpl {
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
             .spawn()
-            .map_err(GitHttpBackendError::SpawnError)?;
+            .map_err(GitHttpError::SpawnError)?;
 
         if let Some(mut stdin) = child.stdin.take() {
-            stdin
-                .write_all(body)
-                .map_err(GitHttpBackendError::WriteError)?;
+            stdin.write_all(body).map_err(GitHttpError::WriteError)?;
             drop(stdin);
         }
 
-        let output = child
-            .wait_with_output()
-            .map_err(GitHttpBackendError::ReadError)?;
+        let output = child.wait_with_output().map_err(GitHttpError::ReadError)?;
 
         if !output.status.success() {
-            return Err(GitHttpBackendError::ProcessFailed {
+            return Err(GitHttpError::ProcessFailed {
                 code: output.status.code().unwrap_or(-1),
                 stderr: String::from_utf8_lossy(&output.stderr).to_string(),
             });

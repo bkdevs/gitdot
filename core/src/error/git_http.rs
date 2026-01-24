@@ -1,7 +1,7 @@
 use thiserror::Error;
 
 #[derive(Debug, Error)]
-pub enum GitHttpBackendError {
+pub enum GitHttpError {
     #[error("Invalid owner name: {0}")]
     InvalidOwnerName(String),
 

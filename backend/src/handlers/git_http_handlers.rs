@@ -6,18 +6,18 @@ use axum::{
 use gitdot_core::dto::{InfoRefsRequest, ReceivePackRequest, UploadPackRequest};
 
 use crate::app::{AppError, AppState};
-use crate::dto::{GitHttpResponse, InfoRefsQuery};
+use crate::dto::{GitHttpAxumResponse, InfoRefsQuery};
 use crate::utils::git::normalize_repo_name;
 
 pub async fn git_info_refs(
     State(state): State<AppState>,
     Path((owner, repo)): Path<(String, String)>,
     Query(params): Query<InfoRefsQuery>,
-) -> Result<GitHttpResponse, AppError> {
+) -> Result<GitHttpAxumResponse, AppError> {
     let request = InfoRefsRequest::new(&owner, &normalize_repo_name(&repo), &params.service)?;
     let response = state.git_http_service.info_refs(request).await?;
 
-    Ok(GitHttpResponse::from(response))
+    Ok(GitHttpAxumResponse::from(response))
 }
 
 pub async fn git_upload_pack(
@@ -25,7 +25,7 @@ pub async fn git_upload_pack(
     Path((owner, repo)): Path<(String, String)>,
     headers: HeaderMap,
     body: Body,
-) -> Result<GitHttpResponse, AppError> {
+) -> Result<GitHttpAxumResponse, AppError> {
     let body_bytes = axum::body::to_bytes(body, usize::MAX)
         .await
         .map_err(|e| AppError::Internal(e.into()))?;
@@ -44,7 +44,7 @@ pub async fn git_upload_pack(
     )?;
     let response = state.git_http_service.upload_pack(request).await?;
 
-    Ok(GitHttpResponse::from(response))
+    Ok(GitHttpAxumResponse::from(response))
 }
 
 pub async fn git_receive_pack(
@@ -52,7 +52,7 @@ pub async fn git_receive_pack(
     Path((owner, repo)): Path<(String, String)>,
     headers: HeaderMap,
     body: Body,
-) -> Result<GitHttpResponse, AppError> {
+) -> Result<GitHttpAxumResponse, AppError> {
     let body_bytes = axum::body::to_bytes(body, usize::MAX)
         .await
         .map_err(|e| AppError::Internal(e.into()))?;
@@ -71,5 +71,5 @@ pub async fn git_receive_pack(
     )?;
     let response = state.git_http_service.receive_pack(request).await?;
 
-    Ok(GitHttpResponse::from(response))
+    Ok(GitHttpAxumResponse::from(response))
 }

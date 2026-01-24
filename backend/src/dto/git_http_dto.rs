@@ -3,17 +3,17 @@ use axum::{
     http::StatusCode,
     response::{IntoResponse, Response},
 };
-use gitdot_core::dto::GitHttpBackendResponse;
+use gitdot_core::dto::GitHttpResponse;
 
-pub struct GitHttpResponse(pub GitHttpBackendResponse);
+pub struct GitHttpAxumResponse(pub GitHttpResponse);
 
-impl From<GitHttpBackendResponse> for GitHttpResponse {
-    fn from(response: GitHttpBackendResponse) -> Self {
+impl From<GitHttpResponse> for GitHttpAxumResponse {
+    fn from(response: GitHttpResponse) -> Self {
         Self(response)
     }
 }
 
-impl IntoResponse for GitHttpResponse {
+impl IntoResponse for GitHttpAxumResponse {
     fn into_response(self) -> Response {
         let mut builder = Response::builder()
             .status(StatusCode::from_u16(self.0.status_code).unwrap_or(StatusCode::OK));
