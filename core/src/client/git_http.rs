@@ -4,8 +4,7 @@ use std::process::{Command, Stdio};
 
 use crate::dto::GitHttpResponse;
 use crate::error::GitHttpError;
-
-const REPO_SUFFIX: &str = ".git";
+use crate::util::consts::REPO_SUFFIX;
 
 #[async_trait]
 pub trait GitHttpClient: Send + Sync + Clone + 'static {

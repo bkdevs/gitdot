@@ -3,9 +3,7 @@ use tokio::fs;
 use tokio::task;
 
 use crate::error::GitError;
-
-const REPO_SUFFIX: &str = ".git";
-const DEFAULT_BRANCH: &str = "main";
+use crate::util::consts::{DEFAULT_BRANCH, REPO_SUFFIX};
 
 #[async_trait]
 pub trait GitClient: Send + Sync + Clone + 'static {
