@@ -3,6 +3,10 @@ name = "gitdot_server"
 version = "0.1.0"
 edition = "2024"
 
+[[bin]]
+name = "gitdot_server"
+path = "src/bin/main.rs"
+
 [dependencies]
 anyhow = "1.0.100"
 axum = { version = "0.8.8", features = ["macros"] }
