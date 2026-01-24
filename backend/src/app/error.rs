@@ -36,8 +36,13 @@ impl IntoResponse for AppError {
     fn into_response(self) -> Response {
         match self {
             AppError::Authorization(e) => {
+                let status_code = match e {
+                    AuthorizationError::InvalidRequest(_) => StatusCode::BAD_REQUEST,
+                    AuthorizationError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+                    _ => StatusCode::UNAUTHORIZED,
+                };
                 let response = AppResponse::new(
-                    StatusCode::UNAUTHORIZED,
+                    status_code,
                     AppErrorMessage {
                         message: e.to_string(),
                     },

@@ -9,6 +9,8 @@ pub trait OrganizationRepository: Send + Sync + Clone + 'static {
     async fn create(&self, org_name: &str, owner_id: Uuid) -> Result<Organization, Error>;
 
     async fn get(&self, org_name: &str) -> Result<Option<Organization>, Error>;
+
+    async fn is_member(&self, org_id: Uuid, user_id: Uuid) -> Result<bool, Error>;
 }
 
 #[derive(Debug, Clone)]
@@ -56,5 +58,22 @@ impl OrganizationRepository for OrganizationRepositoryImpl {
         .await?;
 
         Ok(org)
+    }
+
+    async fn is_member(&self, org_id: Uuid, user_id: Uuid) -> Result<bool, Error> {
+        let result = sqlx::query_scalar::<_, bool>(
+            r#"
+            SELECT EXISTS(
+                SELECT 1 FROM organization_members
+                WHERE organization_id = $1 AND user_id = $2
+            )
+            "#,
+        )
+        .bind(org_id)
+        .bind(user_id)
+        .fetch_one(&self.pool)
+        .await?;
+
+        Ok(result)
     }
 }

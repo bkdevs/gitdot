@@ -14,6 +14,8 @@ pub trait RepositoryRepository: Send + Sync + Clone + 'static {
         owner_type: &RepositoryOwnerType,
         visibility: &RepositoryVisibility,
     ) -> Result<Repository, Error>;
+
+    async fn get(&self, owner: &str, repo: &str) -> Result<Option<Repository>, Error>;
 }
 
 #[derive(Debug, Clone)]
@@ -50,6 +52,22 @@ impl RepositoryRepository for RepositoryRepositoryImpl {
         .bind(owner_type)
         .bind(visibility)
         .fetch_one(&self.pool)
+        .await?;
+
+        Ok(repository)
+    }
+
+    async fn get(&self, owner: &str, repo: &str) -> Result<Option<Repository>, Error> {
+        let repository = sqlx::query_as::<_, Repository>(
+            r#"
+            SELECT id, name, owner_id, owner_name, owner_type, visibility, created_at
+            FROM repositories
+            WHERE owner_name = $1 AND name = $2
+            "#,
+        )
+        .bind(owner)
+        .bind(repo)
+        .fetch_optional(&self.pool)
         .await?;
 
         Ok(repository)

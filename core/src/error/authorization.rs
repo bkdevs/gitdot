@@ -13,4 +13,13 @@ pub enum AuthorizationError {
 
     #[error("Invalid token: {0}")]
     InvalidToken(String),
+
+    #[error("Invalid request: {0}")]
+    InvalidRequest(String),
+
+    #[error("Unauthorized")]
+    Unauthorized,
+
+    #[error("Database error: {0}")]
+    DatabaseError(#[from] sqlx::Error),
 }
