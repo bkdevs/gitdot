@@ -1,49 +1,41 @@
+import { ChevronDown, ChevronUp } from "lucide-react";
+import { QuestionHeader } from "./ui/question-header";
+
 export default function Page({ params }: { params: { id: string } }) {
   return (
-    <div className="p-6 max-w-5xl mx-auto">
-      <div className="flex items-start gap-4 mb-4">
-        <h1 className="text-2xl font-semibold flex-1">
-          Fix authentication bug in login flow
-          <span className="text-muted-foreground ml-2">#{params.id}</span>
-        </h1>
-      </div>
-
-      <div className="flex items-center gap-2 mb-6 text-sm">
-        <span className="px-2 py-1 bg-green-500/10 text-green-600 dark:text-green-400 rounded-full border border-green-500/20">
-          Open
-        </span>
-        <span className="text-muted-foreground">
-          <strong>user123</strong> opened this issue 2 days ago · 3 comments
-        </span>
-      </div>
-
-      <div className="border rounded-lg">
-        <div className="border-b p-4 bg-muted/30">
-          <div className="flex items-center gap-2 text-sm">
-            <strong>user123</strong>
-            <span className="text-muted-foreground">commented 2 days ago</span>
+    <div className="flex flex-col w-full">
+      <QuestionHeader />
+      <div className="px-4 py-4 max-w-4xl mx-auto">
+        <div className="flex flex-row gap-4 items-center">
+          <div className="flex flex-col">
+            <h1 className="text-xl font-medium mb-1">
+              How do I fix authentication bug in login flow?
+            </h1>
           </div>
         </div>
-        <div className="p-4">
-          <p className="text-sm mb-4">
-            The authentication flow is broken when users try to log in with
-            social providers. Getting a 401 error on callback.
-          </p>
-          <div className="bg-muted/50 p-3 rounded text-sm font-mono">
-            Error: Invalid token received from OAuth provider
-          </div>
-        </div>
-      </div>
 
-      <div className="mt-4 border rounded-lg">
-        <div className="border-b p-4 bg-muted/30">
-          <div className="flex items-center gap-2 text-sm">
-            <strong>developer456</strong>
-            <span className="text-muted-foreground">commented 1 day ago</span>
+        <div className="flex gap-4">
+          <div className="flex-1">
+            <div className="text-sm">
+              <p className="mb-4">
+                The authentication flow is broken when users try to log in with
+                social providers. Getting a 401 error on callback.
+              </p>
+              <pre className="bg-muted p-3 rounded text-sm overflow-x-auto">
+                Error: Invalid token received from OAuth provider
+              </pre>
+            </div>
           </div>
         </div>
-        <div className="p-4 text-sm">
-          <p>Looking into this. Seems like the token validation is failing.</p>
+
+        <div className="flex items-center gap-2 mt-4 pt-4 border-t">
+          <button className="text-muted-foreground hover:text-foreground">
+            <ChevronUp className="w-5 h-5" />
+          </button>
+          <span className="text-sm">42</span>
+          <button className="text-muted-foreground hover:text-foreground">
+            <ChevronDown className="w-5 h-5" />
+          </button>
         </div>
       </div>
     </div>
