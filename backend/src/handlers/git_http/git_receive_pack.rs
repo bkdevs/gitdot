@@ -7,8 +7,8 @@ use gitdot_core::dto::ReceivePackRequest;
 
 use crate::app::{AppError, AppState};
 use crate::dto::GitHttpServerResponse;
-use crate::utils::git::normalize_repo_name;
 
+#[axum::debug_handler]
 pub async fn git_receive_pack(
     State(state): State<AppState>,
     Path((owner, repo)): Path<(String, String)>,
@@ -25,12 +25,7 @@ pub async fn git_receive_pack(
         .unwrap_or("")
         .to_string();
 
-    let request = ReceivePackRequest::new(
-        &owner,
-        &normalize_repo_name(&repo),
-        content_type,
-        body_bytes.to_vec(),
-    )?;
+    let request = ReceivePackRequest::new(&owner, &repo, content_type, body_bytes.to_vec())?;
     let response = state.git_http_service.receive_pack(request).await?;
     Ok(response.into())
 }

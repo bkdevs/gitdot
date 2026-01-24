@@ -20,5 +20,5 @@ pub async fn create_organization(
         .create_organization(request)
         .await
         .map_err(AppError::from)
-        .map(|ref org| AppResponse::new(StatusCode::CREATED, org.into()))
+        .map(|org| AppResponse::new(StatusCode::CREATED, org.into()))
 }

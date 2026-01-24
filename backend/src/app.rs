@@ -25,7 +25,7 @@ use tower_http::{
 };
 
 use crate::handlers::git_http::create_git_http_router;
-use crate::handlers::organization_handlers::create_organization;
+use crate::handlers::organization::create_organization_router;
 use crate::handlers::repository::{
     get_repository_commit_diffs, get_repository_commit_stats, get_repository_commits,
     get_repository_file, get_repository_file_commits, get_repository_tree,
@@ -69,8 +69,7 @@ impl GitdotServer {
 
 pub fn create_router(app_state: AppState) -> Router {
     let git_router = create_git_http_router();
-
-    let org_router = Router::new().route("/organization/{org_name}", post(create_organization));
+    let org_router = create_organization_router();
 
     let repo_router = Router::new().route("/repository/{owner}/{repo}", post(create_repository));
 

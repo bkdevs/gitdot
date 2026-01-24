@@ -11,8 +11,8 @@ pub struct CreateOrganizationResponse {
     pub created_at: DateTime<Utc>,
 }
 
-impl From<&OrganizationResponse> for CreateOrganizationResponse {
-    fn from(org: &OrganizationResponse) -> Self {
+impl From<OrganizationResponse> for CreateOrganizationResponse {
+    fn from(org: OrganizationResponse) -> Self {
         Self {
             id: org.id,
             name: org.name.clone(),
