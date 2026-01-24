@@ -1,9 +1,4 @@
-mod app;
-mod dto;
-mod handlers;
-mod utils;
-
-use app::GitdotServer;
+use gitdot_server::GitdotServer;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {

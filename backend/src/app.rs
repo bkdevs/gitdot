@@ -21,13 +21,13 @@ use tower_http::{
     trace::TraceLayer,
 };
 
-use crate::handlers::git_http::create_git_http_router;
-use crate::handlers::legacy_repository::{
+use crate::handler::legacy_repository::{
     get_repository_commit_diffs, get_repository_commit_stats, get_repository_commits,
     get_repository_file, get_repository_file_commits, get_repository_tree,
 };
-use crate::handlers::organization::create_organization_router;
-use crate::handlers::repository::create_repository_router;
+use crate::handler::{
+    create_git_http_router, create_organization_router, create_repository_router,
+};
 
 pub use app_state::AppState;
 pub use auth::AuthenticatedUser;
@@ -64,7 +64,7 @@ impl GitdotServer {
     }
 }
 
-pub fn create_router(app_state: AppState) -> Router {
+fn create_router(app_state: AppState) -> Router {
     let git_router = create_git_http_router();
     let org_router = create_organization_router();
     let repo_router = create_repository_router();
