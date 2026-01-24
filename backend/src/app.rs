@@ -24,7 +24,7 @@ use tower_http::{
     trace::TraceLayer,
 };
 
-use crate::handlers::git_http_handlers::{git_info_refs, git_receive_pack, git_upload_pack};
+use crate::handlers::git_http::create_git_http_router;
 use crate::handlers::organization_handlers::create_organization;
 use crate::handlers::repository::{
     get_repository_commit_diffs, get_repository_commit_stats, get_repository_commits,
@@ -68,10 +68,7 @@ impl GitdotServer {
 }
 
 pub fn create_router(app_state: AppState) -> Router {
-    let git_router = Router::new()
-        .route("/{owner}/{repo}/info/refs", get(git_info_refs))
-        .route("/{owner}/{repo}/git-upload-pack", post(git_upload_pack))
-        .route("/{owner}/{repo}/git-receive-pack", post(git_receive_pack));
+    let git_router = create_git_http_router();
 
     let org_router = Router::new().route("/organization/{org_name}", post(create_organization));
 
