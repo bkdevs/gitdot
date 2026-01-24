@@ -24,16 +24,6 @@ pub struct RepositoryFile {
 }
 
 #[derive(Deserialize)]
-pub struct RepositoryCommitsQuery {
-    #[serde(default = "default_ref")]
-    pub ref_name: String,
-    #[serde(default = "default_page")]
-    pub page: u32,
-    #[serde(default = "default_per_page")]
-    pub per_page: u32,
-}
-
-#[derive(Deserialize)]
 pub struct RepositoryFileCommitsQuery {
     pub path: String,
     #[serde(default = "default_ref")]

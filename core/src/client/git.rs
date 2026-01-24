@@ -5,7 +5,8 @@ use tokio::fs;
 use tokio::task;
 
 use crate::dto::{
-    RepositoryCommitResponse, RepositoryFileResponse, RepositoryTreeEntry, RepositoryTreeResponse,
+    RepositoryCommitResponse, RepositoryCommitsResponse, RepositoryFileResponse,
+    RepositoryTreeEntry, RepositoryTreeResponse,
 };
 use crate::error::GitError;
 use crate::util::consts::{DEFAULT_BRANCH, REPO_SUFFIX};
@@ -32,6 +33,15 @@ pub trait GitClient: Send + Sync + Clone + 'static {
         ref_name: &str,
         path: &str,
     ) -> Result<RepositoryFileResponse, GitError>;
+
+    async fn get_repo_commits(
+        &self,
+        owner: &str,
+        repo: &str,
+        ref_name: &str,
+        page: u32,
+        per_page: u32,
+    ) -> Result<RepositoryCommitsResponse, GitError>;
 
     fn normalize_repo_name(&self, repo: &str) -> String {
         format!(
@@ -382,6 +392,49 @@ impl GitClient for Git2Client {
                 content,
                 encoding,
             })
+        })
+        .await?
+    }
+
+    async fn get_repo_commits(
+        &self,
+        owner: &str,
+        repo: &str,
+        ref_name: &str,
+        page: u32,
+        per_page: u32,
+    ) -> Result<RepositoryCommitsResponse, GitError> {
+        let ref_name = ref_name.to_string();
+        let repository = self.open_repository(owner, repo)?;
+
+        let skip = ((page.saturating_sub(1)) * per_page) as usize;
+        let take = per_page as usize;
+
+        task::spawn_blocking(move || {
+            let commit = Self::resolve_ref(&repository, &ref_name)?;
+
+            let mut revwalk = repository.revwalk()?;
+            revwalk.push(commit.id())?;
+            revwalk.set_sorting(git2::Sort::TIME).ok();
+
+            let commits: Result<Vec<RepositoryCommitResponse>, git2::Error> = revwalk
+                .skip(skip)
+                .take(take + 1)
+                .map(|oid| {
+                    let oid = oid?;
+                    let commit = repository.find_commit(oid)?;
+                    Ok(RepositoryCommitResponse::from(&commit))
+                })
+                .collect();
+
+            let mut commits = commits?;
+            let has_next = commits.len() > take;
+
+            if has_next {
+                commits.pop();
+            }
+
+            Ok(RepositoryCommitsResponse { commits, has_next })
         })
         .await?
     }

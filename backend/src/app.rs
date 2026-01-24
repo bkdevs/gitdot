@@ -22,8 +22,7 @@ use tower_http::{
 };
 
 use crate::handler::legacy_repository::{
-    get_repository_commit_diffs, get_repository_commit_stats, get_repository_commits,
-    get_repository_file_commits,
+    get_repository_commit_diffs, get_repository_commit_stats, get_repository_file_commits,
 };
 use crate::handler::{
     create_git_http_router, create_organization_router, create_repository_router,
@@ -70,10 +69,6 @@ fn create_router(app_state: AppState) -> Router {
     let repo_router = create_repository_router();
 
     let old_repo_router = Router::new()
-        .route(
-            "/repository/{owner}/{repo}/commits",
-            get(get_repository_commits),
-        )
         .route(
             "/repository/{owner}/{repo}/commits/{sha}/stats",
             get(get_repository_commit_stats),

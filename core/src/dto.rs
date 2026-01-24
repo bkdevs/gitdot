@@ -11,8 +11,8 @@ use common::{OwnerName, RepositoryName};
 pub use git_http::{GitHttpResponse, InfoRefsRequest, ReceivePackRequest, UploadPackRequest};
 pub use organization::{CreateOrganizationRequest, GetOrganizationRequest, OrganizationResponse};
 pub use repository::{
-    CreateRepositoryRequest, GetRepositoryFileRequest, GetRepositoryTreeRequest,
-    RepositoryCommitResponse, RepositoryFileResponse, RepositoryResponse, RepositoryTreeEntry,
-    RepositoryTreeResponse,
+    CreateRepositoryRequest, GetRepositoryCommitsRequest, GetRepositoryFileRequest,
+    GetRepositoryTreeRequest, RepositoryCommitResponse, RepositoryCommitsResponse,
+    RepositoryFileResponse, RepositoryResponse, RepositoryTreeEntry, RepositoryTreeResponse,
 };
 pub use user::{GetUserRequest, UserResponse};
