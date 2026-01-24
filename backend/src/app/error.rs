@@ -50,6 +50,7 @@ impl IntoResponse for AppError {
                 let status_code = match e {
                     OrganizationError::Duplicate(_) => StatusCode::CONFLICT,
                     OrganizationError::NotFound(_) => StatusCode::NOT_FOUND,
+                    OrganizationError::InvalidOrganizationName(_) => StatusCode::BAD_REQUEST,
                     OrganizationError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                 };
                 let response = AppResponse::new(
@@ -64,6 +65,8 @@ impl IntoResponse for AppError {
                 let status_code = match e {
                     RepositoryError::Duplicate(_) => StatusCode::CONFLICT,
                     RepositoryError::OwnerNotFound(_) => StatusCode::NOT_FOUND,
+                    RepositoryError::InvalidOwnerName(_) => StatusCode::BAD_REQUEST,
+                    RepositoryError::InvalidRepositoryName(_) => StatusCode::BAD_REQUEST,
                     RepositoryError::InvalidOwnerType(_) => StatusCode::BAD_REQUEST,
                     RepositoryError::InvalidVisibility(_) => StatusCode::BAD_REQUEST,
                     RepositoryError::GitError(_) => StatusCode::INTERNAL_SERVER_ERROR,
@@ -78,7 +81,9 @@ impl IntoResponse for AppError {
                 response.into_response()
             }
             AppError::GitHttpBackend(e) => {
-                let status_code = match &e {
+                let status_code = match e {
+                    GitHttpBackendError::InvalidOwnerName(_) => StatusCode::BAD_REQUEST,
+                    GitHttpBackendError::InvalidRepositoryName(_) => StatusCode::BAD_REQUEST,
                     GitHttpBackendError::InvalidService(_) => StatusCode::BAD_REQUEST,
                     _ => StatusCode::INTERNAL_SERVER_ERROR,
                 };

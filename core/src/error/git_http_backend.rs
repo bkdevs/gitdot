@@ -2,6 +2,12 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum GitHttpBackendError {
+    #[error("Invalid owner name: {0}")]
+    InvalidOwnerName(String),
+
+    #[error("Invalid repository name: {0}")]
+    InvalidRepositoryName(String),
+
     #[error("Invalid service: {0}")]
     InvalidService(String),
 

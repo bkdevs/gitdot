@@ -23,7 +23,7 @@ pub async fn create_repository(
         &owner,
         &request.owner_type,
         &request.visibility,
-    );
+    )?;
     state
         .repo_service
         .create_repository(request)

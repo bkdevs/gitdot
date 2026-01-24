@@ -44,13 +44,6 @@ impl GitHttpBackendClientImpl {
         Self { project_root }
     }
 
-    fn validate_service(&self, service: &str) -> Result<(), GitHttpBackendError> {
-        match service {
-            "git-upload-pack" | "git-receive-pack" => Ok(()),
-            _ => Err(GitHttpBackendError::InvalidService(service.to_string())),
-        }
-    }
-
     fn parse_cgi_response(
         &self,
         output: Vec<u8>,
@@ -110,7 +103,6 @@ impl GitHttpBackendClient for GitHttpBackendClientImpl {
         repo: &str,
         service: &str,
     ) -> Result<GitHttpBackendResponse, GitHttpBackendError> {
-        self.validate_service(service)?;
         let repo_name = self.normalize_repo_name(repo);
 
         let child = Command::new("git")

@@ -1,7 +1,6 @@
 mod create_repository;
 
 use chrono::{DateTime, Utc};
-use nutype::nutype;
 use uuid::Uuid;
 
 use crate::model::Repository;
@@ -28,37 +27,3 @@ impl From<Repository> for RepositoryResponse {
         }
     }
 }
-
-#[nutype(
-    sanitize(trim, lowercase),
-    validate(not_empty, len_char_max = 100),
-    derive(
-        Debug,
-        Clone,
-        Serialize,
-        Deserialize,
-        PartialEq,
-        Eq,
-        TryFrom,
-        AsRef,
-        Deref,
-    )
-)]
-pub struct RepositoryName(String);
-
-#[nutype(
-    sanitize(trim, lowercase),
-    validate(not_empty, len_char_max = 100),
-    derive(
-        Debug,
-        Clone,
-        Serialize,
-        Deserialize,
-        PartialEq,
-        Eq,
-        TryFrom,
-        AsRef,
-        Deref,
-    )
-)]
-pub struct OwnerName(String);

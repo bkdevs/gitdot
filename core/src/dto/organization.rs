@@ -2,7 +2,6 @@ mod create_organization;
 mod get_organization;
 
 use chrono::{DateTime, Utc};
-use nutype::nutype;
 use uuid::Uuid;
 
 use crate::model::Organization;
@@ -26,20 +25,3 @@ impl From<Organization> for OrganizationResponse {
         }
     }
 }
-
-#[nutype(
-    sanitize(trim, lowercase),
-    validate(not_empty, len_char_max = 100),
-    derive(
-        Debug,
-        Clone,
-        Serialize,
-        Deserialize,
-        PartialEq,
-        Eq,
-        TryFrom,
-        AsRef,
-        Deref,
-    )
-)]
-pub struct OrganizationName(String);

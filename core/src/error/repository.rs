@@ -10,6 +10,12 @@ pub enum RepositoryError {
     #[error("Owner not found: {0}")]
     OwnerNotFound(String),
 
+    #[error("Invalid owner name: {0}")]
+    InvalidOwnerName(String),
+
+    #[error("Invalid repository name: {0}")]
+    InvalidRepositoryName(String),
+
     #[error("Invalid owner type: {0}")]
     InvalidOwnerType(String),
 

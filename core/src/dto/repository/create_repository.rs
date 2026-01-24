@@ -1,7 +1,7 @@
 use uuid::Uuid;
 
-use super::{OwnerName, RepositoryName};
-
+use crate::dto::{OwnerName, RepositoryName};
+use crate::error::RepositoryError;
 use crate::model::{RepositoryOwnerType, RepositoryVisibility};
 
 #[derive(Debug, Clone)]
@@ -20,13 +20,15 @@ impl CreateRepositoryRequest {
         owner_name: &str,
         owner_type: &str,
         visibility: &str,
-    ) -> Self {
-        Self {
-            name: RepositoryName::try_new(name).unwrap(),
-            user_id: user_id,
-            owner_name: OwnerName::try_new(owner_name).unwrap(),
-            owner_type: owner_type.try_into().unwrap(),
-            visibility: visibility.try_into().unwrap(),
-        }
+    ) -> Result<Self, RepositoryError> {
+        Ok(Self {
+            name: RepositoryName::try_new(name)
+                .map_err(|e| RepositoryError::InvalidRepositoryName(e.to_string()))?,
+            user_id,
+            owner_name: OwnerName::try_new(owner_name)
+                .map_err(|e| RepositoryError::InvalidOwnerName(e.to_string()))?,
+            owner_type: owner_type.try_into()?,
+            visibility: visibility.try_into()?,
+        })
     }
 }
