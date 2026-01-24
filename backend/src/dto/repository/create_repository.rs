@@ -22,13 +22,13 @@ pub struct CreateRepositoryServerResponse {
 }
 
 impl From<RepositoryResponse> for CreateRepositoryServerResponse {
-    fn from(repo: RepositoryResponse) -> Self {
+    fn from(response: RepositoryResponse) -> Self {
         Self {
-            id: repo.id,
-            name: repo.name,
-            owner_name: repo.owner,
-            visibility: repo.visibility,
-            created_at: repo.created_at,
+            id: response.id,
+            name: response.name,
+            owner_name: response.owner,
+            visibility: response.visibility,
+            created_at: response.created_at,
         }
     }
 }

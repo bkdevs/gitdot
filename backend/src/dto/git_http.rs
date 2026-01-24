@@ -5,6 +5,11 @@ use axum::{
 };
 use gitdot_core::dto::GitHttpResponse;
 
+#[derive(serde::Deserialize)]
+pub struct InfoRefsQuery {
+    pub service: String,
+}
+
 pub struct GitHttpServerResponse {
     status_code: u16,
     headers: Vec<(String, String)>,
@@ -37,9 +42,4 @@ impl IntoResponse for GitHttpServerResponse {
                 .unwrap()
         })
     }
-}
-
-#[derive(serde::Deserialize)]
-pub struct InfoRefsQuery {
-    pub service: String,
 }

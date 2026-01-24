@@ -10,5 +10,8 @@ use common::{OwnerName, RepositoryName};
 /// Re-export to expose flattened namespace to public
 pub use git_http::{GitHttpResponse, InfoRefsRequest, ReceivePackRequest, UploadPackRequest};
 pub use organization::{CreateOrganizationRequest, GetOrganizationRequest, OrganizationResponse};
-pub use repository::{CreateRepositoryRequest, RepositoryResponse};
+pub use repository::{
+    CreateRepositoryRequest, GetRepositoryFileRequest, GetRepositoryTreeRequest,
+    RepositoryFileResponse, RepositoryResponse, RepositoryTreeEntry, RepositoryTreeResponse,
+};
 pub use user::{GetUserRequest, UserResponse};

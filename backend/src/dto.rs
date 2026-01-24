@@ -5,4 +5,7 @@ mod repository;
 
 pub use git_http::{GitHttpServerResponse, InfoRefsQuery};
 pub use organization::CreateOrganizationServerResponse;
-pub use repository::{CreateRepositoryServerRequest, CreateRepositoryServerResponse};
+pub use repository::{
+    CreateRepositoryServerRequest, CreateRepositoryServerResponse, GetRepositoryFileQuery,
+    GetRepositoryFileServerResponse, GetRepositoryTreeQuery, GetRepositoryTreeServerResponse,
+};

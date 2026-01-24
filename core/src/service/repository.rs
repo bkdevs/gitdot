@@ -1,7 +1,10 @@
 use async_trait::async_trait;
 
 use crate::client::{Git2Client, GitClient};
-use crate::dto::{CreateRepositoryRequest, RepositoryResponse};
+use crate::dto::{
+    CreateRepositoryRequest, GetRepositoryFileRequest, GetRepositoryTreeRequest,
+    RepositoryFileResponse, RepositoryResponse, RepositoryTreeResponse,
+};
 use crate::error::RepositoryError;
 use crate::model::RepositoryOwnerType;
 use crate::repository::{
@@ -15,6 +18,16 @@ pub trait RepositoryService: Send + Sync + 'static {
         &self,
         request: CreateRepositoryRequest,
     ) -> Result<RepositoryResponse, RepositoryError>;
+
+    async fn get_repository_tree(
+        &self,
+        request: GetRepositoryTreeRequest,
+    ) -> Result<RepositoryTreeResponse, RepositoryError>;
+
+    async fn get_repository_file(
+        &self,
+        request: GetRepositoryFileRequest,
+    ) -> Result<RepositoryFileResponse, RepositoryError>;
 }
 
 #[derive(Debug, Clone)]
@@ -105,5 +118,30 @@ where
         };
 
         Ok(repository.into())
+    }
+
+    async fn get_repository_tree(
+        &self,
+        request: GetRepositoryTreeRequest,
+    ) -> Result<RepositoryTreeResponse, RepositoryError> {
+        self.git_client
+            .get_repo_tree(&request.owner_name, &request.name, &request.ref_name)
+            .await
+            .map_err(|e| e.into())
+    }
+
+    async fn get_repository_file(
+        &self,
+        request: GetRepositoryFileRequest,
+    ) -> Result<RepositoryFileResponse, RepositoryError> {
+        self.git_client
+            .get_repo_file(
+                &request.owner_name,
+                &request.name,
+                &request.ref_name,
+                &request.path,
+            )
+            .await
+            .map_err(|e| e.into())
     }
 }

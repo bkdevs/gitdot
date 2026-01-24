@@ -1,34 +1,40 @@
-use uuid::Uuid;
-
 use crate::dto::{OwnerName, RepositoryName};
 use crate::error::RepositoryError;
-use crate::model::{RepositoryOwnerType, RepositoryVisibility};
 
 #[derive(Debug, Clone)]
-pub struct CreateRepositoryRequest {
+pub struct GetRepositoryFileRequest {
     pub name: RepositoryName,
-    pub user_id: Uuid,
     pub owner_name: OwnerName,
-    pub owner_type: RepositoryOwnerType,
-    pub visibility: RepositoryVisibility,
+    pub ref_name: String,
+    pub path: String,
 }
 
-impl CreateRepositoryRequest {
+impl GetRepositoryFileRequest {
     pub fn new(
         repo_name: &str,
-        user_id: Uuid,
         owner_name: &str,
-        owner_type: &str,
-        visibility: &str,
+        ref_name: String,
+        path: String,
     ) -> Result<Self, RepositoryError> {
         Ok(Self {
             name: RepositoryName::try_new(repo_name)
                 .map_err(|e| RepositoryError::InvalidRepositoryName(e.to_string()))?,
-            user_id,
             owner_name: OwnerName::try_new(owner_name)
                 .map_err(|e| RepositoryError::InvalidOwnerName(e.to_string()))?,
-            owner_type: owner_type.try_into()?,
-            visibility: visibility.try_into()?,
+            ref_name,
+            path,
         })
     }
+}
+
+#[derive(Debug, Clone)]
+pub struct RepositoryFileResponse {
+    pub name: String,
+    pub owner: String,
+    pub ref_name: String,
+    pub path: String,
+    pub commit_sha: String,
+    pub sha: String,
+    pub content: String,
+    pub encoding: String,
 }

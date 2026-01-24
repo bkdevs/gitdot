@@ -2,21 +2,37 @@ use async_trait::async_trait;
 use tokio::fs;
 use tokio::task;
 
+use crate::dto::{RepositoryFileResponse, RepositoryTreeResponse};
 use crate::error::GitError;
 use crate::util::consts::{DEFAULT_BRANCH, REPO_SUFFIX};
 
 #[async_trait]
 pub trait GitClient: Send + Sync + Clone + 'static {
-    async fn repo_exists(&self, owner: &str, repo_name: &str) -> bool;
+    async fn repo_exists(&self, owner: &str, repo: &str) -> bool;
 
-    async fn create_repo(&self, owner: &str, repo_name: &str) -> Result<(), GitError>;
+    async fn create_repo(&self, owner: &str, repo: &str) -> Result<(), GitError>;
 
-    async fn delete_repo(&self, owner: &str, repo_name: &str) -> Result<(), GitError>;
+    async fn delete_repo(&self, owner: &str, repo: &str) -> Result<(), GitError>;
 
-    fn normalize_repo_name(&self, repo_name: &str) -> String {
+    async fn get_repo_tree(
+        &self,
+        owner: &str,
+        repo: &str,
+        ref_name: &str,
+    ) -> Result<RepositoryTreeResponse, GitError>;
+
+    async fn get_repo_file(
+        &self,
+        owner: &str,
+        repo: &str,
+        ref_name: &str,
+        path: &str,
+    ) -> Result<RepositoryFileResponse, GitError>;
+
+    fn normalize_repo_name(&self, repo: &str) -> String {
         format!(
             "{}{}",
-            repo_name.strip_suffix(REPO_SUFFIX).unwrap_or(repo_name),
+            repo.strip_suffix(REPO_SUFFIX).unwrap_or(repo),
             REPO_SUFFIX
         )
     }
@@ -36,27 +52,40 @@ impl Git2Client {
         format!("{}/{}", self.project_root, owner)
     }
 
-    fn get_repo_path(&self, owner: &str, repo_name: &str) -> String {
-        let repo_name = self.normalize_repo_name(repo_name);
-        format!("{}/{}/{}", self.project_root, owner, repo_name)
+    fn get_repo_path(&self, owner: &str, repo: &str) -> String {
+        let repo = self.normalize_repo_name(repo);
+        format!("{}/{}/{}", self.project_root, owner, repo)
+    }
+
+    fn open_repository(&self, owner: &str, repo: &str) -> Result<git2::Repository, git2::Error> {
+        let repo_path = self.get_repo_path(owner, repo);
+        git2::Repository::open_bare(&repo_path)
+    }
+
+    fn resolve_ref<'repo>(
+        repo: &'repo git2::Repository,
+        ref_name: &str,
+    ) -> Result<git2::Commit<'repo>, git2::Error> {
+        let obj = repo.revparse_single(ref_name)?;
+        obj.peel_to_commit()
     }
 }
 
 #[async_trait]
 impl GitClient for Git2Client {
-    async fn repo_exists(&self, owner: &str, repo_name: &str) -> bool {
-        let repo_path = self.get_repo_path(owner, repo_name);
+    async fn repo_exists(&self, owner: &str, repo: &str) -> bool {
+        let repo_path = self.get_repo_path(owner, repo);
         match fs::metadata(&repo_path).await {
             Ok(metadata) => metadata.is_dir(),
             Err(_) => false,
         }
     }
 
-    async fn create_repo(&self, owner: &str, repo_name: &str) -> Result<(), GitError> {
+    async fn create_repo(&self, owner: &str, repo: &str) -> Result<(), GitError> {
         let owner_path = self.get_owner_path(owner);
         fs::create_dir_all(&owner_path).await?;
 
-        let repo_path = self.get_repo_path(owner, repo_name);
+        let repo_path = self.get_repo_path(owner, repo);
         let repo_path_clone = repo_path.clone();
         task::spawn_blocking(move || -> Result<(), git2::Error> {
             let repo = git2::Repository::init_bare(&repo_path_clone)?;
@@ -77,9 +106,28 @@ impl GitClient for Git2Client {
         Ok(())
     }
 
-    async fn delete_repo(&self, owner: &str, repo_name: &str) -> Result<(), GitError> {
-        let repo_path = self.get_repo_path(owner, repo_name);
+    async fn delete_repo(&self, owner: &str, repo: &str) -> Result<(), GitError> {
+        let repo_path = self.get_repo_path(owner, repo);
         fs::remove_dir_all(&repo_path).await?;
         Ok(())
+    }
+
+    async fn get_repo_tree(
+        &self,
+        owner: &str,
+        repo: &str,
+        ref_name: &str,
+    ) -> Result<RepositoryTreeResponse, GitError> {
+        todo!();
+    }
+
+    async fn get_repo_file(
+        &self,
+        owner: &str,
+        repo: &str,
+        ref_name: &str,
+        path: &str,
+    ) -> Result<RepositoryFileResponse, GitError> {
+        todo!();
     }
 }

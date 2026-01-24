@@ -12,11 +12,11 @@ pub struct CreateOrganizationServerResponse {
 }
 
 impl From<OrganizationResponse> for CreateOrganizationServerResponse {
-    fn from(org: OrganizationResponse) -> Self {
+    fn from(response: OrganizationResponse) -> Self {
         Self {
-            id: org.id,
-            name: org.name,
-            created_at: org.created_at,
+            id: response.id,
+            name: response.name,
+            created_at: response.created_at,
         }
     }
 }
