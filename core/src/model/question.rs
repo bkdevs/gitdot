@@ -8,6 +8,7 @@ use super::User;
 #[derive(Debug, Clone, FromRow, Serialize, Deserialize)]
 pub struct Question {
     pub id: Uuid,
+    pub number: i32,
     pub author_id: Uuid,
     pub repository_id: Uuid,
     pub title: String,

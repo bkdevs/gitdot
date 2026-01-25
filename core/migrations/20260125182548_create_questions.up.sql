@@ -1,6 +1,7 @@
 -- Create questions table
 CREATE TABLE IF NOT EXISTS questions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    number INTEGER NOT NULL,
     author_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     repository_id UUID NOT NULL REFERENCES repositories(id) ON DELETE CASCADE,
     title VARCHAR(255) NOT NULL,
@@ -8,7 +9,8 @@ CREATE TABLE IF NOT EXISTS questions (
     upvote INTEGER NOT NULL DEFAULT 0,
     impression INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE(repository_id, number)
 );
 
 -- Create indexes for questions

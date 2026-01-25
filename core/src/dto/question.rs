@@ -29,6 +29,7 @@ pub struct QuestionsResponse {
 #[derive(Debug, Clone)]
 pub struct QuestionResponse {
     pub id: Uuid,
+    pub number: i32,
     pub author_id: Uuid,
     pub repository_id: Uuid,
     pub title: String,
@@ -46,6 +47,7 @@ impl From<Question> for QuestionResponse {
     fn from(question: Question) -> Self {
         Self {
             id: question.id,
+            number: question.number,
             author_id: question.author_id,
             repository_id: question.repository_id,
             title: question.title,

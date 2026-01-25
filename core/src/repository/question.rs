@@ -7,6 +7,7 @@ use crate::model::{Answer, Comment, Question};
 const GET_QUESTION_WITH_DETAILS_QUERY: &str = r#"
 SELECT
     q.id,
+    q.number,
     q.author_id,
     q.repository_id,
     q.title,
@@ -152,9 +153,12 @@ impl QuestionRepository for QuestionRepositoryImpl {
     ) -> Result<Question, Error> {
         let question = sqlx::query_as::<_, Question>(
             r#"
-            INSERT INTO questions (author_id, repository_id, title, body)
-            VALUES ($1, $2, $3, $4)
-            RETURNING id, author_id, repository_id, title, body, upvote, impression, created_at, updated_at,
+            INSERT INTO questions (number, author_id, repository_id, title, body)
+            VALUES (
+                COALESCE((SELECT MAX(number) FROM questions WHERE repository_id = $2), 0) + 1,
+                $1, $2, $3, $4
+            )
+            RETURNING id, number, author_id, repository_id, title, body, upvote, impression, created_at, updated_at,
                       NULL AS author, NULL AS comments, NULL AS answers
             "#,
         )
@@ -179,7 +183,7 @@ impl QuestionRepository for QuestionRepositoryImpl {
             UPDATE questions
             SET title = $2, body = $3, updated_at = NOW()
             WHERE id = $1
-            RETURNING id, author_id, repository_id, title, body, upvote, impression, created_at, updated_at,
+            RETURNING id, number, author_id, repository_id, title, body, upvote, impression, created_at, updated_at,
                       NULL AS author, NULL AS comments, NULL AS answers
             "#,
         )
