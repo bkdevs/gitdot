@@ -1,6 +1,6 @@
 import type { BundledLanguage } from "shiki";
 
-export function inferLanguage(filePath: string): string {
+export function inferLanguage(filePath: string): BundledLanguage | undefined {
   const extension = filePath.split(".").pop()?.toLowerCase();
   const fileName = filePath.split("/").pop()?.toLowerCase();
 
@@ -94,7 +94,5 @@ export function inferLanguage(filePath: string): string {
     tsv: "tsv",
   };
 
-  return extension && extensionMap[extension]
-    ? extensionMap[extension]
-    : "plaintext";
+  return extension && extensionMap[extension];
 }

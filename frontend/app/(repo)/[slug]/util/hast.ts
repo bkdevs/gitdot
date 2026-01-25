@@ -30,13 +30,13 @@ export async function fileToHast(
     }
   }
 
-  const lang = inferLanguage(file.path) || "plaintext";
-  if (!highlighter.getLoadedLanguages().includes(lang)) {
+  const lang = inferLanguage(file.path);
+  if (lang && !highlighter.getLoadedLanguages().includes(lang)) {
     await highlighter.loadLanguage(lang);
   }
 
   return highlighter.codeToHast(file.content, {
-    lang,
+    lang: lang ?? "plaintext",
     theme,
     transformers,
   });
