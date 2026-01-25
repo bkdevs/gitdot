@@ -8,26 +8,33 @@ import type { DiffChange, RepositoryFile } from "@/lib/dto";
 import { inferLanguage } from "./language";
 
 /**
- * shiki short hands (e.g., shiki.codeToHast) internally manages a singleton instance and lazily loads themes and bundles as required
- *
- * that is all what we'd like to leverage as well, with the exception that we want to inject our own custom themes when requested
- * so we consolidate on the following API for our own internal usage
- */
+* shiki short hands (e.g., shiki.codeToHast) internally manages a singleton instance and lazily loads themes and bundles as required
+*
+* that is all what we'd like to leverage as well, with the exception that we want to inject our own custom themes when requested
+* so we consolidate on the following API for our own internal usage
+*/
 export async function fileToHast(
   file: RepositoryFile,
   theme: "vitesse-light" | "gitdot-light",
   transformers: ShikiTransformer[],
 ) {
   const highlighter = await getSingletonHighlighter();
-  if (
-    theme === "gitdot-light" &&
-    !highlighter.getLoadedThemes().includes("gitdot-light")
-  ) {
-    const gitdotLight = (await import("@/lib/themes/gitdot-light")).default;
-    await highlighter.loadTheme(gitdotLight);
+
+  if (!highlighter.getLoadedThemes().includes(theme)) {
+    if (theme === "gitdot-light") {
+      const gitdotLight = (await import("@/lib/themes/gitdot-light")).default;
+      await highlighter.loadTheme(gitdotLight);
+    } else if (theme === "vitesse-light") {
+      const vitesseLight = (await import("@shikijs/themes/vitesse-light")).default;
+      await highlighter.loadTheme(vitesseLight);
+    }
   }
 
   const lang = inferLanguage(file.path) || "plaintext";
+  if (!highlighter.getLoadedLanguages().includes(lang)) {
+    await highlighter.loadLanguage(lang);
+  }
+
   return highlighter.codeToHast(file.content, {
     lang,
     theme,
