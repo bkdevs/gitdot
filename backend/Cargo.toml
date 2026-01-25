@@ -8,7 +8,7 @@ name = "gitdot_server"
 path = "src/bin/main.rs"
 
 [dependencies]
-anyhow = "1.0.100"
+anyhow = { workspace = true }
 axum = { version = "0.8.8", features = ["macros"] }
 base64 = { workspace = true }
 chrono = { workspace = true }
