@@ -5,7 +5,7 @@ import { VoteBox } from "./vote-box"
 export function Question() {
   return (
     <div className="flex pl-8 py-4 max-w-4xl">
-      <VoteBox score={28} />
+      <VoteBox score={28}/>
       <div className="flex-1 ml-8">
         <h1 className="text-xl font-medium mb-2">
           How do I fix authentication bug in login flow?
@@ -54,7 +54,7 @@ export function Question() {
         </div>
 
         <div className="mt-2 mb-2 border border-gray-100" />
-        <Comments />
+        <Comments/>
       </div>
     </div>
   );

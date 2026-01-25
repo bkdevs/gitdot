@@ -2,7 +2,6 @@ import { getRepositoryFile, getRepositoryFileCommits } from "@/lib/dal";
 import type { LineSelection } from "../util";
 import { FileBody } from "./file-body";
 import { FileCommits } from "./file-commits";
-import { FileHeader } from "./file-header";
 
 export async function FileViewer({
   repo,
@@ -28,19 +27,16 @@ export async function FileViewer({
   }
 
   return (
-    <div className="flex flex-col w-full h-screen">
-      <FileHeader repo={repo} filePath={file.path} />
-      <div className="flex-1 overflow-hidden flex">
-        <div className="flex-1 min-w-0">
-          <FileBody file={file} selectedLines={selectedLines} />
-        </div>
-        <FileCommits
-          commits={commits}
-          selectedCommitSha={
-            selectedCommit || commits.commits[0].sha.substring(0, 7)
-          }
-        />
+    <div className="flex w-full h-full min-h-0 overflow-hidden">
+      <div className="flex-1 min-w-0 overflow-auto">
+        <FileBody file={file} selectedLines={selectedLines} />
       </div>
+      <FileCommits
+        commits={commits}
+        selectedCommitSha={
+          selectedCommit || commits.commits[0].sha.substring(0, 7)
+        }
+      />
     </div>
   );
 }

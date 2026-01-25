@@ -68,15 +68,13 @@ export function RepoSidebarFiles({
 
   return (
     <div className="flex flex-col w-full">
-      {parentPath && (
-        <FileRow
-          key=".."
-          filePath={".."}
-          href={`/${repo}/${parentPath}`}
-          isFolder={true}
-          isActive={false}
-        />
-      )}
+      <FileRow
+        key=".."
+        filePath={".."}
+        href={parentPath ? `/${repo}/${parentPath}` : `/${repo}`}
+        isFolder={true}
+        isActive={false}
+      />
       {contextFiles.map((file) => {
         const filePath = file.path.split("/").pop();
         if (!filePath) return null;

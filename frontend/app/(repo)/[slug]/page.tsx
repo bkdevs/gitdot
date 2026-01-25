@@ -14,9 +14,5 @@ export default async function RepoPage({
     return notFound();
   }
 
-  return (
-    <div className="flex flex-col w-full h-screen">
-      The repo home page! should be readme
-    </div>
-  );
+  return <div>The repo home page! should be readme</div>;
 }

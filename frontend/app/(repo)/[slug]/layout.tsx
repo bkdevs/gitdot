@@ -1,8 +1,9 @@
-import { codeToHtml } from "shiki";
 import { getRepositoryCommits, getRepositoryTree } from "@/lib/dal";
 import type { RepositoryTreeEntry } from "@/lib/dto";
+import { codeToHtml } from "shiki";
 import { RepoDialogs } from "./ui/dialog/repo-dialogs";
-import { RepoSidebar } from "./ui/sidebar/repo-sidebar";
+import { RepoHeader } from "./ui/repo-header";
+import { RepoSidebar } from "./ui/repo-sidebar";
 import { inferLanguage, parseRepositoryTree } from "./util";
 
 async function renderFilePreviews(
@@ -44,17 +45,18 @@ export default async function Layout({
 }>) {
   const { slug: repo } = await params;
 
-  const [tree, commits] = await Promise.all([
+  const [tree, commitsData] = await Promise.all([
     getRepositoryTree("bkdevs", repo),
     getRepositoryCommits("bkdevs", repo),
   ]);
 
-  if (!tree || !commits) return null;
+  if (!tree) return null;
 
   const { folders, entries } = parseRepositoryTree(tree);
   const files = Array.from(entries.values()).filter(
     (entry) => entry.entry_type === "blob",
   );
+  const commits = commitsData?.commits ?? [];
 
   // this still seems to incur _some_ latency, roughly 2-300 ms? setting up this promise stream does incur some blocking operation on the server,
   // even though there is no await being done and just awaited on in the client-side
@@ -63,14 +65,17 @@ export default async function Layout({
 
   return (
     <>
-      <div className="flex min-h-svh w-full max-w-screen overflow-hidden">
-        <RepoSidebar
-          repo={repo}
-          folders={folders}
-          entries={entries}
-          commits={commits.commits}
-        />
-        <main className="flex-1 w-full min-w-0 overflow-auto">{children}</main>
+      <div className="flex flex-col h-screen w-full max-w-screen overflow-hidden">
+        <RepoHeader repo={repo} />
+        <div className="flex flex-1 min-h-0">
+          <RepoSidebar
+            repo={repo}
+            folders={folders}
+            entries={entries}
+            commits={commits}
+          />
+          <main className="flex-1 min-w-0 overflow-auto">{children}</main>
+        </div>
       </div>
       <RepoDialogs
         repo={repo}

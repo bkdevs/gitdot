@@ -2,7 +2,6 @@ import { File, Folder } from "lucide-react";
 import Link from "next/link";
 import type { RepositoryTreeEntry } from "@/lib/dto";
 import { timeAgo } from "@/util";
-import { FolderHeader } from "./folder-header";
 
 export async function FolderViewer({
   repo,
@@ -14,8 +13,7 @@ export async function FolderViewer({
   folderEntries: RepositoryTreeEntry[];
 }) {
   return (
-    <div className="flex flex-col w-full h-screen">
-      <FolderHeader repo={repo} folderPath={folderPath} />
+    <div className="flex flex-col w-full flex-1">
       <div className="flex-1 overflow-hidden flex flex-col">
         {folderEntries.map((entry) => (
           <FolderEntryRow
