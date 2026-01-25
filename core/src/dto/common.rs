@@ -17,14 +17,14 @@ fn is_valid_slug(s: &str) -> bool {
     validate(predicate = is_valid_slug),
     derive(Debug, Clone, PartialEq, Eq, AsRef, Deref)
 )]
-pub struct OwnerName(String);
+pub(crate) struct OwnerName(String);
 
 #[nutype(
     sanitize(trim, lowercase),
     validate(predicate = is_valid_slug),
     derive(Debug, Clone, PartialEq, Eq, AsRef, Deref)
 )]
-pub struct RepositoryName(String);
+pub(crate) struct RepositoryName(String);
 
 #[cfg(test)]
 mod tests {
