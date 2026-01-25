@@ -5,8 +5,9 @@ use nutype::nutype;
 fn is_valid_slug(s: &str) -> bool {
     !s.is_empty()
         && s.len() <= 100
-        && s.chars()
-            .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-' || c == '_')
+        && s.chars().all(|c| {
+            c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-' || c == '_' || c == '.'
+        })
         && !s.starts_with('-')
         && !s.ends_with('-')
 }
