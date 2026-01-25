@@ -27,4 +27,4 @@ impl InfoRefsRequest {
     validate(predicate = |s| s == "git-upload-pack" || s == "git-receive-pack"),
     derive(Debug, Clone, PartialEq, Eq, AsRef, Deref)
 )]
-pub(crate) struct GitService(String);
+pub struct GitService(String);

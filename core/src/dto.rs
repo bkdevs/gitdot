@@ -1,9 +1,10 @@
 mod authorization;
-mod common;
 mod git_http;
 mod organization;
 mod repository;
 mod user;
+
+pub(crate) mod common;
 
 /// Define commonly used newtypes within the module
 use common::{OwnerName, RepositoryName};
