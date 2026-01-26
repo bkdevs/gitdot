@@ -23,14 +23,14 @@ export function RepoSidebar({
   commits: RepositoryCommit[];
 }) {
   const pathname = usePathname();
+  const path = pathname.replace(`/${owner}/${repo}`, "") || "/";
+
+  // Don't show sidebar on commit detail pages
+  if (/^\/commits\/[^/]+/.test(path)) {
+    return null;
+  }
 
   const getSidebarContent = () => {
-    const path = pathname.replace(`/${owner}/${repo}`, "") || "/";
-
-    if (/^\/commits\/[^/]+/.test(path)) {
-      return <RepoSidebarCommits owner={owner} repo={repo} commits={commits} />;
-    }
-
     const isNavRoute =
       path === "/" ||
       path === "/files" ||

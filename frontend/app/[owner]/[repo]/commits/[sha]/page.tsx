@@ -19,7 +19,7 @@ export default async function Page({
     commitStats.diffs.length > 5;
 
   return (
-    <div className="flex flex-col w-full h-screen overflow-y-auto scrollbar-thin">
+    <div className="flex flex-col w-full">
       <CommitHeader commit={commitStats.commit} diffs={commitStats.diffs} />
       <CommitBody
         owner={owner}
