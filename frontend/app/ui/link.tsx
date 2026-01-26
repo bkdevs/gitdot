@@ -15,6 +15,9 @@ interface SmartLinkProps
  * next.js is defensive about letting dynamic slugs in the URL, so Link will in fact fail if we attempt to give it a href that has [slug] in it.
  * so if we detect that the href has a dynamic segment, we do a plain old <a> instead
  *
+ * https://nextjs.org/docs/messages/app-dir-dynamic-href
+ * https://github.com/vercel/next.js/blob/b9edb9175e15b433122afb114cbec6a2951d7d02/packages/next/src/client/app-dir/link.tsx#L505-L515
+ *
  * this isn't ideal, still, because next.js will attempt to hydrate the dynamic slug regardless, meaning there's a bit of client-side flicker induced
  * if the dynamic slug happens to be one of our own (e.g., [owner], [repo], but that shouldn't be an issue if the next.js application the user is hosting does not overlap
  *
