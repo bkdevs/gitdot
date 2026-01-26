@@ -95,7 +95,7 @@ where
             .question_repo
             .update_question(request.id, &request.title, &request.body)
             .await?
-            .ok_or_else(|| QuestionError::QuestionNotFound(request.id.to_string()))?;
+            .ok_or_else(|| QuestionError::QuestionNotFound(request.id))?;
 
         Ok(question.into())
     }
@@ -108,7 +108,7 @@ where
             .question_repo
             .get_question(request.id)
             .await?
-            .ok_or_else(|| QuestionError::QuestionNotFound(request.id.to_string()))?;
+            .ok_or_else(|| QuestionError::QuestionNotFound(request.id))?;
 
         Ok(question.into())
     }
@@ -147,7 +147,7 @@ where
             .question_repo
             .update_answer(request.id, &request.body)
             .await?
-            .ok_or_else(|| QuestionError::AnswerNotFound(request.id.to_string()))?;
+            .ok_or_else(|| QuestionError::AnswerNotFound(request.id))?;
 
         Ok(answer.into())
     }
@@ -172,7 +172,7 @@ where
             .question_repo
             .update_comment(request.id, &request.body)
             .await?
-            .ok_or_else(|| QuestionError::CommentNotFound(request.id.to_string()))?;
+            .ok_or_else(|| QuestionError::CommentNotFound(request.id))?;
 
         Ok(comment.into())
     }

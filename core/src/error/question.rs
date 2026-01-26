@@ -1,18 +1,19 @@
 use thiserror::Error;
+use uuid::Uuid;
 
 #[derive(Debug, Error)]
 pub enum QuestionError {
     #[error("Question not found: {0}")]
-    QuestionNotFound(String),
+    QuestionNotFound(Uuid),
 
     #[error("Answer not found: {0}")]
-    AnswerNotFound(String),
+    AnswerNotFound(Uuid),
 
     #[error("Comment not found: {0}")]
-    CommentNotFound(String),
+    CommentNotFound(Uuid),
 
     #[error("Repository not found: {0}")]
-    RepositoryNotFound(String),
+    RepositoryNotFound(Uuid),
 
     #[error("Database error: {0}")]
     DatabaseError(#[from] sqlx::Error),

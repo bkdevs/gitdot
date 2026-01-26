@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 
-use crate::dto::RepositoryAuthorizationRequest;
+use crate::dto::{RepositoryAuthorizationRequest, RepositoryIdentifier};
 use crate::error::AuthorizationError;
 use crate::repository::{
     OrganizationRepository, OrganizationRepositoryImpl, RepositoryRepository,
@@ -44,16 +44,27 @@ where
         &self,
         request: RepositoryAuthorizationRequest,
     ) -> Result<(), AuthorizationError> {
-        let repository = self
-            .repo_repo
-            .get(&request.owner_name, &request.repo_name)
-            .await?
-            .ok_or_else(|| {
-                AuthorizationError::InvalidRequest(format!(
-                    "Repository not found: {}",
-                    &request.get_repo_path()
-                ))
-            })?;
+        let repository = match &request.repository {
+            RepositoryIdentifier::Id(id) => {
+                self.repo_repo.get_by_id(*id).await?.ok_or_else(|| {
+                    AuthorizationError::InvalidRequest(format!("Repository not found: {}", id))
+                })?
+            }
+            RepositoryIdentifier::OwnerRepo {
+                owner_name,
+                repo_name,
+            } => self
+                .repo_repo
+                .get(owner_name.as_ref(), repo_name.as_ref())
+                .await?
+                .ok_or_else(|| {
+                    AuthorizationError::InvalidRequest(format!(
+                        "Repository not found: {}/{}",
+                        owner_name.as_ref(),
+                        repo_name.as_ref()
+                    ))
+                })?,
+        };
 
         if repository.is_public() {
             return Ok(());
