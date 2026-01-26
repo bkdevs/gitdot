@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { DiffHeader } from "./diff-header";
 
 export function DiffFileClient({
@@ -17,10 +17,9 @@ export function DiffFileClient({
   linesRemoved: number;
 }) {
   const [diffOpen, setDiffOpen] = useState(true);
-  const path = leftPath || rightPath;
 
   return (
-    <div id={path} className="flex flex-col w-full">
+    <Fragment>
       <DiffHeader
         open={diffOpen}
         setOpen={setDiffOpen}
@@ -30,6 +29,6 @@ export function DiffFileClient({
         linesRemoved={linesRemoved}
       />
       {diffOpen && children}
-    </div>
+    </Fragment>
   );
 }

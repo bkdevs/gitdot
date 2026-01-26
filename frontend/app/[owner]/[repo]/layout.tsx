@@ -40,7 +40,9 @@ export default async function Layout({
           entries={entries}
           commits={commits}
         />
-        <div className="flex-1 min-w-0 overflow-auto">{children}</div>
+        <div className="flex-1 min-w-0 overflow-auto scrollbar-thin">
+          {children}
+        </div>
       </div>
       <RepoDialogs
         owner={owner}

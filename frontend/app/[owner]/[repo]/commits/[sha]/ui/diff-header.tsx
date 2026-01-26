@@ -20,11 +20,14 @@ export function DiffHeader({
   const path = leftPath || rightPath;
 
   return (
-    <div
+    <button
+      type="button"
+      id={path}
       className={cn(
-        "flex flex-row w-full h-9 shrink-0 items-center px-2 border-b border-border text-sm font-mono sticky top-0 z-10",
+        "flex flex-row w-full h-9 shrink-0 items-center px-2 border-b border-border text-sm font-mono sticky top-0 z-10 select-none",
         open ? "bg-sidebar" : "bg-sidebar-primary",
       )}
+      onClick={() => setOpen(!open)}
     >
       {leftPath && rightPath && leftPath !== rightPath ? (
         <span className="mr-auto">
@@ -36,11 +39,7 @@ export function DiffHeader({
         <span className="mr-auto">{path}</span>
       )}
 
-      <button
-        type="submit"
-        className="flex flex-row items-center select-none"
-        onClick={() => setOpen(!open)}
-      >
+      <div className="flex flex-row items-center">
         {leftPath && !rightPath && (
           <span className="text-red-600">deleted</span>
         )}
@@ -59,7 +58,7 @@ export function DiffHeader({
         ) : (
           <ChevronRight className="ml-1.5 mb-px size-3" />
         )}
-      </button>
-    </div>
+      </div>
+    </button>
   );
 }
