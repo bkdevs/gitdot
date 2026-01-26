@@ -74,3 +74,10 @@ pub struct VoteResult {
     pub new_score: i32,
     pub user_vote: Option<i16>,
 }
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum VoteTarget {
+    Question,
+    Answer,
+    Comment,
+}

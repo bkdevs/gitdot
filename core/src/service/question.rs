@@ -8,6 +8,7 @@ use crate::dto::{
     VoteResponse,
 };
 use crate::error::QuestionError;
+use crate::model::VoteTarget;
 use crate::repository::{
     QuestionRepository, QuestionRepositoryImpl, RepositoryRepository, RepositoryRepositoryImpl,
 };
@@ -270,7 +271,12 @@ where
 
         let result = self
             .question_repo
-            .vote(request.user_id, question_id, request.value)
+            .vote(
+                request.user_id,
+                question_id,
+                VoteTarget::Question,
+                request.value,
+            )
             .await?;
 
         Ok(result.into())
@@ -279,7 +285,12 @@ where
     async fn vote_answer(&self, request: VoteAnswerRequest) -> Result<VoteResponse, QuestionError> {
         let result = self
             .question_repo
-            .vote(request.user_id, request.answer_id, request.value)
+            .vote(
+                request.user_id,
+                request.answer_id,
+                VoteTarget::Answer,
+                request.value,
+            )
             .await?;
 
         Ok(result.into())
@@ -291,7 +302,12 @@ where
     ) -> Result<VoteResponse, QuestionError> {
         let result = self
             .question_repo
-            .vote(request.user_id, request.comment_id, request.value)
+            .vote(
+                request.user_id,
+                request.comment_id,
+                VoteTarget::Comment,
+                request.value,
+            )
             .await?;
 
         Ok(result.into())

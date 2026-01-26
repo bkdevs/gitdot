@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use sqlx::{Error, PgPool};
 use uuid::Uuid;
 
-use crate::model::{Answer, Comment, Question, VoteResult};
+use crate::model::{Answer, Comment, Question, VoteResult, VoteTarget};
 
 const QUESTION_DETAILS_QUERY: &str = r#"
 SELECT
@@ -174,7 +174,13 @@ pub trait QuestionRepository: Send + Sync + Clone + 'static {
 
     /// Vote on a target (question, answer, or comment)
     /// value: 1 (upvote), -1 (downvote), 0 (remove vote)
-    async fn vote(&self, user_id: Uuid, target_id: Uuid, value: i16) -> Result<VoteResult, Error>;
+    async fn vote(
+        &self,
+        user_id: Uuid,
+        target_id: Uuid,
+        target_type: VoteTarget,
+        value: i16,
+    ) -> Result<VoteResult, Error>;
 }
 
 #[derive(Debug, Clone)]
@@ -465,10 +471,15 @@ impl QuestionRepository for QuestionRepositoryImpl {
             .await
     }
 
-    async fn vote(&self, user_id: Uuid, target_id: Uuid, value: i16) -> Result<VoteResult, Error> {
+    async fn vote(
+        &self,
+        user_id: Uuid,
+        target_id: Uuid,
+        target_type: VoteTarget,
+        value: i16,
+    ) -> Result<VoteResult, Error> {
         let mut tx = self.pool.begin().await?;
 
-        // Get existing vote if any
         let existing_vote: Option<i16> =
             sqlx::query_scalar("SELECT value FROM votes WHERE user_id = $1 AND target_id = $2")
                 .bind(user_id)
@@ -481,7 +492,6 @@ impl QuestionRepository for QuestionRepositoryImpl {
         let final_vote: Option<i16>;
 
         if value == 0 {
-            // Remove vote
             sqlx::query("DELETE FROM votes WHERE user_id = $1 AND target_id = $2")
                 .bind(user_id)
                 .bind(target_id)
@@ -489,7 +499,6 @@ impl QuestionRepository for QuestionRepositoryImpl {
                 .await?;
             final_vote = None;
         } else if existing_vote.is_some() {
-            // Update existing vote
             sqlx::query("UPDATE votes SET value = $3 WHERE user_id = $1 AND target_id = $2")
                 .bind(user_id)
                 .bind(target_id)
@@ -498,7 +507,6 @@ impl QuestionRepository for QuestionRepositoryImpl {
                 .await?;
             final_vote = Some(value);
         } else {
-            // Insert new vote
             sqlx::query("INSERT INTO votes (user_id, target_id, value) VALUES ($1, $2, $3)")
                 .bind(user_id)
                 .bind(target_id)
@@ -508,36 +516,33 @@ impl QuestionRepository for QuestionRepositoryImpl {
             final_vote = Some(value);
         }
 
-        // Update denormalized upvote counter - try each table
-        let new_score: i32 = if let Some(score) = sqlx::query_scalar::<_, i32>(
-            "UPDATE questions SET upvote = upvote + $2 WHERE id = $1 RETURNING upvote",
-        )
-        .bind(target_id)
-        .bind(vote_delta)
-        .fetch_optional(&mut *tx)
-        .await?
-        {
-            score
-        } else if let Some(score) = sqlx::query_scalar::<_, i32>(
-            "UPDATE answers SET upvote = upvote + $2 WHERE id = $1 RETURNING upvote",
-        )
-        .bind(target_id)
-        .bind(vote_delta)
-        .fetch_optional(&mut *tx)
-        .await?
-        {
-            score
-        } else if let Some(score) = sqlx::query_scalar::<_, i32>(
-            "UPDATE comments SET upvote = upvote + $2 WHERE id = $1 RETURNING upvote",
-        )
-        .bind(target_id)
-        .bind(vote_delta)
-        .fetch_optional(&mut *tx)
-        .await?
-        {
-            score
-        } else {
-            return Err(Error::RowNotFound);
+        let new_score: i32 = match target_type {
+            VoteTarget::Question => sqlx::query_scalar::<_, i32>(
+                "UPDATE questions SET upvote = upvote + $2 WHERE id = $1 RETURNING upvote",
+            )
+            .bind(target_id)
+            .bind(vote_delta)
+            .fetch_optional(&mut *tx)
+            .await?
+            .ok_or(Error::RowNotFound)?,
+
+            VoteTarget::Answer => sqlx::query_scalar::<_, i32>(
+                "UPDATE answers SET upvote = upvote + $2 WHERE id = $1 RETURNING upvote",
+            )
+            .bind(target_id)
+            .bind(vote_delta)
+            .fetch_optional(&mut *tx)
+            .await?
+            .ok_or(Error::RowNotFound)?,
+
+            VoteTarget::Comment => sqlx::query_scalar::<_, i32>(
+                "UPDATE comments SET upvote = upvote + $2 WHERE id = $1 RETURNING upvote",
+            )
+            .bind(target_id)
+            .bind(vote_delta)
+            .fetch_optional(&mut *tx)
+            .await?
+            .ok_or(Error::RowNotFound)?,
         };
 
         tx.commit().await?;
