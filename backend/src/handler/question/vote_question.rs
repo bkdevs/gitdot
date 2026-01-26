@@ -3,7 +3,7 @@ use axum::{
     http::StatusCode,
 };
 
-use gitdot_core::dto::VoteQuestionRequest;
+use gitdot_core::dto::{RepositoryAuthorizationRequest, VoteQuestionRequest};
 
 use crate::app::{AppError, AppResponse, AppState, AuthenticatedUser};
 use crate::dto::{VoteServerRequest, VoteServerResponse};
@@ -15,6 +15,12 @@ pub async fn vote_question(
     Path((owner, repo, number)): Path<(String, String, i32)>,
     Json(request): Json<VoteServerRequest>,
 ) -> Result<AppResponse<VoteServerResponse>, AppError> {
+    let auth_request = RepositoryAuthorizationRequest::new(Some(auth_user.id), &owner, &repo)?;
+    state
+        .auth_service
+        .verify_authorized_for_repository(auth_request)
+        .await?;
+
     let request = VoteQuestionRequest::new(&owner, &repo, number, auth_user.id, request.value)?;
     state
         .question_service
