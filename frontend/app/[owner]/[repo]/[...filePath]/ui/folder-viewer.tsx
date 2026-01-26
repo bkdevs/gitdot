@@ -36,18 +36,20 @@ function FolderEntryRow({
 }) {
   return (
     <Link
-      className="flex flex-row w-full px-2 h-9 items-center border-b hover:bg-accent/50 select-none cursor-default text-sm"
+      className="grid grid-cols-[1fr_300px_150px] w-full pl-2 h-9 items-center border-b hover:bg-accent/50 select-none cursor-default text-sm font-mono"
       href={href}
       prefetch={true}
     >
-      {entry.entry_type === "blob" ? (
-        <File className="size-4" />
-      ) : (
-        <Folder className="size-4" />
-      )}
-      <span className="ml-2">{entry.path.split("/").pop()}</span>
-      <span className="ml-auto w-96 truncate">{entry.commit.message}</span>
-      <span className="text-primary/60 ml-2">
+      <span className="flex items-center min-w-0">
+        {entry.entry_type === "blob" ? (
+          <File className="size-4 shrink-0" />
+        ) : (
+          <Folder className="size-4 shrink-0" />
+        )}
+        <span className="ml-2 truncate">{entry.path.split("/").pop()}</span>
+      </span>
+      <span className="truncate">{entry.commit.message}</span>
+      <span className="text-primary/60 ml-4 whitespace-nowrap">
         {entry.commit.author} • {timeAgo(new Date(entry.commit.date))}
       </span>
     </Link>

@@ -85,7 +85,7 @@ function NavItem({
   const button = (
     <SidebarMenuButton
       tooltip={label}
-      className="w-full h-full flex items-center justify-center p-0! rounded-none hover:!bg-transparent hover:!text-current"
+      className="w-full h-full flex items-center justify-center p-0! rounded-none hover:bg-transparent! hover:text-current!"
     >
       <Icon className={cn(iconClassName ?? "h-4 w-4", "mr-1")} />
       <span className="sr-only">{label}</span>
@@ -96,7 +96,13 @@ function NavItem({
     <SidebarMenuItem
       className={`w-10 h-9 border-b p-0! border-l-4 bg-sidebar ${isActive ? "border-l-primary" : "border-l-transparent"}`}
     >
-      {href ? <Link href={href}>{button}</Link> : button}
+      {href ? (
+        <Link prefetch={true} href={href}>
+          {button}
+        </Link>
+      ) : (
+        button
+      )}
     </SidebarMenuItem>
   );
 }
