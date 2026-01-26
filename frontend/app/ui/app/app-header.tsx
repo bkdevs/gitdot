@@ -1,6 +1,5 @@
 "use client";
 
-import { Circle } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -29,9 +28,6 @@ export function AppHeader() {
 
   return (
     <div className="shrink-0 flex flex-row w-full h-9 items-center border-b bg-sidebar">
-      <div className="flex w-9 h-9 border-r items-center justify-center bg-foreground">
-        <Circle className="size-2 fill-current text-background" />
-      </div>
       <div className="flex-1 pl-2 text-sm font-mono flex items-center">
         {pathLinks}
       </div>

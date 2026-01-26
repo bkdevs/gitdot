@@ -32,13 +32,13 @@ export default function RootLayout({
     >
       <body>
         <Providers>
-          <div className="flex flex-col h-screen w-full max-w-screen overflow-hidden">
-            <AppHeader />
-            <div className="flex flex-1 min-h-0">
-              <div className="hidden md:flex h-full shrink-0">
-                <AppSidebar />
-              </div>
-              <main className="flex-1 min-w-0 overflow-auto">{children}</main>
+          <div className="flex flex-row h-screen w-full max-w-screen overflow-hidden">
+            <div className="hidden md:flex h-full shrink-0">
+              <AppSidebar />
+            </div>
+            <div className="flex flex-col flex-1 min-w-0">
+              <AppHeader />
+              <main className="flex-1 min-h-0 overflow-auto">{children}</main>
             </div>
           </div>
         </Providers>

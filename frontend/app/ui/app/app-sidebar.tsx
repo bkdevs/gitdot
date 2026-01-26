@@ -1,11 +1,14 @@
 "use client";
 
 import {
+  Circle,
   GitPullRequest,
   Mail,
   MessageCircleQuestion,
   Plus,
 } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   Sidebar,
   SidebarContent,
@@ -15,17 +18,14 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/ui/sidebar";
+import { cn } from "@/util";
 
-const SIDEBAR_ICON_WIDTH = "2.25rem";
-
-const navItems = [
-  { id: "inbox", icon: Mail, label: "Inbox" },
-  { id: "questions", icon: MessageCircleQuestion, label: "Questions" },
-  { id: "pulls", icon: GitPullRequest, label: "Pull Requests" },
-  { id: "new", icon: Plus, label: "New" },
-];
+const SIDEBAR_ICON_WIDTH = "2.5rem";
 
 export function AppSidebar() {
+  const pathname = usePathname();
+  const isDefault = !["/inbox", "/questions", "/pulls"].includes(pathname);
+
   return (
     <Sidebar
       className="bg-sidebar h-full! border-r"
@@ -35,24 +35,68 @@ export function AppSidebar() {
         <SidebarGroup className="p-0!">
           <SidebarGroupContent>
             <SidebarMenu className="gap-0">
-              {navItems.map((item) => (
-                <SidebarMenuItem
-                  className="w-9 h-9 border-b p-0!"
-                  key={item.id}
-                >
-                  <SidebarMenuButton
-                    tooltip={item.label}
-                    className="w-full h-full flex items-center justify-center p-0! rounded-none cursor-default"
-                  >
-                    <item.icon className="h-4 w-4" />
-                    <span className="sr-only">{item.label}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              <NavItem
+                icon={Circle}
+                label="Home"
+                href="/"
+                isActive={isDefault}
+                iconClassName="!size-2 fill-current"
+              />
+              <NavItem
+                icon={Mail}
+                label="Inbox"
+                href="/inbox"
+                isActive={pathname === "/inbox"}
+              />
+              <NavItem
+                icon={MessageCircleQuestion}
+                label="Questions"
+                href="/questions"
+                isActive={pathname === "/questions"}
+              />
+              <NavItem
+                icon={GitPullRequest}
+                label="Pull Requests"
+                href="/pulls"
+                isActive={pathname === "/pulls"}
+              />
+              <NavItem icon={Plus} label="New" isActive={false} />
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
     </Sidebar>
+  );
+}
+
+function NavItem({
+  icon: Icon,
+  label,
+  href,
+  isActive,
+  iconClassName,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  href?: string;
+  isActive: boolean;
+  iconClassName?: string;
+}) {
+  const button = (
+    <SidebarMenuButton
+      tooltip={label}
+      className="w-full h-full flex items-center justify-center p-0! rounded-none"
+    >
+      <Icon className={cn(iconClassName ?? "h-4 w-4", "mr-1")} />
+      <span className="sr-only">{label}</span>
+    </SidebarMenuButton>
+  );
+
+  return (
+    <SidebarMenuItem
+      className={`w-10 h-9 border-b p-0! border-l-4 bg-sidebar ${isActive ? "border-l-primary" : "border-l-transparent"}`}
+    >
+      {href ? <Link href={href}>{button}</Link> : button}
+    </SidebarMenuItem>
   );
 }
