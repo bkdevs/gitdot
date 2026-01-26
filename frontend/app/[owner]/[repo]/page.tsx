@@ -1,5 +1,5 @@
 import { getRepositoryFile } from "@/lib/dal";
-import Markdown from 'react-markdown'
+import { MarkdownBody } from "./ui/markdown/markdown-body";
 
 export default async function Page({
   params,
@@ -15,9 +15,7 @@ export default async function Page({
     return <div>README.md not found</div>;
   }
 
-  return <div className="px-4 py-2">
-    <Markdown>
-      {readme.content}
-    </Markdown>
+  return <div className="p-4">
+    <MarkdownBody content={readme.content} />
   </div>;
 }
