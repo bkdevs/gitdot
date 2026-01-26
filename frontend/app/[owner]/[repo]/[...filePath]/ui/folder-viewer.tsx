@@ -4,12 +4,12 @@ import type { RepositoryTreeEntry } from "@/lib/dto";
 import { timeAgo } from "@/util";
 
 export async function FolderViewer({
+  owner,
   repo,
-  folderPath,
   folderEntries,
 }: {
+  owner: string;
   repo: string;
-  folderPath: string;
   folderEntries: RepositoryTreeEntry[];
 }) {
   return (
@@ -19,7 +19,7 @@ export async function FolderViewer({
           <FolderEntryRow
             key={entry.path}
             entry={entry}
-            href={`/${repo}/${entry.path}`}
+            href={`/${owner}/${repo}/${entry.path}`}
           />
         ))}
       </div>

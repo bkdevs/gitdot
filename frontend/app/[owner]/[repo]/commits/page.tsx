@@ -7,9 +7,9 @@ import { groupCommitsByDate } from "../util/commit";
 export default async function Page({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ repo: string }>;
 }) {
-  const { slug: repo } = await params;
+  const { repo } = await params;
   const commitsData = await getRepositoryCommits("bkdevs", repo);
 
   if (!commitsData) return null;

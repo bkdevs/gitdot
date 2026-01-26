@@ -38,11 +38,13 @@ function FileRow({
 }
 
 export function RepoSidebarFiles({
+  owner,
   repo,
   folders,
   entries,
   currentPath,
 }: {
+  owner: string;
   repo: string;
   folders: Map<string, string[]>;
   entries: Map<string, RepositoryTreeEntry>;
@@ -68,7 +70,9 @@ export function RepoSidebarFiles({
       <FileRow
         key=".."
         filePath={".."}
-        href={parentPath ? `/${repo}/${parentPath}` : `/${repo}`}
+        href={
+          parentPath ? `/${owner}/${repo}/${parentPath}` : `/${owner}/${repo}`
+        }
         isFolder={true}
         isActive={false}
       />
@@ -81,7 +85,7 @@ export function RepoSidebarFiles({
           <FileRow
             key={file.path}
             filePath={filePath}
-            href={`/${repo}/${parentPath}/${filePath}`}
+            href={`/${owner}/${repo}/${parentPath}/${filePath}`}
             isFolder={file.entry_type === "tree"}
             isActive={currentPath === fullPath}
           />

@@ -4,10 +4,10 @@ import { Circle } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-export function RepoHeader({ repo }: { repo: string }) {
+export function RepoHeader({ owner, repo }: { owner: string; repo: string }) {
   const pathname = usePathname();
   const segments = pathname.split("/").filter(Boolean);
-  const [repoSegment, ...pathSegments] = segments;
+  const [ownerSegment, repoSegment, ...pathSegments] = segments;
 
   if (repoSegment !== repo) {
     throw Error("RepoHeader should only be used under repo paths!");
@@ -16,8 +16,17 @@ export function RepoHeader({ repo }: { repo: string }) {
   const pathLinks: React.ReactNode[] = [
     <Link
       className="hover:underline"
-      href={`/${repo}`}
-      key="repo-root"
+      href={`/${owner}`}
+      key="owner-segment"
+      prefetch={true}
+    >
+      {owner}
+    </Link>,
+    <span key="owner-repo-separator">/</span>,
+    <Link
+      className="hover:underline"
+      href={`/${ownerSegment}/${repoSegment}`}
+      key="repo-segment"
       prefetch={true}
     >
       {repo}
@@ -25,7 +34,7 @@ export function RepoHeader({ repo }: { repo: string }) {
   ];
 
   pathSegments.forEach((segment, index) => {
-    const path = `/${segments.slice(0, index + 2).join("/")}`;
+    const path = `/${ownerSegment}/${repoSegment}/${pathSegments.slice(0, index + 1).join("/")}`;
     pathLinks.push(
       <span key={`sep-${segment}`}>/</span>,
       <Link

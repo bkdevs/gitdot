@@ -5,10 +5,12 @@ import type { RepositoryTreeEntry } from "@/lib/dto";
 import { RepoFileDialog } from "./repo-file-dialog";
 
 export function RepoDialogs({
+  owner,
   repo,
   files,
   filePreviewsPromise,
 }: {
+  owner: string;
   repo: string;
   files: RepositoryTreeEntry[];
   filePreviewsPromise: Promise<Map<string, string>>;
@@ -42,6 +44,7 @@ export function RepoDialogs({
       <RepoFileDialog
         open={fileDialogOpen}
         setOpen={setFileDialogOpen}
+        owner={owner}
         repo={repo}
         files={files}
         filePreviewsPromise={filePreviewsPromise}

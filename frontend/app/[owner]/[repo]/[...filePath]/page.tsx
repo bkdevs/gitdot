@@ -1,4 +1,4 @@
-import { getFolderEntries, parseRepositoryTree } from "@/(repo)/[slug]/util";
+import { getFolderEntries, parseRepositoryTree } from "@/[owner]/[repo]/util";
 import { getRepositoryTree } from "@/lib/dal";
 import { FileViewer } from "./ui/file-viewer";
 import { FolderViewer } from "./ui/folder-viewer";
@@ -8,13 +8,15 @@ export default async function Page({
   params,
   searchParams,
 }: {
-  params: Promise<{ slug: string; filePath: string[] }>;
+  params: Promise<{ owner: string; repo: string; filePath: string[] }>;
   searchParams: Promise<{
     lines?: string | string[];
     ref?: string;
   }>;
 }) {
-  const { slug: repo, filePath } = await params;
+  const { owner, repo, filePath } = await params;
+
+  console.log(owner);
   const tree = await getRepositoryTree("bkdevs", repo);
   if (!tree) return null;
 
@@ -26,8 +28,8 @@ export default async function Page({
   } else if (folders.has(filePathString)) {
     return (
       <FolderViewer
+        owner={owner}
         repo={repo}
-        folderPath={filePathString}
         folderEntries={getFolderEntries(filePathString, folders, entries)}
       />
     );
@@ -35,6 +37,7 @@ export default async function Page({
     const { lines, ref } = await searchParams;
     return (
       <FileViewer
+        owner={owner}
         repo={repo}
         filePath={filePathString}
         selectedLines={parseLineSelection(lines)}

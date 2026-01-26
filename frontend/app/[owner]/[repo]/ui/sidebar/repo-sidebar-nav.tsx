@@ -9,9 +9,11 @@ const navItems = [
 ];
 
 export function RepoSidebarNav({
+  owner,
   repo,
   currentPath,
 }: {
+  owner: string;
   repo: string;
   currentPath: string;
 }) {
@@ -31,7 +33,9 @@ export function RepoSidebarNav({
         return (
           <Link
             key={item.label}
-            href={item.path ? `/${repo}/${item.path}` : `/${repo}`}
+            href={
+              item.path ? `/${owner}/${repo}/${item.path}` : `/${owner}/${repo}`
+            }
             className={`flex flex-row w-full px-2 h-9 items-center border-b select-none cursor-default text-sm hover:bg-accent/50 ${
               active ? "bg-sidebar" : ""
             }`}

@@ -9,13 +9,13 @@ export default async function Layout({
   params,
 }: Readonly<{
   children: React.ReactNode;
-  params: Promise<{ slug: string }>;
+  params: Promise<{ owner: string; repo: string }>;
 }>) {
-  const { slug: repo } = await params;
+  const { owner, repo } = await params;
 
   const [tree, commitsData] = await Promise.all([
-    getRepositoryTree("bkdevs", repo),
-    getRepositoryCommits("bkdevs", repo),
+    getRepositoryTree(owner, repo),
+    getRepositoryCommits(owner, repo),
   ]);
 
   if (!tree) return null;
@@ -34,9 +34,10 @@ export default async function Layout({
   return (
     <>
       <div className="flex flex-col h-screen w-full max-w-screen overflow-hidden">
-        <RepoHeader repo={repo} />
+        <RepoHeader owner={owner} repo={repo} />
         <div className="flex flex-1 min-h-0">
           <RepoSidebar
+            owner={owner}
             repo={repo}
             folders={folders}
             entries={entries}
@@ -46,6 +47,7 @@ export default async function Layout({
         </div>
       </div>
       <RepoDialogs
+        owner={owner}
         repo={repo}
         files={files}
         filePreviewsPromise={filePreviewsPromise}

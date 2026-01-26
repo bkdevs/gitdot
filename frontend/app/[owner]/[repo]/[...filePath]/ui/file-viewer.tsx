@@ -4,19 +4,21 @@ import { FileBody } from "./file-body";
 import { FileCommits } from "./file-commits";
 
 export async function FileViewer({
+  owner,
   repo,
   filePath,
   selectedLines,
   selectedCommit,
 }: {
+  owner: string;
   repo: string;
   filePath: string;
   selectedLines: LineSelection | null;
   selectedCommit?: string;
 }) {
   const [commits, file] = await Promise.all([
-    getRepositoryFileCommits("bkdevs", repo, { path: filePath }),
-    getRepositoryFile("bkdevs", repo, {
+    getRepositoryFileCommits(owner, repo, { path: filePath }),
+    getRepositoryFile(owner, repo, {
       path: filePath,
       ref_name: selectedCommit,
     }),

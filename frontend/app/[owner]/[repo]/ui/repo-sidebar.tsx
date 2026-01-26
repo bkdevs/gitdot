@@ -10,11 +10,13 @@ import { RepoSidebarNav } from "./sidebar/repo-sidebar-nav";
 const SIDEBAR_WIDTH = "15rem";
 
 export function RepoSidebar({
+  owner,
   repo,
   folders,
   entries,
   commits,
 }: {
+  owner: string;
   repo: string;
   folders: Map<string, string[]>;
   entries: Map<string, RepositoryTreeEntry>;
@@ -23,24 +25,25 @@ export function RepoSidebar({
   const pathname = usePathname();
 
   const getSidebarContent = () => {
-    const pathWithoutRepo = pathname.replace(`/${repo}`, "") || "/";
+    const path = pathname.replace(`/${owner}/${repo}`, "") || "/";
 
-    if (/^\/commits\/[^/]+/.test(pathWithoutRepo)) {
-      return <RepoSidebarCommits repo={repo} commits={commits} />;
+    if (/^\/commits\/[^/]+/.test(path)) {
+      return <RepoSidebarCommits owner={owner} repo={repo} commits={commits} />;
     }
 
     const isNavRoute =
-      pathWithoutRepo === "/" ||
-      pathWithoutRepo === "/files" ||
-      pathWithoutRepo === "/commits" ||
-      pathWithoutRepo.startsWith("/commits") ||
-      pathWithoutRepo === "/questions" ||
-      pathWithoutRepo.startsWith("/questions/");
+      path === "/" ||
+      path === "/files" ||
+      path === "/commits" ||
+      path.startsWith("/commits") ||
+      path === "/questions" ||
+      path.startsWith("/questions/");
 
-    if (!isNavRoute && pathWithoutRepo !== "/") {
-      const currentPath = pathWithoutRepo.slice(1);
+    if (!isNavRoute && path !== "/") {
+      const currentPath = path.slice(1);
       return (
         <RepoSidebarFiles
+          owner={owner}
           repo={repo}
           folders={folders}
           entries={entries}
@@ -49,7 +52,7 @@ export function RepoSidebar({
       );
     }
 
-    return <RepoSidebarNav repo={repo} currentPath={pathWithoutRepo} />;
+    return <RepoSidebarNav owner={owner} repo={repo} currentPath={path} />;
   };
 
   return (

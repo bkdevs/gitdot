@@ -1,7 +1,7 @@
+import { sortHunks } from "@/[owner]/[repo]/util";
 import type { RepositoryFileDiff } from "@/lib/dto";
 import { DiffSingle } from "./diff-single";
 import { DiffSplit } from "./diff-split";
-import { sortHunks } from "@/(repo)/[slug]/util";
 
 export async function DiffBody({ diff }: { diff: RepositoryFileDiff }) {
   const { left, right, hunks } = diff;

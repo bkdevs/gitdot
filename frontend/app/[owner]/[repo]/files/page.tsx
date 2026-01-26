@@ -5,9 +5,9 @@ import { getFolderEntries, parseRepositoryTree } from "../util";
 export default async function FilesPage({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ owner: string; repo: string }>;
 }) {
-  const { slug: repo } = await params;
+  const { owner, repo } = await params;
 
   const tree = await getRepositoryTree("bkdevs", repo);
   if (!tree) return null;
@@ -24,6 +24,6 @@ export default async function FilesPage({
   });
 
   return (
-    <FolderViewer repo={repo} folderPath="" folderEntries={sortedEntries} />
+    <FolderViewer owner={owner} repo={repo} folderEntries={sortedEntries} />
   );
 }

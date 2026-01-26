@@ -9,12 +9,14 @@ import { fuzzyMatch } from "../../util";
 export function RepoFileDialog({
   open,
   setOpen,
+  owner,
   repo,
   files,
   filePreviewsPromise,
 }: {
   open: boolean;
   setOpen: (open: boolean) => void;
+  owner: string;
   repo: string;
   files: RepositoryTreeEntry[];
   filePreviewsPromise: Promise<Map<string, string>>;
@@ -24,8 +26,6 @@ export function RepoFileDialog({
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [mouseMoved, setMouseMoved] = useState(false);
   const filePreviews = use(filePreviewsPromise);
-
-  console.log(filePreviews);
 
   const filteredFiles = useMemo(() => {
     if (!query) return files;
@@ -44,9 +44,9 @@ export function RepoFileDialog({
   const handleSelect = useCallback(
     (entry: RepositoryTreeEntry) => {
       setOpen(false);
-      router.push(`/${repo}/${entry.path}`); // is this right?
+      router.push(`/${owner}/${repo}/${entry.path}`); // is this right?
     },
-    [repo, router, setOpen],
+    [owner, repo, router, setOpen],
   );
 
   useEffect(() => {
