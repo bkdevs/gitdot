@@ -1,11 +1,10 @@
-import { Code2, GitCommit, Home, MessageCircleQuestion } from "lucide-react";
 import Link from "next/link";
 
 const navItems = [
-  { path: "", label: "Home", icon: Home },
-  { path: "files", label: "Files", icon: Code2 },
-  { path: "commits", label: "Commits", icon: GitCommit },
-  { path: "questions", label: "Questions", icon: MessageCircleQuestion },
+  { path: "", label: "/home" },
+  { path: "files", label: "/files" },
+  { path: "commits", label: "/commits" },
+  { path: "questions", label: "/questions" },
 ];
 
 export function RepoSidebarNav({
@@ -36,12 +35,11 @@ export function RepoSidebarNav({
             href={
               item.path ? `/${owner}/${repo}/${item.path}` : `/${owner}/${repo}`
             }
-            className={`flex flex-row w-full px-2 h-9 items-center border-b select-none cursor-default text-sm hover:bg-accent/50 ${
+            className={`flex flex-row w-full h-9 items-center border-b select-none cursor-default text-sm hover:bg-accent/50 font-mono ${
               active ? "bg-sidebar" : ""
             }`}
             prefetch={true}
           >
-            <item.icon className="size-4" />
             <span className="ml-2">{item.label}</span>
           </Link>
         );

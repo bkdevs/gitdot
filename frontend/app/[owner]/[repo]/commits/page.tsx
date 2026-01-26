@@ -28,7 +28,7 @@ export default async function Page({
           {commits.map((commit) => (
             <Link
               key={commit.sha}
-              href={`/${repo}/commits/${commit.sha.substring(0, 7)}`}
+              href={`/${owner}/${repo}/commits/${commit.sha.substring(0, 7)}`}
               className="flex w-full border-b hover:bg-accent/50 select-none cursor-default py-2 px-2"
               prefetch={true}
             >

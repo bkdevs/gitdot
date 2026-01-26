@@ -1,6 +1,5 @@
 import { getRepositoryCommits, getRepositoryTree } from "@/lib/dal";
 import { RepoDialogs } from "./ui/dialog/repo-dialogs";
-import { RepoHeader } from "./ui/repo-header";
 import { RepoSidebar } from "./ui/repo-sidebar";
 import { parseRepositoryTree, renderFilePreviews } from "./util";
 
@@ -33,18 +32,15 @@ export default async function Layout({
 
   return (
     <>
-      <div className="flex flex-col h-screen w-full max-w-screen overflow-hidden">
-        <RepoHeader owner={owner} repo={repo} />
-        <div className="flex flex-1 min-h-0">
-          <RepoSidebar
-            owner={owner}
-            repo={repo}
-            folders={folders}
-            entries={entries}
-            commits={commits}
-          />
-          <main className="flex-1 min-w-0 overflow-auto">{children}</main>
-        </div>
+      <div className="flex h-full w-full">
+        <RepoSidebar
+          owner={owner}
+          repo={repo}
+          folders={folders}
+          entries={entries}
+          commits={commits}
+        />
+        <div className="flex-1 min-w-0 overflow-auto">{children}</div>
       </div>
       <RepoDialogs
         owner={owner}
