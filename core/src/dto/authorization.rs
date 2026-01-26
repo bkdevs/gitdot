@@ -1,3 +1,9 @@
+mod verify_authorized_for_answer;
+mod verify_authorized_for_comment;
+mod verify_authorized_for_question;
 mod verify_authorized_for_repo;
 
+pub use verify_authorized_for_answer::AnswerAuthorizationRequest;
+pub use verify_authorized_for_comment::CommentAuthorizationRequest;
+pub use verify_authorized_for_question::QuestionAuthorizationRequest;
 pub use verify_authorized_for_repo::{RepositoryAuthorizationRequest, RepositoryIdentifier};

@@ -4,18 +4,24 @@ use axum::{
 };
 use uuid::Uuid;
 
-use gitdot_core::dto::UpdateAnswerRequest;
+use gitdot_core::dto::{AnswerAuthorizationRequest, UpdateAnswerRequest};
 
 use crate::app::{AppError, AppResponse, AppState, AuthenticatedUser};
 use crate::dto::{AnswerServerResponse, UpdateAnswerServerRequest};
 
 #[axum::debug_handler]
 pub async fn update_answer(
-    _auth_user: AuthenticatedUser,
+    auth_user: AuthenticatedUser,
     State(state): State<AppState>,
     Path(answer_id): Path<Uuid>,
     Json(request): Json<UpdateAnswerServerRequest>,
 ) -> Result<AppResponse<AnswerServerResponse>, AppError> {
+    let auth_request = AnswerAuthorizationRequest::new(auth_user.id, answer_id);
+    state
+        .auth_service
+        .verify_authorized_for_answer(auth_request)
+        .await?;
+
     let request = UpdateAnswerRequest::new(answer_id, request.body);
     state
         .question_service

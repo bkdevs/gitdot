@@ -39,6 +39,7 @@ impl AppState {
         let auth_service = Arc::new(AuthorizationServiceImpl::new(
             org_repo.clone(),
             repo_repo.clone(),
+            question_repo.clone(),
         ));
         let org_service = Arc::new(OrganizationServiceImpl::new(
             org_repo.clone(),

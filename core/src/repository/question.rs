@@ -126,6 +126,12 @@ pub trait QuestionRepository: Send + Sync + Clone + 'static {
     ) -> Result<Comment, Error>;
 
     async fn update_comment(&self, id: Uuid, body: &str) -> Result<Option<Comment>, Error>;
+
+    async fn get_question_author_id(&self, id: Uuid) -> Result<Option<Uuid>, Error>;
+
+    async fn get_answer_author_id(&self, id: Uuid) -> Result<Option<Uuid>, Error>;
+
+    async fn get_comment_author_id(&self, id: Uuid) -> Result<Option<Uuid>, Error>;
 }
 
 #[derive(Debug, Clone)]
@@ -298,5 +304,26 @@ impl QuestionRepository for QuestionRepositoryImpl {
         .await?;
 
         Ok(comment)
+    }
+
+    async fn get_question_author_id(&self, id: Uuid) -> Result<Option<Uuid>, Error> {
+        sqlx::query_scalar::<_, Uuid>("SELECT author_id FROM questions WHERE id = $1")
+            .bind(id)
+            .fetch_optional(&self.pool)
+            .await
+    }
+
+    async fn get_answer_author_id(&self, id: Uuid) -> Result<Option<Uuid>, Error> {
+        sqlx::query_scalar::<_, Uuid>("SELECT author_id FROM answers WHERE id = $1")
+            .bind(id)
+            .fetch_optional(&self.pool)
+            .await
+    }
+
+    async fn get_comment_author_id(&self, id: Uuid) -> Result<Option<Uuid>, Error> {
+        sqlx::query_scalar::<_, Uuid>("SELECT author_id FROM comments WHERE id = $1")
+            .bind(id)
+            .fetch_optional(&self.pool)
+            .await
     }
 }

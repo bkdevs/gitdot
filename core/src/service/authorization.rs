@@ -1,10 +1,13 @@
 use async_trait::async_trait;
 
-use crate::dto::{RepositoryAuthorizationRequest, RepositoryIdentifier};
+use crate::dto::{
+    AnswerAuthorizationRequest, CommentAuthorizationRequest, QuestionAuthorizationRequest,
+    RepositoryAuthorizationRequest, RepositoryIdentifier,
+};
 use crate::error::AuthorizationError;
 use crate::repository::{
-    OrganizationRepository, OrganizationRepositoryImpl, RepositoryRepository,
-    RepositoryRepositoryImpl,
+    OrganizationRepository, OrganizationRepositoryImpl, QuestionRepository, QuestionRepositoryImpl,
+    RepositoryRepository, RepositoryRepositoryImpl,
 };
 
 #[async_trait]
@@ -13,32 +16,61 @@ pub trait AuthorizationService: Send + Sync + 'static {
         &self,
         request: RepositoryAuthorizationRequest,
     ) -> Result<(), AuthorizationError>;
+
+    async fn verify_authorized_for_question(
+        &self,
+        request: QuestionAuthorizationRequest,
+    ) -> Result<(), AuthorizationError>;
+
+    async fn verify_authorized_for_answer(
+        &self,
+        request: AnswerAuthorizationRequest,
+    ) -> Result<(), AuthorizationError>;
+
+    async fn verify_authorized_for_comment(
+        &self,
+        request: CommentAuthorizationRequest,
+    ) -> Result<(), AuthorizationError>;
 }
 
 #[derive(Debug, Clone)]
-pub struct AuthorizationServiceImpl<O, R>
+pub struct AuthorizationServiceImpl<O, R, Q>
 where
     O: OrganizationRepository,
     R: RepositoryRepository,
+    Q: QuestionRepository,
 {
     org_repo: O,
     repo_repo: R,
+    question_repo: Q,
 }
 
-impl AuthorizationServiceImpl<OrganizationRepositoryImpl, RepositoryRepositoryImpl> {
-    pub fn new(org_repo: OrganizationRepositoryImpl, repo_repo: RepositoryRepositoryImpl) -> Self {
+impl
+    AuthorizationServiceImpl<
+        OrganizationRepositoryImpl,
+        RepositoryRepositoryImpl,
+        QuestionRepositoryImpl,
+    >
+{
+    pub fn new(
+        org_repo: OrganizationRepositoryImpl,
+        repo_repo: RepositoryRepositoryImpl,
+        question_repo: QuestionRepositoryImpl,
+    ) -> Self {
         Self {
-            org_repo: org_repo,
-            repo_repo: repo_repo,
+            org_repo,
+            repo_repo,
+            question_repo,
         }
     }
 }
 
 #[async_trait]
-impl<O, R> AuthorizationService for AuthorizationServiceImpl<O, R>
+impl<O, R, Q> AuthorizationService for AuthorizationServiceImpl<O, R, Q>
 where
     O: OrganizationRepository,
     R: RepositoryRepository,
+    Q: QuestionRepository,
 {
     async fn verify_authorized_for_repository(
         &self,
@@ -87,6 +119,72 @@ where
             if !is_member {
                 return Err(AuthorizationError::Unauthorized);
             }
+        }
+
+        Ok(())
+    }
+
+    async fn verify_authorized_for_question(
+        &self,
+        request: QuestionAuthorizationRequest,
+    ) -> Result<(), AuthorizationError> {
+        let author_id = self
+            .question_repo
+            .get_question_author_id(request.question_id)
+            .await?
+            .ok_or_else(|| {
+                AuthorizationError::InvalidRequest(format!(
+                    "Question not found: {}",
+                    request.question_id
+                ))
+            })?;
+
+        if author_id != request.user_id {
+            return Err(AuthorizationError::Unauthorized);
+        }
+
+        Ok(())
+    }
+
+    async fn verify_authorized_for_answer(
+        &self,
+        request: AnswerAuthorizationRequest,
+    ) -> Result<(), AuthorizationError> {
+        let author_id = self
+            .question_repo
+            .get_answer_author_id(request.answer_id)
+            .await?
+            .ok_or_else(|| {
+                AuthorizationError::InvalidRequest(format!(
+                    "Answer not found: {}",
+                    request.answer_id
+                ))
+            })?;
+
+        if author_id != request.user_id {
+            return Err(AuthorizationError::Unauthorized);
+        }
+
+        Ok(())
+    }
+
+    async fn verify_authorized_for_comment(
+        &self,
+        request: CommentAuthorizationRequest,
+    ) -> Result<(), AuthorizationError> {
+        let author_id = self
+            .question_repo
+            .get_comment_author_id(request.comment_id)
+            .await?
+            .ok_or_else(|| {
+                AuthorizationError::InvalidRequest(format!(
+                    "Comment not found: {}",
+                    request.comment_id
+                ))
+            })?;
+
+        if author_id != request.user_id {
+            return Err(AuthorizationError::Unauthorized);
         }
 
         Ok(())

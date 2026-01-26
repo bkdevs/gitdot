@@ -4,18 +4,24 @@ use axum::{
 };
 use uuid::Uuid;
 
-use gitdot_core::dto::UpdateCommentRequest;
+use gitdot_core::dto::{CommentAuthorizationRequest, UpdateCommentRequest};
 
 use crate::app::{AppError, AppResponse, AppState, AuthenticatedUser};
 use crate::dto::{CommentServerResponse, UpdateCommentServerRequest};
 
 #[axum::debug_handler]
 pub async fn update_comment(
-    _auth_user: AuthenticatedUser,
+    auth_user: AuthenticatedUser,
     State(state): State<AppState>,
     Path(comment_id): Path<Uuid>,
     Json(request): Json<UpdateCommentServerRequest>,
 ) -> Result<AppResponse<CommentServerResponse>, AppError> {
+    let auth_request = CommentAuthorizationRequest::new(auth_user.id, comment_id);
+    state
+        .auth_service
+        .verify_authorized_for_comment(auth_request)
+        .await?;
+
     let request = UpdateCommentRequest::new(comment_id, request.body);
     state
         .question_service
