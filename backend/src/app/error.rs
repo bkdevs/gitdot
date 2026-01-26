@@ -57,8 +57,12 @@ impl IntoResponse for AppError {
             AppError::Organization(e) => {
                 let status_code = match e {
                     OrganizationError::Duplicate(_) => StatusCode::CONFLICT,
+                    OrganizationError::MemberAlreadyExists(_) => StatusCode::CONFLICT,
                     OrganizationError::NotFound(_) => StatusCode::NOT_FOUND,
+                    OrganizationError::UserNotFound(_) => StatusCode::NOT_FOUND,
                     OrganizationError::InvalidOrganizationName(_) => StatusCode::BAD_REQUEST,
+                    OrganizationError::InvalidUserName(_) => StatusCode::BAD_REQUEST,
+                    OrganizationError::InvalidRole(_) => StatusCode::BAD_REQUEST,
                     OrganizationError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                 };
                 let response = AppResponse::new(

@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use sqlx::{Error, PgPool};
 use uuid::Uuid;
 
-use crate::model::Organization;
+use crate::model::{Organization, OrganizationMember, OrganizationRole};
 
 #[async_trait]
 pub trait OrganizationRepository: Send + Sync + Clone + 'static {
@@ -11,6 +11,15 @@ pub trait OrganizationRepository: Send + Sync + Clone + 'static {
     async fn get(&self, org_name: &str) -> Result<Option<Organization>, Error>;
 
     async fn is_member(&self, org_id: Uuid, user_id: Uuid) -> Result<bool, Error>;
+
+    async fn is_admin(&self, org_id: Uuid, user_id: Uuid) -> Result<bool, Error>;
+
+    async fn add_member(
+        &self,
+        org_id: Uuid,
+        user_id: Uuid,
+        role: OrganizationRole,
+    ) -> Result<OrganizationMember, Error>;
 }
 
 #[derive(Debug, Clone)]
@@ -75,5 +84,40 @@ impl OrganizationRepository for OrganizationRepositoryImpl {
         .await?;
 
         Ok(result)
+    }
+
+    async fn is_admin(&self, org_id: Uuid, user_id: Uuid) -> Result<bool, Error> {
+        sqlx::query_scalar(
+            "SELECT EXISTS(
+                SELECT 1 FROM organization_members
+                WHERE organization_id = $1 AND user_id = $2 AND role = 'admin'
+            )",
+        )
+        .bind(org_id)
+        .bind(user_id)
+        .fetch_one(&self.pool)
+        .await
+    }
+
+    async fn add_member(
+        &self,
+        org_id: Uuid,
+        user_id: Uuid,
+        role: OrganizationRole,
+    ) -> Result<OrganizationMember, Error> {
+        let member = sqlx::query_as::<_, OrganizationMember>(
+            r#"
+            INSERT INTO organization_members (user_id, organization_id, role)
+            VALUES ($1, $2, $3)
+            RETURNING id, user_id, organization_id, role, created_at
+            "#,
+        )
+        .bind(user_id)
+        .bind(org_id)
+        .bind(role)
+        .fetch_one(&self.pool)
+        .await?;
+
+        Ok(member)
     }
 }

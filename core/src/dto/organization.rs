@@ -1,3 +1,4 @@
+mod add_member;
 mod create_organization;
 mod get_organization;
 
@@ -6,6 +7,7 @@ use uuid::Uuid;
 
 use crate::model::Organization;
 
+pub use add_member::{AddMemberRequest, OrganizationMemberResponse};
 pub use create_organization::CreateOrganizationRequest;
 pub use get_organization::GetOrganizationRequest;
 

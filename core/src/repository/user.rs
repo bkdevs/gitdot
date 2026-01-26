@@ -1,11 +1,14 @@
 use async_trait::async_trait;
 use sqlx::{Error, PgPool};
+use uuid::Uuid;
 
 use crate::model::User;
 
 #[async_trait]
 pub trait UserRepository: Send + Sync + Clone + 'static {
     async fn get(&self, user_name: &str) -> Result<Option<User>, Error>;
+
+    async fn get_by_id(&self, id: Uuid) -> Result<Option<User>, Error>;
 }
 
 #[derive(Debug, Clone)]
@@ -26,6 +29,17 @@ impl UserRepository for UserRepositoryImpl {
             "SELECT id, email, name, created_at FROM users WHERE name = $1",
         )
         .bind(user_name)
+        .fetch_optional(&self.pool)
+        .await?;
+
+        Ok(user)
+    }
+
+    async fn get_by_id(&self, id: Uuid) -> Result<Option<User>, Error> {
+        let user = sqlx::query_as::<_, User>(
+            "SELECT id, email, name, created_at FROM users WHERE id = $1",
+        )
+        .bind(id)
         .fetch_optional(&self.pool)
         .await?;
 

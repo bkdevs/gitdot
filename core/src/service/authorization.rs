@@ -1,8 +1,8 @@
 use async_trait::async_trait;
 
 use crate::dto::{
-    AnswerAuthorizationRequest, CommentAuthorizationRequest, QuestionAuthorizationRequest,
-    RepositoryAuthorizationRequest,
+    AnswerAuthorizationRequest, CommentAuthorizationRequest, OrganizationAuthorizationRequest,
+    QuestionAuthorizationRequest, RepositoryAuthorizationRequest,
 };
 use crate::error::AuthorizationError;
 use crate::repository::{
@@ -15,6 +15,11 @@ pub trait AuthorizationService: Send + Sync + 'static {
     async fn verify_authorized_for_repository(
         &self,
         request: RepositoryAuthorizationRequest,
+    ) -> Result<(), AuthorizationError>;
+
+    async fn verify_authorized_for_organization(
+        &self,
+        request: OrganizationAuthorizationRequest,
     ) -> Result<(), AuthorizationError>;
 
     async fn verify_authorized_for_question(
@@ -108,6 +113,32 @@ where
             if !is_member {
                 return Err(AuthorizationError::Unauthorized);
             }
+        }
+
+        Ok(())
+    }
+
+    async fn verify_authorized_for_organization(
+        &self,
+        request: OrganizationAuthorizationRequest,
+    ) -> Result<(), AuthorizationError> {
+        let organization = self
+            .org_repo
+            .get(request.org_name.as_ref())
+            .await?
+            .ok_or_else(|| {
+                AuthorizationError::InvalidRequest(format!(
+                    "Organization not found: {}",
+                    request.org_name.as_ref()
+                ))
+            })?;
+
+        if !self
+            .org_repo
+            .is_admin(organization.id, request.user_id)
+            .await?
+        {
+            return Err(AuthorizationError::Unauthorized);
         }
 
         Ok(())
