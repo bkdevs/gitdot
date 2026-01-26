@@ -182,22 +182,17 @@ where
         &self,
         request: CreateAnswerRequest,
     ) -> Result<AnswerResponse, QuestionError> {
-        let repository = self
-            .repo_repo
-            .get(request.owner.as_ref(), request.repo.as_ref())
-            .await?
-            .ok_or_else(|| QuestionError::RepositoryNotFound(request.get_repo_path()))?;
-
-        let question_id = self
-            .question_repo
-            .get_question_id(repository.id, request.number)
-            .await?
-            .ok_or_else(|| QuestionError::QuestionNotFound(request.get_question_path()))?;
-
         let answer = self
             .question_repo
-            .create_answer(question_id, request.author_id, &request.body)
-            .await?;
+            .create_answer(
+                request.owner.as_ref(),
+                request.repo.as_ref(),
+                request.number,
+                request.author_id,
+                &request.body,
+            )
+            .await?
+            .ok_or_else(|| QuestionError::QuestionNotFound(request.get_question_path()))?;
 
         Ok(answer.into())
     }
@@ -219,22 +214,17 @@ where
         &self,
         request: CreateQuestionCommentRequest,
     ) -> Result<CommentResponse, QuestionError> {
-        let repository = self
-            .repo_repo
-            .get(request.owner.as_ref(), request.repo.as_ref())
-            .await?
-            .ok_or_else(|| QuestionError::RepositoryNotFound(request.get_repo_path()))?;
-
-        let question = self
-            .question_repo
-            .get_question(repository.id, request.number, None)
-            .await?
-            .ok_or_else(|| QuestionError::QuestionNotFound(request.get_question_path()))?;
-
         let comment = self
             .question_repo
-            .create_comment(question.id, request.author_id, &request.body)
-            .await?;
+            .create_question_comment(
+                request.owner.as_ref(),
+                request.repo.as_ref(),
+                request.number,
+                request.author_id,
+                &request.body,
+            )
+            .await?
+            .ok_or_else(|| QuestionError::QuestionNotFound(request.get_question_path()))?;
 
         Ok(comment.into())
     }
@@ -268,15 +258,13 @@ where
         &self,
         request: VoteQuestionRequest,
     ) -> Result<VoteResponse, QuestionError> {
-        let repository = self
-            .repo_repo
-            .get(request.owner.as_ref(), request.repo.as_ref())
-            .await?
-            .ok_or_else(|| QuestionError::RepositoryNotFound(request.get_repo_path()))?;
-
         let question_id = self
             .question_repo
-            .get_question_id(repository.id, request.number)
+            .get_question_id(
+                request.owner.as_ref(),
+                request.repo.as_ref(),
+                request.number,
+            )
             .await?
             .ok_or_else(|| QuestionError::QuestionNotFound(request.get_question_path()))?;
 

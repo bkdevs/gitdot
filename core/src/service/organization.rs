@@ -86,28 +86,24 @@ where
         request: AddMemberRequest,
     ) -> Result<OrganizationMemberResponse, OrganizationError> {
         let org_name = request.org_name.to_string();
-        let org = self
-            .org_repo
-            .get(&org_name)
-            .await?
-            .ok_or_else(|| OrganizationError::NotFound(org_name))?;
-
         let user_name = request.user_name.to_string();
-        let user = self
-            .user_repo
-            .get(&user_name)
-            .await?
-            .ok_or_else(|| OrganizationError::UserNotFound(user_name))?;
-
-        if self.org_repo.is_member(org.id, user.id).await? {
-            return Err(OrganizationError::MemberAlreadyExists(user.id));
-        }
 
         let member = self
             .org_repo
-            .add_member(org.id, user.id, request.role)
+            .add_member(&org_name, &user_name, request.role)
             .await?;
 
-        Ok(member.into())
+        match member {
+            Some(m) => Ok(m.into()),
+            None => {
+                if self.org_repo.get(&org_name).await?.is_none() {
+                    return Err(OrganizationError::NotFound(org_name));
+                }
+                if self.user_repo.get(&user_name).await?.is_none() {
+                    return Err(OrganizationError::UserNotFound(user_name));
+                }
+                Err(OrganizationError::MemberAlreadyExists(user_name))
+            }
+        }
     }
 }

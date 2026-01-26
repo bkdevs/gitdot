@@ -5,6 +5,7 @@ use crate::dto::{
     QuestionAuthorizationRequest, RepositoryAuthorizationRequest,
 };
 use crate::error::AuthorizationError;
+use crate::model::OrganizationRole;
 use crate::repository::{
     OrganizationRepository, OrganizationRepositoryImpl, QuestionRepository, QuestionRepositoryImpl,
     RepositoryRepository, RepositoryRepositoryImpl,
@@ -122,57 +123,28 @@ where
         &self,
         request: OrganizationAuthorizationRequest,
     ) -> Result<(), AuthorizationError> {
-        let organization = self
+        let role = self
             .org_repo
-            .get(request.org_name.as_ref())
-            .await?
-            .ok_or_else(|| {
-                AuthorizationError::InvalidRequest(format!(
-                    "Organization not found: {}",
-                    request.org_name.as_ref()
-                ))
-            })?;
+            .get_member_role(request.org_name.as_ref(), request.user_id)
+            .await?;
 
-        if !self
-            .org_repo
-            .is_admin(organization.id, request.user_id)
-            .await?
-        {
-            return Err(AuthorizationError::Unauthorized);
+        match role {
+            Some(OrganizationRole::Admin) => Ok(()),
+            _ => Err(AuthorizationError::Unauthorized),
         }
-
-        Ok(())
     }
 
     async fn verify_authorized_for_question(
         &self,
         request: QuestionAuthorizationRequest,
     ) -> Result<(), AuthorizationError> {
-        let repository = self
-            .repo_repo
-            .get(request.owner.as_ref(), request.repo.as_ref())
-            .await?
-            .ok_or_else(|| {
-                AuthorizationError::InvalidRequest(format!(
-                    "Repository not found: {}",
-                    request.get_repo_path(),
-                ))
-            })?;
-
-        let question_id = self
-            .question_repo
-            .get_question_id(repository.id, request.number)
-            .await?
-            .ok_or_else(|| {
-                AuthorizationError::InvalidRequest(format!(
-                    "Question not found: {}",
-                    request.get_repo_path(),
-                ))
-            })?;
-
         let author_id = self
             .question_repo
-            .get_question_author_id(question_id)
+            .get_question_author_id(
+                request.owner.as_ref(),
+                request.repo.as_ref(),
+                request.number,
+            )
             .await?
             .ok_or_else(|| {
                 AuthorizationError::InvalidRequest(format!(

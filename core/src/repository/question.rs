@@ -121,8 +121,9 @@ pub trait QuestionRepository: Send + Sync + Clone + 'static {
 
     async fn get_question_id(
         &self,
-        repository_id: Uuid,
-        number: i32,
+        owner: &str,
+        repo: &str,
+        question_number: i32,
     ) -> Result<Option<Uuid>, Error>;
 
     async fn get_questions(
@@ -133,10 +134,12 @@ pub trait QuestionRepository: Send + Sync + Clone + 'static {
 
     async fn create_answer(
         &self,
-        question_id: Uuid,
+        owner: &str,
+        repo: &str,
+        question_number: i32,
         author_id: Uuid,
         body: &str,
-    ) -> Result<Answer, Error>;
+    ) -> Result<Option<Answer>, Error>;
 
     async fn update_answer(&self, id: Uuid, body: &str) -> Result<Option<Answer>, Error>;
 
@@ -147,9 +150,23 @@ pub trait QuestionRepository: Send + Sync + Clone + 'static {
         body: &str,
     ) -> Result<Comment, Error>;
 
+    async fn create_question_comment(
+        &self,
+        owner: &str,
+        repo: &str,
+        question_number: i32,
+        author_id: Uuid,
+        body: &str,
+    ) -> Result<Option<Comment>, Error>;
+
     async fn update_comment(&self, id: Uuid, body: &str) -> Result<Option<Comment>, Error>;
 
-    async fn get_question_author_id(&self, id: Uuid) -> Result<Option<Uuid>, Error>;
+    async fn get_question_author_id(
+        &self,
+        owner: &str,
+        repo: &str,
+        question_number: i32,
+    ) -> Result<Option<Uuid>, Error>;
 
     async fn get_answer_author_id(&self, id: Uuid) -> Result<Option<Uuid>, Error>;
 
@@ -250,16 +267,25 @@ impl QuestionRepository for QuestionRepositoryImpl {
 
     async fn get_question_id(
         &self,
-        repository_id: Uuid,
-        number: i32,
+        owner: &str,
+        repo: &str,
+        question_number: i32,
     ) -> Result<Option<Uuid>, Error> {
-        sqlx::query_scalar::<_, Uuid>(
-            "SELECT id FROM questions WHERE repository_id = $1 AND number = $2",
+        let id = sqlx::query_scalar::<_, Uuid>(
+            r#"
+            SELECT q.id
+            FROM questions q
+            JOIN repositories r ON q.repository_id = r.id
+            WHERE r.owner_name = $1 AND r.name = $2 AND q.number = $3
+            "#,
         )
-        .bind(repository_id)
-        .bind(number)
+        .bind(owner)
+        .bind(repo)
+        .bind(question_number)
         .fetch_optional(&self.pool)
-        .await
+        .await?;
+
+        Ok(id)
     }
 
     async fn get_questions(
@@ -285,22 +311,29 @@ impl QuestionRepository for QuestionRepositoryImpl {
 
     async fn create_answer(
         &self,
-        question_id: Uuid,
+        owner: &str,
+        repo: &str,
+        question_number: i32,
         author_id: Uuid,
         body: &str,
-    ) -> Result<Answer, Error> {
+    ) -> Result<Option<Answer>, Error> {
         let answer = sqlx::query_as::<_, Answer>(
             r#"
             INSERT INTO answers (question_id, author_id, body)
-            VALUES ($1, $2, $3)
+            SELECT q.id, $4, $5
+            FROM questions q
+            JOIN repositories r ON q.repository_id = r.id
+            WHERE r.owner_name = $1 AND r.name = $2 AND q.number = $3
             RETURNING id, question_id, author_id, body, upvote, created_at, updated_at,
                       NULL::smallint AS user_vote, NULL AS author, NULL AS comments
             "#,
         )
-        .bind(question_id)
+        .bind(owner)
+        .bind(repo)
+        .bind(question_number)
         .bind(author_id)
         .bind(body)
-        .fetch_one(&self.pool)
+        .fetch_optional(&self.pool)
         .await?;
 
         Ok(answer)
@@ -347,6 +380,36 @@ impl QuestionRepository for QuestionRepositoryImpl {
         Ok(comment)
     }
 
+    async fn create_question_comment(
+        &self,
+        owner: &str,
+        repo: &str,
+        question_number: i32,
+        author_id: Uuid,
+        body: &str,
+    ) -> Result<Option<Comment>, Error> {
+        let comment = sqlx::query_as::<_, Comment>(
+            r#"
+            INSERT INTO comments (parent_id, author_id, body)
+            SELECT q.id, $4, $5
+            FROM questions q
+            JOIN repositories r ON q.repository_id = r.id
+            WHERE r.owner_name = $1 AND r.name = $2 AND q.number = $3
+            RETURNING id, parent_id, author_id, body, upvote, created_at, updated_at,
+                      NULL::smallint AS user_vote, NULL AS author
+            "#,
+        )
+        .bind(owner)
+        .bind(repo)
+        .bind(question_number)
+        .bind(author_id)
+        .bind(body)
+        .fetch_optional(&self.pool)
+        .await?;
+
+        Ok(comment)
+    }
+
     async fn update_comment(&self, id: Uuid, body: &str) -> Result<Option<Comment>, Error> {
         let comment = sqlx::query_as::<_, Comment>(
             r#"
@@ -365,11 +428,27 @@ impl QuestionRepository for QuestionRepositoryImpl {
         Ok(comment)
     }
 
-    async fn get_question_author_id(&self, id: Uuid) -> Result<Option<Uuid>, Error> {
-        sqlx::query_scalar::<_, Uuid>("SELECT author_id FROM questions WHERE id = $1")
-            .bind(id)
-            .fetch_optional(&self.pool)
-            .await
+    async fn get_question_author_id(
+        &self,
+        owner: &str,
+        repo: &str,
+        question_number: i32,
+    ) -> Result<Option<Uuid>, Error> {
+        let author_id = sqlx::query_scalar::<_, Uuid>(
+            r#"
+            SELECT q.author_id
+            FROM questions q
+            JOIN repositories r ON q.repository_id = r.id
+            WHERE r.owner_name = $1 AND r.name = $2 AND q.number = $3
+            "#,
+        )
+        .bind(owner)
+        .bind(repo)
+        .bind(question_number)
+        .fetch_optional(&self.pool)
+        .await?;
+
+        Ok(author_id)
     }
 
     async fn get_answer_author_id(&self, id: Uuid) -> Result<Option<Uuid>, Error> {

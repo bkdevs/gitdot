@@ -1,5 +1,4 @@
 use thiserror::Error;
-use uuid::Uuid;
 
 #[derive(Debug, Error)]
 pub enum OrganizationError {
@@ -13,7 +12,7 @@ pub enum OrganizationError {
     InvalidOrganizationName(String),
 
     #[error("User {0} is already a member of this organization")]
-    MemberAlreadyExists(Uuid),
+    MemberAlreadyExists(String),
 
     #[error("User {0} not found")]
     UserNotFound(String),

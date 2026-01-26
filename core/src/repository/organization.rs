@@ -12,14 +12,18 @@ pub trait OrganizationRepository: Send + Sync + Clone + 'static {
 
     async fn is_member(&self, org_id: Uuid, user_id: Uuid) -> Result<bool, Error>;
 
-    async fn is_admin(&self, org_id: Uuid, user_id: Uuid) -> Result<bool, Error>;
-
     async fn add_member(
         &self,
-        org_id: Uuid,
-        user_id: Uuid,
+        org_name: &str,
+        user_name: &str,
         role: OrganizationRole,
-    ) -> Result<OrganizationMember, Error>;
+    ) -> Result<Option<OrganizationMember>, Error>;
+
+    async fn get_member_role(
+        &self,
+        org_name: &str,
+        user_id: Uuid,
+    ) -> Result<Option<OrganizationRole>, Error>;
 }
 
 #[derive(Debug, Clone)]
@@ -86,38 +90,49 @@ impl OrganizationRepository for OrganizationRepositoryImpl {
         Ok(result)
     }
 
-    async fn is_admin(&self, org_id: Uuid, user_id: Uuid) -> Result<bool, Error> {
-        sqlx::query_scalar(
-            "SELECT EXISTS(
-                SELECT 1 FROM organization_members
-                WHERE organization_id = $1 AND user_id = $2 AND role = 'admin'
-            )",
-        )
-        .bind(org_id)
-        .bind(user_id)
-        .fetch_one(&self.pool)
-        .await
-    }
-
     async fn add_member(
         &self,
-        org_id: Uuid,
-        user_id: Uuid,
+        org_name: &str,
+        user_name: &str,
         role: OrganizationRole,
-    ) -> Result<OrganizationMember, Error> {
+    ) -> Result<Option<OrganizationMember>, Error> {
         let member = sqlx::query_as::<_, OrganizationMember>(
             r#"
             INSERT INTO organization_members (user_id, organization_id, role)
-            VALUES ($1, $2, $3)
+            SELECT u.id, o.id, $3
+            FROM users u, organizations o
+            WHERE u.name = $1 AND o.name = $2
+            ON CONFLICT (user_id, organization_id) DO NOTHING
             RETURNING id, user_id, organization_id, role, created_at
             "#,
         )
-        .bind(user_id)
-        .bind(org_id)
+        .bind(user_name)
+        .bind(org_name)
         .bind(role)
-        .fetch_one(&self.pool)
+        .fetch_optional(&self.pool)
         .await?;
 
         Ok(member)
+    }
+
+    async fn get_member_role(
+        &self,
+        org_name: &str,
+        user_id: Uuid,
+    ) -> Result<Option<OrganizationRole>, Error> {
+        let role = sqlx::query_scalar::<_, OrganizationRole>(
+            r#"
+            SELECT om.role
+            FROM organization_members om
+            JOIN organizations o ON om.organization_id = o.id
+            WHERE o.name = $1 AND om.user_id = $2
+            "#,
+        )
+        .bind(org_name)
+        .bind(user_id)
+        .fetch_optional(&self.pool)
+        .await?;
+
+        Ok(role)
     }
 }
