@@ -3,7 +3,7 @@ use axum::{
     http::StatusCode,
 };
 
-use gitdot_core::dto::CreateAnswerRequest;
+use gitdot_core::dto::{CreateAnswerRequest, RepositoryAuthorizationRequest};
 
 use crate::app::{AppError, AppResponse, AppState, AuthenticatedUser};
 use crate::dto::{AnswerServerResponse, CreateAnswerServerRequest};
@@ -14,6 +14,13 @@ pub async fn create_answer(
     State(state): State<AppState>,
     Json(request): Json<CreateAnswerServerRequest>,
 ) -> Result<AppResponse<AnswerServerResponse>, AppError> {
+    let auth_request =
+        RepositoryAuthorizationRequest::with_id(Some(auth_user.id), request.repository_id);
+    state
+        .auth_service
+        .verify_authorized_for_repository(auth_request)
+        .await?;
+
     let request = CreateAnswerRequest::new(auth_user.id, request.question_id, request.body);
     state
         .question_service
