@@ -18,16 +18,16 @@ const EXAMPLE_QUESTIONS = [
 export default async function Page({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ owner: string; repo: string }>;
 }) {
-  const { slug: repo } = await params;
+  const { owner, repo } = await params;
 
   return (
     <div className="flex flex-col">
       {EXAMPLE_QUESTIONS.map((question) => (
         <Link
           key={question.id}
-          href={`/${repo}/questions/${question.id}`}
+          href={`/${owner}/${repo}/questions/${question.id}`}
           className="flex w-full border-b hover:bg-accent/50 select-none cursor-default py-2 px-2"
           prefetch={true}
         >

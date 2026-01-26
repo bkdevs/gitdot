@@ -25,12 +25,11 @@ export function RepoSidebar({
   const pathname = usePathname();
   const path = pathname.replace(`/${owner}/${repo}`, "") || "/";
 
-  // Don't show sidebar on commit detail pages
-  if (/^\/commits\/[^/]+/.test(path)) {
-    return null;
-  }
-
   const getSidebarContent = () => {
+    if (/^\/commits\/[^/]+/.test(path)) {
+      return <RepoSidebarCommits commits={commits} />;
+    }
+
     const isNavRoute =
       path === "/" ||
       path === "/files" ||

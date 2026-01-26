@@ -17,7 +17,9 @@ export function CommitHeader({
     const path = diff.left?.path || diff.right?.path || "";
     return (
       <li key={path} className="font-mono text-sm flex items-center">
-        <span className="truncate flex-1 mr-2">{path}</span>
+        <a href={`#${path}`} className="truncate flex-1 mr-2 hover:underline">
+          {path}
+        </a>
         <span className="text-muted-foreground w-6 text-right mr-1.5 select-none shrink-0">
           {diff.lines_added + diff.lines_removed}
         </span>
@@ -28,7 +30,7 @@ export function CommitHeader({
 
   return (
     <div className="shrink-0 border-border border-b p-2">
-      <div className="mb-6">
+      <div className="mb-4">
         <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
           <span>{commit.author}</span>
           <span>•</span>

@@ -4,7 +4,6 @@ import type { JSX } from "react";
 import { Fragment } from "react";
 import { jsx, jsxs } from "react/jsx-runtime";
 import {
-  CONTEXT_LINES,
   createChangeMaps,
   expandLines,
   pairLines,
@@ -30,15 +29,12 @@ export async function DiffSplit({
 
   return (
     <div className="flex flex-col w-full">
-      {hunks.map((hunk) => {
-        const startingLine =
-          hunk[0].lhs?.line_number || hunk[0].rhs?.line_number || 0;
-
+      {hunks.map((hunk, index) => {
         return (
           <Fragment
             key={`${hunk[0].lhs?.line_number}-${hunk[0].rhs?.line_number}`}
           >
-            {startingLine > CONTEXT_LINES && (
+            {index > 0 && (
               <span className="flex flex-row w-full h-20 items-center relative">
                 <div className="w-1/2 border-border border-r h-full" />
                 <div className="absolute left-0 right-0 flex items-center justify-center">

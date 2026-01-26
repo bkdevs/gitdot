@@ -17,9 +17,10 @@ export function DiffFileClient({
   linesRemoved: number;
 }) {
   const [diffOpen, setDiffOpen] = useState(true);
+  const path = leftPath || rightPath;
 
   return (
-    <div className="flex flex-col w-full">
+    <div id={path} className="flex flex-col w-full">
       <DiffHeader
         open={diffOpen}
         setOpen={setDiffOpen}

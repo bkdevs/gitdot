@@ -1,18 +1,24 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Fragment } from "react";
 import type { RepositoryCommit } from "@/lib/dto";
 import { formatDate, formatTime } from "@/util";
 import { groupCommitsByDate } from "../../util/commit";
 
 export function RepoSidebarCommits({
-  owner,
-  repo,
   commits,
 }: {
-  owner: string;
-  repo: string;
   commits: RepositoryCommit[];
 }) {
+  const pathname = usePathname();
+  const [owner, repo, section, currentSha] = pathname.split("/").filter(Boolean);
+
+  if (section !== "commits") {
+    throw new Error(`Expected commits route, got: ${pathname}`);
+  }
+
   const commitsByDate = groupCommitsByDate(commits);
 
   return (
@@ -24,13 +30,17 @@ export function RepoSidebarCommits({
               {formatDate(date)}
             </h3>
           </div>
-          {dateCommits.map((commit) => (
-            <Link
-              key={commit.sha}
-              href={`/${owner}/${repo}/commits/${commit.sha.substring(0, 7)}`}
-              className="flex w-full border-b hover:bg-accent/50 select-none cursor-default py-2 px-2"
-              prefetch={true}
-            >
+          {dateCommits.map((commit) => {
+            const isActive = currentSha === commit.sha.substring(0, 7);
+            return (
+              <Link
+                key={commit.sha}
+                href={`/${owner}/${repo}/commits/${commit.sha.substring(0, 7)}`}
+                className={`flex w-full border-b hover:bg-accent/50 select-none cursor-default py-2 px-2 ${
+                  isActive && "bg-sidebar"
+                }`}
+                prefetch={true}
+              >
               <div className="flex flex-col w-full justify-start items-start min-w-0">
                 <div className="text-sm truncate mb-0.5 w-full">
                   {commit.message}
@@ -44,7 +54,8 @@ export function RepoSidebarCommits({
                 </div>
               </div>
             </Link>
-          ))}
+            );
+          })}
         </Fragment>
       ))}
     </div>
