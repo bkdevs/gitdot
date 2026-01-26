@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Fragment } from "react";
 import type { RepositoryCommit } from "@/lib/dto";
+import Link from "@/ui/link";
 import { formatDate, formatTime } from "@/util";
 import { groupCommitsByDate } from "../../util/commit";
 
@@ -13,7 +13,9 @@ export function RepoSidebarCommits({
   commits: RepositoryCommit[];
 }) {
   const pathname = usePathname();
-  const [owner, repo, section, currentSha] = pathname.split("/").filter(Boolean);
+  const [owner, repo, section, currentSha] = pathname
+    .split("/")
+    .filter(Boolean);
 
   if (section !== "commits") {
     throw new Error(`Expected commits route, got: ${pathname}`);
@@ -41,19 +43,19 @@ export function RepoSidebarCommits({
                 }`}
                 prefetch={true}
               >
-              <div className="flex flex-col w-full justify-start items-start min-w-0">
-                <div className="text-sm truncate mb-0.5 w-full">
-                  {commit.message}
+                <div className="flex flex-col w-full justify-start items-start min-w-0">
+                  <div className="text-sm truncate mb-0.5 w-full">
+                    {commit.message}
+                  </div>
+                  <div className="text-xs text-muted-foreground flex items-center gap-1 w-full min-w-0">
+                    <span className="truncate min-w-0">{commit.author}</span>
+                    <span className="shrink-0">•</span>
+                    <span className="shrink-0">
+                      {formatTime(new Date(commit.date))}
+                    </span>
+                  </div>
                 </div>
-                <div className="text-xs text-muted-foreground flex items-center gap-1 w-full min-w-0">
-                  <span className="truncate min-w-0">{commit.author}</span>
-                  <span className="shrink-0">•</span>
-                  <span className="shrink-0">
-                    {formatTime(new Date(commit.date))}
-                  </span>
-                </div>
-              </div>
-            </Link>
+              </Link>
             );
           })}
         </Fragment>

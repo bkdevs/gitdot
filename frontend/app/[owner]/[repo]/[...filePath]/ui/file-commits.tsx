@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import type { RepositoryCommits } from "@/lib/dto";
+import Link from "@/ui/link";
 import { timeAgo } from "@/util";
 
 function FileCommit({

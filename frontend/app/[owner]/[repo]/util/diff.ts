@@ -8,15 +8,17 @@ export const CONTEXT_LINES = 4;
 // ============================================================================
 
 /**
-* there's a bug in difftastic where lhs removals can be placed after rhs additions
-* which leads to lines showing in weird sequential order
-*
-* so to avoid that, and enable consistent processing in mergeHunks and downstream, sort hunks here
-*/
+ * there's a bug in difftastic where lhs removals can be placed after rhs additions
+ * which leads to lines showing in weird sequential order
+ *
+ * so to avoid that, and enable consistent processing in mergeHunks and downstream, sort hunks here
+ */
 export function sortHunks(hunks: DiffHunk[]): DiffHunk[] {
   const getStartingLine = (hunk: DiffHunk): number => {
     const firstLine = hunk[0];
-    return firstLine.lhs ? firstLine.lhs.line_number : firstLine.rhs!.line_number;
+    return firstLine.lhs
+      ? firstLine.lhs.line_number
+      : firstLine.rhs!.line_number;
   };
 
   const sortedHunks = [...hunks].sort((a, b) => {
@@ -58,7 +60,6 @@ export function mergeHunks(hunks: DiffHunk[]): DiffHunk[] {
   result.push(current);
   return result;
 }
-
 
 function hunksOverlap(left: DiffHunk, right: DiffHunk): boolean {
   const lastLine = left[left.length - 1];
@@ -106,7 +107,6 @@ function getEffectivePosition(
     return [firstRhs - 1, line.rhs!.line_number];
   }
 }
-
 
 /**
  * a tad complicated and heuristic function.

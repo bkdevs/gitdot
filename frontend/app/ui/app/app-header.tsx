@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
+import Link from "@/ui/link";
 
 export function AppHeader() {
   const pathname = usePathname();

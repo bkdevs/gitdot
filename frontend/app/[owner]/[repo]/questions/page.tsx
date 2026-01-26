@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/ui/link";
 
 const EXAMPLE_QUESTIONS = [
   { id: 1, title: "Fix authentication bug in login flow" },

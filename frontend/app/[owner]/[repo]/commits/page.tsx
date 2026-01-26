@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/ui/link";
 import { Fragment } from "react";
 import { getRepositoryCommits } from "@/lib/dal";
 import { formatDate, formatTime } from "@/util";

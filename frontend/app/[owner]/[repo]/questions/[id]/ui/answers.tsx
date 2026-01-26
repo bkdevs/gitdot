@@ -1,10 +1,9 @@
-import { Comments } from "./comments"
-import { VoteBox } from "./vote-box"
+import { Comments } from "./comments";
+import { VoteBox } from "./vote-box";
 
 export function Answers() {
   return (
     <div className="flex flex-col w-full">
-
       <div className="flex justify-between items-center pl-4 py-8 max-w-4xl">
         <span className="text-lg font-medium">2 Answers</span>
         <div className="flex items-center gap-2 text-sm">
@@ -19,12 +18,11 @@ export function Answers() {
 
       <div className="flex flex-col gap-16">
         <Answer />
-        <Answer/>
+        <Answer />
       </div>
     </div>
-  )
+  );
 }
-
 
 function Answer() {
   return (
@@ -50,15 +48,15 @@ function Answer() {
             return data.data.user;
             }`}</pre>
           <p>
-            This fixed the issue for me in production. Make sure to also
-            clear your Redis cache if you're caching tokens.
+            This fixed the issue for me in production. Make sure to also clear
+            your Redis cache if you're caching tokens.
           </p>
         </div>
         <div className="flex justify-between text-sm mt-8">
           <div className="flex gap-4">
             <span>
-              <span className="text-muted-foreground">Answered</span> 2
-              hours ago
+              <span className="text-muted-foreground">Answered</span> 2 hours
+              ago
             </span>
           </div>
           <div className="flex gap-2 text-muted-foreground">
@@ -71,6 +69,5 @@ function Answer() {
         <Comments />
       </div>
     </div>
-
-  )
+  );
 }

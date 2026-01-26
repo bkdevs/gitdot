@@ -1,7 +1,7 @@
 import { File, Folder, FolderOpen } from "lucide-react";
-import Link from "next/link";
 import { useMemo } from "react";
 import type { RepositoryTreeEntry } from "@/lib/dto";
+import Link from "@/ui/link";
 import { getFolderEntries, getParentPath } from "../../util";
 
 function FileRow({

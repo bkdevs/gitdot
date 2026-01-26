@@ -7,8 +7,8 @@ import {
   MessageCircleQuestion,
   Plus,
 } from "lucide-react";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
+import Link from "@/ui/link";
 import {
   Sidebar,
   SidebarContent,

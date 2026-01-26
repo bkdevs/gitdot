@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/ui/link";
 
 const navItems = [
   { path: "", label: "/home" },

@@ -1,11 +1,10 @@
-import { Comments } from "./comments"
-import { VoteBox } from "./vote-box"
-
+import { Comments } from "./comments";
+import { VoteBox } from "./vote-box";
 
 export function Question() {
   return (
     <div className="flex pl-8 py-4 max-w-4xl">
-      <VoteBox score={28}/>
+      <VoteBox score={28} />
       <div className="flex-1 ml-8">
         <h1 className="text-xl font-medium mb-2">
           How do I fix authentication bug in login flow?
@@ -19,9 +18,9 @@ export function Question() {
             library.
           </p>
           <p className="mb-4">
-            I've tried clearing the session cookies and regenerating the
-            client credentials, but the issue persists. The weird thing is
-            that it works fine in development but fails in production.
+            I've tried clearing the session cookies and regenerating the client
+            credentials, but the issue persists. The weird thing is that it
+            works fine in development but fails in production.
           </p>
           <pre className="bg-muted p-3 rounded text-sm overflow-x-auto mb-4">
             Error: Invalid token received from OAuth provider at validateToken
@@ -54,7 +53,7 @@ export function Question() {
         </div>
 
         <div className="mt-2 mb-2 border border-gray-100" />
-        <Comments/>
+        <Comments />
       </div>
     </div>
   );

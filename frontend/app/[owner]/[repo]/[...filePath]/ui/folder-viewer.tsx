@@ -1,6 +1,6 @@
 import { File, Folder } from "lucide-react";
-import Link from "next/link";
 import type { RepositoryTreeEntry } from "@/lib/dto";
+import Link from "@/ui/link";
 import { timeAgo } from "@/util";
 
 export async function FolderViewer({
@@ -46,7 +46,9 @@ function FolderEntryRow({
         ) : (
           <Folder className="size-4 shrink-0" />
         )}
-        <span className="ml-2 truncate">{entry.path.split("/").pop()}</span>
+        <span className="ml-2 truncate font-mono">
+          {entry.path.split("/").pop()}
+        </span>
       </span>
       <span className="truncate">{entry.commit.message}</span>
       <span className="text-primary/60 ml-4 whitespace-nowrap">

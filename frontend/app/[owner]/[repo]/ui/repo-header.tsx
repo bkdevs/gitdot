@@ -1,8 +1,8 @@
 "use client";
 
 import { Circle } from "lucide-react";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
+import Link from "@/ui/link";
 
 export function RepoHeader({ owner, repo }: { owner: string; repo: string }) {
   const pathname = usePathname();

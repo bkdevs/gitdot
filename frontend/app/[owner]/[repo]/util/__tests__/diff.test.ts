@@ -600,9 +600,18 @@ describe("sortHunks", () => {
 
   test("already sorted hunks remain in order", () => {
     const hunks: DiffHunk[] = [
-      chunk([{ lhs: 1, rhs: 1 }, { lhs: 2, rhs: 2 }]),
-      chunk([{ lhs: 10, rhs: 10 }, { lhs: 11, rhs: 11 }]),
-      chunk([{ lhs: 20, rhs: 20 }, { lhs: 21, rhs: 21 }]),
+      chunk([
+        { lhs: 1, rhs: 1 },
+        { lhs: 2, rhs: 2 },
+      ]),
+      chunk([
+        { lhs: 10, rhs: 10 },
+        { lhs: 11, rhs: 11 },
+      ]),
+      chunk([
+        { lhs: 20, rhs: 20 },
+        { lhs: 21, rhs: 21 },
+      ]),
     ];
     const result = sortHunks(hunks);
     expect(result).toEqual(hunks);
@@ -611,15 +620,33 @@ describe("sortHunks", () => {
 
   test("sorts hunks by starting line number", () => {
     const hunks: DiffHunk[] = [
-      chunk([{ lhs: 20, rhs: 22 }, { lhs: 21, rhs: 23 }]),
-      chunk([{ lhs: 1, rhs: 1 }, { lhs: 2, rhs: 2 }]),
-      chunk([{ lhs: 10, rhs: 11 }, { lhs: 11, rhs: 12 }]),
+      chunk([
+        { lhs: 20, rhs: 22 },
+        { lhs: 21, rhs: 23 },
+      ]),
+      chunk([
+        { lhs: 1, rhs: 1 },
+        { lhs: 2, rhs: 2 },
+      ]),
+      chunk([
+        { lhs: 10, rhs: 11 },
+        { lhs: 11, rhs: 12 },
+      ]),
     ];
     const result = sortHunks(hunks);
     expect(result).toEqual([
-      chunk([{ lhs: 1, rhs: 1 }, { lhs: 2, rhs: 2 }]),
-      chunk([{ lhs: 10, rhs: 11 }, { lhs: 11, rhs: 12 }]),
-      chunk([{ lhs: 20, rhs: 22 }, { lhs: 21, rhs: 23 }]),
+      chunk([
+        { lhs: 1, rhs: 1 },
+        { lhs: 2, rhs: 2 },
+      ]),
+      chunk([
+        { lhs: 10, rhs: 11 },
+        { lhs: 11, rhs: 12 },
+      ]),
+      chunk([
+        { lhs: 20, rhs: 22 },
+        { lhs: 21, rhs: 23 },
+      ]),
     ]);
     expectBothSidesSorted(result);
   });
@@ -683,7 +710,12 @@ describe("mergeHunks", () => {
     });
 
     test("single hunk returns unchanged", () => {
-      const hunks: DiffHunk[] = [chunk([{ lhs: 5, rhs: 5 }, { lhs: 6, rhs: 6 }])];
+      const hunks: DiffHunk[] = [
+        chunk([
+          { lhs: 5, rhs: 5 },
+          { lhs: 6, rhs: 6 },
+        ]),
+      ];
       const result = mergeHunks(hunks);
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual(hunks[0]);
@@ -715,8 +747,14 @@ describe("mergeHunks", () => {
 
     test("two adjacent hunks merge", () => {
       const hunks: DiffHunk[] = [
-        chunk([{ lhs: 1, rhs: 1 }, { lhs: 2, rhs: 2 }]),
-        chunk([{ lhs: 3, rhs: 3 }, { lhs: 4, rhs: 4 }]),
+        chunk([
+          { lhs: 1, rhs: 1 },
+          { lhs: 2, rhs: 2 },
+        ]),
+        chunk([
+          { lhs: 3, rhs: 3 },
+          { lhs: 4, rhs: 4 },
+        ]),
       ];
       const result = mergeHunks(hunks);
       expect(result).toHaveLength(1);
@@ -749,8 +787,14 @@ describe("mergeHunks", () => {
 
     test("two far apart hunks stay separate", () => {
       const hunks: DiffHunk[] = [
-        chunk([{ lhs: 1, rhs: 1 }, { lhs: 2, rhs: 2 }]),
-        chunk([{ lhs: 100, rhs: 100 }, { lhs: 101, rhs: 101 }]),
+        chunk([
+          { lhs: 1, rhs: 1 },
+          { lhs: 2, rhs: 2 },
+        ]),
+        chunk([
+          { lhs: 100, rhs: 100 },
+          { lhs: 101, rhs: 101 },
+        ]),
       ];
       const result = mergeHunks(hunks);
       expect(result).toHaveLength(2);
@@ -773,7 +817,7 @@ describe("mergeHunks", () => {
     test("first two merge, third stays separate", () => {
       const hunks: DiffHunk[] = [
         chunk([{ lhs: 1, rhs: 1 }]),
-        chunk([{ lhs: 5, rhs: 5 }]),   // merges with first (diff = 4)
+        chunk([{ lhs: 5, rhs: 5 }]), // merges with first (diff = 4)
         chunk([{ lhs: 50, rhs: 50 }]), // stays separate (diff = 45)
       ];
       const result = mergeHunks(hunks);
@@ -797,7 +841,7 @@ describe("mergeHunks", () => {
     test("alternating merge pattern", () => {
       const hunks: DiffHunk[] = [
         chunk([{ lhs: 1, rhs: 1 }]),
-        chunk([{ lhs: 5, rhs: 5 }]),   // merges with 1st
+        chunk([{ lhs: 5, rhs: 5 }]), // merges with 1st
         chunk([{ lhs: 50, rhs: 50 }]), // separate
         chunk([{ lhs: 55, rhs: 55 }]), // merges with 3rd
       ];
