@@ -21,7 +21,12 @@ export default async function Page({
   return (
     <div className="flex flex-col w-full h-screen overflow-y-auto scrollbar-thin">
       <CommitHeader commit={commitStats.commit} diffs={commitStats.diffs} />
-      <CommitBody repo={repo} sha={sha} useSuspense={useSuspense} />
+      <CommitBody
+        owner={owner}
+        repo={repo}
+        sha={sha}
+        useSuspense={useSuspense}
+      />
     </div>
   );
 }
