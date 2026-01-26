@@ -85,7 +85,7 @@ function NavItem({
   const button = (
     <SidebarMenuButton
       tooltip={label}
-      className="w-full h-full flex items-center justify-center p-0! rounded-none"
+      className="w-full h-full flex items-center justify-center p-0! rounded-none hover:!bg-transparent hover:!text-current"
     >
       <Icon className={cn(iconClassName ?? "h-4 w-4", "mr-1")} />
       <span className="sr-only">{label}</span>
