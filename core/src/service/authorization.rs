@@ -2,7 +2,7 @@ use async_trait::async_trait;
 
 use crate::dto::{
     AnswerAuthorizationRequest, CommentAuthorizationRequest, QuestionAuthorizationRequest,
-    RepositoryAuthorizationRequest, RepositoryIdentifier,
+    RepositoryAuthorizationRequest,
 };
 use crate::error::AuthorizationError;
 use crate::repository::{
@@ -76,27 +76,16 @@ where
         &self,
         request: RepositoryAuthorizationRequest,
     ) -> Result<(), AuthorizationError> {
-        let repository = match &request.repository {
-            RepositoryIdentifier::Id(id) => {
-                self.repo_repo.get_by_id(*id).await?.ok_or_else(|| {
-                    AuthorizationError::InvalidRequest(format!("Repository not found: {}", id))
-                })?
-            }
-            RepositoryIdentifier::OwnerRepo {
-                owner_name,
-                repo_name,
-            } => self
-                .repo_repo
-                .get(owner_name.as_ref(), repo_name.as_ref())
-                .await?
-                .ok_or_else(|| {
-                    AuthorizationError::InvalidRequest(format!(
-                        "Repository not found: {}/{}",
-                        owner_name.as_ref(),
-                        repo_name.as_ref()
-                    ))
-                })?,
-        };
+        let repository = self
+            .repo_repo
+            .get(request.owner.as_ref(), request.repo.as_ref())
+            .await?
+            .ok_or_else(|| {
+                AuthorizationError::InvalidRequest(format!(
+                    "Repository not found: {}",
+                    request.get_repo_path(),
+                ))
+            })?;
 
         if repository.is_public() {
             return Ok(());
@@ -128,14 +117,36 @@ where
         &self,
         request: QuestionAuthorizationRequest,
     ) -> Result<(), AuthorizationError> {
-        let author_id = self
+        let repository = self
+            .repo_repo
+            .get(request.owner.as_ref(), request.repo.as_ref())
+            .await?
+            .ok_or_else(|| {
+                AuthorizationError::InvalidRequest(format!(
+                    "Repository not found: {}",
+                    request.get_repo_path(),
+                ))
+            })?;
+
+        let question = self
             .question_repo
-            .get_question_author_id(request.question_id)
+            .get_question(repository.id, request.number)
             .await?
             .ok_or_else(|| {
                 AuthorizationError::InvalidRequest(format!(
                     "Question not found: {}",
-                    request.question_id
+                    request.get_repo_path(),
+                ))
+            })?;
+
+        let author_id = self
+            .question_repo
+            .get_question_author_id(question.id)
+            .await?
+            .ok_or_else(|| {
+                AuthorizationError::InvalidRequest(format!(
+                    "Question not found: {}",
+                    request.get_repo_path(),
                 ))
             })?;
 

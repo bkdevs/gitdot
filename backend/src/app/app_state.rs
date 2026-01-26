@@ -50,7 +50,10 @@ impl AppState {
             org_repo.clone(),
             repo_repo.clone(),
         ));
-        let question_service = Arc::new(QuestionServiceImpl::new(question_repo.clone()));
+        let question_service = Arc::new(QuestionServiceImpl::new(
+            question_repo.clone(),
+            repo_repo.clone(),
+        ));
         let git_http_service = Arc::new(GitHttpServiceImpl::new(git_http_client));
 
         Self {

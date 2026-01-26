@@ -1,12 +1,15 @@
 use async_trait::async_trait;
 
 use crate::dto::{
-    AnswerResponse, CommentResponse, CreateAnswerRequest, CreateCommentRequest,
-    CreateQuestionRequest, GetQuestionRequest, GetQuestionsRequest, QuestionResponse,
-    QuestionsResponse, UpdateAnswerRequest, UpdateCommentRequest, UpdateQuestionRequest,
+    AnswerResponse, CommentResponse, CreateAnswerCommentRequest, CreateAnswerRequest,
+    CreateQuestionCommentRequest, CreateQuestionRequest, GetQuestionRequest, GetQuestionsRequest,
+    QuestionResponse, QuestionsResponse, UpdateAnswerRequest, UpdateCommentRequest,
+    UpdateQuestionRequest,
 };
 use crate::error::QuestionError;
-use crate::repository::{QuestionRepository, QuestionRepositoryImpl};
+use crate::repository::{
+    QuestionRepository, QuestionRepositoryImpl, RepositoryRepository, RepositoryRepositoryImpl,
+};
 
 #[async_trait]
 pub trait QuestionService: Send + Sync + 'static {
@@ -40,9 +43,14 @@ pub trait QuestionService: Send + Sync + 'static {
         request: UpdateAnswerRequest,
     ) -> Result<AnswerResponse, QuestionError>;
 
-    async fn create_comment(
+    async fn create_question_comment(
         &self,
-        request: CreateCommentRequest,
+        request: CreateQuestionCommentRequest,
+    ) -> Result<CommentResponse, QuestionError>;
+
+    async fn create_answer_comment(
+        &self,
+        request: CreateAnswerCommentRequest,
     ) -> Result<CommentResponse, QuestionError>;
 
     async fn update_comment(
@@ -52,33 +60,45 @@ pub trait QuestionService: Send + Sync + 'static {
 }
 
 #[derive(Debug, Clone)]
-pub struct QuestionServiceImpl<Q>
+pub struct QuestionServiceImpl<Q, R>
 where
     Q: QuestionRepository,
+    R: RepositoryRepository,
 {
     question_repo: Q,
+    repo_repo: R,
 }
 
-impl QuestionServiceImpl<QuestionRepositoryImpl> {
-    pub fn new(question_repo: QuestionRepositoryImpl) -> Self {
-        Self { question_repo }
+impl QuestionServiceImpl<QuestionRepositoryImpl, RepositoryRepositoryImpl> {
+    pub fn new(question_repo: QuestionRepositoryImpl, repo_repo: RepositoryRepositoryImpl) -> Self {
+        Self {
+            question_repo,
+            repo_repo,
+        }
     }
 }
 
 #[async_trait]
-impl<Q> QuestionService for QuestionServiceImpl<Q>
+impl<Q, R> QuestionService for QuestionServiceImpl<Q, R>
 where
     Q: QuestionRepository,
+    R: RepositoryRepository,
 {
     async fn create_question(
         &self,
         request: CreateQuestionRequest,
     ) -> Result<QuestionResponse, QuestionError> {
+        let repository = self
+            .repo_repo
+            .get(request.owner.as_ref(), request.repo.as_ref())
+            .await?
+            .ok_or_else(|| QuestionError::RepositoryNotFound(request.get_repo_path()))?;
+
         let question = self
             .question_repo
             .create_question(
                 request.author_id,
-                request.repository_id,
+                repository.id,
                 &request.title,
                 &request.body,
             )
@@ -91,11 +111,17 @@ where
         &self,
         request: UpdateQuestionRequest,
     ) -> Result<QuestionResponse, QuestionError> {
+        let repository = self
+            .repo_repo
+            .get(request.owner.as_ref(), request.repo.as_ref())
+            .await?
+            .ok_or_else(|| QuestionError::RepositoryNotFound(request.get_repo_path()))?;
+
         let question = self
             .question_repo
-            .update_question(request.id, &request.title, &request.body)
+            .update_question(repository.id, request.number, &request.title, &request.body)
             .await?
-            .ok_or_else(|| QuestionError::QuestionNotFound(request.id))?;
+            .ok_or_else(|| QuestionError::QuestionNotFound(request.get_question_path()))?;
 
         Ok(question.into())
     }
@@ -104,11 +130,17 @@ where
         &self,
         request: GetQuestionRequest,
     ) -> Result<QuestionResponse, QuestionError> {
+        let repository = self
+            .repo_repo
+            .get(request.owner.as_ref(), request.repo.as_ref())
+            .await?
+            .ok_or_else(|| QuestionError::RepositoryNotFound(request.get_repo_path()))?;
+
         let question = self
             .question_repo
-            .get_question(request.id)
+            .get_question(repository.id, request.number)
             .await?
-            .ok_or_else(|| QuestionError::QuestionNotFound(request.id))?;
+            .ok_or_else(|| QuestionError::QuestionNotFound(request.get_question_path()))?;
 
         Ok(question.into())
     }
@@ -117,10 +149,13 @@ where
         &self,
         request: GetQuestionsRequest,
     ) -> Result<QuestionsResponse, QuestionError> {
-        let questions = self
-            .question_repo
-            .get_questions(request.repository_id)
-            .await?;
+        let repository = self
+            .repo_repo
+            .get(request.owner.as_ref(), request.repo.as_ref())
+            .await?
+            .ok_or_else(|| QuestionError::RepositoryNotFound(request.get_repo_path()))?;
+
+        let questions = self.question_repo.get_questions(repository.id).await?;
 
         Ok(QuestionsResponse {
             questions: questions.into_iter().map(QuestionResponse::from).collect(),
@@ -131,9 +166,21 @@ where
         &self,
         request: CreateAnswerRequest,
     ) -> Result<AnswerResponse, QuestionError> {
+        let repository = self
+            .repo_repo
+            .get(request.owner.as_ref(), request.repo.as_ref())
+            .await?
+            .ok_or_else(|| QuestionError::RepositoryNotFound(request.get_repo_path()))?;
+
+        let question = self
+            .question_repo
+            .get_question(repository.id, request.number)
+            .await?
+            .ok_or_else(|| QuestionError::QuestionNotFound(request.get_question_path()))?;
+
         let answer = self
             .question_repo
-            .create_answer(request.question_id, request.author_id, &request.body)
+            .create_answer(question.id, request.author_id, &request.body)
             .await?;
 
         Ok(answer.into())
@@ -152,13 +199,37 @@ where
         Ok(answer.into())
     }
 
-    async fn create_comment(
+    async fn create_question_comment(
         &self,
-        request: CreateCommentRequest,
+        request: CreateQuestionCommentRequest,
+    ) -> Result<CommentResponse, QuestionError> {
+        let repository = self
+            .repo_repo
+            .get(request.owner.as_ref(), request.repo.as_ref())
+            .await?
+            .ok_or_else(|| QuestionError::RepositoryNotFound(request.get_repo_path()))?;
+
+        let question = self
+            .question_repo
+            .get_question(repository.id, request.number)
+            .await?
+            .ok_or_else(|| QuestionError::QuestionNotFound(request.get_question_path()))?;
+
+        let comment = self
+            .question_repo
+            .create_comment(question.id, request.author_id, &request.body)
+            .await?;
+
+        Ok(comment.into())
+    }
+
+    async fn create_answer_comment(
+        &self,
+        request: CreateAnswerCommentRequest,
     ) -> Result<CommentResponse, QuestionError> {
         let comment = self
             .question_repo
-            .create_comment(request.parent_id, request.author_id, &request.body)
+            .create_comment(request.answer_id, request.author_id, &request.body)
             .await?;
 
         Ok(comment.into())

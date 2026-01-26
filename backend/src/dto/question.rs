@@ -1,8 +1,6 @@
 mod create_answer;
 mod create_comment;
 mod create_question;
-mod get_question;
-mod get_questions;
 mod update_answer;
 mod update_comment;
 mod update_question;
@@ -18,8 +16,6 @@ use gitdot_core::dto::{
 pub use create_answer::CreateAnswerServerRequest;
 pub use create_comment::CreateCommentServerRequest;
 pub use create_question::CreateQuestionServerRequest;
-pub use get_question::GetQuestionServerRequest;
-pub use get_questions::GetQuestionsServerRequest;
 pub use update_answer::UpdateAnswerServerRequest;
 pub use update_comment::UpdateCommentServerRequest;
 pub use update_question::UpdateQuestionServerRequest;

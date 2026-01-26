@@ -13,7 +13,7 @@ use crate::dto::{CommentServerResponse, UpdateCommentServerRequest};
 pub async fn update_comment(
     auth_user: AuthenticatedUser,
     State(state): State<AppState>,
-    Path(comment_id): Path<Uuid>,
+    Path((_owner, _repo, _number, comment_id)): Path<(String, String, i32, Uuid)>,
     Json(request): Json<UpdateCommentServerRequest>,
 ) -> Result<AppResponse<CommentServerResponse>, AppError> {
     let auth_request = CommentAuthorizationRequest::new(auth_user.id, comment_id);

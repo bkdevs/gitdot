@@ -15,8 +15,7 @@ pub async fn get_repository_commits(
     Path((owner, repo)): Path<(String, String)>,
     Query(params): Query<GetRepositoryCommitsQuery>,
 ) -> Result<AppResponse<GetRepositoryCommitsServerResponse>, AppError> {
-    let request =
-        RepositoryAuthorizationRequest::with_owner_repo(auth_user.map(|u| u.id), &owner, &repo)?;
+    let request = RepositoryAuthorizationRequest::new(auth_user.map(|u| u.id), &owner, &repo)?;
     state
         .auth_service
         .verify_authorized_for_repository(request)

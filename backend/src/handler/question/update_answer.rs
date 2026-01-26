@@ -13,7 +13,7 @@ use crate::dto::{AnswerServerResponse, UpdateAnswerServerRequest};
 pub async fn update_answer(
     auth_user: AuthenticatedUser,
     State(state): State<AppState>,
-    Path(answer_id): Path<Uuid>,
+    Path((_owner, _repo, _number, answer_id)): Path<(String, String, i32, Uuid)>,
     Json(request): Json<UpdateAnswerServerRequest>,
 ) -> Result<AppResponse<AnswerServerResponse>, AppError> {
     let auth_request = AnswerAuthorizationRequest::new(auth_user.id, answer_id);

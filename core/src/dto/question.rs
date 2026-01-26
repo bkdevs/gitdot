@@ -1,6 +1,7 @@
 mod create_answer;
-mod create_comment;
+mod create_answer_comment;
 mod create_question;
+mod create_question_comment;
 mod get_question;
 mod get_questions;
 mod update_answer;
@@ -13,8 +14,9 @@ use uuid::Uuid;
 use crate::model::{Answer, Comment, Question, User};
 
 pub use create_answer::CreateAnswerRequest;
-pub use create_comment::CreateCommentRequest;
+pub use create_answer_comment::CreateAnswerCommentRequest;
 pub use create_question::CreateQuestionRequest;
+pub use create_question_comment::CreateQuestionCommentRequest;
 pub use get_question::GetQuestionRequest;
 pub use get_questions::GetQuestionsRequest;
 pub use update_answer::UpdateAnswerRequest;

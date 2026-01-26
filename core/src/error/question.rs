@@ -3,8 +3,14 @@ use uuid::Uuid;
 
 #[derive(Debug, Error)]
 pub enum QuestionError {
+    #[error("Invalid owner name: {0}")]
+    InvalidOwnerName(String),
+
+    #[error("Invalid repository name: {0}")]
+    InvalidRepositoryName(String),
+
     #[error("Question not found: {0}")]
-    QuestionNotFound(Uuid),
+    QuestionNotFound(String),
 
     #[error("Answer not found: {0}")]
     AnswerNotFound(Uuid),
@@ -13,7 +19,7 @@ pub enum QuestionError {
     CommentNotFound(Uuid),
 
     #[error("Repository not found: {0}")]
-    RepositoryNotFound(Uuid),
+    RepositoryNotFound(String),
 
     #[error("Database error: {0}")]
     DatabaseError(#[from] sqlx::Error),

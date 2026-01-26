@@ -90,6 +90,8 @@ impl IntoResponse for AppError {
             }
             AppError::Question(e) => {
                 let status_code = match e {
+                    QuestionError::InvalidOwnerName(_) => StatusCode::BAD_REQUEST,
+                    QuestionError::InvalidRepositoryName(_) => StatusCode::BAD_REQUEST,
                     QuestionError::QuestionNotFound(_) => StatusCode::NOT_FOUND,
                     QuestionError::AnswerNotFound(_) => StatusCode::NOT_FOUND,
                     QuestionError::CommentNotFound(_) => StatusCode::NOT_FOUND,

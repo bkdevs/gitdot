@@ -1,5 +1,5 @@
 use axum::{
-    extract::{Json, State},
+    extract::{Json, Path, State},
     http::StatusCode,
 };
 
@@ -12,21 +12,17 @@ use crate::dto::{CreateQuestionServerRequest, QuestionServerResponse};
 pub async fn create_question(
     auth_user: AuthenticatedUser,
     State(state): State<AppState>,
+    Path((owner, repo)): Path<(String, String)>,
     Json(request): Json<CreateQuestionServerRequest>,
 ) -> Result<AppResponse<QuestionServerResponse>, AppError> {
-    let auth_request =
-        RepositoryAuthorizationRequest::with_id(Some(auth_user.id), request.repository_id);
+    let auth_request = RepositoryAuthorizationRequest::new(Some(auth_user.id), &owner, &repo)?;
     state
         .auth_service
         .verify_authorized_for_repository(auth_request)
         .await?;
 
-    let request = CreateQuestionRequest::new(
-        auth_user.id,
-        request.repository_id,
-        request.title,
-        request.body,
-    );
+    let request =
+        CreateQuestionRequest::new(auth_user.id, &owner, &repo, request.title, request.body)?;
     state
         .question_service
         .create_question(request)

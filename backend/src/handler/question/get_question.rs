@@ -1,29 +1,26 @@
 use axum::{
-    extract::{Json, Path, State},
+    extract::{Path, State},
     http::StatusCode,
 };
-use uuid::Uuid;
 
 use gitdot_core::dto::{GetQuestionRequest, RepositoryAuthorizationRequest};
 
 use crate::app::{AppError, AppResponse, AppState, AuthenticatedUser};
-use crate::dto::{GetQuestionServerRequest, QuestionServerResponse};
+use crate::dto::QuestionServerResponse;
 
 #[axum::debug_handler]
 pub async fn get_question(
     auth_user: Option<AuthenticatedUser>,
     State(state): State<AppState>,
-    Path(question_id): Path<Uuid>,
-    Json(request): Json<GetQuestionServerRequest>,
+    Path((owner, repo, number)): Path<(String, String, i32)>,
 ) -> Result<AppResponse<QuestionServerResponse>, AppError> {
-    let auth_request =
-        RepositoryAuthorizationRequest::with_id(auth_user.map(|u| u.id), request.repository_id);
+    let request = RepositoryAuthorizationRequest::new(auth_user.map(|u| u.id), &owner, &repo)?;
     state
         .auth_service
-        .verify_authorized_for_repository(auth_request)
+        .verify_authorized_for_repository(request)
         .await?;
 
-    let request = GetQuestionRequest::new(question_id);
+    let request = GetQuestionRequest::new(&owner, &repo, number)?;
     state
         .question_service
         .get_question(request)

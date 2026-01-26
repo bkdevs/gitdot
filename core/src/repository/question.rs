@@ -100,12 +100,17 @@ pub trait QuestionRepository: Send + Sync + Clone + 'static {
 
     async fn update_question(
         &self,
-        id: Uuid,
+        repository_id: Uuid,
+        number: i32,
         title: &str,
         body: &str,
     ) -> Result<Option<Question>, Error>;
 
-    async fn get_question(&self, id: Uuid) -> Result<Option<Question>, Error>;
+    async fn get_question(
+        &self,
+        repository_id: Uuid,
+        number: i32,
+    ) -> Result<Option<Question>, Error>;
 
     async fn get_questions(&self, repository_id: Uuid) -> Result<Vec<Question>, Error>;
 
@@ -177,7 +182,8 @@ impl QuestionRepository for QuestionRepositoryImpl {
 
     async fn update_question(
         &self,
-        id: Uuid,
+        repository_id: Uuid,
+        number: i32,
         title: &str,
         body: &str,
     ) -> Result<Option<Question>, Error> {
@@ -185,12 +191,13 @@ impl QuestionRepository for QuestionRepositoryImpl {
             r#"
             UPDATE questions
             SET title = $2, body = $3, updated_at = NOW()
-            WHERE id = $1
+            WHERE repository_id = $1 AND number = $2
             RETURNING id, number, author_id, repository_id, title, body, upvote, impression, created_at, updated_at,
                       NULL AS author, NULL AS comments, NULL AS answers
             "#,
         )
-        .bind(id)
+        .bind(repository_id)
+        .bind(number)
         .bind(title)
         .bind(body)
         .fetch_optional(&self.pool)
@@ -199,11 +206,19 @@ impl QuestionRepository for QuestionRepositoryImpl {
         Ok(question)
     }
 
-    async fn get_question(&self, id: Uuid) -> Result<Option<Question>, Error> {
-        let query = format!("{} WHERE q.id = $1", GET_QUESTION_WITH_DETAILS_QUERY);
+    async fn get_question(
+        &self,
+        repository_id: Uuid,
+        number: i32,
+    ) -> Result<Option<Question>, Error> {
+        let query = format!(
+            "{} WHERE q.repository_id = $1 AND q.number = $2",
+            GET_QUESTION_WITH_DETAILS_QUERY
+        );
 
         let question = sqlx::query_as::<_, Question>(&query)
-            .bind(id)
+            .bind(repository_id)
+            .bind(number)
             .fetch_optional(&self.pool)
             .await?;
 
