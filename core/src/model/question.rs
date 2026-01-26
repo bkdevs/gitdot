@@ -18,6 +18,9 @@ pub struct Question {
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 
+    /// Current user's vote on this question (1 = upvote, -1 = downvote, None = no vote)
+    pub user_vote: Option<i16>,
+
     #[sqlx(json(nullable))]
     pub author: Option<User>,
 
@@ -38,6 +41,9 @@ pub struct Answer {
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 
+    /// Current user's vote on this answer
+    pub user_vote: Option<i16>,
+
     #[sqlx(json(nullable))]
     pub author: Option<User>,
 
@@ -55,6 +61,16 @@ pub struct Comment {
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 
+    /// Current user's vote on this comment
+    pub user_vote: Option<i16>,
+
     #[sqlx(json(nullable))]
     pub author: Option<User>,
+}
+
+#[derive(Debug, Clone)]
+pub struct VoteResult {
+    pub target_id: Uuid,
+    pub new_score: i32,
+    pub user_vote: Option<i16>,
 }

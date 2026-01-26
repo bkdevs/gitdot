@@ -128,9 +128,9 @@ where
                 ))
             })?;
 
-        let question = self
+        let question_id = self
             .question_repo
-            .get_question(repository.id, request.number)
+            .get_question_id(repository.id, request.number)
             .await?
             .ok_or_else(|| {
                 AuthorizationError::InvalidRequest(format!(
@@ -141,7 +141,7 @@ where
 
         let author_id = self
             .question_repo
-            .get_question_author_id(question.id)
+            .get_question_author_id(question_id)
             .await?
             .ok_or_else(|| {
                 AuthorizationError::InvalidRequest(format!(

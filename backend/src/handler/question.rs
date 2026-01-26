@@ -7,6 +7,9 @@ mod get_questions;
 mod update_answer;
 mod update_comment;
 mod update_question;
+mod vote_answer;
+mod vote_comment;
+mod vote_question;
 
 use axum::{
     Router,
@@ -24,6 +27,9 @@ use get_questions::get_questions;
 use update_answer::update_answer;
 use update_comment::update_comment;
 use update_question::update_question;
+use vote_answer::vote_answer;
+use vote_comment::vote_comment;
+use vote_question::vote_question;
 
 pub fn create_question_router() -> Router<AppState> {
     Router::new()
@@ -52,5 +58,17 @@ pub fn create_question_router() -> Router<AppState> {
         .route(
             "/repository/{owner}/{repo}/question/{number}/comment/{comment_id}",
             patch(update_comment),
+        )
+        .route(
+            "/repository/{owner}/{repo}/question/{number}/vote",
+            post(vote_question),
+        )
+        .route(
+            "/repository/{owner}/{repo}/question/{number}/answer/{answer_id}/vote",
+            post(vote_answer),
+        )
+        .route(
+            "/repository/{owner}/{repo}/question/{number}/comment/{comment_id}/vote",
+            post(vote_comment),
         )
 }

@@ -92,10 +92,12 @@ impl IntoResponse for AppError {
                 let status_code = match e {
                     QuestionError::InvalidOwnerName(_) => StatusCode::BAD_REQUEST,
                     QuestionError::InvalidRepositoryName(_) => StatusCode::BAD_REQUEST,
+                    QuestionError::InvalidVoteValue(_) => StatusCode::BAD_REQUEST,
                     QuestionError::QuestionNotFound(_) => StatusCode::NOT_FOUND,
                     QuestionError::AnswerNotFound(_) => StatusCode::NOT_FOUND,
                     QuestionError::CommentNotFound(_) => StatusCode::NOT_FOUND,
                     QuestionError::RepositoryNotFound(_) => StatusCode::NOT_FOUND,
+                    QuestionError::VoteTargetNotFound(_) => StatusCode::NOT_FOUND,
                     QuestionError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                 };
                 let response = AppResponse::new(

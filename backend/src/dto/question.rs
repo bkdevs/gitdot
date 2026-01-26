@@ -4,6 +4,7 @@ mod create_question;
 mod update_answer;
 mod update_comment;
 mod update_question;
+mod vote;
 
 use chrono::{DateTime, Utc};
 use serde::Serialize;
@@ -19,6 +20,7 @@ pub use create_question::CreateQuestionServerRequest;
 pub use update_answer::UpdateAnswerServerRequest;
 pub use update_comment::UpdateCommentServerRequest;
 pub use update_question::UpdateQuestionServerRequest;
+pub use vote::{VoteServerRequest, VoteServerResponse};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct QuestionsServerResponse {
@@ -45,6 +47,7 @@ pub struct QuestionServerResponse {
     pub impression: i32,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+    pub user_vote: Option<i16>,
     pub author: Option<AuthorServerResponse>,
     pub comments: Vec<CommentServerResponse>,
     pub answers: Vec<AnswerServerResponse>,
@@ -63,6 +66,7 @@ impl From<QuestionResponse> for QuestionServerResponse {
             impression: response.impression,
             created_at: response.created_at,
             updated_at: response.updated_at,
+            user_vote: response.user_vote,
             author: response.author.map(AuthorServerResponse::from),
             comments: response
                 .comments
@@ -87,6 +91,7 @@ pub struct AnswerServerResponse {
     pub upvote: i32,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+    pub user_vote: Option<i16>,
     pub author: Option<AuthorServerResponse>,
     pub comments: Vec<CommentServerResponse>,
 }
@@ -101,6 +106,7 @@ impl From<AnswerResponse> for AnswerServerResponse {
             upvote: response.upvote,
             created_at: response.created_at,
             updated_at: response.updated_at,
+            user_vote: response.user_vote,
             author: response.author.map(AuthorServerResponse::from),
             comments: response
                 .comments
@@ -120,6 +126,7 @@ pub struct CommentServerResponse {
     pub upvote: i32,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+    pub user_vote: Option<i16>,
     pub author: Option<AuthorServerResponse>,
 }
 
@@ -133,6 +140,7 @@ impl From<CommentResponse> for CommentServerResponse {
             upvote: response.upvote,
             created_at: response.created_at,
             updated_at: response.updated_at,
+            user_vote: response.user_vote,
             author: response.author.map(AuthorServerResponse::from),
         }
     }

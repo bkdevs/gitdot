@@ -4,7 +4,8 @@ use crate::dto::{
     AnswerResponse, CommentResponse, CreateAnswerCommentRequest, CreateAnswerRequest,
     CreateQuestionCommentRequest, CreateQuestionRequest, GetQuestionRequest, GetQuestionsRequest,
     QuestionResponse, QuestionsResponse, UpdateAnswerRequest, UpdateCommentRequest,
-    UpdateQuestionRequest,
+    UpdateQuestionRequest, VoteAnswerRequest, VoteCommentRequest, VoteQuestionRequest,
+    VoteResponse,
 };
 use crate::error::QuestionError;
 use crate::repository::{
@@ -57,6 +58,18 @@ pub trait QuestionService: Send + Sync + 'static {
         &self,
         request: UpdateCommentRequest,
     ) -> Result<CommentResponse, QuestionError>;
+
+    async fn vote_question(
+        &self,
+        request: VoteQuestionRequest,
+    ) -> Result<VoteResponse, QuestionError>;
+
+    async fn vote_answer(&self, request: VoteAnswerRequest) -> Result<VoteResponse, QuestionError>;
+
+    async fn vote_comment(
+        &self,
+        request: VoteCommentRequest,
+    ) -> Result<VoteResponse, QuestionError>;
 }
 
 #[derive(Debug, Clone)]
@@ -138,7 +151,7 @@ where
 
         let question = self
             .question_repo
-            .get_question(repository.id, request.number)
+            .get_question(repository.id, request.number, request.user_id)
             .await?
             .ok_or_else(|| QuestionError::QuestionNotFound(request.get_question_path()))?;
 
@@ -155,7 +168,10 @@ where
             .await?
             .ok_or_else(|| QuestionError::RepositoryNotFound(request.get_repo_path()))?;
 
-        let questions = self.question_repo.get_questions(repository.id).await?;
+        let questions = self
+            .question_repo
+            .get_questions(repository.id, request.user_id)
+            .await?;
 
         Ok(QuestionsResponse {
             questions: questions.into_iter().map(QuestionResponse::from).collect(),
@@ -172,15 +188,15 @@ where
             .await?
             .ok_or_else(|| QuestionError::RepositoryNotFound(request.get_repo_path()))?;
 
-        let question = self
+        let question_id = self
             .question_repo
-            .get_question(repository.id, request.number)
+            .get_question_id(repository.id, request.number)
             .await?
             .ok_or_else(|| QuestionError::QuestionNotFound(request.get_question_path()))?;
 
         let answer = self
             .question_repo
-            .create_answer(question.id, request.author_id, &request.body)
+            .create_answer(question_id, request.author_id, &request.body)
             .await?;
 
         Ok(answer.into())
@@ -211,7 +227,7 @@ where
 
         let question = self
             .question_repo
-            .get_question(repository.id, request.number)
+            .get_question(repository.id, request.number, None)
             .await?
             .ok_or_else(|| QuestionError::QuestionNotFound(request.get_question_path()))?;
 
@@ -246,5 +262,50 @@ where
             .ok_or_else(|| QuestionError::CommentNotFound(request.id))?;
 
         Ok(comment.into())
+    }
+
+    async fn vote_question(
+        &self,
+        request: VoteQuestionRequest,
+    ) -> Result<VoteResponse, QuestionError> {
+        let repository = self
+            .repo_repo
+            .get(request.owner.as_ref(), request.repo.as_ref())
+            .await?
+            .ok_or_else(|| QuestionError::RepositoryNotFound(request.get_repo_path()))?;
+
+        let question_id = self
+            .question_repo
+            .get_question_id(repository.id, request.number)
+            .await?
+            .ok_or_else(|| QuestionError::QuestionNotFound(request.get_question_path()))?;
+
+        let result = self
+            .question_repo
+            .vote(request.user_id, question_id, request.value)
+            .await?;
+
+        Ok(result.into())
+    }
+
+    async fn vote_answer(&self, request: VoteAnswerRequest) -> Result<VoteResponse, QuestionError> {
+        let result = self
+            .question_repo
+            .vote(request.user_id, request.answer_id, request.value)
+            .await?;
+
+        Ok(result.into())
+    }
+
+    async fn vote_comment(
+        &self,
+        request: VoteCommentRequest,
+    ) -> Result<VoteResponse, QuestionError> {
+        let result = self
+            .question_repo
+            .vote(request.user_id, request.comment_id, request.value)
+            .await?;
+
+        Ok(result.into())
     }
 }

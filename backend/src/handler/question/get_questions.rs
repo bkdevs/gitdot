@@ -14,13 +14,14 @@ pub async fn get_questions(
     State(state): State<AppState>,
     Path((owner, repo)): Path<(String, String)>,
 ) -> Result<AppResponse<QuestionsServerResponse>, AppError> {
-    let request = RepositoryAuthorizationRequest::new(auth_user.map(|u| u.id), &owner, &repo)?;
+    let user_id = auth_user.as_ref().map(|u| u.id);
+    let request = RepositoryAuthorizationRequest::new(user_id, &owner, &repo)?;
     state
         .auth_service
         .verify_authorized_for_repository(request)
         .await?;
 
-    let request = GetQuestionsRequest::new(&owner, &repo)?;
+    let request = GetQuestionsRequest::new(&owner, &repo, user_id)?;
     state
         .question_service
         .get_questions(request)

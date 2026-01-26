@@ -21,6 +21,12 @@ pub enum QuestionError {
     #[error("Repository not found: {0}")]
     RepositoryNotFound(String),
 
+    #[error("Invalid vote value: {0}. Must be -1, 0, or 1")]
+    InvalidVoteValue(i16),
+
+    #[error("Vote target not found: {0}")]
+    VoteTargetNotFound(Uuid),
+
     #[error("Database error: {0}")]
     DatabaseError(#[from] sqlx::Error),
 }

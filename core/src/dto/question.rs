@@ -7,11 +7,14 @@ mod get_questions;
 mod update_answer;
 mod update_comment;
 mod update_question;
+mod vote_answer;
+mod vote_comment;
+mod vote_question;
 
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
-use crate::model::{Answer, Comment, Question, User};
+use crate::model::{Answer, Comment, Question, User, VoteResult};
 
 pub use create_answer::CreateAnswerRequest;
 pub use create_answer_comment::CreateAnswerCommentRequest;
@@ -22,6 +25,9 @@ pub use get_questions::GetQuestionsRequest;
 pub use update_answer::UpdateAnswerRequest;
 pub use update_comment::UpdateCommentRequest;
 pub use update_question::UpdateQuestionRequest;
+pub use vote_answer::VoteAnswerRequest;
+pub use vote_comment::VoteCommentRequest;
+pub use vote_question::VoteQuestionRequest;
 
 #[derive(Debug, Clone)]
 pub struct QuestionsResponse {
@@ -40,6 +46,7 @@ pub struct QuestionResponse {
     pub impression: i32,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+    pub user_vote: Option<i16>,
     pub author: Option<AuthorResponse>,
     pub comments: Vec<CommentResponse>,
     pub answers: Vec<AnswerResponse>,
@@ -58,6 +65,7 @@ impl From<Question> for QuestionResponse {
             impression: question.impression,
             created_at: question.created_at,
             updated_at: question.updated_at,
+            user_vote: question.user_vote,
             author: question.author.map(AuthorResponse::from),
             comments: question
                 .comments
@@ -84,6 +92,7 @@ pub struct AnswerResponse {
     pub upvote: i32,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+    pub user_vote: Option<i16>,
     pub author: Option<AuthorResponse>,
     pub comments: Vec<CommentResponse>,
 }
@@ -98,6 +107,7 @@ impl From<Answer> for AnswerResponse {
             upvote: answer.upvote,
             created_at: answer.created_at,
             updated_at: answer.updated_at,
+            user_vote: answer.user_vote,
             author: answer.author.map(AuthorResponse::from),
             comments: answer
                 .comments
@@ -118,6 +128,7 @@ pub struct CommentResponse {
     pub upvote: i32,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+    pub user_vote: Option<i16>,
     pub author: Option<AuthorResponse>,
 }
 
@@ -131,6 +142,7 @@ impl From<Comment> for CommentResponse {
             upvote: comment.upvote,
             created_at: comment.created_at,
             updated_at: comment.updated_at,
+            user_vote: comment.user_vote,
             author: comment.author.map(AuthorResponse::from),
         }
     }
@@ -147,6 +159,23 @@ impl From<User> for AuthorResponse {
         Self {
             id: user.id,
             name: user.name,
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct VoteResponse {
+    pub target_id: Uuid,
+    pub score: i32,
+    pub user_vote: Option<i16>,
+}
+
+impl From<VoteResult> for VoteResponse {
+    fn from(vote: VoteResult) -> Self {
+        Self {
+            target_id: vote.target_id,
+            score: vote.new_score,
+            user_vote: vote.user_vote,
         }
     }
 }
