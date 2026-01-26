@@ -1,23 +1,28 @@
 import type { Element, ElementContent, Root } from "hast";
 import {
   addClassToHast,
+  type BundledLanguage,
   getSingletonHighlighter,
+  type Highlighter,
   type ShikiTransformer,
 } from "shiki";
-import type { DiffChange, RepositoryFile } from "@/lib/dto";
+import type {
+  DiffChange,
+  RepositoryFile,
+  RepositoryTreeEntry,
+} from "@/lib/dto";
 import { inferLanguage } from "./language";
 
 /**
-* shiki short hands (e.g., shiki.codeToHast) internally manages a singleton instance and lazily loads themes and bundles as required
-*
-* that is all what we'd like to leverage as well, with the exception that we want to inject our own custom themes when requested
-* so we consolidate on the following API for our own internal usage
-*/
-export async function fileToHast(
-  file: RepositoryFile,
+ * shiki short hands (e.g., shiki.codeToHast) internally manages a singleton instance and lazily loads themes and bundles as required
+ *
+ * that is all what we'd like to leverage as well, with the exception that we want to inject our own custom themes when requested
+ * so we consolidate on the following API for our own internal usage
+ */
+async function getHighlighter(
+  lang: BundledLanguage | undefined,
   theme: "vitesse-light" | "gitdot-light",
-  transformers: ShikiTransformer[],
-) {
+): Promise<Highlighter> {
   const highlighter = await getSingletonHighlighter();
 
   if (!highlighter.getLoadedThemes().includes(theme)) {
@@ -25,21 +30,63 @@ export async function fileToHast(
       const gitdotLight = (await import("@/lib/themes/gitdot-light")).default;
       await highlighter.loadTheme(gitdotLight);
     } else if (theme === "vitesse-light") {
-      const vitesseLight = (await import("@shikijs/themes/vitesse-light")).default;
+      const vitesseLight = (await import("@shikijs/themes/vitesse-light"))
+        .default;
       await highlighter.loadTheme(vitesseLight);
     }
   }
 
-  const lang = inferLanguage(file.path);
   if (lang && !highlighter.getLoadedLanguages().includes(lang)) {
     await highlighter.loadLanguage(lang);
   }
+  return highlighter;
+}
+
+export async function fileToHast(
+  file: RepositoryFile,
+  theme: "vitesse-light" | "gitdot-light",
+  transformers: ShikiTransformer[],
+) {
+  const lang = inferLanguage(file.path);
+  const highlighter = await getHighlighter(lang, theme);
 
   return highlighter.codeToHast(file.content, {
     lang: lang ?? "plaintext",
     theme,
     transformers,
   });
+}
+
+export async function renderFilePreviews(
+  files: RepositoryTreeEntry[],
+): Promise<Map<string, string>> {
+  const renderFile = async (
+    file: RepositoryTreeEntry,
+  ): Promise<[string, string] | null> => {
+    const preview = file.preview;
+    if (!preview) return null;
+
+    const lang = inferLanguage(file.path);
+    const highlighter = await getHighlighter(lang, "vitesse-light");
+    const html = highlighter.codeToHtml(preview, {
+      lang: inferLanguage(file.path) ?? "plaintext",
+      theme: "vitesse-light",
+      transformers: [
+        {
+          pre(node) {
+            this.addClassToHast(node, "outline-none");
+          },
+        },
+      ],
+    });
+    return [file.path, html];
+  };
+
+  return Promise.all(files.map(renderFile))
+    .then((results) =>
+      results.filter((item): item is [string, any] => item !== null),
+    )
+    .then((entries) => new Map(entries));
 }
 
 export async function renderSpans(

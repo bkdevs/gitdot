@@ -25,6 +25,8 @@ export function RepoFileDialog({
   const [mouseMoved, setMouseMoved] = useState(false);
   const filePreviews = use(filePreviewsPromise);
 
+  console.log(filePreviews);
+
   const filteredFiles = useMemo(() => {
     if (!query) return files;
 

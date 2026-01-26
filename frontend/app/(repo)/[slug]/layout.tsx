@@ -1,40 +1,8 @@
 import { getRepositoryCommits, getRepositoryTree } from "@/lib/dal";
-import type { RepositoryTreeEntry } from "@/lib/dto";
-import { codeToHtml } from "shiki";
 import { RepoDialogs } from "./ui/dialog/repo-dialogs";
 import { RepoHeader } from "./ui/repo-header";
 import { RepoSidebar } from "./ui/repo-sidebar";
-import { inferLanguage, parseRepositoryTree } from "./util";
-
-async function renderFilePreviews(
-  files: RepositoryTreeEntry[],
-): Promise<Map<string, string>> {
-  const renderFile = async (
-    file: RepositoryTreeEntry,
-  ): Promise<[string, string] | null> => {
-    const preview = file.preview;
-    if (!preview) return null;
-
-    const html = await codeToHtml(preview, {
-      lang: inferLanguage(file.path) ?? "plaintext",
-      theme: "vitesse-light",
-      transformers: [
-        {
-          pre(node) {
-            this.addClassToHast(node, "outline-none");
-          },
-        },
-      ],
-    });
-    return [file.path, html];
-  };
-
-  return Promise.all(files.map(renderFile))
-    .then((results) =>
-      results.filter((item): item is [string, any] => item !== null),
-    )
-    .then((entries) => new Map(entries));
-}
+import { parseRepositoryTree, renderFilePreviews } from "./util";
 
 export default async function Layout({
   children,
