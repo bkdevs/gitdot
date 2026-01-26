@@ -5,11 +5,13 @@ use sqlx::PgPool;
 
 use gitdot_core::client::{Git2Client, GitHttpClientImpl};
 use gitdot_core::repository::{
-    OrganizationRepositoryImpl, RepositoryRepositoryImpl, UserRepositoryImpl,
+    OrganizationRepositoryImpl, QuestionRepositoryImpl, RepositoryRepositoryImpl,
+    UserRepositoryImpl,
 };
 use gitdot_core::service::{
     AuthorizationService, AuthorizationServiceImpl, GitHttpService, GitHttpServiceImpl,
-    OrganizationService, OrganizationServiceImpl, RepositoryService, RepositoryServiceImpl,
+    OrganizationService, OrganizationServiceImpl, QuestionService, QuestionServiceImpl,
+    RepositoryService, RepositoryServiceImpl,
 };
 
 use super::Settings;
@@ -20,6 +22,7 @@ pub struct AppState {
     pub auth_service: Arc<dyn AuthorizationService>,
     pub org_service: Arc<dyn OrganizationService>,
     pub repo_service: Arc<dyn RepositoryService>,
+    pub question_service: Arc<dyn QuestionService>,
     pub git_http_service: Arc<dyn GitHttpService>,
 }
 
@@ -31,6 +34,7 @@ impl AppState {
         let org_repo = OrganizationRepositoryImpl::new(pool.clone());
         let repo_repo = RepositoryRepositoryImpl::new(pool.clone());
         let user_repo = UserRepositoryImpl::new(pool.clone());
+        let question_repo = QuestionRepositoryImpl::new(pool.clone());
 
         let auth_service = Arc::new(AuthorizationServiceImpl::new(
             org_repo.clone(),
@@ -45,6 +49,7 @@ impl AppState {
             org_repo.clone(),
             repo_repo.clone(),
         ));
+        let question_service = Arc::new(QuestionServiceImpl::new(question_repo.clone()));
         let git_http_service = Arc::new(GitHttpServiceImpl::new(git_http_client));
 
         Self {
@@ -52,6 +57,7 @@ impl AppState {
             auth_service,
             org_service,
             repo_service,
+            question_service,
             git_http_service,
         }
     }

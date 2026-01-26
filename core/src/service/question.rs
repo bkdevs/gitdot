@@ -2,7 +2,7 @@ use async_trait::async_trait;
 
 use crate::dto::{
     AnswerResponse, CommentResponse, CreateAnswerRequest, CreateCommentRequest,
-    CreateQuestionRequest, GetQuestionRequest, GetQuestionsForRepositoryRequest, QuestionResponse,
+    CreateQuestionRequest, GetQuestionRequest, GetQuestionsRequest, QuestionResponse,
     QuestionsResponse, UpdateAnswerRequest, UpdateCommentRequest, UpdateQuestionRequest,
 };
 use crate::error::QuestionError;
@@ -25,9 +25,9 @@ pub trait QuestionService: Send + Sync + 'static {
         request: GetQuestionRequest,
     ) -> Result<QuestionResponse, QuestionError>;
 
-    async fn get_questions_for_repository(
+    async fn get_questions(
         &self,
-        request: GetQuestionsForRepositoryRequest,
+        request: GetQuestionsRequest,
     ) -> Result<QuestionsResponse, QuestionError>;
 
     async fn create_answer(
@@ -113,13 +113,13 @@ where
         Ok(question.into())
     }
 
-    async fn get_questions_for_repository(
+    async fn get_questions(
         &self,
-        request: GetQuestionsForRepositoryRequest,
+        request: GetQuestionsRequest,
     ) -> Result<QuestionsResponse, QuestionError> {
         let questions = self
             .question_repo
-            .get_questions_for_repository(request.repository_id)
+            .get_questions(request.repository_id)
             .await?;
 
         Ok(QuestionsResponse {

@@ -5,7 +5,9 @@ use axum::{
 use serde::Serialize;
 use thiserror::Error;
 
-use gitdot_core::error::{AuthorizationError, GitHttpError, OrganizationError, RepositoryError};
+use gitdot_core::error::{
+    AuthorizationError, GitHttpError, OrganizationError, QuestionError, RepositoryError,
+};
 
 use super::AppResponse;
 
@@ -19,6 +21,9 @@ pub enum AppError {
 
     #[error(transparent)]
     Repository(#[from] RepositoryError),
+
+    #[error(transparent)]
+    Question(#[from] QuestionError),
 
     #[error(transparent)]
     GitHttp(#[from] GitHttpError),
@@ -74,6 +79,22 @@ impl IntoResponse for AppError {
                     RepositoryError::InvalidVisibility(_) => StatusCode::BAD_REQUEST,
                     RepositoryError::GitError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                     RepositoryError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+                };
+                let response = AppResponse::new(
+                    status_code,
+                    AppErrorMessage {
+                        message: e.to_string(),
+                    },
+                );
+                response.into_response()
+            }
+            AppError::Question(e) => {
+                let status_code = match e {
+                    QuestionError::QuestionNotFound(_) => StatusCode::NOT_FOUND,
+                    QuestionError::AnswerNotFound(_) => StatusCode::NOT_FOUND,
+                    QuestionError::CommentNotFound(_) => StatusCode::NOT_FOUND,
+                    QuestionError::RepositoryNotFound(_) => StatusCode::NOT_FOUND,
+                    QuestionError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                 };
                 let response = AppResponse::new(
                     status_code,

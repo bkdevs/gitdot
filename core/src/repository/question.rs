@@ -107,10 +107,7 @@ pub trait QuestionRepository: Send + Sync + Clone + 'static {
 
     async fn get_question(&self, id: Uuid) -> Result<Option<Question>, Error>;
 
-    async fn get_questions_for_repository(
-        &self,
-        repository_id: Uuid,
-    ) -> Result<Vec<Question>, Error>;
+    async fn get_questions(&self, repository_id: Uuid) -> Result<Vec<Question>, Error>;
 
     async fn create_answer(
         &self,
@@ -207,21 +204,18 @@ impl QuestionRepository for QuestionRepositoryImpl {
         Ok(question)
     }
 
-    async fn get_questions_for_repository(
-        &self,
-        repository_id: Uuid,
-    ) -> Result<Vec<Question>, Error> {
+    async fn get_questions(&self, repository_id: Uuid) -> Result<Vec<Question>, Error> {
         let query = format!(
             "{} WHERE q.repository_id = $1 ORDER BY q.created_at DESC",
             GET_QUESTION_WITH_DETAILS_QUERY
         );
 
-        let question = sqlx::query_as::<_, Question>(&query)
+        let questions = sqlx::query_as::<_, Question>(&query)
             .bind(repository_id)
             .fetch_all(&self.pool)
             .await?;
 
-        Ok(question)
+        Ok(questions)
     }
 
     async fn create_answer(
