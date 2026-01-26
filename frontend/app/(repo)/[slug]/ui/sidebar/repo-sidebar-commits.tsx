@@ -1,7 +1,5 @@
-"use client";
-
 import Link from "next/link";
-import { Fragment, useMemo } from "react";
+import { Fragment } from "react";
 import type { RepositoryCommit } from "@/lib/dto";
 import { formatDate, formatTime } from "@/util";
 import { groupCommitsByDate } from "../../util/commit";
@@ -9,28 +7,26 @@ import { groupCommitsByDate } from "../../util/commit";
 export function RepoSidebarCommits({
   repo,
   commits,
-  currentPath,
 }: {
   repo: string;
   commits: RepositoryCommit[];
-  currentPath: string;
 }) {
-  const commitsByDate = useMemo(() => groupCommitsByDate(commits), [commits]);
+  const commitsByDate = groupCommitsByDate(commits);
 
   return (
-    <div className="flex flex-col">
-      {commitsByDate.map(([date, commits]) => (
+    <div className="flex flex-col w-full">
+      {commitsByDate.map(([date, dateCommits]) => (
         <Fragment key={date}>
           <div className="sticky top-0 bg-background flex items-center border-b px-2 h-9 z-10">
             <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
               {formatDate(date)}
             </h3>
           </div>
-          {commits.map((commit) => (
+          {dateCommits.map((commit) => (
             <Link
               key={commit.sha}
               href={`/${repo}/commits/${commit.sha.substring(0, 7)}`}
-              className={`flex w-full border-b hover:bg-accent/50 select-none cursor-default py-2 px-2 ${currentPath.includes(commit.sha.substring(0, 7)) && "bg-sidebar"}`}
+              className="flex w-full border-b hover:bg-accent/50 select-none cursor-default py-2 px-2"
               prefetch={true}
             >
               <div className="flex flex-col w-full justify-start items-start min-w-0">

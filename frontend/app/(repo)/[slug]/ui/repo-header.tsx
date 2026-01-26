@@ -6,11 +6,12 @@ import { usePathname } from "next/navigation";
 
 export function RepoHeader({ repo }: { repo: string }) {
   const pathname = usePathname();
+  const segments = pathname.split("/").filter(Boolean);
+  const [repoSegment, ...pathSegments] = segments;
 
-  const repoPrefix = `/${repo}`;
-  const remainingPath = pathname.startsWith(repoPrefix)
-    ? pathname.slice(repoPrefix.length)
-    : "";
+  if (repoSegment !== repo) {
+    throw Error("RepoHeader should only be used under repo paths!");
+  }
 
   const pathLinks: React.ReactNode[] = [
     <Link
@@ -23,25 +24,20 @@ export function RepoHeader({ repo }: { repo: string }) {
     </Link>,
   ];
 
-  if (remainingPath && remainingPath !== "/") {
-    const segments = remainingPath.replace(/^\//, "").split("/");
-    let accumulatedPath = "";
-
-    segments.forEach((segment, index) => {
-      accumulatedPath += `/${segment}`;
-      pathLinks.push(<span key={`${segment}-separator-${index}`}>/</span>);
-      pathLinks.push(
-        <Link
-          className="hover:underline"
-          href={`/${repo}${accumulatedPath}`}
-          key={`${segment}-${index}`}
-          prefetch={true}
-        >
-          {segment}
-        </Link>,
-      );
-    });
-  }
+  pathSegments.forEach((segment, index) => {
+    const path = `/${segments.slice(0, index + 2).join("/")}`;
+    pathLinks.push(
+      <span key={`sep-${segment}`}>/</span>,
+      <Link
+        className="hover:underline"
+        href={path}
+        key={segment}
+        prefetch={true}
+      >
+        {segment}
+      </Link>,
+    );
+  });
 
   return (
     <div className="shrink-0 flex flex-row w-full h-9 items-center border-b bg-sidebar">

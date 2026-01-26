@@ -1,5 +1,3 @@
-"use client";
-
 import { File, Folder, FolderOpen } from "lucide-react";
 import Link from "next/link";
 import { useMemo } from "react";
@@ -61,7 +59,6 @@ export function RepoSidebarFiles({
       return a.entry_type === "tree" ? -1 : 1;
     });
   }, [folders, entries, currentPath]);
-
   const parentPath = getParentPath(currentPath);
 
   if (!folders) return null;
