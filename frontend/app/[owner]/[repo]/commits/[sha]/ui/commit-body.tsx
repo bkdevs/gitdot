@@ -8,25 +8,35 @@ import { DiffFileClient } from "./diff-file-client";
  * we just block the original page load instead.
  */
 export async function CommitBody({
+  owner,
   repo,
   sha,
   useSuspense,
 }: {
+  owner: string;
   repo: string;
   sha: string;
   useSuspense: boolean;
 }) {
   return useSuspense ? (
     <CommitSuspense>
-      <CommitBodyContent repo={repo} sha={sha} />
+      <CommitBodyContent owner={owner} repo={repo} sha={sha} />
     </CommitSuspense>
   ) : (
-    <CommitBodyContent repo={repo} sha={sha} />
+    <CommitBodyContent owner={owner} repo={repo} sha={sha} />
   );
 }
 
-async function CommitBodyContent({ repo, sha }: { repo: string; sha: string }) {
-  const commitDiffs = await getRepositoryCommitDiffs("bkdevs", repo, sha);
+async function CommitBodyContent({
+  owner,
+  repo,
+  sha,
+}: {
+  owner: string;
+  repo: string;
+  sha: string;
+}) {
+  const commitDiffs = await getRepositoryCommitDiffs(owner, repo, sha);
   if (!commitDiffs) return null;
   const { diffs } = commitDiffs;
 

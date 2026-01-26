@@ -9,7 +9,7 @@ export default async function FilesPage({
 }) {
   const { owner, repo } = await params;
 
-  const tree = await getRepositoryTree("bkdevs", repo);
+  const tree = await getRepositoryTree(owner, repo);
   if (!tree) return null;
 
   const { folders, entries } = parseRepositoryTree(tree);

@@ -5,10 +5,10 @@ import { CommitHeader } from "./ui/commit-header";
 export default async function Page({
   params,
 }: {
-  params: Promise<{ repo: string; sha: string }>;
+  params: Promise<{ owner: string; repo: string; sha: string }>;
 }) {
-  const { repo, sha } = await params;
-  const commitStats = await getRepositoryCommitStats("bkdevs", repo, sha);
+  const { owner, repo, sha } = await params;
+  const commitStats = await getRepositoryCommitStats(owner, repo, sha);
   if (!commitStats) return null;
 
   // a heuristic, use suspense if either more than 100 modified lines or more than 5 files in the diff

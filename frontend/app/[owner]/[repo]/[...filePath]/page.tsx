@@ -17,7 +17,7 @@ export default async function Page({
   const { owner, repo, filePath } = await params;
 
   console.log(owner);
-  const tree = await getRepositoryTree("bkdevs", repo);
+  const tree = await getRepositoryTree(owner, repo);
   if (!tree) return null;
 
   const filePathString = filePath.join("/");

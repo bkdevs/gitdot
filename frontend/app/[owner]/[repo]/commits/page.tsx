@@ -7,10 +7,10 @@ import { groupCommitsByDate } from "../util/commit";
 export default async function Page({
   params,
 }: {
-  params: Promise<{ repo: string }>;
+  params: Promise<{ owner: string; repo: string }>;
 }) {
-  const { repo } = await params;
-  const commitsData = await getRepositoryCommits("bkdevs", repo);
+  const { owner, repo } = await params;
+  const commitsData = await getRepositoryCommits(owner, repo);
 
   if (!commitsData) return null;
 
