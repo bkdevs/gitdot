@@ -30,7 +30,7 @@ export async function FileViewer({
 
   return (
     <div className="flex w-full h-full min-h-0 overflow-hidden">
-      <div className="flex-1 min-w-0 overflow-auto">
+      <div className="flex-1 min-w-0 overflow-auto scrollbar-thin">
         <FileBody file={file} selectedLines={selectedLines} />
       </div>
       <FileCommits

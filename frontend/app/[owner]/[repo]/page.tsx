@@ -1,18 +1,23 @@
-import { notFound } from "next/navigation";
-import { validateRepoSlug } from "@/util";
+import { getRepositoryFile } from "@/lib/dal";
+import Markdown from 'react-markdown'
 
-// generateStaticParams: https://nextjs.org/docs/app/api-reference/file-conventions/dynamic-routes#with-generatestaticparams
-// if we provide a list of things here at build-time, we'll pre-generate static pages at build time.
-export default async function RepoPage({
+export default async function Page({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ owner: string; repo: string }>;
 }) {
-  const { slug } = await params;
+  const { owner, repo } = await params;
+  const readme = await getRepositoryFile(owner, repo, {
+    path: "README.md",
+  });
 
-  if (!validateRepoSlug(slug)) {
-    return notFound();
+  if (!readme) {
+    return <div>README.md not found</div>;
   }
 
-  return <div>The repo home page! should be readme</div>;
+  return <div className="px-4 py-2">
+    <Markdown>
+      {readme.content}
+    </Markdown>
+  </div>;
 }

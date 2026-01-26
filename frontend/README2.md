@@ -1,3 +1,0 @@
-# gitdot-web
-
-next.js
