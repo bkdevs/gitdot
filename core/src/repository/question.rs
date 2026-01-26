@@ -190,7 +190,7 @@ impl QuestionRepository for QuestionRepositoryImpl {
         let question = sqlx::query_as::<_, Question>(
             r#"
             UPDATE questions
-            SET title = $2, body = $3, updated_at = NOW()
+            SET title = $3, body = $4, updated_at = NOW()
             WHERE repository_id = $1 AND number = $2
             RETURNING id, number, author_id, repository_id, title, body, upvote, impression, created_at, updated_at,
                       NULL AS author, NULL AS comments, NULL AS answers
