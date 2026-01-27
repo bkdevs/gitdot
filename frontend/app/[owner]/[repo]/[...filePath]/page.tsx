@@ -9,7 +9,7 @@ export default async function Page({
   searchParams,
 }: {
   params: Promise<{ owner: string; repo: string; filePath: string[] }>;
-  searchParams: Promise<
+  searchParams: Promise<{
     lines?: string | string[];
     ref?: string;
   }>;

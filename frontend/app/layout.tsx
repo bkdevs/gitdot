@@ -28,7 +28,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${ibm_plex_sans.variable} ${inconsolata.variable}`}
+      className={`${ibm_plex_sans.variable} ${inconsolata.variable} overscroll-none`}
     >
       <body>
         <Providers>
