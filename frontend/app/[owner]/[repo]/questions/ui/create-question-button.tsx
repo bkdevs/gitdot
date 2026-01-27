@@ -40,14 +40,14 @@ export function CreateQuestionButton({
       <DialogTrigger asChild>
         <button
           type="button"
-          className="flex flex-row h-full items-center px-2 border-border border-l bg-green-600 text-xs text-primary-foreground cursor-pointer outline-0! ring-0!"
+          className="flex flex-row h-full items-center px-2 border-border border-l bg-primary text-xs text-primary-foreground cursor-pointer outline-0! ring-0!"
         >
           <Plus className="size-3 mr-1.5" />
           Ask question
         </button>
       </DialogTrigger>
       <DialogContent
-        className="max-w-2xl min-w-2xl border-border rounded-md shadow-2xl top-[35%]"
+        className="max-w-2xl min-w-2xl border-border rounded-md shadow-2xl top-[35%] p-4"
         animations={true}
         showOverlay={true}
       >

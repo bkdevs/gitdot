@@ -251,8 +251,8 @@ export const QuestionResponseSchema = z.object({
   impression: z.number().int(),
   created_at: z.iso.datetime(),
   updated_at: z.iso.datetime(),
-  user_vote: z.number().int().nullable(),
-  author: AuthorResponseSchema.nullable(),
+  user_vote: z.number().int().nullable().default(0),
+  author: AuthorResponseSchema,
   comments: z.array(CommentResponseSchema),
   answers: z.array(AnswerResponseSchema),
 });
