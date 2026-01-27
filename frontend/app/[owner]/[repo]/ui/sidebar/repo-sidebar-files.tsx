@@ -25,14 +25,14 @@ function FileRow({
     >
       {isFolder ? (
         isActive ? (
-          <FolderOpen className="size-4" />
+          <FolderOpen className="size-4 shrink-0" />
         ) : (
-          <Folder className="size-4" />
+          <Folder className="size-4 shrink-0" />
         )
       ) : (
-        <File className="size-4" />
+        <File className="size-4 shrink-0" />
       )}
-      <span className="ml-2">{filePath}</span>
+      <span className="ml-2 truncate">{filePath}</span>
     </Link>
   );
 }
