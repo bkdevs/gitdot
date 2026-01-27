@@ -5,11 +5,14 @@ use nutype::nutype;
 fn is_valid_slug(s: &str) -> bool {
     !s.is_empty()
         && s.len() <= 100
-        && s.chars().all(|c| {
-            c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-' || c == '_' || c == '.'
-        })
+        && s.chars()
+            .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-' || c == '_')
         && !s.starts_with('-')
         && !s.ends_with('-')
+}
+
+fn strip_git_suffix(s: String) -> String {
+    s.strip_suffix(".git").map(|s| s.to_string()).unwrap_or(s)
 }
 
 #[nutype(
@@ -20,7 +23,7 @@ fn is_valid_slug(s: &str) -> bool {
 pub struct OwnerName(String);
 
 #[nutype(
-    sanitize(trim, lowercase),
+    sanitize(trim, lowercase, with = strip_git_suffix),
     validate(predicate = is_valid_slug),
     derive(Debug, Clone, PartialEq, Eq, AsRef, Deref)
 )]
@@ -187,6 +190,12 @@ mod tests {
         fn accepts_max_length() {
             let max_name = "a".repeat(100);
             assert!(RepositoryName::try_new(&max_name).is_ok());
+        }
+
+        #[test]
+        fn strips_git_suffix() {
+            let repo = RepositoryName::try_new("myrepo.git").unwrap();
+            assert_eq!(repo.as_ref(), "myrepo");
         }
     }
 }
