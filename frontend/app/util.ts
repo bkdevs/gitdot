@@ -87,3 +87,7 @@ export function formatDateTime(date: Date): string {
 
   return `${monthDay}, ${year} ${hours}:${minutes}:${seconds} ${ampm}`;
 }
+
+export function pluralize(count: number, word: string): string {
+  return `${count} ${word}${count === 1 ? '' : 's'}`;
+}

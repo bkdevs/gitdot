@@ -1,7 +1,7 @@
 import type { QuestionResponse } from "@/lib/dto";
 import { TriangleUp, TriangleDown } from "@/lib/icons";
 import Link from "@/ui/link";
-import { timeAgo } from "@/util";
+import { pluralize, timeAgo } from "@/util";
 
 export function QuestionRow({
   owner,
@@ -34,15 +34,15 @@ export function QuestionRow({
           <span className="truncate min-w-0">{question.author.name}</span>
           <span>{timeAgo(new Date(question.created_at))}</span>
         </div>
-        <div className="text-sm truncate">
+        <div className="text-[15px] truncate">
           {question.title}
         </div>
         <div className="flex flex-row gap-1 text-xs text-muted-foreground">
-          {question.answers.length} answers
+          {pluralize(question.answers.length, "answer")}
           <span>•</span>
-          {question.impression} comments
+          {pluralize(question.comments.length, "comment")}
           <span>•</span>
-          {question.impression} views
+          {pluralize(question.impression, "view")}
         </div>
       </div>
     </Link>
