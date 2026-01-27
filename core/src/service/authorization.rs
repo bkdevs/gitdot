@@ -1,11 +1,14 @@
 use async_trait::async_trait;
 
+use base64::Engine;
+use uuid::Uuid;
+
 use crate::dto::{
-    AnswerAuthorizationRequest, CommentAuthorizationRequest, OrganizationAuthorizationRequest,
-    QuestionAuthorizationRequest, RepositoryAuthorizationRequest,
+    AnswerAuthorizationRequest, CommentAuthorizationRequest, GitHttpAuthorizationRequest,
+    OrganizationAuthorizationRequest, QuestionAuthorizationRequest, RepositoryAuthorizationRequest,
 };
 use crate::error::AuthorizationError;
-use crate::model::OrganizationRole;
+use crate::model::{GitOperation, OrganizationRole};
 use crate::repository::{
     OrganizationRepository, OrganizationRepositoryImpl, QuestionRepository, QuestionRepositoryImpl,
     RepositoryRepository, RepositoryRepositoryImpl,
@@ -13,6 +16,11 @@ use crate::repository::{
 
 #[async_trait]
 pub trait AuthorizationService: Send + Sync + 'static {
+    async fn verify_authorized_for_git_http(
+        &self,
+        request: GitHttpAuthorizationRequest,
+    ) -> Result<(), AuthorizationError>;
+
     async fn verify_authorized_for_repository(
         &self,
         request: RepositoryAuthorizationRequest,
@@ -78,6 +86,40 @@ where
     R: RepositoryRepository,
     Q: QuestionRepository,
 {
+    async fn verify_authorized_for_git_http(
+        &self,
+        request: GitHttpAuthorizationRequest,
+    ) -> Result<(), AuthorizationError> {
+        let repository = self
+            .repo_repo
+            .get(request.owner.as_ref(), request.repo.as_ref())
+            .await?
+            .ok_or_else(|| {
+                AuthorizationError::InvalidRequest("Repository not found".to_string())
+            })?;
+
+        if repository.is_public() && request.operation == GitOperation::Read {
+            return Ok(());
+        }
+
+        let user_id = Self::authenticate_git_http(&request.auth_header)?;
+        if repository.is_owned_by_user() {
+            if repository.owner_id != user_id {
+                return Err(AuthorizationError::Unauthorized);
+            }
+        } else {
+            let is_member = self
+                .org_repo
+                .is_member(repository.owner_id, user_id)
+                .await?;
+            if !is_member {
+                return Err(AuthorizationError::Unauthorized);
+            }
+        }
+
+        Ok(())
+    }
+
     async fn verify_authorized_for_repository(
         &self,
         request: RepositoryAuthorizationRequest,
@@ -202,5 +244,38 @@ where
         }
 
         Ok(())
+    }
+}
+
+impl<O, R, Q> AuthorizationServiceImpl<O, R, Q>
+where
+    O: OrganizationRepository,
+    R: RepositoryRepository,
+    Q: QuestionRepository,
+{
+    fn authenticate_git_http(auth_header: &Option<String>) -> Result<Uuid, AuthorizationError> {
+        let header = auth_header
+            .as_ref()
+            .ok_or(AuthorizationError::Unauthorized)?;
+
+        // Parse Basic auth: "Basic base64(username:password)"
+        let credentials = header
+            .strip_prefix("Basic ")
+            .ok_or(AuthorizationError::Unauthorized)?;
+
+        let decoded = base64::engine::general_purpose::STANDARD
+            .decode(credentials)
+            .map_err(|_| AuthorizationError::Unauthorized)?;
+
+        let credential_str =
+            String::from_utf8(decoded).map_err(|_| AuthorizationError::Unauthorized)?;
+
+        let (username, _password) = credential_str
+            .split_once(':')
+            .ok_or(AuthorizationError::Unauthorized)?;
+
+        // TODO: Validate credentials and return user_id
+        // This will be implemented when we add OAuth token support
+        todo!("Authenticate user '{}' with password/token", username)
     }
 }

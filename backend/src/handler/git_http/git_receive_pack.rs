@@ -3,7 +3,7 @@ use axum::{
     extract::{Path, State},
     http::HeaderMap,
 };
-use gitdot_core::dto::ReceivePackRequest;
+use gitdot_core::dto::{GitHttpAuthorizationRequest, ReceivePackRequest};
 
 use crate::app::{AppError, AppState};
 use crate::dto::GitHttpServerResponse;
@@ -15,15 +15,22 @@ pub async fn git_receive_pack(
     headers: HeaderMap,
     body: Body,
 ) -> Result<GitHttpServerResponse, AppError> {
-    let body_bytes = axum::body::to_bytes(body, usize::MAX)
-        .await
-        .map_err(|e| AppError::Internal(e.into()))?;
+    let auth_header = headers.get("authorization").and_then(|v| v.to_str().ok());
+    let auth_request = GitHttpAuthorizationRequest::for_receive_pack(auth_header, &owner, &repo)?;
+    state
+        .auth_service
+        .verify_authorized_for_git_http(auth_request)
+        .await?;
 
     let content_type = headers
         .get("content-type")
         .and_then(|v| v.to_str().ok())
         .unwrap_or("")
         .to_string();
+
+    let body_bytes = axum::body::to_bytes(body, usize::MAX)
+        .await
+        .map_err(|e| AppError::Internal(e.into()))?;
 
     let request = ReceivePackRequest::new(&owner, &repo, content_type, body_bytes.to_vec())?;
     let response = state.git_http_service.receive_pack(request).await?;
