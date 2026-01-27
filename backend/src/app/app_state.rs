@@ -40,6 +40,7 @@ impl AppState {
             org_repo.clone(),
             repo_repo.clone(),
             question_repo.clone(),
+            user_repo.clone(),
         ));
         let org_service = Arc::new(OrganizationServiceImpl::new(
             org_repo.clone(),

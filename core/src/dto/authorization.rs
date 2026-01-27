@@ -3,11 +3,13 @@ mod verify_authorized_for_comment;
 mod verify_authorized_for_git_http;
 mod verify_authorized_for_org;
 mod verify_authorized_for_question;
-mod verify_authorized_for_repo;
+mod verify_authorized_for_repository;
+mod verify_authorized_for_repository_creation;
 
 pub use verify_authorized_for_answer::AnswerAuthorizationRequest;
 pub use verify_authorized_for_comment::CommentAuthorizationRequest;
 pub use verify_authorized_for_git_http::GitHttpAuthorizationRequest;
 pub use verify_authorized_for_org::OrganizationAuthorizationRequest;
 pub use verify_authorized_for_question::QuestionAuthorizationRequest;
-pub use verify_authorized_for_repo::RepositoryAuthorizationRequest;
+pub use verify_authorized_for_repository::RepositoryAuthorizationRequest;
+pub use verify_authorized_for_repository_creation::RepositoryCreationAuthorizationRequest;

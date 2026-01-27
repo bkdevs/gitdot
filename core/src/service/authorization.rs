@@ -6,12 +6,13 @@ use uuid::Uuid;
 use crate::dto::{
     AnswerAuthorizationRequest, CommentAuthorizationRequest, GitHttpAuthorizationRequest,
     OrganizationAuthorizationRequest, QuestionAuthorizationRequest, RepositoryAuthorizationRequest,
+    RepositoryCreationAuthorizationRequest,
 };
 use crate::error::AuthorizationError;
-use crate::model::{GitOperation, OrganizationRole};
+use crate::model::{GitOperation, OrganizationRole, RepositoryOwnerType};
 use crate::repository::{
     OrganizationRepository, OrganizationRepositoryImpl, QuestionRepository, QuestionRepositoryImpl,
-    RepositoryRepository, RepositoryRepositoryImpl,
+    RepositoryRepository, RepositoryRepositoryImpl, UserRepository, UserRepositoryImpl,
 };
 
 #[async_trait]
@@ -19,6 +20,11 @@ pub trait AuthorizationService: Send + Sync + 'static {
     async fn verify_authorized_for_git_http(
         &self,
         request: GitHttpAuthorizationRequest,
+    ) -> Result<(), AuthorizationError>;
+
+    async fn verify_authorized_for_repository_creation(
+        &self,
+        request: RepositoryCreationAuthorizationRequest,
     ) -> Result<(), AuthorizationError>;
 
     async fn verify_authorized_for_repository(
@@ -48,15 +54,17 @@ pub trait AuthorizationService: Send + Sync + 'static {
 }
 
 #[derive(Debug, Clone)]
-pub struct AuthorizationServiceImpl<O, R, Q>
+pub struct AuthorizationServiceImpl<O, R, Q, U>
 where
     O: OrganizationRepository,
     R: RepositoryRepository,
     Q: QuestionRepository,
+    U: UserRepository,
 {
     org_repo: O,
     repo_repo: R,
     question_repo: Q,
+    user_repo: U,
 }
 
 impl
@@ -64,27 +72,31 @@ impl
         OrganizationRepositoryImpl,
         RepositoryRepositoryImpl,
         QuestionRepositoryImpl,
+        UserRepositoryImpl,
     >
 {
     pub fn new(
         org_repo: OrganizationRepositoryImpl,
         repo_repo: RepositoryRepositoryImpl,
         question_repo: QuestionRepositoryImpl,
+        user_repo: UserRepositoryImpl,
     ) -> Self {
         Self {
             org_repo,
             repo_repo,
             question_repo,
+            user_repo,
         }
     }
 }
 
 #[async_trait]
-impl<O, R, Q> AuthorizationService for AuthorizationServiceImpl<O, R, Q>
+impl<O, R, Q, U> AuthorizationService for AuthorizationServiceImpl<O, R, Q, U>
 where
     O: OrganizationRepository,
     R: RepositoryRepository,
     Q: QuestionRepository,
+    U: UserRepository,
 {
     async fn verify_authorized_for_git_http(
         &self,
@@ -117,6 +129,43 @@ where
             }
         }
 
+        Ok(())
+    }
+
+    async fn verify_authorized_for_repository_creation(
+        &self,
+        request: RepositoryCreationAuthorizationRequest,
+    ) -> Result<(), AuthorizationError> {
+        match request.owner_type {
+            RepositoryOwnerType::User => {
+                let user = self
+                    .user_repo
+                    .get_by_id(request.user_id)
+                    .await?
+                    .ok_or(AuthorizationError::Unauthorized)?;
+
+                if user.name.to_lowercase() != request.owner.as_ref().to_lowercase() {
+                    return Err(AuthorizationError::Unauthorized);
+                }
+            }
+            RepositoryOwnerType::Organization => {
+                let org = self
+                    .org_repo
+                    .get(request.owner.as_ref())
+                    .await?
+                    .ok_or_else(|| {
+                        AuthorizationError::InvalidRequest(format!(
+                            "Organization not found: {}",
+                            request.owner.as_ref()
+                        ))
+                    })?;
+
+                let is_member = self.org_repo.is_member(org.id, request.user_id).await?;
+                if !is_member {
+                    return Err(AuthorizationError::Unauthorized);
+                }
+            }
+        }
         Ok(())
     }
 
@@ -247,11 +296,12 @@ where
     }
 }
 
-impl<O, R, Q> AuthorizationServiceImpl<O, R, Q>
+impl<O, R, Q, U> AuthorizationServiceImpl<O, R, Q, U>
 where
     O: OrganizationRepository,
     R: RepositoryRepository,
     Q: QuestionRepository,
+    U: UserRepository,
 {
     fn authenticate_git_http(auth_header: &Option<String>) -> Result<Uuid, AuthorizationError> {
         let header = auth_header
