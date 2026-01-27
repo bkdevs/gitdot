@@ -1,26 +1,24 @@
-import {
-  ChevronDown,
-  Plus,
-  Square,
-  SquareDashed,
-  SquareDot,
-} from "lucide-react";
+import { ChevronDown, Square, SquareDashed, SquareDot } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/ui/dropdown-menu";
-import Link from "@/ui/link";
 import { cn } from "@/util";
+import { CreateQuestionButton } from "./create-question-button";
 import type { QuestionsFilter, QuestionsSort } from "./questions-client";
 
 export function QuestionsHeader({
+  owner,
+  repo,
   filter,
   setFilter,
   sort,
   setSort,
 }: {
+  owner: string;
+  repo: string;
   filter: QuestionsFilter;
   setFilter: (filter: QuestionsFilter) => void;
   sort: QuestionsSort;
@@ -48,7 +46,7 @@ export function QuestionsHeader({
       />
       <div className="ml-auto h-full flex flex-row">
         <SortDropdown sort={sort} setSort={setSort} />
-        <NewQuestionButton />
+        <CreateQuestionButton owner={owner} repo={repo} />
       </div>
     </div>
   );
@@ -119,18 +117,5 @@ function SortDropdown({
         ))}
       </DropdownMenuContent>
     </DropdownMenu>
-  );
-}
-
-function NewQuestionButton() {
-  return (
-    <Link
-      type="button"
-      className="flex flex-row h-full items-center px-2 border-border border-l bg-green-600 text-xs text-primary-foreground"
-      href="questions/new"
-    >
-      <Plus className="size-3 mr-1.5" />
-      Ask question
-    </Link>
   );
 }

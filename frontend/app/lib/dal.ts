@@ -1,7 +1,7 @@
 import "server-only";
 
+import type { ZodType } from "zod";
 import { toQueryString } from "@/util";
-import { ZodType } from "zod";
 import {
   type AnswerResponse,
   AnswerResponseSchema,
@@ -57,41 +57,41 @@ async function authFetch(
 }
 
 async function authPost(url: string, request: any): Promise<Response> {
-  return await authFetch(
-    url,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(request),
+  return await authFetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
     },
-  );
+    body: JSON.stringify(request),
+  });
 }
 
 async function authPatch(url: string, request: any): Promise<Response> {
-  return await authFetch(
-    url,
-    {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(request),
+  return await authFetch(url, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
     },
-  );
+    body: JSON.stringify(request),
+  });
 }
 
-async function handleResponse<T>(response: Response, schema: ZodType<T>): Promise<T | null> {
+async function handleResponse<T>(
+  response: Response,
+  schema: ZodType<T>,
+): Promise<T | null> {
   if (!response.ok) {
-    console.error(`${response.url} failed:`, response?.status, response?.statusText);
+    console.error(
+      `${response.url} failed:`,
+      response?.status,
+      response?.statusText,
+    );
     return null;
   }
 
   const data = await response.json();
   return schema.parse(data);
 }
-
 
 export async function createRepository(
   owner: string,
@@ -189,7 +189,7 @@ export async function createQuestion(
 ): Promise<QuestionResponse | null> {
   const response = await authPost(
     `${API_BASE_URL}/repository/${owner}/${repo}/question`,
-    JSON.stringify(request)
+    request,
   );
 
   return await handleResponse(response, QuestionResponseSchema);
@@ -215,7 +215,7 @@ export async function updateQuestion(
 ): Promise<QuestionResponse | null> {
   const response = await authPatch(
     `${API_BASE_URL}/repository/${owner}/${repo}/question/${number}`,
-    JSON.stringify(request)
+    request,
   );
 
   return await handleResponse(response, QuestionResponseSchema);

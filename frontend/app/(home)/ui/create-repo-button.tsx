@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { createRepo } from "@/actions";
+import { createRepositoryAction } from "@/actions";
 import { Button } from "@/ui/button";
 import {
   Dialog,
@@ -30,7 +30,7 @@ export default function CreateRepoButton() {
     formData.set("name", repoName);
     formData.set("visibility", visibility);
 
-    const result = await createRepo(formData);
+    const result = await createRepositoryAction(formData);
 
     setLoading(false);
 

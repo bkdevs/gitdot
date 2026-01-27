@@ -29,6 +29,8 @@ export function QuestionsClient({
   return (
     <div className="flex flex-col">
       <QuestionsHeader
+        owner={owner}
+        repo={repo}
         filter={filter}
         setFilter={setFilter}
         sort={sort}

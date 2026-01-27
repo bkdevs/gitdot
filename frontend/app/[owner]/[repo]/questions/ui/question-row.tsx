@@ -13,7 +13,7 @@ export function QuestionRow({
   return (
     <Link
       href={`/${owner}/${repo}/questions/${question.number}`}
-      className="flex w-full border-b hover:bg-accent/50 select-none cursor-default py-2 px-2"
+      className="flex w-full border-b hover:bg-accent/50 select-none cursor-default py-2 px-2 h-9"
       prefetch={true}
     >
       <div className="flex flex-col w-full justify-start items-start min-w-0">
