@@ -1,10 +1,17 @@
-import { ChevronDown, Square, SquareDashed, SquareDot } from "lucide-react";
+import {
+  ChevronDown,
+  Plus,
+  Square,
+  SquareDashed,
+  SquareDot,
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/ui/dropdown-menu";
+import Link from "@/ui/link";
 import { cn } from "@/util";
 import type { QuestionsFilter, QuestionsSort } from "./questions-client";
 
@@ -39,8 +46,9 @@ export function QuestionsHeader({
         isActive={filter === "all"}
         onClick={() => setFilter("all")}
       />
-      <div className="ml-auto h-full">
+      <div className="ml-auto h-full flex flex-row">
         <SortDropdown sort={sort} setSort={setSort} />
+        <NewQuestionButton />
       </div>
     </div>
   );
@@ -71,6 +79,7 @@ function FilterButton({
     </button>
   );
 }
+
 const SORT_LABELS: Record<QuestionsSort, string> = {
   "created-asc": "Created (asc.)",
   "created-desc": "Created (desc.)",
@@ -110,5 +119,18 @@ function SortDropdown({
         ))}
       </DropdownMenuContent>
     </DropdownMenu>
+  );
+}
+
+function NewQuestionButton() {
+  return (
+    <Link
+      type="button"
+      className="flex flex-row h-full items-center px-2 border-border border-l bg-green-600 text-xs text-primary-foreground"
+      href="questions/new"
+    >
+      <Plus className="size-3 mr-1.5" />
+      Ask question
+    </Link>
   );
 }
