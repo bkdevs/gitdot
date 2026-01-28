@@ -2,6 +2,7 @@
 
 import { ChevronUp } from "lucide-react";
 import { useState } from "react";
+import { TriangleUp } from "@/lib/icons";
 import { timeAgo } from "@/util";
 
 export function Comments() {
@@ -19,7 +20,7 @@ export function Comments() {
       <Comment
         body="Can you share your environment variables (redacted)? Might be a config issue."
         author="helpfuldev"
-        score={1}
+        score={13}
         created_at={new Date("2023-01-01T12:45:00Z")}
       />
 
@@ -55,15 +56,25 @@ function Comment({
   created_at: Date;
 }) {
   return (
-    <div className="flex items-start gap-1">
-      <span className="w-4 text-right text-muted-foreground">{score}</span>
-      <button className="text-muted-foreground hover:text-foreground">
-        <ChevronUp className="w-4 h-4" />
-      </button>
-      <p className="flex-1">{body}</p>
-      <span className="text-muted-foreground shrink-0">
-        <span className="underline">{author}</span> {timeAgo(created_at)}
-      </span>
+    <div className="flex flex-row items-center border-border border-b py-0.5">
+      <div className="flex flex-row items-start">
+        <div className="flex flex-row items-center justify-between w-8">
+          <span className="text-left text-muted-foreground">{score}</span>
+          <button
+            type="button"
+            className="text-muted-foreground hover:text-foreground cursor-pointer mb-0.5"
+          >
+            <TriangleUp className="size-3" />
+          </button>
+        </div>
+        <p className="pl-4 flex-1">
+          {body}
+          <span className="text-muted-foreground shrink-0">
+            {" — "}
+            <span className="underline">{author}</span> {timeAgo(created_at)}
+          </span>
+        </p>
+      </div>
     </div>
   );
 }

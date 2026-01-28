@@ -29,7 +29,7 @@ export function QuestionCard({ question }: { question: QuestionResponse }) {
           </div>
         </div>
 
-        <div className="mt-0.5 mb-2 border border-gray-100" />
+        <div className="my-0.5 border-b border-border" />
         <Comments />
       </div>
     </div>
