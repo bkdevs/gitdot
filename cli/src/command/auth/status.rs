@@ -1,3 +1,3 @@
-pub(crate) async fn get_status() -> anyhow::Result<()> {
+pub async fn get_status() -> anyhow::Result<()> {
     todo!();
 }

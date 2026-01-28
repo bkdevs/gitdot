@@ -1,19 +1,19 @@
 mod login;
 mod status;
 
-use clap::{Parser, Subcommand};
+use clap::{Args, Subcommand};
 
-pub(crate) use login::login;
-pub(crate) use status::get_status;
+pub use login::login;
+pub use status::get_status;
 
-#[derive(Parser, Debug)]
-pub(crate) struct AuthArgs {
+#[derive(Args, Debug)]
+pub struct AuthArgs {
     #[command(subcommand)]
     pub command: AuthCommand,
 }
 
 #[derive(Subcommand, Debug)]
-pub(crate) enum AuthCommand {
+pub enum AuthCommand {
     /// Authenticate with gitdot OAuth and store your credentials locally
     Login,
 

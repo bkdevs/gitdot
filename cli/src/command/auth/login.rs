@@ -1,3 +1,3 @@
-pub(crate) async fn login() -> anyhow::Result<()> {
+pub async fn login() -> anyhow::Result<()> {
     todo!();
 }
