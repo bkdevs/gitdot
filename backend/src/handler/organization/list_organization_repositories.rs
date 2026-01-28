@@ -10,13 +10,12 @@ use crate::dto::RepositoryServerResponse;
 
 #[axum::debug_handler]
 pub async fn list_organization_repositories(
-    _auth_user: Option<AuthenticatedUser>,
+    auth_user: Option<AuthenticatedUser>,
     State(state): State<AppState>,
     Path(org_name): Path<String>,
 ) -> Result<AppResponse<Vec<RepositoryServerResponse>>, AppError> {
-    // TODO: implement auth
-
-    let request = ListOrganizationRepositoriesRequest::new(&org_name)?;
+    let user_id = auth_user.map(|u| u.id);
+    let request = ListOrganizationRepositoriesRequest::new(&org_name, user_id)?;
     state
         .org_service
         .list_repositories(request)

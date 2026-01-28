@@ -133,12 +133,23 @@ where
         request: ListOrganizationRepositoriesRequest,
     ) -> Result<Vec<RepositoryResponse>, OrganizationError> {
         let org_name = request.org_name.to_string();
-        self.org_repo
+        let org = self
+            .org_repo
             .get(&org_name)
             .await?
             .ok_or_else(|| OrganizationError::NotFound(org_name.clone()))?;
 
+        let is_member = match request.user_id {
+            Some(user_id) => self.org_repo.is_member(org.id, user_id).await?,
+            None => false,
+        };
+
         let repositories = self.repo_repo.list_by_owner(&org_name).await?;
+        let repositories = if is_member {
+            repositories
+        } else {
+            repositories.into_iter().filter(|r| r.is_public()).collect()
+        };
 
         Ok(repositories.into_iter().map(|r| r.into()).collect())
     }

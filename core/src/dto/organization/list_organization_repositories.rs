@@ -1,16 +1,20 @@
+use uuid::Uuid;
+
 use crate::dto::OwnerName;
 use crate::error::OrganizationError;
 
 #[derive(Debug, Clone)]
 pub struct ListOrganizationRepositoriesRequest {
     pub org_name: OwnerName,
+    pub user_id: Option<Uuid>,
 }
 
 impl ListOrganizationRepositoriesRequest {
-    pub fn new(org_name: &str) -> Result<Self, OrganizationError> {
+    pub fn new(org_name: &str, user_id: Option<Uuid>) -> Result<Self, OrganizationError> {
         Ok(Self {
             org_name: OwnerName::try_new(org_name)
                 .map_err(|e| OrganizationError::InvalidOrganizationName(e.to_string()))?,
+            user_id,
         })
     }
 }
