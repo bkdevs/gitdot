@@ -64,7 +64,11 @@ export async function signout() {
   console.log(error);
 }
 
-export async function createRepositoryAction(owner: string, name: string, formData: FormData) {
+export async function createRepositoryAction(
+  owner: string,
+  name: string,
+  formData: FormData,
+) {
   const visibility = formData.get("visibility") as string;
 
   if (!owner || !name) {
@@ -83,7 +87,11 @@ export async function createRepositoryAction(owner: string, name: string, formDa
   return { success: true, repository: result };
 }
 
-export async function createQuestionAction(owner: string, repo: string, formData: FormData) {
+export async function createQuestionAction(
+  owner: string,
+  repo: string,
+  formData: FormData,
+) {
   const title = formData.get("title") as string;
   const body = formData.get("body") as string;
 
@@ -100,7 +108,12 @@ export async function createQuestionAction(owner: string, repo: string, formData
   return { success: true, question: result };
 }
 
-export async function updateQuestionAction(owner: string, repo: string, number: number, formData: FormData) {
+export async function updateQuestionAction(
+  owner: string,
+  repo: string,
+  number: number,
+  formData: FormData,
+) {
   const title = formData.get("title") as string;
   const body = formData.get("body") as string;
 
@@ -118,7 +131,12 @@ export async function updateQuestionAction(owner: string, repo: string, number: 
   return { success: true, question: result };
 }
 
-export async function createAnswerAction(owner: string, repo: string, number: number, formData: FormData) {
+export async function createAnswerAction(
+  owner: string,
+  repo: string,
+  number: number,
+  formData: FormData,
+) {
   const body = formData.get("body") as string;
 
   if (!body) {
@@ -141,7 +159,7 @@ export async function createCommentAction(
   number: number,
   parentType: "question" | "answer",
   parentId: string | undefined,
-  formData: FormData
+  formData: FormData,
 ) {
   const body = formData.get("body") as string;
 

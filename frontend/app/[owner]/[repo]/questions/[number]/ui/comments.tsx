@@ -9,12 +9,12 @@ import { cn, timeAgoFull } from "@/util";
 
 type CommentsProps = {
   parentType: "question" | "answer";
-  parentId?: string | undefined
+  parentId?: string | undefined;
   owner: string;
   repo: string;
   number: number;
   comments: CommentResponse[];
-}
+};
 
 export function Comments(props: CommentsProps) {
   const { owner, repo, number, comments } = props;
@@ -70,14 +70,7 @@ function Comment({
   comment: CommentResponse;
 }) {
   const { id, body, author, upvote, user_vote, created_at } = comment;
-  const voteComment = voteAction.bind(
-    null,
-    owner,
-    repo,
-    number,
-    id,
-    "comment",
-  );
+  const voteComment = voteAction.bind(null, owner, repo, number, id, "comment");
 
   const [optimistic, setOptimistic] = useOptimistic(
     { upvote, user_vote },
@@ -118,8 +111,8 @@ function Comment({
               className={cn(
                 "cursor-pointer 0 transition-colors",
                 optimistic.user_vote === 1
-                ? "text-orange-500"
-                : "text-muted-foreground hover:text-foreground",
+                  ? "text-orange-500"
+                  : "text-muted-foreground hover:text-foreground",
               )}
             >
               <TriangleUp className="mb-0.5 size-3" />
@@ -139,21 +132,24 @@ function Comment({
   );
 }
 
-function CommentInput(
-  {
+function CommentInput({
+  owner,
+  repo,
+  number,
+  parentType,
+  parentId,
+  addOptimisticComment,
+}: CommentsProps & { addOptimisticComment: (body: string) => void }) {
+  const [showInput, setShowInput] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
+  const createComment = createCommentAction.bind(
+    null,
     owner,
     repo,
     number,
     parentType,
     parentId,
-    addOptimisticComment
-  }
-  :
-  CommentsProps & { addOptimisticComment: (body: string) => void },
-) {
-  const [showInput, setShowInput] = useState(false);
-  const formRef = useRef<HTMLFormElement>(null);
-  const createComment = createCommentAction.bind(null, owner, repo, number, parentType, parentId);
+  );
 
   const [, formAction] = useActionState(
     async (_prevState: { error?: string } | null, formData: FormData) => {

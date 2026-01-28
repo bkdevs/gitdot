@@ -12,7 +12,7 @@ export function AnswerForm({
   owner: string;
   repo: string;
   number: number;
-  }) {
+}) {
   const createAnswer = createAnswerAction.bind(null, owner, repo, number);
   const [body, setBody] = useState("");
   const [state, formAction, isPending] = useActionState(
