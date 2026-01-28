@@ -1,4 +1,5 @@
 mod get_user;
+mod get_user_repositories;
 
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
@@ -6,6 +7,7 @@ use uuid::Uuid;
 use crate::model::User;
 
 pub use get_user::GetUserRequest;
+pub use get_user_repositories::GetUserRepositoriesRequest;
 
 #[derive(Debug, Clone)]
 pub struct UserResponse {

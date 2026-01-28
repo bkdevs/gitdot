@@ -6,7 +6,7 @@ use serde::Serialize;
 use thiserror::Error;
 
 use gitdot_core::error::{
-    AuthorizationError, GitHttpError, OrganizationError, QuestionError, RepositoryError,
+    AuthorizationError, GitHttpError, OrganizationError, QuestionError, RepositoryError, UserError,
 };
 
 use super::AppResponse;
@@ -15,6 +15,9 @@ use super::AppResponse;
 pub enum AppError {
     #[error(transparent)]
     Authorization(#[from] AuthorizationError),
+
+    #[error(transparent)]
+    User(#[from] UserError),
 
     #[error(transparent)]
     Organization(#[from] OrganizationError),
@@ -45,6 +48,20 @@ impl IntoResponse for AppError {
                     AuthorizationError::InvalidRequest(_) => StatusCode::BAD_REQUEST,
                     AuthorizationError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                     _ => StatusCode::UNAUTHORIZED,
+                };
+                let response = AppResponse::new(
+                    status_code,
+                    AppErrorMessage {
+                        message: e.to_string(),
+                    },
+                );
+                response.into_response()
+            }
+            AppError::User(e) => {
+                let status_code = match e {
+                    UserError::NotFound(_) => StatusCode::NOT_FOUND,
+                    UserError::InvalidUserName(_) => StatusCode::BAD_REQUEST,
+                    UserError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                 };
                 let response = AppResponse::new(
                     status_code,
