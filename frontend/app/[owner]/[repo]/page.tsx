@@ -15,7 +15,9 @@ export default async function Page({
     return <div>README.md not found</div>;
   }
 
-  return <div className="p-4 max-w-4xl">
-    <MarkdownBody content={readme.content} />
-  </div>;
+  return (
+    <div className="p-4 max-w-4xl">
+      <MarkdownBody content={readme.content} />
+    </div>
+  );
 }

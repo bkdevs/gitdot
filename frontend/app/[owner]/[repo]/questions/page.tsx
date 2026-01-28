@@ -10,11 +10,5 @@ export default async function Page({
   const questions = await getQuestions(owner, repo);
   if (!questions) return null;
 
-  return (
-    <QuestionsClient
-      owner={owner}
-      repo={repo}
-      questions={questions.questions}
-    />
-  );
+  return <QuestionsClient owner={owner} repo={repo} questions={questions} />;
 }

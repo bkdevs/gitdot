@@ -34,9 +34,7 @@ export function QuestionRow({
           <span className="truncate min-w-0">{question.author.name}</span>
           <span>{timeAgo(new Date(question.created_at))}</span>
         </div>
-        <div className="text-[15px] truncate">
-          {question.title}
-        </div>
+        <div className="text-[15px] truncate">{question.title}</div>
         <div className="flex flex-row gap-1 text-xs text-muted-foreground">
           {pluralize(question.answers.length, "answer")}
           <span>•</span>

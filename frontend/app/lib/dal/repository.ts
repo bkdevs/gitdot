@@ -16,7 +16,7 @@ import {
   RepositoryFileSchema,
   type RepositoryTree,
   type RepositoryTreeQuery,
-  RepositoryTreeSchema
+  RepositoryTreeSchema,
 } from "../dto";
 import { API_BASE_URL, authFetch, authPost, handleResponse } from "./util";
 
