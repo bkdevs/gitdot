@@ -92,7 +92,7 @@ export const QuestionResponseSchema = z.object({
   created_at: z.iso.datetime(),
   updated_at: z.iso.datetime(),
   user_vote: z.number().int().nullable().default(0),
-  author: AuthorResponseSchema,
+  author: AuthorResponseSchema.nullable(),
   comments: z.array(CommentResponseSchema),
   answers: z.array(AnswerResponseSchema),
 });
