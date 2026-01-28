@@ -1,10 +1,16 @@
 import { MarkdownBody } from "@/[owner]/[repo]/ui/markdown/markdown-body";
 import type { QuestionResponse } from "@/lib/dto/question";
-import { formatDate, timeAgo, timeAgoFull } from "@/util";
+import { formatDate, timeAgoFull } from "@/util";
 import { Comments } from "./comments";
 import { VoteBox } from "./vote-box";
 
-export function QuestionCard({ question }: { question: QuestionResponse }) {
+type QuestionCardProps = {
+  question: QuestionResponse;
+  owner: string;
+  repo: string;
+};
+
+export function QuestionCard({ question, owner, repo }: QuestionCardProps) {
   const wasUpdated = question.created_at !== question.updated_at;
 
   return (
@@ -30,7 +36,13 @@ export function QuestionCard({ question }: { question: QuestionResponse }) {
           </span>
         </div>
 
-        <Comments />
+        <Comments
+          owner={owner}
+          repo={repo}
+          number={question.number}
+          comments={question.comments}
+          parentType="question"
+        />
       </div>
     </div>
   );

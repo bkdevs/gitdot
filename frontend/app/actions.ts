@@ -1,7 +1,13 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createAnswer, createQuestion, createRepository } from "@/lib/dal";
+import {
+  createAnswer,
+  createAnswerComment,
+  createQuestion,
+  createQuestionComment,
+  createRepository,
+} from "@/lib/dal";
 import { createSupabaseClient } from "@/lib/supabase";
 
 export async function signup(formData: FormData) {
@@ -101,4 +107,31 @@ export async function createAnswerAction(formData: FormData) {
 
   revalidatePath(`/${owner}/${repo}/questions/${number}`);
   return { success: true, answer: result };
+}
+
+export async function createCommentAction(formData: FormData) {
+  const owner = formData.get("owner") as string;
+  const repo = formData.get("repo") as string;
+  const number = formData.get("number") as string;
+  const body = formData.get("body") as string;
+  const parentType = formData.get("parentType") as "question" | "answer";
+  const answerId = formData.get("answerId") as string | null;
+
+  if (!owner || !repo || !number || !body) {
+    return { error: "All fields are required" };
+  }
+
+  const result =
+    parentType === "question"
+      ? await createQuestionComment(owner, repo, Number(number), { body })
+      : await createAnswerComment(owner, repo, Number(number), answerId!, {
+          body,
+        });
+
+  if (!result) {
+    return { error: "Failed to create comment" };
+  }
+
+  revalidatePath(`/${owner}/${repo}/questions/${number}`);
+  return { success: true };
 }

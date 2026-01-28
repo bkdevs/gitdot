@@ -4,7 +4,19 @@ import { timeAgoFull } from "@/util";
 import { Comments } from "./comments";
 import { VoteBox } from "./vote-box";
 
-export function AnswerCard({ answer }: { answer: AnswerResponse }) {
+type AnswerCardProps = {
+  answer: AnswerResponse;
+  owner: string;
+  repo: string;
+  number: number;
+};
+
+export function AnswerCard({
+  answer,
+  owner,
+  repo,
+  number,
+}: AnswerCardProps) {
   return (
     <div className="flex">
       <VoteBox score={answer.upvote} />
@@ -19,13 +31,19 @@ export function AnswerCard({ answer }: { answer: AnswerResponse }) {
             </span>
           </div>
           <div className="flex gap-2 text-muted-foreground">
-            <span className="underline">{answer.author.name}</span>
+            <span className="underline">{answer.author?.name}</span>
             <span>1,234</span>
           </div>
         </div>
 
-        <div className="mt-0.5 mb-2 border border-gray-100" />
-        <Comments />
+        <Comments
+          owner={owner}
+          repo={repo}
+          number={number}
+          comments={answer.comments}
+          parentType="answer"
+          answerId={answer.id}
+        />
       </div>
     </div>
   );
