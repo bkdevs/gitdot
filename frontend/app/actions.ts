@@ -8,6 +8,7 @@ import {
   createQuestionComment,
   createRepository,
   voteAnswer,
+  voteComment,
   voteQuestion,
 } from "@/lib/dal";
 import { createSupabaseClient } from "@/lib/supabase";
@@ -143,17 +144,29 @@ export async function voteAction(formData: FormData) {
   const repo = formData.get("repo") as string;
   const number = formData.get("number") as string;
   const value = Number(formData.get("value"));
-  const targetType = formData.get("targetType") as "question" | "answer";
+  const targetType = formData.get("targetType") as
+    | "question"
+    | "answer"
+    | "comment";
   const answerId = formData.get("answerId") as string | null;
+  const commentId = formData.get("commentId") as string | null;
 
   if (!owner || !repo || !number) {
     return { success: false, error: "Missing required fields" };
   }
 
-  const result =
-    targetType === "question"
-      ? await voteQuestion(owner, repo, Number(number), { value })
-      : await voteAnswer(owner, repo, Number(number), answerId!, { value });
+  let result;
+  if (targetType === "question") {
+    result = await voteQuestion(owner, repo, Number(number), { value });
+  } else if (targetType === "answer") {
+    result = await voteAnswer(owner, repo, Number(number), answerId!, {
+      value,
+    });
+  } else {
+    result = await voteComment(owner, repo, Number(number), commentId!, {
+      value,
+    });
+  }
 
   if (!result) {
     return { success: false, error: "Failed to vote" };

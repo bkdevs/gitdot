@@ -1,23 +1,17 @@
 "use client";
 
-import { useActionState, useOptimistic } from "react";
 import { voteAction } from "@/actions";
 import { TriangleDown, TriangleUp } from "@/lib/icons";
 import { cn } from "@/util";
+import { useActionState, useOptimistic } from "react";
 
 type VoteBoxProps = {
   score: number;
   userVote: number | null;
-} & (
-  | { type: "question"; owner: string; repo: string; number: number }
-  | {
-      type: "answer";
-      owner: string;
-      repo: string;
-      number: number;
-      answerId: string;
-    }
-);
+  owner: string;
+  repo: string;
+  number: number;
+} & ({ type: "question" } | { type: "answer"; answerId: string });
 
 export function VoteBox(props: VoteBoxProps) {
   const { score, userVote } = props;

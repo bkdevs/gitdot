@@ -1,10 +1,10 @@
 "use client";
 
-import { createCommentAction } from "@/actions";
+import { createCommentAction, voteAction } from "@/actions";
 import type { CommentResponse } from "@/lib/dto";
 import { TriangleUp } from "@/lib/icons";
 import { useUser } from "@/providers/user-provider";
-import { timeAgoFull } from "@/util";
+import { cn, timeAgoFull } from "@/util";
 import { useActionState, useOptimistic, useRef, useState } from "react";
 
 type CommentsProps = {
@@ -15,7 +15,7 @@ type CommentsProps = {
 } & ({ parentType: "question" } | { parentType: "answer"; answerId: string });
 
 export function Comments(props: CommentsProps) {
-  const { comments } = props;
+  const { owner, repo, number, comments } = props;
   const user = useUser();
   if (!user) return null; // TODO: block input but show comments for unauthenticated
 
@@ -44,10 +44,10 @@ export function Comments(props: CommentsProps) {
       {optimisticComments.map((comment) => (
         <Comment
           key={comment.id}
-          body={comment.body}
-          author={comment.author?.name ?? "Unknown"}
-          score={comment.upvote}
-          created_at={new Date(comment.created_at)}
+          owner={owner}
+          repo={repo}
+          number={number}
+          comment={comment}
         />
       ))}
 
@@ -57,34 +57,75 @@ export function Comments(props: CommentsProps) {
 }
 
 function Comment({
-  body,
-  author,
-  score,
-  created_at,
+  owner,
+  repo,
+  number,
+  comment,
 }: {
-  body: string;
-  author: string;
-  score: number;
-  created_at: Date;
+  owner: string;
+  repo: string;
+  number: number;
+  comment: CommentResponse;
 }) {
+  const { id, body, author, upvote, user_vote, created_at } = comment;
+  const [optimistic, setOptimistic] = useOptimistic(
+    { upvote, user_vote },
+    (state, newValue: number) => ({
+      upvote: state.upvote + newValue - (state.user_vote ?? 0),
+      user_vote: newValue || null,
+    }),
+  );
+
+  const [, formAction] = useActionState(
+    async (_prev: null, formData: FormData) => {
+      const newValue = optimistic.user_vote === 1 ? 0 : 1;
+      formData.set("value", String(newValue));
+      setOptimistic(newValue);
+      await voteAction(formData);
+      return null;
+    },
+    null,
+  );
+
   return (
     <div className="flex flex-row items-center border-border border-b py-1">
       <div className="flex flex-row items-start">
         <div className="flex flex-row items-center justify-between w-8">
-          <span className="text-left text-muted-foreground">{score}</span>
-          <button
-            type="button"
-            className="text-muted-foreground hover:text-foreground cursor-pointer mb-0.5"
+          <span
+            className={cn(
+              "text-left",
+              optimistic.user_vote === 1
+                ? "text-orange-500"
+                : "text-muted-foreground",
+            )}
           >
-            <TriangleUp className="size-3" />
-          </button>
+            {optimistic.upvote}
+          </span>
+          <form action={formAction}>
+            <input type="hidden" name="owner" value={owner} />
+            <input type="hidden" name="repo" value={repo} />
+            <input type="hidden" name="number" value={number} />
+            <input type="hidden" name="targetType" value="comment" />
+            <input type="hidden" name="commentId" value={id} />
+            <button
+              type="submit"
+              className={cn(
+                "cursor-pointer 0 transition-colors",
+                optimistic.user_vote === 1
+                  ? "text-orange-500"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              <TriangleUp className="-mb-0.25 size-3" />
+            </button>
+          </form>
         </div>
         <p className="pl-4 flex-1">
           {body}
           <span className="text-muted-foreground shrink-0">
             {" — "}
-            <span className="text-blue-400 cursor-pointer">{author}</span>{" "}
-            {timeAgoFull(created_at)}
+            <span className="text-blue-400 cursor-pointer">{author.name}</span>{" "}
+            {timeAgoFull(new Date(created_at))}
           </span>
         </p>
       </div>
