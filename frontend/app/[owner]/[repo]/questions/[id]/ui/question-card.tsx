@@ -1,11 +1,11 @@
 import { Comments } from "./comments";
 import { VoteBox } from "./vote-box";
 
-export function Question() {
+export function QuestionCard() {
   return (
-    <div className="flex pl-8 py-4 max-w-4xl">
+    <div className="flex">
       <VoteBox score={28} />
-      <div className="flex-1 ml-8">
+      <div className="flex-1">
         <h1 className="text-xl font-medium mb-2">
           How do I fix authentication bug in login flow?
         </h1>

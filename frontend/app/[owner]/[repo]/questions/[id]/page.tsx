@@ -1,11 +1,11 @@
 import { Answers } from "./ui/answers";
-import { Question } from "./ui/question";
+import { QuestionCard } from "./ui/question-card";
 
 export default function Page({ params }: { params: { id: string } }) {
   return (
-    <div className="flex flex-col w-full h-screen">
-      <div className="flex-1 flex-col pb-20">
-        <Question />
+    <div className="w-full h-screen">
+      <div className="flex flex-col max-w-4xl px-6 py-4">
+        <QuestionCard />
         <Answers />
       </div>
     </div>
