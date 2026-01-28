@@ -18,6 +18,8 @@ pub trait RepositoryRepository: Send + Sync + Clone + 'static {
     async fn get(&self, owner: &str, repo: &str) -> Result<Option<Repository>, Error>;
 
     async fn get_by_id(&self, id: Uuid) -> Result<Option<Repository>, Error>;
+
+    async fn list_by_owner(&self, owner_name: &str) -> Result<Vec<Repository>, Error>;
 }
 
 #[derive(Debug, Clone)]
@@ -88,5 +90,21 @@ impl RepositoryRepository for RepositoryRepositoryImpl {
         .await?;
 
         Ok(repository)
+    }
+
+    async fn list_by_owner(&self, owner_name: &str) -> Result<Vec<Repository>, Error> {
+        let repositories = sqlx::query_as::<_, Repository>(
+            r#"
+            SELECT id, name, owner_id, owner_name, owner_type, visibility, created_at
+            FROM repositories
+            WHERE owner_name = $1
+            ORDER BY created_at DESC
+            "#,
+        )
+        .bind(owner_name)
+        .fetch_all(&self.pool)
+        .await?;
+
+        Ok(repositories)
     }
 }

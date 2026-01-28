@@ -1,12 +1,13 @@
 use async_trait::async_trait;
 
 use crate::dto::{
-    AddMemberRequest, CreateOrganizationRequest, GetOrganizationRequest,
-    OrganizationMemberResponse, OrganizationResponse,
+    AddMemberRequest, CreateOrganizationRequest, GetOrganizationRepositoriesRequest,
+    GetOrganizationRequest, OrganizationMemberResponse, OrganizationResponse, RepositoryResponse,
 };
 use crate::error::OrganizationError;
 use crate::repository::{
-    OrganizationRepository, OrganizationRepositoryImpl, UserRepository, UserRepositoryImpl,
+    OrganizationRepository, OrganizationRepositoryImpl, RepositoryRepository,
+    RepositoryRepositoryImpl, UserRepository, UserRepositoryImpl,
 };
 
 #[async_trait]
@@ -25,32 +26,51 @@ pub trait OrganizationService: Send + Sync + 'static {
         &self,
         request: AddMemberRequest,
     ) -> Result<OrganizationMemberResponse, OrganizationError>;
+
+    async fn get_repositories(
+        &self,
+        request: GetOrganizationRepositoriesRequest,
+    ) -> Result<Vec<RepositoryResponse>, OrganizationError>;
 }
 
 #[derive(Debug, Clone)]
-pub struct OrganizationServiceImpl<O, U>
+pub struct OrganizationServiceImpl<O, U, R>
 where
     O: OrganizationRepository,
     U: UserRepository,
+    R: RepositoryRepository,
 {
     org_repo: O,
     user_repo: U,
+    repo_repo: R,
 }
 
-impl OrganizationServiceImpl<OrganizationRepositoryImpl, UserRepositoryImpl> {
-    pub fn new(org_repo: OrganizationRepositoryImpl, user_repo: UserRepositoryImpl) -> Self {
+impl
+    OrganizationServiceImpl<
+        OrganizationRepositoryImpl,
+        UserRepositoryImpl,
+        RepositoryRepositoryImpl,
+    >
+{
+    pub fn new(
+        org_repo: OrganizationRepositoryImpl,
+        user_repo: UserRepositoryImpl,
+        repo_repo: RepositoryRepositoryImpl,
+    ) -> Self {
         Self {
-            org_repo: org_repo,
-            user_repo: user_repo,
+            org_repo,
+            user_repo,
+            repo_repo,
         }
     }
 }
 
 #[async_trait]
-impl<O, U> OrganizationService for OrganizationServiceImpl<O, U>
+impl<O, U, R> OrganizationService for OrganizationServiceImpl<O, U, R>
 where
     O: OrganizationRepository,
     U: UserRepository,
+    R: RepositoryRepository,
 {
     async fn create_organization(
         &self,
@@ -105,5 +125,20 @@ where
                 Err(OrganizationError::MemberAlreadyExists(user_name))
             }
         }
+    }
+
+    async fn get_repositories(
+        &self,
+        request: GetOrganizationRepositoriesRequest,
+    ) -> Result<Vec<RepositoryResponse>, OrganizationError> {
+        let org_name = request.org_name.to_string();
+        self.org_repo
+            .get(&org_name)
+            .await?
+            .ok_or_else(|| OrganizationError::NotFound(org_name.clone()))?;
+
+        let repositories = self.repo_repo.list_by_owner(&org_name).await?;
+
+        Ok(repositories.into_iter().map(|r| r.into()).collect())
     }
 }

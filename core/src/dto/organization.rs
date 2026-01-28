@@ -1,6 +1,7 @@
 mod add_member;
 mod create_organization;
 mod get_organization;
+mod get_organization_repositories;
 
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
@@ -10,6 +11,7 @@ use crate::model::Organization;
 pub use add_member::{AddMemberRequest, OrganizationMemberResponse};
 pub use create_organization::CreateOrganizationRequest;
 pub use get_organization::GetOrganizationRequest;
+pub use get_organization_repositories::GetOrganizationRepositoriesRequest;
 
 #[derive(Debug, Clone)]
 pub struct OrganizationResponse {
