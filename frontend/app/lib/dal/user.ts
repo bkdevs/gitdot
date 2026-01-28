@@ -15,11 +15,16 @@ export async function getUser(username: string): Promise<UserResponse | null> {
 }
 
 export async function listUserRepositories(
-  userName: string,
+  username: string,
 ): Promise<UserRepositoriesResponse | null> {
   const response = await authFetch(
-    `${API_BASE_URL}/user/${userName}/repositories`,
+    `${API_BASE_URL}/user/${username}/repositories`,
   );
 
   return await handleResponse(response, UserRepositoriesResponseSchema);
+}
+
+export async function getCurrentUser(): Promise<UserResponse | null> {
+  const response = await authFetch(`${API_BASE_URL}/user`);
+  return await handleResponse(response, UserResponseSchema);
 }

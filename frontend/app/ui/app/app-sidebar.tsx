@@ -1,13 +1,19 @@
 "use client";
 
 import {
+  Activity,
+  ChartBar,
+  ChartLine,
+  ChartNoAxesCombined,
   Circle,
   GitPullRequest,
   Mail,
   MessageCircleQuestion,
   Plus,
+  TrendingUp,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
+import { useUser } from "@/providers/user-provider";
 import Link from "@/ui/link";
 import {
   Sidebar,
@@ -24,7 +30,8 @@ const SIDEBAR_ICON_WIDTH = "2.5rem";
 
 export function AppSidebar() {
   const pathname = usePathname();
-  const isDefault = !["/inbox", "/questions", "/pulls"].includes(pathname);
+  const isDefault = !["/inbox", "/questions", "/charts"].includes(pathname);
+  const user = useUser();
 
   return (
     <Sidebar
@@ -38,7 +45,7 @@ export function AppSidebar() {
               <NavItem
                 icon={Circle}
                 label="Home"
-                href="/"
+                href={user ? `/${user.name}` : "/"}
                 isActive={isDefault}
                 iconClassName="!size-2 fill-current"
               />
@@ -55,10 +62,10 @@ export function AppSidebar() {
                 isActive={pathname === "/questions"}
               />
               <NavItem
-                icon={GitPullRequest}
-                label="Pull Requests"
-                href="/pulls"
-                isActive={pathname === "/pulls"}
+                icon={Activity}
+                label="Charts"
+                href="/charts"
+                isActive={pathname === "/charts"}
               />
               <NavItem icon={Plus} label="New" isActive={false} />
             </SidebarMenu>

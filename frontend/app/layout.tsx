@@ -3,6 +3,7 @@ import { IBM_Plex_Sans, Inconsolata } from "next/font/google";
 import { AppHeader } from "@/ui/app/app-header";
 import { AppSidebar } from "@/ui/app/app-sidebar";
 import "./globals.css";
+import { getCurrentUser } from "./lib/dal";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
@@ -20,18 +21,20 @@ const inconsolata = Inconsolata({
   variable: "--font-inconsolata",
 });
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const user = await getCurrentUser();
+
   return (
     <html
       lang="en"
       className={`${ibm_plex_sans.variable} ${inconsolata.variable} overscroll-none`}
     >
       <body>
-        <Providers>
+        <Providers user={user}>
           <div className="flex flex-row h-screen w-full max-w-screen overflow-hidden">
             <div className="hidden md:flex h-full shrink-0">
               <AppSidebar />
