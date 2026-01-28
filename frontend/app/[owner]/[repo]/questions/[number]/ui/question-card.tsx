@@ -15,16 +15,26 @@ export function QuestionCard({ question, owner, repo }: QuestionCardProps) {
 
   return (
     <div className="flex">
-      <VoteBox score={question.upvote} />
+      <VoteBox
+        type="question"
+        owner={owner}
+        repo={repo}
+        number={question.number}
+        score={question.upvote}
+        userVote={question.user_vote}
+      />
       <div className="flex-1">
         <h1 className="text-xl font-medium">{question.title}</h1>
         <MarkdownBody content={question.body} />
 
         <div className="flex flex-row gap-1 items-center text-xs text-muted-foreground">
-          <span className="text-blue-400 cursor-pointer">{question.author.name}</span>
+          <span className="text-blue-400 cursor-pointer">
+            {question.author.name}
+          </span>
           <span>
             <span className="text-muted-foreground">asked</span>{" "}
-            {formatDate(new Date(question.created_at))}{", "}
+            {formatDate(new Date(question.created_at))}
+            {", "}
             {wasUpdated ? (
               <>
                 <span className="text-muted-foreground">updated</span>{" "}

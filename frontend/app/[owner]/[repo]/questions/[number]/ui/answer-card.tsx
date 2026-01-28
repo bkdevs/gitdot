@@ -11,15 +11,18 @@ type AnswerCardProps = {
   number: number;
 };
 
-export function AnswerCard({
-  answer,
-  owner,
-  repo,
-  number,
-}: AnswerCardProps) {
+export function AnswerCard({ answer, owner, repo, number }: AnswerCardProps) {
   return (
     <div className="flex">
-      <VoteBox score={answer.upvote} />
+      <VoteBox
+        type="answer"
+        owner={owner}
+        repo={repo}
+        number={number}
+        answerId={answer.id}
+        score={answer.upvote}
+        userVote={answer.user_vote}
+      />
       <div className="flex-1">
         <MarkdownBody content={answer.body} />
 

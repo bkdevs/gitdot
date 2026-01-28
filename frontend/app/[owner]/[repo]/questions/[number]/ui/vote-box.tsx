@@ -1,21 +1,101 @@
-import { TriangleDown, TriangleUp } from "@/lib/icons";
+"use client";
 
-export function VoteBox({ score }: { score: number }) {
+import { useActionState, useOptimistic } from "react";
+import { voteAction } from "@/actions";
+import { TriangleDown, TriangleUp } from "@/lib/icons";
+import { cn } from "@/util";
+
+type VoteBoxProps = {
+  score: number;
+  userVote: number | null;
+} & (
+  | { type: "question"; owner: string; repo: string; number: number }
+  | {
+      type: "answer";
+      owner: string;
+      repo: string;
+      number: number;
+      answerId: string;
+    }
+);
+
+export function VoteBox(props: VoteBoxProps) {
+  const { score, userVote } = props;
+
+  const [optimistic, setOptimistic] = useOptimistic(
+    { score, userVote },
+    (state, newValue: number) => ({
+      score: state.score + newValue - (state.userVote ?? 0),
+      userVote: newValue || null,
+    }),
+  );
+
+  const [, formAction] = useActionState(
+    async (_prev: null, formData: FormData) => {
+      const clickedVote = Number(formData.get("clickedVote")) as 1 | -1;
+      const newValue = optimistic.userVote === clickedVote ? 0 : clickedVote;
+
+      formData.set("value", String(newValue));
+      setOptimistic(newValue);
+
+      await voteAction(formData);
+      return null;
+    },
+    null,
+  );
+
   return (
     <div className="flex flex-col mx-6 mt-1.75 items-center gap-1 text-muted-foreground text-xl">
-      <button
-        type="submit"
-        className="text-muted-foreground hover:text-foreground cursor-pointer"
+      <form action={formAction}>
+        <input type="hidden" name="owner" value={props.owner} />
+        <input type="hidden" name="repo" value={props.repo} />
+        <input type="hidden" name="number" value={props.number} />
+        <input type="hidden" name="targetType" value={props.type} />
+        {props.type === "answer" && (
+          <input type="hidden" name="answerId" value={props.answerId} />
+        )}
+        <input type="hidden" name="clickedVote" value={1} />
+        <button
+          type="submit"
+          className={cn(
+            "cursor-pointer transition-colors",
+            optimistic.userVote === 1
+              ? "text-orange-500"
+              : "text-muted-foreground hover:text-foreground",
+          )}
+        >
+          <TriangleUp />
+        </button>
+      </form>
+      <span
+        className={cn(
+          optimistic.userVote === 1 && "text-orange-500",
+          optimistic.userVote === -1 && "text-blue-500",
+        )}
       >
-        <TriangleUp />
-      </button>
-      <span>{score}</span>
-      <button
-        type="submit"
-        className="text-muted-foreground hover:text-foreground cursor-pointer"
-      >
-        <TriangleDown />
-      </button>
+        {optimistic.score}
+      </span>
+      <form action={formAction}>
+        <input type="hidden" name="owner" value={props.owner} />
+        <input type="hidden" name="repo" value={props.repo} />
+        <input type="hidden" name="number" value={props.number} />
+        <input type="hidden" name="targetType" value={props.type} />
+        {props.type === "answer" && (
+          <input type="hidden" name="answerId" value={props.answerId} />
+        )}
+        <input type="hidden" name="clickedVote" value={-1} />
+        <button
+          type="submit"
+          className={cn(
+            "cursor-pointer transition-colors",
+            optimistic.userVote === -1
+              ? "text-blue-500"
+              : "text-muted-foreground hover:text-foreground",
+          )}
+        >
+          <TriangleDown />
+        </button>
+      </form>
     </div>
   );
 }

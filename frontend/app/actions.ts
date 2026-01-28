@@ -7,6 +7,8 @@ import {
   createQuestion,
   createQuestionComment,
   createRepository,
+  voteAnswer,
+  voteQuestion,
 } from "@/lib/dal";
 import { createSupabaseClient } from "@/lib/supabase";
 
@@ -134,4 +136,29 @@ export async function createCommentAction(formData: FormData) {
 
   revalidatePath(`/${owner}/${repo}/questions/${number}`);
   return { success: true };
+}
+
+export async function voteAction(formData: FormData) {
+  const owner = formData.get("owner") as string;
+  const repo = formData.get("repo") as string;
+  const number = formData.get("number") as string;
+  const value = Number(formData.get("value"));
+  const targetType = formData.get("targetType") as "question" | "answer";
+  const answerId = formData.get("answerId") as string | null;
+
+  if (!owner || !repo || !number) {
+    return { success: false, error: "Missing required fields" };
+  }
+
+  const result =
+    targetType === "question"
+      ? await voteQuestion(owner, repo, Number(number), { value })
+      : await voteAnswer(owner, repo, Number(number), answerId!, { value });
+
+  if (!result) {
+    return { success: false, error: "Failed to vote" };
+  }
+
+  revalidatePath(`/${owner}/${repo}/questions/${number}`);
+  return { success: true, data: result };
 }

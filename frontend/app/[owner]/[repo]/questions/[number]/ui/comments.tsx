@@ -12,10 +12,7 @@ type CommentsProps = {
   repo: string;
   number: number;
   comments: CommentResponse[];
-} & (
-  | { parentType: "question" }
-  | { parentType: "answer"; answerId: string }
-);
+} & ({ parentType: "question" } | { parentType: "answer"; answerId: string });
 
 export function Comments(props: CommentsProps) {
   const { comments } = props;
@@ -56,7 +53,6 @@ export function Comments(props: CommentsProps) {
 
       <CommentInput {...props} addOptimisticComment={addOptimisticComment} />
     </div>
-
   );
 }
 
@@ -96,7 +92,9 @@ function Comment({
   );
 }
 
-function CommentInput(props: CommentsProps & { addOptimisticComment: (body: string) => void }) {
+function CommentInput(
+  props: CommentsProps & { addOptimisticComment: (body: string) => void },
+) {
   const [showInput, setShowInput] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -130,23 +128,26 @@ function CommentInput(props: CommentsProps & { addOptimisticComment: (body: stri
           <input type="hidden" name="parentType" value={parentType} />
           {answerId && <input type="hidden" name="answerId" value={answerId} />}
           <input
-          className="border-b border-bg ring-0 outline-none h-5 w-full"
-          type="text"
-          name="body"
-          placeholder="Write comment..."
-          autoFocus
-          onBlur={(e) => {
-            if (e.target.value.length === 0) {
-              setShowInput(false);
-            }
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "Escape") {
-              setShowInput(false);
-            } else if (e.key === "Enter" && e.currentTarget.value.length === 0) {
-              e.preventDefault();
-            }
-          }}
+            className="border-b border-bg ring-0 outline-none h-5 w-full"
+            type="text"
+            name="body"
+            placeholder="Write comment..."
+            autoFocus
+            onBlur={(e) => {
+              if (e.target.value.length === 0) {
+                setShowInput(false);
+              }
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") {
+                setShowInput(false);
+              } else if (
+                e.key === "Enter" &&
+                e.currentTarget.value.length === 0
+              ) {
+                e.preventDefault();
+              }
+            }}
           />
         </form>
       ) : (
@@ -159,5 +160,5 @@ function CommentInput(props: CommentsProps & { addOptimisticComment: (body: stri
         </button>
       )}
     </div>
-  )
+  );
 }
