@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import { Fragment } from "react";
 import type { RepositoryCommit } from "@/lib/dto";
 import Link from "@/ui/link";
-import { formatDate, formatTime } from "@/util";
+import { formatDateKey, formatTime } from "@/util";
 import { groupCommitsByDate } from "../../util/commit";
 
 export function RepoSidebarCommits({
@@ -29,7 +29,7 @@ export function RepoSidebarCommits({
         <Fragment key={date}>
           <div className="sticky top-0 bg-background flex items-center border-b px-2 h-9 z-10">
             <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-              {formatDate(date)}
+              {formatDateKey(date)}
             </h3>
           </div>
           {dateCommits.map((commit) => {

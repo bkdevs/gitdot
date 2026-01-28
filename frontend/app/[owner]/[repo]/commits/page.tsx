@@ -1,7 +1,7 @@
 import Link from "@/ui/link";
 import { Fragment } from "react";
 import { getRepositoryCommits } from "@/lib/dal";
-import { formatDate, formatTime } from "@/util";
+import { formatDateKey, formatTime } from "@/util";
 import { groupCommitsByDate } from "../util/commit";
 
 export default async function Page({
@@ -22,7 +22,7 @@ export default async function Page({
         <Fragment key={date}>
           <div className="sticky top-0 bg-background flex items-center border-b px-2 h-9 z-10">
             <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-              {formatDate(date)}
+              {formatDateKey(date)}
             </h3>
           </div>
           {commits.map((commit) => (

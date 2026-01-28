@@ -32,6 +32,7 @@ export function QuestionRow({
       <div className="flex flex-col w-full justify-start items-start">
         <div className="text-xs text-muted-foreground flex items-center gap-1">
           <span className="truncate min-w-0">{question.author.name}</span>
+          •
           <span>{timeAgo(new Date(question.created_at))}</span>
         </div>
         <div className="text-[15px] truncate">{question.title}</div>

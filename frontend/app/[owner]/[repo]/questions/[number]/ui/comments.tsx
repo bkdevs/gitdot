@@ -1,45 +1,62 @@
 "use client";
 
-import { ChevronUp } from "lucide-react";
 import { useState } from "react";
 import { TriangleUp } from "@/lib/icons";
-import { timeAgo } from "@/util";
+import { timeAgoFull } from "@/util";
 
 export function Comments() {
-  const [showCommentInput, setShowCommentInput] = useState(false);
+  const [showInput, setShowInput] = useState(false);
+  const [comment, setComment] = useState("");
 
   return (
-    <div className="flex flex-col gap-2 text-xs">
+    <div className="flex flex-col text-xs">
+      <div className="my-0.5 border-b border-border" />
       <Comment
-        body="@devuser123 yes, that was my first thought too. The changelog doesn't mention any breaking changes though."
-        author="johndoe"
-        score={3}
-        created_at={new Date("2023-01-01T12:00:00Z")}
+      body="@devuser123 yes, that was my first thought too. The changelog doesn't mention any breaking changes though."
+      author="johndoe"
+      score={3}
+      created_at={new Date("2023-01-01T12:00:00Z")}
       />
 
       <Comment
-        body="Can you share your environment variables (redacted)? Might be a config issue."
-        author="helpfuldev"
-        score={13}
-        created_at={new Date("2023-01-01T12:45:00Z")}
+      body="Can you share your environment variables (redacted)? Might be a config issue."
+      author="helpfuldev"
+      score={13}
+      created_at={new Date("2023-01-01T12:45:00Z")}
       />
 
-      {showCommentInput ? (
-        <input
-          type="text"
-          placeholder="Write a comment..."
-          className="w-full mt-2 px-2 py-1 text-xs border border-border rounded bg-transparent"
+      <div className="flex flex-row w-full pt-1">
+        {showInput ? (
+          <input
+          className="border-b border-bg ring-0 outline-none h-5 w-full"
+          type="email"
+          placeholder="Write comment..."
           autoFocus
-          onBlur={() => setShowCommentInput(false)}
-        />
-      ) : (
-        <button
-          onClick={() => setShowCommentInput(true)}
-          className="text-xs text-muted-foreground hover:text-foreground mt-2 block text-left"
-        >
-          Add a comment...
-        </button>
-      )}
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          onBlur={() => {
+            if (comment.length === 0) {
+              setShowInput(false);
+            }
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") {
+              setShowInput(false);
+            } else if (e.key === "Enter" && comment.length > 0) {
+              // handleSubmit();
+            }
+          }}
+          />
+        ) : (
+          <button
+            type="button"
+            className="underline text-muted-foreground cursor-pointer h-5"
+            onClick={() => setShowInput(true)}
+          >
+            Add comment..
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -56,7 +73,7 @@ function Comment({
   created_at: Date;
 }) {
   return (
-    <div className="flex flex-row items-center border-border border-b py-0.5">
+    <div className="flex flex-row items-center border-border border-b py-1">
       <div className="flex flex-row items-start">
         <div className="flex flex-row items-center justify-between w-8">
           <span className="text-left text-muted-foreground">{score}</span>
@@ -71,7 +88,8 @@ function Comment({
           {body}
           <span className="text-muted-foreground shrink-0">
             {" — "}
-            <span className="underline">{author}</span> {timeAgo(created_at)}
+            <span className="text-blue-400 cursor-pointer">{author}</span>{" "}
+            {timeAgoFull(created_at)}
           </span>
         </p>
       </div>

@@ -65,7 +65,7 @@ export function timeAgoFull(date: Date) {
 /**
  * Format date header: "Today", "Yesterday", or "Jan 12"
  */
-export function formatDate(dateKey: string): string {
+export function formatDateKey(dateKey: string): string {
   const date = new Date(`${dateKey}T00:00:00`);
   const now = new Date();
   now.setHours(0, 0, 0, 0);
@@ -80,6 +80,17 @@ export function formatDate(dateKey: string): string {
     month: "short",
     day: "numeric",
     year: date.getFullYear() !== now.getFullYear() ? "numeric" : undefined,
+  });
+}
+
+/**
+ * Format date as "Jan 12, 2025"
+ */
+export function formatDate(date: Date): string {
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
   });
 }
 
