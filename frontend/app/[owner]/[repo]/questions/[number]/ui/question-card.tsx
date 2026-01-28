@@ -12,7 +12,7 @@ export function QuestionCard({ question }: { question: QuestionResponse }) {
         <h1 className="text-xl font-medium mb-2">{question.title}</h1>
         <MarkdownBody content={question.body} />
 
-        <div className="flex mt-8 justify-between text-sm">
+        <div className="flex justify-between text-xs">
           <div className="flex gap-4">
             <span>
               <span className="text-muted-foreground">Asked</span>{" "}
@@ -29,7 +29,7 @@ export function QuestionCard({ question }: { question: QuestionResponse }) {
           </div>
         </div>
 
-        <div className="mt-2 mb-2 border border-gray-100" />
+        <div className="mt-0.5 mb-2 border border-gray-100" />
         <Comments />
       </div>
     </div>

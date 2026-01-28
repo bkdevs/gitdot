@@ -1,8 +1,8 @@
 "use client";
 
-import { timeAgo } from "@/util";
 import { ChevronUp } from "lucide-react";
 import { useState } from "react";
+import { timeAgo } from "@/util";
 
 export function Comments() {
   const [showCommentInput, setShowCommentInput] = useState(false);

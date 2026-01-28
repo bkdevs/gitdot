@@ -1,6 +1,7 @@
 "use server";
 
-import { createQuestion, createRepository } from "@/lib/dal";
+import { revalidatePath } from "next/cache";
+import { createAnswer, createQuestion, createRepository } from "@/lib/dal";
 import { createSupabaseClient } from "@/lib/supabase";
 
 export async function signup(formData: FormData) {
@@ -80,4 +81,24 @@ export async function createQuestionAction(formData: FormData) {
   }
 
   return { success: true, question: result };
+}
+
+export async function createAnswerAction(formData: FormData) {
+  const owner = formData.get("owner") as string;
+  const repo = formData.get("repo") as string;
+  const number = formData.get("number") as string;
+  const body = formData.get("body") as string;
+
+  if (!owner || !repo || !number || !body) {
+    return { error: "All fields are required" };
+  }
+
+  const result = await createAnswer(owner, repo, Number(number), { body });
+
+  if (!result) {
+    return { error: "Failed to create answer" };
+  }
+
+  revalidatePath(`/${owner}/${repo}/questions/${number}`);
+  return { success: true, answer: result };
 }

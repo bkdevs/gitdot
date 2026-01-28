@@ -80,11 +80,11 @@ export async function getQuestions(
 export async function createAnswer(
   owner: string,
   repo: string,
-  questionNumber: number,
+  number: number,
   request: CreateAnswerRequest,
 ): Promise<AnswerResponse | null> {
   const response = await authPost(
-    `${API_BASE_URL}/repository/${owner}/${repo}/question/${questionNumber}/answer`,
+    `${API_BASE_URL}/repository/${owner}/${repo}/question/${number}/answer`,
     request,
   );
 
@@ -94,12 +94,12 @@ export async function createAnswer(
 export async function updateAnswer(
   owner: string,
   repo: string,
-  questionNumber: number,
+  number: number,
   answerId: string,
   request: UpdateAnswerRequest,
 ): Promise<AnswerResponse | null> {
   const response = await authPatch(
-    `${API_BASE_URL}/repository/${owner}/${repo}/question/${questionNumber}/answer/${answerId}`,
+    `${API_BASE_URL}/repository/${owner}/${repo}/question/${number}/answer/${answerId}`,
     request,
   );
 
@@ -109,11 +109,11 @@ export async function updateAnswer(
 export async function createQuestionComment(
   owner: string,
   repo: string,
-  questionNumber: number,
+  number: number,
   request: CreateCommentRequest,
 ): Promise<CommentResponse | null> {
   const response = await authPost(
-    `${API_BASE_URL}/repository/${owner}/${repo}/question/${questionNumber}/comment`,
+    `${API_BASE_URL}/repository/${owner}/${repo}/question/${number}/comment`,
     request,
   );
 
@@ -123,12 +123,12 @@ export async function createQuestionComment(
 export async function createAnswerComment(
   owner: string,
   repo: string,
-  questionNumber: number,
+  number: number,
   answerId: string,
   request: CreateCommentRequest,
 ): Promise<CommentResponse | null> {
   const response = await authPost(
-    `${API_BASE_URL}/repository/${owner}/${repo}/question/${questionNumber}/answer/${answerId}/comment`,
+    `${API_BASE_URL}/repository/${owner}/${repo}/question/${number}/answer/${answerId}/comment`,
     request,
   );
 
@@ -138,12 +138,12 @@ export async function createAnswerComment(
 export async function updateComment(
   owner: string,
   repo: string,
-  questionNumber: number,
+  number: number,
   commentId: string,
   request: UpdateCommentRequest,
 ): Promise<CommentResponse | null> {
   const response = await authPatch(
-    `${API_BASE_URL}/repository/${owner}/${repo}/question/${questionNumber}/comment/${commentId}`,
+    `${API_BASE_URL}/repository/${owner}/${repo}/question/${number}/comment/${commentId}`,
     request,
   );
 
@@ -153,11 +153,11 @@ export async function updateComment(
 export async function voteQuestion(
   owner: string,
   repo: string,
-  questionNumber: number,
+  number: number,
   request: VoteRequest,
 ): Promise<VoteResponse | null> {
   const response = await authPost(
-    `${API_BASE_URL}/repository/${owner}/${repo}/question/${questionNumber}/vote`,
+    `${API_BASE_URL}/repository/${owner}/${repo}/question/${number}/vote`,
     request,
   );
 
@@ -167,12 +167,12 @@ export async function voteQuestion(
 export async function voteAnswer(
   owner: string,
   repo: string,
-  questionNumber: number,
+  number: number,
   answerId: string,
   request: VoteRequest,
 ): Promise<VoteResponse | null> {
   const response = await authPost(
-    `${API_BASE_URL}/repository/${owner}/${repo}/question/${questionNumber}/answer/${answerId}/vote`,
+    `${API_BASE_URL}/repository/${owner}/${repo}/question/${number}/answer/${answerId}/vote`,
     request,
   );
 
@@ -182,12 +182,12 @@ export async function voteAnswer(
 export async function voteComment(
   owner: string,
   repo: string,
-  questionNumber: number,
+  number: number,
   commentId: string,
   request: VoteRequest,
 ): Promise<VoteResponse | null> {
   const response = await authPost(
-    `${API_BASE_URL}/repository/${owner}/${repo}/question/${questionNumber}/comment/${commentId}/vote`,
+    `${API_BASE_URL}/repository/${owner}/${repo}/question/${number}/comment/${commentId}/vote`,
     request,
   );
 

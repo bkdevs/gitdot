@@ -11,7 +11,7 @@ export function AnswerCard({ answer }: { answer: AnswerResponse }) {
       <div className="flex-1">
         <MarkdownBody content={answer.body} />
 
-        <div className="flex mt-8 justify-between text-sm">
+        <div className="flex justify-between text-xs">
           <div className="flex gap-4">
             <span>
               <span className="text-muted-foreground">Asked</span>{" "}
@@ -24,7 +24,7 @@ export function AnswerCard({ answer }: { answer: AnswerResponse }) {
           </div>
         </div>
 
-        <div className="mt-2 mb-2 border border-gray-100" />
+        <div className="mt-0.5 mb-2 border border-gray-100" />
         <Comments />
       </div>
     </div>
