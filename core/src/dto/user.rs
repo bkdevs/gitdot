@@ -1,3 +1,4 @@
+mod get_current_user;
 mod get_user;
 mod list_user_repositories;
 
@@ -6,6 +7,7 @@ use uuid::Uuid;
 
 use crate::model::User;
 
+pub use get_current_user::GetCurrentUserRequest;
 pub use get_user::GetUserRequest;
 pub use list_user_repositories::ListUserRepositoriesRequest;
 
