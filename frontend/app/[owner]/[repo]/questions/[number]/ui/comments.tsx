@@ -1,11 +1,11 @@
 "use client";
 
+import { useActionState, useOptimistic, useRef, useState } from "react";
 import { createCommentAction, voteAction } from "@/actions";
 import type { CommentResponse } from "@/lib/dto";
 import { TriangleUp } from "@/lib/icons";
 import { useUser } from "@/providers/user-provider";
 import { cn, timeAgoFull } from "@/util";
-import { useActionState, useOptimistic, useRef, useState } from "react";
 
 type CommentsProps = {
   owner: string;
@@ -68,6 +68,15 @@ function Comment({
   comment: CommentResponse;
 }) {
   const { id, body, author, upvote, user_vote, created_at } = comment;
+  const voteComment = voteAction.bind(
+    null,
+    owner,
+    repo,
+    number,
+    id,
+    "comment",
+  );
+
   const [optimistic, setOptimistic] = useOptimistic(
     { upvote, user_vote },
     (state, newValue: number) => ({
@@ -81,7 +90,7 @@ function Comment({
       const newValue = optimistic.user_vote === 1 ? 0 : 1;
       formData.set("value", String(newValue));
       setOptimistic(newValue);
-      await voteAction(formData);
+      await voteComment(formData);
       return null;
     },
     null,
@@ -102,18 +111,13 @@ function Comment({
             {optimistic.upvote}
           </span>
           <form action={formAction} className="contents">
-            <input type="hidden" name="owner" value={owner} />
-            <input type="hidden" name="repo" value={repo} />
-            <input type="hidden" name="number" value={number} />
-            <input type="hidden" name="targetType" value="comment" />
-            <input type="hidden" name="commentId" value={id} />
             <button
               type="submit"
               className={cn(
                 "cursor-pointer 0 transition-colors",
                 optimistic.user_vote === 1
-                  ? "text-orange-500"
-                  : "text-muted-foreground hover:text-foreground",
+                ? "text-orange-500"
+                : "text-muted-foreground hover:text-foreground",
               )}
             >
               <TriangleUp className="mb-0.5 size-3" />
@@ -124,7 +128,7 @@ function Comment({
           {body}
           <span className="text-muted-foreground shrink-0">
             {" — "}
-            <span className="text-blue-400 cursor-pointer">{author!.name}</span>{" "}
+            <span className="text-blue-400 cursor-pointer">{author?.name}</span>{" "}
             {timeAgoFull(new Date(created_at))}
           </span>
         </p>

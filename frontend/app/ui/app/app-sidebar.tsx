@@ -2,15 +2,10 @@
 
 import {
   Activity,
-  ChartBar,
-  ChartLine,
-  ChartNoAxesCombined,
   Circle,
-  GitPullRequest,
   Mail,
   MessageCircleQuestion,
   Plus,
-  TrendingUp,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useUser } from "@/providers/user-provider";

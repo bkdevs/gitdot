@@ -16,7 +16,7 @@ export function QuestionCard({ question, owner, repo }: QuestionCardProps) {
   return (
     <div className="flex">
       <VoteBox
-        type="question"
+        targetType="question"
         owner={owner}
         repo={repo}
         number={question.number}

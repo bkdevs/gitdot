@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import {
   createAnswer,
   createAnswerComment,
@@ -12,6 +11,8 @@ import {
   voteQuestion,
 } from "@/lib/dal";
 import { createSupabaseClient } from "@/lib/supabase";
+import { VoteResponse } from "./lib/dto";
+import { revalidatePath } from "next/cache";
 
 export async function signup(formData: FormData) {
   const supabase = await createSupabaseClient();
@@ -108,7 +109,6 @@ export async function createAnswerAction(formData: FormData) {
     return { error: "Failed to create answer" };
   }
 
-  revalidatePath(`/${owner}/${repo}/questions/${number}`);
   return { success: true, answer: result };
 }
 
@@ -135,37 +135,30 @@ export async function createCommentAction(formData: FormData) {
     return { error: "Failed to create comment" };
   }
 
-  revalidatePath(`/${owner}/${repo}/questions/${number}`);
   return { success: true };
 }
 
-export async function voteAction(formData: FormData) {
-  const owner = formData.get("owner") as string;
-  const repo = formData.get("repo") as string;
-  const number = formData.get("number") as string;
+export async function voteAction(
+  owner: string,
+  repo: string,
+  number: number,
+  targetId: string | undefined,
+  targetType: "question" | "answer" | "comment",
+  formData: FormData,
+) {
   const value = Number(formData.get("value"));
-  const targetType = formData.get("targetType") as
-    | "question"
-    | "answer"
-    | "comment";
-  const answerId = formData.get("answerId") as string | null;
-  const commentId = formData.get("commentId") as string | null;
 
-  if (!owner || !repo || !number) {
+  if (!targetId && targetType !== "question") {
     return { success: false, error: "Missing required fields" };
   }
 
-  let result;
+  let result: VoteResponse | null;
   if (targetType === "question") {
-    result = await voteQuestion(owner, repo, Number(number), { value });
+    result = await voteQuestion(owner, repo, number, { value });
   } else if (targetType === "answer") {
-    result = await voteAnswer(owner, repo, Number(number), answerId!, {
-      value,
-    });
+    result = await voteAnswer(owner, repo, number, targetId!, { value });
   } else {
-    result = await voteComment(owner, repo, Number(number), commentId!, {
-      value,
-    });
+    result = await voteComment(owner, repo, number, targetId!, { value });
   }
 
   if (!result) {

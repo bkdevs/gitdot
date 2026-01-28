@@ -18,7 +18,7 @@ export function sortHunks(hunks: DiffHunk[]): DiffHunk[] {
     const firstLine = hunk[0];
     return firstLine.lhs
       ? firstLine.lhs.line_number
-      : firstLine.rhs!.line_number;
+      : firstLine.rhs?.line_number;
   };
 
   const sortedHunks = [...hunks].sort((a, b) => {
@@ -93,7 +93,7 @@ function getEffectivePosition(
   for (let i = lineIndex - 1; i >= 0; i--) {
     const anchor = hunk[i];
     if (anchor.lhs && anchor.rhs) {
-      return [anchor.lhs.line_number, line.rhs!.line_number];
+      return [anchor.lhs.line_number, line.rhs?.line_number];
     }
   }
 
@@ -103,8 +103,8 @@ function getEffectivePosition(
     const firstLhs = firstLine.lhs?.line_number ?? line.lhs.line_number;
     return [line.lhs.line_number, firstLhs - 1];
   } else {
-    const firstRhs = firstLine.rhs?.line_number ?? line.rhs!.line_number;
-    return [firstRhs - 1, line.rhs!.line_number];
+    const firstRhs = firstLine.rhs?.line_number ?? line.rhs?.line_number;
+    return [firstRhs - 1, line.rhs?.line_number];
   }
 }
 
@@ -226,7 +226,7 @@ function fillGapsOneSided(pairs: LinePair[]): LinePair[] {
   for (const pair of pairs) {
     const value = isLhsOnly ? pair[0]! : pair[1]!;
     if (result.length > 0) {
-      const lastValue = isLhsOnly ? result.at(-1)![0]! : result.at(-1)![1]!;
+      const lastValue = isLhsOnly ? result.at(-1)?.[0]! : result.at(-1)?.[1]!;
       for (let v = lastValue + 1; v < value; v++) {
         result.push(isLhsOnly ? [v, null] : [null, v]);
       }

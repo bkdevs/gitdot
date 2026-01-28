@@ -1,20 +1,28 @@
 "use client";
 
+import { useActionState, useOptimistic } from "react";
 import { voteAction } from "@/actions";
 import { TriangleDown, TriangleUp } from "@/lib/icons";
 import { cn } from "@/util";
-import { useActionState, useOptimistic } from "react";
 
-type VoteBoxProps = {
-  score: number;
-  userVote: number | null;
+export function VoteBox({
+  owner,
+  repo,
+  number,
+  targetId,
+  targetType,
+  score,
+  userVote,
+}: {
   owner: string;
   repo: string;
   number: number;
-} & ({ type: "question" } | { type: "answer"; answerId: string });
-
-export function VoteBox(props: VoteBoxProps) {
-  const { score, userVote } = props;
+  targetType: "question" | "answer";
+  targetId?: string | undefined;
+  score: number;
+  userVote: number | null;
+}) {
+  const vote = voteAction.bind(null, owner, repo, number, targetId, targetType);
 
   const [optimistic, setOptimistic] = useOptimistic(
     { score, userVote },
@@ -32,7 +40,7 @@ export function VoteBox(props: VoteBoxProps) {
       formData.set("value", String(newValue));
       setOptimistic(newValue);
 
-      await voteAction(formData);
+      await vote(formData);
       return null;
     },
     null,
@@ -41,13 +49,6 @@ export function VoteBox(props: VoteBoxProps) {
   return (
     <div className="flex flex-col mx-6 mt-1.75 gap-1 items-center text-muted-foreground text-xl">
       <form action={formAction} className="contents">
-        <input type="hidden" name="owner" value={props.owner} />
-        <input type="hidden" name="repo" value={props.repo} />
-        <input type="hidden" name="number" value={props.number} />
-        <input type="hidden" name="targetType" value={props.type} />
-        {props.type === "answer" && (
-          <input type="hidden" name="answerId" value={props.answerId} />
-        )}
         <input type="hidden" name="clickedVote" value={1} />
         <button
           type="submit"
@@ -70,13 +71,6 @@ export function VoteBox(props: VoteBoxProps) {
         {optimistic.score}
       </span>
       <form action={formAction} className="contents">
-        <input type="hidden" name="owner" value={props.owner} />
-        <input type="hidden" name="repo" value={props.repo} />
-        <input type="hidden" name="number" value={props.number} />
-        <input type="hidden" name="targetType" value={props.type} />
-        {props.type === "answer" && (
-          <input type="hidden" name="answerId" value={props.answerId} />
-        )}
         <input type="hidden" name="clickedVote" value={-1} />
         <button
           type="submit"

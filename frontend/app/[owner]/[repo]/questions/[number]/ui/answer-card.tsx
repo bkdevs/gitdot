@@ -15,7 +15,7 @@ export function AnswerCard({ answer, owner, repo, number }: AnswerCardProps) {
   return (
     <div className="flex">
       <VoteBox
-        type="answer"
+        targetType="answer"
         owner={owner}
         repo={repo}
         number={number}

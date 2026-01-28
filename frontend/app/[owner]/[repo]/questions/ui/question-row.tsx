@@ -1,5 +1,5 @@
 import type { QuestionResponse } from "@/lib/dto";
-import { TriangleUp, TriangleDown } from "@/lib/icons";
+import { TriangleDown, TriangleUp } from "@/lib/icons";
 import Link from "@/ui/link";
 import { pluralize, timeAgo } from "@/util";
 
