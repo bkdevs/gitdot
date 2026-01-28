@@ -139,12 +139,12 @@ where
             .await?
             .ok_or_else(|| OrganizationError::NotFound(org_name.clone()))?;
 
-        let is_member = match request.user_id {
-            Some(user_id) => self.org_repo.is_member(org.id, user_id).await?,
+        let repositories = self.repo_repo.list_by_owner(&org_name).await?;
+
+        let is_member = match request.viewer_id {
+            Some(viewer_id) => self.org_repo.is_member(org.id, viewer_id).await?,
             None => false,
         };
-
-        let repositories = self.repo_repo.list_by_owner(&org_name).await?;
         let repositories = if is_member {
             repositories
         } else {

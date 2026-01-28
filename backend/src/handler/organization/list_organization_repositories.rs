@@ -14,8 +14,8 @@ pub async fn list_organization_repositories(
     State(state): State<AppState>,
     Path(org_name): Path<String>,
 ) -> Result<AppResponse<Vec<RepositoryServerResponse>>, AppError> {
-    let user_id = auth_user.map(|u| u.id);
-    let request = ListOrganizationRepositoriesRequest::new(&org_name, user_id)?;
+    let viewer_id = auth_user.map(|u| u.id);
+    let request = ListOrganizationRepositoriesRequest::new(&org_name, viewer_id)?;
     state
         .org_service
         .list_repositories(request)

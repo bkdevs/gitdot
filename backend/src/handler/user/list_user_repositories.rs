@@ -10,11 +10,12 @@ use crate::dto::RepositoryServerResponse;
 
 #[axum::debug_handler]
 pub async fn list_user_repositories(
-    _auth_user: Option<AuthenticatedUser>,
+    auth_user: Option<AuthenticatedUser>,
     State(state): State<AppState>,
     Path(user_name): Path<String>,
 ) -> Result<AppResponse<Vec<RepositoryServerResponse>>, AppError> {
-    let request = ListUserRepositoriesRequest::new(&user_name)?;
+    let viewer_id = auth_user.map(|u| u.id);
+    let request = ListUserRepositoriesRequest::new(&user_name, viewer_id)?;
     state
         .user_service
         .list_repositories(request)

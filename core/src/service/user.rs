@@ -56,12 +56,20 @@ where
         request: ListUserRepositoriesRequest,
     ) -> Result<Vec<RepositoryResponse>, UserError> {
         let user_name = request.user_name.to_string();
-        self.user_repo
+        let user = self
+            .user_repo
             .get(&user_name)
             .await?
             .ok_or_else(|| UserError::NotFound(user_name.clone()))?;
 
         let repositories = self.repo_repo.list_by_owner(&user_name).await?;
+
+        let is_owner = request.viewer_id.map(|id| id == user.id).unwrap_or(false);
+        let repositories = if is_owner {
+            repositories
+        } else {
+            repositories.into_iter().filter(|r| r.is_public()).collect()
+        };
 
         Ok(repositories.into_iter().map(|r| r.into()).collect())
     }
