@@ -12,7 +12,17 @@ import {
 } from "@/lib/dal";
 import { createSupabaseClient } from "@/lib/supabase";
 import { VoteResponse } from "./lib/dto";
-import { revalidatePath } from "next/cache";
+import { refresh } from "next/cache";
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+// note that the actions here use refresh() as opposed to revalidatePath()
+// the reason why is that refresh() only ensures that the current request gets fresh data
+// whereas revalidatePath invalidates the entire client-side router cache regardless of the path passed in
+// this means things like instant back/forth and prefetches will not work if an action is invoked
+// even though it should only selectively dump that path in the client
+//
+// so rather dumbly, we just use refresh() which sets FreshnessPolicy.RefreshAll for the current navigation only
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 export async function signup(formData: FormData) {
   const supabase = await createSupabaseClient();
@@ -101,6 +111,8 @@ export async function createAnswerAction(owner: string, repo: string, number: nu
   if (!result) {
     return { error: "Failed to create answer" };
   }
+
+  refresh();
   return { success: true, answer: result };
 }
 
@@ -129,6 +141,7 @@ export async function createCommentAction(
     return { error: "Failed to create comment" };
   }
 
+  refresh();
   return { success: true };
 }
 
@@ -159,6 +172,6 @@ export async function voteAction(
     return { success: false, error: "Failed to vote" };
   }
 
-  revalidatePath(`/${owner}/${repo}/questions/${number}`);
+  refresh();
   return { success: true, data: result };
 }
