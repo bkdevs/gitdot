@@ -1,5 +1,7 @@
-use axum::extract::{Path, State};
-use axum::http::StatusCode;
+use axum::{
+    extract::{Path, State},
+    http::StatusCode,
+};
 
 use gitdot_core::dto::GetUserRequest;
 

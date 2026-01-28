@@ -3,9 +3,8 @@ use async_trait::async_trait;
 use crate::dto::{
     AnswerResponse, CommentResponse, CreateAnswerCommentRequest, CreateAnswerRequest,
     CreateQuestionCommentRequest, CreateQuestionRequest, GetQuestionRequest, GetQuestionsRequest,
-    QuestionResponse, QuestionsResponse, UpdateAnswerRequest, UpdateCommentRequest,
-    UpdateQuestionRequest, VoteAnswerRequest, VoteCommentRequest, VoteQuestionRequest,
-    VoteResponse,
+    QuestionResponse, UpdateAnswerRequest, UpdateCommentRequest, UpdateQuestionRequest,
+    VoteAnswerRequest, VoteCommentRequest, VoteQuestionRequest, VoteResponse,
 };
 use crate::error::QuestionError;
 use crate::model::VoteTarget;
@@ -33,7 +32,7 @@ pub trait QuestionService: Send + Sync + 'static {
     async fn get_questions(
         &self,
         request: GetQuestionsRequest,
-    ) -> Result<QuestionsResponse, QuestionError>;
+    ) -> Result<Vec<QuestionResponse>, QuestionError>;
 
     async fn create_answer(
         &self,
@@ -162,7 +161,7 @@ where
     async fn get_questions(
         &self,
         request: GetQuestionsRequest,
-    ) -> Result<QuestionsResponse, QuestionError> {
+    ) -> Result<Vec<QuestionResponse>, QuestionError> {
         let repository = self
             .repo_repo
             .get(request.owner.as_ref(), request.repo.as_ref())
@@ -174,9 +173,7 @@ where
             .get_questions(repository.id, request.user_id)
             .await?;
 
-        Ok(QuestionsResponse {
-            questions: questions.into_iter().map(QuestionResponse::from).collect(),
-        })
+        Ok(questions.into_iter().map(QuestionResponse::from).collect())
     }
 
     async fn create_answer(

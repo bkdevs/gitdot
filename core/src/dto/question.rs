@@ -30,11 +30,6 @@ pub use vote_comment::VoteCommentRequest;
 pub use vote_question::VoteQuestionRequest;
 
 #[derive(Debug, Clone)]
-pub struct QuestionsResponse {
-    pub questions: Vec<QuestionResponse>,
-}
-
-#[derive(Debug, Clone)]
 pub struct QuestionResponse {
     pub id: Uuid,
     pub number: i32,

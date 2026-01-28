@@ -10,9 +10,7 @@ use chrono::{DateTime, Utc};
 use serde::Serialize;
 use uuid::Uuid;
 
-use gitdot_core::dto::{
-    AnswerResponse, AuthorResponse, CommentResponse, QuestionResponse, QuestionsResponse,
-};
+use gitdot_core::dto::{AnswerResponse, AuthorResponse, CommentResponse, QuestionResponse};
 
 pub use create_answer::CreateAnswerServerRequest;
 pub use create_comment::CreateCommentServerRequest;
@@ -21,19 +19,6 @@ pub use update_answer::UpdateAnswerServerRequest;
 pub use update_comment::UpdateCommentServerRequest;
 pub use update_question::UpdateQuestionServerRequest;
 pub use vote::{VoteServerRequest, VoteServerResponse};
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub struct QuestionsServerResponse {
-    pub questions: Vec<QuestionServerResponse>,
-}
-
-impl From<QuestionsResponse> for QuestionsServerResponse {
-    fn from(response: QuestionsResponse) -> Self {
-        Self {
-            questions: response.questions.into_iter().map(Into::into).collect(),
-        }
-    }
-}
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct QuestionServerResponse {

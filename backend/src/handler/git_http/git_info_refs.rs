@@ -1,5 +1,8 @@
-use axum::extract::{Path, Query, State};
-use axum::http::HeaderMap;
+use axum::{
+    extract::{Path, Query, State},
+    http::HeaderMap,
+};
+
 use gitdot_core::dto::{GitHttpAuthorizationRequest, InfoRefsRequest};
 
 use crate::app::{AppError, AppState};

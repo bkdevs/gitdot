@@ -1,4 +1,7 @@
-use axum::extract::{Path, State};
+use axum::{
+    extract::{Path, State},
+    http::StatusCode,
+};
 
 use gitdot_core::dto::GetOrganizationRepositoriesRequest;
 
@@ -20,7 +23,7 @@ pub async fn list_organization_repositories(
         .map_err(AppError::from)
         .map(|repos| {
             AppResponse::new(
-                axum::http::StatusCode::OK,
+                StatusCode::OK,
                 repos.into_iter().map(|r| r.into()).collect(),
             )
         })
