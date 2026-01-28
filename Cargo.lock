@@ -688,6 +688,7 @@ dependencies = [
  "anyhow",
  "clap",
  "gitdot_core",
+ "tokio",
  "uuid",
 ]
 

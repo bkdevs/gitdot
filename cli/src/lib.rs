@@ -1,3 +1,3 @@
-mod parser;
+mod command;
 
-pub use parser::Args;
+pub use command::Args;
