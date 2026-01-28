@@ -1,7 +1,6 @@
 "use client";
 
 import { Plus } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useActionState, useState } from "react";
 import { createQuestionAction } from "@/actions";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/ui/dialog";
@@ -13,19 +12,18 @@ export function CreateQuestionButton({
   owner: string;
   repo: string;
 }) {
-  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
 
+  const createQuestion = createQuestionAction.bind(null, owner, repo);
   const [state, formAction, isPending] = useActionState(
     async (_prevState: { error?: string } | null, formData: FormData) => {
-      const result = await createQuestionAction(formData);
+      const result = await createQuestion(formData);
       if (result.success) {
         setOpen(false);
         setTitle("");
         setBody("");
-        router.refresh();
         return null;
       }
       return { error: result.error };
@@ -60,8 +58,6 @@ export function CreateQuestionButton({
           </div>
         </DialogTitle>
         <form action={formAction} className="flex flex-col gap-1">
-          <input type="hidden" name="owner" value={owner} />
-          <input type="hidden" name="repo" value={repo} />
           <input
             type="text"
             name="title"

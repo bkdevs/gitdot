@@ -12,12 +12,12 @@ export function AnswerForm({
   owner: string;
   repo: string;
   number: number;
-}) {
+  }) {
+  const createAnswer = createAnswerAction.bind(null, owner, repo, number);
   const [body, setBody] = useState("");
-
   const [state, formAction, isPending] = useActionState(
     async (_prevState: { error?: string } | null, formData: FormData) => {
-      const result = await createAnswerAction(formData);
+      const result = await createAnswer(formData);
       if (result.success) {
         setBody("");
         return null;
@@ -32,9 +32,6 @@ export function AnswerForm({
   return (
     <div className="ml-3">
       <form action={formAction}>
-        <input type="hidden" name="owner" value={owner} />
-        <input type="hidden" name="repo" value={repo} />
-        <input type="hidden" name="number" value={number} />
         <div className="relative">
           <textarea
             name="body"

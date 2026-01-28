@@ -26,11 +26,9 @@ export default function CreateRepoButton() {
     setLoading(true);
 
     const formData = new FormData();
-    formData.set("owner", owner);
-    formData.set("name", repoName);
     formData.set("visibility", visibility);
 
-    const result = await createRepositoryAction(formData);
+    const result = await createRepositoryAction(owner, repoName, formData);
 
     setLoading(false);
 

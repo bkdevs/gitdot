@@ -8,11 +8,13 @@ import { useUser } from "@/providers/user-provider";
 import { cn, timeAgoFull } from "@/util";
 
 type CommentsProps = {
+  parentType: "question" | "answer";
+  parentId?: string | undefined
   owner: string;
   repo: string;
   number: number;
   comments: CommentResponse[];
-} & ({ parentType: "question" } | { parentType: "answer"; answerId: string });
+}
 
 export function Comments(props: CommentsProps) {
   const { owner, repo, number, comments } = props;
@@ -138,10 +140,20 @@ function Comment({
 }
 
 function CommentInput(
-  props: CommentsProps & { addOptimisticComment: (body: string) => void },
+  {
+    owner,
+    repo,
+    number,
+    parentType,
+    parentId,
+    addOptimisticComment
+  }
+  :
+  CommentsProps & { addOptimisticComment: (body: string) => void },
 ) {
   const [showInput, setShowInput] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
+  const createComment = createCommentAction.bind(null, owner, repo, number, parentType, parentId);
 
   const [, formAction] = useActionState(
     async (_prevState: { error?: string } | null, formData: FormData) => {
@@ -151,7 +163,7 @@ function CommentInput(
       setShowInput(false);
       addOptimisticComment(body);
 
-      const result = await createCommentAction(formData);
+      const result = await createComment(formData);
       if (!result.success) {
         return { error: result.error };
       }
@@ -160,18 +172,10 @@ function CommentInput(
     null,
   );
 
-  const { owner, repo, number, parentType, addOptimisticComment } = props;
-  const answerId = parentType === "answer" ? props.answerId : null;
-
   return (
     <div className="flex flex-row w-full pt-1">
       {showInput ? (
         <form ref={formRef} action={formAction} className="w-full">
-          <input type="hidden" name="owner" value={owner} />
-          <input type="hidden" name="repo" value={repo} />
-          <input type="hidden" name="number" value={number} />
-          <input type="hidden" name="parentType" value={parentType} />
-          {answerId && <input type="hidden" name="answerId" value={answerId} />}
           <input
             className="border-b border-bg ring-0 outline-none h-5 w-full"
             type="text"

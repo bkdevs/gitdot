@@ -53,9 +53,7 @@ export async function signout() {
   console.log(error);
 }
 
-export async function createRepositoryAction(formData: FormData) {
-  const owner = formData.get("owner") as string;
-  const name = formData.get("name") as string;
+export async function createRepositoryAction(owner: string, name: string, formData: FormData) {
   const visibility = formData.get("visibility") as string;
 
   if (!owner || !name) {
@@ -74,9 +72,7 @@ export async function createRepositoryAction(formData: FormData) {
   return { success: true, repository: result };
 }
 
-export async function createQuestionAction(formData: FormData) {
-  const owner = formData.get("owner") as string;
-  const repo = formData.get("repo") as string;
+export async function createQuestionAction(owner: string, repo: string, formData: FormData) {
   const title = formData.get("title") as string;
   const body = formData.get("body") as string;
 
@@ -93,41 +89,39 @@ export async function createQuestionAction(formData: FormData) {
   return { success: true, question: result };
 }
 
-export async function createAnswerAction(formData: FormData) {
-  const owner = formData.get("owner") as string;
-  const repo = formData.get("repo") as string;
-  const number = formData.get("number") as string;
+export async function createAnswerAction(owner: string, repo: string, number: number, formData: FormData) {
   const body = formData.get("body") as string;
 
-  if (!owner || !repo || !number || !body) {
-    return { error: "All fields are required" };
+  if (!body) {
+    return { error: "Cannot create an empty answer" };
   }
 
-  const result = await createAnswer(owner, repo, Number(number), { body });
+  const result = await createAnswer(owner, repo, number, { body });
 
   if (!result) {
     return { error: "Failed to create answer" };
   }
-
   return { success: true, answer: result };
 }
 
-export async function createCommentAction(formData: FormData) {
-  const owner = formData.get("owner") as string;
-  const repo = formData.get("repo") as string;
-  const number = formData.get("number") as string;
+export async function createCommentAction(
+  owner: string,
+  repo: string,
+  number: number,
+  parentType: "question" | "answer",
+  parentId: string | undefined,
+  formData: FormData
+) {
   const body = formData.get("body") as string;
-  const parentType = formData.get("parentType") as "question" | "answer";
-  const answerId = formData.get("answerId") as string | null;
 
-  if (!owner || !repo || !number || !body) {
+  if (parentType === "answer" && !parentId) {
     return { error: "All fields are required" };
   }
 
   const result =
     parentType === "question"
       ? await createQuestionComment(owner, repo, Number(number), { body })
-      : await createAnswerComment(owner, repo, Number(number), answerId!, {
+      : await createAnswerComment(owner, repo, Number(number), parentId!, {
           body,
         });
 

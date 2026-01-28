@@ -47,11 +47,11 @@ export function QuestionCard({ question, owner, repo }: QuestionCardProps) {
         </div>
 
         <Comments
+          parentType="question"
           owner={owner}
           repo={repo}
           number={question.number}
           comments={question.comments}
-          parentType="question"
         />
       </div>
     </div>

@@ -6,19 +6,19 @@ import { TriangleDown, TriangleUp } from "@/lib/icons";
 import { cn } from "@/util";
 
 export function VoteBox({
+  targetId,
+  targetType,
   owner,
   repo,
   number,
-  targetId,
-  targetType,
   score,
   userVote,
 }: {
+  targetType: "question" | "answer";
+  targetId?: string | undefined;
   owner: string;
   repo: string;
   number: number;
-  targetType: "question" | "answer";
-  targetId?: string | undefined;
   score: number;
   userVote: number | null;
 }) {

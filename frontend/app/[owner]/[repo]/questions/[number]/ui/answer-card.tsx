@@ -16,10 +16,10 @@ export function AnswerCard({ answer, owner, repo, number }: AnswerCardProps) {
     <div className="flex">
       <VoteBox
         targetType="answer"
+        targetId={answer.id}
         owner={owner}
         repo={repo}
         number={number}
-        answerId={answer.id}
         score={answer.upvote}
         userVote={answer.user_vote}
       />
@@ -40,12 +40,12 @@ export function AnswerCard({ answer, owner, repo, number }: AnswerCardProps) {
         </div>
 
         <Comments
+          parentType="answer"
+          parentId={answer.id}
           owner={owner}
           repo={repo}
           number={number}
           comments={answer.comments}
-          parentType="answer"
-          answerId={answer.id}
         />
       </div>
     </div>
