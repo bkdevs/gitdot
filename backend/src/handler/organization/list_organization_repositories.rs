@@ -6,7 +6,7 @@ use crate::app::{AppError, AppResponse, AppState};
 use crate::dto::RepositoryServerResponse;
 
 #[axum::debug_handler]
-pub async fn get_organization_repositories(
+pub async fn list_organization_repositories(
     State(state): State<AppState>,
     Path(org_name): Path<String>,
 ) -> Result<AppResponse<Vec<RepositoryServerResponse>>, AppError> {
