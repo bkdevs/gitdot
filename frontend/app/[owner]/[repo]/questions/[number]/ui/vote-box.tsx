@@ -39,8 +39,8 @@ export function VoteBox(props: VoteBoxProps) {
   );
 
   return (
-    <div className="flex flex-col mx-6 mt-1.75 items-center gap-1 text-muted-foreground text-xl">
-      <form action={formAction}>
+    <div className="flex flex-col mx-6 mt-1.75 gap-1 items-center text-muted-foreground text-xl">
+      <form action={formAction} className="contents">
         <input type="hidden" name="owner" value={props.owner} />
         <input type="hidden" name="repo" value={props.repo} />
         <input type="hidden" name="number" value={props.number} />
@@ -69,7 +69,7 @@ export function VoteBox(props: VoteBoxProps) {
       >
         {optimistic.score}
       </span>
-      <form action={formAction}>
+      <form action={formAction} className="contents">
         <input type="hidden" name="owner" value={props.owner} />
         <input type="hidden" name="repo" value={props.repo} />
         <input type="hidden" name="number" value={props.number} />

@@ -101,7 +101,7 @@ function Comment({
           >
             {optimistic.upvote}
           </span>
-          <form action={formAction}>
+          <form action={formAction} className="contents">
             <input type="hidden" name="owner" value={owner} />
             <input type="hidden" name="repo" value={repo} />
             <input type="hidden" name="number" value={number} />
@@ -116,7 +116,7 @@ function Comment({
                   : "text-muted-foreground hover:text-foreground",
               )}
             >
-              <TriangleUp className="-mb-0.25 size-3" />
+              <TriangleUp className="mb-0.5 size-3" />
             </button>
           </form>
         </div>
@@ -124,7 +124,7 @@ function Comment({
           {body}
           <span className="text-muted-foreground shrink-0">
             {" — "}
-            <span className="text-blue-400 cursor-pointer">{author.name}</span>{" "}
+            <span className="text-blue-400 cursor-pointer">{author!.name}</span>{" "}
             {timeAgoFull(new Date(created_at))}
           </span>
         </p>
