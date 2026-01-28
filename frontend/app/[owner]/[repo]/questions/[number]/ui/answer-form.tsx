@@ -30,7 +30,7 @@ export function AnswerForm({
   const isValid = body.trim() !== "";
 
   return (
-    <div className="ml-3 mt-12">
+    <div className="ml-3">
       <form action={formAction}>
         <input type="hidden" name="owner" value={owner} />
         <input type="hidden" name="repo" value={repo} />

@@ -15,17 +15,22 @@ export default async function Page({
 
   return (
     <div className="w-full h-screen">
-      <div className="flex flex-col max-w-4xl py-4">
-        <QuestionCard question={question} />
-        {question.answers.length > 0 && (
-          <AnswersStripe count={question.answers.length} />
-        )}
-        <div className="flex flex-col gap-8">
-          {question.answers.map((answer) => (
-            <AnswerCard key={answer.id} answer={answer} />
-          ))}
+      <div className="flex flex-col flex-1 min-w-0 overflow-auto scrollbar-thin">
+        <div className="max-w-4xl mt-4">
+          <QuestionCard question={question} />
         </div>
-        <AnswerForm owner={owner} repo={repo} number={number} />
+
+        <AnswersStripe count={question.answers.length} />
+        <div className="flex flex-col max-w-4xl">
+          <div className="flex flex-col gap-12">
+            {question.answers.map((answer) => (
+              <AnswerCard key={answer.id} answer={answer} />
+            ))}
+          </div>
+          <div className={question.answers.length > 0 ? "mt-12" : ""}>
+            <AnswerForm owner={owner} repo={repo} number={number} />
+          </div>
+        </div>
       </div>
     </div>
   );
