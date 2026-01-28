@@ -5,18 +5,19 @@ use axum::{
 };
 use gitdot_core::dto::{GitHttpAuthorizationRequest, UploadPackRequest};
 
-use crate::app::{AppError, AppState};
+use crate::app::{AppError, AppState, AuthenticatedUser};
 use crate::dto::GitHttpServerResponse;
 
 #[axum::debug_handler]
 pub async fn git_upload_pack(
+    auth_user: Option<AuthenticatedUser>,
     State(state): State<AppState>,
     Path((owner, repo)): Path<(String, String)>,
     headers: HeaderMap,
     body: Body,
 ) -> Result<GitHttpServerResponse, AppError> {
-    let auth_header = headers.get("authorization").and_then(|v| v.to_str().ok());
-    let auth_request = GitHttpAuthorizationRequest::for_upload_pack(auth_header, &owner, &repo)?;
+    let user_id = auth_user.map(|u| u.id);
+    let auth_request = GitHttpAuthorizationRequest::for_upload_pack(user_id, &owner, &repo)?;
     state
         .auth_service
         .verify_authorized_for_git_http(auth_request)

@@ -4,6 +4,7 @@ use axum::{
     extract::{FromRef, FromRequestParts, OptionalFromRequestParts},
     http::request::Parts,
 };
+use base64::Engine;
 use jsonwebtoken::{Algorithm, DecodingKey, Validation, decode};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -66,10 +67,19 @@ fn authenticate_user(
         .and_then(|value| value.to_str().ok())
         .ok_or(AuthorizationError::MissingHeader)?;
 
-    let token = auth_header
-        .strip_prefix("Bearer ")
-        .ok_or(AuthorizationError::InvalidHeaderFormat)?;
+    if let Some(token) = auth_header.strip_prefix("Bearer ") {
+        authenticate_with_jwt(token, app_state)
+    } else if let Some(credentials) = auth_header.strip_prefix("Basic ") {
+        authenticate_with_credential(credentials, app_state)
+    } else {
+        Err(AuthorizationError::InvalidHeaderFormat)
+    }
+}
 
+fn authenticate_with_jwt(
+    token: &str,
+    app_state: &AppState,
+) -> Result<AuthenticatedUser, AuthorizationError> {
     let mut validation = Validation::new(Algorithm::ES256);
     validation.set_audience(&["authenticated"]);
     let jwt_public_key = app_state.settings.supabase_jwt_public_key.as_bytes();
@@ -83,4 +93,23 @@ fn authenticate_user(
         .map_err(|e| AuthorizationError::InvalidToken(e.to_string()))?;
 
     Ok(AuthenticatedUser { id })
+}
+
+fn authenticate_with_credential(
+    credentials: &str,
+    _app_state: &AppState,
+) -> Result<AuthenticatedUser, AuthorizationError> {
+    let decoded = base64::engine::general_purpose::STANDARD
+        .decode(credentials)
+        .map_err(|_| AuthorizationError::Unauthorized)?;
+
+    let credential_str =
+        String::from_utf8(decoded).map_err(|_| AuthorizationError::Unauthorized)?;
+
+    let (username, _password) = credential_str
+        .split_once(':')
+        .ok_or(AuthorizationError::Unauthorized)?;
+
+    // TODO: Validate credentials and return user_id
+    todo!("Authenticate user '{}' with password/token", username)
 }

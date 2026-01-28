@@ -1,10 +1,12 @@
+use uuid::Uuid;
+
 use crate::dto::{OwnerName, RepositoryName};
 use crate::error::AuthorizationError;
 use crate::model::GitOperation;
 
 #[derive(Debug, Clone)]
 pub struct GitHttpAuthorizationRequest {
-    pub auth_header: Option<String>,
+    pub user_id: Option<Uuid>,
     pub owner: OwnerName,
     pub repo: RepositoryName,
     pub operation: GitOperation,
@@ -12,7 +14,7 @@ pub struct GitHttpAuthorizationRequest {
 
 impl GitHttpAuthorizationRequest {
     pub fn for_info_refs(
-        auth_header: Option<&str>,
+        user_id: Option<Uuid>,
         owner: &str,
         repo: &str,
         service: &str,
@@ -22,7 +24,7 @@ impl GitHttpAuthorizationRequest {
             _ => GitOperation::Read,
         };
         Ok(Self {
-            auth_header: auth_header.map(|s| s.to_string()),
+            user_id,
             owner: OwnerName::try_new(owner)
                 .map_err(|e| AuthorizationError::InvalidRequest(e.to_string()))?,
             repo: RepositoryName::try_new(repo)
@@ -32,12 +34,12 @@ impl GitHttpAuthorizationRequest {
     }
 
     pub fn for_upload_pack(
-        auth_header: Option<&str>,
+        user_id: Option<Uuid>,
         owner: &str,
         repo: &str,
     ) -> Result<Self, AuthorizationError> {
         Ok(Self {
-            auth_header: auth_header.map(|s| s.to_string()),
+            user_id,
             owner: OwnerName::try_new(owner)
                 .map_err(|e| AuthorizationError::InvalidRequest(e.to_string()))?,
             repo: RepositoryName::try_new(repo)
@@ -47,12 +49,12 @@ impl GitHttpAuthorizationRequest {
     }
 
     pub fn for_receive_pack(
-        auth_header: Option<&str>,
+        user_id: Option<Uuid>,
         owner: &str,
         repo: &str,
     ) -> Result<Self, AuthorizationError> {
         Ok(Self {
-            auth_header: auth_header.map(|s| s.to_string()),
+            user_id,
             owner: OwnerName::try_new(owner)
                 .map_err(|e| AuthorizationError::InvalidRequest(e.to_string()))?,
             repo: RepositoryName::try_new(repo)

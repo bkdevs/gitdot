@@ -1,8 +1,5 @@
 use async_trait::async_trait;
 
-use base64::Engine;
-use uuid::Uuid;
-
 use crate::dto::{
     AnswerAuthorizationRequest, CommentAuthorizationRequest, GitHttpAuthorizationRequest,
     OrganizationAuthorizationRequest, QuestionAuthorizationRequest, RepositoryAuthorizationRequest,
@@ -114,7 +111,7 @@ where
             return Ok(());
         }
 
-        let user_id = Self::authenticate_git_http(&request.auth_header)?;
+        let user_id = request.user_id.ok_or(AuthorizationError::Unauthorized)?;
         if repository.is_owned_by_user() {
             if repository.owner_id != user_id {
                 return Err(AuthorizationError::Unauthorized);
@@ -293,39 +290,5 @@ where
         }
 
         Ok(())
-    }
-}
-
-impl<O, R, Q, U> AuthorizationServiceImpl<O, R, Q, U>
-where
-    O: OrganizationRepository,
-    R: RepositoryRepository,
-    Q: QuestionRepository,
-    U: UserRepository,
-{
-    fn authenticate_git_http(auth_header: &Option<String>) -> Result<Uuid, AuthorizationError> {
-        let header = auth_header
-            .as_ref()
-            .ok_or(AuthorizationError::Unauthorized)?;
-
-        // Parse Basic auth: "Basic base64(username:password)"
-        let credentials = header
-            .strip_prefix("Basic ")
-            .ok_or(AuthorizationError::Unauthorized)?;
-
-        let decoded = base64::engine::general_purpose::STANDARD
-            .decode(credentials)
-            .map_err(|_| AuthorizationError::Unauthorized)?;
-
-        let credential_str =
-            String::from_utf8(decoded).map_err(|_| AuthorizationError::Unauthorized)?;
-
-        let (username, _password) = credential_str
-            .split_once(':')
-            .ok_or(AuthorizationError::Unauthorized)?;
-
-        // TODO: Validate credentials and return user_id
-        // This will be implemented when we add OAuth token support
-        todo!("Authenticate user '{}' with password/token", username)
     }
 }

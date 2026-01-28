@@ -1,23 +1,20 @@
-use axum::{
-    extract::{Path, Query, State},
-    http::HeaderMap,
-};
+use axum::extract::{Path, Query, State};
 
 use gitdot_core::dto::{GitHttpAuthorizationRequest, InfoRefsRequest};
 
-use crate::app::{AppError, AppState};
+use crate::app::{AppError, AppState, AuthenticatedUser};
 use crate::dto::{GitHttpServerResponse, InfoRefsQuery};
 
 #[axum::debug_handler]
 pub async fn git_info_refs(
+    auth_user: Option<AuthenticatedUser>,
     State(state): State<AppState>,
     Path((owner, repo)): Path<(String, String)>,
     Query(params): Query<InfoRefsQuery>,
-    headers: HeaderMap,
 ) -> Result<GitHttpServerResponse, AppError> {
-    let auth_header = headers.get("authorization").and_then(|v| v.to_str().ok());
+    let user_id = auth_user.map(|u| u.id);
     let auth_request =
-        GitHttpAuthorizationRequest::for_info_refs(auth_header, &owner, &repo, &params.service)?;
+        GitHttpAuthorizationRequest::for_info_refs(user_id, &owner, &repo, &params.service)?;
     state
         .auth_service
         .verify_authorized_for_git_http(auth_request)
