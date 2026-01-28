@@ -38,6 +38,30 @@ export function timeAgo(date: Date) {
   return `${Math.floor(seconds / 31536000)}y ago`;
 }
 
+export function timeAgoFull(date: Date) {
+  const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
+  if (seconds < 60) return "just now";
+
+  const minutes = Math.floor(seconds / 60);
+  if (seconds < 3600) {
+    return minutes === 1 ? "1 minute ago" : `${minutes} minutes ago`;
+  }
+  const hours = Math.floor(seconds / 3600);
+  if (seconds < 86400) {
+    return hours === 1 ? "1 hour ago" : `${hours} hours ago`;
+  }
+  const days = Math.floor(seconds / 86400);
+  if (seconds < 2592000) {
+    return days === 1 ? "1 day ago" : `${days} days ago`;
+  }
+  const months = Math.floor(seconds / 2592000);
+  if (seconds < 31536000) {
+    return months === 1 ? "1 month ago" : `${months} months ago`;
+  }
+  const years = Math.floor(seconds / 31536000);
+  return years === 1 ? "1 year ago" : `${years} years ago`;
+}
+
 /**
  * Format date header: "Today", "Yesterday", or "Jan 12"
  */

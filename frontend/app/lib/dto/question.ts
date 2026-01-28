@@ -74,7 +74,7 @@ export const AnswerResponseSchema = z.object({
   created_at: z.iso.datetime(),
   updated_at: z.iso.datetime(),
   user_vote: z.number().int().nullable(),
-  author: AuthorResponseSchema.nullable(),
+  author: AuthorResponseSchema,
   comments: z.array(CommentResponseSchema),
 });
 
@@ -99,9 +99,7 @@ export const QuestionResponseSchema = z.object({
 
 export type QuestionResponse = z.infer<typeof QuestionResponseSchema>;
 
-export const QuestionsResponseSchema = z.object({
-  questions: z.array(QuestionResponseSchema),
-});
+export const QuestionsResponseSchema = z.array(QuestionResponseSchema);
 
 export type QuestionsResponse = z.infer<typeof QuestionsResponseSchema>;
 
