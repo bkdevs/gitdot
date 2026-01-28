@@ -4,13 +4,13 @@ use crate::dto::{OwnerName, RepositoryName};
 use crate::error::QuestionError;
 
 #[derive(Debug, Clone)]
-pub struct GetQuestionsRequest {
+pub struct ListQuestionsRequest {
     pub owner: OwnerName,
     pub repo: RepositoryName,
     pub user_id: Option<Uuid>,
 }
 
-impl GetQuestionsRequest {
+impl ListQuestionsRequest {
     pub fn new(owner: &str, repo: &str, user_id: Option<Uuid>) -> Result<Self, QuestionError> {
         Ok(Self {
             owner: OwnerName::try_new(owner)

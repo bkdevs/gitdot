@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 
-use crate::dto::{GetUserRepositoriesRequest, GetUserRequest, RepositoryResponse, UserResponse};
+use crate::dto::{GetUserRequest, ListUserRepositoriesRequest, RepositoryResponse, UserResponse};
 use crate::error::UserError;
 use crate::repository::{
     RepositoryRepository, RepositoryRepositoryImpl, UserRepository, UserRepositoryImpl,
@@ -10,9 +10,9 @@ use crate::repository::{
 pub trait UserService: Send + Sync + 'static {
     async fn get_user(&self, request: GetUserRequest) -> Result<UserResponse, UserError>;
 
-    async fn get_repositories(
+    async fn list_repositories(
         &self,
-        request: GetUserRepositoriesRequest,
+        request: ListUserRepositoriesRequest,
     ) -> Result<Vec<RepositoryResponse>, UserError>;
 }
 
@@ -51,9 +51,9 @@ where
         Ok(user.into())
     }
 
-    async fn get_repositories(
+    async fn list_repositories(
         &self,
-        request: GetUserRepositoriesRequest,
+        request: ListUserRepositoriesRequest,
     ) -> Result<Vec<RepositoryResponse>, UserError> {
         let user_name = request.user_name.to_string();
         self.user_repo

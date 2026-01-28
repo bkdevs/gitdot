@@ -3,7 +3,7 @@ use axum::{
     http::StatusCode,
 };
 
-use gitdot_core::dto::{GetQuestionsRequest, RepositoryAuthorizationRequest};
+use gitdot_core::dto::{ListQuestionsRequest, RepositoryAuthorizationRequest};
 
 use crate::app::{AppError, AppResponse, AppState, AuthenticatedUser};
 use crate::dto::QuestionServerResponse;
@@ -21,10 +21,10 @@ pub async fn get_questions(
         .verify_authorized_for_repository(request)
         .await?;
 
-    let request = GetQuestionsRequest::new(&owner, &repo, user_id)?;
+    let request = ListQuestionsRequest::new(&owner, &repo, user_id)?;
     state
         .question_service
-        .get_questions(request)
+        .list_questions(request)
         .await
         .map_err(AppError::from)
         .map(|qs| AppResponse::new(StatusCode::OK, qs.into_iter().map(|q| q.into()).collect()))

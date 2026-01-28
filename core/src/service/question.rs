@@ -2,7 +2,7 @@ use async_trait::async_trait;
 
 use crate::dto::{
     AnswerResponse, CommentResponse, CreateAnswerCommentRequest, CreateAnswerRequest,
-    CreateQuestionCommentRequest, CreateQuestionRequest, GetQuestionRequest, GetQuestionsRequest,
+    CreateQuestionCommentRequest, CreateQuestionRequest, GetQuestionRequest, ListQuestionsRequest,
     QuestionResponse, UpdateAnswerRequest, UpdateCommentRequest, UpdateQuestionRequest,
     VoteAnswerRequest, VoteCommentRequest, VoteQuestionRequest, VoteResponse,
 };
@@ -29,9 +29,9 @@ pub trait QuestionService: Send + Sync + 'static {
         request: GetQuestionRequest,
     ) -> Result<QuestionResponse, QuestionError>;
 
-    async fn get_questions(
+    async fn list_questions(
         &self,
-        request: GetQuestionsRequest,
+        request: ListQuestionsRequest,
     ) -> Result<Vec<QuestionResponse>, QuestionError>;
 
     async fn create_answer(
@@ -158,9 +158,9 @@ where
         Ok(question.into())
     }
 
-    async fn get_questions(
+    async fn list_questions(
         &self,
-        request: GetQuestionsRequest,
+        request: ListQuestionsRequest,
     ) -> Result<Vec<QuestionResponse>, QuestionError> {
         let repository = self
             .repo_repo
