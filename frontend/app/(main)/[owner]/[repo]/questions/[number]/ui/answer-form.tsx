@@ -1,17 +1,22 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useUser } from "@/(main)/providers/user-provider";
 import { type CreateAnswerActionResult, createAnswerAction } from "@/actions";
+import { AnswerResponse } from "@/lib/dto";
 import { Button } from "@/ui/button";
+import { cn } from "@/util";
+import { useActionState, useState } from "react";
 
 export function AnswerForm({
   owner,
   repo,
   number,
+  answers,
 }: {
   owner: string;
   repo: string;
   number: number;
+  answers: AnswerResponse[]
 }) {
   const createAnswer = createAnswerAction.bind(null, owner, repo, number);
   const [body, setBody] = useState("");
@@ -21,11 +26,18 @@ export function AnswerForm({
     },
     null,
   );
-
   const isValid = body.trim() !== "";
+  const user = useUser();
+  const answeredQuestion = answers.find(
+    (answer) => answer.author_id === user?.id,
+  );
+
+  if (answeredQuestion) {
+    return null;
+  }
 
   return (
-    <div className="ml-3">
+    <div className={cn("ml-3", answers.length > 0 && "mt-12")}>
       <form action={formAction}>
         <div className="relative">
           <textarea

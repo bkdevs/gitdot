@@ -23,8 +23,3 @@ export async function listUserRepositories(
 
   return await handleResponse(response, UserRepositoriesResponseSchema);
 }
-
-export async function getCurrentUser(): Promise<UserResponse | null> {
-  const response = await authFetch(`${GITDOT_SERVER_URL}/user`);
-  return await handleResponse(response, UserResponseSchema);
-}

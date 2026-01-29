@@ -1,4 +1,4 @@
-import { getCurrentUser, getQuestion } from "@/lib/dal";
+import { getQuestion } from "@/lib/dal";
 import { AnswerCard } from "./ui/answer-card";
 import { AnswerForm } from "./ui/answer-form";
 import { AnswersStripe } from "./ui/answers-stripe";
@@ -12,11 +12,6 @@ export default async function Page({
   const { owner, repo, number } = await params;
   const question = await getQuestion(owner, repo, number);
   if (!question) return null;
-
-  const user = await getCurrentUser();
-  const answeredQuestion = question.answers.find(
-    (answer) => answer.author_id === user?.id,
-  );
 
   return (
     <div className="w-full">
@@ -39,11 +34,7 @@ export default async function Page({
             ))}
           </div>
 
-          {!answeredQuestion && (
-            <div className={question.answers.length > 0 ? "mt-12" : ""}>
-              <AnswerForm owner={owner} repo={repo} number={number} />
-            </div>
-          )}
+          <AnswerForm owner={owner} repo={repo} number={number} answers={question.answers}  />
         </div>
       </div>
     </div>

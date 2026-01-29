@@ -1,6 +1,5 @@
 "use server";
 
-import { refresh } from "next/cache";
 import {
   createAnswer,
   createAnswerComment,
@@ -15,23 +14,26 @@ import {
   voteQuestion,
 } from "@/lib/dal";
 import { createSupabaseClient } from "@/lib/supabase";
-import type {
-  AnswerResponse,
-  CommentResponse,
-  CreateRepositoryResponse,
-  QuestionResponse,
-  VoteResponse,
+import { refresh } from "next/cache";
+import { authFetch, GITDOT_SERVER_URL, handleResponse } from "./lib/dal/util";
+import {
+  type AnswerResponse,
+  type CommentResponse,
+  type CreateRepositoryResponse,
+  type QuestionResponse,
+  type UserResponse,
+  UserResponseSchema,
+  type VoteResponse,
 } from "./lib/dto";
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////
-// note that the actions here use refresh() as opposed to revalidatePath()
-// the reason why is that refresh() only ensures that the current request gets fresh data
-// whereas revalidatePath invalidates the entire client-side router cache regardless of the path passed in
-// this means things like instant back/forth and prefetches will not work if an action is invoked
-// even though it should only selectively dump that path in the client
-//
-// so rather dumbly, we just use refresh() which sets FreshnessPolicy.RefreshAll for the current navigation only
-//////////////////////////////////////////////////////////////////////////////////////////////////////////
+export async function getCurrentUserAction(): Promise<UserResponse | null> {
+  const supabase = await createSupabaseClient();
+  const session = await supabase.auth.getSession();
+
+  if (!session) return null;
+  const response = await authFetch(`${GITDOT_SERVER_URL}/user`);
+  return await handleResponse(response, UserResponseSchema);
+}
 
 export async function signup(formData: FormData) {
   const supabase = await createSupabaseClient();
@@ -71,6 +73,16 @@ export async function signout() {
 
   console.log(error);
 }
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+// note that the actions here use refresh() as opposed to revalidatePath()
+// the reason why is that refresh() only ensures that the current request gets fresh data
+// whereas revalidatePath invalidates the entire client-side router cache regardless of the path passed in
+// this means things like instant back/forth and prefetches will not work if an action is invoked
+// even though it should only selectively dump that path in the client
+//
+// so rather dumbly, we just use refresh() which sets FreshnessPolicy.RefreshAll for the current navigation only
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 export type CreateRepositoryActionResult =
   | { repository: CreateRepositoryResponse }

@@ -22,7 +22,7 @@ export function CommentThread({
   number: number;
   comments: CommentResponse[];
 }) {
-  const user = useUser(); // TODO: block input but show comments for unauthenticated
+  const user = useUser();
   const createComment = createCommentAction.bind(
     null,
     owner,
@@ -38,13 +38,13 @@ export function CommentThread({
       {
         id: crypto.randomUUID(),
         parent_id: crypto.randomUUID(),
-        author_id: user!.id,
+        author_id: user?.id || "",
         body: newBody,
         upvote: 0,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         user_vote: null,
-        author: { id: user!.id, name: user!.name },
+        author: { id: user?.id || "", name: user?.name || "" },
       },
     ],
   );
