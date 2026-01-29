@@ -1,5 +1,6 @@
 "use server";
 
+import { refresh } from "next/cache";
 import {
   createAnswer,
   createAnswerComment,
@@ -14,10 +15,10 @@ import {
   voteQuestion,
 } from "@/lib/dal";
 import { createSupabaseClient } from "@/lib/supabase";
-import { refresh } from "next/cache";
 import type {
   AnswerResponse,
   CommentResponse,
+  CreateRepositoryResponse,
   QuestionResponse,
   VoteResponse,
 } from "./lib/dto";
@@ -71,11 +72,15 @@ export async function signout() {
   console.log(error);
 }
 
+export type CreateRepositoryActionResult =
+  | { repository: CreateRepositoryResponse }
+  | { error: string };
+
 export async function createRepositoryAction(
-  owner: string,
-  name: string,
   formData: FormData,
-) {
+): Promise<CreateRepositoryActionResult> {
+  const owner = formData.get("owner") as string;
+  const name = formData.get("name") as string;
   const visibility = formData.get("visibility") as string;
 
   if (!owner || !name) {
@@ -86,12 +91,12 @@ export async function createRepositoryAction(
     owner_type: "user",
     visibility,
   });
-
   if (!result) {
     return { error: "Failed to create repository" };
   }
 
-  return { success: true, repository: result };
+  refresh();
+  return { repository: result };
 }
 
 export type CreateQuestionActionResult =
