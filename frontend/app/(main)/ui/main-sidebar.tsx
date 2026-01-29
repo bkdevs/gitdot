@@ -20,6 +20,7 @@ import {
   SidebarMenuItem,
 } from "@/ui/sidebar";
 import { cn } from "@/util";
+import { CreateRepoButton } from "./create-repo-button";
 
 const SIDEBAR_ICON_WIDTH = "2.5rem";
 
@@ -62,7 +63,7 @@ export function MainSidebar() {
                 href="/charts"
                 isActive={pathname === "/charts"}
               />
-              <NavItem icon={Plus} label="New" isActive={false} />
+              <CreateRepoButton />
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

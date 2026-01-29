@@ -12,8 +12,13 @@ import {
 } from "@/ui/dialog";
 import { Input } from "@/ui/input";
 
-export default function CreateRepoButton() {
-  const [open, setOpen] = useState(false);
+export default function CreateRepoDialog({
+  open,
+  setOpen,
+}: {
+  open: boolean;
+  setOpen: (open: boolean) => void;
+}) {
   const [owner, setOwner] = useState("");
   const [repoName, setRepoName] = useState("");
   const [visibility, setVisibility] = useState("public");
@@ -44,10 +49,7 @@ export default function CreateRepoButton() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline">New Repository</Button>
-      </DialogTrigger>
-      <DialogContent>
+      <DialogContent animations={true}>
         <DialogTitle>Create a new repository</DialogTitle>
         <DialogDescription>
           A repository contains all project files, including the revision
