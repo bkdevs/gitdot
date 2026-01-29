@@ -80,7 +80,7 @@ export async function createRepositoryAction(
   formData: FormData,
 ): Promise<CreateRepositoryActionResult> {
   const owner = formData.get("owner") as string;
-  const name = formData.get("name") as string;
+  const name = formData.get("repo-name") as string;
   const visibility = formData.get("visibility") as string;
 
   if (!owner || !name) {

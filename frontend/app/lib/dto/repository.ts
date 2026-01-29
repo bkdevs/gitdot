@@ -12,7 +12,7 @@ export type CreateRepositoryRequest = z.infer<
 export const CreateRepositoryResponseSchema = z.object({
   id: z.uuid(),
   name: z.string(),
-  owner_name: z.string(),
+  owner_name: z.string().optional(),
   visibility: z.string(),
   created_at: z.iso.datetime(),
 });
