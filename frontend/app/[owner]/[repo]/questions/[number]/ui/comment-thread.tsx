@@ -22,10 +22,16 @@ export function CommentThread({
   number: number;
   comments: CommentResponse[];
 }) {
-  const user = useUser();
+  const user = useUser(); // TODO: block input but show comments for unauthenticated
 
-  // TODO: block input but show comments for unauthenticated
-
+  const createComment = createCommentAction.bind(
+    null,
+    owner,
+    repo,
+    number,
+    parentType,
+    parentId,
+  );
   const [optimisticComments, addOptimisticComment] = useOptimistic(
     comments,
     (state, newBody: string) => [
@@ -42,14 +48,6 @@ export function CommentThread({
         author: { id: user!.id, name: user!.name },
       },
     ],
-  );
-  const createComment = createCommentAction.bind(
-    null,
-    owner,
-    repo,
-    number,
-    parentType,
-    parentId,
   );
 
   return (
