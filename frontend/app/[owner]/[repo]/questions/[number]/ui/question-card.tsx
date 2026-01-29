@@ -27,11 +27,11 @@ export function QuestionCard({ question, owner, repo }: QuestionCardProps) {
         userVote={question.user_vote}
       />
       <div className="flex-1">
-        <div className="flex flex-col group">
-          <div className="flex items-start justify-between">
-            <h1 className="text-xl font-medium">{question.title}</h1>
+        <div className="flex flex-col group relative">
+          <div className="absolute top-0 right-0">
             <QuestionDropdown owner={owner} repo={repo} question={question} />
           </div>
+          <h1 className="text-xl font-medium pr-8">{question.title}</h1>
           <MarkdownBody content={question.body} />
 
           <div className="flex flex-row gap-1 items-center text-xs text-muted-foreground">

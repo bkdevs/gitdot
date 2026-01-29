@@ -1,4 +1,4 @@
-import { getQuestion } from "@/lib/dal";
+import { getCurrentUser, getQuestion } from "@/lib/dal";
 import { AnswerCard } from "./ui/answer-card";
 import { AnswerForm } from "./ui/answer-form";
 import { AnswersStripe } from "./ui/answers-stripe";
@@ -13,9 +13,12 @@ export default async function Page({
   const question = await getQuestion(owner, repo, number);
   if (!question) return null;
 
+  const user = await getCurrentUser();
+  const answeredQuestion = question.answers.find((answer) => answer.author_id === user?.id);
+
   return (
-    <div className="w-full h-screen">
-      <div className="flex flex-col flex-1 min-w-0 overflow-auto scrollbar-thin">
+    <div className="w-full">
+      <div className="flex flex-col flex-1 min-w-0 pb-20">
         <div className="max-w-4xl mt-4">
           <QuestionCard question={question} owner={owner} repo={repo} />
         </div>
@@ -33,9 +36,12 @@ export default async function Page({
               />
             ))}
           </div>
-          <div className={question.answers.length > 0 ? "mt-12" : ""}>
-            <AnswerForm owner={owner} repo={repo} number={number} />
-          </div>
+
+          {!answeredQuestion && (
+            <div className={question.answers.length > 0 ? "mt-12" : ""}>
+              <AnswerForm owner={owner} repo={repo} number={number} />
+            </div>
+          )}
         </div>
       </div>
     </div>

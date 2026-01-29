@@ -6,6 +6,7 @@ import {
   createQuestion,
   createQuestionComment,
   createRepository,
+  updateAnswer,
   updateComment,
   updateQuestion,
   voteAnswer,
@@ -152,6 +153,29 @@ export async function createAnswerAction(
 
   refresh();
   return { success: true, answer: result };
+}
+
+export async function updateAnswerAction(
+  owner: string,
+  repo: string,
+  number: number,
+  answerId: string,
+  formData: FormData,
+) {
+  const body = formData.get("body") as string;
+
+  if (!body) {
+    return { error: "Answer body is required" };
+  }
+
+  const result = await updateAnswer(owner, repo, number, answerId, { body });
+
+  if (!result) {
+    return { error: "Failed to update answer" };
+  }
+
+  refresh();
+  return { success: true };
 }
 
 export async function createCommentAction(

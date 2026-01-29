@@ -48,7 +48,8 @@ export function CommentRow({
   return (
     <div
       className={cn(
-        "flex group flex-row justify-between items-center border-border border-b py-1 pr-1",
+        "flex group flex-row justify-between items-center border-b py-1 pr-1",
+        editing ? "border-primary" : "border-border",
       )}
     >
       <div className="flex flex-row items-start flex-1">
