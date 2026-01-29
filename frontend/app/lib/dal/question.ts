@@ -20,7 +20,7 @@ import {
   VoteResponseSchema,
 } from "../dto";
 import {
-  API_BASE_URL,
+  GITDOT_SERVER_URL,
   authFetch,
   authPatch,
   authPost,
@@ -33,7 +33,7 @@ export async function createQuestion(
   request: CreateQuestionRequest,
 ): Promise<QuestionResponse | null> {
   const response = await authPost(
-    `${API_BASE_URL}/repository/${owner}/${repo}/question`,
+    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/question`,
     request,
   );
 
@@ -46,7 +46,7 @@ export async function getQuestion(
   number: number,
 ): Promise<QuestionResponse | null> {
   const response = await authFetch(
-    `${API_BASE_URL}/repository/${owner}/${repo}/question/${number}`,
+    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/question/${number}`,
   );
 
   return await handleResponse(response, QuestionResponseSchema);
@@ -59,7 +59,7 @@ export async function updateQuestion(
   request: UpdateQuestionRequest,
 ): Promise<QuestionResponse | null> {
   const response = await authPatch(
-    `${API_BASE_URL}/repository/${owner}/${repo}/question/${number}`,
+    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/question/${number}`,
     request,
   );
 
@@ -71,7 +71,7 @@ export async function getQuestions(
   repo: string,
 ): Promise<QuestionsResponse | null> {
   const response = await authFetch(
-    `${API_BASE_URL}/repository/${owner}/${repo}/questions`,
+    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/questions`,
   );
 
   return await handleResponse(response, QuestionsResponseSchema);
@@ -84,7 +84,7 @@ export async function createAnswer(
   request: CreateAnswerRequest,
 ): Promise<AnswerResponse | null> {
   const response = await authPost(
-    `${API_BASE_URL}/repository/${owner}/${repo}/question/${number}/answer`,
+    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/question/${number}/answer`,
     request,
   );
 
@@ -99,7 +99,7 @@ export async function updateAnswer(
   request: UpdateAnswerRequest,
 ): Promise<AnswerResponse | null> {
   const response = await authPatch(
-    `${API_BASE_URL}/repository/${owner}/${repo}/question/${number}/answer/${answerId}`,
+    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/question/${number}/answer/${answerId}`,
     request,
   );
 
@@ -113,7 +113,7 @@ export async function createQuestionComment(
   request: CreateCommentRequest,
 ): Promise<CommentResponse | null> {
   const response = await authPost(
-    `${API_BASE_URL}/repository/${owner}/${repo}/question/${number}/comment`,
+    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/question/${number}/comment`,
     request,
   );
 
@@ -128,7 +128,7 @@ export async function createAnswerComment(
   request: CreateCommentRequest,
 ): Promise<CommentResponse | null> {
   const response = await authPost(
-    `${API_BASE_URL}/repository/${owner}/${repo}/question/${number}/answer/${answerId}/comment`,
+    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/question/${number}/answer/${answerId}/comment`,
     request,
   );
 
@@ -143,7 +143,7 @@ export async function updateComment(
   request: UpdateCommentRequest,
 ): Promise<CommentResponse | null> {
   const response = await authPatch(
-    `${API_BASE_URL}/repository/${owner}/${repo}/question/${number}/comment/${commentId}`,
+    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/question/${number}/comment/${commentId}`,
     request,
   );
 
@@ -157,7 +157,7 @@ export async function voteQuestion(
   request: VoteRequest,
 ): Promise<VoteResponse | null> {
   const response = await authPost(
-    `${API_BASE_URL}/repository/${owner}/${repo}/question/${number}/vote`,
+    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/question/${number}/vote`,
     request,
   );
 
@@ -172,7 +172,7 @@ export async function voteAnswer(
   request: VoteRequest,
 ): Promise<VoteResponse | null> {
   const response = await authPost(
-    `${API_BASE_URL}/repository/${owner}/${repo}/question/${number}/answer/${answerId}/vote`,
+    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/question/${number}/answer/${answerId}/vote`,
     request,
   );
 
@@ -187,7 +187,7 @@ export async function voteComment(
   request: VoteRequest,
 ): Promise<VoteResponse | null> {
   const response = await authPost(
-    `${API_BASE_URL}/repository/${owner}/${repo}/question/${number}/comment/${commentId}/vote`,
+    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/question/${number}/comment/${commentId}/vote`,
     request,
   );
 

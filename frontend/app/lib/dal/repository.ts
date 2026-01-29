@@ -18,7 +18,7 @@ import {
   type RepositoryTreeQuery,
   RepositoryTreeSchema,
 } from "../dto";
-import { API_BASE_URL, authFetch, authPost, handleResponse } from "./util";
+import { GITDOT_SERVER_URL, authFetch, authPost, handleResponse } from "./util";
 
 export async function createRepository(
   owner: string,
@@ -26,7 +26,7 @@ export async function createRepository(
   request: CreateRepositoryRequest,
 ): Promise<CreateRepositoryResponse | null> {
   const response = await authPost(
-    `${API_BASE_URL}/repository/${owner}/${repo}`,
+    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}`,
     request,
   );
 
@@ -40,7 +40,7 @@ export async function getRepositoryFile(
 ): Promise<RepositoryFile | null> {
   const queryString = toQueryString(query);
   const response = await authFetch(
-    `${API_BASE_URL}/repository/${owner}/${repo}/file?${queryString}`,
+    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/file?${queryString}`,
   );
 
   return await handleResponse(response, RepositoryFileSchema);
@@ -53,7 +53,7 @@ export async function getRepositoryTree(
 ): Promise<RepositoryTree | null> {
   const queryString = toQueryString(query);
   const response = await authFetch(
-    `${API_BASE_URL}/repository/${owner}/${repo}/tree?${queryString}`,
+    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/tree?${queryString}`,
   );
 
   return await handleResponse(response, RepositoryTreeSchema);
@@ -66,7 +66,7 @@ export async function getRepositoryCommits(
 ): Promise<RepositoryCommits | null> {
   const queryString = toQueryString(query);
   const response = await authFetch(
-    `${API_BASE_URL}/repository/${owner}/${repo}/commits?${queryString}`,
+    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/commits?${queryString}`,
   );
 
   return await handleResponse(response, RepositoryCommitsSchema);
@@ -79,7 +79,7 @@ export async function getRepositoryFileCommits(
 ): Promise<RepositoryCommits | null> {
   const queryString = toQueryString(query);
   const response = await authFetch(
-    `${API_BASE_URL}/repository/${owner}/${repo}/file/commits?${queryString}`,
+    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/file/commits?${queryString}`,
   );
 
   return await handleResponse(response, RepositoryCommitsSchema);
@@ -91,7 +91,7 @@ export async function getRepositoryCommitStats(
   sha: string,
 ): Promise<RepositoryCommitDiffs | null> {
   const response = await authFetch(
-    `${API_BASE_URL}/repository/${owner}/${repo}/commits/${sha}/stats`,
+    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/commits/${sha}/stats`,
   );
 
   return await handleResponse(response, RepositoryCommitDiffsSchema);
@@ -103,7 +103,7 @@ export async function getRepositoryCommitDiffs(
   sha: string,
 ): Promise<RepositoryCommitDiffs | null> {
   const response = await authFetch(
-    `${API_BASE_URL}/repository/${owner}/${repo}/commits/${sha}/diffs`,
+    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/commits/${sha}/diffs`,
   );
 
   return await handleResponse(response, RepositoryCommitDiffsSchema);
