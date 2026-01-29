@@ -17,12 +17,6 @@ const inconsolata = Inconsolata({
   variable: "--font-inconsolata",
 });
 
-const league_spartan = League_Spartan({
-  subsets: ["latin"],
-  weight: ["400", "700"],
-  variable: "--font-league-spartan",
-});
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -31,7 +25,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${ibm_plex_sans.variable} ${inconsolata.variable} ${league_spartan.variable} overscroll-none`}
+      className={`${ibm_plex_sans.variable} ${inconsolata.variable} overscroll-none`}
     >
       <body>{children}</body>
     </html>

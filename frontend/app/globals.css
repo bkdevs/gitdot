@@ -7,7 +7,6 @@
 @theme inline {
   --font-sans: var(--font-ibm-plex-sans);
   --font-mono: var(--font-inconsolata);
-  --font-blog: var(--font-league-spartan);
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
