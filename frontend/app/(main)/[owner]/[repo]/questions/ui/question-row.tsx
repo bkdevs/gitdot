@@ -1,7 +1,7 @@
 import type { QuestionResponse } from "@/lib/dto";
-import { TriangleDown, TriangleUp } from "@/lib/icons";
 import Link from "@/ui/link";
 import { pluralize, timeAgo } from "@/util";
+import { VoteBox } from "../[number]/ui/vote-box";
 
 export function QuestionRow({
   owner,
@@ -13,29 +13,22 @@ export function QuestionRow({
   question: QuestionResponse;
 }) {
   return (
-    <Link
-      href={`/${owner}/${repo}/questions/${question.number}`}
-      className="flex flex-row w-full border-b hover:bg-accent/50 select-none cursor-default py-2 h-18"
-      prefetch={true}
-    >
-      <div className="flex flex-col mx-4 mt-0.5">
-        <div className="flex flex-col items-center gap-0.5 text-muted-foreground text-sm">
-          <button
-            type="submit"
-            className="text-muted-foreground/50 hover:text-foreground cursor-pointer"
-          >
-            <TriangleUp className="size-3" />
-          </button>
-          <span>{question.upvote}</span>
-          <button
-            type="submit"
-            className="text-muted-foreground/50 hover:text-foreground cursor-pointer"
-          >
-            <TriangleDown className="size-3" />
-          </button>
-        </div>
-      </div>
-      <div className="flex flex-col w-full justify-start items-start">
+    <div className="flex flex-row w-full border-b hover:bg-accent/50 select-none cursor-default py-2 h-18">
+      <VoteBox
+        targetType="question"
+        owner={owner}
+        repo={repo}
+        number={question.number}
+        score={question.upvote}
+        userVote={question.user_vote}
+        className="mx-4 mt-0.5 gap-0.5 text-sm"
+        iconClassName="size-3"
+      />
+      <Link
+        href={`/${owner}/${repo}/questions/${question.number}`}
+        className="flex flex-col w-full justify-start items-start"
+        prefetch={true}
+      >
         <div className="text-xs text-muted-foreground flex items-center gap-1">
           <span className="truncate min-w-0">{question.author?.name}</span>•
           <span>{timeAgo(new Date(question.created_at))}</span>
@@ -48,7 +41,7 @@ export function QuestionRow({
           <span>•</span>
           {pluralize(question.impression, "view")}
         </div>
-      </div>
-    </Link>
+      </Link>
+    </div>
   );
 }

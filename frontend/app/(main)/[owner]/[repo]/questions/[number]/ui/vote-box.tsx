@@ -13,6 +13,8 @@ export function VoteBox({
   number,
   score,
   userVote,
+  className,
+  iconClassName,
 }: {
   targetType: "question" | "answer";
   targetId?: string | undefined;
@@ -21,6 +23,8 @@ export function VoteBox({
   number: number;
   score: number;
   userVote: number | null;
+  className?: string;
+  iconClassName?: string;
 }) {
   const [optimistic, setOptimistic] = useOptimistic(
     { score, userVote },
@@ -44,7 +48,13 @@ export function VoteBox({
   );
 
   return (
-    <div className="flex flex-col mx-6 mt-1.75 gap-1 items-center text-muted-foreground text-xl">
+    <div
+      className={cn(
+        "flex flex-col items-center text-muted-foreground",
+        "mx-6 mt-1.75 gap-1 text-xl",
+        className,
+      )}
+    >
       <form action={formAction} className="contents">
         <input type="hidden" name="clickedVote" value={1} />
         <button
@@ -56,7 +66,7 @@ export function VoteBox({
               : "text-vote hover:text-upvote",
           )}
         >
-          <TriangleUp />
+          <TriangleUp className={iconClassName} />
         </button>
       </form>
       <span
@@ -79,7 +89,7 @@ export function VoteBox({
               : "text-vote hover:text-downvote",
           )}
         >
-          <TriangleDown />
+          <TriangleDown className={iconClassName} />
         </button>
       </form>
     </div>
