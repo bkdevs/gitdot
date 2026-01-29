@@ -94,5 +94,5 @@ export function inferLanguage(filePath: string): BundledLanguage | undefined {
     tsv: "tsv",
   };
 
-  return extension && extensionMap[extension];
+  return extension ? extensionMap[extension] : undefined;
 }
