@@ -1,6 +1,6 @@
 "use client";
 
-import { MoreHorizontal } from "lucide-react";
+import { MoreHorizontal, MoreVertical } from "lucide-react";
 import { useState } from "react";
 import type { QuestionResponse } from "@/lib/dto";
 import { Button } from "@/ui/button";
@@ -30,13 +30,16 @@ export const QuestionDropdown = ({
           <Button
             variant="ghost"
             size="icon-sm"
-            className="opacity-0 group-hover:opacity-100 transition-opacity"
+            className="opacity-0 group-hover:opacity-100 data-[state=open]:opacity-100 transition-opacity"
           >
-            <MoreHorizontal className="size-3" />
+            <MoreVertical className="size-4" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => setEditing(true)}>
+        <DropdownMenuContent align="end" className="rounded-none min-w-32 p-0">
+          <DropdownMenuItem
+            onClick={() => setEditing(true)}
+            className="rounded-none px-2 py-1.5 text-xs cursor-pointer"
+          >
             Edit
           </DropdownMenuItem>
         </DropdownMenuContent>

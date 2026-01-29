@@ -43,25 +43,25 @@ export function AnswerCard({ answer, owner, repo, number }: AnswerCardProps) {
             </div>
           )}
           <MarkdownBody content={answer.body} />
-        </div>
 
-        <div className="flex flex-row gap-1 items-center text-xs text-muted-foreground">
-          <span className="text-blue-400 cursor-pointer">
-            {answer.author?.name ?? "unknown"}
-          </span>
-          <span>
-            <span className="text-muted-foreground">answered</span>{" "}
-            {formatDate(new Date(answer.created_at))}
-            {", "}
-            {wasUpdated ? (
-              <>
-                <span className="text-muted-foreground">updated</span>{" "}
-                {timeAgoFull(new Date(answer.updated_at))}
-              </>
-            ) : (
-              timeAgoFull(new Date(answer.created_at))
-            )}
-          </span>
+          <div className="flex flex-row gap-1 items-center text-xs text-muted-foreground">
+            <span className="text-blue-400 cursor-pointer">
+              {answer.author?.name ?? "unknown"}
+            </span>
+            <span>
+              <span className="text-muted-foreground">answered</span>{" "}
+              {formatDate(new Date(answer.created_at))}
+              {", "}
+              {wasUpdated ? (
+                <>
+                  <span className="text-muted-foreground">updated</span>{" "}
+                  {timeAgoFull(new Date(answer.updated_at))}
+                </>
+              ) : (
+                timeAgoFull(new Date(answer.created_at))
+              )}
+            </span>
+          </div>
         </div>
 
         <CommentThread
