@@ -1,5 +1,6 @@
 "use server";
 
+import { refresh } from "next/cache";
 import {
   createAnswer,
   createAnswerComment,
@@ -14,8 +15,7 @@ import {
   voteQuestion,
 } from "@/lib/dal";
 import { createSupabaseClient } from "@/lib/supabase";
-import { VoteResponse } from "./lib/dto";
-import { refresh } from "next/cache";
+import type { QuestionResponse, VoteResponse } from "./lib/dto";
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 // note that the actions here use refresh() as opposed to revalidatePath()
@@ -89,25 +89,26 @@ export async function createRepositoryAction(
   return { success: true, repository: result };
 }
 
+export type CreateQuestionActionResult =
+  | { question: QuestionResponse }
+  | { error: string };
+
 export async function createQuestionAction(
   owner: string,
   repo: string,
   formData: FormData,
-) {
+): Promise<CreateQuestionActionResult> {
   const title = formData.get("title") as string;
   const body = formData.get("body") as string;
-
-  if (!owner || !repo || !title || !body) {
-    return { error: "All fields are required" };
+  if (!title || !body) {
+    return { error: "Title and body are required" };
   }
 
   const result = await createQuestion(owner, repo, { title, body });
-
   if (!result) {
     return { error: "Failed to create question" };
   }
-
-  return { success: true, question: result };
+  return { question: result };
 }
 
 export async function updateQuestionAction(
@@ -118,7 +119,6 @@ export async function updateQuestionAction(
 ) {
   const title = formData.get("title") as string;
   const body = formData.get("body") as string;
-
   if (!title || !body) {
     return { error: "Title and body are required" };
   }
