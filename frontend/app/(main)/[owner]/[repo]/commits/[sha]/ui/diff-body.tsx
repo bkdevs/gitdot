@@ -1,4 +1,4 @@
-import { sortHunks } from "@/(main)/[owner]/[repo]/util";
+import { mergeHunks } from "@/(main)/[owner]/[repo]/util";
 import type { RepositoryFileDiff } from "@/lib/dto";
 import { DiffSingle } from "./diff-single";
 import { DiffSplit } from "./diff-split";
@@ -6,7 +6,7 @@ import { DiffSplit } from "./diff-split";
 export async function DiffBody({ diff }: { diff: RepositoryFileDiff }) {
   const { left, right, hunks } = diff;
 
-  const processedHunks = sortHunks(hunks);
+  const processedHunks = mergeHunks(hunks);
 
   const renderDiff = () => {
     if (left && right && hunks.length > 0) {

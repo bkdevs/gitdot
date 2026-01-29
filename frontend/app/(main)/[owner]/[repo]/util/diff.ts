@@ -93,7 +93,7 @@ function getEffectivePosition(
   for (let i = lineIndex - 1; i >= 0; i--) {
     const anchor = hunk[i];
     if (anchor.lhs && anchor.rhs) {
-      return [anchor.lhs.line_number, line.rhs!.line_number];
+      return [anchor.lhs.line_number, anchor.rhs.line_number];
     }
   }
 

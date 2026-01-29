@@ -79,12 +79,14 @@ function DiffSection({
     rightSpans.length,
   );
 
-  const leftSpansChunk: Element[] = [];
-  const rightSpansChunk: Element[] = [];
-  for (const [left, right] of expandedLines) {
-    leftSpansChunk.push(left !== null ? leftSpans[left] : sentinelSpan);
-    rightSpansChunk.push(right !== null ? rightSpans[right] : sentinelSpan);
-  }
+  const getSpanOrSentinel = (index: number | null, spans: Element[]) =>
+    index !== null && index < spans.length ? spans[index] : sentinelSpan;
+  const leftSpansChunk = expandedLines.map(([left]) =>
+    getSpanOrSentinel(left, leftSpans),
+  );
+  const rightSpansChunk = expandedLines.map(([, right]) =>
+    getSpanOrSentinel(right, rightSpans),
+  );
 
   const container: Element = {
     type: "element",
