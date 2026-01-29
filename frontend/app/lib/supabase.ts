@@ -72,6 +72,7 @@ export async function updateSession(request: NextRequest) {
   const { data } = await supabase.auth.getClaims();
   const user = data?.claims;
 
+  // TODO: need to fix this...
   // public paths are all single-level (be that a public repo or /login)
   // private paths are all nested
   const isPrivatePath = request.nextUrl.pathname.split("/").length > 2;

@@ -10,13 +10,12 @@ export async function authFetch(
   options?: RequestInit,
 ): Promise<Response> {
   const session = await getSession();
-  if (!session) throw new Error("User not authenticated!");
 
   return fetch(url, {
     ...options,
     headers: {
       ...options?.headers,
-      Authorization: `Bearer ${session.access_token}`,
+      ...(session && { Authorization: `Bearer ${session.access_token}` }),
     },
   });
 }
