@@ -8,7 +8,7 @@ import {
   Plus,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { useUser } from "@/providers/user-provider";
+import { useUser } from "@/(main)/providers/user-provider";
 import Link from "@/ui/link";
 import {
   Sidebar,
@@ -23,7 +23,7 @@ import { cn } from "@/util";
 
 const SIDEBAR_ICON_WIDTH = "2.5rem";
 
-export function AppSidebar() {
+export function MainSidebar() {
   const pathname = usePathname();
   const isDefault = !["/inbox", "/questions", "/charts"].includes(pathname);
   const user = useUser();

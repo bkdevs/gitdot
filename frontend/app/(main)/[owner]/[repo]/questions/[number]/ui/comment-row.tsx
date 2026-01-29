@@ -155,13 +155,14 @@ function CommentVote({
 
   return (
     <div className="flex flex-row items-center justify-between w-7">
-      <span className={
-        cn("text-left transition-colors",
-          optimistic.user_vote === 1
-          ? "text-upvote"
-          : "text-muted-foreground"
-        )
-      }> {optimistic.upvote}
+      <span
+        className={cn(
+          "text-left transition-colors",
+          optimistic.user_vote === 1 ? "text-upvote" : "text-muted-foreground",
+        )}
+      >
+        {" "}
+        {optimistic.upvote}
       </span>
       <form action={formAction} className="contents">
         <button
@@ -169,8 +170,8 @@ function CommentVote({
           className={cn(
             "cursor-pointer transition-colors",
             optimistic.user_vote === 1
-            ? "text-upvote"
-            : "text-vote hover:text-upvote",
+              ? "text-upvote"
+              : "text-vote hover:text-upvote",
           )}
         >
           <TriangleUp className="mb-0.5 size-3" />

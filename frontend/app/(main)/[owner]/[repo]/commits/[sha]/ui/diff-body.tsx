@@ -1,4 +1,4 @@
-import { sortHunks } from "@/[owner]/[repo]/util";
+import { sortHunks } from "@/(main)/[owner]/[repo]/util";
 import type { RepositoryFileDiff } from "@/lib/dto";
 import { DiffSingle } from "./diff-single";
 import { DiffSplit } from "./diff-split";

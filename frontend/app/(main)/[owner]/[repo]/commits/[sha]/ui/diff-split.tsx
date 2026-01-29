@@ -8,7 +8,7 @@ import {
   expandLines,
   pairLines,
   renderSpans,
-} from "@/[owner]/[repo]/util";
+} from "@/(main)/[owner]/[repo]/util";
 import type { DiffHunk, RepositoryFile } from "@/lib/dto";
 import { DiffLine } from "./diff-line";
 

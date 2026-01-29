@@ -1,12 +1,12 @@
 "use client";
 
-import { MarkdownBody } from "@/[owner]/[repo]/ui/markdown/markdown-body";
+import { MarkdownBody } from "@/(main)/[owner]/[repo]/ui/markdown/markdown-body";
+import { useUser } from "@/(main)/providers/user-provider";
 import type { AnswerResponse } from "@/lib/dto/question";
 import { formatDate, timeAgoFull } from "@/util";
 import { AnswerDropdown } from "./answer-dropdown";
 import { CommentThread } from "./comment-thread";
 import { VoteBox } from "./vote-box";
-import { useUser } from "@/providers/user-provider";
 
 type AnswerCardProps = {
   answer: AnswerResponse;

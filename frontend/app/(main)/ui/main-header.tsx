@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 import Link from "@/ui/link";
 
-export function AppHeader() {
+export function MainHeader() {
   const pathname = usePathname();
   const segments = pathname.split("/").filter(Boolean);
 

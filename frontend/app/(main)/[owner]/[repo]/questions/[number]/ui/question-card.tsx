@@ -1,6 +1,6 @@
 "use client";
 
-import { MarkdownBody } from "@/[owner]/[repo]/ui/markdown/markdown-body";
+import { MarkdownBody } from "@/(main)/[owner]/[repo]/ui/markdown/markdown-body";
 import type { QuestionResponse } from "@/lib/dto/question";
 import { formatDate, timeAgoFull } from "@/util";
 import { CommentThread } from "./comment-thread";
