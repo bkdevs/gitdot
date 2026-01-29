@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useOptimistic } from "react";
-import { voteAction, type VoteActionResult } from "@/actions";
+import { type VoteActionResult, voteAction } from "@/actions";
 import { TriangleDown, TriangleUp } from "@/lib/icons";
 import { cn } from "@/util";
 
@@ -52,8 +52,8 @@ export function VoteBox({
           className={cn(
             "cursor-pointer transition-colors",
             optimistic.userVote === 1
-              ? "text-orange-500"
-              : "text-muted-foreground hover:text-foreground",
+              ? "text-upvote"
+              : "text-vote hover:text-upvote",
           )}
         >
           <TriangleUp />
@@ -61,8 +61,9 @@ export function VoteBox({
       </form>
       <span
         className={cn(
-          optimistic.userVote === 1 && "text-orange-500",
-          optimistic.userVote === -1 && "text-blue-500",
+          "w-6 text-center",
+          optimistic.userVote === 1 && "text-upvote",
+          optimistic.userVote === -1 && "text-downvote",
         )}
       >
         {optimistic.score}
@@ -74,8 +75,8 @@ export function VoteBox({
           className={cn(
             "cursor-pointer transition-colors",
             optimistic.userVote === -1
-              ? "text-blue-500"
-              : "text-muted-foreground hover:text-foreground",
+              ? "text-downvote"
+              : "text-vote hover:text-downvote",
           )}
         >
           <TriangleDown />

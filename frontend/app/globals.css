@@ -40,6 +40,10 @@
   --color-card: var(--card);
   --color-diff-green: var(--diff-green);
   --color-diff-red: var(--diff-red);
+  --color-upvote: var(--upvote);
+  --color-downvote: var(--downvote);
+  --color-vote: var(--vote);
+
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -86,6 +90,9 @@
   --sidebar-ring: oklch(0.704 0.04 256.788);
   --diff-red: oklch(98.5% 0.01 17.38);
   --diff-green: oklch(98.5% 0.01 155.826);
+  --upvote: oklch(72.75% 0.198 51.769);
+  --downvote: oklch(0.208 0.042 265.755);
+  --vote: oklch(77.7% 0.023 257.417);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -123,6 +130,9 @@
     --sidebar-ring: oklch(0.551 0.027 264.364);
     --diff-red: oklch(98.5% 0.01 17.38);
     --diff-green: oklch(98.5% 0.01 155.826);
+    --upvote: oklch(72.75% 0.198 51.769);
+    --downvote: oklch(0.929 0.013 255.508);
+     --vote: oklch(50.2% 0.02 256.788);
   }
 }
 

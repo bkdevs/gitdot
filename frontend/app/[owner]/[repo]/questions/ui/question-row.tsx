@@ -20,11 +20,17 @@ export function QuestionRow({
     >
       <div className="flex flex-col mx-4 mt-0.5">
         <div className="flex flex-col items-center gap-0.5 text-muted-foreground text-sm">
-          <button className="text-muted-foreground hover:text-foreground cursor-pointer">
+          <button
+            type="submit"
+            className="text-muted-foreground/50 hover:text-foreground cursor-pointer"
+          >
             <TriangleUp className="size-3" />
           </button>
           <span>{question.upvote}</span>
-          <button className="text-muted-foreground hover:text-foreground cursor-pointer">
+          <button
+            type="submit"
+            className="text-muted-foreground/50 hover:text-foreground cursor-pointer"
+          >
             <TriangleDown className="size-3" />
           </button>
         </div>
