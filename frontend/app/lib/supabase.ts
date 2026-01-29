@@ -5,6 +5,10 @@ import type { JwtPayload } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 
+/**
+ * we do *not* expose supabase environment variables in the client
+ * we use supabase in server functions *only* and in the middleware for auth.
+ */
 function getSupabaseConfig() {
   const supabaseUrl = process.env.SUPABASE_URL;
   const supabaseKey = process.env.SUPABASE_PUBLISHABLE_KEY;
@@ -72,15 +76,8 @@ export async function updateSession(request: NextRequest) {
   const { data } = await supabase.auth.getClaims();
   const user = data?.claims;
 
-  // TODO: need to fix this...
-  // public paths are all single-level (be that a public repo or /login)
-  // private paths are all nested
-  const isPrivatePath = request.nextUrl.pathname.split("/").length > 2;
   const isAuthPath = ["/login", "/signup"].includes(request.nextUrl.pathname);
-  if (!user && isPrivatePath) {
-    return NextResponse.redirect(new URL("/login", request.nextUrl));
-  } else if (user && isAuthPath) {
-    // todo: maybe move? middleware apparently runs on server functions, technically faster to have routing here.
+  if (user && isAuthPath) {
     return NextResponse.redirect(new URL("/", request.nextUrl));
   }
 
