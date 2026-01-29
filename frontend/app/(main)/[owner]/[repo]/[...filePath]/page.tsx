@@ -1,4 +1,7 @@
-import { getFolderEntries, parseRepositoryTree } from "@/[owner]/[repo]/util";
+import {
+  getFolderEntries,
+  parseRepositoryTree,
+} from "@/(main)/[owner]/[repo]/util";
 import { getRepositoryTree } from "@/lib/dal";
 import { FileViewer } from "./ui/file-viewer";
 import { FolderViewer } from "./ui/folder-viewer";

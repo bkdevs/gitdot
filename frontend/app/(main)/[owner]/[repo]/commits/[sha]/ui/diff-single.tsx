@@ -2,7 +2,7 @@ import { toJsxRuntime } from "hast-util-to-jsx-runtime";
 import type { JSX } from "react";
 import { Fragment } from "react";
 import { jsx, jsxs } from "react/jsx-runtime";
-import { fileToHast } from "@/[owner]/[repo]/util";
+import { fileToHast } from "@/(main)/[owner]/[repo]/util";
 import type { RepositoryFile } from "@/lib/dto";
 import { DiffLine } from "./diff-line";
 
