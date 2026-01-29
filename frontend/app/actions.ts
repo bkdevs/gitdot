@@ -1,6 +1,5 @@
 "use server";
 
-import { refresh } from "next/cache";
 import {
   createAnswer,
   createAnswerComment,
@@ -15,7 +14,13 @@ import {
   voteQuestion,
 } from "@/lib/dal";
 import { createSupabaseClient } from "@/lib/supabase";
-import type { QuestionResponse, VoteResponse } from "./lib/dto";
+import { refresh } from "next/cache";
+import type {
+  AnswerResponse,
+  CommentResponse,
+  QuestionResponse,
+  VoteResponse,
+} from "./lib/dto";
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 // note that the actions here use refresh() as opposed to revalidatePath()
@@ -106,17 +111,21 @@ export async function createQuestionAction(
 
   const result = await createQuestion(owner, repo, { title, body });
   if (!result) {
-    return { error: "Failed to create question" };
+    return { error: "createQuestion call failed" };
   }
   return { question: result };
 }
+
+export type UpdateQuestionActionResult =
+  | { question: QuestionResponse }
+  | { error: string };
 
 export async function updateQuestionAction(
   owner: string,
   repo: string,
   number: number,
   formData: FormData,
-) {
+): Promise<UpdateQuestionActionResult> {
   const title = formData.get("title") as string;
   const body = formData.get("body") as string;
   if (!title || !body) {
@@ -124,36 +133,41 @@ export async function updateQuestionAction(
   }
 
   const result = await updateQuestion(owner, repo, number, { title, body });
-
   if (!result) {
-    return { error: "Failed to update question" };
+    return { error: "updateQuestion call failed" };
   }
 
   refresh();
-  return { success: true, question: result };
+  return { question: result };
 }
+
+export type CreateAnswerActionResult =
+  | { answer: AnswerResponse }
+  | { error: string };
 
 export async function createAnswerAction(
   owner: string,
   repo: string,
   number: number,
   formData: FormData,
-) {
+): Promise<CreateAnswerActionResult> {
   const body = formData.get("body") as string;
-
   if (!body) {
-    return { error: "Cannot create an empty answer" };
+    return { error: "Body cannot be empty" };
   }
 
   const result = await createAnswer(owner, repo, number, { body });
-
   if (!result) {
-    return { error: "Failed to create answer" };
+    return { error: "createAnswer call failed" };
   }
 
   refresh();
-  return { success: true, answer: result };
+  return { answer: result };
 }
+
+export type UpdateAnswerActionResult =
+  | { answer: AnswerResponse }
+  | { error: string };
 
 export async function updateAnswerAction(
   owner: string,
@@ -161,22 +175,24 @@ export async function updateAnswerAction(
   number: number,
   answerId: string,
   formData: FormData,
-) {
+): Promise<UpdateAnswerActionResult> {
   const body = formData.get("body") as string;
-
   if (!body) {
-    return { error: "Answer body is required" };
+    return { error: "Body cannot be empty" };
   }
 
   const result = await updateAnswer(owner, repo, number, answerId, { body });
-
   if (!result) {
-    return { error: "Failed to update answer" };
+    return { error: "updateAnswer call failed" };
   }
 
   refresh();
-  return { success: true };
+  return { answer: result };
 }
+
+export type CreateCommentActionResult =
+  | { comment: CommentResponse }
+  | { error: string };
 
 export async function createCommentAction(
   owner: string,
@@ -185,11 +201,12 @@ export async function createCommentAction(
   parentType: "question" | "answer",
   parentId: string | undefined,
   formData: FormData,
-) {
+): Promise<CreateCommentActionResult> {
   const body = formData.get("body") as string;
-
-  if (parentType === "answer" && !parentId) {
-    return { error: "All fields are required" };
+  if (!body) {
+    return { error: "Body cannot be empty" };
+  } else if (parentType === "answer" && !parentId) {
+    return { error: "parentId is required if parentType is answer" };
   }
 
   const result =
@@ -200,12 +217,39 @@ export async function createCommentAction(
         });
 
   if (!result) {
-    return { error: "Failed to create comment" };
+    return { error: "createComment call failed" };
   }
 
   refresh();
-  return { success: true };
+  return { comment: result };
 }
+
+export type UpdateCommentActionResult =
+  | { comment: CommentResponse }
+  | { error: string };
+
+export async function updateCommentAction(
+  owner: string,
+  repo: string,
+  number: number,
+  commentId: string,
+  formData: FormData,
+): Promise<UpdateCommentActionResult> {
+  const body = formData.get("body") as string;
+  if (!body) {
+    return { error: "Body cannot be empty" };
+  }
+
+  const result = await updateComment(owner, repo, number, commentId, { body });
+  if (!result) {
+    return { error: "updateComment call failed" };
+  }
+
+  refresh();
+  return { comment: result };
+}
+
+export type VoteActionResult = { vote: VoteResponse } | { error: string };
 
 export async function voteAction(
   owner: string,
@@ -214,11 +258,11 @@ export async function voteAction(
   targetId: string | undefined,
   targetType: "question" | "answer" | "comment",
   formData: FormData,
-) {
+): Promise<VoteActionResult> {
   const value = Number(formData.get("value"));
 
   if (!targetId && targetType !== "question") {
-    return { success: false, error: "Missing required fields" };
+    return { error: `targetId must be set for target type ${targetType}` };
   }
 
   let result: VoteResponse | null;
@@ -231,32 +275,9 @@ export async function voteAction(
   }
 
   if (!result) {
-    return { success: false, error: "Failed to vote" };
+    return { error: "voteAction call failed" };
   }
 
   refresh();
-  return { success: true, data: result };
-}
-
-export async function updateCommentAction(
-  owner: string,
-  repo: string,
-  number: number,
-  commentId: string,
-  formData: FormData,
-) {
-  const body = formData.get("body") as string;
-
-  if (!body) {
-    return { error: "Comment body is required" };
-  }
-
-  const result = await updateComment(owner, repo, number, commentId, { body });
-
-  if (!result) {
-    return { error: "Failed to update comment" };
-  }
-
-  refresh();
-  return { success: true };
+  return { vote: result };
 }

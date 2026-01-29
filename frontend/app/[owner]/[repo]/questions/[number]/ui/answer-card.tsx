@@ -35,10 +35,10 @@ export function AnswerCard({ answer, owner, repo, number }: AnswerCardProps) {
           {user?.id === answer.author_id && (
             <div className="absolute top-0 right-0">
               <AnswerDropdown
-              owner={owner}
-              repo={repo}
-              number={number}
-              answer={answer}
+                owner={owner}
+                repo={repo}
+                number={number}
+                answer={answer}
               />
             </div>
           )}

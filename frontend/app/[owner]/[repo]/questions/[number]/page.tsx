@@ -14,7 +14,9 @@ export default async function Page({
   if (!question) return null;
 
   const user = await getCurrentUser();
-  const answeredQuestion = question.answers.find((answer) => answer.author_id === user?.id);
+  const answeredQuestion = question.answers.find(
+    (answer) => answer.author_id === user?.id,
+  );
 
   return (
     <div className="w-full">

@@ -1,35 +1,30 @@
 "use client";
 
+import { CreateCommentActionResult } from "@/actions";
 import { useActionState, useRef, useState } from "react";
 
 export function CommentInput({
   createComment,
   addOptimisticComment,
 }: {
-  createComment: (
-    formData: FormData,
-  ) => Promise<
-    | { success?: undefined; error: string }
-    | { success: boolean; error?: undefined }
-  >;
+  createComment: (formData: FormData) => Promise<CreateCommentActionResult>;
   addOptimisticComment: (body: string) => void;
 }) {
   const [showInput, setShowInput] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
 
   const [, formAction] = useActionState(
-    async (_prevState: { error?: string } | null, formData: FormData) => {
+    async (
+      _prevState: CreateCommentActionResult | null,
+      formData: FormData,
+    ) => {
       const body = formData.get("body") as string;
       formRef.current?.reset();
       (document.activeElement as HTMLElement)?.blur();
       setShowInput(false);
       addOptimisticComment(body);
 
-      const result = await createComment(formData);
-      if (!result.success) {
-        return { error: result.error };
-      }
-      return null;
+      return await createComment(formData);
     },
     null,
   );

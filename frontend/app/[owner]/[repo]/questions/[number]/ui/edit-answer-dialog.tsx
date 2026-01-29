@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { updateAnswerAction } from "@/actions";
+import { type UpdateAnswerActionResult, updateAnswerAction } from "@/actions";
 import type { AnswerResponse } from "@/lib/dto/question";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
 
@@ -29,16 +29,11 @@ export function EditAnswerDialog({
   );
 
   const [state, formAction, isPending] = useActionState(
-    async (_prevState: { error?: string } | null, formData: FormData) => {
+    async (_prevState: UpdateAnswerActionResult, formData: FormData) => {
       setOpen(false);
-
-      const result = await updateAnswer(formData);
-      if (result.success) {
-        return null;
-      }
-      return { error: result.error };
+      return await updateAnswer(formData);
     },
-    null,
+    { answer: answer },
   );
 
   return (
@@ -64,7 +59,7 @@ export function EditAnswerDialog({
             className="w-full px-0 text-sm bg-background outline-none border-none resize-none min-h-32"
             disabled={isPending}
           />
-          {state?.error && (
+          {"error" in state && (
             <p className="text-xs text-red-500">{state.error}</p>
           )}
           <div className="flex justify-end">

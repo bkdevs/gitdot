@@ -1,9 +1,9 @@
 "use client";
 
-import { createCommentAction } from "@/actions";
-import { type CommentResponse } from "@/lib/dto";
-import { useUser } from "@/providers/user-provider";
 import { useOptimistic } from "react";
+import { createCommentAction } from "@/actions";
+import type { CommentResponse } from "@/lib/dto";
+import { useUser } from "@/providers/user-provider";
 import { CommentInput } from "./comment-input";
 import { CommentRow } from "./comment-row";
 
@@ -23,7 +23,6 @@ export function CommentThread({
   comments: CommentResponse[];
 }) {
   const user = useUser(); // TODO: block input but show comments for unauthenticated
-
   const createComment = createCommentAction.bind(
     null,
     owner,

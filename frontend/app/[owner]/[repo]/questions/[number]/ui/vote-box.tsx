@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useOptimistic } from "react";
-import { voteAction } from "@/actions";
+import { voteAction, type VoteActionResult } from "@/actions";
 import { TriangleDown, TriangleUp } from "@/lib/icons";
 import { cn } from "@/util";
 
@@ -22,8 +22,6 @@ export function VoteBox({
   score: number;
   userVote: number | null;
 }) {
-  const vote = voteAction.bind(null, owner, repo, number, targetId, targetType);
-
   const [optimistic, setOptimistic] = useOptimistic(
     { score, userVote },
     (state, newValue: number) => ({
@@ -32,16 +30,15 @@ export function VoteBox({
     }),
   );
 
+  const vote = voteAction.bind(null, owner, repo, number, targetId, targetType);
   const [, formAction] = useActionState(
-    async (_prev: null, formData: FormData) => {
+    async (_prev: VoteActionResult | null, formData: FormData) => {
       const clickedVote = Number(formData.get("clickedVote")) as 1 | -1;
       const newValue = optimistic.userVote === clickedVote ? 0 : clickedVote;
-
       formData.set("value", String(newValue));
       setOptimistic(newValue);
 
-      await vote(formData);
-      return null;
+      return await vote(formData);
     },
     null,
   );

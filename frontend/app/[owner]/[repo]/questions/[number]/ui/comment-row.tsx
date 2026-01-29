@@ -1,6 +1,11 @@
 "use client";
 
-import { updateCommentAction, voteAction } from "@/actions";
+import {
+  updateCommentAction,
+  voteAction,
+  type VoteActionResult,
+  type UpdateCommentActionResult,
+} from "@/actions";
 import type { CommentResponse } from "@/lib/dto";
 import { TriangleUp } from "@/lib/icons";
 import { cn, timeAgoFull } from "@/util";
@@ -36,13 +41,12 @@ export function CommentRow({
   );
 
   const [, formAction] = useActionState(
-    async (_prev: null, formData: FormData) => {
+    async (_prev: UpdateCommentActionResult, formData: FormData) => {
       const newBody = formData.get("body") as string;
       setOptimisticBody(newBody);
-      await updateComment(formData);
-      return null;
+      return await updateComment(formData);
     },
-    null,
+    { comment: comment },
   );
 
   return (
@@ -140,12 +144,11 @@ function CommentVote({
   );
 
   const [, formAction] = useActionState(
-    async (_prev: null, formData: FormData) => {
+    async (_prev: VoteActionResult | null, formData: FormData) => {
       const newValue = optimistic.user_vote === 1 ? 0 : 1;
       formData.set("value", String(newValue));
       setOptimistic(newValue);
-      await voteComment(formData);
-      return null;
+      return await voteComment(formData);
     },
     null,
   );

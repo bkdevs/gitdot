@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { createAnswerAction } from "@/actions";
+import { type CreateAnswerActionResult, createAnswerAction } from "@/actions";
 import { Button } from "@/ui/button";
 
 export function AnswerForm({
@@ -16,13 +16,8 @@ export function AnswerForm({
   const createAnswer = createAnswerAction.bind(null, owner, repo, number);
   const [body, setBody] = useState("");
   const [state, formAction, isPending] = useActionState(
-    async (_prevState: { error?: string } | null, formData: FormData) => {
-      const result = await createAnswer(formData);
-      if (result.success) {
-        setBody("");
-        return null;
-      }
-      return { error: result.error };
+    async (_prevState: CreateAnswerActionResult | null, formData: FormData) => {
+      return await createAnswer(formData);
     },
     null,
   );
@@ -51,7 +46,7 @@ export function AnswerForm({
             </Button>
           </div>
         </div>
-        {state?.error && (
+        {state && "error" in state && (
           <p className="text-xs text-red-500 mt-1">{state.error}</p>
         )}
       </form>

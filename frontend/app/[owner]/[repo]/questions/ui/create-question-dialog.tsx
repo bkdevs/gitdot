@@ -71,7 +71,7 @@ export function CreateQuestionDialog({
             className="w-full px-0 text-sm bg-background outline-none border-none resize-none min-h-32"
             disabled={isPending}
           />
-          {state?.error && (
+          {state && "error" in state && (
             <p className="text-xs text-red-500">{state.error}</p>
           )}
           <div className="flex justify-end">
