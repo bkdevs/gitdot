@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Sans, Inconsolata } from "next/font/google";
+import { IBM_Plex_Sans, Inconsolata, League_Spartan } from "next/font/google";
 import { AppHeader } from "@/ui/app/app-header";
 import { AppSidebar } from "@/ui/app/app-sidebar";
 import "./globals.css";
@@ -21,17 +21,23 @@ const inconsolata = Inconsolata({
   variable: "--font-inconsolata",
 });
 
+const league_spartan = League_Spartan({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  variable: "--font-league-spartan",
+});
+
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const user = await getCurrentUser();
+  const user = await getCurrentUser(); // TODO: does not re-render, fix with auth.
 
   return (
     <html
       lang="en"
-      className={`${ibm_plex_sans.variable} ${inconsolata.variable} overscroll-none`}
+      className={`${ibm_plex_sans.variable} ${inconsolata.variable} ${league_spartan.variable} overscroll-none`}
     >
       <body>
         <Providers user={user}>
