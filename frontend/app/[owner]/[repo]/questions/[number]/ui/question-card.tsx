@@ -4,7 +4,7 @@ import { MarkdownBody } from "@/[owner]/[repo]/ui/markdown/markdown-body";
 import { updateQuestionAction } from "@/actions";
 import type { QuestionResponse } from "@/lib/dto/question";
 import { formatDate, timeAgoFull } from "@/util";
-import { Comments } from "./comments";
+import { CommentThread } from "./comment-thread";
 import { QuestionDropdown } from "./question-dropdown";
 import { VoteBox } from "./vote-box";
 
@@ -59,7 +59,7 @@ export function QuestionCard({ question, owner, repo }: QuestionCardProps) {
           </span>
         </div>
 
-        <Comments
+        <CommentThread
           parentType="question"
           owner={owner}
           repo={repo}

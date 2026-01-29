@@ -1,7 +1,7 @@
 import { MarkdownBody } from "@/[owner]/[repo]/ui/markdown/markdown-body";
 import type { AnswerResponse } from "@/lib/dto/question";
 import { timeAgoFull } from "@/util";
-import { Comments } from "./comments";
+import { CommentThread } from "./comment-thread";
 import { VoteBox } from "./vote-box";
 
 type AnswerCardProps = {
@@ -39,7 +39,7 @@ export function AnswerCard({ answer, owner, repo, number }: AnswerCardProps) {
           </div>
         </div>
 
-        <Comments
+        <CommentThread
           parentType="answer"
           parentId={answer.id}
           owner={owner}
