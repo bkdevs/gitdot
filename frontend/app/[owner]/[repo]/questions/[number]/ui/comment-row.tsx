@@ -1,11 +1,11 @@
 "use client";
 
-import { voteAction } from "@/actions";
+import { updateCommentAction, voteAction } from "@/actions";
 import type { CommentResponse } from "@/lib/dto";
 import { TriangleUp } from "@/lib/icons";
 import { cn, timeAgoFull } from "@/util";
 import { Check, Edit3 } from "lucide-react";
-import { useActionState, useOptimistic, useState } from "react";
+import { useActionState, useOptimistic, useRef, useState } from "react";
 
 export function CommentRow({
   owner,
@@ -19,9 +19,31 @@ export function CommentRow({
   comment: CommentResponse;
 }) {
   const { body, author, created_at } = comment;
-
   const [editing, setEditing] = useState(false);
-  const [newBody, setNewBody] = useState(body);
+  const formRef = useRef<HTMLFormElement>(null);
+
+  const updateComment = updateCommentAction.bind(
+    null,
+    owner,
+    repo,
+    number,
+    comment.id,
+  );
+
+  const [optimisticBody, setOptimisticBody] = useOptimistic(
+    body,
+    (_, newBody: string) => newBody,
+  );
+
+  const [, formAction] = useActionState(
+    async (_prev: null, formData: FormData) => {
+      const newBody = formData.get("body") as string;
+      setOptimisticBody(newBody);
+      await updateComment(formData);
+      return null;
+    },
+    null,
+  );
 
   return (
     <div
@@ -40,26 +62,30 @@ export function CommentRow({
         <div className="pl-4" />
 
         {editing ? (
-          <input
-            type="text"
-            className="flex-1 w-full ring-0 outline-0"
-            value={newBody}
-            onChange={(e) => setNewBody(e.target.value)}
-            onBlur={() => {
-              setEditing(false);
-              setNewBody(body);
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Escape") {
+          <form ref={formRef} action={formAction} className="contents">
+            <input
+              type="text"
+              name="body"
+              className="flex-1 w-full ring-0 outline-0"
+              defaultValue={optimisticBody}
+              onBlur={() => {
                 setEditing(false);
-                setNewBody(body);
-              }
-            }}
-            autoFocus
-          />
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Escape") {
+                  setEditing(false);
+                } else if (e.key === "Enter") {
+                  e.preventDefault();
+                  setEditing(false);
+                  formRef.current?.requestSubmit();
+                }
+              }}
+              autoFocus
+            />
+          </form>
         ) : (
           <p className="flex-1">
-            {body}
+            {optimisticBody}
             <span className="text-muted-foreground shrink-0">
               {" — "}
               <span className="text-blue-400 cursor-pointer">
@@ -74,7 +100,11 @@ export function CommentRow({
         {editing ? (
           <Check
             className="size-3 hover:text-foreground hover:stroke-3"
-            onClick={() => setEditing(true)}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              setEditing(false);
+              formRef.current?.requestSubmit();
+            }}
           />
         ) : (
           <Edit3

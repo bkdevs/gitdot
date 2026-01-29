@@ -1,7 +1,6 @@
 "use client";
 
 import { MarkdownBody } from "@/[owner]/[repo]/ui/markdown/markdown-body";
-import { updateQuestionAction } from "@/actions";
 import type { QuestionResponse } from "@/lib/dto/question";
 import { formatDate, timeAgoFull } from "@/util";
 import { CommentThread } from "./comment-thread";
@@ -16,12 +15,6 @@ type QuestionCardProps = {
 
 export function QuestionCard({ question, owner, repo }: QuestionCardProps) {
   const wasUpdated = question.created_at !== question.updated_at;
-  const updateQuestion = updateQuestionAction.bind(
-    null,
-    owner,
-    repo,
-    question.number,
-  );
 
   return (
     <div className="flex">

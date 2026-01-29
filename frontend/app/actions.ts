@@ -6,6 +6,7 @@ import {
   createQuestion,
   createQuestionComment,
   createRepository,
+  updateComment,
   updateQuestion,
   voteAnswer,
   voteComment,
@@ -211,4 +212,27 @@ export async function voteAction(
 
   refresh();
   return { success: true, data: result };
+}
+
+export async function updateCommentAction(
+  owner: string,
+  repo: string,
+  number: number,
+  commentId: string,
+  formData: FormData,
+) {
+  const body = formData.get("body") as string;
+
+  if (!body) {
+    return { error: "Comment body is required" };
+  }
+
+  const result = await updateComment(owner, repo, number, commentId, { body });
+
+  if (!result) {
+    return { error: "Failed to update comment" };
+  }
+
+  refresh();
+  return { success: true };
 }
