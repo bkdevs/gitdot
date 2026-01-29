@@ -113,6 +113,8 @@ export async function createQuestionAction(
   if (!result) {
     return { error: "createQuestion call failed" };
   }
+
+  refresh();
   return { question: result };
 }
 
