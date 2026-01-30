@@ -1,7 +1,8 @@
 "use client";
 
-import { usePathname } from "next/navigation";
 import Link from "@/ui/link";
+import { User } from "lucide-react";
+import { usePathname } from "next/navigation";
 
 export function MainHeader() {
   const pathname = usePathname();
@@ -27,9 +28,12 @@ export function MainHeader() {
   });
 
   return (
-    <div className="shrink-0 flex flex-row w-full h-9 items-center border-b bg-sidebar">
+    <div className="shrink-0 flex flex-row w-full h-9 items-center justify-between border-b bg-sidebar">
       <div className="flex-1 pl-2 text-sm font-mono flex items-center">
         {pathLinks}
+      </div>
+      <div className="w-9 h-9 flex items-center justify-center hover:bg-sidebar-accent">
+        <User className="size-4"/>
       </div>
     </div>
   );

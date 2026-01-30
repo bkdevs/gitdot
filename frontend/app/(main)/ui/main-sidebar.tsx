@@ -131,7 +131,7 @@ function NavItem({
         <SidebarMenuButton className="group w-full h-full flex items-center justify-center p-0! rounded-none hover:bg-sidebar-accent! hover:text-current!">
           <Icon
             className={cn(
-              iconClassName ?? "h-4 w-4",
+              iconClassName ?? "size-4",
               "mr-1 group-hover:stroke-[2.25]",
             )}
           />
