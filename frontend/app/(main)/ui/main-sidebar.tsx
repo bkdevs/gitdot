@@ -5,7 +5,7 @@ import {
   Circle,
   Mail,
   MessageCircleQuestion,
-  Plus,
+  Settings,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useUser } from "@/(main)/providers/user-provider";
@@ -20,13 +20,14 @@ import {
   SidebarMenuItem,
 } from "@/ui/sidebar";
 import { cn } from "@/util";
-import { CreateRepoButton } from "./create-repo-button";
 
 const SIDEBAR_ICON_WIDTH = "2.5rem";
 
 export function MainSidebar() {
   const pathname = usePathname();
-  const isDefault = !["/inbox", "/questions", "/charts"].includes(pathname);
+  const isDefault = !["/inbox", "/questions", "/charts", "/settings"].includes(
+    pathname,
+  );
   const user = useUser();
 
   return (
@@ -63,7 +64,12 @@ export function MainSidebar() {
                 href="/charts"
                 isActive={pathname === "/charts"}
               />
-              <CreateRepoButton />
+              <NavItem
+                icon={Settings}
+                label="Settings"
+                href="/settings"
+                isActive={pathname === "/settings"}
+              />
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -88,9 +94,14 @@ function NavItem({
   const button = (
     <SidebarMenuButton
       tooltip={label}
-      className="w-full h-full flex items-center justify-center p-0! rounded-none hover:bg-transparent! hover:text-current!"
+      className="group w-full h-full flex items-center justify-center p-0! rounded-none hover:bg-transparent! hover:text-current!"
     >
-      <Icon className={cn(iconClassName ?? "h-4 w-4", "mr-1")} />
+      <Icon
+        className={cn(
+          iconClassName ?? "h-4 w-4",
+          "mr-1 group-hover:stroke-[2.25]",
+        )}
+      />
       <span className="sr-only">{label}</span>
     </SidebarMenuButton>
   );
