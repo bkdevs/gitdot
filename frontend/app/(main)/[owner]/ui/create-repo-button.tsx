@@ -2,15 +2,9 @@
 
 import { Plus } from "lucide-react";
 import { useState } from "react";
-import { CreateQuestionDialog } from "./create-question-dialog";
+import CreateRepoDialog from "./create-repo-dialog";
 
-export function CreateQuestionButton({
-  owner,
-  repo,
-}: {
-  owner: string;
-  repo: string;
-}) {
+export function CreateRepoButton() {
   const [open, setOpen] = useState(false);
 
   return (
@@ -21,14 +15,9 @@ export function CreateQuestionButton({
         onClick={() => setOpen(true)}
       >
         <Plus className="size-3 mr-1.5" />
-        Ask question
+        Create repo
       </button>
-      <CreateQuestionDialog
-        open={open}
-        setOpen={setOpen}
-        owner={owner}
-        repo={repo}
-      />
+      <CreateRepoDialog open={open} setOpen={setOpen} />
     </>
   );
 }

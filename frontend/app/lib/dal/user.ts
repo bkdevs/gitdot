@@ -6,7 +6,7 @@ import {
   type UserResponse,
   UserResponseSchema,
 } from "../dto";
-import { GITDOT_SERVER_URL, authFetch, handleResponse } from "./util";
+import { authFetch, GITDOT_SERVER_URL, handleResponse } from "./util";
 
 export async function getUser(username: string): Promise<UserResponse | null> {
   const response = await authFetch(`${GITDOT_SERVER_URL}/user/${username}`);
