@@ -1,8 +1,16 @@
 "use client";
 
+import { LogIn, LogOut, Settings, User, UserCheck, UserPlus, UserRound, UserRoundCheck, UserRoundPlus } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { useUser } from "@/(main)/providers/user-provider";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/ui/dropdown-menu";
 import Link from "@/ui/link";
-import { User } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { cn } from "@/util";
 
 export function MainHeader() {
   const pathname = usePathname();
@@ -32,9 +40,74 @@ export function MainHeader() {
       <div className="flex-1 pl-2 text-sm font-mono flex items-center">
         {pathLinks}
       </div>
-      <div className="w-9 h-9 flex items-center justify-center hover:bg-sidebar-accent">
-        <User className="size-4"/>
-      </div>
+      <UserDropdown />
     </div>
+  );
+}
+
+function UserDropdown() {
+  const { user } = useUser();
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button className="w-9 h-9 flex items-center justify-center hover:bg-sidebar-accent data-[state=open]:bg-sidebar-accent outline-none">
+          <User className={cn("size-4 transition-all duration-300", user ? "text-foreground stroke-[2.5]" : "text-muted-foreground")} />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        side="bottom"
+        align="end"
+        className="rounded-none min-w-32 p-0"
+      >
+        {user ? <AuthenticatedMenuItems /> : <UnauthenticatedMenuItems />}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+function AuthenticatedMenuItems() {
+  const router = useRouter();
+
+  return (
+    <>
+      <DropdownMenuItem
+        onClick={() => router.push("/settings")}
+        className="rounded-none px-2 py-1.5 text-sm cursor-pointer"
+      >
+        <Settings className="size-3" />
+        Profile
+      </DropdownMenuItem>
+      <DropdownMenuItem
+        onClick={() => router.push("/logout")}
+        className="rounded-none px-2 py-1.5 text-sm cursor-pointer"
+      >
+        <LogOut className="size-3" />
+        Sign out
+      </DropdownMenuItem>
+    </>
+  );
+}
+
+function UnauthenticatedMenuItems() {
+  const router = useRouter();
+
+  return (
+    <>
+      <DropdownMenuItem
+        onClick={() => router.push("/login")}
+        className="rounded-none px-2 py-1.5 text-sm cursor-pointer"
+      >
+        <LogIn className="size-3" />
+        Log in
+      </DropdownMenuItem>
+      <DropdownMenuItem
+        onClick={() => router.push("/signup")}
+        className="rounded-none px-2 py-1.5 text-sm cursor-pointer"
+      >
+        <UserRoundPlus className="size-3" />
+        Sign up
+      </DropdownMenuItem>
+    </>
   );
 }
