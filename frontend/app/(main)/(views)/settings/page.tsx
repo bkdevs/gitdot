@@ -1,3 +1,9 @@
+import SignoutButton from "./ui/signout-button";
+
 export default function Page() {
-  return <div>to come</div>;
+  return (
+    <div>
+      <SignoutButton />
+    </div>
+  );
 }

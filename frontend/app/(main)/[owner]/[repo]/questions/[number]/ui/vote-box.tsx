@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useOptimistic } from "react";
+import { useAuthBlocker } from "@/(main)/providers/auth-blocker-provider";
 import { type VoteActionResult, voteAction } from "@/actions";
 import { TriangleDown, TriangleUp } from "@/lib/icons";
 import { cn } from "@/util";
@@ -34,9 +35,12 @@ export function VoteBox({
     }),
   );
 
+  const { requireAuth } = useAuthBlocker();
   const vote = voteAction.bind(null, owner, repo, number, targetId, targetType);
   const [, formAction] = useActionState(
     async (_prev: VoteActionResult | null, formData: FormData) => {
+      if (requireAuth()) return null;
+
       const clickedVote = Number(formData.get("clickedVote")) as 1 | -1;
       const newValue = optimistic.userVote === clickedVote ? 0 : clickedVote;
       formData.set("value", String(newValue));

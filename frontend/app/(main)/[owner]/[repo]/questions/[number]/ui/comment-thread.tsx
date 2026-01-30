@@ -1,9 +1,9 @@
 "use client";
 
 import { useOptimistic } from "react";
+import { useUser } from "@/(main)/providers/user-provider";
 import { createCommentAction } from "@/actions";
 import type { CommentResponse } from "@/lib/dto";
-import { useUser } from "@/(main)/providers/user-provider";
 import { CommentInput } from "./comment-input";
 import { CommentRow } from "./comment-row";
 
@@ -22,7 +22,7 @@ export function CommentThread({
   number: number;
   comments: CommentResponse[];
 }) {
-  const user = useUser();
+  const { user } = useUser();
   const createComment = createCommentAction.bind(
     null,
     owner,

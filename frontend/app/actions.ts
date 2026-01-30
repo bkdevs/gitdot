@@ -1,5 +1,6 @@
 "use server";
 
+import { refresh } from "next/cache";
 import {
   createAnswer,
   createAnswerComment,
@@ -14,7 +15,6 @@ import {
   voteQuestion,
 } from "@/lib/dal";
 import { createSupabaseClient } from "@/lib/supabase";
-import { refresh } from "next/cache";
 import { authFetch, GITDOT_SERVER_URL, handleResponse } from "./lib/dal/util";
 import {
   type AnswerResponse,
@@ -35,36 +35,44 @@ export async function getCurrentUserAction(): Promise<UserResponse | null> {
   return await handleResponse(response, UserResponseSchema);
 }
 
-export async function signup(formData: FormData) {
+export type AuthActionResult =
+  | { success: true }
+  | { success: false; error: string };
+
+export async function signup(formData: FormData): Promise<AuthActionResult> {
   const supabase = await createSupabaseClient();
 
   // todo: add validation
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
 
-  const { data, error } = await supabase.auth.signUp({
+  const { error } = await supabase.auth.signUp({
     email,
     password,
   });
 
-  console.log(data);
-  console.error(error);
+  if (error) {
+    return { success: false, error: error.message };
+  }
+  return { success: true };
 }
 
-export async function login(formData: FormData) {
+export async function login(formData: FormData): Promise<AuthActionResult> {
   const supabase = await createSupabaseClient();
 
   // todo: add validation
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
 
-  const { data, error } = await supabase.auth.signInWithPassword({
+  const { error } = await supabase.auth.signInWithPassword({
     email,
     password,
   });
 
-  console.log(data);
-  console.error(error);
+  if (error) {
+    return { success: false, error: error.message };
+  }
+  return { success: true };
 }
 
 export async function signout() {

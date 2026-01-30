@@ -28,7 +28,7 @@ export function MainSidebar() {
   const isDefault = !["/inbox", "/questions", "/charts", "/settings"].includes(
     pathname,
   );
-  const user = useUser();
+  const { user } = useUser();
 
   return (
     <Sidebar

@@ -17,7 +17,7 @@ type AnswerCardProps = {
 
 export function AnswerCard({ answer, owner, repo, number }: AnswerCardProps) {
   const wasUpdated = answer.created_at !== answer.updated_at;
-  const user = useUser();
+  const { user } = useUser();
 
   return (
     <div className="flex">

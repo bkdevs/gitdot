@@ -1,6 +1,7 @@
 "use client";
 
 import { TooltipProvider } from "@/ui/tooltip";
+import { AuthBlockerProvider } from "./auth-blocker-provider";
 import { UserProvider } from "./user-provider";
 
 export function Providers({
@@ -10,7 +11,9 @@ export function Providers({
 }) {
   return (
     <UserProvider>
-      <TooltipProvider delayDuration={0}>{children}</TooltipProvider>
+      <AuthBlockerProvider>
+        <TooltipProvider delayDuration={0}>{children}</TooltipProvider>
+      </AuthBlockerProvider>
     </UserProvider>
   );
 }
