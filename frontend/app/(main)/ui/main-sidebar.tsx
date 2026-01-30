@@ -123,9 +123,8 @@ function NavItem({
         prefetch={true}
         href={href}
         onClick={(e) => {
-          if (requiresAuth) {
+          if (requiresAuth && requireAuth()) {
             e.preventDefault();
-            requireAuth();
           }
         }}
       >
