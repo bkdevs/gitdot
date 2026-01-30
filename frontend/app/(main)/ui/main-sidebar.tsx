@@ -5,7 +5,6 @@ import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import CreateRepoDialog from "@/(main)/[owner]/ui/create-repo-dialog";
 import { useAuthBlocker } from "@/(main)/providers/auth-blocker-provider";
-import { useUser } from "@/(main)/providers/user-provider";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,9 +31,8 @@ export function MainSidebar() {
   const isDefault = !["/search", "/notifications", "/settings"].includes(
     pathname,
   );
-  const { user } = useUser();
-  const { requireAuth } = useAuthBlocker();
   const [createRepoOpen, setCreateRepoOpen] = useState(false);
+  const { requireAuth } = useAuthBlocker();
 
   return (
     <>
@@ -49,37 +47,43 @@ export function MainSidebar() {
                 <NavItem
                   icon={Circle}
                   label="Home"
-                  href={user ? `/${user.name}` : "/"}
+                  href="/home"
                   isActive={isDefault}
                   iconClassName="!size-2 fill-current"
+                  requiresAuth={false}
                 />
                 <NavItem
                   icon={Search}
                   label="Search"
                   href="/search"
                   isActive={pathname === "/search"}
+                  requiresAuth={false}
                 />
                 <NavItem
                   icon={Bell}
                   label="Notifications"
                   href="/notifications"
                   isActive={pathname === "/notifications"}
+                  requiresAuth={true}
                 />
                 <DropdownNavItem icon={Plus} label="Create">
                   <DropdownMenuItem
                     onClick={() => {
-                      if (requireAuth()) return;
+                      if (requireAuth()) return null;
                       setCreateRepoOpen(true);
                     }}
-                    className="rounded-none px-2 py-1.5 text-xs cursor-pointer"
+                    className="rounded-none px-2 py-1.5 text-sm cursor-pointer"
                   >
                     New repo
                   </DropdownMenuItem>
                 </DropdownNavItem>
                 <DropdownNavItem icon={MoreHorizontal} label="More">
                   <DropdownMenuItem
-                    onClick={() => router.push("/settings")}
-                    className="rounded-none px-2 py-1.5 text-xs cursor-pointer"
+                    onClick={() => {
+                      if (requireAuth()) return null;
+                      router.push("/settings");
+                    }}
+                    className="rounded-none px-2 py-1.5 text-sm cursor-pointer"
                   >
                     Settings
                   </DropdownMenuItem>
@@ -100,36 +104,41 @@ function NavItem({
   href,
   isActive,
   iconClassName,
+  requiresAuth,
 }: {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
-  href?: string;
+  href: string;
   isActive: boolean;
   iconClassName?: string;
+  requiresAuth: boolean;
 }) {
-  const button = (
-    <SidebarMenuButton className="group w-full h-full flex items-center justify-center p-0! rounded-none hover:bg-sidebar-accent! hover:text-current!">
-      <Icon
-        className={cn(
-          iconClassName ?? "h-4 w-4",
-          "mr-1 group-hover:stroke-[2.25]",
-        )}
-      />
-      <span className="sr-only">{label}</span>
-    </SidebarMenuButton>
-  );
+  const { requireAuth } = useAuthBlocker();
 
   return (
     <SidebarMenuItem
       className={`w-10 h-9 border-b p-0! border-l-4 bg-sidebar ${isActive ? "border-l-primary" : "border-l-transparent"}`}
     >
-      {href ? (
-        <Link prefetch={true} href={href}>
-          {button}
-        </Link>
-      ) : (
-        button
-      )}
+      <Link
+        prefetch={true}
+        href={href}
+        onClick={(e) => {
+          if (requiresAuth) {
+            e.preventDefault();
+            requireAuth();
+          }
+        }}
+      >
+        <SidebarMenuButton className="group w-full h-full flex items-center justify-center p-0! rounded-none hover:bg-sidebar-accent! hover:text-current!">
+          <Icon
+            className={cn(
+              iconClassName ?? "h-4 w-4",
+              "mr-1 group-hover:stroke-[2.25]",
+            )}
+          />
+          <span className="sr-only">{label}</span>
+        </SidebarMenuButton>
+      </Link>
     </SidebarMenuItem>
   );
 }
