@@ -1,5 +1,6 @@
 mod authorization;
 mod git_http;
+mod oauth;
 mod organization;
 mod question;
 mod repository;
@@ -13,6 +14,7 @@ use common::*;
 /// Re-export to expose flattened namespace to public
 pub use authorization::*;
 pub use git_http::*;
+pub use oauth::*;
 pub use organization::*;
 pub use question::*;
 pub use repository::*;

@@ -1,4 +1,5 @@
 mod auth;
+mod credential_helper;
 
 use clap::Parser;
 
@@ -9,6 +10,10 @@ use auth::{AuthArgs, AuthCommand};
 pub enum Args {
     /// Manage authentication credentials for gitdot account
     Auth(AuthArgs),
+
+    /// Git credential helper (used internally by git)
+    #[command(name = "credential-helper")]
+    CredentialHelper,
 }
 
 impl Args {
@@ -16,8 +21,10 @@ impl Args {
         match &self {
             Args::Auth(args) => match &args.command {
                 AuthCommand::Login => auth::login().await?,
+                AuthCommand::Logout => auth::logout().await?,
                 AuthCommand::Status => auth::get_status().await?,
             },
+            Args::CredentialHelper => credential_helper::run()?,
         }
         Ok(())
     }

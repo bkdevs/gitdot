@@ -6,7 +6,8 @@ use serde::Serialize;
 use thiserror::Error;
 
 use gitdot_core::error::{
-    AuthorizationError, GitHttpError, OrganizationError, QuestionError, RepositoryError, UserError,
+    AuthorizationError, GitHttpError, OAuthError, OrganizationError, QuestionError,
+    RepositoryError, UserError,
 };
 
 use super::AppResponse;
@@ -32,12 +33,22 @@ pub enum AppError {
     GitHttp(#[from] GitHttpError),
 
     #[error(transparent)]
+    OAuth(#[from] OAuthError),
+
+    #[error(transparent)]
     Internal(#[from] anyhow::Error),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct AppErrorMessage {
     pub message: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct OAuthErrorResponse {
+    pub error: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error_description: Option<String>,
 }
 
 impl IntoResponse for AppError {
@@ -140,6 +151,30 @@ impl IntoResponse for AppError {
                     status_code,
                     AppErrorMessage {
                         message: e.to_string(),
+                    },
+                );
+                response.into_response()
+            }
+            AppError::OAuth(e) => {
+                let (status_code, error_code) = match &e {
+                    OAuthError::AuthorizationPending => {
+                        (StatusCode::BAD_REQUEST, "authorization_pending")
+                    }
+                    OAuthError::SlowDown => (StatusCode::BAD_REQUEST, "slow_down"),
+                    OAuthError::ExpiredToken => (StatusCode::BAD_REQUEST, "expired_token"),
+                    OAuthError::AccessDenied => (StatusCode::BAD_REQUEST, "access_denied"),
+                    OAuthError::InvalidDeviceCode => (StatusCode::BAD_REQUEST, "invalid_grant"),
+                    OAuthError::InvalidUserCode => (StatusCode::BAD_REQUEST, "invalid_grant"),
+                    OAuthError::InvalidRequest(_) => (StatusCode::BAD_REQUEST, "invalid_request"),
+                    OAuthError::DatabaseError(_) => {
+                        (StatusCode::INTERNAL_SERVER_ERROR, "server_error")
+                    }
+                };
+                let response = AppResponse::new(
+                    status_code,
+                    OAuthErrorResponse {
+                        error: error_code.to_string(),
+                        error_description: Some(e.to_string()),
                     },
                 );
                 response.into_response()

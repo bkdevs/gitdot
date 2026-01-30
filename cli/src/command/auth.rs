@@ -1,9 +1,11 @@
 mod login;
+mod logout;
 mod status;
 
 use clap::{Args, Subcommand};
 
 pub use login::login;
+pub use logout::logout;
 pub use status::get_status;
 
 #[derive(Args, Debug)]
@@ -16,6 +18,9 @@ pub struct AuthArgs {
 pub enum AuthCommand {
     /// Authenticate with gitdot OAuth and store your credentials locally
     Login,
+
+    /// Remove stored credentials from your system
+    Logout,
 
     /// Display the current authentication state and logged-in user
     Status,

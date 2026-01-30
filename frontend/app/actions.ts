@@ -1,7 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createAnswer, createQuestion, createRepository } from "@/lib/dal";
+import {
+  authorizeDevice,
+  createAnswer,
+  createQuestion,
+  createRepository,
+} from "@/lib/dal";
 import { createSupabaseClient } from "@/lib/supabase";
 
 export async function signup(formData: FormData) {
@@ -101,4 +106,20 @@ export async function createAnswerAction(formData: FormData) {
 
   revalidatePath(`/${owner}/${repo}/questions/${number}`);
   return { success: true, answer: result };
+}
+
+export async function authorizeDeviceAction(formData: FormData) {
+  const userCode = formData.get("user_code") as string;
+
+  if (!userCode) {
+    return { error: "User code is required" };
+  }
+
+  const success = await authorizeDevice(userCode);
+
+  if (!success) {
+    return { error: "Failed to authorize device. The code may be invalid or expired." };
+  }
+
+  return { success: true };
 }
