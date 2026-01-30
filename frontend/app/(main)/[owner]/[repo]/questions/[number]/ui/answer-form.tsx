@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import { useAuthBlocker } from "@/(main)/providers/auth-blocker-provider";
 import { useUser } from "@/(main)/providers/user-provider";
 import { type CreateAnswerActionResult, createAnswerAction } from "@/actions";
 import type { AnswerResponse } from "@/lib/dto";
@@ -18,16 +19,21 @@ export function AnswerForm({
   number: number;
   answers: AnswerResponse[];
 }) {
-  const createAnswer = createAnswerAction.bind(null, owner, repo, number);
+  const { requireAuth } = useAuthBlocker();
+  const { user } = useUser();
+
   const [body, setBody] = useState("");
+
+  const createAnswer = createAnswerAction.bind(null, owner, repo, number);
   const [state, formAction, isPending] = useActionState(
     async (_prevState: CreateAnswerActionResult | null, formData: FormData) => {
+      if (requireAuth()) return null;
       return await createAnswer(formData);
     },
     null,
   );
+
   const isValid = body.trim() !== "";
-  const { user } = useUser();
   const answeredQuestion = answers.find(
     (answer) => answer.author_id === user?.id,
   );

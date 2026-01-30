@@ -4,11 +4,7 @@ import { TooltipProvider } from "@/ui/tooltip";
 import { AuthBlockerProvider } from "./auth-blocker-provider";
 import { UserProvider } from "./user-provider";
 
-export function Providers({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <UserProvider>
       <AuthBlockerProvider>

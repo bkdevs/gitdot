@@ -11,7 +11,7 @@ export function SubscribeButton() {
 
   const handleSubmit = async () => {
     // TODO: remove so we don't have to maintain two dbs.
-    const supabase =  createClient(
+    const supabase = createClient(
       "https://ttvxrkljjbcapscsqopv.supabase.co",
       "sb_publishable_ob5MXkeMmhi_zMgH5yMs-g_TGg5YjpQ",
     );

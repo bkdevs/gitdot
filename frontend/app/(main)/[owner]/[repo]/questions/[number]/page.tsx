@@ -34,7 +34,12 @@ export default async function Page({
             ))}
           </div>
 
-          <AnswerForm owner={owner} repo={repo} number={number} answers={question.answers}  />
+          <AnswerForm
+            owner={owner}
+            repo={repo}
+            number={number}
+            answers={question.answers}
+          />
         </div>
       </div>
     </div>

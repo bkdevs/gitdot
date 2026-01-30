@@ -1,10 +1,10 @@
-import { Metadata } from 'next';
-import Link from 'next/link';
-import { getAllPosts } from '../lib/posts';
+import { Metadata } from "next";
+import Link from "next/link";
+import { getAllPosts } from "../lib/posts";
 
 export const metadata: Metadata = {
-  title: 'gitdot | dev log',
-  description: 'weekly updates on building gitdot',
+  title: "gitdot | dev log",
+  description: "weekly updates on building gitdot",
 };
 
 export default function Page() {
@@ -17,7 +17,7 @@ export default function Page() {
           <p>No posts yet.</p>
         ) : (
           <div className="space-y-2">
-            {posts.map(post => (
+            {posts.map((post) => (
               <article key={post.metadata.week}>
                 <div className="flex flex-row w-full items-baseline justify-between">
                   <Link

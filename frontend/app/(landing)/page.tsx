@@ -10,7 +10,9 @@ const league_spartan = League_Spartan({
 
 export default function Home() {
   return (
-    <div className={`${league_spartan.className} min-h-screen grid place-items-center`}>
+    <div
+      className={`${league_spartan.className} min-h-screen grid place-items-center`}
+    >
       <div className={`w-full max-w-160 px-4 sm:px-8 py-4`}>
         <div className="mb-4">
           <Image

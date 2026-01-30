@@ -3,7 +3,8 @@ import "server-only";
 import type { ZodType } from "zod";
 import { getSession } from "../supabase";
 
-export const GITDOT_SERVER_URL = process.env.GITDOT_SERVER_URL || "http://localhost:8080";
+export const GITDOT_SERVER_URL =
+  process.env.GITDOT_SERVER_URL || "http://localhost:8080";
 
 export async function authFetch(
   url: string,

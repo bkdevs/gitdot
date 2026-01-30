@@ -2,6 +2,7 @@
 
 import { Check } from "lucide-react";
 import { useActionState, useRef, useState } from "react";
+import { useAuthBlocker } from "@/(main)/providers/auth-blocker-provider";
 import type { CreateCommentActionResult } from "@/actions";
 import { cn } from "@/util";
 
@@ -12,10 +13,10 @@ export function CommentInput({
   createComment: (formData: FormData) => Promise<CreateCommentActionResult>;
   addOptimisticComment: (body: string) => void;
 }) {
+  const { requireAuth } = useAuthBlocker();
   const [showInput, setShowInput] = useState(false);
   const [body, setBody] = useState("");
   const formRef = useRef<HTMLFormElement>(null);
-
   const [, formAction] = useActionState(
     async (
       _prevState: CreateCommentActionResult | null,
@@ -83,7 +84,10 @@ export function CommentInput({
         <button
           type="button"
           className="underline text-muted-foreground cursor-pointer h-5 border-b border-transparent"
-          onClick={() => setShowInput(true)}
+          onClick={() => {
+            if (requireAuth()) return;
+            setShowInput(true);
+          }}
         >
           Add comment...
         </button>

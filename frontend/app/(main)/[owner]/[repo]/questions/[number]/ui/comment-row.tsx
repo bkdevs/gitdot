@@ -1,16 +1,18 @@
 "use client";
 
+import { Check, Edit3 } from "lucide-react";
+import { useActionState, useOptimistic, useRef, useState } from "react";
+import { useAuthBlocker } from "@/(main)/providers/auth-blocker-provider";
+import { useUser } from "@/(main)/providers/user-provider";
 import {
-  updateCommentAction,
-  voteAction,
-  type VoteActionResult,
   type UpdateCommentActionResult,
+  updateCommentAction,
+  type VoteActionResult,
+  voteAction,
 } from "@/actions";
 import type { CommentResponse } from "@/lib/dto";
 import { TriangleUp } from "@/lib/icons";
 import { cn, timeAgoFull } from "@/util";
-import { Check, Edit3 } from "lucide-react";
-import { useActionState, useOptimistic, useRef, useState } from "react";
 
 export function CommentRow({
   owner,
@@ -24,8 +26,10 @@ export function CommentRow({
   comment: CommentResponse;
 }) {
   const { body, author, created_at } = comment;
+  const { user } = useUser();
   const [editing, setEditing] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
+  const isOwner = user?.id === comment.author_id;
 
   const updateComment = updateCommentAction.bind(
     null,
@@ -101,23 +105,25 @@ export function CommentRow({
           </p>
         )}
       </div>
-      <div className="shrink-0">
-        {editing ? (
-          <Check
-            className="size-3 hover:text-foreground hover:stroke-3"
-            onMouseDown={(e) => {
-              e.preventDefault();
-              setEditing(false);
-              formRef.current?.requestSubmit();
-            }}
-          />
-        ) : (
-          <Edit3
-            className="size-3 opacity-0 group-hover:opacity-100 transition-opacity hover:text-foreground hover:stroke-3"
-            onClick={() => setEditing(true)}
-          />
-        )}
-      </div>
+      {isOwner && (
+        <div className="shrink-0">
+          {editing ? (
+            <Check
+              className="size-3 hover:text-foreground hover:stroke-3"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                setEditing(false);
+                formRef.current?.requestSubmit();
+              }}
+            />
+          ) : (
+            <Edit3
+              className="size-3 opacity-0 group-hover:opacity-100 transition-opacity hover:text-foreground hover:stroke-3"
+              onClick={() => setEditing(true)}
+            />
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -134,6 +140,7 @@ function CommentVote({
   comment: CommentResponse;
 }) {
   const { id, upvote, user_vote } = comment;
+  const { requireAuth } = useAuthBlocker();
   const voteComment = voteAction.bind(null, owner, repo, number, id, "comment");
   const [optimistic, setOptimistic] = useOptimistic(
     { upvote, user_vote },
@@ -145,6 +152,7 @@ function CommentVote({
 
   const [, formAction] = useActionState(
     async (_prev: VoteActionResult | null, formData: FormData) => {
+      if (requireAuth()) return null;
       const newValue = optimistic.user_vote === 1 ? 0 : 1;
       formData.set("value", String(newValue));
       setOptimistic(newValue);

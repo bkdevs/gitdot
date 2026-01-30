@@ -43,9 +43,7 @@ export function EditAnswerDialog({
   );
 
   const isValid =
-    body.trim() !== "" &&
-    "answer" in state &&
-    state.answer.body !== body;
+    body.trim() !== "" && "answer" in state && state.answer.body !== body;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

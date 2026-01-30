@@ -1,6 +1,7 @@
 "use client";
 
 import { MarkdownBody } from "@/(main)/[owner]/[repo]/ui/markdown/markdown-body";
+import { useUser } from "@/(main)/providers/user-provider";
 import type { QuestionResponse } from "@/lib/dto/question";
 import { formatDate, timeAgoFull } from "@/util";
 import { CommentThread } from "./comment-thread";
@@ -14,7 +15,9 @@ type QuestionCardProps = {
 };
 
 export function QuestionCard({ question, owner, repo }: QuestionCardProps) {
+  const { user } = useUser();
   const wasUpdated = question.created_at !== question.updated_at;
+  const isOwner = user?.id === question.author_id;
 
   return (
     <div className="flex">
@@ -28,9 +31,11 @@ export function QuestionCard({ question, owner, repo }: QuestionCardProps) {
       />
       <div className="flex-1">
         <div className="flex flex-col group relative">
-          <div className="absolute top-0 right-0">
-            <QuestionDropdown owner={owner} repo={repo} question={question} />
-          </div>
+          {isOwner && (
+            <div className="absolute top-0 right-0">
+              <QuestionDropdown owner={owner} repo={repo} question={question} />
+            </div>
+          )}
           <h1 className="text-xl font-medium pr-8">{question.title}</h1>
           <MarkdownBody content={question.body} />
 
