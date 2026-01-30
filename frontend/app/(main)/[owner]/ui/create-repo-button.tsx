@@ -15,7 +15,7 @@ export function CreateRepoButton() {
         onClick={() => setOpen(true)}
       >
         <Plus className="size-3 mr-1.5" />
-        Create repo
+        New repo
       </button>
       <CreateRepoDialog open={open} setOpen={setOpen} />
     </>

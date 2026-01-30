@@ -1,6 +1,8 @@
 "use client";
 
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { useActionState, useState } from "react";
+import { useUser } from "@/(main)/providers/user-provider";
 import {
   type CreateRepositoryActionResult,
   createRepositoryAction,
@@ -14,25 +16,21 @@ export default function CreateRepoDialog({
   open: boolean;
   setOpen: (open: boolean) => void;
 }) {
-  const [owner, setOwner] = useState("");
+  const user = useUser();
   const [repoName, setRepoName] = useState("");
-  const [visibility, setVisibility] = useState("public");
-
   const [state, formAction, isPending] = useActionState(
     async (_prev: CreateRepositoryActionResult | null, formData: FormData) => {
       const result = await createRepositoryAction(formData);
       if ("repository" in result) {
         setOpen(false);
-        setOwner("");
         setRepoName("");
-        setVisibility("public");
       }
       return result;
     },
     null,
   );
 
-  const isValid = owner.trim() !== "" && repoName.trim() !== "";
+  const isValid = repoName.trim() !== "";
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -41,43 +39,40 @@ export default function CreateRepoDialog({
         animations={true}
         showOverlay={true}
       >
-        <div className="px-2 py-4 border-b border-border">
-          <DialogTitle>Create a new repository</DialogTitle>
-        </div>
+        <VisuallyHidden>
+          <DialogTitle>New repository</DialogTitle>
+        </VisuallyHidden>
         <form action={formAction} className="relative">
-          <div className="flex flex-col gap-1 p-2 border-b border-border">
-            <label htmlFor="owner" className="text-xs text-muted-foreground">
-              Owner
-            </label>
-            <input
-              type="text"
-              id="owner"
-              name="owner"
-              placeholder="username"
-              value={owner}
-              onChange={(e) => setOwner(e.target.value)}
-              className="w-full bg-background outline-none"
-              disabled={isPending}
-              autoFocus
-            />
-          </div>
           <div className="flex flex-col gap-1 p-2 border-b border-border">
             <label
               htmlFor="repo-name"
               className="text-xs text-muted-foreground"
             >
-              Repository name
+              Name
             </label>
             <input
               type="text"
               id="repo-name"
               name="repo-name"
-              placeholder="my-awesome-project"
+              placeholder="Project name..."
               value={repoName}
               onChange={(e) => setRepoName(e.target.value)}
               className="w-full bg-background outline-none"
               disabled={isPending}
             />
+          </div>
+          <div className="flex flex-col gap-1 p-2 border-b border-border">
+            <label htmlFor="owner" className="text-xs text-muted-foreground">
+              Owner
+            </label>
+            <select
+              id="owner"
+              name="owner"
+              className="w-full text-sm bg-background outline-none"
+              disabled={isPending}
+            >
+              <option value={user?.name}>{user?.name}</option>
+            </select>
           </div>
           <div className="flex flex-col gap-1 p-2 border-b border-border">
             <label
@@ -89,8 +84,6 @@ export default function CreateRepoDialog({
             <select
               id="visibility"
               name="visibility"
-              value={visibility}
-              onChange={(e) => setVisibility(e.target.value)}
               className="w-full text-sm bg-background outline-none"
               disabled={isPending}
             >
