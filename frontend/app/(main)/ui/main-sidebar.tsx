@@ -2,17 +2,33 @@
 
 import {
   Activity,
+  Bell,
   Circle,
+  Code,
+  Command,
+  Ellipsis,
+  Gauge,
+  Inbox,
   Mail,
   MessageCircleQuestion,
+  MessageSquare,
+  MoreHorizontal,
+  MoreVertical,
+  Plus,
+  Rss,
+  Search,
   Settings,
+  Square,
+  User,
 } from "lucide-react";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useUser } from "@/(main)/providers/user-provider";
 import Link from "@/ui/link";
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarMenu,
@@ -43,32 +59,32 @@ export function MainSidebar() {
                 icon={Circle}
                 label="Home"
                 href={user ? `/${user.name}` : "/"}
-                isActive={isDefault}
+                isActive={true}
                 iconClassName="!size-2 fill-current"
               />
               <NavItem
-                icon={Mail}
-                label="Inbox"
-                href="/inbox"
-                isActive={pathname === "/inbox"}
+                icon={Search}
+                label="Search"
+                href="/search"
+                isActive={pathname === "/search"}
               />
               <NavItem
-                icon={MessageCircleQuestion}
-                label="Questions"
-                href="/questions"
-                isActive={pathname === "/questions"}
+                icon={Bell}
+                label="Notifications"
+                href="/notifications"
+                isActive={pathname === "/notifications"}
               />
               <NavItem
-                icon={Activity}
-                label="Charts"
-                href="/charts"
-                isActive={pathname === "/charts"}
+                icon={Plus}
+                label="Create"
+                href="/create"
+                isActive={pathname === "/create"}
               />
               <NavItem
-                icon={Settings}
-                label="Settings"
-                href="/settings"
-                isActive={pathname === "/settings"}
+                icon={MoreHorizontal}
+                label="More"
+                href="/more"
+                isActive={pathname === "/more"}
               />
             </SidebarMenu>
           </SidebarGroupContent>
