@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { QuestionResponse } from "@/lib/dto";
+import { processQuestions } from "../util";
 import { QuestionRow } from "./question-row";
 import { QuestionsHeader } from "./questions-header";
 
@@ -26,6 +27,11 @@ export function QuestionsClient({
   const [filter, setFilter] = useState<QuestionsFilter>("popular");
   const [sort, setSort] = useState<QuestionsSort>("created-asc");
 
+  const processedQuestions = useMemo(
+    () => processQuestions(questions, filter, sort),
+    [questions, filter, sort],
+  );
+
   return (
     <div className="flex flex-col">
       <QuestionsHeader
@@ -36,7 +42,7 @@ export function QuestionsClient({
         sort={sort}
         setSort={setSort}
       />
-      {questions.map((question) => (
+      {processedQuestions.map((question) => (
         <QuestionRow
           key={question.id}
           owner={owner}

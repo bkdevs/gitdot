@@ -41,7 +41,7 @@ export default async function Page({
             ))}
           </div>
 
-          {hasUserAnswer && (
+          {!hasUserAnswer && (
             <AnswerForm
               owner={owner}
               repo={repo}

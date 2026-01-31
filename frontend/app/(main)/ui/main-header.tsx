@@ -16,14 +16,11 @@ export function MainHeader() {
   const pathname = usePathname();
   const params = useParams();
   const segments = pathname.split("/").filter(Boolean);
-
-  const onFile = "filePath" in params;
   const pathLinks: React.ReactNode[] = [];
 
   segments.forEach((segment, index) => {
     let path = `/${segments.slice(0, index + 1).join("/")}`;
-    if (onFile && index === 1) {
-      // if on file path and clicking on repo, navigate to repo/files
+    if ("filePath" in params && index === 1) {
       path = `${path}/files`;
     }
 

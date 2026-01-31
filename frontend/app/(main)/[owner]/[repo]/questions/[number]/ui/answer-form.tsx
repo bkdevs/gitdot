@@ -2,7 +2,6 @@
 
 import { useActionState, useState } from "react";
 import { useAuthBlocker } from "@/(main)/providers/auth-blocker-provider";
-import { useUser } from "@/(main)/providers/user-provider";
 import { type CreateAnswerActionResult, createAnswerAction } from "@/actions";
 import type { AnswerResponse } from "@/lib/dto";
 import { Button } from "@/ui/button";
