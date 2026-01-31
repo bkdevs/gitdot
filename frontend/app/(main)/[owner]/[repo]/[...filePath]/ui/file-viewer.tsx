@@ -1,4 +1,8 @@
-import { getRepositoryFile, getRepositoryFileCommits } from "@/lib/dal";
+import {
+  getRepositoryFile,
+  getRepositoryFileCommits,
+  NotFound,
+} from "@/lib/dal";
 import type { LineSelection } from "../util";
 import { FileBody } from "./file-body";
 import { FileCommits } from "./file-commits";
@@ -24,7 +28,7 @@ export async function FileViewer({
     }),
   ]);
 
-  if (!commits || !file) {
+  if (!commits || !file || file === NotFound) {
     return <div>Failed to fetch file.</div>;
   }
 

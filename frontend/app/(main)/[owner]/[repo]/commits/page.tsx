@@ -1,5 +1,5 @@
 import { Fragment } from "react";
-import { getRepositoryCommits } from "@/lib/dal";
+import { getRepositoryCommits, NotFound } from "@/lib/dal";
 import Link from "@/ui/link";
 import { formatDateKey, formatTime } from "@/util";
 import { groupCommitsByDate } from "../util/commit";
@@ -12,7 +12,7 @@ export default async function Page({
   const { owner, repo } = await params;
   const commitsData = await getRepositoryCommits(owner, repo);
 
-  if (!commitsData) return null;
+  if (!commitsData || commitsData === NotFound) return null;
 
   const commitsByDate = groupCommitsByDate(commitsData.commits);
 

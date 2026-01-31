@@ -2,7 +2,7 @@ import {
   getFolderEntries,
   parseRepositoryTree,
 } from "@/(main)/[owner]/[repo]/util";
-import { getRepositoryTree } from "@/lib/dal";
+import { getRepositoryTree, NotFound } from "@/lib/dal";
 import { FileViewer } from "./ui/file-viewer";
 import { FolderViewer } from "./ui/folder-viewer";
 import { parseLineSelection } from "./util";
@@ -20,7 +20,7 @@ export default async function Page({
   const { owner, repo, filePath } = await params;
 
   const tree = await getRepositoryTree(owner, repo);
-  if (!tree) return null;
+  if (!tree || tree === NotFound) return null;
 
   const filePathString = decodeURIComponent(filePath.join("/"));
   const { entries, folders } = parseRepositoryTree(tree);
