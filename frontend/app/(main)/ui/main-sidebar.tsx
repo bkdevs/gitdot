@@ -132,7 +132,7 @@ function NavItem({
           <Icon
             className={cn(
               iconClassName ?? "size-4",
-              "mr-1 group-hover:stroke-[2.25]",
+              "mr-1 group-hover:stroke-[2.5]",
             )}
           />
           <span className="sr-only">{label}</span>
@@ -158,7 +158,7 @@ function DropdownNavItem({
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <SidebarMenuButton className="group w-full h-full flex items-center justify-center p-0! rounded-none hover:bg-sidebar-accent! data-[state=open]:bg-sidebar-accent! hover:text-current! ring-0! outline-0!">
-            <Icon className={"h-4 w-4 mr-1 group-hover:stroke-[2.25]"} />
+            <Icon className={"h-4 w-4 mr-1 group-hover:stroke-[2.5]"} />
             <span className="sr-only">{label}</span>
           </SidebarMenuButton>
         </DropdownMenuTrigger>

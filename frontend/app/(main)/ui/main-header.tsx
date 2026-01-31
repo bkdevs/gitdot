@@ -1,6 +1,6 @@
 "use client";
 
-import { LogIn, LogOut, Settings, User, UserCheck, UserPlus, UserRound, UserRoundCheck, UserRoundPlus } from "lucide-react";
+import { LogIn, LogOut, Settings, User, UserRoundPlus } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useUser } from "@/(main)/providers/user-provider";
 import {
@@ -51,8 +51,16 @@ function UserDropdown() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="w-9 h-9 flex items-center justify-center hover:bg-sidebar-accent data-[state=open]:bg-sidebar-accent outline-none">
-          <User className={cn("size-4 transition-all duration-300", user ? "text-foreground stroke-[2.5]" : "text-muted-foreground")} />
+        <button
+          type="submit"
+          className="w-9 h-9 flex items-center justify-center hover:bg-sidebar-accent data-[state=open]:bg-sidebar-accent outline-none"
+        >
+          <User
+            className={cn(
+              "size-4 transition-all duration-300",
+              user ? "text-foreground stroke-[2.5]" : "text-muted-foreground",
+            )}
+          />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent

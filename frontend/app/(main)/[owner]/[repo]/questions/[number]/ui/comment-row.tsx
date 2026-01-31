@@ -109,7 +109,7 @@ export function CommentRow({
         <div className="shrink-0">
           {editing ? (
             <Check
-              className="size-3 hover:text-foreground hover:stroke-3"
+              className="size-3 hover:text-foreground hover:stroke-[2.5]"
               onMouseDown={(e) => {
                 e.preventDefault();
                 setEditing(false);
@@ -118,7 +118,7 @@ export function CommentRow({
             />
           ) : (
             <Edit3
-              className="size-3 opacity-0 group-hover:opacity-100 transition-opacity hover:text-foreground hover:stroke-3"
+              className="size-3 opacity-0 group-hover:opacity-100 transition-opacity hover:text-foreground hover:stroke-[2.5]"
               onClick={() => setEditing(true)}
             />
           )}

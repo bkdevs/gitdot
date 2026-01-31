@@ -69,7 +69,7 @@ export function CommentInput({
 
           <Check
             className={cn(
-              "size-3 mt-0.5 hover:text-foreground hover:stroke-3 transition-opacity",
+              "size-3 mt-0.5 hover:text-foreground hover:stroke-[2.5] transition-opacity",
               body ? "opacity-100" : "opacity-0 pointer-events-none",
             )}
             onMouseDown={(e) => {
