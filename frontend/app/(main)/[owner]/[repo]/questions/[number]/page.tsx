@@ -1,4 +1,4 @@
-import { getQuestion } from "@/lib/dal";
+import { getCurrentUser, getQuestion } from "@/lib/dal";
 import { AnswerCard } from "./ui/answer-card";
 import { AnswerForm } from "./ui/answer-form";
 import { AnswersStripe } from "./ui/answers-stripe";
@@ -10,8 +10,15 @@ export default async function Page({
   params: Promise<{ owner: string; repo: string; number: number }>;
 }) {
   const { owner, repo, number } = await params;
-  const question = await getQuestion(owner, repo, number);
+  const [user, question] = await Promise.all([
+    getCurrentUser(),
+    getQuestion(owner, repo, number),
+  ]);
   if (!question) return null;
+
+  const hasUserAnswer = question.answers.find(
+    (answer) => answer.author_id === user?.id,
+  );
 
   return (
     <div className="w-full">
@@ -34,12 +41,14 @@ export default async function Page({
             ))}
           </div>
 
-          <AnswerForm
-            owner={owner}
-            repo={repo}
-            number={number}
-            answers={question.answers}
-          />
+          {hasUserAnswer && (
+            <AnswerForm
+              owner={owner}
+              repo={repo}
+              number={number}
+              answers={question.answers}
+            />
+          )}
         </div>
       </div>
     </div>

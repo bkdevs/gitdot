@@ -1,7 +1,7 @@
 "use client";
 
 import { LogIn, LogOut, Settings, User, UserRoundPlus } from "lucide-react";
-import { usePathname, useRouter } from "next/navigation";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import { useUser } from "@/(main)/providers/user-provider";
 import {
   DropdownMenu,
@@ -14,12 +14,19 @@ import { cn } from "@/util";
 
 export function MainHeader() {
   const pathname = usePathname();
+  const params = useParams();
   const segments = pathname.split("/").filter(Boolean);
 
+  const onFile = "filePath" in params;
   const pathLinks: React.ReactNode[] = [];
 
   segments.forEach((segment, index) => {
-    const path = `/${segments.slice(0, index + 1).join("/")}`;
+    let path = `/${segments.slice(0, index + 1).join("/")}`;
+    if (onFile && index === 1) {
+      // if on file path and clicking on repo, navigate to repo/files
+      path = `${path}/files`;
+    }
+
     if (index > 0) {
       pathLinks.push(<span key={`sep-${segment}`}>/</span>);
     }

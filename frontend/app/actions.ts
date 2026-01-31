@@ -7,6 +7,7 @@ import {
   createQuestion,
   createQuestionComment,
   createRepository,
+  getCurrentUser,
   updateAnswer,
   updateComment,
   updateQuestion,
@@ -15,15 +16,13 @@ import {
   voteQuestion,
 } from "@/lib/dal";
 import { createSupabaseClient } from "@/lib/supabase";
-import { authFetch, GITDOT_SERVER_URL, handleResponse } from "./lib/dal/util";
-import {
-  type AnswerResponse,
-  type CommentResponse,
-  type CreateRepositoryResponse,
-  type QuestionResponse,
-  type UserResponse,
-  UserResponseSchema,
-  type VoteResponse,
+import type {
+  AnswerResponse,
+  CommentResponse,
+  CreateRepositoryResponse,
+  QuestionResponse,
+  UserResponse,
+  VoteResponse,
 } from "./lib/dto";
 
 export async function getCurrentUserAction(): Promise<UserResponse | null> {
@@ -31,8 +30,7 @@ export async function getCurrentUserAction(): Promise<UserResponse | null> {
   const session = await supabase.auth.getSession();
 
   if (!session) return null;
-  const response = await authFetch(`${GITDOT_SERVER_URL}/user`);
-  return await handleResponse(response, UserResponseSchema);
+  return await getCurrentUser();
 }
 
 export type AuthActionResult =

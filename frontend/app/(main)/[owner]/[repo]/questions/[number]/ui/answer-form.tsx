@@ -20,8 +20,6 @@ export function AnswerForm({
   answers: AnswerResponse[];
 }) {
   const { requireAuth } = useAuthBlocker();
-  const { user } = useUser();
-
   const [body, setBody] = useState("");
 
   const createAnswer = createAnswerAction.bind(null, owner, repo, number);
@@ -34,13 +32,6 @@ export function AnswerForm({
   );
 
   const isValid = body.trim() !== "";
-  const answeredQuestion = answers.find(
-    (answer) => answer.author_id === user?.id,
-  );
-
-  if (answeredQuestion) {
-    return null;
-  }
 
   return (
     <div className={cn("ml-3", answers.length > 0 && "mt-12")}>

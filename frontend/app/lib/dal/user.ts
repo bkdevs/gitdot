@@ -23,3 +23,12 @@ export async function listUserRepositories(
 
   return await handleResponse(response, UserRepositoriesResponseSchema);
 }
+
+/**
+ * this should _not_ be used on any page that we intend to statically render
+ * if static pages require auth, rely on useUser in client-side components instead
+ */
+export async function getCurrentUser(): Promise<UserResponse | null> {
+  const response = await authFetch(`${GITDOT_SERVER_URL}/user`);
+  return await handleResponse(response, UserResponseSchema);
+}

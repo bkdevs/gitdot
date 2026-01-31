@@ -26,9 +26,9 @@ export function CommentRow({
   comment: CommentResponse;
 }) {
   const { body, author, created_at } = comment;
-  const { user } = useUser();
   const [editing, setEditing] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
+  const { user } = useUser();
   const isOwner = user?.id === comment.author_id;
 
   const updateComment = updateCommentAction.bind(
@@ -56,7 +56,7 @@ export function CommentRow({
   return (
     <div
       className={cn(
-        "flex group flex-row justify-between items-center border-b py-1 transition-colors",
+        "flex group flex-row justify-between items-center border-b py-1 transition-colors duration-200",
         editing ? "border-primary" : "border-border",
       )}
     >
@@ -109,7 +109,7 @@ export function CommentRow({
         <div className="shrink-0">
           {editing ? (
             <Check
-              className="size-3 hover:text-foreground hover:stroke-[2.5]"
+              className="size-3 hover:text-foreground hover:stroke-3"
               onMouseDown={(e) => {
                 e.preventDefault();
                 setEditing(false);
@@ -118,7 +118,7 @@ export function CommentRow({
             />
           ) : (
             <Edit3
-              className="size-3 opacity-0 group-hover:opacity-100 transition-opacity hover:text-foreground hover:stroke-[2.5]"
+              className="size-3 opacity-0 group-hover:opacity-100 transition-opacity hover:text-foreground hover:stroke-3"
               onClick={() => setEditing(true)}
             />
           )}
