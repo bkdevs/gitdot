@@ -1,6 +1,6 @@
 "use client";
 
-import { MoreVertical } from "lucide-react";
+import { MoreHorizontal, MoreVertical } from "lucide-react";
 import { useState } from "react";
 import type { AnswerResponse } from "@/lib/dto";
 import { Button } from "@/ui/button";
@@ -32,9 +32,9 @@ export const AnswerDropdown = ({
           <Button
             variant="ghost"
             size="icon-sm"
-            className="opacity-0 group-hover:opacity-100 data-[state=open]:opacity-100 transition-opacity"
+            className="opacity-0 group-hover:opacity-100 data-[state=open]:opacity-100 transition-opacity ring-0! outline-0!"
           >
-            <MoreVertical className="size-4" />
+            <MoreHorizontal className="size-4" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="rounded-none min-w-32 p-0">

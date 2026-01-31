@@ -6,7 +6,7 @@ import {
   type UserResponse,
   UserResponseSchema,
 } from "../dto";
-import { authFetch, GITDOT_SERVER_URL, handleResponse } from "./util";
+import { authFetch, GITDOT_SERVER_URL, handleResponse, NotFound } from "./util";
 
 export async function getUser(username: string): Promise<UserResponse | null> {
   const response = await authFetch(`${GITDOT_SERVER_URL}/user/${username}`);
@@ -16,11 +16,12 @@ export async function getUser(username: string): Promise<UserResponse | null> {
 
 export async function listUserRepositories(
   username: string,
-): Promise<UserRepositoriesResponse | null> {
+): Promise<UserRepositoriesResponse | NotFound | null> {
   const response = await authFetch(
     `${GITDOT_SERVER_URL}/user/${username}/repositories`,
   );
 
+  if (response.status === 404) return NotFound;
   return await handleResponse(response, UserRepositoriesResponseSchema);
 }
 

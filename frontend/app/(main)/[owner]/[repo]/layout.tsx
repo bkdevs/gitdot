@@ -1,4 +1,4 @@
-import { getRepositoryCommits, getRepositoryTree } from "@/lib/dal";
+import { getRepositoryCommits, getRepositoryTree, NotFound } from "@/lib/dal";
 import { RepoDialogs } from "./ui/dialog/repo-dialogs";
 import { RepoSidebar } from "./ui/repo-sidebar";
 import { parseRepositoryTree, renderFilePreviews } from "./util";
@@ -12,18 +12,21 @@ export default async function Layout({
 }>) {
   const { owner, repo } = await params;
 
-  const [tree, commitsData] = await Promise.all([
+  const [tree, commits] = await Promise.all([
     getRepositoryTree(owner, repo),
     getRepositoryCommits(owner, repo),
   ]);
 
-  if (!tree) return null;
+  if (!tree || !commits) {
+    return null;
+  } else if (tree === NotFound || commits === NotFound) {
+    return <div className="p-2 text-sm">Repository {repo} not found</div>;
+  }
 
   const { folders, entries } = parseRepositoryTree(tree);
   const files = Array.from(entries.values()).filter(
     (entry) => entry.entry_type === "blob",
   );
-  const commits = commitsData?.commits ?? [];
 
   // this still seems to incur _some_ latency, roughly 2-300 ms? setting up this promise stream does incur some blocking operation on the server,
   // even though there is no await being done and just awaited on in the client-side
@@ -38,7 +41,7 @@ export default async function Layout({
           repo={repo}
           folders={folders}
           entries={entries}
-          commits={commits}
+          commits={commits?.commits ?? []}
         />
         <div className="flex-1 min-w-0 overflow-auto scrollbar-thin">
           {children}

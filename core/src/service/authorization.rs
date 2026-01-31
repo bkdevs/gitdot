@@ -104,7 +104,7 @@ where
             .get(request.owner.as_ref(), request.repo.as_ref())
             .await?
             .ok_or_else(|| {
-                AuthorizationError::InvalidRequest("Repository not found".to_string())
+                AuthorizationError::NotFound("Repository not found".to_string())
             })?;
 
         if repository.is_public() && request.operation == GitOperation::Read {
@@ -156,7 +156,7 @@ where
                     .get(request.owner.as_ref())
                     .await?
                     .ok_or_else(|| {
-                        AuthorizationError::InvalidRequest(format!(
+                        AuthorizationError::NotFound(format!(
                             "Organization not found: {}",
                             request.owner.as_ref()
                         ))
@@ -180,7 +180,7 @@ where
             .get(request.owner.as_ref(), request.repo.as_ref())
             .await?
             .ok_or_else(|| {
-                AuthorizationError::InvalidRequest(format!(
+                AuthorizationError::NotFound(format!(
                     "Repository not found: {}",
                     request.get_repo_path(),
                 ))
@@ -240,7 +240,7 @@ where
             )
             .await?
             .ok_or_else(|| {
-                AuthorizationError::InvalidRequest(format!(
+                AuthorizationError::NotFound(format!(
                     "Question not found: {}",
                     request.get_repo_path(),
                 ))
@@ -262,7 +262,7 @@ where
             .get_answer_author_id(request.answer_id)
             .await?
             .ok_or_else(|| {
-                AuthorizationError::InvalidRequest(format!(
+                AuthorizationError::NotFound(format!(
                     "Answer not found: {}",
                     request.answer_id
                 ))
@@ -284,7 +284,7 @@ where
             .get_comment_author_id(request.comment_id)
             .await?
             .ok_or_else(|| {
-                AuthorizationError::InvalidRequest(format!(
+                AuthorizationError::NotFound(format!(
                     "Comment not found: {}",
                     request.comment_id
                 ))

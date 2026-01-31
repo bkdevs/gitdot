@@ -1,4 +1,4 @@
-import { getRepositoryFile } from "@/lib/dal";
+import { getRepositoryFile, NotFound } from "@/lib/dal";
 import { MarkdownBody } from "./ui/markdown/markdown-body";
 
 export default async function Page({
@@ -12,9 +12,10 @@ export default async function Page({
   });
 
   if (!readme) {
-    return <div>README.md not found</div>;
+    return <div className="p-2 text-sm">Failed to fetch README.md</div>;
+  } else if (readme === NotFound) {
+    return <div className="p-2 text-sm">README.md not found</div>;
   }
-
   return (
     <div className="p-4 max-w-4xl">
       <MarkdownBody content={readme.content} />

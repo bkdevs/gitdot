@@ -18,7 +18,13 @@ import {
   type RepositoryTreeQuery,
   RepositoryTreeSchema,
 } from "../dto";
-import { GITDOT_SERVER_URL, authFetch, authPost, handleResponse } from "./util";
+import {
+  authFetch,
+  authPost,
+  GITDOT_SERVER_URL,
+  handleResponse,
+  NotFound,
+} from "./util";
 
 export async function createRepository(
   owner: string,
@@ -37,11 +43,12 @@ export async function getRepositoryFile(
   owner: string,
   repo: string,
   query: RepositoryFileQuery,
-): Promise<RepositoryFile | null> {
+): Promise<RepositoryFile | NotFound | null> {
   const queryString = toQueryString(query);
   const response = await authFetch(
     `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/file?${queryString}`,
   );
+  if (response.status === 404) return NotFound;
 
   return await handleResponse(response, RepositoryFileSchema);
 }
@@ -50,11 +57,12 @@ export async function getRepositoryTree(
   owner: string,
   repo: string,
   query?: RepositoryTreeQuery,
-): Promise<RepositoryTree | null> {
+): Promise<RepositoryTree | NotFound | null> {
   const queryString = toQueryString(query);
   const response = await authFetch(
     `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/tree?${queryString}`,
   );
+  if (response.status === 404) return NotFound;
 
   return await handleResponse(response, RepositoryTreeSchema);
 }
@@ -63,11 +71,12 @@ export async function getRepositoryCommits(
   owner: string,
   repo: string,
   query?: RepositoryCommitsQuery,
-): Promise<RepositoryCommits | null> {
+): Promise<RepositoryCommits | NotFound | null> {
   const queryString = toQueryString(query);
   const response = await authFetch(
     `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/commits?${queryString}`,
   );
+  if (response.status === 404) return NotFound;
 
   return await handleResponse(response, RepositoryCommitsSchema);
 }

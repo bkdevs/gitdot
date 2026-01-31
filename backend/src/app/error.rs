@@ -46,6 +46,7 @@ impl IntoResponse for AppError {
             AppError::Authorization(e) => {
                 let status_code = match e {
                     AuthorizationError::InvalidRequest(_) => StatusCode::BAD_REQUEST,
+                    AuthorizationError::NotFound(_) => StatusCode::NOT_FOUND,
                     AuthorizationError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                     _ => StatusCode::UNAUTHORIZED,
                 };

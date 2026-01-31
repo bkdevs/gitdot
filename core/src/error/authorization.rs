@@ -17,6 +17,9 @@ pub enum AuthorizationError {
     #[error("Invalid request: {0}")]
     InvalidRequest(String),
 
+    #[error("Not found: {0}")]
+    NotFound(String),
+
     #[error("Unauthorized")]
     Unauthorized,
 

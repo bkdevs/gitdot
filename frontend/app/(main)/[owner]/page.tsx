@@ -1,7 +1,7 @@
-import { listUserRepositories } from "@/lib/dal";
+import { listUserRepositories, NotFound } from "@/lib/dal";
 import { UserRepos } from "./ui/user-repos";
 
-export default async function RepoPage({
+export default async function Page({
   params,
 }: {
   params: Promise<{ owner: string }>;
@@ -12,7 +12,11 @@ export default async function RepoPage({
 
   return (
     <div className="flex flex-col">
-      <UserRepos user={owner} repos={repos} />
+      {repos === NotFound ? (
+        <p className="p-2 text-sm">User {owner} not found</p>
+      ) : (
+        <UserRepos user={owner} repos={repos} />
+      )}
     </div>
   );
 }
