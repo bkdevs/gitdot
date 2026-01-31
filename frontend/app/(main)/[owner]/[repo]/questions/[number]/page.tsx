@@ -1,4 +1,5 @@
 import { getCurrentUser, getQuestion } from "@/lib/dal";
+import { cn } from "@/util";
 import { AnswerCard } from "./ui/answer-card";
 import { AnswerForm } from "./ui/answer-form";
 import { AnswersStripe } from "./ui/answers-stripe";
@@ -16,38 +17,42 @@ export default async function Page({
   ]);
   if (!question) return null;
 
-  const hasUserAnswer = question.answers.find(
-    (answer) => answer.author_id === user?.id,
-  );
+  const { answers } = question;
+  const hasUserAnswer = answers.find((answer) => answer.author_id === user?.id);
 
   return (
     <div className="w-full">
       <div className="flex flex-col flex-1 min-w-0 pb-20">
-        <div className="max-w-4xl mt-4">
+        <div className="max-w-4xl pt-4 border-border border-r">
           <QuestionCard question={question} owner={owner} repo={repo} />
         </div>
 
-        <AnswersStripe count={question.answers.length} />
+        <div className="w-full border-border border-b" />
+        <div
+          className={cn(
+            "max-w-4xl border-border border-r",
+            answers.length > 0 && "pb-4",
+          )}
+        >
+          <AnswersStripe count={answers.length} />
+        </div>
         <div className="flex flex-col max-w-4xl">
-          <div className="flex flex-col gap-12">
-            {question.answers.map((answer) => (
-              <AnswerCard
-                key={answer.id}
-                answer={answer}
-                owner={owner}
-                repo={repo}
-                number={question.number}
-              />
-            ))}
-          </div>
+          {answers.length > 0 && (
+            <div className="flex flex-col gap-12 border-border border-r border-b">
+              {answers.map((answer) => (
+                <AnswerCard
+                  key={answer.id}
+                  answer={answer}
+                  owner={owner}
+                  repo={repo}
+                  number={question.number}
+                />
+              ))}
+            </div>
+          )}
 
           {!hasUserAnswer && (
-            <AnswerForm
-              owner={owner}
-              repo={repo}
-              number={number}
-              answers={question.answers}
-            />
+            <AnswerForm owner={owner} repo={repo} number={number} />
           )}
         </div>
       </div>

@@ -20,7 +20,7 @@ export function QuestionCard({ question, owner, repo }: QuestionCardProps) {
   const isOwner = user?.id === question.author_id;
 
   return (
-    <div className="flex">
+    <div className="flex pb-4">
       <VoteBox
         targetType="question"
         owner={owner}

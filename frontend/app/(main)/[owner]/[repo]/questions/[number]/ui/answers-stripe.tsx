@@ -2,7 +2,7 @@ import { pluralize } from "@/util";
 
 export function AnswersStripe({ count }: { count: number }) {
   return (
-    <div className="flex flex-row w-full mt-12 mb-4 border-border border-t items-center text-sm text-muted-foreground">
+    <div className="flex flex-row max-w-4xl items-center text-sm text-muted-foreground">
       {count > 0 && (
         <>
           <span className="ml-2">{pluralize(count, "answer")}</span>

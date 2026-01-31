@@ -3,20 +3,16 @@
 import { useActionState, useState } from "react";
 import { useAuthBlocker } from "@/(main)/providers/auth-blocker-provider";
 import { type CreateAnswerActionResult, createAnswerAction } from "@/actions";
-import type { AnswerResponse } from "@/lib/dto";
 import { Button } from "@/ui/button";
-import { cn } from "@/util";
 
 export function AnswerForm({
   owner,
   repo,
   number,
-  answers,
 }: {
   owner: string;
   repo: string;
   number: number;
-  answers: AnswerResponse[];
 }) {
   const { requireAuth } = useAuthBlocker();
   const [body, setBody] = useState("");
@@ -33,14 +29,14 @@ export function AnswerForm({
   const isValid = body.trim() !== "";
 
   return (
-    <div className={cn("ml-3", answers.length > 0 && "mt-12")}>
+    <div>
       <form action={formAction}>
         <div className="relative">
           <textarea
             name="body"
             value={body}
             onChange={(e) => setBody(e.target.value)}
-            className="w-full h-48 p-2 border rounded-xs resize-none text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+            className="w-full h-48 p-2 border border-b-border border-r-border border-t-transparent border-l-transparent rounded-xs resize-none text-sm focus:outline-none focus:border-black transition-colors duration-200"
             placeholder="Write your answer..."
             disabled={isPending}
           />

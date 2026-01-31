@@ -20,7 +20,7 @@ export function AnswerCard({ answer, owner, repo, number }: AnswerCardProps) {
   const { user } = useUser();
 
   return (
-    <div className="flex">
+    <div className="flex pb-4">
       <VoteBox
         targetType="answer"
         targetId={answer.id}
