@@ -37,7 +37,9 @@ where
 
     async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
         let app_state = AppState::from_ref(state);
-        authenticate_user(parts, &app_state).map_err(AppError::from)
+        authenticate_user(parts, &app_state)
+            .await
+            .map_err(AppError::from)
     }
 }
 
@@ -53,11 +55,11 @@ where
         state: &S,
     ) -> Result<Option<Self>, Self::Rejection> {
         let app_state = AppState::from_ref(state);
-        Ok(authenticate_user(parts, &app_state).ok())
+        Ok(authenticate_user(parts, &app_state).await.ok())
     }
 }
 
-fn authenticate_user(
+async fn authenticate_user(
     parts: &Parts,
     app_state: &AppState,
 ) -> Result<AuthenticatedUser, AuthorizationError> {
@@ -70,7 +72,7 @@ fn authenticate_user(
     if let Some(token) = auth_header.strip_prefix("Bearer ") {
         authenticate_with_jwt(token, app_state)
     } else if let Some(credentials) = auth_header.strip_prefix("Basic ") {
-        authenticate_with_credential(credentials, app_state)
+        authenticate_with_credential(credentials, app_state).await
     } else {
         Err(AuthorizationError::InvalidHeaderFormat)
     }
@@ -95,9 +97,9 @@ fn authenticate_with_jwt(
     Ok(AuthenticatedUser { id })
 }
 
-fn authenticate_with_credential(
+async fn authenticate_with_credential(
     credentials: &str,
-    _app_state: &AppState,
+    app_state: &AppState,
 ) -> Result<AuthenticatedUser, AuthorizationError> {
     let decoded = base64::engine::general_purpose::STANDARD
         .decode(credentials)
@@ -106,10 +108,15 @@ fn authenticate_with_credential(
     let credential_str =
         String::from_utf8(decoded).map_err(|_| AuthorizationError::Unauthorized)?;
 
-    let (username, _password) = credential_str
+    let (_username, token) = credential_str
         .split_once(':')
         .ok_or(AuthorizationError::Unauthorized)?;
 
-    // TODO: Validate credentials and return user_id
-    todo!("Authenticate user '{}' with password/token", username)
+    let user_id = app_state
+        .oauth_service
+        .validate_token(token)
+        .await
+        .map_err(|_| AuthorizationError::Unauthorized)?;
+
+    Ok(AuthenticatedUser { id: user_id })
 }
