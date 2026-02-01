@@ -3,9 +3,11 @@ use axum::{
     http::StatusCode,
     response::{IntoResponse, Response},
 };
+use serde::Deserialize;
+
 use gitdot_core::dto::GitHttpResponse;
 
-#[derive(serde::Deserialize)]
+#[derive(Deserialize)]
 pub struct InfoRefsQuery {
     pub service: String,
 }

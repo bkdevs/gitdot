@@ -61,6 +61,7 @@ where
         Ok(DeviceCodeResponse {
             device_code,
             user_code,
+            verification_uri: request.verification_uri,
             expires_in: (DEVICE_CODE_EXPIRY_MINUTES * 60) as u64,
             interval: POLLING_INTERVAL_SECONDS,
         })

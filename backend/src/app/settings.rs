@@ -6,7 +6,7 @@ pub struct Settings {
     pub git_project_root: String,
     pub database_url: String,
     pub supabase_jwt_public_key: String,
-    pub oauth_verification_uri: String,
+    pub oauth_device_verification_uri: String,
 }
 
 impl Settings {
@@ -18,8 +18,8 @@ impl Settings {
             database_url: env::var("DATABASE_URL").expect("DATABASE_URL must be set"),
             supabase_jwt_public_key: env::var("SUPABASE_JWT_PUBLIC_KEY")
                 .expect("SUPABASE_JWT_PUBLIC_KEY must be set"),
-            oauth_verification_uri: env::var("OAUTH_VERIFICATION_URI")
-                .expect("OAUTH_VERIFICATION_URI must be set"),
+            oauth_device_verification_uri: env::var("OAUTH_DEVICE_VERIFICATION_URI")
+                .expect("OAUTH_DEVICE_VERIFICATION_URI must be set"),
         })
     }
 
