@@ -5,7 +5,7 @@ import { useActionState, useEffect, useState } from "react";
 import { type AuthActionResult, login } from "@/actions";
 import { cn, validateEmail, validatePassword } from "@/util";
 
-export default function LoginForm({ onSuccess }: { onSuccess?: () => void }) {
+export default function LoginForm({ redirect }: { redirect?: string }) {
   const router = useRouter();
 
   const [email, setEmail] = useState("");
@@ -25,11 +25,7 @@ export default function LoginForm({ onSuccess }: { onSuccess?: () => void }) {
       const result = await login(formData);
 
       if (result.success) {
-        if (onSuccess) {
-          onSuccess();
-        } else {
-          router.push("/home");
-        }
+        router.push(redirect ?? "/home");
       }
       return result;
     },

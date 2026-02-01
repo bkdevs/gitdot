@@ -1,9 +1,15 @@
 import LoginForm from "../ui/login-form";
 
-export default function Page() {
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Promise<{ redirect?: string }>;
+}) {
+  const { redirect } = await searchParams;
+
   return (
     <div className="max-w-3xl mx-auto flex gap-4 items-center justify-center h-screen">
-      <LoginForm />
+      <LoginForm redirect={redirect} />
     </div>
   );
 }
