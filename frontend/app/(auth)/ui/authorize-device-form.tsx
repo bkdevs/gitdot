@@ -19,7 +19,7 @@ export default function AuthorizeDeviceForm() {
     null,
   );
 
-  const isValidCode = /^[A-Z2-9]{4}-[A-Z2-9]{4}$/.test(userCode.toUpperCase());
+  const isValidCode = /^[A-Z2-9]{6}$/.test(userCode.toUpperCase());
   const canSubmit = isValidCode && !isPending;
 
   if (state?.success) {
@@ -37,7 +37,7 @@ export default function AuthorizeDeviceForm() {
       <input
         type="text"
         name="user_code"
-        placeholder="XXXX-XXXX"
+        placeholder="6 character code"
         value={userCode}
         onChange={(e) => setUserCode(e.target.value)}
         className="border-border border-b ring-0 outline-0 focus:border-black transition-colors duration-150"
