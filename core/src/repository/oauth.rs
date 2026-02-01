@@ -196,7 +196,7 @@ impl OAuthRepository for OAuthRepositoryImpl {
             r#"
             INSERT INTO access_tokens (user_id, client_id, token_hash)
             VALUES ($1, $2, $3)
-            RETURNING id, user_id, client_id, token_hash, name, last_used_at, created_at
+            RETURNING id, user_id, client_id, token_hash, created_at, last_used_at
             "#,
         )
         .bind(user_id)
@@ -214,7 +214,7 @@ impl OAuthRepository for OAuthRepositoryImpl {
     ) -> Result<Option<AccessToken>, Error> {
         let token = sqlx::query_as::<_, AccessToken>(
             r#"
-            SELECT id, user_id, client_id, token_hash, name, last_used_at, created_at
+            SELECT id, user_id, client_id, token_hash, created_at, last_used_at
             FROM access_tokens
             WHERE token_hash = $1
             "#,

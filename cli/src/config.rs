@@ -10,6 +10,9 @@ const CONFIG_FILE_NAME: &str = "config.toml";
 pub struct Config {
     #[serde(default)]
     pub user_name: String,
+
+    #[serde(default)]
+    pub user_email: String,
 }
 
 pub enum AuthStatus {
