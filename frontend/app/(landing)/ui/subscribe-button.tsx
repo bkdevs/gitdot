@@ -1,8 +1,8 @@
 "use client";
 
-import { validateEmail } from "@/util";
 import { createClient } from "@supabase/supabase-js";
 import { useState } from "react";
+import { validateEmail } from "@/util";
 
 export function SubscribeButton() {
   const [isClicked, setIsClicked] = useState(false);

@@ -26,10 +26,6 @@ import type {
 } from "./lib/dto";
 
 export async function getCurrentUserAction(): Promise<UserResponse | null> {
-  const supabase = await createSupabaseClient();
-  const session = await supabase.auth.getSession();
-
-  if (!session) return null;
   return await getCurrentUser();
 }
 

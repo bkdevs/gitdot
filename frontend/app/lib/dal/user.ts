@@ -6,11 +6,11 @@ import {
   type UserResponse,
   UserResponseSchema,
 } from "../dto";
+import { getSession } from "../supabase";
 import { authFetch, GITDOT_SERVER_URL, handleResponse, NotFound } from "./util";
 
 export async function getUser(username: string): Promise<UserResponse | null> {
   const response = await authFetch(`${GITDOT_SERVER_URL}/user/${username}`);
-
   return await handleResponse(response, UserResponseSchema);
 }
 
@@ -30,6 +30,9 @@ export async function listUserRepositories(
  * if static pages require auth, rely on useUser in client-side components instead
  */
 export async function getCurrentUser(): Promise<UserResponse | null> {
+  const session = await getSession();
+  if (!session) return null;
+
   const response = await authFetch(`${GITDOT_SERVER_URL}/user`);
   return await handleResponse(response, UserResponseSchema);
 }

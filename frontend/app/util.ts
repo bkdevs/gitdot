@@ -128,7 +128,7 @@ export function pluralize(count: number, word: string): string {
 }
 
 const emailTester =
-  /^[-!#$%&'*+\/0-9=?A-Z^_a-z`{|}~](\.?[-!#$%&'*+\/0-9=?A-Z^_a-z`{|}~])*@[a-zA-Z0-9](-*\.?[a-zA-Z0-9])*\.[a-zA-Z](-?[a-zA-Z0-9])+$/;
+  /^[-!#$%&'*+/0-9=?A-Z^_a-z`{|}~](\.?[-!#$%&'*+/0-9=?A-Z^_a-z`{|}~])*@[a-zA-Z0-9](-*\.?[a-zA-Z0-9])*\.[a-zA-Z](-?[a-zA-Z0-9])+$/;
 
 export function validateEmail(email: string): boolean {
   if (!email) {
@@ -153,4 +153,8 @@ export function validateEmail(email: string): boolean {
     return false;
   }
   return emailTester.test(email);
+}
+
+export function validatePassword(password: string): boolean {
+  return !!password && password.length >= 8;
 }

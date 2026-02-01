@@ -78,7 +78,7 @@ export async function updateSession(request: NextRequest) {
 
   const isAuthPath = ["/login", "/signup"].includes(request.nextUrl.pathname);
   if (user && isAuthPath) {
-    return NextResponse.redirect(new URL("/", request.nextUrl));
+    return NextResponse.redirect(new URL("/home", request.nextUrl));
   }
 
   // return the supabaseResponse object as-is, this is required to ensure that cookies are in sync between the server and client.
