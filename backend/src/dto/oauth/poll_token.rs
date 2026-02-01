@@ -11,12 +11,16 @@ pub struct PollTokenServerRequest {
 #[derive(Serialize, PartialEq)]
 pub struct TokenServerResponse {
     pub access_token: String,
+    pub user_name: String,
+    pub user_email: String,
 }
 
 impl From<TokenResponse> for TokenServerResponse {
     fn from(token: TokenResponse) -> Self {
         Self {
             access_token: token.access_token,
+            user_name: token.user_name,
+            user_email: token.user_email,
         }
     }
 }

@@ -7,7 +7,7 @@ use crate::dto::{
 };
 use crate::error::OAuthError;
 use crate::model::DeviceAuthorizationStatus;
-use crate::repository::{OAuthRepository, OAuthRepositoryImpl};
+use crate::repository::{OAuthRepository, OAuthRepositoryImpl, UserRepository, UserRepositoryImpl};
 use crate::util::oauth::{
     DEVICE_CODE_EXPIRY_MINUTES, POLLING_INTERVAL_SECONDS, generate_access_token,
     generate_device_code, generate_user_code, hash_token,
@@ -28,23 +28,29 @@ pub trait OAuthService: Send + Sync + 'static {
 }
 
 #[derive(Debug, Clone)]
-pub struct OAuthServiceImpl<R>
+pub struct OAuthServiceImpl<R, U>
 where
     R: OAuthRepository,
+    U: UserRepository,
 {
     oauth_repo: R,
+    user_repo: U,
 }
 
-impl OAuthServiceImpl<OAuthRepositoryImpl> {
-    pub fn new(oauth_repo: OAuthRepositoryImpl) -> Self {
-        Self { oauth_repo }
+impl OAuthServiceImpl<OAuthRepositoryImpl, UserRepositoryImpl> {
+    pub fn new(oauth_repo: OAuthRepositoryImpl, user_repo: UserRepositoryImpl) -> Self {
+        Self {
+            oauth_repo,
+            user_repo,
+        }
     }
 }
 
 #[async_trait]
-impl<R> OAuthService for OAuthServiceImpl<R>
+impl<R, U> OAuthService for OAuthServiceImpl<R, U>
 where
     R: OAuthRepository,
+    U: UserRepository,
 {
     async fn request_device_code(
         &self,
@@ -98,6 +104,13 @@ where
                     .user_id
                     .ok_or(OAuthError::InvalidRequest("Missing user_id".to_string()))?;
 
+                let user = self
+                    .user_repo
+                    .get_by_id(user_id)
+                    .await
+                    .map_err(|e| OAuthError::InvalidRequest(e.to_string()))?
+                    .ok_or(OAuthError::InvalidRequest("User not found".to_string()))?;
+
                 let access_token = generate_access_token();
                 let token_hash = hash_token(&access_token);
 
@@ -109,7 +122,11 @@ where
                     .expire_device_authorization(device_auth.id)
                     .await?;
 
-                Ok(TokenResponse { access_token })
+                Ok(TokenResponse {
+                    access_token,
+                    user_name: user.name,
+                    user_email: user.email,
+                })
             }
         }
     }

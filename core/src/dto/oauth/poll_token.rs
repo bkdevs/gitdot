@@ -16,4 +16,6 @@ impl PollTokenRequest {
 #[derive(Debug, Clone)]
 pub struct TokenResponse {
     pub access_token: String,
+    pub user_email: String,
+    pub user_name: String,
 }
