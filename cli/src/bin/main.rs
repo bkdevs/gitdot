@@ -1,9 +1,9 @@
 use clap::Parser;
 
-use gitdot_cli::Args;
+use gitdot_cli::{Args, run};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let args = Args::parse();
-    args.run().await
+    run(&args).await
 }
