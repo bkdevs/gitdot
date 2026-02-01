@@ -9,7 +9,7 @@ use crate::dto::{
     RepositoryTreeEntry, RepositoryTreeResponse,
 };
 use crate::error::GitError;
-use crate::util::consts::{DEFAULT_BRANCH, REPO_SUFFIX};
+use crate::util::git::{DEFAULT_BRANCH, REPO_SUFFIX};
 
 #[async_trait]
 pub trait GitClient: Send + Sync + Clone + 'static {
