@@ -22,13 +22,9 @@ pub fn generate_user_code() -> String {
     use rand::Rng as _;
     let mut rng = rand::rng();
     let chars: Vec<char> = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789".chars().collect();
-    let part1: String = (0..4)
+    (0..6)
         .map(|_| chars[rng.random_range(0..chars.len())])
-        .collect();
-    let part2: String = (0..4)
-        .map(|_| chars[rng.random_range(0..chars.len())])
-        .collect();
-    format!("{}-{}", part1, part2)
+        .collect()
 }
 
 pub fn generate_access_token() -> String {
