@@ -93,9 +93,6 @@ where
             DeviceAuthorizationStatus::Pending => {
                 return Err(OAuthError::AuthorizationPending);
             }
-            DeviceAuthorizationStatus::Denied => {
-                return Err(OAuthError::AccessDenied);
-            }
             DeviceAuthorizationStatus::Expired => {
                 return Err(OAuthError::ExpiredToken);
             }

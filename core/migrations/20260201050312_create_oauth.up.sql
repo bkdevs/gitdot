@@ -1,5 +1,5 @@
 -- Device authorization status enum
-CREATE TYPE device_authorization_status AS ENUM ('pending', 'authorized', 'denied', 'expired');
+CREATE TYPE device_authorization_status AS ENUM ('pending', 'authorized', 'expired');
 
 -- Device authorization requests (short-lived, for OAuth device flow)
 CREATE TABLE device_authorizations (

@@ -19,7 +19,6 @@ pub struct DeviceAuthorization {
 pub enum DeviceAuthorizationStatus {
     Pending,
     Authorized,
-    Denied,
     Expired,
 }
 
