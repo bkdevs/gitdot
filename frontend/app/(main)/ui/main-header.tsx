@@ -2,6 +2,7 @@
 
 import { LogIn, LogOut, Settings, User, UserRoundPlus } from "lucide-react";
 import { useParams, usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
 import { useUser } from "@/(main)/providers/user-provider";
 import { signout } from "@/actions";
 import {
@@ -92,8 +93,8 @@ function AuthenticatedMenuItems() {
         Profile
       </DropdownMenuItem>
       <DropdownMenuItem
-        onClick={() => {
-          signout();
+        onClick={async () => {
+          await signout();
           router.push("/login");
         }}
         className="rounded-none px-2 py-1.5 text-sm cursor-pointer"
