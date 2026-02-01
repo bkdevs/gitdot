@@ -5,9 +5,6 @@ pub enum OAuthError {
     #[error("Authorization pending")]
     AuthorizationPending,
 
-    #[error("Slow down")]
-    SlowDown,
-
     #[error("Expired token")]
     ExpiredToken,
 
