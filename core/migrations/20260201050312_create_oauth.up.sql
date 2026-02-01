@@ -22,7 +22,6 @@ CREATE TABLE access_tokens (
     user_id UUID NOT NULL REFERENCES users(id),
     client_id VARCHAR(64) NOT NULL,
     token_hash VARCHAR(64) NOT NULL UNIQUE,
-    name VARCHAR(100) NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     last_used_at TIMESTAMPTZ
 );

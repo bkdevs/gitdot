@@ -29,7 +29,6 @@ pub struct AccessToken {
     pub user_id: Uuid,
     pub client_id: String,
     pub token_hash: String,
-    pub name: String,
     pub created_at: DateTime<Utc>,
     pub last_used_at: Option<DateTime<Utc>>,
 }
