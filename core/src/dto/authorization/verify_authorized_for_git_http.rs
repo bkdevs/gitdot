@@ -63,3 +63,127 @@ impl GitHttpAuthorizationRequest {
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    mod for_info_refs {
+        use super::*;
+
+        #[test]
+        fn read_operation_for_upload_pack_service() {
+            let user_id = Uuid::new_v4();
+            let request = GitHttpAuthorizationRequest::for_info_refs(
+                Some(user_id),
+                "johndoe",
+                "my-repo",
+                "git-upload-pack",
+            )
+            .unwrap();
+
+            assert_eq!(request.user_id, Some(user_id));
+            assert_eq!(request.owner.as_ref(), "johndoe");
+            assert_eq!(request.repo.as_ref(), "my-repo");
+            assert_eq!(request.operation, GitOperation::Read);
+        }
+
+        #[test]
+        fn write_operation_for_receive_pack_service() {
+            let request = GitHttpAuthorizationRequest::for_info_refs(
+                None,
+                "johndoe",
+                "my-repo",
+                "git-receive-pack",
+            )
+            .unwrap();
+
+            assert_eq!(request.operation, GitOperation::Write);
+        }
+
+        #[test]
+        fn defaults_to_read_for_unknown_service() {
+            let request =
+                GitHttpAuthorizationRequest::for_info_refs(None, "johndoe", "my-repo", "unknown")
+                    .unwrap();
+
+            assert_eq!(request.operation, GitOperation::Read);
+        }
+
+        #[test]
+        fn rejects_invalid_owner() {
+            let result = GitHttpAuthorizationRequest::for_info_refs(
+                None,
+                "invalid@owner",
+                "my-repo",
+                "git-upload-pack",
+            );
+
+            assert!(matches!(result, Err(AuthorizationError::InvalidRequest(_))));
+        }
+
+        #[test]
+        fn rejects_invalid_repo() {
+            let result = GitHttpAuthorizationRequest::for_info_refs(
+                None,
+                "johndoe",
+                "invalid/repo",
+                "git-upload-pack",
+            );
+
+            assert!(matches!(result, Err(AuthorizationError::InvalidRequest(_))));
+        }
+    }
+
+    mod for_upload_pack {
+        use super::*;
+
+        #[test]
+        fn creates_read_operation() {
+            let user_id = Uuid::new_v4();
+            let request =
+                GitHttpAuthorizationRequest::for_upload_pack(Some(user_id), "johndoe", "my-repo")
+                    .unwrap();
+
+            assert_eq!(request.user_id, Some(user_id));
+            assert_eq!(request.owner.as_ref(), "johndoe");
+            assert_eq!(request.repo.as_ref(), "my-repo");
+            assert_eq!(request.operation, GitOperation::Read);
+        }
+
+        #[test]
+        fn works_without_user() {
+            let request =
+                GitHttpAuthorizationRequest::for_upload_pack(None, "johndoe", "my-repo").unwrap();
+
+            assert_eq!(request.user_id, None);
+            assert_eq!(request.operation, GitOperation::Read);
+        }
+    }
+
+    mod for_receive_pack {
+        use super::*;
+
+        #[test]
+        fn creates_write_operation() {
+            let user_id = Uuid::new_v4();
+            let request =
+                GitHttpAuthorizationRequest::for_receive_pack(Some(user_id), "johndoe", "my-repo")
+                    .unwrap();
+
+            assert_eq!(request.user_id, Some(user_id));
+            assert_eq!(request.owner.as_ref(), "johndoe");
+            assert_eq!(request.repo.as_ref(), "my-repo");
+            assert_eq!(request.operation, GitOperation::Write);
+        }
+
+        #[test]
+        fn works_without_user() {
+            let request =
+                GitHttpAuthorizationRequest::for_receive_pack(None, "johndoe", "my-repo").unwrap();
+
+            assert_eq!(request.user_id, None);
+            assert_eq!(request.operation, GitOperation::Write);
+        }
+    }
+}

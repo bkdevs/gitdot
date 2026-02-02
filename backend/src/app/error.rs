@@ -155,7 +155,7 @@ impl IntoResponse for AppError {
                     OAuthError::ExpiredToken => StatusCode::BAD_REQUEST,
                     OAuthError::AccessDenied => StatusCode::BAD_REQUEST,
                     OAuthError::InvalidDeviceCode => StatusCode::BAD_REQUEST,
-                    OAuthError::InvalidUserCode => StatusCode::BAD_REQUEST,
+                    OAuthError::InvalidUserCode(_) => StatusCode::BAD_REQUEST,
                     OAuthError::InvalidRequest(_) => StatusCode::BAD_REQUEST,
                     OAuthError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                 };

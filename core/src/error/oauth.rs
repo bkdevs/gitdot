@@ -14,8 +14,8 @@ pub enum OAuthError {
     #[error("Invalid device code")]
     InvalidDeviceCode,
 
-    #[error("Invalid user code")]
-    InvalidUserCode,
+    #[error("Invalid user code: {0}")]
+    InvalidUserCode(String),
 
     #[error("Invalid request: {0}")]
     InvalidRequest(String),

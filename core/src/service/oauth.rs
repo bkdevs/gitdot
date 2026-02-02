@@ -132,7 +132,9 @@ where
         self.oauth_repo
             .authorize_device(&request.user_code, request.user_id)
             .await?
-            .ok_or(OAuthError::InvalidUserCode)?;
+            .ok_or(OAuthError::InvalidUserCode(
+                "User code not found".to_string(),
+            ))?;
 
         Ok(())
     }

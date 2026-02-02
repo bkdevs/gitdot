@@ -19,3 +19,29 @@ pub struct TokenResponse {
     pub user_email: String,
     pub user_name: String,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn poll_token_request_new() {
+        let request = PollTokenRequest::new("device123".to_string(), "my-client".to_string());
+
+        assert_eq!(request.device_code, "device123");
+        assert_eq!(request.client_id, "my-client");
+    }
+
+    #[test]
+    fn token_response_fields() {
+        let response = TokenResponse {
+            access_token: "token123".to_string(),
+            user_email: "user@example.com".to_string(),
+            user_name: "johndoe".to_string(),
+        };
+
+        assert_eq!(response.access_token, "token123");
+        assert_eq!(response.user_email, "user@example.com");
+        assert_eq!(response.user_name, "johndoe");
+    }
+}

@@ -14,10 +14,7 @@ pub async fn authorize_device(
     State(state): State<AppState>,
     Json(body): Json<AuthorizeDeviceServerRequest>,
 ) -> Result<AppResponse<()>, AppError> {
-    let request = AuthorizeDeviceRequest {
-        user_code: body.user_code,
-        user_id: auth_user.id,
-    };
+    let request = AuthorizeDeviceRequest::new(&body.user_code, auth_user.id)?;
     state
         .oauth_service
         .authorize_device(request)
