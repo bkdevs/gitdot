@@ -28,3 +28,91 @@ impl InfoRefsRequest {
     derive(Debug, Clone, PartialEq, Eq, AsRef, Deref)
 )]
 pub struct GitService(String);
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    mod git_service {
+        use super::*;
+
+        #[test]
+        fn valid_upload_pack() {
+            let service = GitService::try_new("git-upload-pack".to_string()).unwrap();
+            assert_eq!(service.as_ref(), "git-upload-pack");
+        }
+
+        #[test]
+        fn valid_receive_pack() {
+            let service = GitService::try_new("git-receive-pack".to_string()).unwrap();
+            assert_eq!(service.as_ref(), "git-receive-pack");
+        }
+
+        #[test]
+        fn rejects_invalid_service() {
+            assert!(GitService::try_new("git-fetch".to_string()).is_err());
+            assert!(GitService::try_new("upload-pack".to_string()).is_err());
+            assert!(GitService::try_new("".to_string()).is_err());
+            assert!(GitService::try_new("git-upload-pack ".to_string()).is_err());
+        }
+    }
+
+    mod info_refs_request {
+        use super::*;
+
+        #[test]
+        fn valid_upload_pack_request() {
+            let request = InfoRefsRequest::new("johndoe", "my-repo", "git-upload-pack").unwrap();
+
+            assert_eq!(request.owner.as_ref(), "johndoe");
+            assert_eq!(request.repo.as_ref(), "my-repo");
+            assert_eq!(request.service.as_ref(), "git-upload-pack");
+        }
+
+        #[test]
+        fn valid_receive_pack_request() {
+            let request = InfoRefsRequest::new("johndoe", "my-repo", "git-receive-pack").unwrap();
+
+            assert_eq!(request.service.as_ref(), "git-receive-pack");
+        }
+
+        #[test]
+        fn sanitizes_owner_and_repo() {
+            let request = InfoRefsRequest::new("JohnDoe", "MyRepo.git", "git-upload-pack").unwrap();
+
+            assert_eq!(request.owner.as_ref(), "johndoe");
+            assert_eq!(request.repo.as_ref(), "myrepo");
+        }
+
+        #[test]
+        fn rejects_invalid_owner() {
+            let result = InfoRefsRequest::new("invalid@owner", "my-repo", "git-upload-pack");
+
+            assert!(matches!(result, Err(GitHttpError::InvalidOwnerName(_))));
+        }
+
+        #[test]
+        fn rejects_invalid_repo() {
+            let result = InfoRefsRequest::new("johndoe", "invalid/repo", "git-upload-pack");
+
+            assert!(matches!(
+                result,
+                Err(GitHttpError::InvalidRepositoryName(_))
+            ));
+        }
+
+        #[test]
+        fn rejects_invalid_service() {
+            let result = InfoRefsRequest::new("johndoe", "my-repo", "invalid-service");
+
+            assert!(matches!(result, Err(GitHttpError::InvalidService(_))));
+        }
+
+        #[test]
+        fn rejects_empty_service() {
+            let result = InfoRefsRequest::new("johndoe", "my-repo", "");
+
+            assert!(matches!(result, Err(GitHttpError::InvalidService(_))));
+        }
+    }
+}
