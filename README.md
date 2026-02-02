@@ -39,6 +39,9 @@ Every week, we will publish a developer log to detail not only our progress, but
 
 ---
 
-We recognize that we're making some bold claims here and we're not so naive as to think this will be easy. Building software is hard — but it is simply what we love doing.
+We recognize that we're making some bold claims here and we're not so naive as to think this will be easy. \
+Building software is hard — but it is simply what we love doing.
 
 —baepaul & mikkelk.
+
+[logs](https://gitdot.io/week)
