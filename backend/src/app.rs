@@ -90,8 +90,7 @@ fn create_router(app_state: AppState) -> Router {
         ))
         .layer(PropagateRequestIdLayer::x_request_id());
 
-    Router::new()
-        .route("/health", get(|| async { "OK" }))
+    let api_router = Router::new()
         .merge(git_router)
         .merge(user_router)
         .merge(org_router)
@@ -100,5 +99,9 @@ fn create_router(app_state: AppState) -> Router {
         .merge(oauth_router)
         .merge(old_repo_router)
         .layer(middleware)
-        .with_state(app_state)
+        .with_state(app_state);
+
+    Router::new()
+        .route("/health", get(|| async { "OK" }))
+        .merge(api_router)
 }
