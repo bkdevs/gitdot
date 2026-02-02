@@ -1,18 +1,17 @@
 "use client";
 
-import { LogIn, LogOut, Settings, User, UserRoundPlus } from "lucide-react";
-import { useParams, usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
 import { useUser } from "@/(main)/providers/user-provider";
 import { signout } from "@/actions";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
 } from "@/ui/dropdown-menu";
 import Link from "@/ui/link";
 import { cn } from "@/util";
+import { User } from "lucide-react";
+import { useParams, usePathname, useRouter } from "next/navigation";
 
 export function MainHeader() {
   const pathname = usePathname();
@@ -59,12 +58,12 @@ function UserDropdown() {
       <DropdownMenuTrigger asChild>
         <button
           type="submit"
-          className="w-9 h-9 flex items-center justify-center hover:bg-sidebar-accent data-[state=open]:bg-sidebar-accent outline-none"
+          className="w-5.5 h-5.5 mr-2 rounded-full bg-primary flex items-center justify-center hover:bg-primary/70 data-[state=open]:bg-primary/70 outline-none transition-colors"
         >
           <User
             className={cn(
               "size-4 transition-all duration-300",
-              user ? "text-foreground stroke-[2.5]" : "text-muted-foreground",
+              user ? "text-primary-foreground stroke-[2.5]" : "text-primary-foreground/60",
             )}
           />
         </button>
@@ -89,7 +88,6 @@ function AuthenticatedMenuItems() {
         onClick={() => router.push("/settings")}
         className="rounded-none px-2 py-1.5 text-sm cursor-pointer"
       >
-        <Settings className="size-3" />
         Profile
       </DropdownMenuItem>
       <DropdownMenuItem
@@ -99,7 +97,6 @@ function AuthenticatedMenuItems() {
         }}
         className="rounded-none px-2 py-1.5 text-sm cursor-pointer"
       >
-        <LogOut className="size-3" />
         Sign out
       </DropdownMenuItem>
     </>
@@ -115,14 +112,12 @@ function UnauthenticatedMenuItems() {
         onClick={() => router.push("/login")}
         className="rounded-none px-2 py-1.5 text-sm cursor-pointer"
       >
-        <LogIn className="size-3" />
         Log in
       </DropdownMenuItem>
       <DropdownMenuItem
         onClick={() => router.push("/signup")}
         className="rounded-none px-2 py-1.5 text-sm cursor-pointer"
       >
-        <UserRoundPlus className="size-3" />
         Sign up
       </DropdownMenuItem>
     </>
