@@ -2,17 +2,17 @@
 
 **1. What is gitdot?**
 
-A better GitHub.
-An opinionated tool for quality open-source software.
+A better GitHub. \
+An opinionated tool for quality open-source software. \
 
 **2. Who is gitdot for?**
 
-Open-source maintainers.
+Open-source maintainers. \
 People who see code as more than a means to an end, but as a craft to perfect. The software they build serves the world — but the software they use doesn't serve them.
 
 **3. What problem does gitdot solve?**
 
-A monopoly.
+A monopoly. \
 Open-source software only has one competitive platform: GitHub. And while GitHub *is* an impressive product, we also know that a lack of competition enables degradation over time. There's a few pain points we're keenly aware of (e.g., CI) and make it our mission to build a better open-source alternative.
 
 **4. What features will gitdot have?**
@@ -21,7 +21,7 @@ Open-source software only has one competitive platform: GitHub. And while GitHub
 - A sane CI/CD platform that is secure by design and locally testable.
 - An issue tracker designed to serve the maintainer, not the submitter.
 
-We will not have feature parity, but from the get go, our product will be reliable.
+We will not have feature parity, but from the get go, our product will be reliable. \
 It will stink of quality — and deliver a superior experience for a handful of customers.
 
 **5. What features will gitdot not have?**
@@ -34,7 +34,7 @@ We view AI as an implementation detail, not as a feature. We also question some 
 
 **6. When will gitdot be ready?**
 
-March 31st, 2026.
+March 31st, 2026. \
 Every week, we will publish a developer log to detail not only our progress, but our thinking in full. These will be strikingly forthright; we want the *why* behind our product decisions to be critiqued and understood.
 
 ---
