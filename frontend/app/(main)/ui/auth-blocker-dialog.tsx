@@ -67,43 +67,46 @@ export function AuthBlockerDialog({
             Please authenticate to proceed.
           </p>
           <input
-            type="email"
-            name="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full p-2 text-sm bg-background outline-none border-b border-border"
-            disabled={isPending}
-            autoFocus
+          type="email"
+          name="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="w-full p-2 text-sm bg-background outline-none border-b border-border"
+          disabled={isPending}
+          autoFocus
           />
           <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-2 text-sm bg-background outline-none border-b border-border"
-            disabled={isPending}
+          type="password"
+          name="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="w-full p-2 text-sm bg-background outline-none border-b border-border"
+          disabled={isPending}
           />
           {error && <p className="text-xs text-red-500 px-2 py-1">{error}</p>}
           <div className="flex items-center justify-end h-9">
-            <button
+            {/* disable the sign up button for now */}
+            {/*
+              <button
               type="button"
               onClick={toggleMode}
               className="group px-3 py-1.5 h-9 text-xs text-muted-foreground"
-            >
+              >
               {mode === "login" ? (
-                <>
-                  Don&apos;t have an account?{" "}
-                  <span className="group-hover:text-foreground">Sign up</span>
-                </>
+              <>
+              Don&apos;t have an account?{" "}
+              <span className="group-hover:text-foreground">Sign up</span>
+              </>
               ) : (
-                <>
-                  Already have an account?{" "}
-                  <span className="group-hover:text-foreground">Log in</span>
-                </>
+              <>
+              Already have an account?{" "}
+              <span className="group-hover:text-foreground">Log in</span>
+              </>
               )}
-            </button>
+              </button>
+              */}
             <button
               type="submit"
               disabled={!isValid || isPending}
@@ -111,11 +114,11 @@ export function AuthBlockerDialog({
             >
               {isPending
                 ? mode === "login"
-                  ? "Logging in..."
-                  : "Signing up..."
+                ? "Logging in..."
+                : "Signing up..."
                 : mode === "login"
-                  ? "Log in"
-                  : "Sign up"}
+                ? "Log in"
+                : "Sign up"}
             </button>
           </div>
         </form>

@@ -24,7 +24,7 @@ export function RepoFileDialog({
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [mouseMoved, setMouseMoved] = useState(false);
+  const [hoverEnabled, setHoverEnabled] = useState(false);
   const filePreviews = use(filePreviewsPromise);
 
   const filteredFiles = useMemo(() => {
@@ -50,18 +50,17 @@ export function RepoFileDialog({
   );
 
   useEffect(() => {
-    if (mouseMoved) return;
+    if (!open || hoverEnabled) return;
 
-    const handleMove = () => setMouseMoved(true);
-    window.addEventListener("mousemove", handleMove, { once: true });
-    return () => window.removeEventListener("mousemove", handleMove);
-  }, [mouseMoved]);
+    const timer = setTimeout(() => setHoverEnabled(true), 100);
+    return () => clearTimeout(timer);
+  }, [open, hoverEnabled]);
 
   useEffect(() => {
     if (!open) {
       setQuery("");
       setSelectedIndex(0);
-      setMouseMoved(false);
+      setHoverEnabled(false);
     }
   }, [open]);
 
@@ -137,7 +136,7 @@ export function RepoFileDialog({
                       ? "bg-accent text-accent-foreground"
                       : ""
                   }`}
-                  onMouseEnter={() => mouseMoved && setSelectedIndex(index)}
+                  onMouseEnter={() => hoverEnabled && setSelectedIndex(index)}
                   onClick={() => handleSelect(entry)}
                 >
                   {entry.path}
