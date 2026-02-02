@@ -95,6 +95,7 @@
   --vote: oklch(77.7% 0.023 257.417);
 }
 
+/* TODO: dark mode disabled for now
 @media (prefers-color-scheme: dark) {
   :root {
     --background: oklch(0.129 0.042 264.695);
@@ -135,6 +136,7 @@
     --vote: oklch(50.2% 0.02 256.788);
   }
 }
+*/
 
 @layer base {
   * {

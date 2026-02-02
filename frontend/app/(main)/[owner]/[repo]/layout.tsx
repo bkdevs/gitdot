@@ -35,7 +35,11 @@ export default async function Layout({
 
   return (
     <>
-      <div className="flex h-full w-full">
+      <div className="flex md:hidden h-full w-full p-2 text-sm">
+        Mobile support to come.
+      </div>
+
+      <div className="hidden md:flex h-full w-full">
         <RepoSidebar
           owner={owner}
           repo={repo}
