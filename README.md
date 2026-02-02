@@ -3,7 +3,7 @@
 **1. What is gitdot?**
 
 A better GitHub. \
-An opinionated tool for quality open-source software. \
+An opinionated tool for quality open-source software.
 
 **2. Who is gitdot for?**
 
