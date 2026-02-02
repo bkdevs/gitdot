@@ -26,7 +26,7 @@ export function RepoDialogs({
     if (!previewsReady) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "p") {
+      if (e.key === "p" || e.key === "/") {
         const target = e.target as HTMLElement;
         if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") {
           return;
@@ -35,8 +35,15 @@ export function RepoDialogs({
         setFileDialogOpen(true);
       }
     };
+
+    const handleOpenFileSearch = () => setFileDialogOpen(true);
+
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    window.addEventListener("openFileSearch", handleOpenFileSearch);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("openFileSearch", handleOpenFileSearch);
+    };
   }, [previewsReady]);
 
   return (

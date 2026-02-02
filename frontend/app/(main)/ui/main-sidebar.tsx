@@ -52,13 +52,7 @@ export function MainSidebar() {
                   iconClassName="!size-2 fill-current"
                   requiresAuth={false}
                 />
-                <NavItem
-                  icon={Search}
-                  label="Search"
-                  href="/search"
-                  isActive={pathname === "/search"}
-                  requiresAuth={false}
-                />
+                <SearchNavItem isActive={pathname === "/search"} />
                 <NavItem
                   icon={Bell}
                   label="Notifications"
@@ -138,6 +132,26 @@ function NavItem({
           <span className="sr-only">{label}</span>
         </SidebarMenuButton>
       </Link>
+    </SidebarMenuItem>
+  );
+}
+
+function SearchNavItem({ isActive }: { isActive: boolean }) {
+  const handleClick = () => {
+    window.dispatchEvent(new CustomEvent("openFileSearch"));
+  };
+
+  return (
+    <SidebarMenuItem
+      className={`w-10 h-9 border-b p-0! border-l-4 bg-sidebar ${isActive ? "border-l-primary" : "border-l-transparent"}`}
+    >
+      <SidebarMenuButton
+        onClick={handleClick}
+        className="group w-full h-full flex items-center justify-center p-0! rounded-none hover:bg-sidebar-accent! hover:text-current!"
+      >
+        <Search className="size-4 mr-1 group-hover:stroke-[2.5]" />
+        <span className="sr-only">Search</span>
+      </SidebarMenuButton>
     </SidebarMenuItem>
   );
 }
