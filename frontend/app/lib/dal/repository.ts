@@ -14,6 +14,9 @@ import {
   type RepositoryFileCommitsQuery,
   type RepositoryFileQuery,
   RepositoryFileSchema,
+  type RepositoryPreview,
+  type RepositoryPreviewQuery,
+  RepositoryPreviewSchema,
   type RepositoryTree,
   type RepositoryTreeQuery,
   RepositoryTreeSchema,
@@ -116,4 +119,18 @@ export async function getRepositoryCommitDiffs(
   );
 
   return await handleResponse(response, RepositoryCommitDiffsSchema);
+}
+
+export async function getRepositoryPreview(
+  owner: string,
+  repo: string,
+  query?: RepositoryPreviewQuery,
+): Promise<RepositoryPreview | NotFound | null> {
+  const queryString = toQueryString(query);
+  const response = await authFetch(
+    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/preview?${queryString}`,
+  );
+  if (response.status === 404) return NotFound;
+
+  return await handleResponse(response, RepositoryPreviewSchema);
 }

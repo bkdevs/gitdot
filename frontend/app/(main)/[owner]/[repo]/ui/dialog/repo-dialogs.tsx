@@ -8,19 +8,19 @@ export function RepoDialogs({
   owner,
   repo,
   files,
-  filePreviewsPromise,
+  previewsPromise,
 }: {
   owner: string;
   repo: string;
   files: RepositoryTreeEntry[];
-  filePreviewsPromise: Promise<Map<string, string>>;
+  previewsPromise: Promise<Map<string, string>>;
 }) {
   const [fileDialogOpen, setFileDialogOpen] = useState(false);
   const [previewsReady, setPreviewsReady] = useState(false);
 
   useEffect(() => {
-    filePreviewsPromise.then(() => setPreviewsReady(true));
-  }, [filePreviewsPromise]);
+    previewsPromise.then(() => setPreviewsReady(true));
+  }, [previewsPromise]);
 
   useEffect(() => {
     if (!previewsReady) return;
@@ -54,7 +54,7 @@ export function RepoDialogs({
         owner={owner}
         repo={repo}
         files={files}
-        filePreviewsPromise={filePreviewsPromise}
+        previewsPromise={previewsPromise}
       />
     </Suspense>
   );

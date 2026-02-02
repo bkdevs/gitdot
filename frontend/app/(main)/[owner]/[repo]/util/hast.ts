@@ -9,7 +9,7 @@ import {
 import type {
   DiffChange,
   RepositoryFile,
-  RepositoryTreeEntry,
+  RepositoryPreviewEntry,
 } from "@/lib/dto";
 import { inferLanguage } from "./language";
 
@@ -58,17 +58,17 @@ export async function fileToHast(
 }
 
 export async function renderFilePreviews(
-  files: RepositoryTreeEntry[],
+  files: RepositoryPreviewEntry[],
 ): Promise<Map<string, string>> {
   const renderFile = async (
-    file: RepositoryTreeEntry,
+    file: RepositoryPreviewEntry,
   ): Promise<[string, string] | null> => {
     const preview = file.preview;
     if (!preview) return null;
 
     const lang = inferLanguage(file.path);
     const highlighter = await getHighlighter(lang, "vitesse-light");
-    const html = highlighter.codeToHtml(preview, {
+    const html = highlighter.codeToHtml(preview.content, {
       lang: inferLanguage(file.path) ?? "plaintext",
       theme: "vitesse-light",
       transformers: [

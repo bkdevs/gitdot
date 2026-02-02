@@ -60,7 +60,6 @@ export const RepositoryTreeEntrySchema = z.object({
   entry_type: z.enum(["blob", "tree"]),
   sha: z.string(),
   commit: RepositoryCommitSchema,
-  preview: z.string().optional(),
 });
 
 export type RepositoryTreeEntry = z.infer<typeof RepositoryTreeEntrySchema>;
@@ -159,3 +158,43 @@ export const RepositoryCommitDiffsSchema = z.object({
 });
 
 export type RepositoryCommitDiffs = z.infer<typeof RepositoryCommitDiffsSchema>;
+
+export const RepositoryPreviewQuerySchema = z.object({
+  ref_name: z.string().default("HEAD").optional(),
+  preview_lines: z.number().int().positive().optional(),
+});
+
+export type RepositoryPreviewQuery = z.infer<
+  typeof RepositoryPreviewQuerySchema
+>;
+
+export const FilePreviewSchema = z.object({
+  content: z.string(),
+  total_lines: z.number(),
+  preview_lines: z.number(),
+  truncated: z.boolean(),
+  encoding: z.string(),
+});
+
+export type FilePreview = z.infer<typeof FilePreviewSchema>;
+
+export const RepositoryPreviewEntrySchema = z.object({
+  path: z.string(),
+  name: z.string(),
+  sha: z.string(),
+  preview: FilePreviewSchema.nullable(),
+});
+
+export type RepositoryPreviewEntry = z.infer<
+  typeof RepositoryPreviewEntrySchema
+>;
+
+export const RepositoryPreviewSchema = z.object({
+  name: z.string(),
+  owner: z.string(),
+  ref_name: z.string(),
+  commit_sha: z.string(),
+  entries: z.array(RepositoryPreviewEntrySchema),
+});
+
+export type RepositoryPreview = z.infer<typeof RepositoryPreviewSchema>;

@@ -24,7 +24,6 @@ pub struct GetRepositoryPreviewServerResponse {
 pub struct RepositoryPreviewEntryServerResponse {
     pub path: String,
     pub name: String,
-    pub entry_type: String,
     pub sha: String,
     pub preview: Option<FilePreviewServerResponse>,
 }
@@ -45,7 +44,12 @@ impl From<RepositoryPreviewResponse> for GetRepositoryPreviewServerResponse {
             owner: response.owner,
             ref_name: response.ref_name,
             commit_sha: response.commit_sha,
-            entries: response.entries.into_iter().map(Into::into).collect(),
+            entries: response
+                .entries
+                .into_iter()
+                .filter(|e| e.entry_type == "blob")
+                .map(Into::into)
+                .collect(),
         }
     }
 }
@@ -55,7 +59,6 @@ impl From<RepositoryPreviewEntry> for RepositoryPreviewEntryServerResponse {
         Self {
             path: entry.path,
             name: entry.name,
-            entry_type: entry.entry_type,
             sha: entry.sha,
             preview: entry.preview.map(Into::into),
         }

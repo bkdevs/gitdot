@@ -1,9 +1,9 @@
 "use client";
 
-import type { RepositoryTreeEntry } from "@/lib/dto";
-import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
 import { useRouter } from "next/navigation";
 import { use, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { RepositoryPreviewEntry, RepositoryTreeEntry } from "@/lib/dto";
+import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
 import { fuzzyMatch } from "../../util";
 
 export function RepoFileDialog({
@@ -12,14 +12,14 @@ export function RepoFileDialog({
   owner,
   repo,
   files,
-  filePreviewsPromise,
+  previewsPromise,
 }: {
   open: boolean;
   setOpen: (open: boolean) => void;
   owner: string;
   repo: string;
   files: RepositoryTreeEntry[];
-  filePreviewsPromise: Promise<Map<string, string>>;
+  previewsPromise: Promise<Map<string, string>>;
 }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
@@ -28,7 +28,7 @@ export function RepoFileDialog({
   const [mouseMoved, setMouseMoved] = useState(false);
 
   const initialMousePos = useRef<{ x: number; y: number } | null>(null);
-  const filePreviews = use(filePreviewsPromise);
+  const previews = use(previewsPromise);
 
   const filteredFiles = useMemo(() => {
     if (!query) return files;
@@ -45,7 +45,7 @@ export function RepoFileDialog({
 
   const selectedFile = filteredFiles[selectedIndex];
   const handleSelect = useCallback(
-    (entry: RepositoryTreeEntry) => {
+    (entry: RepositoryPreviewEntry) => {
       setOpen(false);
       router.push(`/${owner}/${repo}/${entry.path}`); // is this right?
     },
@@ -162,7 +162,9 @@ export function RepoFileDialog({
                       ? "bg-accent text-accent-foreground"
                       : ""
                   }`}
-                  onMouseEnter={() => enableHover && mouseMoved && setSelectedIndex(index)}
+                  onMouseEnter={() =>
+                    enableHover && mouseMoved && setSelectedIndex(index)
+                  }
                   onClick={() => handleSelect(entry)}
                 >
                   {entry.path}
@@ -172,11 +174,11 @@ export function RepoFileDialog({
           </div>
 
           <div className="w-3/5 flex flex-col text-sm scrollbar-none overflow-y-hidden">
-            {selectedFile && filePreviews.has(selectedFile.path) && (
+            {selectedFile && previews.has(selectedFile.path) && (
               <div
                 className="px-2 py-2"
                 dangerouslySetInnerHTML={{
-                  __html: filePreviews.get(selectedFile.path)!,
+                  __html: previews.get(selectedFile.path),
                 }}
               />
             )}
