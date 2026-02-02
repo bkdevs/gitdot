@@ -1,6 +1,6 @@
 pub mod auth;
 
-const API_ENDPOINT: &str = "http://localhost:8080";
+const API_ENDPOINT: &str = "https://api.gitdot.io:443";
 const CLIENT_ID: &str = "gitdot-cli";
 
 pub struct ApiClient {
