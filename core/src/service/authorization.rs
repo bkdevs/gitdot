@@ -103,16 +103,9 @@ where
             .repo_repo
             .get(request.owner.as_ref(), request.repo.as_ref())
             .await?
-            .ok_or_else(|| {
-                AuthorizationError::NotFound("Repository not found".to_string())
-            })?;
+            .ok_or_else(|| AuthorizationError::NotFound("Repository not found".to_string()))?;
 
         if repository.is_public() && request.operation == GitOperation::Read {
-            return Ok(());
-        }
-
-        // TODO: Remove this - temporary bypass for testing push
-        if request.operation == GitOperation::Write {
             return Ok(());
         }
 
@@ -262,10 +255,7 @@ where
             .get_answer_author_id(request.answer_id)
             .await?
             .ok_or_else(|| {
-                AuthorizationError::NotFound(format!(
-                    "Answer not found: {}",
-                    request.answer_id
-                ))
+                AuthorizationError::NotFound(format!("Answer not found: {}", request.answer_id))
             })?;
 
         if author_id != request.user_id {
@@ -284,10 +274,7 @@ where
             .get_comment_author_id(request.comment_id)
             .await?
             .ok_or_else(|| {
-                AuthorizationError::NotFound(format!(
-                    "Comment not found: {}",
-                    request.comment_id
-                ))
+                AuthorizationError::NotFound(format!("Comment not found: {}", request.comment_id))
             })?;
 
         if author_id != request.user_id {

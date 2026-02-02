@@ -4,6 +4,7 @@ use anyhow::bail;
 
 use crate::api::ApiClient;
 use crate::config::Config;
+use crate::store::GitCredentialStore;
 
 pub async fn login(mut config: Config) -> anyhow::Result<()> {
     let api_client = ApiClient::new();
@@ -29,11 +30,15 @@ pub async fn login(mut config: Config) -> anyhow::Result<()> {
             .await
         {
             Ok(response) => {
-                config.user_name = response.user_name;
+                config.user_name = response.user_name.clone();
                 config.user_email = response.user_email;
                 config.save().await?;
 
-                // TODO: save token in secure store
+                GitCredentialStore::store(
+                    api_client.get_base_url(),
+                    &response.user_name,
+                    &response.access_token,
+                )?;
 
                 println!("Successfully logged in!");
 

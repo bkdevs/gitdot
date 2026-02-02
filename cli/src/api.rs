@@ -17,4 +17,8 @@ impl ApiClient {
             client_id: CLIENT_ID.to_string(),
         }
     }
+
+    pub fn get_base_url(&self) -> &str {
+        &self.base_url
+    }
 }
