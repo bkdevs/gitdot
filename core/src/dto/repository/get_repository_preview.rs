@@ -41,7 +41,6 @@ pub struct RepositoryPreviewResponse {
 pub struct RepositoryPreviewEntry {
     pub path: String,
     pub name: String,
-    pub entry_type: String,
     pub sha: String,
     pub preview: Option<FilePreview>,
 }

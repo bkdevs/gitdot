@@ -44,12 +44,7 @@ impl From<RepositoryPreviewResponse> for GetRepositoryPreviewServerResponse {
             owner: response.owner,
             ref_name: response.ref_name,
             commit_sha: response.commit_sha,
-            entries: response
-                .entries
-                .into_iter()
-                .filter(|e| e.entry_type == "blob")
-                .map(Into::into)
-                .collect(),
+            entries: response.entries.into_iter().map(Into::into).collect(),
         }
     }
 }

@@ -331,40 +331,30 @@ impl Git2Client {
                 format!("{}/{}", base_path, name)
             };
 
-            let entry_type = match entry.kind() {
-                Some(git2::ObjectType::Blob) => "blob",
-                Some(git2::ObjectType::Tree) => "tree",
-                Some(git2::ObjectType::Commit) => "commit",
-                _ => "unknown",
-            }
-            .to_string();
+            match entry.kind() {
+                Some(git2::ObjectType::Blob) => {
+                    let sha = entry.id().to_string();
+                    let preview = Self::get_file_preview(repo, entry.id(), preview_lines);
 
-            let sha = entry.id().to_string();
-
-            let preview = if entry_type == "blob" {
-                Self::get_file_preview(repo, entry.id(), preview_lines)
-            } else {
-                None
-            };
-
-            entries.push(RepositoryPreviewEntry {
-                path: entry_path.clone(),
-                name,
-                entry_type: entry_type.clone(),
-                sha,
-                preview,
-            });
-
-            if entry_type == "tree" {
-                if let Ok(subtree) = repo.find_tree(entry.id()) {
-                    Self::walk_tree_with_preview(
-                        repo,
-                        &subtree,
-                        &entry_path,
-                        entries,
-                        preview_lines,
-                    )?;
+                    entries.push(RepositoryPreviewEntry {
+                        path: entry_path,
+                        name,
+                        sha,
+                        preview,
+                    });
                 }
+                Some(git2::ObjectType::Tree) => {
+                    if let Ok(subtree) = repo.find_tree(entry.id()) {
+                        Self::walk_tree_with_preview(
+                            repo,
+                            &subtree,
+                            &entry_path,
+                            entries,
+                            preview_lines,
+                        )?;
+                    }
+                }
+                _ => {}
             }
         }
         Ok(())
