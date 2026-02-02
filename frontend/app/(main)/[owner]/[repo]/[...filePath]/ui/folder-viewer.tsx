@@ -12,10 +12,17 @@ export async function FolderViewer({
   repo: string;
   folderEntries: RepositoryTreeEntry[];
 }) {
+  const sortedEntries = folderEntries.toSorted((a, b) => {
+    if (a.entry_type === b.entry_type) {
+      return a.path.localeCompare(b.path);
+    }
+    return a.entry_type === "tree" ? -1 : 1;
+  });
+
   return (
     <div className="flex flex-col w-full flex-1">
       <div className="flex-1 overflow-hidden flex flex-col">
-        {folderEntries.map((entry) => (
+        {sortedEntries.map((entry) => (
           <FolderEntryRow
             key={entry.path}
             entry={entry}
