@@ -3,8 +3,9 @@ use async_trait::async_trait;
 use crate::client::{Git2Client, GitClient};
 use crate::dto::{
     CreateRepositoryRequest, GetRepositoryCommitsRequest, GetRepositoryFileCommitsRequest,
-    GetRepositoryFileRequest, GetRepositoryTreeRequest, RepositoryCommitsResponse,
-    RepositoryFileResponse, RepositoryResponse, RepositoryTreeResponse,
+    GetRepositoryFileRequest, GetRepositoryPreviewRequest, GetRepositoryTreeRequest,
+    RepositoryCommitsResponse, RepositoryFileResponse, RepositoryPreviewResponse,
+    RepositoryResponse, RepositoryTreeResponse,
 };
 use crate::error::RepositoryError;
 use crate::model::RepositoryOwnerType;
@@ -39,6 +40,11 @@ pub trait RepositoryService: Send + Sync + 'static {
         &self,
         request: GetRepositoryFileCommitsRequest,
     ) -> Result<RepositoryCommitsResponse, RepositoryError>;
+
+    async fn get_repository_preview(
+        &self,
+        request: GetRepositoryPreviewRequest,
+    ) -> Result<RepositoryPreviewResponse, RepositoryError>;
 }
 
 #[derive(Debug, Clone)]
@@ -184,6 +190,21 @@ where
                 &request.path,
                 request.page,
                 request.per_page,
+            )
+            .await
+            .map_err(|e| e.into())
+    }
+
+    async fn get_repository_preview(
+        &self,
+        request: GetRepositoryPreviewRequest,
+    ) -> Result<RepositoryPreviewResponse, RepositoryError> {
+        self.git_client
+            .get_repo_preview(
+                &request.owner_name,
+                &request.name,
+                &request.ref_name,
+                request.preview_lines,
             )
             .await
             .map_err(|e| e.into())

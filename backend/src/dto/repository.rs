@@ -2,6 +2,7 @@ mod create_repository;
 mod get_repository_commits;
 mod get_repository_file;
 mod get_repository_file_commits;
+mod get_repository_preview;
 mod get_repository_tree;
 
 use chrono::{DateTime, Utc};
@@ -14,6 +15,7 @@ pub use create_repository::CreateRepositoryServerRequest;
 pub use get_repository_commits::{GetRepositoryCommitsQuery, GetRepositoryCommitsServerResponse};
 pub use get_repository_file::{GetRepositoryFileQuery, GetRepositoryFileServerResponse};
 pub use get_repository_file_commits::GetRepositoryFileCommitsQuery;
+pub use get_repository_preview::{GetRepositoryPreviewQuery, GetRepositoryPreviewServerResponse};
 pub use get_repository_tree::{GetRepositoryTreeQuery, GetRepositoryTreeServerResponse};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]

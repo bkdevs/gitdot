@@ -5,8 +5,8 @@ use tokio::fs;
 use tokio::task;
 
 use crate::dto::{
-    RepositoryCommitResponse, RepositoryCommitsResponse, RepositoryFileResponse,
-    RepositoryTreeEntry, RepositoryTreeResponse,
+    FilePreview, RepositoryCommitResponse, RepositoryCommitsResponse, RepositoryFileResponse,
+    RepositoryPreviewEntry, RepositoryPreviewResponse, RepositoryTreeEntry, RepositoryTreeResponse,
 };
 use crate::error::GitError;
 use crate::util::git::{DEFAULT_BRANCH, REPO_SUFFIX};
@@ -52,6 +52,14 @@ pub trait GitClient: Send + Sync + Clone + 'static {
         page: u32,
         per_page: u32,
     ) -> Result<RepositoryCommitsResponse, GitError>;
+
+    async fn get_repo_preview(
+        &self,
+        owner: &str,
+        repo: &str,
+        ref_name: &str,
+        preview_lines: u32,
+    ) -> Result<RepositoryPreviewResponse, GitError>;
 
     fn normalize_repo_name(&self, repo: &str) -> String {
         format!(
@@ -216,7 +224,11 @@ impl Git2Client {
         Ok(path_commit_map)
     }
 
-    fn walk_tree_recursive(
+    fn is_binary(data: &[u8]) -> bool {
+        data.iter().take(8000).any(|&b| b == 0)
+    }
+
+    fn walk_tree(
         repo: &git2::Repository,
         tree: &git2::Tree,
         base_path: &str,
@@ -257,7 +269,7 @@ impl Git2Client {
 
             if entry_type == "tree" {
                 if let Ok(subtree) = repo.find_tree(entry.id()) {
-                    Self::walk_tree_recursive(
+                    Self::walk_tree(
                         repo,
                         &subtree,
                         &entry_path,
@@ -271,8 +283,91 @@ impl Git2Client {
         Ok(())
     }
 
-    fn is_binary(data: &[u8]) -> bool {
-        data.iter().take(8000).any(|&b| b == 0)
+    fn get_file_preview(
+        repo: &git2::Repository,
+        blob_id: git2::Oid,
+        preview_lines: u32,
+    ) -> Option<FilePreview> {
+        let blob = repo.find_blob(blob_id).ok()?;
+        let content_bytes = blob.content();
+
+        if Self::is_binary(content_bytes) {
+            return None;
+        }
+
+        let content_str = std::str::from_utf8(content_bytes).ok()?;
+        let lines: Vec<&str> = content_str.lines().collect();
+        let total_lines = lines.len() as u32;
+        let preview_line_count = std::cmp::min(preview_lines, total_lines);
+        let truncated = total_lines > preview_lines;
+
+        let preview_content = lines
+            .into_iter()
+            .take(preview_lines as usize)
+            .collect::<Vec<_>>()
+            .join("\n");
+
+        Some(FilePreview {
+            content: preview_content,
+            total_lines,
+            preview_lines: preview_line_count,
+            truncated,
+            encoding: "utf-8".to_string(),
+        })
+    }
+
+    fn walk_tree_with_preview(
+        repo: &git2::Repository,
+        tree: &git2::Tree,
+        base_path: &str,
+        entries: &mut Vec<RepositoryPreviewEntry>,
+        preview_lines: u32,
+    ) -> Result<(), git2::Error> {
+        for entry in tree.iter() {
+            let name = entry.name().unwrap_or("").to_string();
+            let entry_path = if base_path.is_empty() {
+                name.clone()
+            } else {
+                format!("{}/{}", base_path, name)
+            };
+
+            let entry_type = match entry.kind() {
+                Some(git2::ObjectType::Blob) => "blob",
+                Some(git2::ObjectType::Tree) => "tree",
+                Some(git2::ObjectType::Commit) => "commit",
+                _ => "unknown",
+            }
+            .to_string();
+
+            let sha = entry.id().to_string();
+
+            let preview = if entry_type == "blob" {
+                Self::get_file_preview(repo, entry.id(), preview_lines)
+            } else {
+                None
+            };
+
+            entries.push(RepositoryPreviewEntry {
+                path: entry_path.clone(),
+                name,
+                entry_type: entry_type.clone(),
+                sha,
+                preview,
+            });
+
+            if entry_type == "tree" {
+                if let Ok(subtree) = repo.find_tree(entry.id()) {
+                    Self::walk_tree_with_preview(
+                        repo,
+                        &subtree,
+                        &entry_path,
+                        entries,
+                        preview_lines,
+                    )?;
+                }
+            }
+        }
+        Ok(())
     }
 }
 
@@ -340,7 +435,7 @@ impl GitClient for Git2Client {
 
             let fallback_commit = RepositoryCommitResponse::from(&commit);
             let mut entries = Vec::new();
-            Self::walk_tree_recursive(
+            Self::walk_tree(
                 &repository,
                 &tree,
                 "",
@@ -561,6 +656,37 @@ impl GitClient for Git2Client {
             }
 
             Ok(RepositoryCommitsResponse { commits, has_next })
+        })
+        .await?
+    }
+
+    async fn get_repo_preview(
+        &self,
+        owner: &str,
+        repo: &str,
+        ref_name: &str,
+        preview_lines: u32,
+    ) -> Result<RepositoryPreviewResponse, GitError> {
+        let owner = owner.to_string();
+        let repo = repo.to_string();
+        let ref_name = ref_name.to_string();
+        let repository = self.open_repository(&owner, &repo)?;
+
+        task::spawn_blocking(move || {
+            let commit = Self::resolve_ref(&repository, &ref_name)?;
+            let commit_sha = commit.id().to_string();
+            let tree = commit.tree()?;
+
+            let mut entries = Vec::new();
+            Self::walk_tree_with_preview(&repository, &tree, "", &mut entries, preview_lines)?;
+
+            Ok(RepositoryPreviewResponse {
+                name: repo,
+                owner,
+                ref_name,
+                commit_sha,
+                entries,
+            })
         })
         .await?
     }
