@@ -101,7 +101,8 @@ export async function getClaims(): Promise<JwtPayload | null> {
  */
 export async function getSession() {
   if (process.env.NEXT_PHASE === PHASE_PRODUCTION_BUILD) {
-    console.log("RETURNING NULL");
+    // constructing the supabase client awaits cookies, which causes failures if done at build time
+    // any page generated in buidl time is unauthenticated (e.g., public), so return null
     return null;
   }
 

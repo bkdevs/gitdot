@@ -7,6 +7,9 @@ import { FileViewer } from "./ui/file-viewer";
 import { FolderViewer } from "./ui/folder-viewer";
 import { parseLineSelection } from "./util";
 
+// TODO: think about how and whether we should do generateStaticParams
+// i think? this causes prefetch behavior to fail as next.js isn't aware that the layouts are shared
+// causing the initial html with file previews, commits, and the trees to be prefetched.
 export default async function Page({
   params,
   searchParams,

@@ -1,8 +1,9 @@
+import { CACHED_REPOS } from "@/config";
 import { getRepositoryFile, NotFound } from "@/lib/dal";
 import { MarkdownBody } from "./ui/markdown/markdown-body";
 
 export async function generateStaticParams() {
-  return [{ owner: "bkdevs", repo: "gitdot" }];
+  return CACHED_REPOS;
 }
 
 export default async function Page({
