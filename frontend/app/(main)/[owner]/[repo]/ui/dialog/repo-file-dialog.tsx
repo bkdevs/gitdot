@@ -45,9 +45,9 @@ export function RepoFileDialog({
 
   const selectedFile = filteredFiles[selectedIndex];
   const handleSelect = useCallback(
-    (entry: RepositoryPreviewEntry) => {
+    (entry: RepositoryTreeEntry) => {
       setOpen(false);
-      router.push(`/${owner}/${repo}/${entry.path}`); // is this right?
+      router.push(`/${owner}/${repo}/${entry.path}`);
     },
     [owner, repo, router, setOpen],
   );
@@ -178,7 +178,7 @@ export function RepoFileDialog({
               <div
                 className="px-2 py-2"
                 dangerouslySetInnerHTML={{
-                  __html: previews.get(selectedFile.path),
+                  __html: previews.get(selectedFile.path)!,
                 }}
               />
             )}

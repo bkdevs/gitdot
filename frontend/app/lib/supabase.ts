@@ -2,6 +2,7 @@ import "server-only";
 
 import { createServerClient } from "@supabase/ssr";
 import type { JwtPayload } from "@supabase/supabase-js";
+import { PHASE_PRODUCTION_BUILD } from "next/constants";
 import { cookies } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 
@@ -99,6 +100,11 @@ export async function getClaims(): Promise<JwtPayload | null> {
  * for use when the full session (including access token) is needed
  */
 export async function getSession() {
+  if (process.env.NEXT_PHASE === PHASE_PRODUCTION_BUILD) {
+    console.log("RETURNING NULL");
+    return null;
+  }
+
   const supabase = await createSupabaseClient();
   const { data } = await supabase.auth.getSession();
 

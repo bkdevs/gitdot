@@ -1,6 +1,10 @@
 import { getRepositoryFile, NotFound } from "@/lib/dal";
 import { MarkdownBody } from "./ui/markdown/markdown-body";
 
+export async function generateStaticParams() {
+  return [{ owner: "bkdevs", repo: "gitdot" }];
+}
+
 export default async function Page({
   params,
 }: {

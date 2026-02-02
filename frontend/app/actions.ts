@@ -73,7 +73,6 @@ export async function login(formData: FormData): Promise<AuthActionResult> {
 export async function signout() {
   const supabase = await createSupabaseClient();
   const { error } = await supabase.auth.signOut();
-
   console.log(error);
 }
 
