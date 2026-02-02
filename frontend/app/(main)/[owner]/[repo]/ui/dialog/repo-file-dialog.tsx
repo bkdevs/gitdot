@@ -1,9 +1,9 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { use, useCallback, useEffect, useMemo, useState } from "react";
 import type { RepositoryTreeEntry } from "@/lib/dto";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
+import { useRouter } from "next/navigation";
+import { use, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { fuzzyMatch } from "../../util";
 
 export function RepoFileDialog({
@@ -24,7 +24,10 @@ export function RepoFileDialog({
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [hoverEnabled, setHoverEnabled] = useState(false);
+  const [enableHover, setEnableHover] = useState(false);
+  const [mouseMoved, setMouseMoved] = useState(false);
+
+  const initialMousePos = useRef<{ x: number; y: number } | null>(null);
   const filePreviews = use(filePreviewsPromise);
 
   const filteredFiles = useMemo(() => {
@@ -50,17 +53,40 @@ export function RepoFileDialog({
   );
 
   useEffect(() => {
-    if (!open || hoverEnabled) return;
-
-    const timer = setTimeout(() => setHoverEnabled(true), 100);
+    if (!open || enableHover) return;
+    const timer = setTimeout(() => setEnableHover(true), 100);
     return () => clearTimeout(timer);
-  }, [open, hoverEnabled]);
+  }, [open, enableHover]);
+
+  useEffect(() => {
+    if (!open || mouseMoved) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (initialMousePos.current === null) {
+        initialMousePos.current = { x: e.clientX, y: e.clientY };
+        return;
+      }
+
+      const dx = e.clientX - initialMousePos.current.x;
+      const dy = e.clientY - initialMousePos.current.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      if (distance > 5) {
+        setMouseMoved(true);
+      }
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, [open, mouseMoved]);
 
   useEffect(() => {
     if (!open) {
       setQuery("");
       setSelectedIndex(0);
-      setHoverEnabled(false);
+      setEnableHover(false);
+      setMouseMoved(false);
+      initialMousePos.current = null;
     }
   }, [open]);
 
@@ -136,7 +162,7 @@ export function RepoFileDialog({
                       ? "bg-accent text-accent-foreground"
                       : ""
                   }`}
-                  onMouseEnter={() => hoverEnabled && setSelectedIndex(index)}
+                  onMouseEnter={() => enableHover && mouseMoved && setSelectedIndex(index)}
                   onClick={() => handleSelect(entry)}
                 >
                   {entry.path}
