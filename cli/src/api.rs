@@ -1,6 +1,6 @@
 pub mod auth;
 
-const API_ENDPOINT: &str = "https://api.gitdot.io:443";
+const SERVER_URL: &str = "https://gitdot.io";
 const CLIENT_ID: &str = "gitdot-cli";
 
 pub struct ApiClient {
@@ -13,7 +13,7 @@ impl ApiClient {
     pub fn new() -> Self {
         Self {
             client: reqwest::Client::new(),
-            base_url: API_ENDPOINT.to_string(),
+            base_url: SERVER_URL.to_string(),
             client_id: CLIENT_ID.to_string(),
         }
     }
