@@ -52,18 +52,29 @@ pub struct RepositoryCommitsResponse {
 pub struct RepositoryCommitResponse {
     pub sha: String,
     pub message: String,
-    pub author: String,
     pub date: DateTime<Utc>,
+    pub author: CommitAuthorResponse,
+}
+
+#[derive(Debug, Clone)]
+pub struct CommitAuthorResponse {
+    pub id: Option<Uuid>,
+    pub name: String,
+    pub email: String,
 }
 
 impl From<&git2::Commit<'_>> for RepositoryCommitResponse {
     fn from(commit: &git2::Commit) -> Self {
-        let author = commit.author();
+        let git_author = commit.author();
         Self {
             sha: commit.id().to_string(),
             message: commit.message().unwrap_or("").to_string(),
-            author: author.name().unwrap_or("Unknown").to_string(),
-            date: DateTime::from_timestamp(author.when().seconds(), 0).unwrap_or_default(),
+            date: DateTime::from_timestamp(git_author.when().seconds(), 0).unwrap_or_default(),
+            author: CommitAuthorResponse {
+                id: None,
+                name: git_author.name().unwrap_or("Unknown").to_string(),
+                email: git_author.email().unwrap_or("").to_string(),
+            },
         }
     }
 }

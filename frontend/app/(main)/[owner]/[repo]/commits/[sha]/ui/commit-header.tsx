@@ -32,7 +32,7 @@ export function CommitHeader({
     <div className="shrink-0 border-border border-b p-2">
       <div className="mb-4">
         <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
-          <span>{commit.author}</span>
+          <span>{commit.author.name}</span>
           <span>•</span>
           <span>{formatDateTime(new Date(commit.date))}</span>
         </div>

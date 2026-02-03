@@ -10,7 +10,12 @@ function FileCommit({
   isSelected,
   href,
 }: {
-  commit: { sha: string; message: string; author: string; date: string };
+  commit: {
+    sha: string;
+    message: string;
+    author: { id?: string; name: string; email: string };
+    date: string;
+  };
   isSelected: boolean;
   href: string;
 }) {
@@ -30,7 +35,7 @@ function FileCommit({
         <div className="text-sm truncate mb-0.5 w-full">{commit.message}</div>
 
         <div className="text-xs text-muted-foreground flex items-center gap-1 w-full min-w-0">
-          <span className="truncate min-w-0">{commit.author}</span>
+          <span className="truncate min-w-0">{commit.author.name}</span>
           <span className="shrink-0">•</span>
           <span className="shrink-0">{commit.sha.substring(0, 7)}</span>
           <span className="ml-auto shrink-0">

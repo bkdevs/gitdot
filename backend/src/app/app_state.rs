@@ -55,6 +55,7 @@ impl AppState {
             git_client.clone(),
             org_repo.clone(),
             repo_repo.clone(),
+            user_repo.clone(),
         ));
         let question_service = Arc::new(QuestionServiceImpl::new(
             question_repo.clone(),

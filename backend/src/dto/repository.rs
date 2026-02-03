@@ -9,7 +9,7 @@ use chrono::{DateTime, Utc};
 use serde::Serialize;
 use uuid::Uuid;
 
-use gitdot_core::dto::{RepositoryCommitResponse, RepositoryResponse};
+use gitdot_core::dto::{CommitAuthorResponse, RepositoryCommitResponse, RepositoryResponse};
 
 pub use create_repository::CreateRepositoryServerRequest;
 pub use get_repository_commits::{GetRepositoryCommitsQuery, GetRepositoryCommitsServerResponse};
@@ -43,8 +43,26 @@ impl From<RepositoryResponse> for RepositoryServerResponse {
 pub struct RepositoryCommitServerResponse {
     pub sha: String,
     pub message: String,
-    pub author: String,
     pub date: DateTime<Utc>,
+    pub author: CommitAuthorServerResponse,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct CommitAuthorServerResponse {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub id: Option<Uuid>,
+    pub name: String,
+    pub email: String,
+}
+
+impl From<CommitAuthorResponse> for CommitAuthorServerResponse {
+    fn from(author: CommitAuthorResponse) -> Self {
+        Self {
+            id: author.id,
+            name: author.name,
+            email: author.email,
+        }
+    }
 }
 
 impl From<RepositoryCommitResponse> for RepositoryCommitServerResponse {
@@ -52,8 +70,8 @@ impl From<RepositoryCommitResponse> for RepositoryCommitServerResponse {
         Self {
             sha: commit.sha,
             message: commit.message,
-            author: commit.author,
             date: commit.date,
+            author: commit.author.into(),
         }
     }
 }

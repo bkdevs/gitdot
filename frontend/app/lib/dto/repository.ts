@@ -31,11 +31,19 @@ export type RepositoryCommitsQuery = z.infer<
   typeof RepositoryCommitsQuerySchema
 >;
 
+export const CommitAuthorSchema = z.object({
+  id: z.uuid().optional(),
+  name: z.string(),
+  email: z.string(),
+});
+
+export type CommitAuthor = z.infer<typeof CommitAuthorSchema>;
+
 export const RepositoryCommitSchema = z.object({
   sha: z.string(),
   message: z.string(),
-  author: z.string(),
   date: z.iso.datetime(),
+  author: CommitAuthorSchema,
 });
 
 export type RepositoryCommit = z.infer<typeof RepositoryCommitSchema>;

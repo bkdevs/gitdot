@@ -59,7 +59,7 @@ function FolderEntryRow({
       </span>
       <span className="truncate">{entry.commit.message}</span>
       <span className="text-primary/60 ml-4 whitespace-nowrap">
-        {entry.commit.author} • {timeAgo(new Date(entry.commit.date))}
+        {entry.commit.author.name} • {timeAgo(new Date(entry.commit.date))}
       </span>
     </Link>
   );

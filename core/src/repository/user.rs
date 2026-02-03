@@ -9,6 +9,8 @@ pub trait UserRepository: Send + Sync + Clone + 'static {
     async fn get(&self, user_name: &str) -> Result<Option<User>, Error>;
 
     async fn get_by_id(&self, id: Uuid) -> Result<Option<User>, Error>;
+
+    async fn get_by_emails(&self, emails: &[String]) -> Result<Vec<User>, Error>;
 }
 
 #[derive(Debug, Clone)]
@@ -44,5 +46,20 @@ impl UserRepository for UserRepositoryImpl {
         .await?;
 
         Ok(user)
+    }
+
+    async fn get_by_emails(&self, emails: &[String]) -> Result<Vec<User>, Error> {
+        if emails.is_empty() {
+            return Ok(Vec::new());
+        }
+
+        let users = sqlx::query_as::<_, User>(
+            "SELECT id, email, name, created_at FROM users WHERE email = ANY($1)",
+        )
+        .bind(emails)
+        .fetch_all(&self.pool)
+        .await?;
+
+        Ok(users)
     }
 }
