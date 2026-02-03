@@ -5,6 +5,8 @@ pub struct Settings {
     pub port: String,
     pub git_project_root: String,
     pub database_url: String,
+    pub supabase_url: String,
+    pub supabase_anon_key: String,
     pub supabase_jwt_public_key: String,
     pub oauth_device_verification_uri: String,
 }
@@ -16,6 +18,9 @@ impl Settings {
             git_project_root: env::var("GIT_PROJECT_ROOT")
                 .unwrap_or_else(|_| "/srv/git".to_string()),
             database_url: env::var("DATABASE_URL").expect("DATABASE_URL must be set"),
+            supabase_url: env::var("SUPABASE_URL").expect("SUPABASE_URL must be set"),
+            supabase_anon_key: env::var("SUPABASE_ANON_KEY")
+                .expect("SUPABASE_ANON_KEY must be set"),
             supabase_jwt_public_key: env::var("SUPABASE_JWT_PUBLIC_KEY")
                 .expect("SUPABASE_JWT_PUBLIC_KEY must be set"),
             oauth_device_verification_uri: env::var("OAUTH_DEVICE_VERIFICATION_URI")

@@ -1,3 +1,4 @@
+mod create_user;
 mod get_current_user;
 mod get_user;
 mod list_user_repositories;
@@ -6,13 +7,14 @@ use axum::{Router, routing::get};
 
 use crate::app::AppState;
 
+use create_user::create_user;
 use get_current_user::get_current_user;
 use get_user::get_user;
 use list_user_repositories::list_user_repositories;
 
 pub fn create_user_router() -> Router<AppState> {
     Router::new()
-        .route("/user", get(get_current_user))
+        .route("/user", get(get_current_user).post(create_user))
         .route("/user/{user_name}", get(get_user))
         .route(
             "/user/{user_name}/repositories",

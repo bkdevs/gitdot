@@ -1,8 +1,12 @@
+mod create_user;
+
 use chrono::{DateTime, Utc};
 use serde::Serialize;
 use uuid::Uuid;
 
 use gitdot_core::dto::UserResponse;
+
+pub use create_user::CreateUserServerRequest;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct UserServerResponse {

@@ -1,8 +1,9 @@
 use async_trait::async_trait;
 
+use crate::client::{SupabaseClient, SupabaseClientImpl};
 use crate::dto::{
-    GetCurrentUserRequest, GetUserRequest, ListUserRepositoriesRequest, RepositoryResponse,
-    UserResponse,
+    CreateUserRequest, GetCurrentUserRequest, GetUserRequest, ListUserRepositoriesRequest,
+    RepositoryResponse, UserResponse,
 };
 use crate::error::UserError;
 use crate::repository::{
@@ -11,6 +12,8 @@ use crate::repository::{
 
 #[async_trait]
 pub trait UserService: Send + Sync + 'static {
+    async fn create_user(&self, request: CreateUserRequest) -> Result<UserResponse, UserError>;
+
     async fn get_current_user(
         &self,
         request: GetCurrentUserRequest,
@@ -25,30 +28,61 @@ pub trait UserService: Send + Sync + 'static {
 }
 
 #[derive(Debug, Clone)]
-pub struct UserServiceImpl<U, R>
+pub struct UserServiceImpl<U, R, S>
 where
     U: UserRepository,
     R: RepositoryRepository,
+    S: SupabaseClient,
 {
     user_repo: U,
     repo_repo: R,
+    supabase_client: S,
 }
 
-impl UserServiceImpl<UserRepositoryImpl, RepositoryRepositoryImpl> {
-    pub fn new(user_repo: UserRepositoryImpl, repo_repo: RepositoryRepositoryImpl) -> Self {
+impl UserServiceImpl<UserRepositoryImpl, RepositoryRepositoryImpl, SupabaseClientImpl> {
+    pub fn new(
+        user_repo: UserRepositoryImpl,
+        repo_repo: RepositoryRepositoryImpl,
+        supabase_client: SupabaseClientImpl,
+    ) -> Self {
         Self {
             user_repo,
             repo_repo,
+            supabase_client,
         }
     }
 }
 
 #[async_trait]
-impl<U, R> UserService for UserServiceImpl<U, R>
+impl<U, R, S> UserService for UserServiceImpl<U, R, S>
 where
     U: UserRepository,
     R: RepositoryRepository,
+    S: SupabaseClient,
 {
+    async fn create_user(&self, request: CreateUserRequest) -> Result<UserResponse, UserError> {
+        let name = request.name.to_string();
+
+        if self.user_repo.is_name_taken(&name).await? {
+            return Err(UserError::NameTaken(name));
+        }
+        if self.user_repo.is_email_taken(&request.email).await? {
+            return Err(UserError::EmailTaken(request.email.clone()));
+        }
+
+        let supabase_user = self
+            .supabase_client
+            .create_user(&request.email, &request.password)
+            .await?;
+
+        let user = self
+            .user_repo
+            .create(supabase_user.id, &name, &request.email)
+            .await?;
+
+        Ok(user.into())
+    }
+
     async fn get_current_user(
         &self,
         request: GetCurrentUserRequest,

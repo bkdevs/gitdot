@@ -66,6 +66,9 @@ impl IntoResponse for AppError {
                 let status_code = match e {
                     UserError::NotFound(_) => StatusCode::NOT_FOUND,
                     UserError::InvalidUserName(_) => StatusCode::BAD_REQUEST,
+                    UserError::NameTaken(_) => StatusCode::CONFLICT,
+                    UserError::EmailTaken(_) => StatusCode::CONFLICT,
+                    UserError::SupabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                     UserError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                 };
                 let response = AppResponse::new(
