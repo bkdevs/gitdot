@@ -9,6 +9,7 @@ use crate::error::UserError;
 use crate::repository::{
     RepositoryRepository, RepositoryRepositoryImpl, UserRepository, UserRepositoryImpl,
 };
+use crate::util::auth::is_reserved_name;
 
 #[async_trait]
 pub trait UserService: Send + Sync + 'static {
@@ -63,9 +64,14 @@ where
     async fn create_user(&self, request: CreateUserRequest) -> Result<UserResponse, UserError> {
         let name = request.name.to_string();
 
+        if is_reserved_name(&name) {
+            return Err(UserError::ReservedName(name));
+        }
+
         if self.user_repo.is_name_taken(&name).await? {
             return Err(UserError::NameTaken(name));
         }
+
         if self.user_repo.is_email_taken(&request.email).await? {
             return Err(UserError::EmailTaken(request.email.clone()));
         }

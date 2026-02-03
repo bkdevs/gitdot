@@ -68,6 +68,7 @@ impl IntoResponse for AppError {
                     UserError::InvalidUserName(_) => StatusCode::BAD_REQUEST,
                     UserError::NameTaken(_) => StatusCode::CONFLICT,
                     UserError::EmailTaken(_) => StatusCode::CONFLICT,
+                    UserError::ReservedName(_) => StatusCode::CONFLICT,
                     UserError::SupabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                     UserError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                 };

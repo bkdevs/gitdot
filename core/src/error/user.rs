@@ -14,6 +14,9 @@ pub enum UserError {
     #[error("Email already taken: {0}")]
     EmailTaken(String),
 
+    #[error("Reserved name: {0}")]
+    ReservedName(String),
+
     #[error("Database error: {0}")]
     DatabaseError(#[from] sqlx::Error),
 
