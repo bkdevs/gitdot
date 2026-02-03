@@ -12,6 +12,7 @@ export function CommitHeader({
   const midpoint = Math.ceil(diffs.length / 2);
   const leftColumn = diffs.slice(0, midpoint);
   const rightColumn = diffs.slice(midpoint);
+  const author = typeof commit.author === "string" ? commit.author : commit.author.name;
 
   const renderDiffItem = (diff: RepositoryFileDiff) => {
     const path = diff.left?.path || diff.right?.path || "";
@@ -32,7 +33,7 @@ export function CommitHeader({
     <div className="shrink-0 border-border border-b p-2">
       <div className="mb-4">
         <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
-          <span>{commit.author.name}</span>
+          <span>{author}</span>
           <span>•</span>
           <span>{formatDateTime(new Date(commit.date))}</span>
         </div>

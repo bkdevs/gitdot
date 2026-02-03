@@ -13,12 +13,14 @@ function FileCommit({
   commit: {
     sha: string;
     message: string;
-    author: { id?: string; name: string; email: string };
+    author: string | { id?: string; name: string; email: string };
     date: string;
   };
   isSelected: boolean;
   href: string;
 }) {
+  const author = typeof commit.author === "string" ? commit.author : commit.author.name;
+
   return (
     // TODO: if we move this to be a client-side component and fetches we can safe on things
     //  1: making it a single call to fetch all files (getRepositoryFiles)
@@ -35,7 +37,7 @@ function FileCommit({
         <div className="text-sm truncate mb-0.5 w-full">{commit.message}</div>
 
         <div className="text-xs text-muted-foreground flex items-center gap-1 w-full min-w-0">
-          <span className="truncate min-w-0">{commit.author.name}</span>
+          <span className="truncate min-w-0">{author}</span>
           <span className="shrink-0">•</span>
           <span className="shrink-0">{commit.sha.substring(0, 7)}</span>
           <span className="ml-auto shrink-0">

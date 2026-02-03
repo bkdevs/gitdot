@@ -34,6 +34,7 @@ export function RepoSidebarCommits({
           </div>
           {dateCommits.map((commit) => {
             const isActive = currentSha === commit.sha.substring(0, 7);
+            const author = typeof commit.author === "string" ? commit.author : commit.author.name;
             return (
               <Link
                 key={commit.sha}
@@ -48,7 +49,7 @@ export function RepoSidebarCommits({
                     {commit.message}
                   </div>
                   <div className="text-xs text-muted-foreground flex items-center gap-1 w-full min-w-0">
-                    <span className="truncate min-w-0">{commit.author.name}</span>
+                    <span className="truncate min-w-0">{author}</span>
                     <span className="shrink-0">•</span>
                     <span className="shrink-0">
                       {formatTime(new Date(commit.date))}

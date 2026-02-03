@@ -40,7 +40,9 @@ function FolderEntryRow({
 }: {
   entry: RepositoryTreeEntry;
   href: string;
-}) {
+  }) {
+  const author = typeof entry.commit.author === "string" ? entry.commit.author : entry.commit.author.name;
+
   return (
     <Link
       className="grid grid-cols-[1fr_300px_150px] w-full pl-2 h-9 items-center border-b hover:bg-accent/50 select-none cursor-default text-sm"
@@ -59,7 +61,7 @@ function FolderEntryRow({
       </span>
       <span className="truncate">{entry.commit.message}</span>
       <span className="text-primary/60 ml-4 whitespace-nowrap">
-        {entry.commit.author.name} • {timeAgo(new Date(entry.commit.date))}
+        {author} • {timeAgo(new Date(entry.commit.date))}
       </span>
     </Link>
   );
