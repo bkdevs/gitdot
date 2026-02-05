@@ -1,10 +1,10 @@
 use async_trait::async_trait;
 
-use supabase::{Client, Error, auth::User};
+use supabase::{Client, Error};
 
 #[async_trait]
 pub trait SupabaseClient: Send + Sync + Clone + 'static {
-    async fn create_user(&self, email: &str, password: &str) -> Result<User, Error>;
+    async fn create_user(&self, name: &str, email: &str, password: &str) -> Result<(), Error>;
 }
 
 #[derive(Debug, Clone)]
@@ -23,14 +23,17 @@ impl SupabaseClientImpl {
 
 #[async_trait]
 impl SupabaseClient for SupabaseClientImpl {
-    async fn create_user(&self, email: &str, password: &str) -> Result<User, Error> {
-        let response = self
-            .client
+    async fn create_user(&self, name: &str, email: &str, password: &str) -> Result<(), Error> {
+        self.client
             .auth()
-            .sign_up_with_email_and_password(email, password)
+            .sign_up_with_email_password_and_data(
+                email,
+                password,
+                Some(serde_json::json!({ "name": name })),
+                Option::None,
+            )
             .await?;
-        response
-            .user
-            .ok_or_else(|| Error::auth("Failed to create user"))
+
+        Ok(())
     }
 }

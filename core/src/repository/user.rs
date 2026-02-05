@@ -6,8 +6,6 @@ use crate::model::User;
 
 #[async_trait]
 pub trait UserRepository: Send + Sync + Clone + 'static {
-    async fn create(&self, id: Uuid, name: &str, email: &str) -> Result<User, Error>;
-
     async fn get(&self, user_name: &str) -> Result<Option<User>, Error>;
 
     async fn get_by_id(&self, id: Uuid) -> Result<Option<User>, Error>;
@@ -32,19 +30,6 @@ impl UserRepositoryImpl {
 
 #[async_trait]
 impl UserRepository for UserRepositoryImpl {
-    async fn create(&self, id: Uuid, name: &str, email: &str) -> Result<User, Error> {
-        let user = sqlx::query_as::<_, User>(
-            "INSERT INTO users (id, name, email) VALUES ($1, $2, $3) RETURNING id, name, email, created_at",
-        )
-        .bind(id)
-        .bind(name)
-        .bind(email)
-        .fetch_one(&self.pool)
-        .await?;
-
-        Ok(user)
-    }
-
     async fn get(&self, user_name: &str) -> Result<Option<User>, Error> {
         let user = sqlx::query_as::<_, User>(
             "SELECT id, email, name, created_at FROM users WHERE name = $1",

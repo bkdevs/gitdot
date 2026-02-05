@@ -13,7 +13,7 @@ use crate::util::auth::is_reserved_name;
 
 #[async_trait]
 pub trait UserService: Send + Sync + 'static {
-    async fn create_user(&self, request: CreateUserRequest) -> Result<UserResponse, UserError>;
+    async fn create_user(&self, request: CreateUserRequest) -> Result<(), UserError>;
 
     async fn get_current_user(
         &self,
@@ -61,7 +61,7 @@ where
     R: RepositoryRepository,
     S: SupabaseClient,
 {
-    async fn create_user(&self, request: CreateUserRequest) -> Result<UserResponse, UserError> {
+    async fn create_user(&self, request: CreateUserRequest) -> Result<(), UserError> {
         let name = request.name.to_string();
 
         if is_reserved_name(&name) {
@@ -72,21 +72,13 @@ where
             return Err(UserError::NameTaken(name));
         }
 
-        if self.user_repo.is_email_taken(&request.email).await? {
-            return Err(UserError::EmailTaken(request.email.clone()));
-        }
-
-        let supabase_user = self
-            .supabase_client
-            .create_user(&request.email, &request.password)
+        // Once Supabase user is created, the Postgres trigger will then
+        // create the corresponding user row in users table.
+        self.supabase_client
+            .create_user(&name, &request.email, &request.password)
             .await?;
 
-        let user = self
-            .user_repo
-            .create(supabase_user.id, &name, &request.email)
-            .await?;
-
-        Ok(user.into())
+        Ok(())
     }
 
     async fn get_current_user(

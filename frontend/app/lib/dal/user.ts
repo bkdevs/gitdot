@@ -1,6 +1,7 @@
 import "server-only";
 
 import {
+  type CreateUserRequest,
   type UserRepositoriesResponse,
   UserRepositoriesResponseSchema,
   type UserResponse,
@@ -8,6 +9,29 @@ import {
 } from "../dto";
 import { getSession } from "../supabase";
 import { authFetch, GITDOT_SERVER_URL, handleResponse, NotFound } from "./util";
+
+export type CreateUserResult = { success: true } | { error: string };
+
+export async function createUser(
+  request: CreateUserRequest,
+): Promise<CreateUserResult> {
+  const response = await fetch(`${GITDOT_SERVER_URL}/user`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+  });
+
+  if (!response.ok) {
+    try {
+      const data = await response.json();
+      return { error: data.message ?? "Failed to create user" };
+    } catch {
+      return { error: "Failed to create user" };
+    }
+  }
+
+  return { success: true };
+}
 
 export async function getUser(username: string): Promise<UserResponse | null> {
   const response = await authFetch(`${GITDOT_SERVER_URL}/user/${username}`);

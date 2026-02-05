@@ -1202,6 +1202,7 @@ dependencies = [
  "nutype",
  "rand 0.9.2",
  "serde",
+ "serde_json",
  "sha2",
  "sqlx",
  "supabase-lib-rs",

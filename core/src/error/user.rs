@@ -11,9 +11,6 @@ pub enum UserError {
     #[error("Name already taken: {0}")]
     NameTaken(String),
 
-    #[error("Email already taken: {0}")]
-    EmailTaken(String),
-
     #[error("Reserved name: {0}")]
     ReservedName(String),
 
