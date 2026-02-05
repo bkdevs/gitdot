@@ -1,7 +1,6 @@
 import "server-only";
 
 import {
-  type CreateUserRequest,
   type UserRepositoriesResponse,
   UserRepositoriesResponseSchema,
   type UserResponse,
@@ -10,23 +9,20 @@ import {
 import { getSession } from "../supabase";
 import { authFetch, GITDOT_SERVER_URL, handleResponse, NotFound } from "./util";
 
-export type CreateUserResult = { success: true } | { error: string };
+export type ValidateNameResult = { success: true } | { error: string };
 
-export async function createUser(
-  request: CreateUserRequest,
-): Promise<CreateUserResult> {
-  const response = await fetch(`${GITDOT_SERVER_URL}/user`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(request),
-  });
+export async function validateName(name: string): Promise<ValidateNameResult> {
+  const response = await fetch(
+    `${GITDOT_SERVER_URL}/user/${encodeURIComponent(name)}/validate`,
+    { method: "POST" },
+  );
 
   if (!response.ok) {
     try {
       const data = await response.json();
-      return { error: data.message ?? "Failed to create user" };
+      return { error: data.message ?? "Invalid name" };
     } catch {
-      return { error: "Failed to create user" };
+      return { error: "Invalid name" };
     }
   }
 

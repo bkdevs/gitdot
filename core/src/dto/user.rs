@@ -1,17 +1,17 @@
-mod create_user;
 mod get_current_user;
 mod get_user;
 mod list_user_repositories;
+mod validate_name;
 
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
 use crate::model::User;
 
-pub use create_user::CreateUserRequest;
 pub use get_current_user::GetCurrentUserRequest;
 pub use get_user::GetUserRequest;
 pub use list_user_repositories::ListUserRepositoriesRequest;
+pub use validate_name::ValidateNameRequest;
 
 #[derive(Debug, Clone)]
 pub struct UserResponse {

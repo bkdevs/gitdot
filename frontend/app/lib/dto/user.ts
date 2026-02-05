@@ -1,13 +1,5 @@
 import { z } from "zod";
 
-export const CreateUserRequestSchema = z.object({
-  name: z.string(),
-  email: z.string(),
-  password: z.string(),
-});
-
-export type CreateUserRequest = z.infer<typeof CreateUserRequestSchema>;
-
 export const UserResponseSchema = z.object({
   id: z.uuid(),
   name: z.string(),

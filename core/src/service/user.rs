@@ -1,9 +1,8 @@
 use async_trait::async_trait;
 
-use crate::client::{SupabaseClient, SupabaseClientImpl};
 use crate::dto::{
-    CreateUserRequest, GetCurrentUserRequest, GetUserRequest, ListUserRepositoriesRequest,
-    RepositoryResponse, UserResponse,
+    GetCurrentUserRequest, GetUserRequest, ListUserRepositoriesRequest, RepositoryResponse,
+    UserResponse, ValidateNameRequest,
 };
 use crate::error::UserError;
 use crate::repository::{
@@ -13,7 +12,7 @@ use crate::util::auth::is_reserved_name;
 
 #[async_trait]
 pub trait UserService: Send + Sync + 'static {
-    async fn create_user(&self, request: CreateUserRequest) -> Result<(), UserError>;
+    async fn validate_name(&self, request: ValidateNameRequest) -> Result<(), UserError>;
 
     async fn get_current_user(
         &self,
@@ -29,39 +28,31 @@ pub trait UserService: Send + Sync + 'static {
 }
 
 #[derive(Debug, Clone)]
-pub struct UserServiceImpl<U, R, S>
+pub struct UserServiceImpl<U, R>
 where
     U: UserRepository,
     R: RepositoryRepository,
-    S: SupabaseClient,
 {
     user_repo: U,
     repo_repo: R,
-    supabase_client: S,
 }
 
-impl UserServiceImpl<UserRepositoryImpl, RepositoryRepositoryImpl, SupabaseClientImpl> {
-    pub fn new(
-        user_repo: UserRepositoryImpl,
-        repo_repo: RepositoryRepositoryImpl,
-        supabase_client: SupabaseClientImpl,
-    ) -> Self {
+impl UserServiceImpl<UserRepositoryImpl, RepositoryRepositoryImpl> {
+    pub fn new(user_repo: UserRepositoryImpl, repo_repo: RepositoryRepositoryImpl) -> Self {
         Self {
             user_repo,
             repo_repo,
-            supabase_client,
         }
     }
 }
 
 #[async_trait]
-impl<U, R, S> UserService for UserServiceImpl<U, R, S>
+impl<U, R> UserService for UserServiceImpl<U, R>
 where
     U: UserRepository,
     R: RepositoryRepository,
-    S: SupabaseClient,
 {
-    async fn create_user(&self, request: CreateUserRequest) -> Result<(), UserError> {
+    async fn validate_name(&self, request: ValidateNameRequest) -> Result<(), UserError> {
         let name = request.name.to_string();
 
         if is_reserved_name(&name) {
@@ -71,12 +62,6 @@ where
         if self.user_repo.is_name_taken(&name).await? {
             return Err(UserError::NameTaken(name));
         }
-
-        // Once Supabase user is created, the Postgres trigger will then
-        // create the corresponding user row in users table.
-        self.supabase_client
-            .create_user(&name, &request.email, &request.password)
-            .await?;
 
         Ok(())
     }

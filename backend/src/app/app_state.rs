@@ -3,7 +3,7 @@ use std::sync::Arc;
 use axum::extract::FromRef;
 use sqlx::PgPool;
 
-use gitdot_core::client::{Git2Client, GitHttpClientImpl, SupabaseClientImpl};
+use gitdot_core::client::{Git2Client, GitHttpClientImpl};
 use gitdot_core::repository::{
     OAuthRepositoryImpl, OrganizationRepositoryImpl, QuestionRepositoryImpl,
     RepositoryRepositoryImpl, UserRepositoryImpl,
@@ -32,8 +32,6 @@ impl AppState {
     pub fn new(settings: Arc<Settings>, pool: PgPool) -> Self {
         let git_client = Git2Client::new(settings.git_project_root.clone());
         let git_http_client = GitHttpClientImpl::new(settings.git_project_root.clone());
-        let supabase_client =
-            SupabaseClientImpl::new(&settings.supabase_url, &settings.supabase_anon_key);
 
         let org_repo = OrganizationRepositoryImpl::new(pool.clone());
         let repo_repo = RepositoryRepositoryImpl::new(pool.clone());
@@ -47,11 +45,7 @@ impl AppState {
             question_repo.clone(),
             user_repo.clone(),
         ));
-        let user_service = Arc::new(UserServiceImpl::new(
-            user_repo.clone(),
-            repo_repo.clone(),
-            supabase_client.clone(),
-        ));
+        let user_service = Arc::new(UserServiceImpl::new(user_repo.clone(), repo_repo.clone()));
         let org_service = Arc::new(OrganizationServiceImpl::new(
             org_repo.clone(),
             user_repo.clone(),

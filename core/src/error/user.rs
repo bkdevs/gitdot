@@ -16,7 +16,4 @@ pub enum UserError {
 
     #[error("Database error: {0}")]
     DatabaseError(#[from] sqlx::Error),
-
-    #[error("Supabase error: {0}")]
-    SupabaseError(#[from] supabase::Error),
 }

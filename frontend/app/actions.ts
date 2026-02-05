@@ -8,11 +8,11 @@ import {
   createQuestion,
   createQuestionComment,
   createRepository,
-  createUser,
   getCurrentUser,
   updateAnswer,
   updateComment,
   updateQuestion,
+  validateName,
   voteAnswer,
   voteComment,
   voteQuestion,
@@ -40,11 +40,23 @@ export async function signup(formData: FormData): Promise<AuthActionResult> {
   const name = formData.get("name") as string;
   const password = formData.get("password") as string;
 
-  const result = await createUser({ name, email, password });
-  if ("error" in result) {
-    return { success: false, error: result.error };
+  const validateResult = await validateName(name);
+  if ("error" in validateResult) {
+    return { success: false, error: validateResult.error };
   }
 
+  const supabase = await createSupabaseClient();
+  const { error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: { name },
+    },
+  });
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
   return { success: true };
 }
 
