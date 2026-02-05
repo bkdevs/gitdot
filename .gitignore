@@ -29,3 +29,6 @@ core/target
 
 # env files (can opt-in for committing if needed)
 .env
+
+# macOS
+.DS_STORE

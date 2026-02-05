@@ -35,7 +35,7 @@ pub async fn login(mut config: Config) -> anyhow::Result<()> {
                 config.save().await?;
 
                 GitCredentialStore::store(
-                    api_client.get_base_url(),
+                    api_client.get_public_url(),
                     &response.user_name,
                     &response.access_token,
                 )?;

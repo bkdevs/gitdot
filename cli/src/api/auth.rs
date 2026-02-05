@@ -10,7 +10,7 @@ impl ApiClient {
     pub async fn get_device_code(&self) -> anyhow::Result<DeviceCodeResponse> {
         let url = format!(
             "{}/oauth/device?client_id={}",
-            self.base_url, self.client_id
+            self.server_url, self.client_id
         );
         let response = self
             .client
@@ -25,7 +25,7 @@ impl ApiClient {
     }
 
     pub async fn poll_token(&self, device_code: &str) -> anyhow::Result<TokenResponse> {
-        let url = format!("{}/oauth/token", self.base_url);
+        let url = format!("{}/oauth/token", self.server_url);
         let request = PollTokenRequest {
             device_code: device_code.to_string(),
             client_id: self.client_id.clone(),
