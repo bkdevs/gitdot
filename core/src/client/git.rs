@@ -61,6 +61,14 @@ pub trait GitClient: Send + Sync + Clone + 'static {
         preview_lines: u32,
     ) -> Result<RepositoryPreviewResponse, GitError>;
 
+    async fn get_commits_in_range(
+        &self,
+        owner: &str,
+        repo: &str,
+        old_sha: &str,
+        new_sha: &str,
+    ) -> Result<Vec<RepositoryCommitResponse>, GitError>;
+
     fn normalize_repo_name(&self, repo: &str) -> String {
         format!(
             "{}{}",
@@ -677,6 +685,45 @@ impl GitClient for Git2Client {
                 commit_sha,
                 entries,
             })
+        })
+        .await?
+    }
+
+    async fn get_commits_in_range(
+        &self,
+        owner: &str,
+        repo: &str,
+        old_sha: &str,
+        new_sha: &str,
+    ) -> Result<Vec<RepositoryCommitResponse>, GitError> {
+        let old_sha = old_sha.to_string();
+        let new_sha = new_sha.to_string();
+        let repository = self.open_repository(owner, repo)?;
+
+        task::spawn_blocking(move || {
+            let new_oid = git2::Oid::from_str(&new_sha)?;
+
+            let mut revwalk = repository.revwalk()?;
+            revwalk.push(new_oid)?;
+            revwalk.set_sorting(git2::Sort::TIME).ok();
+
+            // If old_sha is not all zeros, hide commits reachable from it
+            let is_new_branch = old_sha.chars().all(|c| c == '0');
+            if !is_new_branch {
+                if let Ok(old_oid) = git2::Oid::from_str(&old_sha) {
+                    revwalk.hide(old_oid).ok();
+                }
+            }
+
+            let commits: Result<Vec<RepositoryCommitResponse>, git2::Error> = revwalk
+                .map(|oid| {
+                    let oid = oid?;
+                    let commit = repository.find_commit(oid)?;
+                    Ok(RepositoryCommitResponse::from(&commit))
+                })
+                .collect();
+
+            commits.map_err(GitError::from)
         })
         .await?
     }

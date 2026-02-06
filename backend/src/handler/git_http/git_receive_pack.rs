@@ -3,7 +3,10 @@ use axum::{
     extract::{Path, State},
     http::HeaderMap,
 };
-use gitdot_core::dto::{GitHttpAuthorizationRequest, ReceivePackRequest};
+
+use gitdot_core::dto::{
+    GitHttpAuthorizationRequest, ProcessPushCommitsRequest, ReceivePackRequest, parse_ref_updates,
+};
 
 use crate::app::{AppError, AppState, AuthenticatedUser};
 use crate::dto::GitHttpServerResponse;
@@ -35,5 +38,22 @@ pub async fn git_receive_pack(
 
     let request = ReceivePackRequest::new(&owner, &repo, content_type, body_bytes.to_vec())?;
     let response = state.git_http_service.receive_pack(request).await?;
+
+    // Parse ref updates from the request body and spawn background task to process commits
+    let ref_updates = parse_ref_updates(&body_bytes);
+    if !ref_updates.is_empty() {
+        let commit_service = state.commit_service.clone();
+        let request = ProcessPushCommitsRequest {
+            owner: owner.clone(),
+            repo: repo.clone(),
+            ref_updates,
+        };
+        tokio::spawn(async move {
+            if let Err(e) = commit_service.process_push_commits(request).await {
+                tracing::error!("Failed to process commits: {}", e);
+            }
+        });
+    }
+
     Ok(response.into())
 }

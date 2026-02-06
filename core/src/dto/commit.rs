@@ -1,4 +1,5 @@
 mod create_commit;
+mod process_push_commits;
 
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
@@ -6,6 +7,7 @@ use uuid::Uuid;
 use crate::model::Commit;
 
 pub use create_commit::CreateCommitRequest;
+pub use process_push_commits::{ProcessPushCommitsRequest, RefUpdate, parse_ref_updates};
 
 #[derive(Debug, Clone)]
 pub struct CommitResponse {

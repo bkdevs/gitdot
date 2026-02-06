@@ -64,7 +64,12 @@ impl AppState {
             question_repo.clone(),
             repo_repo.clone(),
         ));
-        let commit_service = Arc::new(CommitServiceImpl::new(commit_repo.clone()));
+        let commit_service = Arc::new(CommitServiceImpl::new(
+            commit_repo.clone(),
+            repo_repo.clone(),
+            user_repo.clone(),
+            git_client.clone(),
+        ));
         let git_http_service = Arc::new(GitHttpServiceImpl::new(git_http_client.clone()));
         let oauth_service = Arc::new(OAuthServiceImpl::new(oauth_repo.clone(), user_repo.clone()));
 
