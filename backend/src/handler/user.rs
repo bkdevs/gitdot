@@ -3,10 +3,7 @@ mod get_user;
 mod list_user_repositories;
 mod validate_name;
 
-use axum::{
-    Router,
-    routing::{get, head},
-};
+use axum::{Router, routing::get};
 
 use crate::app::AppState;
 
