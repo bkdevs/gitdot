@@ -1,9 +1,11 @@
+mod commit;
 mod oauth;
 mod organization;
 mod question;
 mod repository;
 mod user;
 
+pub use commit::{CommitRepository, CommitRepositoryImpl};
 pub use oauth::{OAuthRepository, OAuthRepositoryImpl};
 pub use organization::{OrganizationRepository, OrganizationRepositoryImpl};
 pub use question::{QuestionRepository, QuestionRepositoryImpl};

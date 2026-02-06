@@ -1,4 +1,5 @@
 mod authorization;
+mod commit;
 mod git;
 mod git_http;
 mod oauth;
@@ -8,6 +9,7 @@ mod repository;
 mod user;
 
 pub use authorization::AuthorizationError;
+pub use commit::CommitError;
 pub use git::GitError;
 pub use git_http::GitHttpError;
 pub use oauth::OAuthError;

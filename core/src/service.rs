@@ -1,4 +1,5 @@
 mod authorization;
+mod commit;
 mod git_http;
 mod oauth;
 mod organization;
@@ -7,6 +8,7 @@ mod repository;
 mod user;
 
 pub use authorization::{AuthorizationService, AuthorizationServiceImpl};
+pub use commit::{CommitService, CommitServiceImpl};
 pub use git_http::{GitHttpService, GitHttpServiceImpl};
 pub use oauth::{OAuthService, OAuthServiceImpl};
 pub use organization::{OrganizationService, OrganizationServiceImpl};
