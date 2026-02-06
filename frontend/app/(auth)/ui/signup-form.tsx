@@ -1,37 +1,22 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
-import { type AuthActionResult, signup } from "@/actions";
-import { cn, validateEmail, validatePassword, validateName } from "@/util";
+import { type AuthError, signup } from "@/actions";
+import { cn, validateEmail, validateName } from "@/util";
+import { useActionState, useState } from "react";
 
 export default function SignupForm() {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
-  const [password, setPassword] = useState("");
-  const [debouncedPassword, setDebouncedPassword] = useState("");
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedPassword(password);
-    }, 200);
-
-    return () => clearTimeout(timer);
-  }, [password]);
 
   const [state, formAction, isPending] = useActionState(
-    async (_prevState: AuthActionResult | null, formData: FormData) => {
+    async (_prevState: AuthError | null, formData: FormData) => {
       return await signup(formData);
     },
     null,
   );
+  const canSubmit = validateEmail(email) && validateName(name) && !isPending;
 
-  const canSubmit =
-    validateEmail(email) &&
-    validateName(name) &&
-    validatePassword(debouncedPassword) &&
-    !isPending;
-
-  if (state?.success) {
+  if (state && "success" in state) {
     return (
       <div className="flex flex-col text-sm w-sm">
         <p className="pb-2">Check your email.</p>
@@ -65,16 +50,12 @@ export default function SignupForm() {
         className="border-border border-b mb-2 ring-0 outline-0 focus:border-black transition-colors duration-150"
       />
 
-      <input
-        type="password"
-        name="password"
-        placeholder="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        className="border-border border-b ring-0 outline-0 focus:border-black transition-colors duration-150"
-      />
-
-      <div className="flex flex-row mt-2 w-full justify-end">
+      <div className="flex flex-row w-full justify-between">
+        <div className="flex">
+          {state && "error" in state && (
+            <p className="text-red-500">{state.error}</p>
+          )}
+        </div>
         <button
           type="submit"
           className={cn(
@@ -83,15 +64,11 @@ export default function SignupForm() {
               ? "cursor-pointer decoration-current"
               : "text-primary/60 cursor-not-allowed decoration-transparent",
           )}
-          disabled={isPending || email === "" || name === "" || password === ""}
+          disabled={isPending || email === "" || name === ""}
         >
           {isPending ? "Submitting..." : "Submit."}
         </button>
       </div>
-
-      {state && "error" in state && (
-        <p className="text-red-500">{state.error}</p>
-      )}
     </form>
   );
 }

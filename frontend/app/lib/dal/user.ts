@@ -7,7 +7,13 @@ import {
   UserResponseSchema,
 } from "../dto";
 import { getSession } from "../supabase";
-import { authFetch, authHead, GITDOT_SERVER_URL, handleResponse, NotFound } from "./util";
+import {
+  authFetch,
+  authHead,
+  GITDOT_SERVER_URL,
+  handleResponse,
+  NotFound,
+} from "./util";
 
 export async function validateUsername(username: string): Promise<boolean> {
   const response = await authHead(`${GITDOT_SERVER_URL}/user/${username}`);

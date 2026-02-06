@@ -31,9 +31,9 @@ export function AuthBlockerDialog({
 
     startTransition(async () => {
       const action = mode === "login" ? login : signup;
-      const result: AuthActionResult = await action(formData);
+      const result = await action(null, formData);
 
-      if (result.success) {
+      if ("success" in result) {
         refreshUser();
         setOpen(false);
         setEmail("");

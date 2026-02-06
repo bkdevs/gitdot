@@ -1,5 +1,7 @@
 "use server";
 
+import { redirect } from "next/navigation";
+
 import { refresh } from "next/cache";
 import {
   authorizeDevice,
@@ -26,55 +28,55 @@ import type {
   UserResponse,
   VoteResponse,
 } from "./lib/dto";
+import { validateEmail, validatePassword } from "./util";
 
 export async function getCurrentUserAction(): Promise<UserResponse | null> {
   return await getCurrentUser();
 }
 
-export type AuthActionResult =
-  | { success: true }
-  | { success: false; error: string };
+export type AuthActionResult = { success: true } | { error: string };
 
-export async function signup(formData: FormData): Promise<AuthActionResult> {
-  const email = formData.get("email") as string;
-  const name = formData.get("name") as string;
-  const password = formData.get("password") as string;
-
-  const valid = await validateUsername(name);
-  if (!valid) {
-    return { success: false, error: "Username taken"};
-  }
-
+export async function login(
+  _prev: AuthActionResult | null,
+  formData: FormData,
+): Promise<AuthActionResult> {
   const supabase = await createSupabaseClient();
-  const { error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: { name },
-    },
-  });
-
-  if (error) {
-    return { success: false, error: error.message };
-  }
-  return { success: true };
-}
-
-export async function login(formData: FormData): Promise<AuthActionResult> {
-  const supabase = await createSupabaseClient();
-
-  // todo: add validation
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
+  const redirectTo = formData.get("redirect") as string;
 
   const { error } = await supabase.auth.signInWithPassword({
     email,
     password,
   });
 
-  if (error) {
-    return { success: false, error: error.message };
+  if (error) return { error: error.message };
+  if (redirectTo) redirect(redirectTo);
+  return { success: true };
+}
+
+export async function signup(
+  _prev: AuthActionResult | null,
+  formData: FormData,
+): Promise<AuthActionResult> {
+  const email = formData.get("email") as string;
+  const name = formData.get("name") as string;
+  const valid = await validateUsername(name);
+  if (!valid) {
+    return { error: "Username taken" };
   }
+
+  const supabase = await createSupabaseClient();
+  // const { error } = await supabase.auth.signUp({
+  //   email,
+  //   options: {
+  //     data: { name },
+  //   },
+  // });
+
+  // if (error) {
+  //   return { error: error.message };
+  // }
   return { success: true };
 }
 
