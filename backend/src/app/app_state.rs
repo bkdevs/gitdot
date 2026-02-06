@@ -5,13 +5,14 @@ use sqlx::PgPool;
 
 use gitdot_core::client::{Git2Client, GitHttpClientImpl};
 use gitdot_core::repository::{
-    OAuthRepositoryImpl, OrganizationRepositoryImpl, QuestionRepositoryImpl,
+    CommitRepositoryImpl, OAuthRepositoryImpl, OrganizationRepositoryImpl, QuestionRepositoryImpl,
     RepositoryRepositoryImpl, UserRepositoryImpl,
 };
 use gitdot_core::service::{
-    AuthorizationService, AuthorizationServiceImpl, GitHttpService, GitHttpServiceImpl,
-    OAuthService, OAuthServiceImpl, OrganizationService, OrganizationServiceImpl, QuestionService,
-    QuestionServiceImpl, RepositoryService, RepositoryServiceImpl, UserService, UserServiceImpl,
+    AuthorizationService, AuthorizationServiceImpl, CommitService, CommitServiceImpl,
+    GitHttpService, GitHttpServiceImpl, OAuthService, OAuthServiceImpl, OrganizationService,
+    OrganizationServiceImpl, QuestionService, QuestionServiceImpl, RepositoryService,
+    RepositoryServiceImpl, UserService, UserServiceImpl,
 };
 
 use super::Settings;
@@ -24,6 +25,7 @@ pub struct AppState {
     pub org_service: Arc<dyn OrganizationService>,
     pub repo_service: Arc<dyn RepositoryService>,
     pub question_service: Arc<dyn QuestionService>,
+    pub commit_service: Arc<dyn CommitService>,
     pub git_http_service: Arc<dyn GitHttpService>,
     pub oauth_service: Arc<dyn OAuthService>,
 }
@@ -37,6 +39,7 @@ impl AppState {
         let repo_repo = RepositoryRepositoryImpl::new(pool.clone());
         let user_repo = UserRepositoryImpl::new(pool.clone());
         let question_repo = QuestionRepositoryImpl::new(pool.clone());
+        let commit_repo = CommitRepositoryImpl::new(pool.clone());
         let oauth_repo = OAuthRepositoryImpl::new(pool.clone());
 
         let auth_service = Arc::new(AuthorizationServiceImpl::new(
@@ -61,6 +64,7 @@ impl AppState {
             question_repo.clone(),
             repo_repo.clone(),
         ));
+        let commit_service = Arc::new(CommitServiceImpl::new(commit_repo.clone()));
         let git_http_service = Arc::new(GitHttpServiceImpl::new(git_http_client.clone()));
         let oauth_service = Arc::new(OAuthServiceImpl::new(oauth_repo.clone(), user_repo.clone()));
 
@@ -71,6 +75,7 @@ impl AppState {
             org_service,
             repo_service,
             question_service,
+            commit_service,
             git_http_service,
             oauth_service,
         }
