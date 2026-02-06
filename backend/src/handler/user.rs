@@ -18,8 +18,7 @@ use validate_name::validate_name;
 pub fn create_user_router() -> Router<AppState> {
     Router::new()
         .route("/user", get(get_current_user))
-        .route("/user/{user_name}", get(get_user))
-        .route("/user/{user_name}", head(validate_name))
+        .route("/user/{user_name}", get(get_user).head(validate_name))
         .route(
             "/user/{user_name}/repositories",
             get(list_user_repositories),
