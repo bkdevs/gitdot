@@ -1,12 +1,13 @@
+use tokio::io::AsyncRead;
+
 use crate::dto::{OwnerName, RepositoryName};
 use crate::error::GitHttpError;
 
-#[derive(Debug, Clone)]
 pub struct UploadPackRequest {
     pub owner: OwnerName,
     pub repo: RepositoryName,
     pub content_type: String,
-    pub body: Vec<u8>,
+    pub body: Box<dyn AsyncRead + Unpin + Send>,
 }
 
 impl UploadPackRequest {
@@ -14,7 +15,7 @@ impl UploadPackRequest {
         owner: &str,
         repo: &str,
         content_type: String,
-        body: Vec<u8>,
+        body: Box<dyn AsyncRead + Unpin + Send>,
     ) -> Result<Self, GitHttpError> {
         Ok(Self {
             owner: OwnerName::try_new(owner)

@@ -1,6 +1,8 @@
+use std::process::Stdio;
+
 use async_trait::async_trait;
-use std::io::Write;
-use std::process::{Command, Stdio};
+use tokio::io::AsyncRead;
+use tokio::process::Command;
 
 use crate::dto::GitHttpResponse;
 use crate::error::GitHttpError;
@@ -21,7 +23,7 @@ pub trait GitHttpClient: Send + Sync + Clone + 'static {
         repo: &str,
         service: &str,
         content_type: &str,
-        body: &[u8],
+        body: impl AsyncRead + Unpin + Send,
     ) -> Result<GitHttpResponse, GitHttpError>;
 
     fn normalize_repo_name(&self, repo_name: &str) -> String {
@@ -114,7 +116,10 @@ impl GitHttpClient for GitHttpClientImpl {
             .spawn()
             .map_err(GitHttpError::SpawnError)?;
 
-        let output = child.wait_with_output().map_err(GitHttpError::ReadError)?;
+        let output = child
+            .wait_with_output()
+            .await
+            .map_err(GitHttpError::ReadError)?;
 
         if !output.status.success() {
             return Err(GitHttpError::ProcessFailed {
@@ -132,7 +137,7 @@ impl GitHttpClient for GitHttpClientImpl {
         repo: &str,
         service: &str,
         content_type: &str,
-        body: &[u8],
+        mut body: impl AsyncRead + Unpin + Send,
     ) -> Result<GitHttpResponse, GitHttpError> {
         let repo_name = self.normalize_repo_name(repo);
 
@@ -144,7 +149,6 @@ impl GitHttpClient for GitHttpClientImpl {
                 format!("/{}/{}/git-{}", owner, repo_name, service),
             )
             .env("CONTENT_TYPE", content_type)
-            .env("CONTENT_LENGTH", body.len().to_string())
             .env("GIT_PROJECT_ROOT", &self.project_root)
             .env("GIT_HTTP_EXPORT_ALL", "1")
             .stdin(Stdio::piped())
@@ -154,11 +158,15 @@ impl GitHttpClient for GitHttpClientImpl {
             .map_err(GitHttpError::SpawnError)?;
 
         if let Some(mut stdin) = child.stdin.take() {
-            stdin.write_all(body).map_err(GitHttpError::WriteError)?;
-            drop(stdin);
+            tokio::io::copy(&mut body, &mut stdin)
+                .await
+                .map_err(GitHttpError::WriteError)?;
         }
 
-        let output = child.wait_with_output().map_err(GitHttpError::ReadError)?;
+        let output = child
+            .wait_with_output()
+            .await
+            .map_err(GitHttpError::ReadError)?;
 
         if !output.status.success() {
             return Err(GitHttpError::ProcessFailed {

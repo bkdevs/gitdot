@@ -3,6 +3,9 @@ use axum::{
     extract::{Path, State},
     http::HeaderMap,
 };
+use futures::TryStreamExt;
+use tokio_util::io::StreamReader;
+
 use gitdot_core::dto::{GitHttpAuthorizationRequest, UploadPackRequest};
 
 use crate::app::{AppError, AppState, AuthenticatedUser};
@@ -29,11 +32,11 @@ pub async fn git_upload_pack(
         .unwrap_or("")
         .to_string();
 
-    let body_bytes = axum::body::to_bytes(body, usize::MAX)
-        .await
-        .map_err(|e| AppError::Internal(e.into()))?;
-
-    let request = UploadPackRequest::new(&owner, &repo, content_type, body_bytes.to_vec())?;
+    let body_reader = StreamReader::new(
+        body.into_data_stream()
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e)),
+    );
+    let request = UploadPackRequest::new(&owner, &repo, content_type, Box::new(body_reader))?;
     let response = state.git_http_service.upload_pack(request).await?;
     Ok(response.into())
 }
