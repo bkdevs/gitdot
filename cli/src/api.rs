@@ -1,6 +1,6 @@
 pub mod auth;
 
-const PUBLIC_URL: &str = "https://gitdot.io";
+const PUBLIC_URL: &str = "https://www.gitdot.io";
 const SERVER_URL: &str = "https://api.gitdot.io";
 const CLIENT_ID: &str = "gitdot-cli";
 
