@@ -81,7 +81,9 @@ export async function updateSession(request: NextRequest) {
   if (user && (pathname === "/login" || pathname === "/signup")) {
     return NextResponse.redirect(new URL("/home", request.nextUrl));
   } else if (!user && pathname === "/oauth/device") {
-    return NextResponse.redirect(new URL("/login?redirect=/oauth/device", request.nextUrl));
+    return NextResponse.redirect(
+      new URL("/login?redirect=/oauth/device", request.nextUrl),
+    );
   }
 
   // return the supabaseResponse object as-is, this is required to ensure that cookies are in sync between the server and client.

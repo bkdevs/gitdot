@@ -34,7 +34,10 @@ export function RepoSidebarCommits({
           </div>
           {dateCommits.map((commit) => {
             const isActive = currentSha === commit.sha.substring(0, 7);
-            const author = typeof commit.author === "string" ? commit.author : commit.author.name;
+            const author =
+              typeof commit.author === "string"
+                ? commit.author
+                : commit.author.name;
             return (
               <Link
                 key={commit.sha}

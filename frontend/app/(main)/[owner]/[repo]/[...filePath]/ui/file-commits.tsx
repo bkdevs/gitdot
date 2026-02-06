@@ -19,7 +19,8 @@ function FileCommit({
   isSelected: boolean;
   href: string;
 }) {
-  const author = typeof commit.author === "string" ? commit.author : commit.author.name;
+  const author =
+    typeof commit.author === "string" ? commit.author : commit.author.name;
 
   return (
     // TODO: if we move this to be a client-side component and fetches we can safe on things

@@ -24,6 +24,13 @@ export async function authFetch(
   });
 }
 
+export async function authHead(url: string, options?: RequestInit): Promise<Response> {
+  return await authFetch(url, {
+    ...options,
+    method: "HEAD",
+  });
+}
+
 export async function authPost(url: string, request: any): Promise<Response> {
   return await authFetch(url, {
     method: "POST",

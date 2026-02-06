@@ -5,7 +5,7 @@ mod validate_name;
 
 use axum::{
     Router,
-    routing::{get, post},
+    routing::{get, head},
 };
 
 use crate::app::AppState;
@@ -19,7 +19,7 @@ pub fn create_user_router() -> Router<AppState> {
     Router::new()
         .route("/user", get(get_current_user))
         .route("/user/{user_name}", get(get_user))
-        .route("/user/{user_name}/validate", post(validate_name))
+        .route("/user/{user_name}", head(validate_name))
         .route(
             "/user/{user_name}/repositories",
             get(list_user_repositories),

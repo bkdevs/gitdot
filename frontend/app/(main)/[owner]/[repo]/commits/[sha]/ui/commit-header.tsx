@@ -12,7 +12,8 @@ export function CommitHeader({
   const midpoint = Math.ceil(diffs.length / 2);
   const leftColumn = diffs.slice(0, midpoint);
   const rightColumn = diffs.slice(midpoint);
-  const author = typeof commit.author === "string" ? commit.author : commit.author.name;
+  const author =
+    typeof commit.author === "string" ? commit.author : commit.author.name;
 
   const renderDiffItem = (diff: RepositoryFileDiff) => {
     const path = diff.left?.path || diff.right?.path || "";

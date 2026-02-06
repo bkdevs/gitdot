@@ -3,10 +3,10 @@
 import { useUser } from "@/(main)/providers/user-provider";
 import { signout } from "@/actions";
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
 } from "@/ui/dropdown-menu";
 import Link from "@/ui/link";
 import { cn } from "@/util";
@@ -63,7 +63,9 @@ function UserDropdown() {
           <User
             className={cn(
               "size-4 transition-all duration-300",
-              user ? "text-primary-foreground stroke-[2.5]" : "text-primary-foreground/60",
+              user
+                ? "text-primary-foreground stroke-[2.5]"
+                : "text-primary-foreground/60",
             )}
           />
         </button>

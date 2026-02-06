@@ -7,26 +7,11 @@ import {
   UserResponseSchema,
 } from "../dto";
 import { getSession } from "../supabase";
-import { authFetch, GITDOT_SERVER_URL, handleResponse, NotFound } from "./util";
+import { authFetch, authHead, GITDOT_SERVER_URL, handleResponse, NotFound } from "./util";
 
-export type ValidateNameResult = { success: true } | { error: string };
-
-export async function validateName(name: string): Promise<ValidateNameResult> {
-  const response = await fetch(
-    `${GITDOT_SERVER_URL}/user/${encodeURIComponent(name)}/validate`,
-    { method: "POST" },
-  );
-
-  if (!response.ok) {
-    try {
-      const data = await response.json();
-      return { error: data.message ?? "Invalid name" };
-    } catch {
-      return { error: "Invalid name" };
-    }
-  }
-
-  return { success: true };
+export async function validateUsername(username: string): Promise<boolean> {
+  const response = await authHead(`${GITDOT_SERVER_URL}/user/${username}`);
+  return response.ok;
 }
 
 export async function getUser(username: string): Promise<UserResponse | null> {

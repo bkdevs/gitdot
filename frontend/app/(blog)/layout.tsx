@@ -6,5 +6,7 @@ const league_spartan = League_Spartan({
 });
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-  return <div className={`${league_spartan.className} blog-root`}>{children}</div>;
+  return (
+    <div className={`${league_spartan.className} blog-root`}>{children}</div>
+  );
 }
