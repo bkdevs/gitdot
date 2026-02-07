@@ -1,6 +1,7 @@
 import "server-only";
 
 import {
+  type CreateUserRequest,
   type UserRepositoriesResponse,
   UserRepositoriesResponseSchema,
   type UserResponse,
@@ -10,6 +11,7 @@ import { getSession } from "../supabase";
 import {
   authFetch,
   authHead,
+  authPost,
   GITDOT_SERVER_URL,
   handleResponse,
   NotFound,
@@ -24,6 +26,12 @@ export async function getUser(username: string): Promise<UserResponse | null> {
   const response = await authFetch(`${GITDOT_SERVER_URL}/user/${username}`);
   return await handleResponse(response, UserResponseSchema);
 }
+
+export async function createUser(username: string): Promise<UserResponse | null> {
+  const response = await authPost(`${GITDOT_SERVER_URL}/user`, { name: username });
+  return await handleResponse(response, UserResponseSchema);
+}
+
 
 export async function listUserRepositories(
   username: string,

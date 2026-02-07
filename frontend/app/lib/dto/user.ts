@@ -9,6 +9,12 @@ export const UserResponseSchema = z.object({
 
 export type UserResponse = z.infer<typeof UserResponseSchema>;
 
+export const CreateUserRequestSchema = z.object({
+  name: z.string(),
+});
+
+export type CreateUserRequest = z.infer<typeof CreateUserRequestSchema>;
+
 export const UserRepositoryResponseSchema = z.object({
   id: z.uuid(),
   name: z.string(),

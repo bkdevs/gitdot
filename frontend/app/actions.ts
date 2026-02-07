@@ -76,9 +76,12 @@ export async function signup(
     return { error: usernameError };
   }
 
+  // note: this will _not_ fail if the user already exists, but instead send a sign-in link
+  // we don't differentiate between new and existing for security: otherwise attackers would be able to tell what
+  // user exists / doesn't exist
   const { error } = await supabase.auth.signInWithOtp({
     email,
-    options: { shouldCreateUser: true },
+    options: { shouldCreateUser: true, data: { username } },
   });
 
   if (error) return { error: error.message };

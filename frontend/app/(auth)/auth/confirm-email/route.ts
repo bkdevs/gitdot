@@ -1,6 +1,7 @@
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { redirect } from "next/navigation";
 import type { NextRequest } from "next/server";
+import { createUser } from "@/lib/dal";
 import { createSupabaseClient } from "@/lib/supabase";
 
 /**
@@ -10,18 +11,21 @@ import { createSupabaseClient } from "@/lib/supabase";
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const token_hash = searchParams.get("token_hash");
-  const type = searchParams.get("type") as EmailOtpType | null;
-  const next = searchParams.get("next") ?? "/";
 
-  if (token_hash && type) {
+  if (token_hash) {
     const supabase = await createSupabaseClient();
-
-    // this call invokes _saveSession and sets cookies
-    const { error } = await supabase.auth.verifyOtp({ type, token_hash });
+    const { data, error } = await supabase.auth.verifyOtp({ type: "email", token_hash });
 
     // redirects preserve cookies
     if (!error) {
-      redirect(next);
+      const username = data.user?.user_metadata?.username;
+
+      // TODO: technically possible user name was claimed by another user between email confirmation delays
+      // should show some error and let user select another username
+      if (username) {
+        await createUser(username);
+      }
+      redirect("/onboarding");
     }
   }
 
