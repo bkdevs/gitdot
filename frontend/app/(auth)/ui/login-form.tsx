@@ -1,9 +1,9 @@
 "use client";
 
+import { useActionState, useEffect, useState, useRef } from "react";
 import { login } from "@/actions";
 import { useIsTyping } from "@/hooks/use-is-typing";
 import { cn, validateEmail, validatePassword } from "@/util";
-import { useActionState, useEffect, useState } from "react";
 
 export default function LoginForm({ redirect }: { redirect?: string }) {
   const [state, formAction, isPending] = useActionState(login, null);
@@ -11,6 +11,7 @@ export default function LoginForm({ redirect }: { redirect?: string }) {
   const [password, setPassword] = useState("");
   const [canSubmit, setCanSubmit] = useState(false);
   const isTyping = useIsTyping(email, password);
+  const passwordRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!isTyping) {
@@ -25,15 +26,22 @@ export default function LoginForm({ redirect }: { redirect?: string }) {
       <p className="pb-2">Login.</p>
 
       <input
-        type="email"
-        name="email"
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        className="border-border border-b mb-2 ring-0 outline-0 focus:border-black transition-colors duration-150"
+      type="email"
+      name="email"
+      placeholder="Email"
+      value={email}
+      onChange={(e) => setEmail(e.target.value)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          passwordRef.current?.focus();
+        }
+      }}
+      className="border-border border-b mb-2 ring-0 outline-0 focus:border-black transition-colors duration-150"
       />
 
       <input
+        ref={passwordRef}
         type="password"
         name="password"
         placeholder="Password"

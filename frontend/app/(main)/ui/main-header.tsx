@@ -1,5 +1,7 @@
 "use client";
 
+import { User } from "lucide-react";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import { useUser } from "@/(main)/providers/user-provider";
 import { signout } from "@/actions";
 import {
@@ -10,8 +12,6 @@ import {
 } from "@/ui/dropdown-menu";
 import Link from "@/ui/link";
 import { cn } from "@/util";
-import { User } from "lucide-react";
-import { useParams, usePathname, useRouter } from "next/navigation";
 
 export function MainHeader() {
   const pathname = usePathname();

@@ -155,10 +155,14 @@ export function validateEmail(email: string): boolean {
   return emailTester.test(email);
 }
 
-export function validateName(username: string): boolean {
+export function validateUsername(username: string): boolean {
   return !!username && username.length >= 2;
 }
 
 export function validatePassword(password: string): boolean {
   return !!password && password.length >= 8;
+}
+
+export function delay<T>(ms: number, value: T): Promise<T> {
+  return new Promise(resolve => setTimeout(() => resolve(value), ms));
 }

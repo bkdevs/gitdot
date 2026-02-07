@@ -1,5 +1,5 @@
-import fs from "fs";
-import path from "path";
+import fs from "node:fs";
+import path from "node:path";
 import matter from "gray-matter";
 
 const postsDirectory = path.join(process.cwd(), "app/(blog)/content/week");
@@ -68,7 +68,7 @@ export function getAllWeeks(): number[] {
     return fileNames
       .filter((fileName) => fileName.endsWith(".md"))
       .map((fileName) => parseInt(fileName.replace(".md", ""), 10))
-      .filter((num) => !isNaN(num))
+      .filter((num) => !Number.isNaN(num))
       .sort((a, b) => a - b);
   } catch (error) {
     console.error("Error reading week numbers:", error);

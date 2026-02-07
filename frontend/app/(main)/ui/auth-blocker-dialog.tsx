@@ -2,7 +2,7 @@
 
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { useState, useTransition } from "react";
-import { type AuthActionResult, login, signup } from "@/actions";
+import { login, signup } from "@/actions";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
 import { useUser } from "../providers/user-provider";
 
@@ -45,7 +45,7 @@ export function AuthBlockerDialog({
     });
   };
 
-  const toggleMode = () => {
+  const _toggleMode = () => {
     setMode(mode === "login" ? "signup" : "login");
     setError(null);
   };

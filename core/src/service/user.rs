@@ -1,8 +1,8 @@
 use async_trait::async_trait;
 
 use crate::dto::{
-    GetCurrentUserRequest, GetUserRequest, ListUserRepositoriesRequest, RepositoryResponse,
-    UserResponse, ValidateNameRequest,
+    GetCurrentUserRequest, GetUserRequest, HasUserRequest, ListUserRepositoriesRequest,
+    RepositoryResponse, UserResponse,
 };
 use crate::error::UserError;
 use crate::repository::{
@@ -12,7 +12,7 @@ use crate::util::auth::is_reserved_name;
 
 #[async_trait]
 pub trait UserService: Send + Sync + 'static {
-    async fn validate_name(&self, request: ValidateNameRequest) -> Result<(), UserError>;
+    async fn has_user(&self, request: HasUserRequest) -> Result<(), UserError>;
 
     async fn get_current_user(
         &self,
@@ -52,18 +52,13 @@ where
     U: UserRepository,
     R: RepositoryRepository,
 {
-    async fn validate_name(&self, request: ValidateNameRequest) -> Result<(), UserError> {
+    async fn has_user(&self, request: HasUserRequest) -> Result<(), UserError> {
         let name = request.name.to_string();
 
-        if is_reserved_name(&name) {
-            return Err(UserError::ReservedName(name));
+        if is_reserved_name(&name) || self.user_repo.is_name_taken(&name).await? {
+            return Ok(());
         }
-
-        if self.user_repo.is_name_taken(&name).await? {
-            return Err(UserError::NameTaken(name));
-        }
-
-        Ok(())
+        Err(UserError::NotFound(name))
     }
 
     async fn get_current_user(

@@ -47,7 +47,7 @@ export function CommentInput({
             autoFocus
             value={body}
             onChange={(e) => setBody(e.target.value)}
-            onBlur={(e) => {
+            onBlur={(_e) => {
               setBody("");
               setShowInput(false);
             }}

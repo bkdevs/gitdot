@@ -1,15 +1,25 @@
 "use client";
 
+import { useEffect, useActionState, useState, useRef } from "react";
 import { signup } from "@/actions";
-import { cn, validateEmail, validateName } from "@/util";
-import { useActionState, useState } from "react";
+import { cn, validateEmail, validateUsername } from "@/util";
+import { useIsTyping } from "@/hooks/use-is-typing";
 
 export default function SignupForm() {
-  const [email, setEmail] = useState("");
-  const [name, setName] = useState("");
-
   const [state, formAction, isPending] = useActionState(signup, null);
-  const canSubmit = validateEmail(email) && validateName(name) && !isPending;
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [canSubmit, setCanSubmit] = useState(false);
+  const isTyping = useIsTyping(username, email);
+  const usernameRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!isTyping) {
+      setCanSubmit(
+        validateEmail(email) && validateUsername(username) && !isPending,
+      );
+    }
+  }, [email, username, isTyping, isPending]);
 
   if (state && "success" in state) {
     return (
@@ -24,7 +34,7 @@ export default function SignupForm() {
   }
 
   return (
-    <form action={formAction} className="flex flex-col text-sm w-sm">
+    <form action={formAction} className="flex flex-col text-sm w-sm" noValidate>
       <p className="pb-2">Sign up.</p>
 
       <input
@@ -33,15 +43,21 @@ export default function SignupForm() {
         placeholder="Email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            usernameRef.current?.focus();
+          }
+        }}
         className="border-border border-b mb-2 ring-0 outline-0 focus:border-black transition-colors duration-150"
       />
 
       <input
         type="text"
-        name="name"
+        name="username"
         placeholder="Username"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
+        value={username}
+        onChange={(e) => setUsername(e.target.value)}
         className="border-border border-b mb-2 ring-0 outline-0 focus:border-black transition-colors duration-150"
       />
 
@@ -54,12 +70,11 @@ export default function SignupForm() {
         <button
           type="submit"
           className={cn(
-            "underline transition-all duration-300",
-            canSubmit
-              ? "cursor-pointer decoration-current"
-              : "text-primary/60 cursor-not-allowed decoration-transparent",
+            "cursor-pointer underline transition-all duration-300",
+            canSubmit ? "decoration-current" : "decoration-transparent",
+            isPending ? "cursor-default" : "",
           )}
-          disabled={isPending || email === "" || name === ""}
+          disabled={isPending}
         >
           {isPending ? "Submitting..." : "Submit."}
         </button>

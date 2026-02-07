@@ -1,6 +1,6 @@
 "use client";
 
-import { MoreHorizontal, MoreVertical } from "lucide-react";
+import { MoreHorizontal } from "lucide-react";
 import { useState } from "react";
 import type { QuestionResponse } from "@/lib/dto";
 import { Button } from "@/ui/button";

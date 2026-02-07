@@ -20,10 +20,10 @@ import {
   VoteResponseSchema,
 } from "../dto";
 import {
-  GITDOT_SERVER_URL,
   authFetch,
   authPatch,
   authPost,
+  GITDOT_SERVER_URL,
   handleResponse,
 } from "./util";
 

@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { use, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { RepositoryPreviewEntry, RepositoryTreeEntry } from "@/lib/dto";
+import type { RepositoryTreeEntry } from "@/lib/dto";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
 import { fuzzyMatch } from "../../util";
 
@@ -39,7 +39,7 @@ export function RepoFileDialog({
         result: fuzzyMatch(query, file.path),
       }))
       .filter(({ result }) => result !== null)
-      .sort((a, b) => b.result!.score - a.result!.score)
+      .sort((a, b) => b.result?.score - a.result?.score)
       .map(({ file }) => file);
   }, [files, query]);
 

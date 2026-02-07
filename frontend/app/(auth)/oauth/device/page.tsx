@@ -1,5 +1,3 @@
-import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/lib/dal";
 import AuthorizeDeviceForm from "../../ui/authorize-device-form";
 
 export default function Page() {

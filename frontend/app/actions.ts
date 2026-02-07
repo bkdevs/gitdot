@@ -1,7 +1,7 @@
 "use server";
 
+import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
-
 import {
   authorizeDevice,
   createAnswer,
@@ -10,16 +10,15 @@ import {
   createQuestionComment,
   createRepository,
   getCurrentUser,
+  hasUser,
   updateAnswer,
   updateComment,
   updateQuestion,
-  validateUsername,
   voteAnswer,
   voteComment,
   voteQuestion,
 } from "@/lib/dal";
 import { createSupabaseClient } from "@/lib/supabase";
-import { refresh } from "next/cache";
 import type {
   AnswerResponse,
   CommentResponse,
@@ -28,6 +27,7 @@ import type {
   UserResponse,
   VoteResponse,
 } from "./lib/dto";
+import { delay, validateEmail } from "./util";
 
 export async function getCurrentUserAction(): Promise<UserResponse | null> {
   return await getCurrentUser();
@@ -43,6 +43,10 @@ export async function login(
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
   const redirectTo = formData.get("redirect") as string;
+
+  if (!validateEmail(email)) {
+    return await delay(300, { error: "Invalid email" });
+  }
 
   const { error } = await supabase.auth.signInWithPassword({
     email,
@@ -60,18 +64,48 @@ export async function signup(
 ): Promise<AuthActionResult> {
   const supabase = await createSupabaseClient();
   const email = formData.get("email") as string;
-  const name = formData.get("name") as string;
+  const username = formData.get("username") as string;
 
-  const valid = await validateUsername(name);
-  if (!valid) {
-    return { error: "Username taken" };
+  if (!validateEmail(email)) {
+    return await delay(300, { error: "Invalid email" })
+  };
+
+  const usernameError = await validateUsername(username);
+  if (usernameError) {
+    return { error: usernameError };
   }
-  const { data, error } = await supabase.auth.signInWithOtp({
+
+  const { error } = await supabase.auth.signInWithOtp({
     email,
     options: { shouldCreateUser: true },
   });
 
   return error ? { error: error.message } : { success: true };
+}
+
+async function validateUsername(username: string): Promise<string | null> {
+  if (username.length < 2) {
+    return await delay(300, "Username must be at least 2 characters");
+  }
+  if (username.length > 32) {
+    return await delay(300, "Username must be at most 32 characters");
+  }
+  if (username.startsWith("-")) {
+    return await delay(300, "Username cannot start with a hyphen");
+  }
+  if (username.endsWith("-")) {
+    return await delay(300, "Username cannot start with a hyphen");
+  }
+  const invalidChars = username.match(/[^a-zA-Z0-9_-]/g);
+  if (invalidChars) {
+    return await delay(300, `Username cannot include '${[...new Set(invalidChars)].join('')}'`);
+  }
+  const usernameTaken = await hasUser(username);
+  if (usernameTaken) {
+    return "Username taken";
+  }
+
+  return null;
 }
 
 export async function signout() {

@@ -15,7 +15,7 @@ import {
   NotFound,
 } from "./util";
 
-export async function validateUsername(username: string): Promise<boolean> {
+export async function hasUser(username: string): Promise<boolean> {
   const response = await authHead(`${GITDOT_SERVER_URL}/user/${username}`);
   return response.ok;
 }

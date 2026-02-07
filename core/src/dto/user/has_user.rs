@@ -2,11 +2,11 @@ use crate::dto::OwnerName;
 use crate::error::UserError;
 
 #[derive(Debug, Clone)]
-pub struct ValidateNameRequest {
+pub struct HasUserRequest {
     pub name: OwnerName,
 }
 
-impl ValidateNameRequest {
+impl HasUserRequest {
     pub fn new(name: &str) -> Result<Self, UserError> {
         Ok(Self {
             name: OwnerName::try_new(name)

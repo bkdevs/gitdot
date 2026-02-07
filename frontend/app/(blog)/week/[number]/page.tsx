@@ -1,7 +1,7 @@
-import { SubscribeButton } from "@/(landing)/ui/subscribe-button";
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { SubscribeButton } from "@/(landing)/ui/subscribe-button";
 import { getAllWeeks, getPostByWeek } from "../../lib/posts";
 import MarkdownContent from "../ui/markdown-content";
 
