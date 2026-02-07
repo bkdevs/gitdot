@@ -1,6 +1,6 @@
 "use client";
 
-import { type AuthError, signup } from "@/actions";
+import { signup } from "@/actions";
 import { cn, validateEmail, validateName } from "@/util";
 import { useActionState, useState } from "react";
 
@@ -8,12 +8,7 @@ export default function SignupForm() {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
 
-  const [state, formAction, isPending] = useActionState(
-    async (_prevState: AuthError | null, formData: FormData) => {
-      return await signup(formData);
-    },
-    null,
-  );
+  const [state, formAction, isPending] = useActionState(signup, null);
   const canSubmit = validateEmail(email) && validateName(name) && !isPending;
 
   if (state && "success" in state) {

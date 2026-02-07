@@ -2,7 +2,6 @@
 
 import { redirect } from "next/navigation";
 
-import { refresh } from "next/cache";
 import {
   authorizeDevice,
   createAnswer,
@@ -20,6 +19,7 @@ import {
   voteQuestion,
 } from "@/lib/dal";
 import { createSupabaseClient } from "@/lib/supabase";
+import { refresh } from "next/cache";
 import type {
   AnswerResponse,
   CommentResponse,
@@ -28,7 +28,6 @@ import type {
   UserResponse,
   VoteResponse,
 } from "./lib/dto";
-import { validateEmail, validatePassword } from "./util";
 
 export async function getCurrentUserAction(): Promise<UserResponse | null> {
   return await getCurrentUser();
@@ -59,25 +58,20 @@ export async function signup(
   _prev: AuthActionResult | null,
   formData: FormData,
 ): Promise<AuthActionResult> {
+  const supabase = await createSupabaseClient();
   const email = formData.get("email") as string;
   const name = formData.get("name") as string;
+
   const valid = await validateUsername(name);
   if (!valid) {
     return { error: "Username taken" };
   }
+  const { data, error } = await supabase.auth.signInWithOtp({
+    email,
+    options: { shouldCreateUser: true },
+  });
 
-  const supabase = await createSupabaseClient();
-  // const { error } = await supabase.auth.signUp({
-  //   email,
-  //   options: {
-  //     data: { name },
-  //   },
-  // });
-
-  // if (error) {
-  //   return { error: error.message };
-  // }
-  return { success: true };
+  return error ? { error: error.message } : { success: true };
 }
 
 export async function signout() {
