@@ -41,15 +41,17 @@ export default function LoginForm({ redirect }: { redirect?: string }) {
       />
 
       <input
-        ref={passwordRef}
-        type="password"
-        name="password"
-        placeholder="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        className="border-border border-b mb-2 ring-0 outline-0 focus:border-black transition-colors duration-150"
+      ref={passwordRef}
+      type="password"
+      name="password"
+      placeholder="Password"
+      value={password}
+      onChange={(e) => setPassword(e.target.value)}
+      className="border-border border-b mb-2 ring-0 outline-0 focus:border-black transition-colors duration-150"
       />
-      <input type="hidden" name="redirect" value={redirect || "/home"} />
+      {redirect &&
+        <input type="hidden" name="redirect" value={redirect} />
+      }
 
       <div className="flex flex-row w-full justify-between">
         <div className="flex">

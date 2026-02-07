@@ -65,6 +65,7 @@ export async function signup(
   const supabase = await createSupabaseClient();
   const email = formData.get("email") as string;
   const username = formData.get("username") as string;
+  const redirectTo = formData.get("redirect") as string;
 
   if (!validateEmail(email)) {
     return await delay(300, { error: "Invalid email" })
@@ -80,7 +81,9 @@ export async function signup(
     options: { shouldCreateUser: true },
   });
 
-  return error ? { error: error.message } : { success: true };
+  if (error) return { error: error.message };
+  if (redirectTo) redirect(redirectTo);
+  return { success: true };
 }
 
 async function validateUsername(username: string): Promise<string | null> {

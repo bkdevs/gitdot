@@ -5,7 +5,7 @@ import { signup } from "@/actions";
 import { cn, validateEmail, validateUsername } from "@/util";
 import { useIsTyping } from "@/hooks/use-is-typing";
 
-export default function SignupForm() {
+export default function SignupForm({ redirect }: { redirect?: string }) {
   const [state, formAction, isPending] = useActionState(signup, null);
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -20,18 +20,6 @@ export default function SignupForm() {
       );
     }
   }, [email, username, isTyping, isPending]);
-
-  if (state && "success" in state) {
-    return (
-      <div className="flex flex-col text-sm w-sm">
-        <p className="pb-2">Check your email.</p>
-        <p className="text-primary/60">
-          We sent a verification link to {email}. Click the link to verify your
-          account.
-        </p>
-      </div>
-    );
-  }
 
   return (
     <form action={formAction} className="flex flex-col text-sm w-sm" noValidate>
@@ -60,6 +48,8 @@ export default function SignupForm() {
         onChange={(e) => setUsername(e.target.value)}
         className="border-border border-b mb-2 ring-0 outline-0 focus:border-black transition-colors duration-150"
       />
+
+      {redirect && <input type="hidden" name="redirect" value={redirect} /> }
 
       <div className="flex flex-row w-full justify-between">
         <div className="flex">
