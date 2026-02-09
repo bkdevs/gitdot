@@ -7,19 +7,15 @@ import { useIsTyping } from "@/hooks/use-is-typing";
 
 export default function SignupForm({ redirect }: { redirect?: string }) {
   const [state, formAction, isPending] = useActionState(signup, null);
-  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [canSubmit, setCanSubmit] = useState(false);
-  const isTyping = useIsTyping(username, email);
-  const usernameRef = useRef<HTMLInputElement>(null);
+  const isTyping = useIsTyping(email);
 
   useEffect(() => {
     if (!isTyping) {
-      setCanSubmit(
-        validateEmail(email) && validateUsername(username) && !isPending,
-      );
+      setCanSubmit(validateEmail(email) && !isPending);
     }
-  }, [email, username, isTyping, isPending]);
+  }, [email, isTyping, isPending]);
 
   return (
     <form action={formAction} className="flex flex-col text-sm w-sm" noValidate>
@@ -31,22 +27,8 @@ export default function SignupForm({ redirect }: { redirect?: string }) {
         placeholder="Email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            usernameRef.current?.focus();
-          }
-        }}
         className="border-border border-b mb-2 ring-0 outline-0 focus:border-black transition-colors duration-150"
-      />
-
-      <input
-        type="text"
-        name="username"
-        placeholder="Username"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-        className="border-border border-b mb-2 ring-0 outline-0 focus:border-black transition-colors duration-150"
+        autoFocus
       />
 
       {redirect && <input type="hidden" name="redirect" value={redirect} /> }
