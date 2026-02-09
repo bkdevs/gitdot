@@ -26,32 +26,30 @@ export default function LoginForm({ redirect }: { redirect?: string }) {
       <p className="pb-2">Login.</p>
 
       <input
-      type="email"
-      name="email"
-      placeholder="Email"
-      value={email}
-      onChange={(e) => setEmail(e.target.value)}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          passwordRef.current?.focus();
-        }
-      }}
-      className="border-border border-b mb-2 ring-0 outline-0 focus:border-black transition-colors duration-150"
+        type="email"
+        name="email"
+        placeholder="Email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            passwordRef.current?.focus();
+          }
+        }}
+        className="border-border border-b mb-2 ring-0 outline-0 focus:border-black transition-colors duration-150"
       />
 
       <input
-      ref={passwordRef}
-      type="password"
-      name="password"
-      placeholder="Password"
-      value={password}
-      onChange={(e) => setPassword(e.target.value)}
-      className="border-border border-b mb-2 ring-0 outline-0 focus:border-black transition-colors duration-150"
+        ref={passwordRef}
+        type="password"
+        name="password"
+        placeholder="Password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        className="border-border border-b mb-2 ring-0 outline-0 focus:border-black transition-colors duration-150"
       />
-      {redirect &&
-        <input type="hidden" name="redirect" value={redirect} />
-      }
+      {redirect && <input type="hidden" name="redirect" value={redirect} />}
 
       <div className="flex flex-row w-full justify-between">
         <div className="flex">

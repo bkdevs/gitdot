@@ -164,5 +164,5 @@ export function validatePassword(password: string): boolean {
 }
 
 export function delay<T>(ms: number, value: T): Promise<T> {
-  return new Promise(resolve => setTimeout(() => resolve(value), ms));
+  return new Promise((resolve) => setTimeout(() => resolve(value), ms));
 }

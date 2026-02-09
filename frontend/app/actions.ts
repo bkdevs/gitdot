@@ -67,8 +67,8 @@ export async function signup(
   const redirectTo = formData.get("redirect") as string;
 
   if (!validateEmail(email)) {
-    return await delay(300, { error: "Invalid email" })
-  };
+    return await delay(300, { error: "Invalid email" });
+  }
 
   // note: this will _not_ fail if the user already exists, but instead send a sign-in link
   // we don't differentiate between new and existing for security: otherwise attackers would be able to tell what
@@ -98,7 +98,10 @@ async function validateUsername(username: string): Promise<string | null> {
   }
   const invalidChars = username.match(/[^a-zA-Z0-9_-]/g);
   if (invalidChars) {
-    return await delay(300, `Username cannot include '${[...new Set(invalidChars)].join('')}'`);
+    return await delay(
+      300,
+      `Username cannot include '${[...new Set(invalidChars)].join("")}'`,
+    );
   }
   const usernameTaken = await hasUser(username);
   if (usernameTaken) {

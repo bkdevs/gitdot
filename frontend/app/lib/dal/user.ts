@@ -1,20 +1,18 @@
 import "server-only";
 
 import {
-  type CreateUserRequest,
   type UserRepositoriesResponse,
   UserRepositoriesResponseSchema,
   type UserResponse,
-  UserResponseSchema,
+  UserResponseSchema
 } from "../dto";
 import { getSession } from "../supabase";
 import {
   authFetch,
   authHead,
-  authPost,
   GITDOT_SERVER_URL,
   handleResponse,
-  NotFound,
+  NotFound
 } from "./util";
 
 export async function hasUser(username: string): Promise<boolean> {
@@ -26,12 +24,6 @@ export async function getUser(username: string): Promise<UserResponse | null> {
   const response = await authFetch(`${GITDOT_SERVER_URL}/user/${username}`);
   return await handleResponse(response, UserResponseSchema);
 }
-
-export async function createUser(username: string): Promise<UserResponse | null> {
-  const response = await authPost(`${GITDOT_SERVER_URL}/user`, { name: username });
-  return await handleResponse(response, UserResponseSchema);
-}
-
 
 export async function listUserRepositories(
   username: string,
