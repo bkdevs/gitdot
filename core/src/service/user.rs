@@ -2,7 +2,7 @@ use async_trait::async_trait;
 
 use crate::dto::{
     GetCurrentUserRequest, GetUserRequest, HasUserRequest, ListUserRepositoriesRequest,
-    RepositoryResponse, UserResponse,
+    RepositoryResponse, UpdateCurrentUserRequest, UserResponse,
 };
 use crate::error::UserError;
 use crate::repository::{
@@ -12,12 +12,17 @@ use crate::util::auth::is_reserved_name;
 
 #[async_trait]
 pub trait UserService: Send + Sync + 'static {
-    async fn has_user(&self, request: HasUserRequest) -> Result<(), UserError>;
-
     async fn get_current_user(
         &self,
         request: GetCurrentUserRequest,
     ) -> Result<UserResponse, UserError>;
+
+    async fn update_current_user(
+        &self,
+        request: UpdateCurrentUserRequest,
+    ) -> Result<UserResponse, UserError>;
+
+    async fn has_user(&self, request: HasUserRequest) -> Result<(), UserError>;
 
     async fn get_user(&self, request: GetUserRequest) -> Result<UserResponse, UserError>;
 
@@ -52,15 +57,6 @@ where
     U: UserRepository,
     R: RepositoryRepository,
 {
-    async fn has_user(&self, request: HasUserRequest) -> Result<(), UserError> {
-        let name = request.name.to_string();
-
-        if is_reserved_name(&name) || self.user_repo.is_name_taken(&name).await? {
-            return Ok(());
-        }
-        Err(UserError::NotFound(name))
-    }
-
     async fn get_current_user(
         &self,
         request: GetCurrentUserRequest,
@@ -71,6 +67,33 @@ where
             .await?
             .ok_or_else(|| UserError::NotFound(request.user_id.to_string()))?;
         Ok(user.into())
+    }
+
+    async fn update_current_user(
+        &self,
+        request: UpdateCurrentUserRequest,
+    ) -> Result<UserResponse, UserError> {
+        let name = request.name.to_string();
+
+        if is_reserved_name(&name) {
+            return Err(UserError::ReservedName(name));
+        }
+
+        if self.user_repo.is_name_taken(&name).await? {
+            return Err(UserError::NameTaken(name));
+        }
+
+        let user = self.user_repo.update(request.user_id, &name).await?;
+        Ok(user.into())
+    }
+
+    async fn has_user(&self, request: HasUserRequest) -> Result<(), UserError> {
+        let name = request.name.to_string();
+
+        if is_reserved_name(&name) || self.user_repo.is_name_taken(&name).await? {
+            return Ok(());
+        }
+        Err(UserError::NotFound(name))
     }
 
     async fn get_user(&self, request: GetUserRequest) -> Result<UserResponse, UserError> {

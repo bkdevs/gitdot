@@ -1,21 +1,36 @@
 "use client";
 
-import { useEffect, useActionState, useState, useRef } from "react";
-import { signup } from "@/actions";
-import { cn, validateEmail, validateUsername } from "@/util";
+import { signup, validateUsername } from "@/actions";
 import { useIsTyping } from "@/hooks/use-is-typing";
+import { cn } from "@/util";
+import { useActionState, useEffect, useState } from "react";
 
 export default function OnboardingForm() {
   const [state, formAction, isPending] = useActionState(signup, null);
   const [username, setUsername] = useState("");
-  const [canSubmit, setCanSubmit] = useState(false);
-  const isTyping = useIsTyping(username);
+  const [usernameError, setUsernameError] = useState<string | null | undefined>(undefined);
+
+  const isTyping = useIsTyping(username, 300);
 
   useEffect(() => {
-    if (!isTyping) {
-      setCanSubmit(validateUsername(username) && !isPending);
+    if (!isTyping && username) {
+      let stale = false;
+
+      validateUsername(username).then((error) => {
+        if (!stale) setUsernameError(error);
+      });
+
+      return () => {
+        stale = true;
+      }
     }
   }, [username, isTyping, isPending]);
+
+  useEffect(() => {
+    if (!username) {
+      setUsernameError(undefined)
+    }
+  }, [username])
 
   return (
     <form action={formAction} className="flex flex-col text-sm w-sm" noValidate>
@@ -31,15 +46,18 @@ export default function OnboardingForm() {
 
       <div className="flex flex-row w-full justify-between">
         <div className="flex">
-          {state && "error" in state && (
-            <p className="text-red-500">{state.error}</p>
+          {usernameError && (
+            <p className="text-red-600 animate-in fade-in">{usernameError}</p>
+          )}
+          {usernameError === null && (
+            <p className="text-green-600 animate-in fade-in duration-300">Username available</p>
           )}
         </div>
         <button
           type="submit"
           className={cn(
             "cursor-pointer underline transition-all duration-300",
-            canSubmit ? "decoration-current" : "decoration-transparent",
+            usernameError === null ? "decoration-current" : "decoration-transparent",
             isPending ? "cursor-default" : "",
           )}
           disabled={isPending}

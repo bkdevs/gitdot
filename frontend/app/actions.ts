@@ -83,7 +83,7 @@ export async function signup(
   return { success: true };
 }
 
-async function validateUsername(username: string): Promise<string | null> {
+export async function validateUsername(username: string): Promise<string | null> {
   if (username.length < 2) {
     return await delay(300, "Username must be at least 2 characters");
   }

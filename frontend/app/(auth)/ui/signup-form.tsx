@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useActionState, useState, useRef } from "react";
 import { signup } from "@/actions";
-import { cn, validateEmail, validateUsername } from "@/util";
 import { useIsTyping } from "@/hooks/use-is-typing";
+import { cn, validateEmail } from "@/util";
+import { useActionState, useEffect, useState } from "react";
 
 export default function SignupForm({ redirect }: { redirect?: string }) {
   const [state, formAction, isPending] = useActionState(signup, null);

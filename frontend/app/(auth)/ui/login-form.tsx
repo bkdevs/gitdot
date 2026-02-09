@@ -10,7 +10,7 @@ export default function LoginForm({ redirect }: { redirect?: string }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [canSubmit, setCanSubmit] = useState(false);
-  const isTyping = useIsTyping(email, password);
+  const isTyping = useIsTyping(email);
   const passwordRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {

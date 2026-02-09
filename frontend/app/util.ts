@@ -155,10 +155,6 @@ export function validateEmail(email: string): boolean {
   return emailTester.test(email);
 }
 
-export function validateUsername(username: string): boolean {
-  return !!username && username.length >= 2;
-}
-
 export function validatePassword(password: string): boolean {
   return !!password && password.length >= 8;
 }

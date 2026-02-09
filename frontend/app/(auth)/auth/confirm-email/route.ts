@@ -15,18 +15,17 @@ export async function GET(request: NextRequest) {
   }
 
   const supabase = await createSupabaseClient();
-  const { data, error } = await supabase.auth.verifyOtp({
+  const { error } = await supabase.auth.verifyOtp({
     type: "email",
     token_hash,
   });
 
-  // TODO: refrehs user here
-
   if (error) {
+    // TODO: resend email link
     redirect("/error");
     return;
   }
 
+  // redirects preserve cookies, so the user is logged in
   redirect("/onboarding");
-
 }

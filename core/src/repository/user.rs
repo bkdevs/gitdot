@@ -8,6 +8,8 @@ use crate::model::User;
 pub trait UserRepository: Send + Sync + Clone + 'static {
     async fn get(&self, user_name: &str) -> Result<Option<User>, Error>;
 
+    async fn update(&self, id: Uuid, name: &str) -> Result<User, Error>;
+
     async fn get_by_id(&self, id: Uuid) -> Result<Option<User>, Error>;
 
     async fn get_by_emails(&self, emails: &[String]) -> Result<Vec<User>, Error>;
@@ -36,6 +38,18 @@ impl UserRepository for UserRepositoryImpl {
         )
         .bind(user_name)
         .fetch_optional(&self.pool)
+        .await?;
+
+        Ok(user)
+    }
+
+    async fn update(&self, id: Uuid, name: &str) -> Result<User, Error> {
+        let user = sqlx::query_as::<_, User>(
+            "UPDATE users SET name = $1 WHERE id = $2 RETURNING id, email, name, created_at",
+        )
+        .bind(name)
+        .bind(id)
+        .fetch_one(&self.pool)
         .await?;
 
         Ok(user)

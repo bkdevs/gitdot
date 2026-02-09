@@ -103,13 +103,13 @@ mod tests {
 
         #[test]
         fn rejects_too_long() {
-            let long_name = "a".repeat(101);
+            let long_name = "a".repeat(33);
             assert!(OwnerName::try_new(&long_name).is_err());
         }
 
         #[test]
         fn accepts_max_length() {
-            let max_name = "a".repeat(100);
+            let max_name = "a".repeat(32);
             assert!(OwnerName::try_new(&max_name).is_ok());
         }
     }
@@ -183,13 +183,13 @@ mod tests {
 
         #[test]
         fn rejects_too_long() {
-            let long_name = "a".repeat(101);
+            let long_name = "a".repeat(33);
             assert!(RepositoryName::try_new(&long_name).is_err());
         }
 
         #[test]
         fn accepts_max_length() {
-            let max_name = "a".repeat(100);
+            let max_name = "a".repeat(32);
             assert!(RepositoryName::try_new(&max_name).is_ok());
         }
 

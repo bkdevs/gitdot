@@ -1,8 +1,13 @@
 use chrono::{DateTime, Utc};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use gitdot_core::dto::UserResponse;
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct UpdateCurrentUserServerRequest {
+    pub name: String,
+}
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct UserServerResponse {

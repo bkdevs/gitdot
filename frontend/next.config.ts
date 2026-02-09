@@ -9,11 +9,6 @@ const nextConfig: NextConfig = {
         destination: "/bkdevs/gitdot",
         permanent: true,
       },
-      {
-        source: "/signup",
-        destination: "/login",
-        permanent: false,
-      },
     ];
   },
   async rewrites() {
