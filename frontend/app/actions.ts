@@ -13,6 +13,7 @@ import {
   hasUser,
   updateAnswer,
   updateComment,
+  updateCurrentUser,
   updateQuestion,
   voteAnswer,
   voteComment,
@@ -81,6 +82,33 @@ export async function signup(
   if (error) return { error: error.message };
   if (redirectTo) redirect(redirectTo);
   return { success: true };
+}
+
+export type UpdateUserActionResult =
+  | { user: UserResponse }
+  | { error: string };
+
+export async function updateUserAction(
+  _prev: UpdateUserActionResult | null,
+  formData: FormData,
+): Promise<UpdateUserActionResult> {
+  const username = formData.get("username") as string;
+  const redirectTo = formData.get("redirect") as string;
+
+  const usernameError = await validateUsername(username);
+  if (usernameError) {
+    console.log(usernameError);
+    return { error: usernameError};
+  }
+
+  const result = await updateCurrentUser({ name: username });
+  if (!result) {
+    return { error: "Failed to update user" };
+  }
+
+  refresh();
+  if (redirectTo) redirect(redirectTo);
+  return { user: result };
 }
 
 export async function validateUsername(username: string): Promise<string | null> {

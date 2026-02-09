@@ -1,6 +1,7 @@
 import "server-only";
 
 import {
+  type UpdateCurrentUserRequest,
   type UserRepositoriesResponse,
   UserRepositoriesResponseSchema,
   type UserResponse,
@@ -10,10 +11,30 @@ import { getSession } from "../supabase";
 import {
   authFetch,
   authHead,
+  authPatch,
   GITDOT_SERVER_URL,
   handleResponse,
   NotFound
 } from "./util";
+
+/**
+ * this should _not_ be used on any page that we intend to statically render
+ * if static pages require auth, rely on useUser in client-side components instead
+ */
+export async function getCurrentUser(): Promise<UserResponse | null> {
+  const session = await getSession();
+  if (!session) return null;
+
+  const response = await authFetch(`${GITDOT_SERVER_URL}/user`);
+  return await handleResponse(response, UserResponseSchema);
+}
+
+export async function updateCurrentUser(
+  request: UpdateCurrentUserRequest,
+): Promise<UserResponse | null> {
+  const response = await authPatch(`${GITDOT_SERVER_URL}/user`, request);
+  return await handleResponse(response, UserResponseSchema);
+}
 
 export async function hasUser(username: string): Promise<boolean> {
   const response = await authHead(`${GITDOT_SERVER_URL}/user/${username}`);
@@ -34,16 +55,4 @@ export async function listUserRepositories(
 
   if (response.status === 404) return NotFound;
   return await handleResponse(response, UserRepositoriesResponseSchema);
-}
-
-/**
- * this should _not_ be used on any page that we intend to statically render
- * if static pages require auth, rely on useUser in client-side components instead
- */
-export async function getCurrentUser(): Promise<UserResponse | null> {
-  const session = await getSession();
-  if (!session) return null;
-
-  const response = await authFetch(`${GITDOT_SERVER_URL}/user`);
-  return await handleResponse(response, UserResponseSchema);
 }
