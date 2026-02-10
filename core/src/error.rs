@@ -6,6 +6,7 @@ mod oauth;
 mod organization;
 mod question;
 mod repository;
+mod runner;
 mod user;
 
 pub use authorization::AuthorizationError;
@@ -16,4 +17,5 @@ pub use oauth::OAuthError;
 pub use organization::OrganizationError;
 pub use question::QuestionError;
 pub use repository::RepositoryError;
+pub use runner::RunnerError;
 pub use user::UserError;

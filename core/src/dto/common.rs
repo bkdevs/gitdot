@@ -24,6 +24,13 @@ fn strip_git_suffix(s: String) -> String {
 pub struct OwnerName(String);
 
 #[nutype(
+    sanitize(trim, lowercase),
+    validate(predicate = is_valid_slug),
+    derive(Debug, Clone, PartialEq, Eq, AsRef, Deref)
+)]
+pub struct RunnerName(String);
+
+#[nutype(
     sanitize(trim, lowercase, with = strip_git_suffix),
     validate(predicate = is_valid_slug),
     derive(Debug, Clone, PartialEq, Eq, AsRef, Deref)
