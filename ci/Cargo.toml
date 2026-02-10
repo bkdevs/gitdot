@@ -1,12 +1,25 @@
 [package]
-name = "ci"
+name = "ci_server"
 version = "0.1.0"
 edition = "2024"
+
+[[bin]]
+name = "ci_server"
+path = "src/bin/main.rs"
 
 [dependencies]
 anyhow = { workspace = true }
 axum = { version = "0.8.8", features = ["macros"] }
+dotenvy = "0.15.7"
+gitdot_core = { path = "../core" }
 http = "1.4.0"
-tokio = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
+sqlx = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+tower = "0.5.2"
+tower-http = { version = "0.6.8", features = ["cors", "request-id", "timeout", "trace"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+uuid = { workspace = true }

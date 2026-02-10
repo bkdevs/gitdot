@@ -294,15 +294,24 @@ dependencies = [
 ]
 
 [[package]]
-name = "ci"
+name = "ci_server"
 version = "0.1.0"
 dependencies = [
  "anyhow",
  "axum",
+ "dotenvy",
+ "gitdot_core",
  "http",
  "serde",
  "serde_json",
+ "sqlx",
+ "thiserror 2.0.17",
  "tokio",
+ "tower",
+ "tower-http",
+ "tracing",
+ "tracing-subscriber",
+ "uuid",
 ]
 
 [[package]]
