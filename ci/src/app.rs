@@ -4,6 +4,7 @@ mod error;
 mod response;
 mod settings;
 
+use gitdot_core::model::Runner;
 use http::StatusCode;
 use sqlx::PgPool;
 use std::sync::Arc;
@@ -19,6 +20,8 @@ use tower_http::{
     timeout::TimeoutLayer,
     trace::TraceLayer,
 };
+
+use crate::handler::create_runner_router;
 
 pub use app_state::AppState;
 pub use error::AppError;
@@ -55,6 +58,8 @@ impl CiServer {
 }
 
 fn create_router(app_state: AppState) -> Router {
+    let runner_router = create_runner_router();
+
     let middleware = ServiceBuilder::new()
         .layer(SetRequestIdLayer::x_request_id(MakeRequestUuid))
         .layer(TraceLayer::new_for_http())
@@ -65,7 +70,10 @@ fn create_router(app_state: AppState) -> Router {
         ))
         .layer(PropagateRequestIdLayer::x_request_id());
 
-    let api_router = Router::new().layer(middleware).with_state(app_state);
+    let api_router = Router::new()
+        .merge(runner_router)
+        .layer(middleware)
+        .with_state(app_state);
 
     Router::new()
         .route("/health", get(|| async { "OK" }))

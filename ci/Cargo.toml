@@ -10,6 +10,7 @@ path = "src/bin/main.rs"
 [dependencies]
 anyhow = { workspace = true }
 axum = { version = "0.8.8", features = ["macros"] }
+chrono = { workspace = true }
 dotenvy = "0.15.7"
 gitdot_core = { path = "../core" }
 http = "1.4.0"

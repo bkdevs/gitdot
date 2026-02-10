@@ -5,6 +5,8 @@ use uuid::Uuid;
 
 use crate::model::{Runner, RunnerOwnerType};
 
+pub use create_runner::CreateRunnerRequest;
+
 #[derive(Debug, Clone)]
 pub struct RunnerResponse {
     pub id: Uuid,
