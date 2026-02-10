@@ -1,0 +1,12 @@
+[package]
+name = "ci"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = { workspace = true }
+axum = { version = "0.8.8", features = ["macros"] }
+http = "1.4.0"
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
