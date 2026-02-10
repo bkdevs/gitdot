@@ -4,7 +4,6 @@ mod error;
 mod response;
 mod settings;
 
-use gitdot_core::model::Runner;
 use http::StatusCode;
 use sqlx::PgPool;
 use std::sync::Arc;

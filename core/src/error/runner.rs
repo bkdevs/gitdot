@@ -14,6 +14,9 @@ pub enum RunnerError {
     #[error("Runner not found: {0}")]
     NotFound(String),
 
+    #[error("Owner not found: {0}")]
+    OwnerNotFound(String),
+
     #[error("Database error: {0}")]
     DatabaseError(#[from] sqlx::Error),
 }

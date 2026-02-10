@@ -32,8 +32,8 @@ impl IntoResponse for AppError {
                     RunnerError::InvalidOwnerName(_) => StatusCode::BAD_REQUEST,
                     RunnerError::InvalidOwnerType(_) => StatusCode::BAD_REQUEST,
                     RunnerError::NotFound(_) => StatusCode::NOT_FOUND,
+                    RunnerError::OwnerNotFound(_) => StatusCode::NOT_FOUND,
                     RunnerError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
-                    _ => StatusCode::UNAUTHORIZED,
                 };
                 let response = AppResponse::new(
                     status_code,
