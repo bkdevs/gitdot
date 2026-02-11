@@ -6,6 +6,7 @@ resolver = "3"
 anyhow = "1.0.100"
 async-trait = "0.1.89"
 base64 = "0.22"
+crc32fast = "1.4"
 chrono = { version = "0.4.42", features = ["serde"] }
 git2 = "0.20.3"
 hex = "0.4.3"

@@ -10,7 +10,7 @@ use crate::model::DeviceAuthorizationStatus;
 use crate::repository::{OAuthRepository, OAuthRepositoryImpl, UserRepository, UserRepositoryImpl};
 use crate::util::oauth::{
     DEVICE_CODE_EXPIRY_MINUTES, POLLING_INTERVAL_SECONDS, generate_access_token,
-    generate_device_code, generate_user_code, hash_token,
+    generate_device_code, generate_user_code, hash_token, validate_token_format,
 };
 
 #[async_trait]
@@ -140,6 +140,10 @@ where
     }
 
     async fn validate_token(&self, token: &str) -> Result<Uuid, OAuthError> {
+        if !validate_token_format(token) {
+            return Err(OAuthError::AccessDenied);
+        }
+
         let token_hash = hash_token(token);
 
         let access_token = self
