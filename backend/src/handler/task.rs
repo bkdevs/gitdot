@@ -14,5 +14,5 @@ use update_task::update_task;
 pub fn create_task_router() -> Router<AppState> {
     Router::new()
         .route("/task/poll", get(poll_task))
-        .route("/task/:id", patch(update_task))
+        .route("/task/{id}", patch(update_task))
 }

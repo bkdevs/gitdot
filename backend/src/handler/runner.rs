@@ -16,6 +16,6 @@ use register_runner::register_runner;
 pub fn create_runner_router() -> Router<AppState> {
     Router::new()
         .route("/runner", post(create_runner))
-        .route("/runner/:id", delete(delete_runner))
-        .route("/runner/:id/register", post(register_runner))
+        .route("/runner/{id}", delete(delete_runner))
+        .route("/runner/{id}/register", post(register_runner))
 }

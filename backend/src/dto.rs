@@ -1,14 +1,20 @@
+mod dag;
 mod git_http;
 pub mod legacy_repository;
 mod oauth;
 mod organization;
 mod question;
 mod repository;
+mod runner;
+mod task;
 mod user;
 
+pub use dag::*;
 pub use git_http::*;
 pub use oauth::*;
 pub use organization::*;
 pub use question::*;
 pub use repository::*;
+pub use runner::*;
+pub use task::*;
 pub use user::*;

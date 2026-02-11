@@ -23,8 +23,9 @@ use tower_http::{
 
 use crate::handler::legacy_repository::{get_repository_commit_diffs, get_repository_commit_stats};
 use crate::handler::{
-    create_git_http_router, create_oauth_router, create_organization_router,
-    create_question_router, create_repository_router, create_user_router,
+    create_dag_router, create_git_http_router, create_oauth_router, create_organization_router,
+    create_question_router, create_repository_router, create_runner_router, create_task_router,
+    create_user_router,
 };
 
 pub use app_state::AppState;
@@ -69,6 +70,9 @@ fn create_router(app_state: AppState) -> Router {
     let repo_router = create_repository_router();
     let question_router = create_question_router();
     let oauth_router = create_oauth_router();
+    let runner_router = create_runner_router();
+    let dag_router = create_dag_router();
+    let task_router = create_task_router();
 
     let old_repo_router = Router::new()
         .route(
@@ -98,6 +102,9 @@ fn create_router(app_state: AppState) -> Router {
         .merge(question_router)
         .merge(oauth_router)
         .merge(old_repo_router)
+        .merge(runner_router)
+        .merge(dag_router)
+        .merge(task_router)
         .layer(middleware)
         .with_state(app_state);
 
