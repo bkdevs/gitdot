@@ -3,7 +3,6 @@ mod create_task;
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
-use crate::dto::common::OwnerName;
 use crate::model::{Task, TaskStatus};
 
 pub use create_task::CreateTaskRequest;
@@ -11,7 +10,7 @@ pub use create_task::CreateTaskRequest;
 #[derive(Debug, Clone)]
 pub struct TaskResponse {
     pub id: Uuid,
-    pub repo_owner: OwnerName,
+    pub repo_owner: String,
     pub repo_name: String,
     pub script: String,
     pub status: TaskStatus,

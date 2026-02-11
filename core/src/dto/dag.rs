@@ -3,7 +3,6 @@ mod create_dag;
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
-use crate::dto::common::OwnerName;
 use crate::model::Dag;
 
 pub use create_dag::CreateDagRequest;
@@ -11,7 +10,7 @@ pub use create_dag::CreateDagRequest;
 #[derive(Debug, Clone)]
 pub struct DagResponse {
     pub id: Uuid,
-    pub repo_owner: OwnerName,
+    pub repo_owner: String,
     pub repo_name: String,
     pub task_ids: Vec<Uuid>,
     pub created_at: DateTime<Utc>,

@@ -11,11 +11,7 @@ pub struct CreateDagRequest {
 }
 
 impl CreateDagRequest {
-    pub fn new(
-        repo_owner: &str,
-        repo_name: &str,
-        task_ids: Vec<Uuid>,
-    ) -> Result<Self, DagError> {
+    pub fn new(repo_owner: &str, repo_name: &str, task_ids: Vec<Uuid>) -> Result<Self, DagError> {
         Ok(Self {
             repo_owner: OwnerName::try_new(repo_owner)
                 .map_err(|e| DagError::InvalidOwnerName(e.to_string()))?,

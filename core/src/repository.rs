@@ -1,4 +1,5 @@
 mod commit;
+mod dag;
 mod oauth;
 mod organization;
 mod question;
@@ -7,6 +8,7 @@ mod runner;
 mod user;
 
 pub use commit::{CommitRepository, CommitRepositoryImpl};
+pub use dag::{DagRepository, DagRepositoryImpl};
 pub use oauth::{OAuthRepository, OAuthRepositoryImpl};
 pub use organization::{OrganizationRepository, OrganizationRepositoryImpl};
 pub use question::{QuestionRepository, QuestionRepositoryImpl};

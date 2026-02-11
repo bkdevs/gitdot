@@ -20,7 +20,7 @@ use tower_http::{
     trace::TraceLayer,
 };
 
-use crate::handler::create_runner_router;
+use crate::handler::{create_dag_router, create_runner_router};
 
 pub use app_state::AppState;
 pub use error::AppError;
@@ -58,6 +58,7 @@ impl CiServer {
 
 fn create_router(app_state: AppState) -> Router {
     let runner_router = create_runner_router();
+    let dag_router = create_dag_router();
 
     let middleware = ServiceBuilder::new()
         .layer(SetRequestIdLayer::x_request_id(MakeRequestUuid))
@@ -71,6 +72,7 @@ fn create_router(app_state: AppState) -> Router {
 
     let api_router = Router::new()
         .merge(runner_router)
+        .merge(dag_router)
         .layer(middleware)
         .with_state(app_state);
 

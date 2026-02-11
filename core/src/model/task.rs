@@ -2,12 +2,10 @@ use chrono::{DateTime, Utc};
 use sqlx::{FromRow, Type};
 use uuid::Uuid;
 
-use crate::dto::common::OwnerName;
-
 #[derive(Debug, Clone, FromRow)]
 pub struct Task {
     pub id: Uuid,
-    pub repo_owner: OwnerName,
+    pub repo_owner: String,
     pub repo_name: String,
 
     pub script: String,
