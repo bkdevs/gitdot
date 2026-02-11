@@ -10,6 +10,7 @@ pub struct Runner {
     pub name: String,
     pub owner_id: Uuid,
     pub owner_type: RunnerOwnerType,
+    pub registered: bool,
     pub created_at: DateTime<Utc>,
 }
 

@@ -1,6 +1,8 @@
 use async_trait::async_trait;
 
-use crate::dto::{CreateRunnerRequest, CreateRunnerResponse, DeleteRunnerRequest};
+use crate::dto::{
+    CreateRunnerRequest, CreateRunnerResponse, DeleteRunnerRequest, RegisterRunnerRequest,
+};
 use crate::error::RunnerError;
 use crate::model::RunnerOwnerType;
 use crate::model::TokenType;
@@ -17,6 +19,7 @@ pub trait RunnerService: Send + Sync + 'static {
         request: CreateRunnerRequest,
     ) -> Result<CreateRunnerResponse, RunnerError>;
     async fn delete_runner(&self, request: DeleteRunnerRequest) -> Result<(), RunnerError>;
+    async fn register_runner(&self, request: RegisterRunnerRequest) -> Result<(), RunnerError>;
 }
 
 #[derive(Debug, Clone)]
@@ -90,6 +93,18 @@ where
     async fn delete_runner(&self, request: DeleteRunnerRequest) -> Result<(), RunnerError> {
         self.runner_repo
             .delete(request.id)
+            .await
+            .map_err(|e| match e {
+                sqlx::Error::RowNotFound => RunnerError::NotFound(request.id.to_string()),
+                e => RunnerError::DatabaseError(e),
+            })?;
+
+        Ok(())
+    }
+
+    async fn register_runner(&self, request: RegisterRunnerRequest) -> Result<(), RunnerError> {
+        self.runner_repo
+            .register(request.id)
             .await
             .map_err(|e| match e {
                 sqlx::Error::RowNotFound => RunnerError::NotFound(request.id.to_string()),
