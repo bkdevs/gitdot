@@ -12,6 +12,7 @@ pub trait RunnerRepository: Send + Sync + Clone + 'static {
         owner_id: Uuid,
         owner_type: &RunnerOwnerType,
     ) -> Result<Runner, Error>;
+    async fn delete(&self, id: Uuid) -> Result<(), Error>;
 }
 
 #[derive(Debug, Clone)]
@@ -47,5 +48,18 @@ impl RunnerRepository for RunnerRepositoryImpl {
         .await?;
 
         Ok(runner)
+    }
+
+    async fn delete(&self, id: Uuid) -> Result<(), Error> {
+        let result = sqlx::query("DELETE FROM runners WHERE id = $1")
+            .bind(id)
+            .execute(&self.pool)
+            .await?;
+
+        if result.rows_affected() == 0 {
+            return Err(Error::RowNotFound);
+        }
+
+        Ok(())
     }
 }
