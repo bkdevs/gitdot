@@ -21,12 +21,15 @@ use tower_http::{
     trace::TraceLayer,
 };
 
-use crate::handler::legacy_repository::{get_repository_commit_diffs, get_repository_commit_stats};
+#[cfg(feature = "core")]
 use crate::handler::{
-    create_dag_router, create_git_http_router, create_oauth_router, create_organization_router,
-    create_question_router, create_repository_router, create_runner_router, create_task_router,
-    create_user_router,
+    create_git_http_router, create_oauth_router, create_organization_router,
+    create_question_router, create_repository_router, create_user_router,
+    legacy_repository::{get_repository_commit_diffs, get_repository_commit_stats},
 };
+
+#[cfg(feature = "ci")]
+use crate::handler::{create_dag_router, create_runner_router, create_task_router};
 
 pub use app_state::AppState;
 pub use auth::AuthenticatedUser;
@@ -64,26 +67,6 @@ impl GitdotServer {
 }
 
 fn create_router(app_state: AppState) -> Router {
-    let git_router = create_git_http_router();
-    let user_router = create_user_router();
-    let org_router = create_organization_router();
-    let repo_router = create_repository_router();
-    let question_router = create_question_router();
-    let oauth_router = create_oauth_router();
-    let runner_router = create_runner_router();
-    let dag_router = create_dag_router();
-    let task_router = create_task_router();
-
-    let old_repo_router = Router::new()
-        .route(
-            "/repository/{owner}/{repo}/commits/{sha}/stats",
-            get(get_repository_commit_stats),
-        )
-        .route(
-            "/repository/{owner}/{repo}/commits/{sha}/diffs",
-            get(get_repository_commit_diffs),
-        );
-
     let middleware = ServiceBuilder::new()
         .layer(SetRequestIdLayer::x_request_id(MakeRequestUuid))
         .layer(TraceLayer::new_for_http())
@@ -94,19 +77,39 @@ fn create_router(app_state: AppState) -> Router {
         ))
         .layer(PropagateRequestIdLayer::x_request_id());
 
-    let api_router = Router::new()
-        .merge(git_router)
-        .merge(user_router)
-        .merge(org_router)
-        .merge(repo_router)
-        .merge(question_router)
-        .merge(oauth_router)
-        .merge(old_repo_router)
-        .merge(runner_router)
-        .merge(dag_router)
-        .merge(task_router)
-        .layer(middleware)
-        .with_state(app_state);
+    let mut api_router = Router::new();
+
+    #[cfg(feature = "core")]
+    {
+        api_router = api_router
+            .merge(create_git_http_router())
+            .merge(create_user_router())
+            .merge(create_organization_router())
+            .merge(create_repository_router())
+            .merge(create_question_router())
+            .merge(create_oauth_router())
+            .merge(
+                Router::new()
+                    .route(
+                        "/repository/{owner}/{repo}/commits/{sha}/stats",
+                        get(get_repository_commit_stats),
+                    )
+                    .route(
+                        "/repository/{owner}/{repo}/commits/{sha}/diffs",
+                        get(get_repository_commit_diffs),
+                    ),
+            );
+    }
+
+    #[cfg(feature = "ci")]
+    {
+        api_router = api_router
+            .merge(create_runner_router())
+            .merge(create_dag_router())
+            .merge(create_task_router());
+    }
+
+    let api_router = api_router.layer(middleware).with_state(app_state);
 
     Router::new()
         .route("/health", get(|| async { "OK" }))

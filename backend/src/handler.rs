@@ -1,20 +1,24 @@
-mod dag;
-mod git_http;
-pub mod legacy_repository;
-mod oauth;
-mod organization;
-mod question;
-mod repository;
-mod runner;
-mod task;
-mod user;
+cfg_modules!("core", {
+    mod git_http;
+    pub mod legacy_repository;
+    mod oauth;
+    mod organization;
+    mod question;
+    mod repository;
+    mod user;
+    pub use git_http::*;
+    pub use oauth::*;
+    pub use organization::*;
+    pub use question::*;
+    pub use repository::*;
+    pub use user::*;
+});
 
-pub use dag::create_dag_router;
-pub use git_http::create_git_http_router;
-pub use oauth::create_oauth_router;
-pub use organization::create_organization_router;
-pub use question::create_question_router;
-pub use repository::create_repository_router;
-pub use runner::create_runner_router;
-pub use task::create_task_router;
-pub use user::create_user_router;
+cfg_modules!("ci", {
+    mod dag;
+    mod runner;
+    mod task;
+    pub use dag::*;
+    pub use runner::*;
+    pub use task::*;
+});

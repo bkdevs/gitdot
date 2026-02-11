@@ -7,6 +7,11 @@ edition = "2024"
 name = "gitdot_server"
 path = "src/bin/main.rs"
 
+[features]
+default = ["core", "ci"]
+core = []
+ci = []
+
 [dependencies]
 anyhow = { workspace = true }
 axum = { version = "0.8.8", features = ["macros"] }
