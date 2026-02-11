@@ -1,6 +1,8 @@
 # Build stage
 FROM rust:1.92.0-bookworm as builder
 
+ARG FEATURES="core,ci"
+
 WORKDIR /app
 
 # Install build dependencies
@@ -12,7 +14,7 @@ RUN apt-get update && \
 COPY . .
 
 # Build the application
-RUN cargo build --release -p gitdot_server
+RUN cargo build --release -p gitdot_server --no-default-features --features "${FEATURES}"
 
 # Runtime stage
 FROM debian:bookworm-slim
