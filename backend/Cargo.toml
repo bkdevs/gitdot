@@ -8,8 +8,8 @@ name = "gitdot_server"
 path = "src/bin/main.rs"
 
 [features]
-default = ["core", "ci"]
-core = []
+default = ["main", "ci"]
+main = []
 ci = []
 
 [dependencies]

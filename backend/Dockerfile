@@ -1,14 +1,14 @@
 # Build stage
 FROM rust:1.92.0-bookworm as builder
 
-ARG FEATURES="core,ci"
+ARG FEATURES="main,ci"
 
 WORKDIR /app
 
 # Install build dependencies
 RUN apt-get update && \
-    apt-get install -y pkg-config libssl-dev && \
-    rm -rf /var/lib/apt/lists/*
+  apt-get install -y pkg-config libssl-dev && \
+  rm -rf /var/lib/apt/lists/*
 
 # Copy everything
 COPY . .
@@ -23,21 +23,21 @@ WORKDIR /app
 
 # Install git, ca-certificates, and curl for downloading difftastic
 RUN apt-get update && \
-    apt-get install -y git ca-certificates curl && \
-    rm -rf /var/lib/apt/lists/*
+  apt-get install -y git ca-certificates curl && \
+  rm -rf /var/lib/apt/lists/*
 
 # Install difftastic
 RUN curl -L https://github.com/Wilfred/difftastic/releases/download/0.67.0/difft-x86_64-unknown-linux-gnu.tar.gz -o /tmp/difft.tar.gz && \
-    tar -xzf /tmp/difft.tar.gz -C /tmp && \
-    mv /tmp/difft /usr/local/bin/difft && \
-    chmod +x /usr/local/bin/difft && \
-    rm /tmp/difft.tar.gz
+  tar -xzf /tmp/difft.tar.gz -C /tmp && \
+  mv /tmp/difft /usr/local/bin/difft && \
+  chmod +x /usr/local/bin/difft && \
+  rm /tmp/difft.tar.gz
 
 # Configure git globally
 RUN git config --system user.name "Git Server" && \
-    git config --system user.email "git@gitdot.io" && \
-    git config --system http.receivepack true && \
-    git config --system uploadpack.allowAnySHA1InWant true
+  git config --system user.email "git@gitdot.io" && \
+  git config --system http.receivepack true && \
+  git config --system uploadpack.allowAnySHA1InWant true
 
 # Copy the binary from builder
 COPY --from=builder /app/target/release/gitdot_server /app/gitdot_server

@@ -21,7 +21,7 @@ use tower_http::{
     trace::TraceLayer,
 };
 
-#[cfg(feature = "core")]
+#[cfg(feature = "main")]
 use crate::handler::{
     create_git_http_router, create_oauth_router, create_organization_router,
     create_question_router, create_repository_router, create_user_router,
@@ -79,7 +79,7 @@ fn create_router(app_state: AppState) -> Router {
 
     let mut api_router = Router::new();
 
-    #[cfg(feature = "core")]
+    #[cfg(feature = "main")]
     {
         api_router = api_router
             .merge(create_git_http_router())
@@ -103,10 +103,13 @@ fn create_router(app_state: AppState) -> Router {
 
     #[cfg(feature = "ci")]
     {
-        api_router = api_router
-            .merge(create_runner_router())
-            .merge(create_dag_router())
-            .merge(create_task_router());
+        api_router = api_router.nest(
+            "/ci",
+            Router::new()
+                .merge(create_runner_router())
+                .merge(create_dag_router())
+                .merge(create_task_router()),
+        );
     }
 
     let api_router = api_router.layer(middleware).with_state(app_state);

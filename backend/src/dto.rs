@@ -1,4 +1,4 @@
-cfg_modules!("core", {
+cfg_modules!("main", {
     mod git_http;
     pub mod legacy_repository;
     mod oauth;
