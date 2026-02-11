@@ -1,7 +1,10 @@
 mod create_runner;
 mod delete_runner;
 
-use axum::{Router, routing::{delete, post}};
+use axum::{
+    Router,
+    routing::{delete, post},
+};
 
 use crate::app::AppState;
 

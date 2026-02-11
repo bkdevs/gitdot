@@ -7,6 +7,7 @@ use crate::dto::{
 };
 use crate::error::TokenError;
 use crate::model::DeviceAuthorizationStatus;
+use crate::model::TokenType;
 use crate::repository::{TokenRepository, TokenRepositoryImpl, UserRepository, UserRepositoryImpl};
 use crate::util::token::{
     DEVICE_CODE_EXPIRY_MINUTES, POLLING_INTERVAL_SECONDS, generate_access_token,
@@ -108,7 +109,7 @@ where
                     .map_err(|e| TokenError::InvalidRequest(e.to_string()))?
                     .ok_or(TokenError::InvalidRequest("User not found".to_string()))?;
 
-                let access_token = generate_access_token();
+                let access_token = generate_access_token(&TokenType::Personal);
                 let token_hash = hash_token(&access_token);
 
                 self.token_repo

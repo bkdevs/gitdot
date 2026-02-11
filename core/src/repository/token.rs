@@ -46,6 +46,12 @@ pub trait TokenRepository: Send + Sync + Clone + 'static {
         token_hash: &str,
     ) -> Result<AccessToken, Error>;
 
+    async fn create_runner_token(
+        &self,
+        user_id: Uuid,
+        token_hash: &str,
+    ) -> Result<AccessToken, Error>;
+
     async fn get_access_token_by_hash(
         &self,
         token_hash: &str,
@@ -196,11 +202,31 @@ impl TokenRepository for TokenRepositoryImpl {
             r#"
             INSERT INTO access_tokens (user_id, client_id, token_hash)
             VALUES ($1, $2, $3)
-            RETURNING id, user_id, client_id, token_hash, created_at, last_used_at
+            RETURNING id, user_id, client_id, token_hash, token_type, created_at, last_used_at
             "#,
         )
         .bind(user_id)
         .bind(client_id)
+        .bind(token_hash)
+        .fetch_one(&self.pool)
+        .await?;
+
+        Ok(token)
+    }
+
+    async fn create_runner_token(
+        &self,
+        user_id: Uuid,
+        token_hash: &str,
+    ) -> Result<AccessToken, Error> {
+        let token = sqlx::query_as::<_, AccessToken>(
+            r#"
+            INSERT INTO access_tokens (user_id, client_id, token_hash, token_type)
+            VALUES ($1, '', $2, 'runner')
+            RETURNING id, user_id, client_id, token_hash, token_type, created_at, last_used_at
+            "#,
+        )
+        .bind(user_id)
         .bind(token_hash)
         .fetch_one(&self.pool)
         .await?;
@@ -214,7 +240,7 @@ impl TokenRepository for TokenRepositoryImpl {
     ) -> Result<Option<AccessToken>, Error> {
         let token = sqlx::query_as::<_, AccessToken>(
             r#"
-            SELECT id, user_id, client_id, token_hash, created_at, last_used_at
+            SELECT id, user_id, client_id, token_hash, token_type, created_at, last_used_at
             FROM access_tokens
             WHERE token_hash = $1
             "#,

@@ -1,10 +1,11 @@
 use base64::{Engine as _, engine::general_purpose::URL_SAFE_NO_PAD};
 use sha2::{Digest, Sha256};
 
+use crate::model::TokenType;
+
 pub const DEVICE_CODE_EXPIRY_MINUTES: i64 = 10;
 pub const POLLING_INTERVAL_SECONDS: u64 = 5;
 
-const TOKEN_PREFIX: &str = "gdp_";
 const CHECKSUM_LEN: usize = 6; // base64url(4 bytes CRC32) = 6 chars (no pad)
 
 pub fn generate_device_code() -> String {
@@ -31,20 +32,24 @@ pub fn generate_user_code() -> String {
         .collect()
 }
 
-pub fn generate_access_token() -> String {
+pub fn generate_access_token(token_type: &TokenType) -> String {
     use rand::Rng as _;
     let mut rng = rand::rng();
     let bytes: [u8; 32] = rng.random();
 
+    let prefix = token_type.prefix();
     let body = URL_SAFE_NO_PAD.encode(bytes);
     let crc = crc32fast::hash(&bytes);
     let checksum = URL_SAFE_NO_PAD.encode(crc.to_be_bytes());
 
-    format!("{TOKEN_PREFIX}{body}{checksum}")
+    format!("{prefix}{body}{checksum}")
 }
 
 pub fn validate_token_format(token: &str) -> bool {
-    let Some(rest) = token.strip_prefix(TOKEN_PREFIX) else {
+    let rest = [TokenType::Personal, TokenType::Runner]
+        .iter()
+        .find_map(|t| token.strip_prefix(t.prefix()));
+    let Some(rest) = rest else {
         return false;
     };
     if rest.len() <= CHECKSUM_LEN {
@@ -74,9 +79,17 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_generated_token_has_correct_format() {
-        let token = generate_access_token();
+    fn test_generated_personal_token_has_correct_format() {
+        let token = generate_access_token(&TokenType::Personal);
         assert!(token.starts_with("gdp_"));
+        assert_eq!(token.len(), 53);
+        assert!(validate_token_format(&token));
+    }
+
+    #[test]
+    fn test_generated_runner_token_has_correct_format() {
+        let token = generate_access_token(&TokenType::Runner);
+        assert!(token.starts_with("gdr_"));
         assert_eq!(token.len(), 53);
         assert!(validate_token_format(&token));
     }
@@ -90,7 +103,7 @@ mod tests {
 
     #[test]
     fn test_validate_rejects_corrupted_checksum() {
-        let mut token = generate_access_token();
+        let mut token = generate_access_token(&TokenType::Personal);
         // Flip last character
         let last = token.pop().unwrap();
         let replacement = if last == 'A' { 'B' } else { 'A' };

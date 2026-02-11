@@ -4,7 +4,7 @@ use http::StatusCode;
 
 use crate::{
     app::{AppError, AppResponse, AppState, AuthenticatedUser},
-    dto::{CreateRunnerServerRequest, RunnerServerResponse},
+    dto::{CreateRunnerServerRequest, CreateRunnerServerResponse},
 };
 
 #[axum::debug_handler]
@@ -12,7 +12,7 @@ pub async fn create_runner(
     State(state): State<AppState>,
     auth_user: AuthenticatedUser,
     Json(request): Json<CreateRunnerServerRequest>,
-) -> Result<AppResponse<RunnerServerResponse>, AppError> {
+) -> Result<AppResponse<CreateRunnerServerResponse>, AppError> {
     let request = CreateRunnerRequest::new(
         &request.name,
         auth_user.id,

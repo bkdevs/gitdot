@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use gitdot_core::dto::RunnerResponse;
+use gitdot_core::dto::{CreateRunnerResponse, RunnerResponse};
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct CreateRunnerServerRequest {
@@ -28,6 +28,19 @@ impl From<RunnerResponse> for RunnerServerResponse {
             owner_id: response.owner_id,
             owner_type: response.owner_type.into(),
             created_at: response.created_at,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct CreateRunnerServerResponse {
+    pub token: String,
+}
+
+impl From<CreateRunnerResponse> for CreateRunnerServerResponse {
+    fn from(response: CreateRunnerResponse) -> Self {
+        Self {
+            token: response.token,
         }
     }
 }

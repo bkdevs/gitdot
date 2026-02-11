@@ -12,8 +12,7 @@ pub async fn create_dag(
     State(state): State<AppState>,
     Json(request): Json<CreateDagServerRequest>,
 ) -> Result<AppResponse<DagServerResponse>, AppError> {
-    let request =
-        CreateDagRequest::new(&request.repo_owner, &request.repo_name, Vec::new())?;
+    let request = CreateDagRequest::new(&request.repo_owner, &request.repo_name, Vec::new())?;
 
     state
         .dag_service
