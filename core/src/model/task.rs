@@ -2,6 +2,8 @@ use chrono::{DateTime, Utc};
 use sqlx::{FromRow, Type};
 use uuid::Uuid;
 
+use crate::error::TaskError;
+
 #[derive(Debug, Clone, FromRow)]
 pub struct Task {
     pub id: Uuid,
@@ -23,4 +25,29 @@ pub enum TaskStatus {
     Running,
     Success,
     Failure,
+}
+
+impl TryFrom<&str> for TaskStatus {
+    type Error = TaskError;
+
+    fn try_from(status: &str) -> Result<Self, Self::Error> {
+        match status {
+            "pending" => Ok(TaskStatus::Pending),
+            "running" => Ok(TaskStatus::Running),
+            "success" => Ok(TaskStatus::Success),
+            "failure" => Ok(TaskStatus::Failure),
+            _ => Err(TaskError::InvalidStatus(status.to_string())),
+        }
+    }
+}
+
+impl Into<String> for TaskStatus {
+    fn into(self) -> String {
+        match self {
+            TaskStatus::Pending => "pending".to_string(),
+            TaskStatus::Running => "running".to_string(),
+            TaskStatus::Success => "success".to_string(),
+            TaskStatus::Failure => "failure".to_string(),
+        }
+    }
 }

@@ -7,6 +7,7 @@ mod organization;
 mod question;
 mod repository;
 mod runner;
+mod task;
 mod user;
 
 pub use authorization::{AuthorizationService, AuthorizationServiceImpl};
@@ -18,4 +19,5 @@ pub use organization::{OrganizationService, OrganizationServiceImpl};
 pub use question::{QuestionService, QuestionServiceImpl};
 pub use repository::{RepositoryService, RepositoryServiceImpl};
 pub use runner::{RunnerService, RunnerServiceImpl};
+pub use task::{TaskService, TaskServiceImpl};
 pub use user::{UserService, UserServiceImpl};

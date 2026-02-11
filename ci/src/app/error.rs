@@ -5,7 +5,7 @@ use axum::{
 use serde::Serialize;
 use thiserror::Error;
 
-use gitdot_core::error::{DagError, RunnerError};
+use gitdot_core::error::{DagError, RunnerError, TaskError};
 
 use super::AppResponse;
 
@@ -16,6 +16,9 @@ pub enum AppError {
 
     #[error(transparent)]
     Dag(#[from] DagError),
+
+    #[error(transparent)]
+    Task(#[from] TaskError),
 
     #[error(transparent)]
     Internal(#[from] anyhow::Error),
@@ -52,6 +55,22 @@ impl IntoResponse for AppError {
                     DagError::InvalidRepositoryName(_) => StatusCode::BAD_REQUEST,
                     DagError::NotFound(_) => StatusCode::NOT_FOUND,
                     DagError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+                };
+                let response = AppResponse::new(
+                    status_code,
+                    AppErrorMessage {
+                        message: e.to_string(),
+                    },
+                );
+                response.into_response()
+            }
+            AppError::Task(e) => {
+                let status_code = match e {
+                    TaskError::InvalidStatus(_) => StatusCode::BAD_REQUEST,
+                    TaskError::InvalidOwnerName(_) => StatusCode::BAD_REQUEST,
+                    TaskError::InvalidRepositoryName(_) => StatusCode::BAD_REQUEST,
+                    TaskError::NotFound(_) => StatusCode::NOT_FOUND,
+                    TaskError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                 };
                 let response = AppResponse::new(
                     status_code,

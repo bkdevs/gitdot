@@ -5,6 +5,7 @@ mod organization;
 mod question;
 mod repository;
 mod runner;
+mod task;
 mod user;
 
 pub use commit::{CommitRepository, CommitRepositoryImpl};
@@ -14,4 +15,5 @@ pub use organization::{OrganizationRepository, OrganizationRepositoryImpl};
 pub use question::{QuestionRepository, QuestionRepositoryImpl};
 pub use repository::{RepositoryRepository, RepositoryRepositoryImpl};
 pub use runner::{RunnerRepository, RunnerRepositoryImpl};
+pub use task::{TaskRepository, TaskRepositoryImpl};
 pub use user::{UserRepository, UserRepositoryImpl};

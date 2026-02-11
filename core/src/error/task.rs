@@ -8,6 +8,9 @@ pub enum TaskError {
     #[error("Invalid repository name: {0}")]
     InvalidRepositoryName(String),
 
+    #[error("Invalid task status: {0}")]
+    InvalidStatus(String),
+
     #[error("Task not found: {0}")]
     NotFound(String),
 
