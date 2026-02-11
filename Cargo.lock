@@ -303,6 +303,7 @@ dependencies = [
  "dotenvy",
  "gitdot_core",
  "http",
+ "jsonwebtoken",
  "serde",
  "serde_json",
  "sqlx",

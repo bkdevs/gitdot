@@ -5,12 +5,15 @@ use axum::{
 use serde::Serialize;
 use thiserror::Error;
 
-use gitdot_core::error::{DagError, RunnerError, TaskError};
+use gitdot_core::error::{AuthorizationError, DagError, RunnerError, TaskError};
 
 use super::AppResponse;
 
 #[derive(Debug, Error)]
 pub enum AppError {
+    #[error(transparent)]
+    Authorization(#[from] AuthorizationError),
+
     #[error(transparent)]
     Runner(#[from] RunnerError),
 
@@ -32,6 +35,21 @@ pub struct AppErrorMessage {
 impl IntoResponse for AppError {
     fn into_response(self) -> Response {
         match self {
+            AppError::Authorization(e) => {
+                let status_code = match e {
+                    AuthorizationError::InvalidRequest(_) => StatusCode::BAD_REQUEST,
+                    AuthorizationError::NotFound(_) => StatusCode::NOT_FOUND,
+                    AuthorizationError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+                    _ => StatusCode::UNAUTHORIZED,
+                };
+                let response = AppResponse::new(
+                    status_code,
+                    AppErrorMessage {
+                        message: e.to_string(),
+                    },
+                );
+                response.into_response()
+            }
             AppError::Runner(e) => {
                 let status_code = match e {
                     RunnerError::InvalidRunnerName(_) => StatusCode::BAD_REQUEST,
