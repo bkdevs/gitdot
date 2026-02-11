@@ -7,7 +7,7 @@ use gitdot_core::dto::RunnerResponse;
 #[derive(Debug, Clone, Deserialize)]
 pub struct CreateRunnerServerRequest {
     pub name: String,
-    pub owner_id: Uuid,
+    pub owner_name: String,
     pub owner_type: String,
 }
 

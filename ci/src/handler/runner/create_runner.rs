@@ -1,5 +1,5 @@
 use axum::extract::{Json, State};
-use chrono::Utc;
+use gitdot_core::dto::CreateRunnerRequest;
 use http::StatusCode;
 use uuid::Uuid;
 
@@ -13,13 +13,17 @@ pub async fn create_runner(
     State(state): State<AppState>,
     Json(request): Json<CreateRunnerServerRequest>,
 ) -> Result<AppResponse<RunnerServerResponse>, AppError> {
-    let response = RunnerServerResponse {
-        id: Uuid::new_v4(),
-        name: request.name,
-        owner_id: request.owner_id,
-        owner_type: request.owner_type,
-        created_at: Utc::now(),
-    };
+    let request = CreateRunnerRequest::new(
+        &request.name,
+        Uuid::max(), // TODO: auth
+        &request.owner_name,
+        &request.owner_type,
+    )?;
 
-    Ok(AppResponse::new(StatusCode::CREATED, response))
+    state
+        .runner_service
+        .create_runner(request)
+        .await
+        .map_err(AppError::from)
+        .map(|q| AppResponse::new(StatusCode::CREATED, q.into()))
 }
