@@ -1,7 +1,7 @@
 use thiserror::Error;
 
 #[derive(Debug, Error)]
-pub enum OAuthError {
+pub enum TokenError {
     #[error("Authorization pending")]
     AuthorizationPending,
 

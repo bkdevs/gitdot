@@ -113,7 +113,7 @@ async fn authenticate_with_credential(
         .ok_or(AuthorizationError::Unauthorized)?;
 
     let user_id = app_state
-        .oauth_service
+        .token_service
         .validate_token(token)
         .await
         .map_err(|_| AuthorizationError::Unauthorized)?;

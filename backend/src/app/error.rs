@@ -6,8 +6,8 @@ use serde::Serialize;
 use thiserror::Error;
 
 use gitdot_core::error::{
-    AuthorizationError, GitHttpError, OAuthError, OrganizationError, QuestionError,
-    RepositoryError, UserError,
+    AuthorizationError, GitHttpError, OrganizationError, QuestionError, RepositoryError,
+    TokenError, UserError,
 };
 
 use super::AppResponse;
@@ -16,6 +16,9 @@ use super::AppResponse;
 pub enum AppError {
     #[error(transparent)]
     Authorization(#[from] AuthorizationError),
+
+    #[error(transparent)]
+    Token(#[from] TokenError),
 
     #[error(transparent)]
     User(#[from] UserError),
@@ -31,9 +34,6 @@ pub enum AppError {
 
     #[error(transparent)]
     GitHttp(#[from] GitHttpError),
-
-    #[error(transparent)]
-    OAuth(#[from] OAuthError),
 
     #[error(transparent)]
     Internal(#[from] anyhow::Error),
@@ -53,6 +53,24 @@ impl IntoResponse for AppError {
                     AuthorizationError::NotFound(_) => StatusCode::NOT_FOUND,
                     AuthorizationError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                     _ => StatusCode::UNAUTHORIZED,
+                };
+                let response = AppResponse::new(
+                    status_code,
+                    AppErrorMessage {
+                        message: e.to_string(),
+                    },
+                );
+                response.into_response()
+            }
+            AppError::Token(e) => {
+                let status_code = match &e {
+                    TokenError::AuthorizationPending => StatusCode::BAD_REQUEST,
+                    TokenError::ExpiredToken => StatusCode::BAD_REQUEST,
+                    TokenError::AccessDenied => StatusCode::BAD_REQUEST,
+                    TokenError::InvalidDeviceCode => StatusCode::BAD_REQUEST,
+                    TokenError::InvalidUserCode(_) => StatusCode::BAD_REQUEST,
+                    TokenError::InvalidRequest(_) => StatusCode::BAD_REQUEST,
+                    TokenError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                 };
                 let response = AppResponse::new(
                     status_code,
@@ -142,24 +160,6 @@ impl IntoResponse for AppError {
                     GitHttpError::InvalidRepositoryName(_) => StatusCode::BAD_REQUEST,
                     GitHttpError::InvalidService(_) => StatusCode::BAD_REQUEST,
                     _ => StatusCode::INTERNAL_SERVER_ERROR,
-                };
-                let response = AppResponse::new(
-                    status_code,
-                    AppErrorMessage {
-                        message: e.to_string(),
-                    },
-                );
-                response.into_response()
-            }
-            AppError::OAuth(e) => {
-                let status_code = match &e {
-                    OAuthError::AuthorizationPending => StatusCode::BAD_REQUEST,
-                    OAuthError::ExpiredToken => StatusCode::BAD_REQUEST,
-                    OAuthError::AccessDenied => StatusCode::BAD_REQUEST,
-                    OAuthError::InvalidDeviceCode => StatusCode::BAD_REQUEST,
-                    OAuthError::InvalidUserCode(_) => StatusCode::BAD_REQUEST,
-                    OAuthError::InvalidRequest(_) => StatusCode::BAD_REQUEST,
-                    OAuthError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                 };
                 let response = AppResponse::new(
                     status_code,

@@ -6,7 +6,7 @@ use uuid::Uuid;
 use crate::model::{AccessToken, DeviceAuthorization};
 
 #[async_trait]
-pub trait OAuthRepository: Send + Sync + Clone + 'static {
+pub trait TokenRepository: Send + Sync + Clone + 'static {
     async fn create_device_authorization(
         &self,
         device_code: &str,
@@ -57,18 +57,18 @@ pub trait OAuthRepository: Send + Sync + Clone + 'static {
 }
 
 #[derive(Debug, Clone)]
-pub struct OAuthRepositoryImpl {
+pub struct TokenRepositoryImpl {
     pool: PgPool,
 }
 
-impl OAuthRepositoryImpl {
+impl TokenRepositoryImpl {
     pub fn new(pool: PgPool) -> Self {
         Self { pool }
     }
 }
 
 #[async_trait]
-impl OAuthRepository for OAuthRepositoryImpl {
+impl TokenRepository for TokenRepositoryImpl {
     async fn create_device_authorization(
         &self,
         device_code: &str,

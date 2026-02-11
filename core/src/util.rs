@@ -1,3 +1,3 @@
 pub mod auth;
 pub mod git;
-pub mod oauth;
+pub mod token;

@@ -18,7 +18,7 @@ pub async fn get_device_code(
         verification_uri: state.settings.oauth_device_verification_uri.clone(),
     };
     state
-        .oauth_service
+        .token_service
         .request_device_code(request)
         .await
         .map_err(AppError::from)
