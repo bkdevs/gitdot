@@ -200,7 +200,7 @@ impl TokenRepository for TokenRepositoryImpl {
     ) -> Result<AccessToken, Error> {
         let token = sqlx::query_as::<_, AccessToken>(
             r#"
-            INSERT INTO access_tokens (user_id, client_id, token_hash)
+            INSERT INTO tokens (user_id, client_id, token_hash)
             VALUES ($1, $2, $3)
             RETURNING id, user_id, client_id, token_hash, token_type, created_at, last_used_at
             "#,
@@ -221,7 +221,7 @@ impl TokenRepository for TokenRepositoryImpl {
     ) -> Result<AccessToken, Error> {
         let token = sqlx::query_as::<_, AccessToken>(
             r#"
-            INSERT INTO access_tokens (user_id, client_id, token_hash, token_type)
+            INSERT INTO tokens (user_id, client_id, token_hash, token_type)
             VALUES ($1, '', $2, 'runner')
             RETURNING id, user_id, client_id, token_hash, token_type, created_at, last_used_at
             "#,
@@ -241,7 +241,7 @@ impl TokenRepository for TokenRepositoryImpl {
         let token = sqlx::query_as::<_, AccessToken>(
             r#"
             SELECT id, user_id, client_id, token_hash, token_type, created_at, last_used_at
-            FROM access_tokens
+            FROM tokens
             WHERE token_hash = $1
             "#,
         )
@@ -253,7 +253,7 @@ impl TokenRepository for TokenRepositoryImpl {
     }
 
     async fn touch_access_token(&self, id: Uuid) -> Result<(), Error> {
-        sqlx::query("UPDATE access_tokens SET last_used_at = NOW() WHERE id = $1")
+        sqlx::query("UPDATE tokens SET last_used_at = NOW() WHERE id = $1")
             .bind(id)
             .execute(&self.pool)
             .await?;
@@ -262,7 +262,7 @@ impl TokenRepository for TokenRepositoryImpl {
     }
 
     async fn delete_access_token(&self, id: Uuid) -> Result<(), Error> {
-        sqlx::query("DELETE FROM access_tokens WHERE id = $1")
+        sqlx::query("DELETE FROM tokens WHERE id = $1")
             .bind(id)
             .execute(&self.pool)
             .await?;
