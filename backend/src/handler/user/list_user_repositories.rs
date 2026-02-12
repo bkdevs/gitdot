@@ -3,17 +3,18 @@ use axum::{
     http::StatusCode,
 };
 
+use api::repository::RepositoryEndpointResponse;
 use gitdot_core::dto::ListUserRepositoriesRequest;
 
 use crate::app::{AppError, AppResponse, AppState, AuthenticatedUser};
-use crate::dto::RepositoryServerResponse;
+use crate::dto::RepositoryResponseWrapper;
 
 #[axum::debug_handler]
 pub async fn list_user_repositories(
     auth_user: Option<AuthenticatedUser>,
     State(state): State<AppState>,
     Path(user_name): Path<String>,
-) -> Result<AppResponse<Vec<RepositoryServerResponse>>, AppError> {
+) -> Result<AppResponse<Vec<RepositoryEndpointResponse>>, AppError> {
     let viewer_id = auth_user.map(|u| u.id);
     let request = ListUserRepositoriesRequest::new(&user_name, viewer_id)?;
     state
@@ -22,9 +23,7 @@ pub async fn list_user_repositories(
         .await
         .map_err(AppError::from)
         .map(|repos| {
-            AppResponse::new(
-                StatusCode::OK,
-                repos.into_iter().map(|r| r.into()).collect(),
-            )
+            let response: RepositoryResponseWrapper = repos.into();
+            AppResponse::new(StatusCode::OK, response.0)
         })
 }

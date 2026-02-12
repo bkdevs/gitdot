@@ -9,6 +9,7 @@ use chrono::{DateTime, Utc};
 use serde::Serialize;
 use uuid::Uuid;
 
+use api::repository::RepositoryEndpointResponse;
 use gitdot_core::dto::{CommitAuthorResponse, RepositoryCommitResponse, RepositoryResponse};
 
 pub use create_repository::CreateRepositoryServerRequest;
@@ -73,6 +74,24 @@ impl From<RepositoryCommitResponse> for RepositoryCommitServerResponse {
             date: commit.date,
             author: commit.author.into(),
         }
+    }
+}
+
+pub struct RepositoryResponseWrapper(pub Vec<RepositoryEndpointResponse>);
+impl From<Vec<RepositoryResponse>> for RepositoryResponseWrapper {
+    fn from(repos: Vec<RepositoryResponse>) -> Self {
+        RepositoryResponseWrapper(
+            repos
+                .into_iter()
+                .map(|r| RepositoryEndpointResponse {
+                    id: r.id,
+                    name: r.name,
+                    owner: r.owner,
+                    visibility: r.visibility,
+                    created_at: r.created_at,
+                })
+                .collect(),
+        )
     }
 }
 
