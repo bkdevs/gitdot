@@ -3,14 +3,14 @@ use gitdot_core::dto::CreateRunnerRequest;
 use http::StatusCode;
 
 use crate::{
-    app::{AppError, AppResponse, AppState, AuthenticatedUser},
+    app::{AppError, AppResponse, AppState, AuthenticatedUser, Jwt},
     dto::{CreateRunnerServerRequest, CreateRunnerServerResponse},
 };
 
 #[axum::debug_handler]
 pub async fn create_runner(
     State(state): State<AppState>,
-    auth_user: AuthenticatedUser,
+    auth_user: AuthenticatedUser<Jwt>,
     Json(request): Json<CreateRunnerServerRequest>,
 ) -> Result<AppResponse<CreateRunnerServerResponse>, AppError> {
     let request = CreateRunnerRequest::new(

@@ -33,6 +33,8 @@ use crate::handler::{create_dag_router, create_runner_router, create_task_router
 
 pub use app_state::AppState;
 pub use auth::AuthenticatedUser;
+pub use auth::Jwt;
+pub use auth::Token;
 pub use error::AppError;
 pub use response::AppResponse;
 pub use settings::Settings;
