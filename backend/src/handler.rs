@@ -1,17 +1,17 @@
 cfg_modules!("main", {
+    mod organization;
+    mod user;
+    pub use organization::*;
+    pub use user::*;
     mod git_http;
+    mod repository;
+    pub use repository::*;
     pub mod legacy_repository;
     mod oauth;
-    mod organization;
     mod question;
-    mod repository;
-    mod user;
     pub use git_http::*;
     pub use oauth::*;
-    pub use organization::*;
     pub use question::*;
-    pub use repository::*;
-    pub use user::*;
 });
 
 cfg_modules!("ci", {

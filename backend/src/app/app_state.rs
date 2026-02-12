@@ -4,20 +4,21 @@ use axum::extract::FromRef;
 use sqlx::PgPool;
 
 use gitdot_core::repository::TokenRepositoryImpl;
+use gitdot_core::repository::{
+    OrganizationRepositoryImpl, QuestionRepositoryImpl, RepositoryRepositoryImpl,
+    UserRepositoryImpl,
+};
 use gitdot_core::service::{
-    AuthorizationService, AuthorizationServiceImpl, TokenService, TokenServiceImpl,
+    AuthorizationService, AuthorizationServiceImpl, OrganizationService, OrganizationServiceImpl,
+    TokenService, TokenServiceImpl, UserService, UserServiceImpl,
 };
 
 cfg_use!("main", {
     use gitdot_core::client::{Git2Client, GitHttpClientImpl};
-    use gitdot_core::repository::{
-        CommitRepositoryImpl, OrganizationRepositoryImpl, QuestionRepositoryImpl,
-        RepositoryRepositoryImpl, UserRepositoryImpl,
-    };
+    use gitdot_core::repository::CommitRepositoryImpl;
     use gitdot_core::service::{
-        CommitService, CommitServiceImpl, GitHttpService, GitHttpServiceImpl, OrganizationService,
-        OrganizationServiceImpl, QuestionService, QuestionServiceImpl, RepositoryService,
-        RepositoryServiceImpl, UserService, UserServiceImpl,
+        CommitService, CommitServiceImpl, GitHttpService, GitHttpServiceImpl, QuestionService,
+        QuestionServiceImpl, RepositoryService, RepositoryServiceImpl,
     };
 });
 
@@ -34,15 +35,14 @@ use super::Settings;
 pub struct AppState {
     pub settings: Arc<Settings>,
 
-    pub auth_service: Arc<dyn AuthorizationService>,
     pub token_service: Arc<dyn TokenService>,
+    pub auth_service: Arc<dyn AuthorizationService>,
+
+    pub user_service: Arc<dyn UserService>,
+    pub org_service: Arc<dyn OrganizationService>,
 
     #[cfg(feature = "main")]
     pub git_http_service: Arc<dyn GitHttpService>,
-    #[cfg(feature = "main")]
-    pub user_service: Arc<dyn UserService>,
-    #[cfg(feature = "main")]
-    pub org_service: Arc<dyn OrganizationService>,
     #[cfg(feature = "main")]
     pub repo_service: Arc<dyn RepositoryService>,
     #[cfg(feature = "main")]
@@ -61,19 +61,15 @@ pub struct AppState {
 impl AppState {
     pub fn new(settings: Arc<Settings>, pool: PgPool) -> Self {
         let token_repo = TokenRepositoryImpl::new(pool.clone());
+        let user_repo = UserRepositoryImpl::new(pool.clone());
+        let org_repo = OrganizationRepositoryImpl::new(pool.clone());
+        let repo_repo = RepositoryRepositoryImpl::new(pool.clone());
+        let question_repo = QuestionRepositoryImpl::new(pool.clone());
 
         #[cfg(feature = "main")]
         let git_client = Git2Client::new(settings.git_project_root.clone());
         #[cfg(feature = "main")]
         let git_http_client = GitHttpClientImpl::new(settings.git_project_root.clone());
-        #[cfg(feature = "main")]
-        let org_repo = OrganizationRepositoryImpl::new(pool.clone());
-        #[cfg(feature = "main")]
-        let user_repo = UserRepositoryImpl::new(pool.clone());
-        #[cfg(feature = "main")]
-        let repo_repo = RepositoryRepositoryImpl::new(pool.clone());
-        #[cfg(feature = "main")]
-        let question_repo = QuestionRepositoryImpl::new(pool.clone());
         #[cfg(feature = "main")]
         let commit_repo = CommitRepositoryImpl::new(pool.clone());
 
@@ -86,23 +82,20 @@ impl AppState {
 
         Self {
             settings,
-
+            token_service: Arc::new(TokenServiceImpl::new(token_repo.clone(), user_repo.clone())),
             auth_service: Arc::new(AuthorizationServiceImpl::new(
                 org_repo.clone(),
                 repo_repo.clone(),
                 question_repo.clone(),
                 user_repo.clone(),
             )),
-            token_service: Arc::new(TokenServiceImpl::new(token_repo.clone(), user_repo.clone())),
-
-            #[cfg(feature = "main")]
             user_service: Arc::new(UserServiceImpl::new(user_repo.clone(), repo_repo.clone())),
-            #[cfg(feature = "main")]
             org_service: Arc::new(OrganizationServiceImpl::new(
                 org_repo.clone(),
                 user_repo.clone(),
                 repo_repo.clone(),
             )),
+
             #[cfg(feature = "main")]
             repo_service: Arc::new(RepositoryServiceImpl::new(
                 git_client.clone(),
@@ -111,14 +104,14 @@ impl AppState {
                 user_repo.clone(),
             )),
             #[cfg(feature = "main")]
+            git_http_service: Arc::new(GitHttpServiceImpl::new(git_http_client.clone())),
+            #[cfg(feature = "main")]
             question_service: Arc::new(QuestionServiceImpl::new(
                 question_repo.clone(),
                 repo_repo.clone(),
             )),
             #[cfg(feature = "main")]
             commit_service: Arc::new(CommitServiceImpl::new(commit_repo.clone())),
-            #[cfg(feature = "main")]
-            git_http_service: Arc::new(GitHttpServiceImpl::new(git_http_client.clone())),
 
             #[cfg(feature = "ci")]
             runner_service: Arc::new(RunnerServiceImpl::new(
