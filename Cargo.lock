@@ -810,6 +810,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "gitdot_runner"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "gitdot_core",
+ "serde",
+ "tokio",
+ "toml",
+]
+
+[[package]]
 name = "gitdot_server"
 version = "0.1.0"
 dependencies = [
@@ -1942,10 +1954,6 @@ dependencies = [
  "subtle",
  "zeroize",
 ]
-
-[[package]]
-name = "runner"
-version = "0.1.0"
 
 [[package]]
 name = "rustc-hash"
