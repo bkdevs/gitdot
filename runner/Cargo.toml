@@ -14,4 +14,5 @@ clap = { version = "4.5.54", features = ["derive"] }
 gitdot_core = { path = "../core" }
 serde = { workspace = true }
 tokio = { workspace = true }
+reqwest = { version = "0.13.1", features = ["json"] }
 toml = "0.9.11"

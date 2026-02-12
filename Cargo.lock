@@ -816,6 +816,7 @@ dependencies = [
  "anyhow",
  "clap",
  "gitdot_core",
+ "reqwest",
  "serde",
  "tokio",
  "toml",

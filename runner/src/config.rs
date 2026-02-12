@@ -7,7 +7,14 @@ const CONFIG_DIR_NAME: &str = "gitdot-runner";
 const CONFIG_FILE_NAME: &str = "config.toml";
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct Config {}
+pub struct Config {
+    #[serde(default = "default_gitdot_server_url")]
+    pub gitdot_server_url: String,
+}
+
+fn default_gitdot_server_url() -> String {
+    "https://api.gitdot.io".to_string()
+}
 
 impl Config {
     pub async fn load() -> anyhow::Result<Self> {
