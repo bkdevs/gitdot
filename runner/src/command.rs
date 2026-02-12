@@ -1,8 +1,17 @@
+mod install;
 mod register;
+mod run;
+mod start;
+mod stop;
 
+use install::install;
+use register::register;
+use run::run;
+use start::start;
+use stop::stop;
+
+use crate::config::Config;
 use clap::{Parser, Subcommand};
-
-pub use register::register;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -28,4 +37,16 @@ pub enum Commands {
 
     /// Stop the runner daemon
     Stop {},
+}
+
+impl Commands {
+    pub async fn execute(&self, mut config: Config) -> anyhow::Result<()> {
+        match self {
+            Commands::Register {} => register(config).await,
+            Commands::Run {} => run(config).await,
+            Commands::Install {} => install(config).await,
+            Commands::Start {} => start(config).await,
+            Commands::Stop {} => stop(config).await,
+        }
+    }
 }
