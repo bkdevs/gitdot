@@ -13,8 +13,6 @@ impl Endpoint for GetUser {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct GetUserEndpointRequest {
-    pub user_name: String,
-}
+pub struct GetUserEndpointRequest {}
 
 impl EndpointRequest for GetUserEndpointRequest {}
