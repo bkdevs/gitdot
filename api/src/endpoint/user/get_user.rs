@@ -1,18 +1,23 @@
 use super::UserEndpointResponse;
-use crate::endpoint::{Endpoint, Method};
+use crate::endpoint::{Endpoint, EndpointRequest, Method};
 use serde::{Deserialize, Serialize};
 
 struct GetUser;
 
 impl Endpoint for GetUser {
-    type Request = GetUserRequest;
+    type Request = GetUserEndpointRequest;
     type Response = UserEndpointResponse;
 
     const METHOD: Method = Method::GET;
-    const PATH: &'static str = "/api/users/{id}";
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct GetUserRequest {
-    pub user_id: u64,
+struct GetUserEndpointRequest {
+    pub user_name: String,
+}
+
+impl EndpointRequest for GetUserEndpointRequest {
+    fn url(&self) -> String {
+        format!("/user/{}", self.user_name)
+    }
 }

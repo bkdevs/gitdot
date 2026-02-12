@@ -1,10 +1,17 @@
+use serde::{Deserialize, Serialize};
+
 pub trait Endpoint {
-    type Request;
-    type Response;
+    type Request: EndpointRequest;
+    type Response: EndpointResponse;
 
     const METHOD: Method;
-    const PATH: &'static str;
 }
+
+pub trait EndpointRequest: Serialize + for<'de> Deserialize<'de> {
+    fn url(&self) -> String;
+}
+
+pub trait EndpointResponse: Serialize + for<'de> Deserialize<'de> {}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Method {
@@ -13,6 +20,7 @@ pub enum Method {
     PUT,
     DELETE,
     PATCH,
+    HEAD,
 }
 
 impl Method {
@@ -23,6 +31,7 @@ impl Method {
             Method::PUT => "PUT",
             Method::DELETE => "DELETE",
             Method::PATCH => "PATCH",
+            Method::HEAD => "HEAD",
         }
     }
 }
