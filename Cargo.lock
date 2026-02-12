@@ -87,7 +87,9 @@ name = "api"
 version = "0.1.0"
 dependencies = [
  "chrono",
+ "http",
  "serde",
+ "serde_json",
  "uuid",
 ]
 
@@ -836,6 +838,7 @@ name = "gitdot_server"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "api",
  "axum",
  "base64",
  "chrono",

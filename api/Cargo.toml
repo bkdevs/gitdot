@@ -5,5 +5,7 @@ edition = "2024"
 
 [dependencies]
 chrono = { workspace = true }
+http = "1.4.0"
 serde = { workspace = true }
+serde_json = { workspace = true }
 uuid = { workspace = true }

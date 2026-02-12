@@ -2,6 +2,7 @@ mod app_state;
 mod auth;
 mod bootstrap;
 mod error;
+mod extractor;
 mod response;
 mod settings;
 
@@ -36,6 +37,7 @@ pub use auth::AuthenticatedUser;
 pub use auth::Jwt;
 pub use auth::Token;
 pub use error::AppError;
+pub use extractor::Ext;
 pub use response::AppResponse;
 pub use settings::Settings;
 
