@@ -8,8 +8,10 @@ pub trait Endpoint {
     type Response: Serialize + for<'de> Deserialize<'de>;
 }
 
+pub mod organization;
 pub mod repository;
 pub mod user;
 
+pub use organization::*;
 pub use repository::*;
 pub use user::*;

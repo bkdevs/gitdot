@@ -1,20 +1,23 @@
+use crate::{
+    app::{AppError, AppResponse, AppState, AuthenticatedUser},
+    dto::IntoApi,
+};
 use axum::{
-    extract::{Json, Path, State},
+    Json,
+    extract::{Path, State},
     http::StatusCode,
 };
 
+use api::endpoint::add_member as api;
 use gitdot_core::dto::{AddMemberRequest, OrganizationAuthorizationRequest};
-
-use crate::app::{AppError, AppResponse, AppState, AuthenticatedUser};
-use crate::dto::{AddMemberServerRequest, AddMemberServerResponse};
 
 #[axum::debug_handler]
 pub async fn add_member(
     auth_user: AuthenticatedUser,
     State(state): State<AppState>,
     Path(org_name): Path<String>,
-    Json(body): Json<AddMemberServerRequest>,
-) -> Result<AppResponse<AddMemberServerResponse>, AppError> {
+    Json(body): Json<api::AddMemberRequest>,
+) -> Result<AppResponse<api::AddMemberResponse>, AppError> {
     let auth_request = OrganizationAuthorizationRequest::new(auth_user.id, &org_name)?;
     state
         .auth_service
@@ -27,5 +30,5 @@ pub async fn add_member(
         .add_member(request)
         .await
         .map_err(AppError::from)
-        .map(|response| AppResponse::new(StatusCode::CREATED, response.into()))
+        .map(|response| AppResponse::new(StatusCode::CREATED, response.into_api()))
 }
