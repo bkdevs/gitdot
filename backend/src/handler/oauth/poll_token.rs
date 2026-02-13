@@ -1,18 +1,20 @@
+use crate::{
+    app::{AppError, AppResponse, AppState},
+    dto::IntoApi,
+};
 use axum::{
     extract::{Json, State},
     http::StatusCode,
 };
 
+use api::endpoint::oauth::poll_token as api;
 use gitdot_core::dto::PollTokenRequest;
-
-use crate::app::{AppError, AppResponse, AppState};
-use crate::dto::{PollTokenServerRequest, TokenServerResponse};
 
 #[axum::debug_handler]
 pub async fn poll_token(
     State(state): State<AppState>,
-    Json(body): Json<PollTokenServerRequest>,
-) -> Result<AppResponse<TokenServerResponse>, AppError> {
+    Json(body): Json<api::PollTokenRequest>,
+) -> Result<AppResponse<api::PollTokenResponse>, AppError> {
     let request = PollTokenRequest {
         device_code: body.device_code,
         client_id: body.client_id,
@@ -22,5 +24,5 @@ pub async fn poll_token(
         .poll_token(request)
         .await
         .map_err(AppError::from)
-        .map(|token| AppResponse::new(StatusCode::CREATED, token.into()))
+        .map(|token| AppResponse::new(StatusCode::CREATED, token.into_api()))
 }

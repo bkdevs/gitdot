@@ -1,18 +1,17 @@
+use crate::app::{AppError, AppResponse, AppState, AuthenticatedUser};
 use axum::{
     extract::{Json, State},
     http::StatusCode,
 };
 
+use api::endpoint::oauth::authorize_device as api;
 use gitdot_core::dto::AuthorizeDeviceRequest;
-
-use crate::app::{AppError, AppResponse, AppState, AuthenticatedUser};
-use crate::dto::AuthorizeDeviceServerRequest;
 
 #[axum::debug_handler]
 pub async fn authorize_device(
     auth_user: AuthenticatedUser,
     State(state): State<AppState>,
-    Json(body): Json<AuthorizeDeviceServerRequest>,
+    Json(body): Json<api::AuthorizeDeviceRequest>,
 ) -> Result<AppResponse<()>, AppError> {
     let request = AuthorizeDeviceRequest::new(&body.user_code, auth_user.id)?;
     state
