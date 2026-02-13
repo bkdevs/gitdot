@@ -1,6 +1,6 @@
 pub mod create_repository;
 pub mod get_repository_commit;
-pub mod get_repository_commit_diffs;
+pub mod get_repository_commit_diff;
 pub mod get_repository_commits;
 pub mod get_repository_file;
 pub mod get_repository_file_commits;
