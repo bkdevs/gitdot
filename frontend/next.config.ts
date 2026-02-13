@@ -2,6 +2,9 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
+  experimental: {
+    proxyClientMaxBodySize: "2gb",
+  },
   async redirects() {
     return [
       {
