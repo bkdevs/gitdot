@@ -68,6 +68,20 @@ pub trait GitClient: Send + Sync + Clone + 'static {
         preview_lines: u32,
     ) -> Result<RepositoryPreviewResponse, GitError>;
 
+    async fn get_repo_diff(
+        &self,
+        owner: &str,
+        repo: &str,
+        left_ref: &str,
+        right_ref: &str,
+    ) -> Result<
+        Vec<(
+            Option<RepositoryFileResponse>,
+            Option<RepositoryFileResponse>,
+        )>,
+        GitError,
+    >;
+
     fn normalize_repo_name(&self, repo: &str) -> String {
         format!(
             "{}{}",
@@ -233,6 +247,39 @@ impl Git2Client {
 
     fn is_binary(data: &[u8]) -> bool {
         data.iter().take(8000).any(|&b| b == 0)
+    }
+
+    fn blob_to_response(
+        blob: &git2::Blob,
+        owner: &str,
+        name: &str,
+        ref_name: &str,
+        path: &str,
+        commit_sha: &str,
+    ) -> RepositoryFileResponse {
+        let content_bytes = blob.content();
+        let sha = blob.id().to_string();
+
+        let (content, encoding) = if Self::is_binary(content_bytes) {
+            use base64::prelude::*;
+            (BASE64_STANDARD.encode(content_bytes), "base64".to_string())
+        } else {
+            (
+                String::from_utf8_lossy(content_bytes).to_string(),
+                "utf-8".to_string(),
+            )
+        };
+
+        RepositoryFileResponse {
+            name: name.to_string(),
+            owner: owner.to_string(),
+            ref_name: ref_name.to_string(),
+            path: path.to_string(),
+            commit_sha: commit_sha.to_string(),
+            sha,
+            content,
+            encoding,
+        }
     }
 
     fn walk_tree(
@@ -469,31 +516,16 @@ impl GitClient for Git2Client {
             let commit = Self::resolve_ref(&repository, &ref_name)?;
             let commit_sha = commit.id().to_string();
             let tree = commit.tree()?;
-
             let blob = Self::get_blob(&repository, &tree, &path)?;
-            let content_bytes = blob.content();
-            let sha = blob.id().to_string();
 
-            let (content, encoding) = if Self::is_binary(content_bytes) {
-                use base64::prelude::*;
-                (BASE64_STANDARD.encode(content_bytes), "base64".to_string())
-            } else {
-                (
-                    String::from_utf8_lossy(content_bytes).to_string(),
-                    "utf-8".to_string(),
-                )
-            };
-
-            Ok(RepositoryFileResponse {
-                name: repo,
-                owner,
-                ref_name,
-                path,
-                commit_sha,
-                sha,
-                content,
-                encoding,
-            })
+            Ok(Self::blob_to_response(
+                &blob,
+                &owner,
+                &repo,
+                &ref_name,
+                &path,
+                &commit_sha,
+            ))
         })
         .await?
     }
@@ -701,6 +733,89 @@ impl GitClient for Git2Client {
                 commit_sha,
                 entries,
             })
+        })
+        .await?
+    }
+
+    async fn get_repo_diff(
+        &self,
+        owner: &str,
+        repo: &str,
+        left_ref: &str,
+        right_ref: &str,
+    ) -> Result<
+        Vec<(
+            Option<RepositoryFileResponse>,
+            Option<RepositoryFileResponse>,
+        )>,
+        GitError,
+    > {
+        let owner = owner.to_string();
+        let repo = repo.to_string();
+        let left_ref = left_ref.to_string();
+        let right_ref = right_ref.to_string();
+        let repository = self.open_repository(&owner, &repo)?;
+
+        task::spawn_blocking(move || {
+            let left_commit = Self::resolve_ref(&repository, &left_ref)?;
+            let right_commit = Self::resolve_ref(&repository, &right_ref)?;
+
+            let left_tree = left_commit.tree()?;
+            let right_tree = right_commit.tree()?;
+            let left_sha = left_commit.id().to_string();
+            let right_sha = right_commit.id().to_string();
+
+            let mut diff_opts = git2::DiffOptions::new();
+            let mut diff = repository.diff_tree_to_tree(
+                Some(&left_tree),
+                Some(&right_tree),
+                Some(&mut diff_opts),
+            )?;
+
+            let mut find_opts = git2::DiffFindOptions::new();
+            find_opts.renames(true);
+            find_opts.rename_threshold(50);
+            diff.find_similar(Some(&mut find_opts))?;
+
+            let mut results = Vec::new();
+
+            for delta in diff.deltas() {
+                let status = delta.status();
+
+                let left = if status != git2::Delta::Added {
+                    delta
+                        .old_file()
+                        .path()
+                        .and_then(|p| p.to_str())
+                        .and_then(|path| {
+                            let blob = Self::get_blob(&repository, &left_tree, path).ok()?;
+                            Some(Self::blob_to_response(
+                                &blob, &owner, &repo, &left_ref, path, &left_sha,
+                            ))
+                        })
+                } else {
+                    None
+                };
+
+                let right = if status != git2::Delta::Deleted {
+                    delta
+                        .new_file()
+                        .path()
+                        .and_then(|p| p.to_str())
+                        .and_then(|path| {
+                            let blob = Self::get_blob(&repository, &right_tree, path).ok()?;
+                            Some(Self::blob_to_response(
+                                &blob, &owner, &repo, &right_ref, path, &right_sha,
+                            ))
+                        })
+                } else {
+                    None
+                };
+
+                results.push((left, right));
+            }
+
+            Ok(results)
         })
         .await?
     }
