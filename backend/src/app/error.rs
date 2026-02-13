@@ -1,3 +1,4 @@
+use api::ApiResource;
 use axum::{
     http::StatusCode,
     response::{IntoResponse, Response},
@@ -52,6 +53,7 @@ pub enum AppError {
 pub struct AppErrorMessage {
     pub message: String,
 }
+impl ApiResource for AppErrorMessage {}
 
 impl IntoResponse for AppError {
     fn into_response(self) -> Response {
