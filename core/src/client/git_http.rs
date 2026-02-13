@@ -1,6 +1,7 @@
-use async_trait::async_trait;
 use std::io::Write;
 use std::process::{Command, Stdio};
+
+use async_trait::async_trait;
 
 use crate::dto::GitHttpResponse;
 use crate::error::GitHttpError;

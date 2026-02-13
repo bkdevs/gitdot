@@ -4,8 +4,7 @@ use crate::dto::{
     CreateRunnerRequest, CreateRunnerResponse, DeleteRunnerRequest, RegisterRunnerRequest,
 };
 use crate::error::RunnerError;
-use crate::model::RunnerOwnerType;
-use crate::model::TokenType;
+use crate::model::{RunnerOwnerType, TokenType};
 use crate::repository::{
     OrganizationRepository, OrganizationRepositoryImpl, RunnerRepository, RunnerRepositoryImpl,
     TokenRepository, TokenRepositoryImpl,
