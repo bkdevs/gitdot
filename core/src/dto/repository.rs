@@ -80,3 +80,43 @@ impl From<&git2::Commit<'_>> for RepositoryCommitResponse {
         }
     }
 }
+
+#[derive(Debug, Clone)]
+pub struct RepositoryDiffResponse {
+    pub lines_added: u32,
+    pub lines_removed: u32,
+    pub hunks: Vec<DiffHunk>,
+}
+
+pub type DiffHunk = Vec<DiffPair>;
+
+#[derive(Debug, Clone)]
+pub struct DiffPair {
+    pub lhs: Option<DiffLine>,
+    pub rhs: Option<DiffLine>,
+}
+
+#[derive(Debug, Clone)]
+pub struct DiffLine {
+    pub line_number: u32,
+    pub changes: Vec<DiffChange>,
+}
+
+#[derive(Debug, Clone)]
+pub struct DiffChange {
+    pub start: u32,
+    pub end: u32,
+    pub content: String,
+    pub highlight: SyntaxHighlight,
+}
+
+#[derive(Debug, Clone)]
+pub enum SyntaxHighlight {
+    Delimiter,
+    Normal,
+    String,
+    Type,
+    Comment,
+    Keyword,
+    TreeSitterError,
+}

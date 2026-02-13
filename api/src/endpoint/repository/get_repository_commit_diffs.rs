@@ -1,5 +1,5 @@
 use crate::endpoint::Endpoint;
-use crate::resource::repository::RepositoryDiffResource;
+use crate::resource::repository::RepositoryCommitDiffResource;
 use serde::{Deserialize, Serialize};
 
 pub struct GetRepositoryCommitDiffs;
@@ -26,4 +26,4 @@ pub enum GetRepositoryCommitDiffsFormat {
     Full,
 }
 
-pub type GetRepositoryCommitDiffsResponse = RepositoryDiffResource;
+pub type GetRepositoryCommitDiffsResponse = Vec<RepositoryCommitDiffResource>;
