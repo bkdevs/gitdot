@@ -251,8 +251,6 @@ impl Git2Client {
 
     fn blob_to_response(
         blob: &git2::Blob,
-        owner: &str,
-        name: &str,
         ref_name: &str,
         path: &str,
         commit_sha: &str,
@@ -271,8 +269,6 @@ impl Git2Client {
         };
 
         RepositoryFileResponse {
-            name: name.to_string(),
-            owner: owner.to_string(),
             ref_name: ref_name.to_string(),
             path: path.to_string(),
             commit_sha: commit_sha.to_string(),
@@ -462,10 +458,8 @@ impl GitClient for Git2Client {
         repo: &str,
         ref_name: &str,
     ) -> Result<RepositoryTreeResponse, GitError> {
-        let owner = owner.to_string();
-        let repo = repo.to_string();
         let ref_name = ref_name.to_string();
-        let repository = self.open_repository(&owner, &repo)?;
+        let repository = self.open_repository(owner, repo)?;
 
         task::spawn_blocking(move || {
             let commit = Self::resolve_ref(&repository, &ref_name)?;
@@ -489,8 +483,6 @@ impl GitClient for Git2Client {
             )?;
 
             Ok(RepositoryTreeResponse {
-                name: repo,
-                owner,
                 ref_name,
                 commit_sha,
                 entries,
@@ -518,14 +510,7 @@ impl GitClient for Git2Client {
             let tree = commit.tree()?;
             let blob = Self::get_blob(&repository, &tree, &path)?;
 
-            Ok(Self::blob_to_response(
-                &blob,
-                &owner,
-                &repo,
-                &ref_name,
-                &path,
-                &commit_sha,
-            ))
+            Ok(Self::blob_to_response(&blob, &ref_name, &path, &commit_sha))
         })
         .await?
     }
@@ -713,10 +698,8 @@ impl GitClient for Git2Client {
         ref_name: &str,
         preview_lines: u32,
     ) -> Result<RepositoryPreviewResponse, GitError> {
-        let owner = owner.to_string();
-        let repo = repo.to_string();
         let ref_name = ref_name.to_string();
-        let repository = self.open_repository(&owner, &repo)?;
+        let repository = self.open_repository(owner, repo)?;
 
         task::spawn_blocking(move || {
             let commit = Self::resolve_ref(&repository, &ref_name)?;
@@ -727,8 +710,6 @@ impl GitClient for Git2Client {
             Self::walk_tree_with_preview(&repository, &tree, "", &mut entries, preview_lines)?;
 
             Ok(RepositoryPreviewResponse {
-                name: repo,
-                owner,
                 ref_name,
                 commit_sha,
                 entries,
@@ -789,9 +770,7 @@ impl GitClient for Git2Client {
                         .and_then(|p| p.to_str())
                         .and_then(|path| {
                             let blob = Self::get_blob(&repository, &left_tree, path).ok()?;
-                            Some(Self::blob_to_response(
-                                &blob, &owner, &repo, &left_ref, path, &left_sha,
-                            ))
+                            Some(Self::blob_to_response(&blob, &left_ref, path, &left_sha))
                         })
                 } else {
                     None
@@ -804,9 +783,7 @@ impl GitClient for Git2Client {
                         .and_then(|p| p.to_str())
                         .and_then(|path| {
                             let blob = Self::get_blob(&repository, &right_tree, path).ok()?;
-                            Some(Self::blob_to_response(
-                                &blob, &owner, &repo, &right_ref, path, &right_sha,
-                            ))
+                            Some(Self::blob_to_response(&blob, &right_ref, path, &right_sha))
                         })
                 } else {
                     None

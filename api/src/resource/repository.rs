@@ -36,8 +36,6 @@ pub struct CommitAuthorResource {
 
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RepositoryFileResource {
-    pub name: String,
-    pub owner: String,
     pub ref_name: String,
     pub path: String,
     pub commit_sha: String,
@@ -48,8 +46,6 @@ pub struct RepositoryFileResource {
 
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RepositoryPreviewResource {
-    pub name: String,
-    pub owner: String,
     pub ref_name: String,
     pub commit_sha: String,
     pub entries: Vec<RepositoryPreviewEntryResource>,
@@ -74,8 +70,6 @@ pub struct FilePreviewResource {
 
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RepositoryTreeResource {
-    pub name: String,
-    pub owner: String,
     pub ref_name: String,
     pub commit_sha: String,
     pub entries: Vec<RepositoryTreeEntryResource>,

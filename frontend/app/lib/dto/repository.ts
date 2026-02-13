@@ -198,8 +198,6 @@ export type RepositoryPreviewEntry = z.infer<
 >;
 
 export const RepositoryPreviewSchema = z.object({
-  name: z.string(),
-  owner: z.string(),
   ref_name: z.string(),
   commit_sha: z.string(),
   entries: z.array(RepositoryPreviewEntrySchema),

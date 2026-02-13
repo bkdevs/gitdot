@@ -57,8 +57,6 @@ impl IntoApi for RepositoryFileResponse {
     type ApiType = api::RepositoryFileResource;
     fn into_api(self) -> Self::ApiType {
         api::RepositoryFileResource {
-            name: self.name,
-            owner: self.owner,
             ref_name: self.ref_name,
             path: self.path,
             commit_sha: self.commit_sha,
@@ -73,8 +71,6 @@ impl IntoApi for RepositoryPreviewResponse {
     type ApiType = api::RepositoryPreviewResource;
     fn into_api(self) -> Self::ApiType {
         api::RepositoryPreviewResource {
-            name: self.name,
-            owner: self.owner,
             ref_name: self.ref_name,
             commit_sha: self.commit_sha,
             entries: self.entries.into_api(),
@@ -111,8 +107,6 @@ impl IntoApi for RepositoryTreeResponse {
     type ApiType = api::RepositoryTreeResource;
     fn into_api(self) -> Self::ApiType {
         api::RepositoryTreeResource {
-            name: self.name,
-            owner: self.owner,
             ref_name: self.ref_name,
             commit_sha: self.commit_sha,
             entries: self.entries.into_api(),

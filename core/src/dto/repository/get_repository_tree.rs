@@ -26,8 +26,6 @@ impl GetRepositoryTreeRequest {
 
 #[derive(Debug, Clone)]
 pub struct RepositoryTreeResponse {
-    pub name: String,
-    pub owner: String,
     pub ref_name: String,
     pub commit_sha: String,
     pub entries: Vec<RepositoryTreeEntry>,

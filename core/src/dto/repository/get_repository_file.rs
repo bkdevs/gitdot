@@ -29,8 +29,6 @@ impl GetRepositoryFileRequest {
 
 #[derive(Debug, Clone)]
 pub struct RepositoryFileResponse {
-    pub name: String,
-    pub owner: String,
     pub ref_name: String,
     pub path: String,
     pub commit_sha: String,
