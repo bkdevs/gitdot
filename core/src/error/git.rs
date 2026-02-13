@@ -10,4 +10,5 @@ pub enum GitError {
 
     #[error("Task join error: {0}")]
     JoinError(#[from] tokio::task::JoinError),
+
 }

@@ -1,6 +1,7 @@
 mod authorization;
 mod commit;
 mod dag;
+mod diff;
 mod git;
 mod git_http;
 mod organization;
@@ -14,6 +15,7 @@ mod user;
 pub use authorization::AuthorizationError;
 pub use commit::CommitError;
 pub use dag::DagError;
+pub use diff::DiffError;
 pub use git::GitError;
 pub use git_http::GitHttpError;
 pub use organization::OrganizationError;
