@@ -1,4 +1,5 @@
 mod create_repository;
+mod get_repository_commit;
 mod get_repository_commits;
 mod get_repository_file;
 mod get_repository_file_commits;
@@ -13,6 +14,7 @@ use axum::{
 use crate::app::AppState;
 
 use create_repository::create_repository;
+use get_repository_commit::get_repository_commit;
 use get_repository_commits::get_repository_commits;
 use get_repository_file::get_repository_file;
 use get_repository_file_commits::get_repository_file_commits;
@@ -31,6 +33,10 @@ pub fn create_repository_router() -> Router<AppState> {
         .route(
             "/repository/{owner}/{repo}/commits",
             get(get_repository_commits),
+        )
+        .route(
+            "/repository/{owner}/{repo}/commits/{sha}",
+            get(get_repository_commit),
         )
         .route(
             "/repository/{owner}/{repo}/file/commits",

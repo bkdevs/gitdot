@@ -34,6 +34,13 @@ pub trait GitClient: Send + Sync + Clone + 'static {
         path: &str,
     ) -> Result<RepositoryFileResponse, GitError>;
 
+    async fn get_repo_commit(
+        &self,
+        owner: &str,
+        repo: &str,
+        ref_name: &str,
+    ) -> Result<RepositoryCommitResponse, GitError>;
+
     async fn get_repo_commits(
         &self,
         owner: &str,
@@ -487,6 +494,23 @@ impl GitClient for Git2Client {
                 content,
                 encoding,
             })
+        })
+        .await?
+    }
+
+    async fn get_repo_commit(
+        &self,
+        owner: &str,
+        repo: &str,
+        ref_name: &str,
+    ) -> Result<RepositoryCommitResponse, GitError> {
+        let ref_name = ref_name.to_string();
+        let repository = self.open_repository(owner, repo)?;
+
+        task::spawn_blocking(move || {
+            let commit = Self::resolve_ref(&repository, &ref_name)?;
+
+            Ok(RepositoryCommitResponse::from(&commit))
         })
         .await?
     }

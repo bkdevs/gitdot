@@ -1,4 +1,5 @@
 mod create_repository;
+mod get_repository_commit;
 mod get_repository_commits;
 mod get_repository_file;
 mod get_repository_file_commits;
@@ -11,6 +12,7 @@ use uuid::Uuid;
 use crate::model::Repository;
 
 pub use create_repository::CreateRepositoryRequest;
+pub use get_repository_commit::GetRepositoryCommitRequest;
 pub use get_repository_commits::GetRepositoryCommitsRequest;
 pub use get_repository_file::{GetRepositoryFileRequest, RepositoryFileResponse};
 pub use get_repository_file_commits::GetRepositoryFileCommitsRequest;
