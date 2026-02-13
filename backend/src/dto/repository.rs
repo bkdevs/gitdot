@@ -1,11 +1,11 @@
-use super::IntoApi;
-
-use api::resource::repository as api;
+use gitdot_api::resource::repository as api;
 use gitdot_core::dto::{
     CommitAuthorResponse, FilePreview, RepositoryCommitResponse, RepositoryCommitsResponse,
     RepositoryFileResponse, RepositoryPreviewEntry, RepositoryPreviewResponse, RepositoryResponse,
     RepositoryTreeEntry, RepositoryTreeResponse,
 };
+
+use super::IntoApi;
 
 impl IntoApi for RepositoryResponse {
     type ApiType = api::RepositoryResource;

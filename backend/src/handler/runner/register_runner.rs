@@ -1,12 +1,13 @@
-use crate::app::{AppError, AppResponse, AppState};
 use axum::{
     extract::{Path, State},
     http::StatusCode,
 };
 use uuid::Uuid;
 
-use api::endpoint::register_runner as api;
+use gitdot_api::endpoint::register_runner as api;
 use gitdot_core::dto::RegisterRunnerRequest;
+
+use crate::app::{AppError, AppResponse, AppState};
 
 #[axum::debug_handler]
 pub async fn register_runner(

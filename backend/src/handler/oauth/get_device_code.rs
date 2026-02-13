@@ -1,14 +1,15 @@
-use crate::{
-    app::{AppError, AppResponse, AppState},
-    dto::IntoApi,
-};
 use axum::{
     extract::{Query, State},
     http::StatusCode,
 };
 
-use api::endpoint::oauth::get_device_code as api;
+use gitdot_api::endpoint::oauth::get_device_code as api;
 use gitdot_core::dto::DeviceCodeRequest;
+
+use crate::{
+    app::{AppError, AppResponse, AppState},
+    dto::IntoApi,
+};
 
 #[axum::debug_handler]
 pub async fn get_device_code(

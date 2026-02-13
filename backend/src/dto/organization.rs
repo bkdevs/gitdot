@@ -1,6 +1,8 @@
-use api::resource::organization as api;
-use gitdot_core::dto::{OrganizationMemberResponse, OrganizationResponse};
-use gitdot_core::model::OrganizationRole;
+use gitdot_api::resource::organization as api;
+use gitdot_core::{
+    dto::{OrganizationMemberResponse, OrganizationResponse},
+    model::OrganizationRole,
+};
 
 use super::IntoApi;
 

@@ -1,11 +1,12 @@
+use axum::{Json, extract::State, http::StatusCode};
+
+use gitdot_api::endpoint::update_current_user as api;
+use gitdot_core::dto::UpdateCurrentUserRequest;
+
 use crate::{
     app::{AppError, AppResponse, AppState, AuthenticatedUser},
     dto::IntoApi,
 };
-use axum::{Json, extract::State, http::StatusCode};
-
-use api::endpoint::update_current_user as api;
-use gitdot_core::dto::UpdateCurrentUserRequest;
 
 #[axum::debug_handler]
 pub async fn update_current_user(

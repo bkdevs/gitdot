@@ -2,8 +2,10 @@ use axum::extract::{Path, Query, State};
 
 use gitdot_core::dto::{GitHttpAuthorizationRequest, InfoRefsRequest};
 
-use crate::app::{AppError, AppState, AuthenticatedUser};
-use crate::dto::{GitHttpServerResponse, InfoRefsQuery};
+use crate::{
+    app::{AppError, AppState, AuthenticatedUser},
+    dto::{GitHttpServerResponse, InfoRefsQuery},
+};
 
 #[axum::debug_handler]
 pub async fn git_info_refs(

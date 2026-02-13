@@ -1,14 +1,15 @@
-use crate::{
-    app::{AppError, AppResponse, AppState},
-    dto::IntoApi,
-};
 use axum::{
     extract::{Json, State},
     http::StatusCode,
 };
 
-use api::endpoint::oauth::poll_token as api;
+use gitdot_api::endpoint::oauth::poll_token as api;
 use gitdot_core::dto::PollTokenRequest;
+
+use crate::{
+    app::{AppError, AppResponse, AppState},
+    dto::IntoApi,
+};
 
 #[axum::debug_handler]
 pub async fn poll_token(

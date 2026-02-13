@@ -1,9 +1,10 @@
-use api::ApiResource;
 use axum::{
     Json,
     http::StatusCode,
     response::{IntoResponse, Response},
 };
+
+use gitdot_api::ApiResource;
 
 #[derive(Debug, Clone)]
 pub struct AppResponse<T: ApiResource>(StatusCode, T);

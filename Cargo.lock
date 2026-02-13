@@ -83,18 +83,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a23eb6b1614318a8071c9b2521f36b424b2c83db5eb3a0fead4a6c0809af6e61"
 
 [[package]]
-name = "api"
-version = "0.1.0"
-dependencies = [
- "api_derive",
- "chrono",
- "http",
- "serde",
- "serde_json",
- "uuid",
-]
-
-[[package]]
 name = "api_derive"
 version = "0.1.0"
 dependencies = [
@@ -793,6 +781,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "gitdot_api"
+version = "0.1.0"
+dependencies = [
+ "api_derive",
+ "chrono",
+ "http",
+ "serde",
+ "serde_json",
+ "uuid",
+]
+
+[[package]]
 name = "gitdot_cli"
 version = "0.1.0"
 dependencies = [
@@ -849,12 +849,12 @@ name = "gitdot_server"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "api",
  "axum",
  "base64",
  "chrono",
  "dotenvy",
  "git2",
+ "gitdot_api",
  "gitdot_core",
  "http",
  "jsonwebtoken",

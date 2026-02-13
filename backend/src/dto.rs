@@ -1,3 +1,17 @@
+mod dag;
+mod git_http;
+mod oauth;
+mod organization;
+mod question;
+mod repository;
+mod runner;
+mod task;
+mod user;
+
+pub mod legacy_repository;
+
+pub use git_http::*;
+
 pub trait IntoApi {
     type ApiType;
     fn into_api(self) -> Self::ApiType;
@@ -22,16 +36,3 @@ where
         self.map(|item| item.into_api())
     }
 }
-
-mod dag;
-mod git_http;
-mod oauth;
-mod organization;
-mod question;
-mod repository;
-mod runner;
-mod task;
-mod user;
-
-pub mod legacy_repository;
-pub use git_http::*;

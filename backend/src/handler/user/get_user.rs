@@ -1,14 +1,15 @@
-use crate::{
-    app::{AppError, AppResponse, AppState},
-    dto::IntoApi,
-};
 use axum::{
     extract::{Path, State},
     http::StatusCode,
 };
 
-use api::endpoint::get_user as api;
+use gitdot_api::endpoint::get_user as api;
 use gitdot_core::dto::GetUserRequest;
+
+use crate::{
+    app::{AppError, AppResponse, AppState},
+    dto::IntoApi,
+};
 
 #[axum::debug_handler]
 pub async fn get_user(

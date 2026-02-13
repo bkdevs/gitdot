@@ -1,6 +1,7 @@
-use super::IntoApi;
-use api::resource::oauth as api;
+use gitdot_api::resource::oauth as api;
 use gitdot_core::dto::{DeviceCodeResponse, TokenResponse};
+
+use super::IntoApi;
 
 impl IntoApi for DeviceCodeResponse {
     type ApiType = api::DeviceCodeResource;

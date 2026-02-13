@@ -1,7 +1,7 @@
-use super::IntoApi;
-
-use api::resource::task as api;
+use gitdot_api::resource::task as api;
 use gitdot_core::dto::TaskResponse;
+
+use super::IntoApi;
 
 impl IntoApi for TaskResponse {
     type ApiType = api::TaskResource;

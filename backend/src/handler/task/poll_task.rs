@@ -1,7 +1,3 @@
-use crate::{
-    app::{AppResponse, AppState},
-    dto::IntoApi,
-};
 use axum::{
     extract::{Query, State},
     http::StatusCode,
@@ -9,8 +5,13 @@ use axum::{
 use chrono::Utc;
 use uuid::Uuid;
 
-use api::endpoint::poll_task as api;
+use gitdot_api::endpoint::poll_task as api;
 use gitdot_core::{dto::TaskResponse, model::TaskStatus};
+
+use crate::{
+    app::{AppResponse, AppState},
+    dto::IntoApi,
+};
 
 #[axum::debug_handler]
 pub async fn poll_task(

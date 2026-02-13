@@ -1,4 +1,3 @@
-use api::ApiResource;
 use axum::{
     http::StatusCode,
     response::{IntoResponse, Response},
@@ -6,6 +5,7 @@ use axum::{
 use serde::Serialize;
 use thiserror::Error;
 
+use gitdot_api::ApiResource;
 use gitdot_core::error::{
     AuthorizationError, DagError, GitHttpError, OrganizationError, QuestionError, RepositoryError,
     RunnerError, TaskError, TokenError, UserError,

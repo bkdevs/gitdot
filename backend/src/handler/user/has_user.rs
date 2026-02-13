@@ -1,11 +1,12 @@
-use crate::app::{AppError, AppResponse, AppState};
 use axum::{
     extract::{Path, State},
     http::StatusCode,
 };
 
-use api::endpoint::has_user as api;
+use gitdot_api::endpoint::has_user as api;
 use gitdot_core::dto::HasUserRequest;
+
+use crate::app::{AppError, AppResponse, AppState};
 
 pub async fn has_user(
     State(state): State<AppState>,

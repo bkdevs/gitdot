@@ -1,14 +1,15 @@
-use crate::{
-    app::{AppError, AppResponse, AppState, AuthenticatedUser},
-    dto::IntoApi,
-};
 use axum::{
     extract::{Path, State},
     http::StatusCode,
 };
 
-use api::endpoint::create_organization as api;
+use gitdot_api::endpoint::create_organization as api;
 use gitdot_core::dto::CreateOrganizationRequest;
+
+use crate::{
+    app::{AppError, AppResponse, AppState, AuthenticatedUser},
+    dto::IntoApi,
+};
 
 #[axum::debug_handler]
 pub async fn create_organization(

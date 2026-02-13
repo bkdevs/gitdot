@@ -1,14 +1,15 @@
-use crate::{
-    app::{AppError, AppResponse, AppState, AuthenticatedUser},
-    dto::IntoApi,
-};
 use axum::{
     extract::{Json, Path, State},
     http::StatusCode,
 };
 
-use api::endpoint::vote_question as api;
+use gitdot_api::endpoint::vote_question as api;
 use gitdot_core::dto::{RepositoryAuthorizationRequest, VoteQuestionRequest};
+
+use crate::{
+    app::{AppError, AppResponse, AppState, AuthenticatedUser},
+    dto::IntoApi,
+};
 
 #[axum::debug_handler]
 pub async fn vote_question(

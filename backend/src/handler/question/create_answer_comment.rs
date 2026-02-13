@@ -1,15 +1,16 @@
-use crate::{
-    app::{AppError, AppResponse, AppState, AuthenticatedUser},
-    dto::IntoApi,
-};
 use axum::{
     extract::{Json, Path, State},
     http::StatusCode,
 };
 use uuid::Uuid;
 
-use api::endpoint::create_answer_comment as api;
+use gitdot_api::endpoint::create_answer_comment as api;
 use gitdot_core::dto::{CreateAnswerCommentRequest, RepositoryAuthorizationRequest};
+
+use crate::{
+    app::{AppError, AppResponse, AppState, AuthenticatedUser},
+    dto::IntoApi,
+};
 
 #[axum::debug_handler]
 pub async fn create_answer_comment(

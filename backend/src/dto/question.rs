@@ -1,8 +1,9 @@
-use super::IntoApi;
-use api::resource::question as api;
+use gitdot_api::resource::question as api;
 use gitdot_core::dto::{
     AnswerResponse, AuthorResponse, CommentResponse, QuestionResponse, VoteResponse,
 };
+
+use super::IntoApi;
 
 impl IntoApi for QuestionResponse {
     type ApiType = api::QuestionResource;

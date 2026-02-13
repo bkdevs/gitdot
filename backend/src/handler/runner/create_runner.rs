@@ -1,14 +1,15 @@
-use crate::{
-    app::{AppError, AppResponse, AppState, AuthenticatedUser, Jwt},
-    dto::IntoApi,
-};
 use axum::{
     extract::{Json, State},
     http::StatusCode,
 };
 
-use api::endpoint::create_runner as api;
+use gitdot_api::endpoint::create_runner as api;
 use gitdot_core::dto::CreateRunnerRequest;
+
+use crate::{
+    app::{AppError, AppResponse, AppState, AuthenticatedUser, Jwt},
+    dto::IntoApi,
+};
 
 #[axum::debug_handler]
 pub async fn create_runner(

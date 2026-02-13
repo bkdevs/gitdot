@@ -7,9 +7,12 @@ use axum::{
 };
 use chrono::DateTime;
 
-use crate::app::Settings;
-use crate::dto::legacy_repository::{
-    DifftasticOutput, RepositoryCommit, RepositoryCommitDiffs, RepositoryFile, RepositoryFileDiff,
+use crate::{
+    app::Settings,
+    dto::legacy_repository::{
+        DifftasticOutput, RepositoryCommit, RepositoryCommitDiffs, RepositoryFile,
+        RepositoryFileDiff,
+    },
 };
 
 const REPO_SUFFIX: &str = ".git";

@@ -1,15 +1,16 @@
-use crate::{
-    app::{AppError, AppResponse, AppState, AuthenticatedUser},
-    dto::IntoApi,
-};
 use axum::{
     Json,
     extract::{Path, State},
     http::StatusCode,
 };
 
-use api::endpoint::add_member as api;
+use gitdot_api::endpoint::add_member as api;
 use gitdot_core::dto::{AddMemberRequest, OrganizationAuthorizationRequest};
+
+use crate::{
+    app::{AppError, AppResponse, AppState, AuthenticatedUser},
+    dto::IntoApi,
+};
 
 #[axum::debug_handler]
 pub async fn add_member(

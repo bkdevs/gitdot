@@ -19,7 +19,7 @@ base64 = { workspace = true }
 chrono = { workspace = true }
 dotenvy = "0.15.7"
 git2 = { workspace = true }
-api = { path = "../api" }
+gitdot_api = { path = "../api" }
 gitdot_core = { path = "../core" }
 http = { workspace = true }
 jsonwebtoken = { version = "10.2.0", features = ["aws_lc_rs"] }

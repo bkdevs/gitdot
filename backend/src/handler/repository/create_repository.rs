@@ -1,14 +1,15 @@
-use crate::{
-    app::{AppError, AppResponse, AppState, AuthenticatedUser},
-    dto::IntoApi,
-};
 use axum::{
     extract::{Json, Path, State},
     http::StatusCode,
 };
 
-use api::endpoint::create_repository as api;
+use gitdot_api::endpoint::create_repository as api;
 use gitdot_core::dto::{CreateRepositoryRequest, RepositoryCreationAuthorizationRequest};
+
+use crate::{
+    app::{AppError, AppResponse, AppState, AuthenticatedUser},
+    dto::IntoApi,
+};
 
 #[axum::debug_handler]
 pub async fn create_repository(

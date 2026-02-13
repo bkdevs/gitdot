@@ -3,12 +3,13 @@ use axum::{
     http::StatusCode,
 };
 
+use gitdot_api::endpoint::get_repository_commit as api;
+use gitdot_core::dto::{GetRepositoryCommitRequest, RepositoryAuthorizationRequest};
+
 use crate::{
     app::{AppError, AppResponse, AppState, AuthenticatedUser},
     dto::IntoApi,
 };
-use api::endpoint::get_repository_commit as api;
-use gitdot_core::dto::{GetRepositoryCommitRequest, RepositoryAuthorizationRequest};
 
 #[axum::debug_handler]
 pub async fn get_repository_commit(

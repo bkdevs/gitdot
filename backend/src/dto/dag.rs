@@ -1,7 +1,7 @@
-use super::IntoApi;
-
-use api::resource::dag as api;
+use gitdot_api::resource::dag as api;
 use gitdot_core::dto::DagResponse;
+
+use super::IntoApi;
 
 impl IntoApi for DagResponse {
     type ApiType = api::DagResource;

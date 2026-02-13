@@ -1,12 +1,13 @@
-use crate::app::{AppError, AppResponse, AppState};
 use axum::{
     extract::{Path, State},
     http::StatusCode,
 };
 use uuid::Uuid;
 
-use api::endpoint::delete_runner as api;
+use gitdot_api::endpoint::delete_runner as api;
 use gitdot_core::dto::DeleteRunnerRequest;
+
+use crate::app::{AppError, AppResponse, AppState};
 
 #[axum::debug_handler]
 pub async fn delete_runner(

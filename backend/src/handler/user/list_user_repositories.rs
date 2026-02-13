@@ -1,14 +1,15 @@
-use crate::{
-    app::{AppError, AppResponse, AppState, AuthenticatedUser},
-    dto::IntoApi,
-};
 use axum::{
     extract::{Path, State},
     http::StatusCode,
 };
 
-use api::endpoint::list_user_repositories as api;
+use gitdot_api::endpoint::list_user_repositories as api;
 use gitdot_core::dto::ListUserRepositoriesRequest;
+
+use crate::{
+    app::{AppError, AppResponse, AppState, AuthenticatedUser},
+    dto::IntoApi,
+};
 
 #[axum::debug_handler]
 pub async fn list_user_repositories(

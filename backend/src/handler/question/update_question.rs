@@ -1,14 +1,15 @@
-use crate::{
-    app::{AppError, AppResponse, AppState, AuthenticatedUser},
-    dto::IntoApi,
-};
 use axum::{
     extract::{Json, Path, State},
     http::StatusCode,
 };
 
-use api::endpoint::update_question as api;
+use gitdot_api::endpoint::update_question as api;
 use gitdot_core::dto::{QuestionAuthorizationRequest, UpdateQuestionRequest};
+
+use crate::{
+    app::{AppError, AppResponse, AppState, AuthenticatedUser},
+    dto::IntoApi,
+};
 
 #[axum::debug_handler]
 pub async fn update_question(

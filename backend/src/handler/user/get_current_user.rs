@@ -1,11 +1,12 @@
+use axum::{extract::State, http::StatusCode};
+
+use gitdot_api::endpoint::get_current_user as api;
+use gitdot_core::dto::GetCurrentUserRequest;
+
 use crate::{
     app::{AppError, AppResponse, AppState, AuthenticatedUser},
     dto::IntoApi,
 };
-use axum::{extract::State, http::StatusCode};
-
-use api::endpoint::get_current_user as api;
-use gitdot_core::dto::GetCurrentUserRequest;
 
 #[axum::debug_handler]
 pub async fn get_current_user(

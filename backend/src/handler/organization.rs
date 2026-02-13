@@ -2,11 +2,12 @@ mod add_member;
 mod create_organization;
 mod list_organization_repositories;
 
-use crate::app::AppState;
 use axum::{
     Router,
     routing::{get, post},
 };
+
+use crate::app::AppState;
 
 use add_member::add_member;
 use create_organization::create_organization;

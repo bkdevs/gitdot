@@ -3,10 +3,13 @@ use axum::{
     extract::{Path, State},
     http::HeaderMap,
 };
+
 use gitdot_core::dto::{GitHttpAuthorizationRequest, UploadPackRequest};
 
-use crate::app::{AppError, AppState, AuthenticatedUser};
-use crate::dto::GitHttpServerResponse;
+use crate::{
+    app::{AppError, AppState, AuthenticatedUser},
+    dto::GitHttpServerResponse,
+};
 
 #[axum::debug_handler]
 pub async fn git_upload_pack(

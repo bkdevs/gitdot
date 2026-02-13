@@ -1,4 +1,4 @@
-use api::resource::user as api;
+use gitdot_api::resource::user as api;
 use gitdot_core::dto::UserResponse;
 
 use super::IntoApi;
