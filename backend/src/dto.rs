@@ -23,20 +23,15 @@ where
     }
 }
 
-cfg_modules!("main", {
-    mod organization;
-    mod user;
-    mod repository;
-    mod git_http;
-    pub mod legacy_repository;
-    mod oauth;
-    mod question;
-    pub use git_http::*;
+mod dag;
+mod git_http;
+mod oauth;
+mod organization;
+mod question;
+mod repository;
+mod runner;
+mod task;
+mod user;
 
-});
-
-cfg_modules!("ci", {
-    mod dag;
-    mod runner;
-    mod task;
-});
+pub mod legacy_repository;
+pub use git_http::*;
