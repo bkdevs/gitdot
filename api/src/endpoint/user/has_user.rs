@@ -16,5 +16,4 @@ pub struct HasUserApiRequest {
     pub user_name: String,
 }
 
-#[derive(Default, PartialEq, Debug, Serialize, Deserialize)]
-pub struct HasUserResponse {}
+pub type HasUserResponse = ();

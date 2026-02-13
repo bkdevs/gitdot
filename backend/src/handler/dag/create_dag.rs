@@ -1,17 +1,18 @@
-use axum::extract::{Json, State};
-use gitdot_core::dto::CreateDagRequest;
-use http::StatusCode;
-
 use crate::{
     app::{AppError, AppResponse, AppState},
-    dto::{CreateDagServerRequest, DagServerResponse},
+    dto::IntoApi,
 };
+use axum::extract::{Json, State};
+use http::StatusCode;
+
+use api::endpoint::create_dag as api;
+use gitdot_core::dto::CreateDagRequest;
 
 #[axum::debug_handler]
 pub async fn create_dag(
     State(state): State<AppState>,
-    Json(request): Json<CreateDagServerRequest>,
-) -> Result<AppResponse<DagServerResponse>, AppError> {
+    Json(request): Json<api::CreateDagRequest>,
+) -> Result<AppResponse<api::CreateDagResponse>, AppError> {
     let request = CreateDagRequest::new(&request.repo_owner, &request.repo_name, Vec::new())?;
 
     state
@@ -19,5 +20,5 @@ pub async fn create_dag(
         .create_dag(request)
         .await
         .map_err(AppError::from)
-        .map(|d| AppResponse::new(StatusCode::CREATED, d.into()))
+        .map(|d| AppResponse::new(StatusCode::CREATED, d.into_api()))
 }

@@ -26,10 +26,7 @@ where
 cfg_modules!("main", {
     mod organization;
     mod user;
-    pub use organization::*;
-    pub use user::*;
     mod repository;
-    pub use repository::*;
     mod git_http;
     pub mod legacy_repository;
     mod oauth;
@@ -43,7 +40,4 @@ cfg_modules!("ci", {
     mod dag;
     mod runner;
     mod task;
-    pub use dag::*;
-    pub use runner::*;
-    pub use task::*;
 });

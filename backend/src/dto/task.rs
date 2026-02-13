@@ -1,40 +1,19 @@
-use chrono::{DateTime, Utc};
-use serde::{Deserialize, Serialize};
-use uuid::Uuid;
+use super::IntoApi;
 
+use api::resource::task as api;
 use gitdot_core::dto::TaskResponse;
 
-#[derive(Debug, Clone, Deserialize)]
-pub struct PollTaskQuery {
-    pub rid: Uuid,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-pub struct UpdateTaskServerRequest {
-    pub status: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub struct TaskServerResponse {
-    pub id: Uuid,
-    pub repo_owner: String,
-    pub repo_name: String,
-    pub script: String,
-    pub status: String,
-    pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
-}
-
-impl From<TaskResponse> for TaskServerResponse {
-    fn from(response: TaskResponse) -> Self {
-        Self {
-            id: response.id,
-            repo_owner: response.repo_owner,
-            repo_name: response.repo_name,
-            script: response.script,
-            status: response.status.into(),
-            created_at: response.created_at,
-            updated_at: response.updated_at,
+impl IntoApi for TaskResponse {
+    type ApiType = api::TaskResource;
+    fn into_api(self) -> Self::ApiType {
+        api::TaskResource {
+            id: self.id,
+            repo_owner: self.repo_owner,
+            repo_name: self.repo_name,
+            script: self.script,
+            status: self.status.into(),
+            created_at: self.created_at,
+            updated_at: self.updated_at,
         }
     }
 }

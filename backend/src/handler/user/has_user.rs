@@ -17,5 +17,5 @@ pub async fn has_user(
         .has_user(request)
         .await
         .map_err(AppError::from)
-        .map(|_| AppResponse::new(StatusCode::OK, api::HasUserResponse::default()))
+        .map(|_| AppResponse::new(StatusCode::OK, ()))
 }

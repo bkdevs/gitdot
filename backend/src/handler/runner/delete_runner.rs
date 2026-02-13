@@ -1,15 +1,18 @@
-use axum::extract::{Path, State};
-use gitdot_core::dto::DeleteRunnerRequest;
-use http::StatusCode;
+use crate::app::{AppError, AppResponse, AppState};
+use axum::{
+    extract::{Path, State},
+    http::StatusCode,
+};
 use uuid::Uuid;
 
-use crate::app::{AppError, AppResponse, AppState};
+use api::endpoint::delete_runner as api;
+use gitdot_core::dto::DeleteRunnerRequest;
 
 #[axum::debug_handler]
 pub async fn delete_runner(
     State(state): State<AppState>,
     Path(id): Path<Uuid>,
-) -> Result<AppResponse<()>, AppError> {
+) -> Result<AppResponse<api::DeleteRunnerResponse>, AppError> {
     let request = DeleteRunnerRequest::new(id);
 
     state
