@@ -5,11 +5,11 @@ mod get_repository_file_commits;
 mod get_repository_preview;
 mod get_repository_tree;
 
+use api::resource::RepositoryResource;
 use chrono::{DateTime, Utc};
 use serde::Serialize;
 use uuid::Uuid;
 
-use api::repository::RepositoryApiResponse;
 use gitdot_core::dto::{CommitAuthorResponse, RepositoryCommitResponse, RepositoryResponse};
 
 pub use create_repository::CreateRepositoryServerRequest;
@@ -18,6 +18,21 @@ pub use get_repository_file::{GetRepositoryFileQuery, GetRepositoryFileServerRes
 pub use get_repository_file_commits::GetRepositoryFileCommitsQuery;
 pub use get_repository_preview::{GetRepositoryPreviewQuery, GetRepositoryPreviewServerResponse};
 pub use get_repository_tree::{GetRepositoryTreeQuery, GetRepositoryTreeServerResponse};
+
+use super::IntoApi;
+
+impl IntoApi for RepositoryResponse {
+    type ApiType = RepositoryResource;
+    fn into_api(self) -> Self::ApiType {
+        RepositoryResource {
+            id: self.id,
+            name: self.name,
+            owner: self.owner,
+            visibility: self.visibility,
+            created_at: self.created_at,
+        }
+    }
+}
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct RepositoryServerResponse {
@@ -74,24 +89,6 @@ impl From<RepositoryCommitResponse> for RepositoryCommitServerResponse {
             date: commit.date,
             author: commit.author.into(),
         }
-    }
-}
-
-pub struct RepositoryResponseWrapper(pub Vec<RepositoryApiResponse>);
-impl From<Vec<RepositoryResponse>> for RepositoryResponseWrapper {
-    fn from(repos: Vec<RepositoryResponse>) -> Self {
-        RepositoryResponseWrapper(
-            repos
-                .into_iter()
-                .map(|r| RepositoryApiResponse {
-                    id: r.id,
-                    name: r.name,
-                    owner: r.owner,
-                    visibility: r.visibility,
-                    created_at: r.created_at,
-                })
-                .collect(),
-        )
     }
 }
 

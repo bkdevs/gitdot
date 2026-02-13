@@ -1,24 +1,22 @@
 use axum::extract::Path;
 use axum::{extract::State, http::StatusCode};
 
-use api::user::UserApiResponse;
+use crate::{
+    app::{AppError, AppResponse, AppState},
+    dto::IntoApi,
+};
 use gitdot_core::dto::GetUserRequest;
-
-use crate::app::{AppError, AppResponse, AppState};
-use crate::dto::UserResponseWrapper;
 
 #[axum::debug_handler]
 pub async fn get_user(
     State(state): State<AppState>,
     Path(user_name): Path<String>,
-) -> Result<AppResponse<UserApiResponse>, AppError> {
+) -> Result<AppResponse<api::GetUserResponse>, AppError> {
     let request = GetUserRequest::new(&user_name)?;
-    let user: UserResponseWrapper = state
+    state
         .user_service
         .get_user(request)
         .await
-        .map_err(AppError::from)?
-        .into();
-
-    Ok(AppResponse::new(StatusCode::OK, user.0))
+        .map_err(AppError::from)
+        .map(|user| AppResponse::new(StatusCode::OK, user.into_api()))
 }

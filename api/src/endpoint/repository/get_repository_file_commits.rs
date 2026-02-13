@@ -1,5 +1,5 @@
-use super::{RepositoryCommitApiResponse, default_page, default_per_page, default_ref};
-use crate::endpoint::Endpoint;
+use super::{default_page, default_per_page, default_ref};
+use crate::{endpoint::Endpoint, resource::repository::RepositoryCommitsResource};
 use serde::{Deserialize, Serialize};
 
 pub struct GetRepositoryFileCommits;
@@ -8,12 +8,12 @@ impl Endpoint for GetRepositoryFileCommits {
     const PATH: &'static str = "/repository/{owner}/{repo}/file/commits";
     const METHOD: http::Method = http::Method::GET;
 
-    type ApiRequest = GetRepositoryFileCommitsApiRequest;
-    type ApiResponse = GetRepositoryFileCommitsApiResponse;
+    type Request = GetRepositoryFileCommitsRequest;
+    type Response = GetRepositoryFileCommitsResponse;
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct GetRepositoryFileCommitsApiRequest {
+pub struct GetRepositoryFileCommitsRequest {
     pub path: String,
     #[serde(default = "default_ref")]
     pub ref_name: String,
@@ -23,8 +23,4 @@ pub struct GetRepositoryFileCommitsApiRequest {
     pub per_page: u32,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct GetRepositoryFileCommitsApiResponse {
-    pub commits: Vec<RepositoryCommitApiResponse>,
-    pub has_next: bool,
-}
+pub type GetRepositoryFileCommitsResponse = RepositoryCommitsResource;

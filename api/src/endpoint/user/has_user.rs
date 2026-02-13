@@ -7,8 +7,8 @@ impl Endpoint for HasUser {
     const PATH: &'static str = "/user/{user_name}";
     const METHOD: http::Method = http::Method::HEAD;
 
-    type ApiRequest = HasUserApiRequest;
-    type ApiResponse = HasUserApiResponse;
+    type Request = HasUserApiRequest;
+    type Response = HasUserApiResponse;
 }
 
 #[derive(Debug, Serialize, Deserialize)]

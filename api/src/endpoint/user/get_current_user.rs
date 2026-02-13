@@ -1,5 +1,5 @@
-use super::UserApiResponse;
 use crate::endpoint::Endpoint;
+use crate::resource::user::UserResource;
 use serde::{Deserialize, Serialize};
 
 pub struct GetCurrentUser;
@@ -8,9 +8,11 @@ impl Endpoint for GetCurrentUser {
     const PATH: &'static str = "/user";
     const METHOD: http::Method = http::Method::GET;
 
-    type ApiRequest = GetCurrentUserApiRequest;
-    type ApiResponse = UserApiResponse;
+    type Request = GetCurrentUserRequest;
+    type Response = GetCurrentUserResponse;
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct GetCurrentUserApiRequest {}
+pub struct GetCurrentUserRequest {}
+
+pub type GetCurrentUserResponse = UserResource;

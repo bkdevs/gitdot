@@ -1,5 +1,5 @@
 use crate::endpoint::Endpoint;
-use crate::endpoint::repository::RepositoryApiResponse;
+use crate::resource::repository::RepositoryResource;
 use serde::{Deserialize, Serialize};
 
 pub struct ListUserRepositories;
@@ -8,14 +8,11 @@ impl Endpoint for ListUserRepositories {
     const PATH: &'static str = "/user/{user_name}/repositories";
     const METHOD: http::Method = http::Method::GET;
 
-    type ApiRequest = ListUserRespositoriesApiRequest;
-    type ApiResponse = ListUserRepositoriesApiResponse;
+    type Request = ListUserRepositoriesRequest;
+    type Response = ListUserRepositoriesResponse;
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct ListUserRespositoriesApiRequest {}
+pub struct ListUserRepositoriesRequest {}
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ListUserRepositoriesApiResponse {
-    pub repositories: Vec<RepositoryApiResponse>,
-}
+pub type ListUserRepositoriesResponse = Vec<RepositoryResource>;

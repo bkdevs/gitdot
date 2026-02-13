@@ -1,15 +1,16 @@
-use api::user::UserApiResponse;
+use api::resource::UserResource;
 use gitdot_core::dto::UserResponse;
 
-pub struct UserResponseWrapper(pub UserApiResponse);
+use super::IntoApi;
 
-impl From<UserResponse> for UserResponseWrapper {
-    fn from(response: UserResponse) -> Self {
-        UserResponseWrapper(UserApiResponse {
-            id: response.id,
-            name: response.name,
-            email: response.email,
-            created_at: response.created_at,
-        })
+impl IntoApi for UserResponse {
+    type ApiType = UserResource;
+    fn into_api(self) -> Self::ApiType {
+        UserResource {
+            id: self.id,
+            name: self.name,
+            email: self.email,
+            created_at: self.created_at,
+        }
     }
 }
