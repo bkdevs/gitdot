@@ -1,6 +1,7 @@
 use std::convert::Infallible;
 use std::marker::PhantomData;
 
+use async_trait::async_trait;
 use axum::{
     extract::{FromRef, FromRequestParts, OptionalFromRequestParts},
     http::request::Parts,
@@ -62,16 +63,19 @@ where
     }
 }
 
+#[async_trait]
 pub trait AuthScheme: Send + Sync + 'static {
-    fn authenticate(
+    async fn authenticate(
         parts: &Parts,
         app_state: &AppState,
-    ) -> impl std::future::Future<Output = Result<AuthenticatedUser<Self>, AuthorizationError>> + Send
+    ) -> Result<AuthenticatedUser<Self>, AuthorizationError>
     where
         Self: Sized;
 }
 
 pub struct Any;
+
+#[async_trait]
 impl AuthScheme for Any {
     async fn authenticate(
         parts: &Parts,
@@ -103,6 +107,8 @@ struct UserClaims {
 }
 
 pub struct Jwt;
+
+#[async_trait]
 impl AuthScheme for Jwt {
     async fn authenticate(
         parts: &Parts,
@@ -127,6 +133,8 @@ impl AuthScheme for Jwt {
 }
 
 pub struct Token;
+
+#[async_trait]
 impl AuthScheme for Token {
     async fn authenticate(
         parts: &Parts,
