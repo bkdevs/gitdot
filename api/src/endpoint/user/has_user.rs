@@ -1,24 +1,20 @@
-use crate::endpoint::{Endpoint, EndpointRequest, EndpointResponse};
+use crate::endpoint::Endpoint;
 use serde::{Deserialize, Serialize};
 
-struct HasUser;
+pub struct HasUser;
 
 impl Endpoint for HasUser {
-    type Request = HasUserEndpointRequest;
-    type Response = HasUserEndpointResponse;
-
     const PATH: &'static str = "/user/{user_name}";
     const METHOD: http::Method = http::Method::HEAD;
+
+    type ApiRequest = HasUserApiRequest;
+    type ApiResponse = HasUserApiResponse;
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct HasUserEndpointRequest {
+pub struct HasUserApiRequest {
     pub user_name: String,
 }
 
-impl EndpointRequest for HasUserEndpointRequest {}
-
 #[derive(Debug, Serialize, Deserialize)]
-struct HasUserEndpointResponse {}
-
-impl EndpointResponse for HasUserEndpointResponse {}
+pub struct HasUserApiResponse {}

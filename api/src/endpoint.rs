@@ -4,13 +4,9 @@ pub trait Endpoint {
     const PATH: &'static str;
     const METHOD: http::Method;
 
-    type Request: EndpointRequest;
-    type Response: EndpointResponse;
+    type ApiRequest: Serialize + for<'de> Deserialize<'de> + Send;
+    type ApiResponse: Serialize + for<'de> Deserialize<'de>;
 }
-
-pub trait EndpointRequest: Serialize + for<'de> Deserialize<'de> + Send {}
-
-pub trait EndpointResponse: Serialize + for<'de> Deserialize<'de> {}
 
 pub mod repository;
 pub mod user;

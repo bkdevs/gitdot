@@ -1,7 +1,7 @@
 use axum::{Json, extract::State, http::StatusCode};
 
-use api::user::UserEndpointResponse;
-use api::user::update_current_user::UpdateCurrentUserEndpointRequest;
+use api::user::UserApiResponse;
+use api::user::update_current_user::UpdateCurrentUserApiRequest;
 use gitdot_core::dto::UpdateCurrentUserRequest;
 
 use crate::app::{AppError, AppResponse, AppState, AuthenticatedUser};
@@ -11,8 +11,8 @@ use crate::dto::UserResponseWrapper;
 pub async fn update_current_user(
     auth_user: AuthenticatedUser,
     State(state): State<AppState>,
-    Json(request): Json<UpdateCurrentUserEndpointRequest>,
-) -> Result<AppResponse<UserEndpointResponse>, AppError> {
+    Json(request): Json<UpdateCurrentUserApiRequest>,
+) -> Result<AppResponse<UserApiResponse>, AppError> {
     let request = UpdateCurrentUserRequest::new(auth_user.id, &request.name)?;
     state
         .user_service
