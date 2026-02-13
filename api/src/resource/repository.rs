@@ -1,8 +1,9 @@
+use api_derive::ApiResource;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RepositoryResource {
     pub id: Uuid,
     pub name: String,
@@ -11,13 +12,13 @@ pub struct RepositoryResource {
     pub created_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RepositoryCommitsResource {
     pub commits: Vec<RepositoryCommitResource>,
     pub has_next: bool,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RepositoryCommitResource {
     pub sha: String,
     pub message: String,
@@ -25,7 +26,7 @@ pub struct RepositoryCommitResource {
     pub author: CommitAuthorResource,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct CommitAuthorResource {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<Uuid>,
@@ -33,7 +34,7 @@ pub struct CommitAuthorResource {
     pub email: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RepositoryFileResource {
     pub name: String,
     pub owner: String,
@@ -45,7 +46,7 @@ pub struct RepositoryFileResource {
     pub encoding: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RepositoryPreviewResource {
     pub name: String,
     pub owner: String,
@@ -54,7 +55,7 @@ pub struct RepositoryPreviewResource {
     pub entries: Vec<RepositoryPreviewEntryResource>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RepositoryPreviewEntryResource {
     pub path: String,
     pub name: String,
@@ -62,7 +63,7 @@ pub struct RepositoryPreviewEntryResource {
     pub preview: Option<FilePreviewResource>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct FilePreviewResource {
     pub content: String,
     pub total_lines: u32,
@@ -71,7 +72,7 @@ pub struct FilePreviewResource {
     pub encoding: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RepositoryTreeResource {
     pub name: String,
     pub owner: String,
@@ -80,7 +81,7 @@ pub struct RepositoryTreeResource {
     pub entries: Vec<RepositoryTreeEntryResource>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RepositoryTreeEntryResource {
     pub path: String,
     pub name: String,

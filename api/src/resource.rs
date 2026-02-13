@@ -1,3 +1,10 @@
+use serde::Serialize;
+
+pub trait ApiResource: Serialize + PartialEq {}
+impl<T: ApiResource> ApiResource for Vec<T> {}
+impl<T: ApiResource> ApiResource for Option<T> {}
+impl ApiResource for () {}
+
 pub mod dag;
 pub mod oauth;
 pub mod organization;

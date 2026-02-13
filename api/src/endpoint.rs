@@ -1,3 +1,4 @@
+use crate::ApiResource;
 use serde::{Deserialize, Serialize};
 
 pub trait Endpoint {
@@ -5,7 +6,7 @@ pub trait Endpoint {
     const METHOD: http::Method;
 
     type Request: Serialize + for<'de> Deserialize<'de> + Send;
-    type Response: Serialize + for<'de> Deserialize<'de>;
+    type Response: ApiResource;
 }
 
 pub mod dag;

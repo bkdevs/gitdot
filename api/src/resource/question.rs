@@ -1,8 +1,9 @@
+use api_derive::ApiResource;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct QuestionResource {
     pub id: Uuid,
     pub number: i32,
@@ -20,7 +21,7 @@ pub struct QuestionResource {
     pub answers: Vec<AnswerResource>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct AnswerResource {
     pub id: Uuid,
     pub question_id: Uuid,
@@ -34,7 +35,7 @@ pub struct AnswerResource {
     pub comments: Vec<CommentResource>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct CommentResource {
     pub id: Uuid,
     pub parent_id: Uuid,
@@ -47,13 +48,13 @@ pub struct CommentResource {
     pub author: Option<AuthorResource>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct AuthorResource {
     pub id: Uuid,
     pub name: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct VoteResource {
     pub target_id: Uuid,
     pub score: i32,
