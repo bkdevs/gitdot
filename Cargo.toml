@@ -10,6 +10,7 @@ crc32fast = "1.4"
 chrono = { version = "0.4.42", features = ["serde"] }
 git2 = "0.20.3"
 hex = "0.4.3"
+http = "1.4.0"
 nutype = { version = "0.6.2", features = ["serde"] }
 rand = "0.9.2"
 serde = { version = "1.0", features = ["derive"] }
