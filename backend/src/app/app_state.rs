@@ -14,7 +14,7 @@ use gitdot_core::service::{
 };
 
 cfg_use!("main", {
-    use gitdot_core::client::{Git2Client, GitHttpClientImpl};
+    use gitdot_core::client::{DifftClient, Git2Client, GitHttpClientImpl};
     use gitdot_core::repository::CommitRepositoryImpl;
     use gitdot_core::service::{
         CommitService, CommitServiceImpl, GitHttpService, GitHttpServiceImpl, QuestionService,
@@ -71,6 +71,8 @@ impl AppState {
         #[cfg(feature = "main")]
         let git_http_client = GitHttpClientImpl::new(settings.git_project_root.clone());
         #[cfg(feature = "main")]
+        let diff_client = DifftClient::new();
+        #[cfg(feature = "main")]
         let commit_repo = CommitRepositoryImpl::new(pool.clone());
 
         #[cfg(feature = "ci")]
@@ -99,6 +101,7 @@ impl AppState {
             #[cfg(feature = "main")]
             repo_service: Arc::new(RepositoryServiceImpl::new(
                 git_client.clone(),
+                diff_client.clone(),
                 org_repo.clone(),
                 repo_repo.clone(),
                 user_repo.clone(),

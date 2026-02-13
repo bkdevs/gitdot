@@ -1,5 +1,6 @@
 use thiserror::Error;
 
+use super::DiffError;
 use super::GitError as Git2Error;
 
 #[derive(Debug, Error)]
@@ -24,6 +25,9 @@ pub enum RepositoryError {
 
     #[error("Git error: {0}")]
     GitError(#[from] Git2Error),
+
+    #[error("Diff error: {0}")]
+    DiffError(#[from] DiffError),
 
     #[error("Database error: {0}")]
     DatabaseError(#[from] sqlx::Error),

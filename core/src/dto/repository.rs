@@ -1,5 +1,6 @@
 mod create_repository;
 mod get_repository_commit;
+mod get_repository_commit_diff;
 mod get_repository_commits;
 mod get_repository_file;
 mod get_repository_file_commits;
@@ -13,6 +14,7 @@ use crate::model::Repository;
 
 pub use create_repository::CreateRepositoryRequest;
 pub use get_repository_commit::GetRepositoryCommitRequest;
+pub use get_repository_commit_diff::GetRepositoryCommitDiffRequest;
 pub use get_repository_commits::GetRepositoryCommitsRequest;
 pub use get_repository_file::{GetRepositoryFileRequest, RepositoryFileResponse};
 pub use get_repository_file_commits::GetRepositoryFileCommitsRequest;
@@ -53,6 +55,7 @@ pub struct RepositoryCommitsResponse {
 #[derive(Debug, Clone)]
 pub struct RepositoryCommitResponse {
     pub sha: String,
+    pub parent_sha: Option<String>,
     pub message: String,
     pub date: DateTime<Utc>,
     pub author: CommitAuthorResponse,
@@ -70,6 +73,7 @@ impl From<&git2::Commit<'_>> for RepositoryCommitResponse {
         let git_author = commit.author();
         Self {
             sha: commit.id().to_string(),
+            parent_sha: commit.parent(0).ok().map(|p| p.id().to_string()),
             message: commit.message().unwrap_or("").to_string(),
             date: DateTime::from_timestamp(git_author.when().seconds(), 0).unwrap_or_default(),
             author: CommitAuthorResponse {
@@ -79,6 +83,13 @@ impl From<&git2::Commit<'_>> for RepositoryCommitResponse {
             },
         }
     }
+}
+
+#[derive(Debug, Clone)]
+pub struct RepositoryCommitDiffResponse {
+    pub diff: RepositoryDiffResponse,
+    pub left: Option<RepositoryFileResponse>,
+    pub right: Option<RepositoryFileResponse>,
 }
 
 #[derive(Debug, Clone)]

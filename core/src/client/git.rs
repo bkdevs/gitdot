@@ -9,7 +9,7 @@ use crate::dto::{
     RepositoryPreviewEntry, RepositoryPreviewResponse, RepositoryTreeEntry, RepositoryTreeResponse,
 };
 use crate::error::GitError;
-use crate::util::git::{DEFAULT_BRANCH, REPO_SUFFIX};
+use crate::util::git::{DEFAULT_BRANCH, EMPTY_TREE_REF, REPO_SUFFIX};
 
 #[async_trait]
 pub trait GitClient: Send + Sync + Clone + 'static {
@@ -738,12 +738,17 @@ impl GitClient for Git2Client {
         let repository = self.open_repository(&owner, &repo)?;
 
         task::spawn_blocking(move || {
-            let left_commit = Self::resolve_ref(&repository, &left_ref)?;
-            let right_commit = Self::resolve_ref(&repository, &right_ref)?;
+            let (left_tree, left_sha) = if left_ref == EMPTY_TREE_REF {
+                let empty_oid = repository.treebuilder(None)?.write()?;
+                (repository.find_tree(empty_oid)?, EMPTY_TREE_REF.to_string())
+            } else {
+                let left_commit = Self::resolve_ref(&repository, &left_ref)?;
+                let sha = left_commit.id().to_string();
+                (left_commit.tree()?, sha)
+            };
 
-            let left_tree = left_commit.tree()?;
+            let right_commit = Self::resolve_ref(&repository, &right_ref)?;
             let right_tree = right_commit.tree()?;
-            let left_sha = left_commit.id().to_string();
             let right_sha = right_commit.id().to_string();
 
             let mut diff_opts = git2::DiffOptions::new();

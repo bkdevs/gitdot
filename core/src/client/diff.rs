@@ -16,6 +16,10 @@ pub trait DiffClient: Send + Sync + Clone + 'static {
 pub struct DifftClient;
 
 impl DifftClient {
+    pub fn new() -> Self {
+        Self {}
+    }
+
     fn execute_difftastic(
         left_content: &str,
         right_content: &str,

@@ -35,6 +35,7 @@ impl IntoApi for RepositoryCommitResponse {
     fn into_api(self) -> Self::ApiType {
         api::RepositoryCommitResource {
             sha: self.sha,
+            parent_sha: self.parent_sha,
             message: self.message,
             date: self.date,
             author: self.author.into_api(),

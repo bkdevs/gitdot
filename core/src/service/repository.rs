@@ -2,13 +2,13 @@ use std::collections::{HashMap, HashSet};
 
 use async_trait::async_trait;
 
-use crate::client::{Git2Client, GitClient};
+use crate::client::{DiffClient, DifftClient, Git2Client, GitClient};
 use crate::dto::{
-    CommitAuthorResponse, CreateRepositoryRequest, GetRepositoryCommitRequest,
-    GetRepositoryCommitsRequest, GetRepositoryFileCommitsRequest, GetRepositoryFileRequest,
-    GetRepositoryPreviewRequest, GetRepositoryTreeRequest, RepositoryCommitResponse,
-    RepositoryCommitsResponse, RepositoryFileResponse, RepositoryPreviewResponse,
-    RepositoryResponse, RepositoryTreeResponse,
+    CommitAuthorResponse, CreateRepositoryRequest, GetRepositoryCommitDiffRequest,
+    GetRepositoryCommitRequest, GetRepositoryCommitsRequest, GetRepositoryFileCommitsRequest,
+    GetRepositoryFileRequest, GetRepositoryPreviewRequest, GetRepositoryTreeRequest,
+    RepositoryCommitDiffResponse, RepositoryCommitResponse, RepositoryCommitsResponse,
+    RepositoryFileResponse, RepositoryPreviewResponse, RepositoryResponse, RepositoryTreeResponse,
 };
 use crate::error::RepositoryError;
 use crate::model::RepositoryOwnerType;
@@ -53,17 +53,24 @@ pub trait RepositoryService: Send + Sync + 'static {
         &self,
         request: GetRepositoryPreviewRequest,
     ) -> Result<RepositoryPreviewResponse, RepositoryError>;
+
+    async fn get_repository_commit_diff(
+        &self,
+        request: GetRepositoryCommitDiffRequest,
+    ) -> Result<Vec<RepositoryCommitDiffResponse>, RepositoryError>;
 }
 
 #[derive(Debug, Clone)]
-pub struct RepositoryServiceImpl<G, O, R, U>
+pub struct RepositoryServiceImpl<G, D, O, R, U>
 where
     G: GitClient,
+    D: DiffClient,
     O: OrganizationRepository,
     R: RepositoryRepository,
     U: UserRepository,
 {
     git_client: G,
+    diff_client: D,
     org_repo: O,
     repo_repo: R,
     user_repo: U,
@@ -72,6 +79,7 @@ where
 impl
     RepositoryServiceImpl<
         Git2Client,
+        DifftClient,
         OrganizationRepositoryImpl,
         RepositoryRepositoryImpl,
         UserRepositoryImpl,
@@ -79,12 +87,14 @@ impl
 {
     pub fn new(
         git_client: Git2Client,
+        diff_client: DifftClient,
         org_repo: OrganizationRepositoryImpl,
         repo_repo: RepositoryRepositoryImpl,
         user_repo: UserRepositoryImpl,
     ) -> Self {
         Self {
             git_client,
+            diff_client,
             org_repo,
             repo_repo,
             user_repo,
@@ -92,9 +102,10 @@ impl
     }
 }
 
-impl<G, O, R, U> RepositoryServiceImpl<G, O, R, U>
+impl<G, D, O, R, U> RepositoryServiceImpl<G, D, O, R, U>
 where
     G: GitClient,
+    D: DiffClient,
     O: OrganizationRepository,
     R: RepositoryRepository,
     U: UserRepository,
@@ -132,9 +143,10 @@ where
 }
 
 #[async_trait]
-impl<G, O, R, U> RepositoryService for RepositoryServiceImpl<G, O, R, U>
+impl<G, D, O, R, U> RepositoryService for RepositoryServiceImpl<G, D, O, R, U>
 where
     G: GitClient,
+    D: DiffClient,
     O: OrganizationRepository,
     R: RepositoryRepository,
     U: UserRepository,
@@ -303,5 +315,51 @@ where
             )
             .await
             .map_err(|e| e.into())
+    }
+
+    async fn get_repository_commit_diff(
+        &self,
+        request: GetRepositoryCommitDiffRequest,
+    ) -> Result<Vec<RepositoryCommitDiffResponse>, RepositoryError> {
+        let commit = self
+            .git_client
+            .get_repo_commit(&request.owner_name, &request.name, &request.ref_name)
+            .await
+            .map_err(RepositoryError::from)?;
+
+        let parent_sha = commit
+            .parent_sha
+            .unwrap_or(crate::util::git::EMPTY_TREE_REF.to_string());
+
+        let file_pairs = self
+            .git_client
+            .get_repo_diff(
+                &request.owner_name,
+                &request.name,
+                &parent_sha,
+                &request.ref_name,
+            )
+            .await?;
+
+        let handles: Vec<_> = file_pairs
+            .into_iter()
+            .map(|(left, right)| {
+                let diff_client = self.diff_client.clone();
+                tokio::task::spawn_blocking(move || {
+                    let diff = diff_client.diff_files(left.as_ref(), right.as_ref())?;
+                    Ok::<_, RepositoryError>(RepositoryCommitDiffResponse { diff, left, right })
+                })
+            })
+            .collect();
+
+        let mut diffs = Vec::with_capacity(handles.len());
+        for handle in handles {
+            let result = handle.await.map_err(|e| {
+                RepositoryError::DiffError(crate::error::DiffError::DifftasticFailed(e.to_string()))
+            })?;
+            diffs.push(result?);
+        }
+
+        Ok(diffs)
     }
 }
