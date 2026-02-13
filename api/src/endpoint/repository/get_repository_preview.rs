@@ -19,4 +19,4 @@ pub struct GetRepositoryPreviewRequest {
     pub preview_lines: Option<u32>,
 }
 
-type GetRepositoryPreviewResponse = RepositoryPreviewResource;
+pub type GetRepositoryPreviewResponse = RepositoryPreviewResource;

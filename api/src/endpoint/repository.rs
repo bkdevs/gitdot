@@ -19,3 +19,4 @@ pub mod get_repository_commits;
 pub mod get_repository_file;
 pub mod get_repository_file_commits;
 pub mod get_repository_preview;
+pub mod get_repository_tree;

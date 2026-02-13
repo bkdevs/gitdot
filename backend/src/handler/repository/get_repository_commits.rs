@@ -3,18 +3,20 @@ use axum::{
     http::StatusCode,
 };
 
+use crate::{
+    app::{AppError, AppResponse, AppState, AuthenticatedUser},
+    dto::IntoApi,
+};
+use api::endpoint::get_repository_commits as api;
 use gitdot_core::dto::{GetRepositoryCommitsRequest, RepositoryAuthorizationRequest};
-
-use crate::app::{AppError, AppResponse, AppState, AuthenticatedUser};
-use crate::dto::{GetRepositoryCommitsQuery, GetRepositoryCommitsServerResponse};
 
 #[axum::debug_handler]
 pub async fn get_repository_commits(
     auth_user: Option<AuthenticatedUser>,
     State(state): State<AppState>,
     Path((owner, repo)): Path<(String, String)>,
-    Query(params): Query<GetRepositoryCommitsQuery>,
-) -> Result<AppResponse<GetRepositoryCommitsServerResponse>, AppError> {
+    Query(params): Query<api::GetRepositoryCommitsRequest>,
+) -> Result<AppResponse<api::GetRepositoryCommitsResponse>, AppError> {
     let request = RepositoryAuthorizationRequest::new(auth_user.map(|u| u.id), &owner, &repo)?;
     state
         .auth_service
@@ -33,5 +35,5 @@ pub async fn get_repository_commits(
         .get_repository_commits(request)
         .await
         .map_err(AppError::from)
-        .map(|commits| AppResponse::new(StatusCode::OK, commits.into()))
+        .map(|commits| AppResponse::new(StatusCode::OK, commits.into_api()))
 }

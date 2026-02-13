@@ -21,4 +21,4 @@ pub struct CreateRepositoryRequest {
     pub visibility: String,
 }
 
-type CreateRepositoryResponse = RepositoryResource;
+pub type CreateRepositoryResponse = RepositoryResource;

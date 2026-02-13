@@ -3,9 +3,9 @@ use crate::endpoint::Endpoint;
 use crate::resource::repository::RepositoryFileResource;
 use serde::{Deserialize, Serialize};
 
-pub struct GetRepositoryCommits;
+pub struct GetRepositoryFile;
 
-impl Endpoint for GetRepositoryCommits {
+impl Endpoint for GetRepositoryFile {
     const PATH: &'static str = "/repository/{owner}/{repo}/file";
     const METHOD: http::Method = http::Method::GET;
 
@@ -20,4 +20,4 @@ pub struct GetRepositoryFileRequest {
     pub path: String,
 }
 
-type GetRepositoryFileResponse = RepositoryFileResource;
+pub type GetRepositoryFileResponse = RepositoryFileResource;

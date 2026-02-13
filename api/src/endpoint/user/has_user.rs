@@ -8,7 +8,7 @@ impl Endpoint for HasUser {
     const METHOD: http::Method = http::Method::HEAD;
 
     type Request = HasUserApiRequest;
-    type Response = HasUserApiResponse;
+    type Response = HasUserResponse;
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -16,5 +16,5 @@ pub struct HasUserApiRequest {
     pub user_name: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct HasUserApiResponse {}
+#[derive(Default, PartialEq, Debug, Serialize, Deserialize)]
+pub struct HasUserResponse {}

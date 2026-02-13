@@ -13,6 +13,16 @@ where
     }
 }
 
+impl<T> IntoApi for Option<T>
+where
+    T: IntoApi,
+{
+    type ApiType = Option<T::ApiType>;
+    fn into_api(self) -> Self::ApiType {
+        self.map(|item| item.into_api())
+    }
+}
+
 cfg_modules!("main", {
     mod organization;
     mod user;

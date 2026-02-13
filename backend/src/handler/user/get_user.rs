@@ -1,10 +1,11 @@
-use axum::extract::Path;
-use axum::{extract::State, http::StatusCode};
-
 use crate::{
     app::{AppError, AppResponse, AppState},
     dto::IntoApi,
 };
+use axum::extract::Path;
+use axum::{extract::State, http::StatusCode};
+
+use api::endpoint::get_user as api;
 use gitdot_core::dto::GetUserRequest;
 
 #[axum::debug_handler]

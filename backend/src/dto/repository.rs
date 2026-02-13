@@ -1,30 +1,16 @@
-mod create_repository;
-mod get_repository_commits;
-mod get_repository_file;
-mod get_repository_file_commits;
-mod get_repository_preview;
-mod get_repository_tree;
-
-use api::resource::RepositoryResource;
-use chrono::{DateTime, Utc};
-use serde::Serialize;
-use uuid::Uuid;
-
-use gitdot_core::dto::{CommitAuthorResponse, RepositoryCommitResponse, RepositoryResponse};
-
-pub use create_repository::CreateRepositoryServerRequest;
-pub use get_repository_commits::{GetRepositoryCommitsQuery, GetRepositoryCommitsServerResponse};
-pub use get_repository_file::{GetRepositoryFileQuery, GetRepositoryFileServerResponse};
-pub use get_repository_file_commits::GetRepositoryFileCommitsQuery;
-pub use get_repository_preview::{GetRepositoryPreviewQuery, GetRepositoryPreviewServerResponse};
-pub use get_repository_tree::{GetRepositoryTreeQuery, GetRepositoryTreeServerResponse};
-
 use super::IntoApi;
 
+use api::resource::repository as api;
+use gitdot_core::dto::{
+    CommitAuthorResponse, FilePreview, RepositoryCommitResponse, RepositoryCommitsResponse,
+    RepositoryFileResponse, RepositoryPreviewEntry, RepositoryPreviewResponse, RepositoryResponse,
+    RepositoryTreeEntry, RepositoryTreeResponse,
+};
+
 impl IntoApi for RepositoryResponse {
-    type ApiType = RepositoryResource;
+    type ApiType = api::RepositoryResource;
     fn into_api(self) -> Self::ApiType {
-        RepositoryResource {
+        api::RepositoryResource {
             id: self.id,
             name: self.name,
             owner: self.owner,
@@ -34,72 +20,115 @@ impl IntoApi for RepositoryResponse {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub struct RepositoryServerResponse {
-    pub id: Uuid,
-    pub name: String,
-    pub owner: String,
-    pub visibility: String,
-    pub created_at: DateTime<Utc>,
-}
-
-impl From<RepositoryResponse> for RepositoryServerResponse {
-    fn from(response: RepositoryResponse) -> Self {
-        Self {
-            id: response.id,
-            name: response.name,
-            owner: response.owner,
-            visibility: response.visibility,
-            created_at: response.created_at,
+impl IntoApi for RepositoryCommitsResponse {
+    type ApiType = api::RepositoryCommitsResource;
+    fn into_api(self) -> Self::ApiType {
+        api::RepositoryCommitsResource {
+            commits: self.commits.into_api(),
+            has_next: self.has_next,
         }
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub struct RepositoryCommitServerResponse {
-    pub sha: String,
-    pub message: String,
-    pub date: DateTime<Utc>,
-    pub author: CommitAuthorServerResponse,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub struct CommitAuthorServerResponse {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub id: Option<Uuid>,
-    pub name: String,
-    pub email: String,
-}
-
-impl From<CommitAuthorResponse> for CommitAuthorServerResponse {
-    fn from(author: CommitAuthorResponse) -> Self {
-        Self {
-            id: author.id,
-            name: author.name,
-            email: author.email,
+impl IntoApi for RepositoryCommitResponse {
+    type ApiType = api::RepositoryCommitResource;
+    fn into_api(self) -> Self::ApiType {
+        api::RepositoryCommitResource {
+            sha: self.sha,
+            message: self.message,
+            date: self.date,
+            author: self.author.into_api(),
         }
     }
 }
 
-impl From<RepositoryCommitResponse> for RepositoryCommitServerResponse {
-    fn from(commit: RepositoryCommitResponse) -> Self {
-        Self {
-            sha: commit.sha,
-            message: commit.message,
-            date: commit.date,
-            author: commit.author.into(),
+impl IntoApi for CommitAuthorResponse {
+    type ApiType = api::CommitAuthorResource;
+    fn into_api(self) -> Self::ApiType {
+        api::CommitAuthorResource {
+            id: self.id,
+            name: self.name,
+            email: self.email,
         }
     }
 }
 
-fn default_ref() -> String {
-    "HEAD".to_string()
+impl IntoApi for RepositoryFileResponse {
+    type ApiType = api::RepositoryFileResource;
+    fn into_api(self) -> Self::ApiType {
+        api::RepositoryFileResource {
+            name: self.name,
+            owner: self.owner,
+            ref_name: self.ref_name,
+            path: self.path,
+            commit_sha: self.commit_sha,
+            sha: self.sha,
+            content: self.content,
+            encoding: self.encoding,
+        }
+    }
 }
 
-fn default_page() -> u32 {
-    1
+impl IntoApi for RepositoryPreviewResponse {
+    type ApiType = api::RepositoryPreviewResource;
+    fn into_api(self) -> Self::ApiType {
+        api::RepositoryPreviewResource {
+            name: self.name,
+            owner: self.owner,
+            ref_name: self.ref_name,
+            commit_sha: self.commit_sha,
+            entries: self.entries.into_api(),
+        }
+    }
 }
 
-fn default_per_page() -> u32 {
-    30
+impl IntoApi for RepositoryPreviewEntry {
+    type ApiType = api::RepositoryPreviewEntryResource;
+    fn into_api(self) -> Self::ApiType {
+        api::RepositoryPreviewEntryResource {
+            path: self.path,
+            name: self.name,
+            sha: self.sha,
+            preview: self.preview.into_api(),
+        }
+    }
+}
+
+impl IntoApi for FilePreview {
+    type ApiType = api::FilePreviewResource;
+    fn into_api(self) -> Self::ApiType {
+        api::FilePreviewResource {
+            content: self.content,
+            total_lines: self.total_lines,
+            preview_lines: self.preview_lines,
+            truncated: self.truncated,
+            encoding: self.encoding,
+        }
+    }
+}
+
+impl IntoApi for RepositoryTreeResponse {
+    type ApiType = api::RepositoryTreeResource;
+    fn into_api(self) -> Self::ApiType {
+        api::RepositoryTreeResource {
+            name: self.name,
+            owner: self.owner,
+            ref_name: self.ref_name,
+            commit_sha: self.commit_sha,
+            entries: self.entries.into_api(),
+        }
+    }
+}
+
+impl IntoApi for RepositoryTreeEntry {
+    type ApiType = api::RepositoryTreeEntryResource;
+    fn into_api(self) -> Self::ApiType {
+        api::RepositoryTreeEntryResource {
+            path: self.path,
+            name: self.name,
+            entry_type: self.entry_type,
+            sha: self.sha,
+            commit: self.commit.into_api(),
+        }
+    }
 }

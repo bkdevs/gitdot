@@ -1,12 +1,12 @@
-use api::resource::UserResource;
+use api::resource::user as api;
 use gitdot_core::dto::UserResponse;
 
 use super::IntoApi;
 
 impl IntoApi for UserResponse {
-    type ApiType = UserResource;
+    type ApiType = api::UserResource;
     fn into_api(self) -> Self::ApiType {
-        UserResource {
+        api::UserResource {
             id: self.id,
             name: self.name,
             email: self.email,
