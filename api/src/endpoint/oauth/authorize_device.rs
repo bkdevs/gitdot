@@ -1,5 +1,6 @@
-use crate::endpoint::Endpoint;
 use serde::{Deserialize, Serialize};
+
+use crate::endpoint::Endpoint;
 
 pub struct AuthorizeDevice;
 

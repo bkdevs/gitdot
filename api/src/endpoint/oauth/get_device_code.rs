@@ -1,6 +1,6 @@
-use crate::endpoint::Endpoint;
-use crate::resource::oauth::DeviceCodeResource;
 use serde::{Deserialize, Serialize};
+
+use crate::{endpoint::Endpoint, resource::oauth::DeviceCodeResource};
 
 pub struct GetDeviceCode;
 

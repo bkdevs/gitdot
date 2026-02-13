@@ -1,6 +1,7 @@
+use serde::{Deserialize, Serialize};
+
 use super::{default_page, default_per_page, default_ref};
 use crate::{endpoint::Endpoint, resource::repository::RepositoryCommitsResource};
-use serde::{Deserialize, Serialize};
 
 pub struct GetRepositoryFileCommits;
 

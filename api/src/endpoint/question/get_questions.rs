@@ -1,6 +1,6 @@
-use crate::endpoint::Endpoint;
-use crate::resource::question::QuestionResource;
 use serde::{Deserialize, Serialize};
+
+use crate::{endpoint::Endpoint, resource::question::QuestionResource};
 
 pub struct GetQuestions;
 

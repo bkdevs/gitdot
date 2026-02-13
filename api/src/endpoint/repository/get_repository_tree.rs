@@ -1,6 +1,7 @@
+use serde::{Deserialize, Serialize};
+
 use super::default_ref;
 use crate::{endpoint::Endpoint, resource::repository::RepositoryTreeResource};
-use serde::{Deserialize, Serialize};
 
 pub struct GetRepositoryTree;
 

@@ -1,7 +1,7 @@
-use super::default_visibility;
-use crate::endpoint::Endpoint;
-use crate::resource::RepositoryResource;
 use serde::{Deserialize, Serialize};
+
+use super::default_visibility;
+use crate::{endpoint::Endpoint, resource::RepositoryResource};
 
 pub struct CreateRepository;
 

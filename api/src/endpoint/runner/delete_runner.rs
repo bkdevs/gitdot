@@ -1,6 +1,7 @@
-use crate::endpoint::Endpoint;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+
+use crate::endpoint::Endpoint;
 
 pub struct DeleteRunner;
 

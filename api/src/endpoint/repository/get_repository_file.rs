@@ -1,7 +1,7 @@
-use super::default_ref;
-use crate::endpoint::Endpoint;
-use crate::resource::repository::RepositoryFileResource;
 use serde::{Deserialize, Serialize};
+
+use super::default_ref;
+use crate::{endpoint::Endpoint, resource::repository::RepositoryFileResource};
 
 pub struct GetRepositoryFile;
 

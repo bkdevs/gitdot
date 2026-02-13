@@ -1,6 +1,6 @@
-use crate::endpoint::Endpoint;
-use crate::resource::oauth::TokenResource;
 use serde::{Deserialize, Serialize};
+
+use crate::{endpoint::Endpoint, resource::oauth::TokenResource};
 
 pub struct PollToken;
 

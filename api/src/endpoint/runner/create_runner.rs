@@ -1,6 +1,6 @@
-use crate::endpoint::Endpoint;
-use crate::resource::CreateRunnerResource;
 use serde::{Deserialize, Serialize};
+
+use crate::{endpoint::Endpoint, resource::CreateRunnerResource};
 
 pub struct CreateRunner;
 
