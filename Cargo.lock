@@ -799,7 +799,6 @@ dependencies = [
  "anyhow",
  "clap",
  "dirs-next",
- "gitdot_core",
  "reqwest",
  "serde",
  "serde_json",

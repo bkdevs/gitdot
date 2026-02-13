@@ -12,7 +12,6 @@ path = "src/bin/main.rs"
 anyhow = { workspace = true }
 clap = { version = "4.5.54", features = ["derive"] }
 dirs-next = "2.0.0"
-gitdot_core = { path = "../core" }
 reqwest = { version = "0.13.1", features = ["json"] }
 serde = { workspace = true }
 serde_json = { workspace = true }
