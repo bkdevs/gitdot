@@ -1,0 +1,20 @@
+use crate::endpoint::Endpoint;
+use crate::resource::question::CommentResource;
+use serde::{Deserialize, Serialize};
+
+pub struct CreateQuestionComment;
+
+impl Endpoint for CreateQuestionComment {
+    const PATH: &'static str = "/repository/{owner}/{repo}/question/{number}/comment";
+    const METHOD: http::Method = http::Method::POST;
+
+    type Request = CreateQuestionCommentRequest;
+    type Response = CreateQuestionCommentResponse;
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CreateQuestionCommentRequest {
+    pub body: String,
+}
+
+pub type CreateQuestionCommentResponse = CommentResource;

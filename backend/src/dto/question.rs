@@ -1,147 +1,83 @@
-mod create_answer;
-mod create_comment;
-mod create_question;
-mod update_answer;
-mod update_comment;
-mod update_question;
-mod vote;
+use super::IntoApi;
+use api::resource::question as api;
+use gitdot_core::dto::{
+    AnswerResponse, AuthorResponse, CommentResponse, QuestionResponse, VoteResponse,
+};
 
-use chrono::{DateTime, Utc};
-use serde::Serialize;
-use uuid::Uuid;
-
-use gitdot_core::dto::{AnswerResponse, AuthorResponse, CommentResponse, QuestionResponse};
-
-pub use create_answer::CreateAnswerServerRequest;
-pub use create_comment::CreateCommentServerRequest;
-pub use create_question::CreateQuestionServerRequest;
-pub use update_answer::UpdateAnswerServerRequest;
-pub use update_comment::UpdateCommentServerRequest;
-pub use update_question::UpdateQuestionServerRequest;
-pub use vote::{VoteServerRequest, VoteServerResponse};
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub struct QuestionServerResponse {
-    pub id: Uuid,
-    pub number: i32,
-    pub author_id: Uuid,
-    pub repository_id: Uuid,
-    pub title: String,
-    pub body: String,
-    pub upvote: i32,
-    pub impression: i32,
-    pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
-    pub user_vote: Option<i16>,
-    pub author: Option<AuthorServerResponse>,
-    pub comments: Vec<CommentServerResponse>,
-    pub answers: Vec<AnswerServerResponse>,
-}
-
-impl From<QuestionResponse> for QuestionServerResponse {
-    fn from(response: QuestionResponse) -> Self {
-        Self {
-            id: response.id,
-            number: response.number,
-            author_id: response.author_id,
-            repository_id: response.repository_id,
-            title: response.title,
-            body: response.body,
-            upvote: response.upvote,
-            impression: response.impression,
-            created_at: response.created_at,
-            updated_at: response.updated_at,
-            user_vote: response.user_vote,
-            author: response.author.map(AuthorServerResponse::from),
-            comments: response
-                .comments
-                .into_iter()
-                .map(CommentServerResponse::from)
-                .collect(),
-            answers: response
-                .answers
-                .into_iter()
-                .map(AnswerServerResponse::from)
-                .collect(),
+impl IntoApi for QuestionResponse {
+    type ApiType = api::QuestionResource;
+    fn into_api(self) -> Self::ApiType {
+        api::QuestionResource {
+            id: self.id,
+            number: self.number,
+            author_id: self.author_id,
+            repository_id: self.repository_id,
+            title: self.title,
+            body: self.body,
+            upvote: self.upvote,
+            impression: self.impression,
+            created_at: self.created_at,
+            updated_at: self.updated_at,
+            user_vote: self.user_vote,
+            author: self.author.into_api(),
+            comments: self.comments.into_api(),
+            answers: self.answers.into_api(),
         }
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub struct AnswerServerResponse {
-    pub id: Uuid,
-    pub question_id: Uuid,
-    pub author_id: Uuid,
-    pub body: String,
-    pub upvote: i32,
-    pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
-    pub user_vote: Option<i16>,
-    pub author: Option<AuthorServerResponse>,
-    pub comments: Vec<CommentServerResponse>,
-}
-
-impl From<AnswerResponse> for AnswerServerResponse {
-    fn from(response: AnswerResponse) -> Self {
-        Self {
-            id: response.id,
-            question_id: response.question_id,
-            author_id: response.author_id,
-            body: response.body,
-            upvote: response.upvote,
-            created_at: response.created_at,
-            updated_at: response.updated_at,
-            user_vote: response.user_vote,
-            author: response.author.map(AuthorServerResponse::from),
-            comments: response
-                .comments
-                .into_iter()
-                .map(CommentServerResponse::from)
-                .collect(),
+impl IntoApi for AnswerResponse {
+    type ApiType = api::AnswerResource;
+    fn into_api(self) -> Self::ApiType {
+        api::AnswerResource {
+            id: self.id,
+            question_id: self.question_id,
+            author_id: self.author_id,
+            body: self.body,
+            upvote: self.upvote,
+            created_at: self.created_at,
+            updated_at: self.updated_at,
+            user_vote: self.user_vote,
+            author: self.author.into_api(),
+            comments: self.comments.into_api(),
         }
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub struct CommentServerResponse {
-    pub id: Uuid,
-    pub parent_id: Uuid,
-    pub author_id: Uuid,
-    pub body: String,
-    pub upvote: i32,
-    pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
-    pub user_vote: Option<i16>,
-    pub author: Option<AuthorServerResponse>,
-}
-
-impl From<CommentResponse> for CommentServerResponse {
-    fn from(response: CommentResponse) -> Self {
-        Self {
-            id: response.id,
-            parent_id: response.parent_id,
-            author_id: response.author_id,
-            body: response.body,
-            upvote: response.upvote,
-            created_at: response.created_at,
-            updated_at: response.updated_at,
-            user_vote: response.user_vote,
-            author: response.author.map(AuthorServerResponse::from),
+impl IntoApi for CommentResponse {
+    type ApiType = api::CommentResource;
+    fn into_api(self) -> Self::ApiType {
+        api::CommentResource {
+            id: self.id,
+            parent_id: self.parent_id,
+            author_id: self.author_id,
+            body: self.body,
+            upvote: self.upvote,
+            created_at: self.created_at,
+            updated_at: self.updated_at,
+            user_vote: self.user_vote,
+            author: self.author.into_api(),
         }
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub struct AuthorServerResponse {
-    pub id: Uuid,
-    pub name: String,
+impl IntoApi for AuthorResponse {
+    type ApiType = api::AuthorResource;
+    fn into_api(self) -> Self::ApiType {
+        api::AuthorResource {
+            id: self.id,
+            name: self.name,
+        }
+    }
 }
 
-impl From<AuthorResponse> for AuthorServerResponse {
-    fn from(response: AuthorResponse) -> Self {
-        Self {
-            id: response.id,
-            name: response.name,
+impl IntoApi for VoteResponse {
+    type ApiType = api::VoteResource;
+    fn into_api(self) -> Self::ApiType {
+        api::VoteResource {
+            target_id: self.target_id,
+            score: self.score,
+            user_vote: self.user_vote,
         }
     }
 }

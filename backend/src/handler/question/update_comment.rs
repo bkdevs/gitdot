@@ -1,21 +1,23 @@
+use crate::{
+    app::{AppError, AppResponse, AppState, AuthenticatedUser},
+    dto::IntoApi,
+};
 use axum::{
     extract::{Json, Path, State},
     http::StatusCode,
 };
 use uuid::Uuid;
 
+use api::endpoint::update_comment as api;
 use gitdot_core::dto::{CommentAuthorizationRequest, UpdateCommentRequest};
-
-use crate::app::{AppError, AppResponse, AppState, AuthenticatedUser};
-use crate::dto::{CommentServerResponse, UpdateCommentServerRequest};
 
 #[axum::debug_handler]
 pub async fn update_comment(
     auth_user: AuthenticatedUser,
     State(state): State<AppState>,
     Path((_owner, _repo, _number, comment_id)): Path<(String, String, i32, Uuid)>,
-    Json(request): Json<UpdateCommentServerRequest>,
-) -> Result<AppResponse<CommentServerResponse>, AppError> {
+    Json(request): Json<api::UpdateCommentRequest>,
+) -> Result<AppResponse<api::UpdateCommentResponse>, AppError> {
     let auth_request = CommentAuthorizationRequest::new(auth_user.id, comment_id);
     state
         .auth_service
@@ -28,5 +30,5 @@ pub async fn update_comment(
         .update_comment(request)
         .await
         .map_err(AppError::from)
-        .map(|c| AppResponse::new(StatusCode::OK, c.into()))
+        .map(|c| AppResponse::new(StatusCode::OK, c.into_api()))
 }

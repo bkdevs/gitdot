@@ -1,21 +1,23 @@
+use crate::{
+    app::{AppError, AppResponse, AppState, AuthenticatedUser},
+    dto::IntoApi,
+};
 use axum::{
     extract::{Json, Path, State},
     http::StatusCode,
 };
 use uuid::Uuid;
 
+use api::endpoint::vote_comment as api;
 use gitdot_core::dto::{RepositoryAuthorizationRequest, VoteCommentRequest};
-
-use crate::app::{AppError, AppResponse, AppState, AuthenticatedUser};
-use crate::dto::{VoteServerRequest, VoteServerResponse};
 
 #[axum::debug_handler]
 pub async fn vote_comment(
     auth_user: AuthenticatedUser,
     State(state): State<AppState>,
     Path((owner, repo, _number, comment_id)): Path<(String, String, i32, Uuid)>,
-    Json(request): Json<VoteServerRequest>,
-) -> Result<AppResponse<VoteServerResponse>, AppError> {
+    Json(request): Json<api::VoteCommentRequest>,
+) -> Result<AppResponse<api::VoteCommentResponse>, AppError> {
     let auth_request = RepositoryAuthorizationRequest::new(Some(auth_user.id), &owner, &repo)?;
     state
         .auth_service
@@ -28,5 +30,5 @@ pub async fn vote_comment(
         .vote_comment(request)
         .await
         .map_err(AppError::from)
-        .map(|r| AppResponse::new(StatusCode::OK, r.into()))
+        .map(|r| AppResponse::new(StatusCode::OK, r.into_api()))
 }

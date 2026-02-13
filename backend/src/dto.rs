@@ -33,7 +33,6 @@ cfg_modules!("main", {
     mod question;
     pub use git_http::*;
     pub use oauth::*;
-    pub use question::*;
 });
 
 cfg_modules!("ci", {

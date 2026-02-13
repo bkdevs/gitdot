@@ -1,20 +1,22 @@
+use crate::{
+    app::{AppError, AppResponse, AppState, AuthenticatedUser},
+    dto::IntoApi,
+};
 use axum::{
     extract::{Json, Path, State},
     http::StatusCode,
 };
 
+use api::endpoint::create_question_comment as api;
 use gitdot_core::dto::{CreateQuestionCommentRequest, RepositoryAuthorizationRequest};
-
-use crate::app::{AppError, AppResponse, AppState, AuthenticatedUser};
-use crate::dto::{CommentServerResponse, CreateCommentServerRequest};
 
 #[axum::debug_handler]
 pub async fn create_question_comment(
     auth_user: AuthenticatedUser,
     State(state): State<AppState>,
     Path((owner, repo, number)): Path<(String, String, i32)>,
-    Json(request): Json<CreateCommentServerRequest>,
-) -> Result<AppResponse<CommentServerResponse>, AppError> {
+    Json(request): Json<api::CreateQuestionCommentRequest>,
+) -> Result<AppResponse<api::CreateQuestionCommentResponse>, AppError> {
     let auth_request = RepositoryAuthorizationRequest::new(Some(auth_user.id), &owner, &repo)?;
     state
         .auth_service
@@ -28,5 +30,5 @@ pub async fn create_question_comment(
         .create_question_comment(request)
         .await
         .map_err(AppError::from)
-        .map(|c| AppResponse::new(StatusCode::CREATED, c.into()))
+        .map(|c| AppResponse::new(StatusCode::CREATED, c.into_api()))
 }

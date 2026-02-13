@@ -1,19 +1,21 @@
+use crate::{
+    app::{AppError, AppResponse, AppState, AuthenticatedUser},
+    dto::IntoApi,
+};
 use axum::{
     extract::{Path, State},
     http::StatusCode,
 };
 
+use api::endpoint::get_questions as api;
 use gitdot_core::dto::{ListQuestionsRequest, RepositoryAuthorizationRequest};
-
-use crate::app::{AppError, AppResponse, AppState, AuthenticatedUser};
-use crate::dto::QuestionServerResponse;
 
 #[axum::debug_handler]
 pub async fn get_questions(
     auth_user: Option<AuthenticatedUser>,
     State(state): State<AppState>,
     Path((owner, repo)): Path<(String, String)>,
-) -> Result<AppResponse<Vec<QuestionServerResponse>>, AppError> {
+) -> Result<AppResponse<api::GetQuestionsResponse>, AppError> {
     let user_id = auth_user.as_ref().map(|u| u.id);
     let request = RepositoryAuthorizationRequest::new(user_id, &owner, &repo)?;
     state
@@ -27,5 +29,5 @@ pub async fn get_questions(
         .list_questions(request)
         .await
         .map_err(AppError::from)
-        .map(|qs| AppResponse::new(StatusCode::OK, qs.into_iter().map(|q| q.into()).collect()))
+        .map(|qs| AppResponse::new(StatusCode::OK, qs.into_api()))
 }
