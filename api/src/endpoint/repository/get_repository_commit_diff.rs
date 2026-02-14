@@ -13,17 +13,6 @@ impl Endpoint for GetRepositoryCommitDiff {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct GetRepositoryCommitDiffRequest {
-    #[serde(default)]
-    pub format: GetRepositoryCommitDiffsFormat,
-}
-
-#[derive(Debug, Default, Serialize, Deserialize)]
-#[serde(rename_all = "lowercase")]
-pub enum GetRepositoryCommitDiffsFormat {
-    Stats,
-    #[default]
-    Full,
-}
+pub struct GetRepositoryCommitDiffRequest {}
 
 pub type GetRepositoryCommitDiffResponse = Vec<RepositoryCommitDiffResource>;

@@ -1,6 +1,7 @@
 mod create_repository;
 mod get_repository_commit;
 mod get_repository_commit_diff;
+mod get_repository_commit_stat;
 mod get_repository_commits;
 mod get_repository_file;
 mod get_repository_file_commits;
@@ -15,6 +16,7 @@ use crate::model::Repository;
 pub use create_repository::CreateRepositoryRequest;
 pub use get_repository_commit::GetRepositoryCommitRequest;
 pub use get_repository_commit_diff::GetRepositoryCommitDiffRequest;
+pub use get_repository_commit_stat::GetRepositoryCommitStatRequest;
 pub use get_repository_commits::GetRepositoryCommitsRequest;
 pub use get_repository_file::{GetRepositoryFileRequest, RepositoryFileResponse};
 pub use get_repository_file_commits::GetRepositoryFileCommitsRequest;
@@ -83,6 +85,13 @@ impl From<&git2::Commit<'_>> for RepositoryCommitResponse {
             },
         }
     }
+}
+
+#[derive(Debug, Clone)]
+pub struct RepositoryCommitStatResponse {
+    pub path: String,
+    pub lines_added: u32,
+    pub lines_removed: u32,
 }
 
 #[derive(Debug, Clone)]

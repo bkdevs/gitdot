@@ -1,6 +1,7 @@
 mod create_repository;
 mod get_repository_commit;
 mod get_repository_commit_diff;
+mod get_repository_commit_stat;
 mod get_repository_commits;
 mod get_repository_file;
 mod get_repository_file_commits;
@@ -17,6 +18,7 @@ use crate::app::AppState;
 use create_repository::create_repository;
 use get_repository_commit::get_repository_commit;
 use get_repository_commit_diff::get_repository_commit_diff;
+use get_repository_commit_stat::get_repository_commit_stat;
 use get_repository_commits::get_repository_commits;
 use get_repository_file::get_repository_file;
 use get_repository_file_commits::get_repository_file_commits;
@@ -43,6 +45,10 @@ pub fn create_repository_router() -> Router<AppState> {
         .route(
             "/repository/{owner}/{repo}/commits/{sha}/diff",
             get(get_repository_commit_diff),
+        )
+        .route(
+            "/repository/{owner}/{repo}/commits/{sha}/stat",
+            get(get_repository_commit_stat),
         )
         .route(
             "/repository/{owner}/{repo}/file/commits",

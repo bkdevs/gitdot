@@ -5,8 +5,9 @@ use tokio::fs;
 use tokio::task;
 
 use crate::dto::{
-    FilePreview, RepositoryCommitResponse, RepositoryCommitsResponse, RepositoryFileResponse,
-    RepositoryPreviewEntry, RepositoryPreviewResponse, RepositoryTreeEntry, RepositoryTreeResponse,
+    FilePreview, RepositoryCommitResponse, RepositoryCommitStatResponse, RepositoryCommitsResponse,
+    RepositoryFileResponse, RepositoryPreviewEntry, RepositoryPreviewResponse, RepositoryTreeEntry,
+    RepositoryTreeResponse,
 };
 use crate::error::GitError;
 use crate::util::git::{DEFAULT_BRANCH, EMPTY_TREE_REF, REPO_SUFFIX};
@@ -68,7 +69,7 @@ pub trait GitClient: Send + Sync + Clone + 'static {
         preview_lines: u32,
     ) -> Result<RepositoryPreviewResponse, GitError>;
 
-    async fn get_repo_diff(
+    async fn get_repo_diff_files(
         &self,
         owner: &str,
         repo: &str,
@@ -81,6 +82,14 @@ pub trait GitClient: Send + Sync + Clone + 'static {
         )>,
         GitError,
     >;
+
+    async fn get_repo_diff_stats(
+        &self,
+        owner: &str,
+        repo: &str,
+        left_ref: &str,
+        right_ref: &str,
+    ) -> Result<Vec<RepositoryCommitStatResponse>, GitError>;
 
     fn normalize_repo_name(&self, repo: &str) -> String {
         format!(
@@ -121,6 +130,23 @@ impl Git2Client {
     ) -> Result<git2::Commit<'repo>, git2::Error> {
         let obj = repo.revparse_single(ref_name)?;
         obj.peel_to_commit()
+    }
+
+    fn diff_trees<'repo>(
+        repo: &'repo git2::Repository,
+        left_tree: &git2::Tree<'repo>,
+        right_tree: &git2::Tree<'repo>,
+    ) -> Result<git2::Diff<'repo>, git2::Error> {
+        let mut diff_opts = git2::DiffOptions::new();
+        let mut diff =
+            repo.diff_tree_to_tree(Some(left_tree), Some(right_tree), Some(&mut diff_opts))?;
+
+        let mut find_opts = git2::DiffFindOptions::new();
+        find_opts.renames(true);
+        find_opts.rename_threshold(50);
+        diff.find_similar(Some(&mut find_opts))?;
+
+        Ok(diff)
     }
 
     fn get_blob<'repo>(
@@ -718,7 +744,7 @@ impl GitClient for Git2Client {
         .await?
     }
 
-    async fn get_repo_diff(
+    async fn get_repo_diff_files(
         &self,
         owner: &str,
         repo: &str,
@@ -751,17 +777,7 @@ impl GitClient for Git2Client {
             let right_tree = right_commit.tree()?;
             let right_sha = right_commit.id().to_string();
 
-            let mut diff_opts = git2::DiffOptions::new();
-            let mut diff = repository.diff_tree_to_tree(
-                Some(&left_tree),
-                Some(&right_tree),
-                Some(&mut diff_opts),
-            )?;
-
-            let mut find_opts = git2::DiffFindOptions::new();
-            find_opts.renames(true);
-            find_opts.rename_threshold(50);
-            diff.find_similar(Some(&mut find_opts))?;
+            let diff = Self::diff_trees(&repository, &left_tree, &right_tree)?;
 
             let mut results = Vec::new();
 
@@ -795,6 +811,61 @@ impl GitClient for Git2Client {
                 };
 
                 results.push((left, right));
+            }
+
+            Ok(results)
+        })
+        .await?
+    }
+
+    async fn get_repo_diff_stats(
+        &self,
+        owner: &str,
+        repo: &str,
+        left_ref: &str,
+        right_ref: &str,
+    ) -> Result<Vec<RepositoryCommitStatResponse>, GitError> {
+        let left_ref = left_ref.to_string();
+        let right_ref = right_ref.to_string();
+        let repository = self.open_repository(owner, repo)?;
+
+        task::spawn_blocking(move || {
+            let left_tree = if left_ref == EMPTY_TREE_REF {
+                let empty_oid = repository.treebuilder(None)?.write()?;
+                repository.find_tree(empty_oid)?
+            } else {
+                let left_commit = Self::resolve_ref(&repository, &left_ref)?;
+                left_commit.tree()?
+            };
+
+            let right_commit = Self::resolve_ref(&repository, &right_ref)?;
+            let right_tree = right_commit.tree()?;
+
+            let diff = Self::diff_trees(&repository, &left_tree, &right_tree)?;
+
+            let mut results = Vec::new();
+
+            for (idx, delta) in diff.deltas().enumerate() {
+                let path = delta
+                    .new_file()
+                    .path()
+                    .or_else(|| delta.old_file().path())
+                    .and_then(|p| p.to_str())
+                    .unwrap_or("")
+                    .to_string();
+
+                let (lines_added, lines_removed) = git2::Patch::from_diff(&diff, idx)
+                    .ok()
+                    .flatten()
+                    .and_then(|p| p.line_stats().ok())
+                    .map(|(_, additions, deletions)| (additions as u32, deletions as u32))
+                    .unwrap_or((0, 0));
+
+                results.push(RepositoryCommitStatResponse {
+                    path,
+                    lines_added,
+                    lines_removed,
+                });
             }
 
             Ok(results)

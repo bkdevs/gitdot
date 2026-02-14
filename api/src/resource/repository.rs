@@ -87,6 +87,13 @@ pub struct RepositoryTreeEntryResource {
 }
 
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RepositoryCommitStatResource {
+    pub path: String,
+    pub lines_added: u32,
+    pub lines_removed: u32,
+}
+
+#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RepositoryCommitDiffResource {
     pub diff: RepositoryDiffResource,
     pub left: Option<RepositoryFileResource>,

@@ -1,9 +1,10 @@
 use gitdot_api::resource::repository as api;
 use gitdot_core::dto::{
-    CommitAuthorResponse, DiffChange, DiffLine, DiffPair, FilePreview, RepositoryCommitDiffResponse,
-    RepositoryCommitResponse, RepositoryCommitsResponse, RepositoryDiffResponse,
-    RepositoryFileResponse, RepositoryPreviewEntry, RepositoryPreviewResponse, RepositoryResponse,
-    RepositoryTreeEntry, RepositoryTreeResponse, SyntaxHighlight,
+    CommitAuthorResponse, DiffChange, DiffLine, DiffPair, FilePreview,
+    RepositoryCommitDiffResponse, RepositoryCommitResponse, RepositoryCommitStatResponse,
+    RepositoryCommitsResponse, RepositoryDiffResponse, RepositoryFileResponse,
+    RepositoryPreviewEntry, RepositoryPreviewResponse, RepositoryResponse, RepositoryTreeEntry,
+    RepositoryTreeResponse, SyntaxHighlight,
 };
 
 use super::IntoApi;
@@ -125,6 +126,17 @@ impl IntoApi for RepositoryTreeEntry {
             entry_type: self.entry_type,
             sha: self.sha,
             commit: self.commit.into_api(),
+        }
+    }
+}
+
+impl IntoApi for RepositoryCommitStatResponse {
+    type ApiType = api::RepositoryCommitStatResource;
+    fn into_api(self) -> Self::ApiType {
+        api::RepositoryCommitStatResource {
+            path: self.path,
+            lines_added: self.lines_added,
+            lines_removed: self.lines_removed,
         }
     }
 }

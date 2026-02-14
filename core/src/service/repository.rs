@@ -5,10 +5,11 @@ use async_trait::async_trait;
 use crate::client::{DiffClient, DifftClient, Git2Client, GitClient};
 use crate::dto::{
     CommitAuthorResponse, CreateRepositoryRequest, GetRepositoryCommitDiffRequest,
-    GetRepositoryCommitRequest, GetRepositoryCommitsRequest, GetRepositoryFileCommitsRequest,
-    GetRepositoryFileRequest, GetRepositoryPreviewRequest, GetRepositoryTreeRequest,
-    RepositoryCommitDiffResponse, RepositoryCommitResponse, RepositoryCommitsResponse,
-    RepositoryFileResponse, RepositoryPreviewResponse, RepositoryResponse, RepositoryTreeResponse,
+    GetRepositoryCommitRequest, GetRepositoryCommitStatRequest, GetRepositoryCommitsRequest,
+    GetRepositoryFileCommitsRequest, GetRepositoryFileRequest, GetRepositoryPreviewRequest,
+    GetRepositoryTreeRequest, RepositoryCommitDiffResponse, RepositoryCommitResponse,
+    RepositoryCommitStatResponse, RepositoryCommitsResponse, RepositoryFileResponse,
+    RepositoryPreviewResponse, RepositoryResponse, RepositoryTreeResponse,
 };
 use crate::error::RepositoryError;
 use crate::model::RepositoryOwnerType;
@@ -58,6 +59,11 @@ pub trait RepositoryService: Send + Sync + 'static {
         &self,
         request: GetRepositoryCommitDiffRequest,
     ) -> Result<Vec<RepositoryCommitDiffResponse>, RepositoryError>;
+
+    async fn get_repository_commit_stat(
+        &self,
+        request: GetRepositoryCommitStatRequest,
+    ) -> Result<Vec<RepositoryCommitStatResponse>, RepositoryError>;
 }
 
 #[derive(Debug, Clone)]
@@ -333,7 +339,7 @@ where
 
         let file_pairs = self
             .git_client
-            .get_repo_diff(
+            .get_repo_diff_files(
                 &request.owner_name,
                 &request.name,
                 &parent_sha,
@@ -361,5 +367,32 @@ where
         }
 
         Ok(diffs)
+    }
+
+    async fn get_repository_commit_stat(
+        &self,
+        request: GetRepositoryCommitStatRequest,
+    ) -> Result<Vec<RepositoryCommitStatResponse>, RepositoryError> {
+        let commit = self
+            .git_client
+            .get_repo_commit(&request.owner_name, &request.name, &request.ref_name)
+            .await
+            .map_err(RepositoryError::from)?;
+
+        let parent_sha = commit
+            .parent_sha
+            .unwrap_or(crate::util::git::EMPTY_TREE_REF.to_string());
+
+        let stats = self
+            .git_client
+            .get_repo_diff_stats(
+                &request.owner_name,
+                &request.name,
+                &parent_sha,
+                &request.ref_name,
+            )
+            .await?;
+
+        Ok(stats)
     }
 }
