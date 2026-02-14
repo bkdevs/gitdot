@@ -25,6 +25,8 @@ export type PollTokenRequest = z.infer<typeof PollTokenRequestSchema>;
 
 export const TokenResponseSchema = z.object({
   access_token: z.string(),
+  user_name: z.string(),
+  user_email: z.string(),
 });
 
 export type TokenResponse = z.infer<typeof TokenResponseSchema>;

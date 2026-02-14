@@ -41,10 +41,7 @@ function FolderEntryRow({
   entry: RepositoryTreeEntry;
   href: string;
 }) {
-  const author =
-    typeof entry.commit.author === "string"
-      ? entry.commit.author
-      : entry.commit.author.name;
+  const author = entry.commit.author.name;
 
   return (
     <Link

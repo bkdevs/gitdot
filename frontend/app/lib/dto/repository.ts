@@ -12,7 +12,7 @@ export type CreateRepositoryRequest = z.infer<
 export const CreateRepositoryResponseSchema = z.object({
   id: z.uuid(),
   name: z.string(),
-  owner_name: z.string().optional(),
+  owner: z.string(),
   visibility: z.string(),
   created_at: z.iso.datetime(),
 });
@@ -43,7 +43,8 @@ export const RepositoryCommitSchema = z.object({
   sha: z.string(),
   message: z.string(),
   date: z.iso.datetime(),
-  author: z.string().or(CommitAuthorSchema),
+  author: CommitAuthorSchema,
+  parent_sha: z.string().optional(),
 });
 
 export type RepositoryCommit = z.infer<typeof RepositoryCommitSchema>;
@@ -57,7 +58,6 @@ export type RepositoryCommits = z.infer<typeof RepositoryCommitsSchema>;
 
 export const RepositoryTreeQuerySchema = z.object({
   ref_name: z.string().default("HEAD").optional(),
-  path: z.string().default("").optional(),
 });
 
 export type RepositoryTreeQuery = z.infer<typeof RepositoryTreeQuerySchema>;

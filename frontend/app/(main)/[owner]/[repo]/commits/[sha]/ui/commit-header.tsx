@@ -12,8 +12,7 @@ export function CommitHeader({
   const midpoint = Math.ceil(stats.length / 2);
   const leftColumn = stats.slice(0, midpoint);
   const rightColumn = stats.slice(midpoint);
-  const author =
-    typeof commit.author === "string" ? commit.author : commit.author.name;
+  const author = commit.author.name;
 
   const renderStatItem = (stat: RepositoryCommitStat) => {
     return (

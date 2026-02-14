@@ -13,14 +13,13 @@ function FileCommit({
   commit: {
     sha: string;
     message: string;
-    author: string | { id?: string; name: string; email: string };
+    author: { id?: string; name: string; email: string };
     date: string;
   };
   isSelected: boolean;
   href: string;
 }) {
-  const author =
-    typeof commit.author === "string" ? commit.author : commit.author.name;
+  const author = commit.author.name;
 
   return (
     // TODO: if we move this to be a client-side component and fetches we can safe on things
