@@ -6,13 +6,12 @@ cfg_modules!("main", {
     mod oauth;
     mod question;
 
-    pub use organization::*;
-    pub use repository::*;
-    pub use user::*;
-    pub mod legacy_repository;
     pub use git_http::*;
     pub use oauth::*;
+    pub use organization::*;
     pub use question::*;
+    pub use repository::*;
+    pub use user::*;
 });
 
 cfg_modules!("ci", {

@@ -8,8 +8,6 @@ mod runner;
 mod task;
 mod user;
 
-pub mod legacy_repository;
-
 pub use git_http::*;
 
 pub trait IntoApi {

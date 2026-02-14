@@ -25,7 +25,6 @@ use tower_http::{
 use crate::handler::{
     create_git_http_router, create_oauth_router, create_organization_router,
     create_question_router, create_repository_router, create_user_router,
-    legacy_repository::{get_repository_commit_diffs, get_repository_commit_stats},
 };
 
 #[cfg(feature = "ci")]
@@ -88,18 +87,7 @@ fn create_router(app_state: AppState) -> Router {
             .merge(create_organization_router())
             .merge(create_repository_router())
             .merge(create_question_router())
-            .merge(create_oauth_router())
-            .merge(
-                Router::new()
-                    .route(
-                        "/repository/{owner}/{repo}/commits/{sha}/stats",
-                        get(get_repository_commit_stats),
-                    )
-                    .route(
-                        "/repository/{owner}/{repo}/commits/{sha}/diffs",
-                        get(get_repository_commit_diffs),
-                    ),
-            );
+            .merge(create_oauth_router());
     }
 
     #[cfg(feature = "ci")]
