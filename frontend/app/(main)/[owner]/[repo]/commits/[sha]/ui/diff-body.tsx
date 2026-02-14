@@ -1,15 +1,15 @@
 import { mergeHunks } from "@/(main)/[owner]/[repo]/util";
-import type { RepositoryFileDiff } from "@/lib/dto";
+import type { RepositoryCommitDiff } from "@/lib/dto";
 import { DiffSingle } from "./diff-single";
 import { DiffSplit } from "./diff-split";
 
-export async function DiffBody({ diff }: { diff: RepositoryFileDiff }) {
-  const { left, right, hunks } = diff;
+export async function DiffBody({ diff }: { diff: RepositoryCommitDiff }) {
+  const { left, right, diff: fileDiff } = diff;
 
-  const processedHunks = mergeHunks(hunks);
+  const processedHunks = mergeHunks(fileDiff.hunks);
 
   const renderDiff = () => {
-    if (left && right && hunks.length > 0) {
+    if (left && right && fileDiff.hunks.length > 0) {
       return <DiffSplit left={left} right={right} hunks={processedHunks} />;
     } else if (left && !right) {
       return <DiffSingle file={left} side="left" />;

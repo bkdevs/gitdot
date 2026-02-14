@@ -5,7 +5,7 @@ import {
   type UserRepositoriesResponse,
   UserRepositoriesResponseSchema,
   type UserResponse,
-  UserResponseSchema
+  UserResponseSchema,
 } from "../dto";
 import { getSession } from "../supabase";
 import {
@@ -14,7 +14,7 @@ import {
   authPatch,
   GITDOT_SERVER_URL,
   handleResponse,
-  NotFound
+  NotFound,
 } from "./util";
 
 /**

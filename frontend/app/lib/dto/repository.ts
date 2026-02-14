@@ -148,24 +148,25 @@ export const DiffHunkSchema = z.array(DiffLineSchema);
 
 export type DiffHunk = z.infer<typeof DiffHunkSchema>;
 
-export const RepositoryFileDiffSchema = z.object({
-  left: RepositoryFileSchema.optional(),
-  right: RepositoryFileSchema.optional(),
+export const RepositoryCommitStatSchema = z.object({
+  path: z.string(),
   lines_added: z.number(),
   lines_removed: z.number(),
-  hunks: z.array(DiffHunkSchema),
 });
 
-export type RepositoryFileDiff = z.infer<typeof RepositoryFileDiffSchema>;
+export type RepositoryCommitStat = z.infer<typeof RepositoryCommitStatSchema>;
 
-export const RepositoryCommitDiffsSchema = z.object({
-  sha: z.string(),
-  parent_sha: z.string().optional(),
-  commit: RepositoryCommitSchema,
-  diffs: z.array(RepositoryFileDiffSchema),
+export const RepositoryCommitDiffSchema = z.object({
+  diff: z.object({
+    lines_added: z.number(),
+    lines_removed: z.number(),
+    hunks: z.array(DiffHunkSchema),
+  }),
+  left: RepositoryFileSchema.nullish(),
+  right: RepositoryFileSchema.nullish(),
 });
 
-export type RepositoryCommitDiffs = z.infer<typeof RepositoryCommitDiffsSchema>;
+export type RepositoryCommitDiff = z.infer<typeof RepositoryCommitDiffSchema>;
 
 export const RepositoryPreviewQuerySchema = z.object({
   ref_name: z.string().default("HEAD").optional(),

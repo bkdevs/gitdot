@@ -4,7 +4,9 @@ export const UpdateCurrentUserRequestSchema = z.object({
   name: z.string(),
 });
 
-export type UpdateCurrentUserRequest = z.infer<typeof UpdateCurrentUserRequestSchema>;
+export type UpdateCurrentUserRequest = z.infer<
+  typeof UpdateCurrentUserRequestSchema
+>;
 
 export const UserResponseSchema = z.object({
   id: z.uuid(),

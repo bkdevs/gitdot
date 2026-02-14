@@ -1,6 +1,6 @@
-import { createSupabaseClient } from "@/lib/supabase";
 import { redirect } from "next/navigation";
 import type { NextRequest } from "next/server";
+import { createSupabaseClient } from "@/lib/supabase";
 
 /**
  * a public GET endpoint that is linked to by the supabase email confirmation linked

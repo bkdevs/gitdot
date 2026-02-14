@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-export const useIsTyping = (value: string, delay = 150) => {
+export const useIsTyping = (_value: string, delay = 150) => {
   const [typing, setTyping] = useState(false);
 
   useEffect(() => {
@@ -11,7 +11,7 @@ export const useIsTyping = (value: string, delay = 150) => {
     }, delay);
 
     return () => clearTimeout(timeout);
-  }, [value, delay]);
+  }, [delay]);
 
   return typing;
 };

@@ -1,4 +1,4 @@
-import { getRepositoryCommitStats } from "@/lib/dal";
+import { getRepositoryCommit, getRepositoryCommitStat } from "@/lib/dal";
 import { CommitBody } from "./ui/commit-body";
 import { CommitHeader } from "./ui/commit-header";
 
@@ -8,19 +8,21 @@ export default async function Page({
   params: Promise<{ owner: string; repo: string; sha: string }>;
 }) {
   const { owner, repo, sha } = await params;
-  const commitStats = await getRepositoryCommitStats(owner, repo, sha);
-  if (!commitStats) return null;
+  const [commit, stats] = await Promise.all([
+    getRepositoryCommit(owner, repo, sha),
+    getRepositoryCommitStat(owner, repo, sha),
+  ]);
+  if (!commit || !stats) return null;
 
   // a heuristic, use suspense if either more than 100 modified lines or more than 5 files in the diff
   const useSuspense =
-    commitStats.diffs
-      .map((diff) => diff.lines_added + diff.lines_removed)
-      .reduce((acc, curr) => acc + curr, 0) > 100 ||
-    commitStats.diffs.length > 5;
+    stats
+      .map((stat) => stat.lines_added + stat.lines_removed)
+      .reduce((acc, curr) => acc + curr, 0) > 100 || stats.length > 5;
 
   return (
     <div className="flex flex-col w-full">
-      <CommitHeader commit={commitStats.commit} diffs={commitStats.diffs} />
+      <CommitHeader commit={commit} stats={stats} />
       <CommitBody
         owner={owner}
         repo={repo}

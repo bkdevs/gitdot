@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { getRepositoryCommitDiffs } from "@/lib/dal";
+import { getRepositoryCommitDiff } from "@/lib/dal";
 import { DiffBody } from "./diff-body";
 import { DiffFileClient } from "./diff-file-client";
 
@@ -36,9 +36,8 @@ async function CommitBodyContent({
   repo: string;
   sha: string;
 }) {
-  const commitDiffs = await getRepositoryCommitDiffs(owner, repo, sha);
-  if (!commitDiffs) return null;
-  const { diffs } = commitDiffs;
+  const diffs = await getRepositoryCommitDiff(owner, repo, sha);
+  if (!diffs) return null;
 
   return (
     <div className="flex flex-col">
@@ -49,8 +48,8 @@ async function CommitBodyContent({
             key={key}
             leftPath={diff.left?.path}
             rightPath={diff.right?.path}
-            linesAdded={diff.lines_added}
-            linesRemoved={diff.lines_removed}
+            linesAdded={diff.diff.lines_added}
+            linesRemoved={diff.diff.lines_removed}
           >
             <DiffBody diff={diff} />
           </DiffFileClient>
@@ -65,8 +64,8 @@ async function CommitBodyContent({
               key={key}
               leftPath={diff.left?.path}
               rightPath={diff.right?.path}
-              linesAdded={diff.lines_added}
-              linesRemoved={diff.lines_removed}
+              linesAdded={diff.diff.lines_added}
+              linesRemoved={diff.diff.lines_removed}
             >
               <DiffBody diff={diff} />
             </DiffFileClient>

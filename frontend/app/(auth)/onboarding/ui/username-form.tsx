@@ -1,14 +1,16 @@
 "use client";
 
+import { useActionState, useEffect, useState } from "react";
 import { updateUserAction, validateUsername } from "@/actions";
 import { useIsTyping } from "@/hooks/use-is-typing";
 import { cn } from "@/util";
-import { useActionState, useEffect, useState } from "react";
 
 export default function UsernameForm() {
   const [state, formAction, isPending] = useActionState(updateUserAction, null);
   const [username, setUsername] = useState("");
-  const [usernameError, setUsernameError] = useState<string | null | undefined>(undefined);
+  const [usernameError, setUsernameError] = useState<string | null | undefined>(
+    undefined,
+  );
 
   const isTyping = useIsTyping(username, 200);
 
@@ -22,13 +24,13 @@ export default function UsernameForm() {
 
       return () => {
         stale = true;
-      }
+      };
     }
-  }, [username, isTyping, isPending]);
+  }, [username, isTyping]);
 
   useEffect(() => {
     if (!username) {
-      setUsernameError(undefined)
+      setUsernameError(undefined);
     }
   }, [username]);
 
@@ -50,18 +52,20 @@ export default function UsernameForm() {
 
       <div className="flex flex-row w-full justify-between">
         <div className="flex">
-          {error && (
-            <p className="text-red-600 animate-in fade-in">{error}</p>
-          )}
+          {error && <p className="text-red-600 animate-in fade-in">{error}</p>}
           {usernameError === null && (
-            <p className="text-green-600 animate-in fade-in duration-300">Username available</p>
+            <p className="text-green-600 animate-in fade-in duration-300">
+              Username available
+            </p>
           )}
         </div>
         <button
           type="submit"
           className={cn(
             "cursor-pointer underline transition-all duration-300",
-            usernameError === null ? "decoration-current" : "decoration-transparent",
+            usernameError === null
+              ? "decoration-current"
+              : "decoration-transparent",
             isPending ? "cursor-default" : "",
           )}
           disabled={isPending}

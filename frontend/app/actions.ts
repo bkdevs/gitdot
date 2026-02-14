@@ -84,9 +84,7 @@ export async function signup(
   return { success: true };
 }
 
-export type UpdateUserActionResult =
-  | { user: UserResponse }
-  | { error: string };
+export type UpdateUserActionResult = { user: UserResponse } | { error: string };
 
 export async function updateUserAction(
   _prev: UpdateUserActionResult | null,
@@ -98,7 +96,7 @@ export async function updateUserAction(
   const usernameError = await validateUsername(username);
   if (usernameError) {
     console.log(usernameError);
-    return { error: usernameError};
+    return { error: usernameError };
   }
 
   const result = await updateCurrentUser({ name: username });
@@ -111,7 +109,9 @@ export async function updateUserAction(
   return { user: result };
 }
 
-export async function validateUsername(username: string): Promise<string | null> {
+export async function validateUsername(
+  username: string,
+): Promise<string | null> {
   if (username.length < 2) {
     return await delay(300, "Username must be at least 2 characters");
   }

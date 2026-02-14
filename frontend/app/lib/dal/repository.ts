@@ -1,12 +1,17 @@
 import "server-only";
 
+import { z } from "zod";
 import { toQueryString } from "@/util";
 import {
   type CreateRepositoryRequest,
   type CreateRepositoryResponse,
   CreateRepositoryResponseSchema,
-  type RepositoryCommitDiffs,
-  RepositoryCommitDiffsSchema,
+  type RepositoryCommit,
+  type RepositoryCommitDiff,
+  RepositoryCommitDiffSchema,
+  RepositoryCommitSchema,
+  type RepositoryCommitStat,
+  RepositoryCommitStatSchema,
   type RepositoryCommits,
   type RepositoryCommitsQuery,
   RepositoryCommitsSchema,
@@ -97,28 +102,40 @@ export async function getRepositoryFileCommits(
   return await handleResponse(response, RepositoryCommitsSchema);
 }
 
-export async function getRepositoryCommitStats(
+export async function getRepositoryCommit(
   owner: string,
   repo: string,
   sha: string,
-): Promise<RepositoryCommitDiffs | null> {
+): Promise<RepositoryCommit | null> {
   const response = await authFetch(
-    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/commits/${sha}/stats`,
+    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/commits/${sha}`,
   );
 
-  return await handleResponse(response, RepositoryCommitDiffsSchema);
+  return await handleResponse(response, RepositoryCommitSchema);
 }
 
-export async function getRepositoryCommitDiffs(
+export async function getRepositoryCommitStat(
   owner: string,
   repo: string,
   sha: string,
-): Promise<RepositoryCommitDiffs | null> {
+): Promise<RepositoryCommitStat[] | null> {
   const response = await authFetch(
-    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/commits/${sha}/diffs`,
+    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/commits/${sha}/stat`,
   );
 
-  return await handleResponse(response, RepositoryCommitDiffsSchema);
+  return await handleResponse(response, z.array(RepositoryCommitStatSchema));
+}
+
+export async function getRepositoryCommitDiff(
+  owner: string,
+  repo: string,
+  sha: string,
+): Promise<RepositoryCommitDiff[] | null> {
+  const response = await authFetch(
+    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/commits/${sha}/diff`,
+  );
+
+  return await handleResponse(response, z.array(RepositoryCommitDiffSchema));
 }
 
 export async function getRepositoryPreview(
