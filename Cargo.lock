@@ -843,6 +843,7 @@ dependencies = [
  "base64",
  "chrono",
  "crc32fast",
+ "futures",
  "git2",
  "hex",
  "nutype",

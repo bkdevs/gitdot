@@ -11,6 +11,9 @@ pub enum GitHttpError {
     #[error("Invalid service: {0}")]
     InvalidService(String),
 
+    #[error("Invalid content type: {0}")]
+    InvalidContentType(String),
+
     #[error("Failed to spawn git http-backend: {0}")]
     SpawnError(#[source] std::io::Error),
 

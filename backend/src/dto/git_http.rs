@@ -3,9 +3,10 @@ use axum::{
     http::StatusCode,
     response::{IntoResponse, Response},
 };
+use futures::TryStreamExt;
 use serde::Deserialize;
 
-use gitdot_core::dto::GitHttpResponse;
+use gitdot_core::dto::{GitHttpBody, GitHttpResponse};
 
 #[derive(Deserialize)]
 pub struct InfoRefsQuery {
@@ -15,7 +16,7 @@ pub struct InfoRefsQuery {
 pub struct GitHttpServerResponse {
     status_code: u16,
     headers: Vec<(String, String)>,
-    body: Vec<u8>,
+    body: GitHttpBody,
 }
 
 impl From<GitHttpResponse> for GitHttpServerResponse {
@@ -37,7 +38,14 @@ impl IntoResponse for GitHttpServerResponse {
             builder = builder.header(name, value);
         }
 
-        builder.body(Body::from(self.body)).unwrap_or_else(|_| {
+        let body = match self.body {
+            GitHttpBody::Buffered(bytes) => Body::from(bytes),
+            GitHttpBody::Stream(s) => {
+                Body::from_stream(s.map_ok(|chunk| axum::body::Bytes::from(chunk)))
+            }
+        };
+
+        builder.body(body).unwrap_or_else(|_| {
             Response::builder()
                 .status(StatusCode::INTERNAL_SERVER_ERROR)
                 .body(Body::empty())

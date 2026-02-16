@@ -1,6 +1,4 @@
-use nutype::nutype;
-
-use crate::dto::{OwnerName, RepositoryName};
+use crate::dto::{GitService, OwnerName, RepositoryName};
 use crate::error::GitHttpError;
 
 #[derive(Debug, Clone)]
@@ -23,39 +21,9 @@ impl InfoRefsRequest {
     }
 }
 
-#[nutype(
-    validate(predicate = |s| s == "git-upload-pack" || s == "git-receive-pack"),
-    derive(Debug, Clone, PartialEq, Eq, AsRef, Deref)
-)]
-pub struct GitService(String);
-
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    mod git_service {
-        use super::*;
-
-        #[test]
-        fn valid_upload_pack() {
-            let service = GitService::try_new("git-upload-pack".to_string()).unwrap();
-            assert_eq!(service.as_ref(), "git-upload-pack");
-        }
-
-        #[test]
-        fn valid_receive_pack() {
-            let service = GitService::try_new("git-receive-pack".to_string()).unwrap();
-            assert_eq!(service.as_ref(), "git-receive-pack");
-        }
-
-        #[test]
-        fn rejects_invalid_service() {
-            assert!(GitService::try_new("git-fetch".to_string()).is_err());
-            assert!(GitService::try_new("upload-pack".to_string()).is_err());
-            assert!(GitService::try_new("".to_string()).is_err());
-            assert!(GitService::try_new("git-upload-pack ".to_string()).is_err());
-        }
-    }
 
     mod info_refs_request {
         use super::*;

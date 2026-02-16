@@ -54,7 +54,7 @@ where
                 &request.repo,
                 "upload-pack",
                 &request.content_type,
-                &request.body,
+                request.body,
             )
             .await
     }
@@ -71,7 +71,7 @@ where
                 &request.repo,
                 "receive-pack",
                 &request.content_type,
-                &request.body,
+                request.body,
             )
             .await
     }
