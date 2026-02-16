@@ -3,8 +3,9 @@ use axum::extract::{Path, Query, State};
 use gitdot_core::dto::{GitHttpAuthorizationRequest, InfoRefsRequest};
 
 use crate::{
-    app::{AppError, AppState, AuthenticatedUser},
+    app::{AppError, AppState},
     dto::{GitHttpServerResponse, InfoRefsQuery},
+    extract::AuthenticatedUser,
 };
 
 #[axum::debug_handler]

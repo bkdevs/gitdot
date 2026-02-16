@@ -4,7 +4,8 @@ use gitdot_api::endpoint::get_current_user as api;
 use gitdot_core::dto::GetCurrentUserRequest;
 
 use crate::{
-    app::{AppError, AppResponse, AppState, AuthenticatedUser},
+    app::{AppError, AppResponse, AppState},
+    extract::AuthenticatedUser,
     dto::IntoApi,
 };
 

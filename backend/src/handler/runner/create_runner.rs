@@ -7,8 +7,9 @@ use gitdot_api::endpoint::create_runner as api;
 use gitdot_core::dto::CreateRunnerRequest;
 
 use crate::{
-    app::{AppError, AppResponse, AppState, AuthenticatedUser, Jwt},
+    app::{AppError, AppResponse, AppState},
     dto::IntoApi,
+    extract::{AuthenticatedUser, Jwt},
 };
 
 #[axum::debug_handler]

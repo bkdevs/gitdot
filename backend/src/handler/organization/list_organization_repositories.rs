@@ -7,7 +7,8 @@ use gitdot_api::endpoint::list_organization_repositories as api;
 use gitdot_core::dto::ListOrganizationRepositoriesRequest;
 
 use crate::{
-    app::{AppError, AppResponse, AppState, AuthenticatedUser},
+    app::{AppError, AppResponse, AppState},
+    extract::AuthenticatedUser,
     dto::IntoApi,
 };
 

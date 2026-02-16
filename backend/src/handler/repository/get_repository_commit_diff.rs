@@ -4,7 +4,8 @@ use axum::{
 };
 
 use crate::{
-    app::{AppError, AppResponse, AppState, AuthenticatedUser},
+    app::{AppError, AppResponse, AppState},
+    extract::AuthenticatedUser,
     dto::IntoApi,
 };
 use gitdot_api::endpoint::get_repository_commit_diff as api;

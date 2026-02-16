@@ -1,5 +1,4 @@
 mod app_state;
-mod auth;
 mod bootstrap;
 mod error;
 mod response;
@@ -31,8 +30,6 @@ use crate::handler::{
 use crate::handler::{create_dag_router, create_runner_router, create_task_router};
 
 pub use app_state::AppState;
-pub use auth::AuthenticatedUser;
-pub use auth::Jwt;
 pub use error::AppError;
 pub use response::AppResponse;
 pub use settings::Settings;

@@ -8,9 +8,9 @@ use tokio_util::io::StreamReader;
 use gitdot_core::dto::{GitHttpAuthorizationRequest, ReceivePackRequest};
 
 use crate::{
-    app::{AppError, AppState, AuthenticatedUser},
+    app::{AppError, AppState},
     dto::GitHttpServerResponse,
-    extract::ContentType,
+    extract::{AuthenticatedUser, ContentType},
 };
 
 #[axum::debug_handler]

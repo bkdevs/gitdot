@@ -8,7 +8,8 @@ use gitdot_api::endpoint::add_member as api;
 use gitdot_core::dto::{AddMemberRequest, OrganizationAuthorizationRequest};
 
 use crate::{
-    app::{AppError, AppResponse, AppState, AuthenticatedUser},
+    app::{AppError, AppResponse, AppState},
+    extract::AuthenticatedUser,
     dto::IntoApi,
 };
 

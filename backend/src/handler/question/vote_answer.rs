@@ -8,7 +8,8 @@ use gitdot_api::endpoint::vote_answer as api;
 use gitdot_core::dto::{RepositoryAuthorizationRequest, VoteAnswerRequest};
 
 use crate::{
-    app::{AppError, AppResponse, AppState, AuthenticatedUser},
+    app::{AppError, AppResponse, AppState},
+    extract::AuthenticatedUser,
     dto::IntoApi,
 };
 

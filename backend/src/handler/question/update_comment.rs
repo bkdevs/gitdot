@@ -8,7 +8,8 @@ use gitdot_api::endpoint::update_comment as api;
 use gitdot_core::dto::{CommentAuthorizationRequest, UpdateCommentRequest};
 
 use crate::{
-    app::{AppError, AppResponse, AppState, AuthenticatedUser},
+    app::{AppError, AppResponse, AppState},
+    extract::AuthenticatedUser,
     dto::IntoApi,
 };
 

@@ -7,7 +7,8 @@ use gitdot_api::endpoint::get_repository_commits as api;
 use gitdot_core::dto::{GetRepositoryCommitsRequest, RepositoryAuthorizationRequest};
 
 use crate::{
-    app::{AppError, AppResponse, AppState, AuthenticatedUser},
+    app::{AppError, AppResponse, AppState},
+    extract::AuthenticatedUser,
     dto::IntoApi,
 };
 

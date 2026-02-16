@@ -13,7 +13,7 @@ use uuid::Uuid;
 
 use gitdot_core::error::AuthorizationError;
 
-use super::{AppError, AppState};
+use crate::app::{AppError, AppState};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AuthenticatedUser<S: AuthScheme = Any> {

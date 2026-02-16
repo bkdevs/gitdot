@@ -7,7 +7,8 @@ use gitdot_api::endpoint::create_organization as api;
 use gitdot_core::dto::CreateOrganizationRequest;
 
 use crate::{
-    app::{AppError, AppResponse, AppState, AuthenticatedUser},
+    app::{AppError, AppResponse, AppState},
+    extract::AuthenticatedUser,
     dto::IntoApi,
 };
 

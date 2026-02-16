@@ -7,7 +7,8 @@ use gitdot_api::endpoint::create_repository as api;
 use gitdot_core::dto::{CreateRepositoryRequest, RepositoryCreationAuthorizationRequest};
 
 use crate::{
-    app::{AppError, AppResponse, AppState, AuthenticatedUser},
+    app::{AppError, AppResponse, AppState},
+    extract::AuthenticatedUser,
     dto::IntoApi,
 };
 

@@ -6,7 +6,8 @@ use axum::{
 use gitdot_api::endpoint::oauth::authorize_device as api;
 use gitdot_core::dto::AuthorizeDeviceRequest;
 
-use crate::app::{AppError, AppResponse, AppState, AuthenticatedUser};
+use crate::app::{AppError, AppResponse, AppState};
+use crate::extract::AuthenticatedUser;
 
 #[axum::debug_handler]
 pub async fn authorize_device(

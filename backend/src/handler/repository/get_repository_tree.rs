@@ -7,7 +7,8 @@ use gitdot_api::endpoint::get_repository_tree as api;
 use gitdot_core::dto::{GetRepositoryTreeRequest, RepositoryAuthorizationRequest};
 
 use crate::{
-    app::{AppError, AppResponse, AppState, AuthenticatedUser},
+    app::{AppError, AppResponse, AppState},
+    extract::AuthenticatedUser,
     dto::IntoApi,
 };
 
