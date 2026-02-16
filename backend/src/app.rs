@@ -70,7 +70,7 @@ fn create_router(app_state: AppState) -> Router {
     let middleware = ServiceBuilder::new()
         .layer(SetRequestIdLayer::x_request_id(MakeRequestUuid))
         .layer(TraceLayer::new_for_http())
-        .layer(CorsLayer::permissive())
+        .layer(CorsLayer::permissive()) // TODO: update CORS policy
         .layer(TimeoutLayer::with_status_code(
             StatusCode::REQUEST_TIMEOUT,
             Duration::from_secs(10),
@@ -78,16 +78,17 @@ fn create_router(app_state: AppState) -> Router {
         .layer(PropagateRequestIdLayer::x_request_id());
 
     let mut api_router = Router::new();
+    let mut git_router = Router::new();
 
     #[cfg(feature = "main")]
     {
         api_router = api_router
-            .merge(create_git_http_router())
             .merge(create_user_router())
             .merge(create_organization_router())
             .merge(create_repository_router())
             .merge(create_question_router())
             .merge(create_oauth_router());
+        git_router = git_router.merge(create_git_http_router());
     }
 
     #[cfg(feature = "ci")]
@@ -101,9 +102,11 @@ fn create_router(app_state: AppState) -> Router {
         );
     }
 
-    let api_router = api_router.layer(middleware).with_state(app_state);
+    let api_router = api_router.layer(middleware).with_state(app_state.clone());
+    let git_router = git_router.with_state(app_state);
 
     Router::new()
         .route("/health", get(|| async { "OK" }))
         .merge(api_router)
+        .merge(git_router)
 }
