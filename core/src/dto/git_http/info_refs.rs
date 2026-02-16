@@ -1,5 +1,7 @@
-use crate::dto::{GitService, OwnerName, RepositoryName};
-use crate::error::GitHttpError;
+use crate::{
+    dto::{GitService, OwnerName, RepositoryName},
+    error::GitHttpError,
+};
 
 #[derive(Debug, Clone)]
 pub struct InfoRefsRequest {

@@ -1,7 +1,6 @@
 use uuid::Uuid;
 
-use crate::dto::OwnerName;
-use crate::error::AuthorizationError;
+use crate::{dto::OwnerName, error::AuthorizationError};
 
 #[derive(Debug, Clone)]
 pub struct OrganizationAuthorizationRequest {

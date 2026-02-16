@@ -1,5 +1,4 @@
-use std::collections::HashSet;
-use std::sync::LazyLock;
+use std::{collections::HashSet, sync::LazyLock};
 
 /// Reserved usernames that cannot be used for user or organization names.
 static RESERVED_NAMES: LazyLock<HashSet<&'static str>> = LazyLock::new(|| {

@@ -1,7 +1,6 @@
 use uuid::Uuid;
 
-use crate::dto::OwnerName;
-use crate::error::UserError;
+use crate::{dto::OwnerName, error::UserError};
 
 #[derive(Debug, Clone)]
 pub struct UpdateCurrentUserRequest {

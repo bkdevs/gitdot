@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::endpoint::Endpoint;
-use crate::resource::question::VoteResource;
+use crate::{endpoint::Endpoint, resource::question::VoteResource};
 
 pub struct VoteComment;
 

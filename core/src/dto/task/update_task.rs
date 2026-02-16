@@ -1,7 +1,6 @@
 use uuid::Uuid;
 
-use crate::error::TaskError;
-use crate::model::TaskStatus;
+use crate::{error::TaskError, model::TaskStatus};
 
 #[derive(Debug, Clone)]
 pub struct UpdateTaskRequest {

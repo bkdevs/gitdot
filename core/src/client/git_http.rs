@@ -2,12 +2,16 @@ use std::process::Stdio;
 
 use async_trait::async_trait;
 use futures::{StreamExt, stream};
-use tokio::io::{AsyncRead, AsyncReadExt};
-use tokio::process::Command;
+use tokio::{
+    io::{AsyncRead, AsyncReadExt},
+    process::Command,
+};
 
-use crate::dto::{GitHttpBody, GitHttpResponse};
-use crate::error::GitHttpError;
-use crate::util::git::REPO_SUFFIX;
+use crate::{
+    dto::{GitHttpBody, GitHttpResponse},
+    error::GitHttpError,
+    util::git::REPO_SUFFIX,
+};
 
 #[async_trait]
 pub trait GitHttpClient: Send + Sync + Clone + 'static {

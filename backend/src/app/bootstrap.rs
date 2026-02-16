@@ -1,5 +1,4 @@
-use tracing_subscriber::layer::SubscriberExt;
-use tracing_subscriber::util::SubscriberInitExt;
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 pub fn bootstrap() -> anyhow::Result<()> {
     load_env()?;

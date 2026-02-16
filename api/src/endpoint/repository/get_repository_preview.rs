@@ -1,8 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use super::default_ref;
-use crate::endpoint::Endpoint;
-use crate::resource::repository::RepositoryPreviewResource;
+use crate::{endpoint::Endpoint, resource::repository::RepositoryPreviewResource};
 
 pub struct GetRepositoryPreview;
 

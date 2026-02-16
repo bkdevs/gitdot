@@ -1,15 +1,18 @@
 use async_trait::async_trait;
 
-use crate::dto::{
-    AnswerAuthorizationRequest, CommentAuthorizationRequest, GitHttpAuthorizationRequest,
-    OrganizationAuthorizationRequest, QuestionAuthorizationRequest, RepositoryAuthorizationRequest,
-    RepositoryCreationAuthorizationRequest,
-};
-use crate::error::AuthorizationError;
-use crate::model::{GitOperation, OrganizationRole, RepositoryOwnerType};
-use crate::repository::{
-    OrganizationRepository, OrganizationRepositoryImpl, QuestionRepository, QuestionRepositoryImpl,
-    RepositoryRepository, RepositoryRepositoryImpl, UserRepository, UserRepositoryImpl,
+use crate::{
+    dto::{
+        AnswerAuthorizationRequest, CommentAuthorizationRequest, GitHttpAuthorizationRequest,
+        OrganizationAuthorizationRequest, QuestionAuthorizationRequest,
+        RepositoryAuthorizationRequest, RepositoryCreationAuthorizationRequest,
+    },
+    error::AuthorizationError,
+    model::{GitOperation, OrganizationRole, RepositoryOwnerType},
+    repository::{
+        OrganizationRepository, OrganizationRepositoryImpl, QuestionRepository,
+        QuestionRepositoryImpl, RepositoryRepository, RepositoryRepositoryImpl, UserRepository,
+        UserRepositoryImpl,
+    },
 };
 
 #[async_trait]

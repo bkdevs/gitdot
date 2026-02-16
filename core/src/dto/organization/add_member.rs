@@ -1,9 +1,11 @@
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
-use crate::dto::OwnerName;
-use crate::error::OrganizationError;
-use crate::model::{OrganizationMember, OrganizationRole};
+use crate::{
+    dto::OwnerName,
+    error::OrganizationError,
+    model::{OrganizationMember, OrganizationRole},
+};
 
 #[derive(Debug, Clone)]
 pub struct AddMemberRequest {

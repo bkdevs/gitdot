@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::endpoint::Endpoint;
-use crate::resource::repository::RepositoryCommitDiffResource;
+use crate::{endpoint::Endpoint, resource::repository::RepositoryCommitDiffResource};
 
 pub struct GetRepositoryCommitDiff;
 

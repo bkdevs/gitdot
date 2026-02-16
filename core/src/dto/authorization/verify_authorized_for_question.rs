@@ -1,7 +1,9 @@
 use uuid::Uuid;
 
-use crate::dto::{OwnerName, RepositoryName};
-use crate::error::AuthorizationError;
+use crate::{
+    dto::{OwnerName, RepositoryName},
+    error::AuthorizationError,
+};
 
 #[derive(Debug, Clone)]
 pub struct QuestionAuthorizationRequest {

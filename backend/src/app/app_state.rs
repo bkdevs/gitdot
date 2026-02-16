@@ -3,28 +3,35 @@ use std::sync::Arc;
 use axum::extract::FromRef;
 use sqlx::PgPool;
 
-use gitdot_core::repository::{
-    OrganizationRepositoryImpl, QuestionRepositoryImpl, RepositoryRepositoryImpl,
-    TokenRepositoryImpl, UserRepositoryImpl,
-};
-use gitdot_core::service::{
-    AuthorizationService, AuthorizationServiceImpl, OrganizationService, OrganizationServiceImpl,
-    TokenService, TokenServiceImpl, UserService, UserServiceImpl,
+use gitdot_core::{
+    repository::{
+        OrganizationRepositoryImpl, QuestionRepositoryImpl, RepositoryRepositoryImpl,
+        TokenRepositoryImpl, UserRepositoryImpl,
+    },
+    service::{
+        AuthorizationService, AuthorizationServiceImpl, OrganizationService,
+        OrganizationServiceImpl, TokenService, TokenServiceImpl, UserService, UserServiceImpl,
+    },
 };
 
 cfg_use!("main", {
-    use gitdot_core::client::{DifftClient, Git2Client, GitHttpClientImpl};
-    use gitdot_core::repository::CommitRepositoryImpl;
-    use gitdot_core::service::{
-        CommitService, CommitServiceImpl, GitHttpService, GitHttpServiceImpl, QuestionService,
-        QuestionServiceImpl, RepositoryService, RepositoryServiceImpl,
+    use gitdot_core::{
+        client::{DifftClient, Git2Client, GitHttpClientImpl},
+        repository::CommitRepositoryImpl,
+        service::{
+            CommitService, CommitServiceImpl, GitHttpService, GitHttpServiceImpl, QuestionService,
+            QuestionServiceImpl, RepositoryService, RepositoryServiceImpl,
+        },
     };
 });
 
 cfg_use!("ci", {
-    use gitdot_core::repository::{DagRepositoryImpl, RunnerRepositoryImpl, TaskRepositoryImpl};
-    use gitdot_core::service::{
-        DagService, DagServiceImpl, RunnerService, RunnerServiceImpl, TaskService, TaskServiceImpl,
+    use gitdot_core::{
+        repository::{DagRepositoryImpl, RunnerRepositoryImpl, TaskRepositoryImpl},
+        service::{
+            DagService, DagServiceImpl, RunnerService, RunnerServiceImpl, TaskService,
+            TaskServiceImpl,
+        },
     };
 });
 

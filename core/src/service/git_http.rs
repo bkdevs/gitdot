@@ -1,8 +1,10 @@
 use async_trait::async_trait;
 
-use crate::client::{GitHttpClient, GitHttpClientImpl};
-use crate::dto::{GitHttpResponse, InfoRefsRequest, ReceivePackRequest, UploadPackRequest};
-use crate::error::GitHttpError;
+use crate::{
+    client::{GitHttpClient, GitHttpClientImpl},
+    dto::{GitHttpResponse, InfoRefsRequest, ReceivePackRequest, UploadPackRequest},
+    error::GitHttpError,
+};
 
 #[async_trait]
 pub trait GitHttpService: Send + Sync + 'static {

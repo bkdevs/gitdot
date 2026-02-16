@@ -1,14 +1,16 @@
 use async_trait::async_trait;
 
-use crate::dto::{
-    AddMemberRequest, CreateOrganizationRequest, GetOrganizationRequest,
-    ListOrganizationRepositoriesRequest, OrganizationMemberResponse, OrganizationResponse,
-    RepositoryResponse,
-};
-use crate::error::OrganizationError;
-use crate::repository::{
-    OrganizationRepository, OrganizationRepositoryImpl, RepositoryRepository,
-    RepositoryRepositoryImpl, UserRepository, UserRepositoryImpl,
+use crate::{
+    dto::{
+        AddMemberRequest, CreateOrganizationRequest, GetOrganizationRequest,
+        ListOrganizationRepositoriesRequest, OrganizationMemberResponse, OrganizationResponse,
+        RepositoryResponse,
+    },
+    error::OrganizationError,
+    repository::{
+        OrganizationRepository, OrganizationRepositoryImpl, RepositoryRepository,
+        RepositoryRepositoryImpl, UserRepository, UserRepositoryImpl,
+    },
 };
 
 #[async_trait]

@@ -1,7 +1,9 @@
 use tokio::io::AsyncRead;
 
-use crate::dto::{GitContentType, OwnerName, RepositoryName};
-use crate::error::GitHttpError;
+use crate::{
+    dto::{GitContentType, OwnerName, RepositoryName},
+    error::GitHttpError,
+};
 
 pub struct UploadPackRequest {
     pub owner: OwnerName,

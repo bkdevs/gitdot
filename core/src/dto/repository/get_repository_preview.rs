@@ -1,6 +1,8 @@
-use crate::dto::{OwnerName, RepositoryName};
-use crate::error::RepositoryError;
-use crate::util::git::DEFAULT_PREVIEW_LINES;
+use crate::{
+    dto::{OwnerName, RepositoryName},
+    error::RepositoryError,
+    util::git::DEFAULT_PREVIEW_LINES,
+};
 
 #[derive(Debug, Clone)]
 pub struct GetRepositoryPreviewRequest {

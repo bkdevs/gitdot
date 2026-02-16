@@ -1,8 +1,10 @@
 use async_trait::async_trait;
 
-use crate::dto::{TaskResponse, UpdateTaskRequest};
-use crate::error::TaskError;
-use crate::repository::{TaskRepository, TaskRepositoryImpl};
+use crate::{
+    dto::{TaskResponse, UpdateTaskRequest},
+    error::TaskError,
+    repository::{TaskRepository, TaskRepositoryImpl},
+};
 
 #[async_trait]
 pub trait TaskService: Send + Sync + 'static {

@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::endpoint::Endpoint;
-use crate::resource::user::UserResource;
+use crate::{endpoint::Endpoint, resource::user::UserResource};
 
 pub struct UpdateCurrentUser;
 

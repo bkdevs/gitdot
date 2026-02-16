@@ -2,22 +2,24 @@ use std::collections::{HashMap, HashSet};
 
 use async_trait::async_trait;
 
-use crate::client::{DiffClient, DifftClient, Git2Client, GitClient};
-use crate::dto::{
-    CommitAuthorResponse, CreateRepositoryRequest, GetRepositoryCommitDiffRequest,
-    GetRepositoryCommitRequest, GetRepositoryCommitStatRequest, GetRepositoryCommitsRequest,
-    GetRepositoryFileCommitsRequest, GetRepositoryFileRequest, GetRepositoryPreviewRequest,
-    GetRepositoryTreeRequest, RepositoryCommitDiffResponse, RepositoryCommitResponse,
-    RepositoryCommitStatResponse, RepositoryCommitsResponse, RepositoryFileResponse,
-    RepositoryPreviewResponse, RepositoryResponse, RepositoryTreeResponse,
+use crate::{
+    client::{DiffClient, DifftClient, Git2Client, GitClient},
+    dto::{
+        CommitAuthorResponse, CreateRepositoryRequest, GetRepositoryCommitDiffRequest,
+        GetRepositoryCommitRequest, GetRepositoryCommitStatRequest, GetRepositoryCommitsRequest,
+        GetRepositoryFileCommitsRequest, GetRepositoryFileRequest, GetRepositoryPreviewRequest,
+        GetRepositoryTreeRequest, RepositoryCommitDiffResponse, RepositoryCommitResponse,
+        RepositoryCommitStatResponse, RepositoryCommitsResponse, RepositoryFileResponse,
+        RepositoryPreviewResponse, RepositoryResponse, RepositoryTreeResponse,
+    },
+    error::RepositoryError,
+    model::RepositoryOwnerType,
+    repository::{
+        OrganizationRepository, OrganizationRepositoryImpl, RepositoryRepository,
+        RepositoryRepositoryImpl, UserRepository, UserRepositoryImpl,
+    },
+    util::git::{GitHookType, POST_RECEIVE_SCRIPT},
 };
-use crate::error::RepositoryError;
-use crate::model::RepositoryOwnerType;
-use crate::repository::{
-    OrganizationRepository, OrganizationRepositoryImpl, RepositoryRepository,
-    RepositoryRepositoryImpl, UserRepository, UserRepositoryImpl,
-};
-use crate::util::git::{GitHookType, POST_RECEIVE_SCRIPT};
 
 #[async_trait]
 pub trait RepositoryService: Send + Sync + 'static {

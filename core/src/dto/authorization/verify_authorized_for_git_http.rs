@@ -1,8 +1,10 @@
 use uuid::Uuid;
 
-use crate::dto::{OwnerName, RepositoryName};
-use crate::error::AuthorizationError;
-use crate::model::GitOperation;
+use crate::{
+    dto::{OwnerName, RepositoryName},
+    error::AuthorizationError,
+    model::GitOperation,
+};
 
 #[derive(Debug, Clone)]
 pub struct GitHttpAuthorizationRequest {

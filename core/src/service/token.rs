@@ -2,15 +2,18 @@ use async_trait::async_trait;
 use chrono::{Duration, Utc};
 use uuid::Uuid;
 
-use crate::dto::{
-    AuthorizeDeviceRequest, DeviceCodeRequest, DeviceCodeResponse, PollTokenRequest, TokenResponse,
-};
-use crate::error::TokenError;
-use crate::model::{DeviceAuthorizationStatus, TokenType};
-use crate::repository::{TokenRepository, TokenRepositoryImpl, UserRepository, UserRepositoryImpl};
-use crate::util::token::{
-    DEVICE_CODE_EXPIRY_MINUTES, POLLING_INTERVAL_SECONDS, generate_access_token,
-    generate_device_code, generate_user_code, hash_token, validate_token_format,
+use crate::{
+    dto::{
+        AuthorizeDeviceRequest, DeviceCodeRequest, DeviceCodeResponse, PollTokenRequest,
+        TokenResponse,
+    },
+    error::TokenError,
+    model::{DeviceAuthorizationStatus, TokenType},
+    repository::{TokenRepository, TokenRepositoryImpl, UserRepository, UserRepositoryImpl},
+    util::token::{
+        DEVICE_CODE_EXPIRY_MINUTES, POLLING_INTERVAL_SECONDS, generate_access_token,
+        generate_device_code, generate_user_code, hash_token, validate_token_format,
+    },
 };
 
 #[async_trait]

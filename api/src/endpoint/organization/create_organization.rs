@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::endpoint::Endpoint;
-use crate::resource::OrganizationResource;
+use crate::{endpoint::Endpoint, resource::OrganizationResource};
 
 pub struct CreateOrganization;
 

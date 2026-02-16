@@ -1,8 +1,10 @@
 use async_trait::async_trait;
 
-use crate::dto::{CreateDagRequest, DagResponse};
-use crate::error::DagError;
-use crate::repository::{DagRepository, DagRepositoryImpl};
+use crate::{
+    dto::{CreateDagRequest, DagResponse},
+    error::DagError,
+    repository::{DagRepository, DagRepositoryImpl},
+};
 
 #[async_trait]
 pub trait DagService: Send + Sync + 'static {

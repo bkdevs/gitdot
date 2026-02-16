@@ -1,5 +1,4 @@
-use crate::dto::OwnerName;
-use crate::error::OrganizationError;
+use crate::{dto::OwnerName, error::OrganizationError};
 
 #[derive(Debug, Clone)]
 pub struct GetOrganizationRequest {

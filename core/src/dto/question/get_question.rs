@@ -1,7 +1,9 @@
 use uuid::Uuid;
 
-use crate::dto::{OwnerName, RepositoryName};
-use crate::error::QuestionError;
+use crate::{
+    dto::{OwnerName, RepositoryName},
+    error::QuestionError,
+};
 
 #[derive(Debug, Clone)]
 pub struct GetQuestionRequest {

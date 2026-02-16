@@ -1,9 +1,10 @@
 use uuid::Uuid;
 
-use crate::dto::OwnerName;
-use crate::dto::common::RunnerName;
-use crate::error::RunnerError;
-use crate::model::RunnerOwnerType;
+use crate::{
+    dto::{OwnerName, common::RunnerName},
+    error::RunnerError,
+    model::RunnerOwnerType,
+};
 
 #[derive(Debug, Clone)]
 pub struct CreateRunnerRequest {

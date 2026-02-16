@@ -1,6 +1,10 @@
-use crate::command::Args;
-use crate::command::auth::{AuthCommand, get_status, login};
-use crate::config::Config;
+use crate::{
+    command::{
+        Args,
+        auth::{AuthCommand, get_status, login},
+    },
+    config::Config,
+};
 
 pub async fn run(args: &Args) -> anyhow::Result<()> {
     let config = Config::load().await?;

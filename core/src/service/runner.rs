@@ -1,15 +1,15 @@
 use async_trait::async_trait;
 
-use crate::dto::{
-    CreateRunnerRequest, CreateRunnerResponse, DeleteRunnerRequest, RegisterRunnerRequest,
+use crate::{
+    dto::{CreateRunnerRequest, CreateRunnerResponse, DeleteRunnerRequest, RegisterRunnerRequest},
+    error::RunnerError,
+    model::{RunnerOwnerType, TokenType},
+    repository::{
+        OrganizationRepository, OrganizationRepositoryImpl, RunnerRepository, RunnerRepositoryImpl,
+        TokenRepository, TokenRepositoryImpl,
+    },
+    util::token::{generate_access_token, hash_token},
 };
-use crate::error::RunnerError;
-use crate::model::{RunnerOwnerType, TokenType};
-use crate::repository::{
-    OrganizationRepository, OrganizationRepositoryImpl, RunnerRepository, RunnerRepositoryImpl,
-    TokenRepository, TokenRepositoryImpl,
-};
-use crate::util::token::{generate_access_token, hash_token};
 
 #[async_trait]
 pub trait RunnerService: Send + Sync + 'static {

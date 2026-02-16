@@ -2,9 +2,7 @@ use std::time::{Duration, Instant};
 
 use anyhow::bail;
 
-use crate::api::ApiClient;
-use crate::config::Config;
-use crate::store::GitCredentialStore;
+use crate::{api::ApiClient, config::Config, store::GitCredentialStore};
 
 pub async fn login(mut config: Config) -> anyhow::Result<()> {
     let api_client = ApiClient::new();

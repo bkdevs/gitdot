@@ -1,8 +1,10 @@
 use uuid::Uuid;
 
-use crate::dto::{OwnerName, RepositoryName};
-use crate::error::RepositoryError;
-use crate::model::{RepositoryOwnerType, RepositoryVisibility};
+use crate::{
+    dto::{OwnerName, RepositoryName},
+    error::RepositoryError,
+    model::{RepositoryOwnerType, RepositoryVisibility},
+};
 
 #[derive(Debug, Clone)]
 pub struct CreateRepositoryRequest {

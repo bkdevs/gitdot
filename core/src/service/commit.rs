@@ -1,8 +1,10 @@
 use async_trait::async_trait;
 
-use crate::dto::{CommitResponse, CreateCommitRequest};
-use crate::error::CommitError;
-use crate::repository::{CommitRepository, CommitRepositoryImpl};
+use crate::{
+    dto::{CommitResponse, CreateCommitRequest},
+    error::CommitError,
+    repository::{CommitRepository, CommitRepositoryImpl},
+};
 
 #[async_trait]
 pub trait CommitService: Send + Sync + 'static {

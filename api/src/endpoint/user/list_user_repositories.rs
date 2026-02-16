@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::endpoint::Endpoint;
-use crate::resource::repository::RepositoryResource;
+use crate::{endpoint::Endpoint, resource::repository::RepositoryResource};
 
 pub struct ListUserRepositories;
 

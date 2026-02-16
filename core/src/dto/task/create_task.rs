@@ -1,7 +1,9 @@
 use uuid::Uuid;
 
-use crate::dto::common::{OwnerName, RepositoryName};
-use crate::error::TaskError;
+use crate::{
+    dto::common::{OwnerName, RepositoryName},
+    error::TaskError,
+};
 
 #[derive(Debug, Clone)]
 pub struct CreateTaskRequest {

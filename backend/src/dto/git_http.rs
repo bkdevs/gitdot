@@ -1,6 +1,8 @@
-use axum::body::Body;
-use axum::http::StatusCode;
-use axum::response::{IntoResponse, Response};
+use axum::{
+    body::Body,
+    http::StatusCode,
+    response::{IntoResponse, Response},
+};
 use futures::TryStreamExt;
 use serde::Deserialize;
 

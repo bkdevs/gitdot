@@ -1,15 +1,18 @@
 use async_trait::async_trait;
 
-use crate::dto::{
-    AnswerResponse, CommentResponse, CreateAnswerCommentRequest, CreateAnswerRequest,
-    CreateQuestionCommentRequest, CreateQuestionRequest, GetQuestionRequest, ListQuestionsRequest,
-    QuestionResponse, UpdateAnswerRequest, UpdateCommentRequest, UpdateQuestionRequest,
-    VoteAnswerRequest, VoteCommentRequest, VoteQuestionRequest, VoteResponse,
-};
-use crate::error::QuestionError;
-use crate::model::VoteTarget;
-use crate::repository::{
-    QuestionRepository, QuestionRepositoryImpl, RepositoryRepository, RepositoryRepositoryImpl,
+use crate::{
+    dto::{
+        AnswerResponse, CommentResponse, CreateAnswerCommentRequest, CreateAnswerRequest,
+        CreateQuestionCommentRequest, CreateQuestionRequest, GetQuestionRequest,
+        ListQuestionsRequest, QuestionResponse, UpdateAnswerRequest, UpdateCommentRequest,
+        UpdateQuestionRequest, VoteAnswerRequest, VoteCommentRequest, VoteQuestionRequest,
+        VoteResponse,
+    },
+    error::QuestionError,
+    model::VoteTarget,
+    repository::{
+        QuestionRepository, QuestionRepositoryImpl, RepositoryRepository, RepositoryRepositoryImpl,
+    },
 };
 
 #[async_trait]

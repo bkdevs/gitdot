@@ -1,14 +1,16 @@
 use async_trait::async_trait;
 
-use crate::dto::{
-    GetCurrentUserRequest, GetUserRequest, HasUserRequest, ListUserRepositoriesRequest,
-    RepositoryResponse, UpdateCurrentUserRequest, UserResponse,
+use crate::{
+    dto::{
+        GetCurrentUserRequest, GetUserRequest, HasUserRequest, ListUserRepositoriesRequest,
+        RepositoryResponse, UpdateCurrentUserRequest, UserResponse,
+    },
+    error::UserError,
+    repository::{
+        RepositoryRepository, RepositoryRepositoryImpl, UserRepository, UserRepositoryImpl,
+    },
+    util::auth::is_reserved_name,
 };
-use crate::error::UserError;
-use crate::repository::{
-    RepositoryRepository, RepositoryRepositoryImpl, UserRepository, UserRepositoryImpl,
-};
-use crate::util::auth::is_reserved_name;
 
 #[async_trait]
 pub trait UserService: Send + Sync + 'static {

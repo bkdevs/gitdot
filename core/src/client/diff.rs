@@ -1,8 +1,10 @@
-use crate::dto::{
-    DiffChange, DiffHunk, DiffLine, DiffPair, RepositoryDiffResponse, RepositoryFileResponse,
-    SyntaxHighlight,
+use crate::{
+    dto::{
+        DiffChange, DiffHunk, DiffLine, DiffPair, RepositoryDiffResponse, RepositoryFileResponse,
+        SyntaxHighlight,
+    },
+    error::DiffError,
 };
-use crate::error::DiffError;
 
 pub trait DiffClient: Send + Sync + Clone + 'static {
     fn diff_files(

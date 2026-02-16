@@ -1,9 +1,10 @@
-use std::convert::Infallible;
-use std::marker::PhantomData;
+use std::{convert::Infallible, marker::PhantomData};
 
 use async_trait::async_trait;
-use axum::extract::{FromRef, FromRequestParts, OptionalFromRequestParts};
-use axum::http::request::Parts;
+use axum::{
+    extract::{FromRef, FromRequestParts, OptionalFromRequestParts},
+    http::request::Parts,
+};
 use base64::Engine;
 use jsonwebtoken::{Algorithm, DecodingKey, Validation, decode};
 use serde::{Deserialize, Serialize};

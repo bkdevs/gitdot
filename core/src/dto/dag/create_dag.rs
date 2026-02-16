@@ -1,7 +1,9 @@
 use uuid::Uuid;
 
-use crate::dto::common::{OwnerName, RepositoryName};
-use crate::error::DagError;
+use crate::{
+    dto::common::{OwnerName, RepositoryName},
+    error::DagError,
+};
 
 #[derive(Debug, Clone)]
 pub struct CreateDagRequest {
