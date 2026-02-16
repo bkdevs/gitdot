@@ -63,8 +63,6 @@ where
         &self,
         request: ReceivePackRequest,
     ) -> Result<GitHttpResponse, GitHttpError> {
-        // TODO: After successful receive-pack, we can parse the pack data
-        // to extract commit information and persist it in DB (e.g. via CommitRepository)
         self.git_http_client
             .service_rpc(
                 &request.owner,
