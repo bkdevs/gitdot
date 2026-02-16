@@ -10,6 +10,7 @@ use crate::dto::{
     RepositoryTreeResponse,
 };
 use crate::error::GitError;
+use crate::util::git::GitHookType;
 use crate::util::git::{DEFAULT_BRANCH, EMPTY_TREE_REF, REPO_SUFFIX};
 
 #[async_trait]
@@ -90,6 +91,14 @@ pub trait GitClient: Send + Sync + Clone + 'static {
         left_ref: &str,
         right_ref: &str,
     ) -> Result<Vec<RepositoryCommitStatResponse>, GitError>;
+
+    async fn install_hook(
+        &self,
+        owner: &str,
+        repo: &str,
+        hook_type: GitHookType,
+        hook_script: &str,
+    ) -> Result<(), GitError>;
 
     fn normalize_repo_name(&self, repo: &str) -> String {
         format!(
@@ -871,5 +880,26 @@ impl GitClient for Git2Client {
             Ok(results)
         })
         .await?
+    }
+
+    async fn install_hook(
+        &self,
+        owner: &str,
+        repo: &str,
+        hook_type: GitHookType,
+        hook_script: &str,
+    ) -> Result<(), GitError> {
+        let repo_path = self.get_repo_path(owner, repo);
+        let hook_path = format!("{}/hooks/{}", repo_path, hook_type.as_str());
+        fs::write(&hook_path, hook_script).await?;
+
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let perms = std::fs::Permissions::from_mode(0o755);
+            fs::set_permissions(&hook_path, perms).await?;
+        }
+
+        Ok(())
     }
 }

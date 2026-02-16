@@ -1,0 +1,9 @@
+#!/bin/bash
+
+echo "Post-receive hook triggered"
+cat
+
+# curl -s -X POST \
+#   -H "Content-Type: text/plain" \
+#   --data-binary @- \
+#   "http://127.0.0.1:8080/internal/git/post-receive?owner={owner}&repo={repo}"

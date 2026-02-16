@@ -17,6 +17,7 @@ use crate::repository::{
     OrganizationRepository, OrganizationRepositoryImpl, RepositoryRepository,
     RepositoryRepositoryImpl, UserRepository, UserRepositoryImpl,
 };
+use crate::util::git::{GitHookType, POST_RECEIVE_SCRIPT};
 
 #[async_trait]
 pub trait RepositoryService: Send + Sync + 'static {
@@ -187,6 +188,16 @@ where
         // Create git repo first
         self.git_client
             .create_repo(&request.owner_name, &repo_name)
+            .await?;
+
+        // Install post-receive hook to create commit rows
+        self.git_client
+            .install_hook(
+                &request.owner_name,
+                &repo_name,
+                GitHookType::PostReceive,
+                POST_RECEIVE_SCRIPT,
+            )
             .await?;
 
         // Insert into DB, delete git repo on failure
