@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{endpoint::Endpoint, resource::OrganizationMemberResource};
+use crate::endpoint::Endpoint;
+use crate::resource::OrganizationMemberResource;
 
 pub struct AddMember;
 

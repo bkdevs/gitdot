@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{endpoint::Endpoint, resource::question::CommentResource};
+use crate::endpoint::Endpoint;
+use crate::resource::question::CommentResource;
 
 pub struct UpdateComment;
 

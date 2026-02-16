@@ -1,6 +1,7 @@
 use uuid::Uuid;
 
-use crate::dto::{OwnerName, common::RunnerName};
+use crate::dto::OwnerName;
+use crate::dto::common::RunnerName;
 use crate::error::RunnerError;
 use crate::model::RunnerOwnerType;
 

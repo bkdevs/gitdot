@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{endpoint::Endpoint, resource::repository::RepositoryCommitStatResource};
+use crate::endpoint::Endpoint;
+use crate::resource::repository::RepositoryCommitStatResource;
 
 pub struct GetRepositoryCommitStat;
 

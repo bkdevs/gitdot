@@ -1,8 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
 use async_trait::async_trait;
-use tokio::fs;
-use tokio::task;
+use tokio::{fs, task};
 
 use crate::dto::{
     FilePreview, RepositoryCommitResponse, RepositoryCommitStatResponse, RepositoryCommitsResponse,
@@ -10,8 +9,7 @@ use crate::dto::{
     RepositoryTreeResponse,
 };
 use crate::error::GitError;
-use crate::util::git::GitHookType;
-use crate::util::git::{DEFAULT_BRANCH, EMPTY_TREE_REF, REPO_SUFFIX};
+use crate::util::git::{DEFAULT_BRANCH, EMPTY_TREE_REF, GitHookType, REPO_SUFFIX};
 
 #[async_trait]
 pub trait GitClient: Send + Sync + Clone + 'static {

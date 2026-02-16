@@ -14,6 +14,7 @@ cargo check                          # Type check all crates
 cargo build -p gitdot_server         # Build backend server
 cargo run -p gitdot_server           # Run backend (reads backend/.env)
 cargo test -p gitdot_core            # Run core tests
+cargo +nightly fmt                   # Format code with rustfmt
 ```
 
 ### Frontend (TypeScript)

@@ -2,10 +2,8 @@ use std::process::Stdio;
 
 use async_trait::async_trait;
 use futures::{StreamExt, stream};
-use tokio::{
-    io::{AsyncRead, AsyncReadExt},
-    process::Command,
-};
+use tokio::io::{AsyncRead, AsyncReadExt};
+use tokio::process::Command;
 
 use crate::dto::{GitHttpBody, GitHttpResponse};
 use crate::error::GitHttpError;

@@ -6,8 +6,7 @@ use crate::dto::{
     AuthorizeDeviceRequest, DeviceCodeRequest, DeviceCodeResponse, PollTokenRequest, TokenResponse,
 };
 use crate::error::TokenError;
-use crate::model::DeviceAuthorizationStatus;
-use crate::model::TokenType;
+use crate::model::{DeviceAuthorizationStatus, TokenType};
 use crate::repository::{TokenRepository, TokenRepositoryImpl, UserRepository, UserRepositoryImpl};
 use crate::util::token::{
     DEVICE_CODE_EXPIRY_MINUTES, POLLING_INTERVAL_SECONDS, generate_access_token,

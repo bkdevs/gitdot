@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{endpoint::Endpoint, resource::DagResource};
+use crate::endpoint::Endpoint;
+use crate::resource::DagResource;
 
 pub struct CreateDag;
 

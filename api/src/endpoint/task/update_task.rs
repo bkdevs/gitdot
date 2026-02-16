@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{endpoint::Endpoint, resource::TaskResource};
+use crate::endpoint::Endpoint;
+use crate::resource::TaskResource;
 
 pub struct UpdateTask;
 

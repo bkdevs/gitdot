@@ -1,6 +1,8 @@
 use std::convert::Infallible;
 
-use axum::{extract::FromRequestParts, http::header, http::request::Parts};
+use axum::extract::FromRequestParts;
+use axum::http::header;
+use axum::http::request::Parts;
 
 pub struct ContentType(pub String);
 

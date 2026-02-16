@@ -3,10 +3,9 @@ use std::sync::Arc;
 use axum::extract::FromRef;
 use sqlx::PgPool;
 
-use gitdot_core::repository::TokenRepositoryImpl;
 use gitdot_core::repository::{
     OrganizationRepositoryImpl, QuestionRepositoryImpl, RepositoryRepositoryImpl,
-    UserRepositoryImpl,
+    TokenRepositoryImpl, UserRepositoryImpl,
 };
 use gitdot_core::service::{
     AuthorizationService, AuthorizationServiceImpl, OrganizationService, OrganizationServiceImpl,
