@@ -8,6 +8,7 @@ async-trait = "0.1.89"
 base64 = "0.22"
 crc32fast = "1.4"
 chrono = { version = "0.4.42", features = ["serde"] }
+futures = "0.3.32"
 git2 = "0.20.3"
 hex = "0.4.3"
 http = "1.4.0"
@@ -20,4 +21,5 @@ sha2 = "0.10.9"
 sqlx = { version = "0.8.6", features = ["runtime-tokio", "postgres", "uuid", "chrono"] }
 thiserror = "2.0.17"
 tokio = { version = "1", features = ["full"] }
+tokio-util = { version = "0.7.18", features = ["io"] }
 uuid = { version = "1.19.0", features = ["v4", "serde"] }
