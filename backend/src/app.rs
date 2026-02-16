@@ -64,7 +64,7 @@ impl GitdotServer {
 }
 
 fn create_router(app_state: AppState) -> Router {
-    let middleware = ServiceBuilder::new()
+    let api_middleware = ServiceBuilder::new()
         .layer(SetRequestIdLayer::x_request_id(MakeRequestUuid))
         .layer(TraceLayer::new_for_http())
         .layer(CorsLayer::permissive()) // TODO: update CORS policy
@@ -72,6 +72,11 @@ fn create_router(app_state: AppState) -> Router {
             StatusCode::REQUEST_TIMEOUT,
             Duration::from_secs(10),
         ))
+        .layer(PropagateRequestIdLayer::x_request_id());
+
+    let git_middleware = ServiceBuilder::new()
+        .layer(SetRequestIdLayer::x_request_id(MakeRequestUuid))
+        .layer(TraceLayer::new_for_http())
         .layer(PropagateRequestIdLayer::x_request_id());
 
     let mut api_router = Router::new();
@@ -99,8 +104,10 @@ fn create_router(app_state: AppState) -> Router {
         );
     }
 
-    let api_router = api_router.layer(middleware).with_state(app_state.clone());
-    let git_router = git_router.with_state(app_state);
+    let api_router = api_router
+        .layer(api_middleware)
+        .with_state(app_state.clone());
+    let git_router = git_router.layer(git_middleware).with_state(app_state);
 
     Router::new()
         .route("/health", get(|| async { "OK" }))
