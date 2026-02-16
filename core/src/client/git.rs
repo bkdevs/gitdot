@@ -92,6 +92,14 @@ pub trait GitClient: Send + Sync + Clone + 'static {
         right_ref: &str,
     ) -> Result<Vec<RepositoryCommitStatResponse>, GitError>;
 
+    async fn rev_list(
+        &self,
+        owner: &str,
+        repo: &str,
+        old_sha: &str,
+        new_sha: &str,
+    ) -> Result<Vec<RepositoryCommitResponse>, GitError>;
+
     async fn install_hook(
         &self,
         owner: &str,
@@ -878,6 +886,43 @@ impl GitClient for Git2Client {
             }
 
             Ok(results)
+        })
+        .await?
+    }
+
+    async fn rev_list(
+        &self,
+        owner: &str,
+        repo: &str,
+        old_sha: &str,
+        new_sha: &str,
+    ) -> Result<Vec<RepositoryCommitResponse>, GitError> {
+        let old_sha = old_sha.to_string();
+        let new_sha = new_sha.to_string();
+        let repository = self.open_repository(owner, repo)?;
+
+        task::spawn_blocking(move || {
+            let new_oid = git2::Oid::from_str(&new_sha)?;
+
+            let mut revwalk = repository.revwalk()?;
+            revwalk.push(new_oid)?;
+            revwalk.set_sorting(git2::Sort::TIME)?;
+
+            // For non-initial pushes, hide everything reachable from old_sha
+            let is_initial = old_sha.chars().all(|c| c == '0');
+            if !is_initial {
+                let old_oid = git2::Oid::from_str(&old_sha)?;
+                revwalk.hide(old_oid)?;
+            }
+
+            let mut commits = Vec::new();
+            for oid_result in revwalk {
+                let oid = oid_result?;
+                let commit = repository.find_commit(oid)?;
+                commits.push(RepositoryCommitResponse::from(&commit));
+            }
+
+            Ok(commits)
         })
         .await?
     }

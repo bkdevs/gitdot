@@ -4,12 +4,12 @@ mod error;
 mod response;
 mod settings;
 
-use http::StatusCode;
-use sqlx::PgPool;
 use std::{sync::Arc, time::Duration};
 
 use anyhow::Context;
 use axum::{Router, routing::get};
+use http::StatusCode;
+use sqlx::PgPool;
 use tokio::net;
 use tower::ServiceBuilder;
 use tower_http::{
@@ -21,8 +21,9 @@ use tower_http::{
 
 #[cfg(feature = "main")]
 use crate::handler::{
-    create_git_http_router, create_oauth_router, create_organization_router,
-    create_question_router, create_repository_router, create_user_router,
+    create_git_http_router, create_internal_router, create_oauth_router,
+    create_organization_router, create_question_router, create_repository_router,
+    create_user_router,
 };
 
 #[cfg(feature = "ci")]
@@ -55,9 +56,13 @@ impl GitdotServer {
 
     pub async fn start(self) -> anyhow::Result<()> {
         tracing::info!("Starting server on {}", self.listener.local_addr().unwrap());
-        axum::serve(self.listener, self.router)
-            .await
-            .context("Failed to start server")?;
+        axum::serve(
+            self.listener,
+            self.router
+                .into_make_service_with_connect_info::<std::net::SocketAddr>(),
+        )
+        .await
+        .context("Failed to start server")?;
         Ok(())
     }
 }
@@ -73,13 +78,9 @@ fn create_router(app_state: AppState) -> Router {
         ))
         .layer(PropagateRequestIdLayer::x_request_id());
 
-    let git_middleware = ServiceBuilder::new()
-        .layer(SetRequestIdLayer::x_request_id(MakeRequestUuid))
-        .layer(TraceLayer::new_for_http())
-        .layer(PropagateRequestIdLayer::x_request_id());
-
     let mut api_router = Router::new();
     let mut git_router = Router::new();
+    let mut internal_router = Router::new();
 
     #[cfg(feature = "main")]
     {
@@ -90,6 +91,7 @@ fn create_router(app_state: AppState) -> Router {
             .merge(create_question_router())
             .merge(create_oauth_router());
         git_router = git_router.merge(create_git_http_router());
+        internal_router = internal_router.merge(create_internal_router());
     }
 
     #[cfg(feature = "ci")]
@@ -103,13 +105,12 @@ fn create_router(app_state: AppState) -> Router {
         );
     }
 
-    let api_router = api_router
-        .layer(api_middleware)
-        .with_state(app_state.clone());
-    let git_router = git_router.layer(git_middleware).with_state(app_state);
+    let api_router = api_router.layer(api_middleware);
 
     Router::new()
         .route("/health", get(|| async { "OK" }))
         .merge(api_router)
         .merge(git_router)
+        .merge(internal_router)
+        .with_state(app_state)
 }

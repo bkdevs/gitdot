@@ -1,9 +1,17 @@
 #!/bin/bash
 
-echo "Post-receive hook triggered"
-cat
+# Post-receive hook: reads ref updates from stdin and notifies the backend.
+# Each line from stdin has the format: <old-sha> <new-sha> <ref-name>
 
-# curl -s -X POST \
-#   -H "Content-Type: text/plain" \
-#   --data-binary @- \
-#   "http://127.0.0.1:8080/internal/git/post-receive?owner={owner}&repo={repo}"
+abs_git_dir=$(cd "$GIT_DIR" && pwd)
+repo_dir=$(basename "$abs_git_dir" .git)
+owner_dir=$(basename "$(dirname "$abs_git_dir")")
+
+while read -r old_sha new_sha ref_name; do
+  curl -sf -X POST \
+    -H "Content-Type: application/json" \
+    -d "{\"old_sha\":\"$old_sha\",\"new_sha\":\"$new_sha\",\"ref_name\":\"$ref_name\"}" \
+    "http://127.0.0.1:8080/internal/${owner_dir}/${repo_dir}/process-post-receive" &
+done
+
+wait

@@ -7,8 +7,8 @@ use thiserror::Error;
 
 use gitdot_api::ApiResource;
 use gitdot_core::error::{
-    AuthorizationError, DagError, GitHttpError, OrganizationError, QuestionError, RepositoryError,
-    RunnerError, TaskError, TokenError, UserError,
+    AuthorizationError, CommitError, DagError, GitHttpError, OrganizationError, QuestionError,
+    RepositoryError, RunnerError, TaskError, TokenError, UserError,
 };
 
 use super::AppResponse;
@@ -29,6 +29,9 @@ pub enum AppError {
 
     #[error(transparent)]
     Repository(#[from] RepositoryError),
+
+    #[error(transparent)]
+    Commit(#[from] CommitError),
 
     #[error(transparent)]
     Question(#[from] QuestionError),
@@ -138,6 +141,22 @@ impl IntoResponse for AppError {
                     RepositoryError::GitError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                     RepositoryError::DiffError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                     RepositoryError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+                };
+                let response = AppResponse::new(
+                    status_code,
+                    AppErrorMessage {
+                        message: e.to_string(),
+                    },
+                );
+                response.into_response()
+            }
+            AppError::Commit(e) => {
+                let status_code = match e {
+                    CommitError::InvalidOwnerName(_) => StatusCode::BAD_REQUEST,
+                    CommitError::InvalidRepositoryName(_) => StatusCode::BAD_REQUEST,
+                    CommitError::RepositoryNotFound(_) => StatusCode::NOT_FOUND,
+                    CommitError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+                    CommitError::GitError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                 };
                 let response = AppResponse::new(
                     status_code,

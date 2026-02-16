@@ -1,12 +1,14 @@
 cfg_modules!("main", {
-    mod organization;
-    mod user;
     mod git_http;
-    mod repository;
+    mod internal;
     mod oauth;
+    mod organization;
     mod question;
+    mod repository;
+    mod user;
 
     pub use git_http::*;
+    pub use internal::*;
     pub use oauth::*;
     pub use organization::*;
     pub use question::*;

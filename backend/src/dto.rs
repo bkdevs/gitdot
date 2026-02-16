@@ -1,5 +1,6 @@
 mod dag;
 mod git_http;
+mod internal;
 mod oauth;
 mod organization;
 mod question;
@@ -9,6 +10,7 @@ mod task;
 mod user;
 
 pub use git_http::*;
+pub use internal::*;
 
 pub trait IntoApi {
     type ApiType;

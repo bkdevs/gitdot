@@ -120,7 +120,12 @@ impl AppState {
                 repo_repo.clone(),
             )),
             #[cfg(feature = "main")]
-            commit_service: Arc::new(CommitServiceImpl::new(commit_repo.clone())),
+            commit_service: Arc::new(CommitServiceImpl::new(
+                commit_repo.clone(),
+                repo_repo.clone(),
+                user_repo.clone(),
+                git_client.clone(),
+            )),
 
             #[cfg(feature = "ci")]
             runner_service: Arc::new(RunnerServiceImpl::new(

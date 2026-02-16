@@ -11,6 +11,10 @@ use axum::{
     response::Response,
     routing::{get, post},
 };
+use tower_http::{
+    request_id::{MakeRequestUuid, PropagateRequestIdLayer, SetRequestIdLayer},
+    trace::TraceLayer,
+};
 
 use crate::app::AppState;
 
@@ -23,8 +27,11 @@ pub fn create_git_http_router() -> Router<AppState> {
         .route("/{owner}/{repo}/info/refs", get(git_info_refs))
         .route("/{owner}/{repo}/git-upload-pack", post(git_upload_pack))
         .route("/{owner}/{repo}/git-receive-pack", post(git_receive_pack))
-        .layer(DefaultBodyLimit::disable())
         .layer(middleware::from_fn(add_www_authenticate_header))
+        .layer(SetRequestIdLayer::x_request_id(MakeRequestUuid))
+        .layer(TraceLayer::new_for_http())
+        .layer(PropagateRequestIdLayer::x_request_id())
+        .layer(DefaultBodyLimit::disable())
 }
 
 /// Middleware to add the WWW-Authenticate header to the response as

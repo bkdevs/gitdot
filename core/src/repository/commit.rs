@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use chrono::{DateTime, Utc};
 use sqlx::{Error, PgPool};
 use uuid::Uuid;
 
@@ -6,13 +7,15 @@ use crate::model::Commit;
 
 #[async_trait]
 pub trait CommitRepository: Send + Sync + Clone + 'static {
-    async fn create(
+    async fn create_bulk(
         &self,
-        author_id: Uuid,
-        repo_id: Uuid,
-        sha: &str,
-        message: &str,
-    ) -> Result<Commit, Error>;
+        author_ids: &[Uuid],
+        repo_ids: &[Uuid],
+        ref_names: &[String],
+        shas: &[String],
+        messages: &[String],
+        created_ats: &[DateTime<Utc>],
+    ) -> Result<Vec<Commit>, Error>;
 }
 
 #[derive(Debug, Clone)]
@@ -28,27 +31,35 @@ impl CommitRepositoryImpl {
 
 #[async_trait]
 impl CommitRepository for CommitRepositoryImpl {
-    async fn create(
+    async fn create_bulk(
         &self,
-        author_id: Uuid,
-        repo_id: Uuid,
-        sha: &str,
-        message: &str,
-    ) -> Result<Commit, Error> {
-        let commit = sqlx::query_as::<_, Commit>(
+        author_ids: &[Uuid],
+        repo_ids: &[Uuid],
+        ref_names: &[String],
+        shas: &[String],
+        messages: &[String],
+        created_ats: &[DateTime<Utc>],
+    ) -> Result<Vec<Commit>, Error> {
+        if author_ids.is_empty() {
+            return Ok(Vec::new());
+        }
+
+        let rows = sqlx::query_as::<_, Commit>(
             r#"
-            INSERT INTO commits (author_id, repo_id, sha, message)
-            VALUES ($1, $2, $3, $4)
-            RETURNING id, author_id, repo_id, sha, message, created_at
+            INSERT INTO commits (author_id, repo_id, ref_name, sha, message, created_at)
+            SELECT * FROM UNNEST($1::uuid[], $2::uuid[], $3::varchar[], $4::varchar[], $5::text[], $6::timestamptz[])
+            RETURNING id, author_id, repo_id, ref_name, sha, message, created_at
             "#,
         )
-        .bind(author_id)
-        .bind(repo_id)
-        .bind(sha)
-        .bind(message)
-        .fetch_one(&self.pool)
+        .bind(author_ids)
+        .bind(repo_ids)
+        .bind(ref_names)
+        .bind(shas)
+        .bind(messages)
+        .bind(created_ats)
+        .fetch_all(&self.pool)
         .await?;
 
-        Ok(commit)
+        Ok(rows)
     }
 }
