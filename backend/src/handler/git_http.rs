@@ -5,6 +5,7 @@ mod git_upload_pack;
 use axum::{
     Router,
     body::Body,
+    extract::DefaultBodyLimit,
     http::{Request, StatusCode, header},
     middleware::{self, Next},
     response::Response,
@@ -22,6 +23,7 @@ pub fn create_git_http_router() -> Router<AppState> {
         .route("/{owner}/{repo}/info/refs", get(git_info_refs))
         .route("/{owner}/{repo}/git-upload-pack", post(git_upload_pack))
         .route("/{owner}/{repo}/git-receive-pack", post(git_receive_pack))
+        .layer(DefaultBodyLimit::disable())
         .layer(middleware::from_fn(add_www_authenticate_header))
 }
 
