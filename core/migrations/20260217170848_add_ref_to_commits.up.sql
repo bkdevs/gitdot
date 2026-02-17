@@ -1,0 +1,1 @@
+ALTER TABLE commits ADD COLUMN ref_name VARCHAR(256) NOT NULL;
