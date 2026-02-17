@@ -15,15 +15,18 @@ use crate::{
 
 #[axum::debug_handler]
 pub async fn git_receive_pack(
-    auth_user: Option<AuthenticatedUser>,
+    auth_user: AuthenticatedUser,
     State(state): State<AppState>,
     Path((owner, repo)): Path<(String, String)>,
     ContentType(content_type): ContentType,
     body: Body,
 ) -> Result<GitHttpServerResponse, AppError> {
-    let user_id = auth_user.map(|u| u.id);
-    let auth_request =
-        RepositoryAuthorizationRequest::new(user_id, &owner, &repo, RepositoryPermission::Write)?;
+    let auth_request = RepositoryAuthorizationRequest::new(
+        Some(auth_user.id),
+        &owner,
+        &repo,
+        RepositoryPermission::Write,
+    )?;
     state
         .auth_service
         .verify_authorized_for_repository(auth_request)
