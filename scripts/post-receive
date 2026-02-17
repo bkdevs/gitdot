@@ -8,7 +8,7 @@ repo_dir=$(basename "$abs_git_dir" .git)
 owner_dir=$(basename "$(dirname "$abs_git_dir")")
 
 while read -r old_sha new_sha ref_name; do
-  curl -sf -X POST \
+  curl -sf -o /dev/null -X POST \
     -H "Content-Type: application/json" \
     -d "{\"old_sha\":\"$old_sha\",\"new_sha\":\"$new_sha\",\"ref_name\":\"$ref_name\"}" \
     "http://127.0.0.1:8080/internal/${owner_dir}/${repo_dir}/process-post-receive" &
