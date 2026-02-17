@@ -10,12 +10,12 @@ use gitdot_core::dto::{AnswerAuthorizationRequest, UpdateAnswerRequest};
 use crate::{
     app::{AppError, AppResponse, AppState},
     dto::IntoApi,
-    extract::AuthenticatedUser,
+    extract::{Principal, User},
 };
 
 #[axum::debug_handler]
 pub async fn update_answer(
-    auth_user: AuthenticatedUser,
+    auth_user: Principal<User>,
     State(state): State<AppState>,
     Path((_owner, _repo, _number, answer_id)): Path<(String, String, i32, Uuid)>,
     Json(request): Json<api::UpdateAnswerRequest>,

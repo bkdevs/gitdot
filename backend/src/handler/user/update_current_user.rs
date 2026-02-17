@@ -5,13 +5,13 @@ use gitdot_core::dto::UpdateCurrentUserRequest;
 
 use crate::{
     app::{AppError, AppResponse, AppState},
-    extract::AuthenticatedUser,
     dto::IntoApi,
+    extract::{Principal, User},
 };
 
 #[axum::debug_handler]
 pub async fn update_current_user(
-    auth_user: AuthenticatedUser,
+    auth_user: Principal<User>,
     State(state): State<AppState>,
     Json(request): Json<api::UpdateCurrentUserRequest>,
 ) -> Result<AppResponse<api::UpdateCurrentUserResponse>, AppError> {

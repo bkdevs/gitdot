@@ -6,7 +6,7 @@ use axum::{
 use crate::{
     app::{AppError, AppResponse, AppState},
     dto::IntoApi,
-    extract::AuthenticatedUser,
+    extract::{Principal, User},
 };
 use gitdot_api::endpoint::get_repository_commit_diff as api;
 use gitdot_core::dto::{
@@ -15,7 +15,7 @@ use gitdot_core::dto::{
 
 #[axum::debug_handler]
 pub async fn get_repository_commit_diff(
-    auth_user: Option<AuthenticatedUser>,
+    auth_user: Option<Principal<User>>,
     State(state): State<AppState>,
     Path((owner, repo, sha)): Path<(String, String, String)>,
 ) -> Result<AppResponse<api::GetRepositoryCommitDiffResponse>, AppError> {

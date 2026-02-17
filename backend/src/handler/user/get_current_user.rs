@@ -5,13 +5,13 @@ use gitdot_core::dto::GetCurrentUserRequest;
 
 use crate::{
     app::{AppError, AppResponse, AppState},
-    extract::AuthenticatedUser,
     dto::IntoApi,
+    extract::{Principal, User},
 };
 
 #[axum::debug_handler]
 pub async fn get_current_user(
-    auth_user: AuthenticatedUser,
+    auth_user: Principal<User>,
     State(state): State<AppState>,
 ) -> Result<AppResponse<api::GetCurrentUserResponse>, AppError> {
     let request = GetCurrentUserRequest::new(auth_user.id);

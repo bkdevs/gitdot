@@ -9,12 +9,12 @@ use gitdot_core::dto::{GetQuestionRequest, RepositoryAuthorizationRequest, Repos
 use crate::{
     app::{AppError, AppResponse, AppState},
     dto::IntoApi,
-    extract::AuthenticatedUser,
+    extract::{Principal, User},
 };
 
 #[axum::debug_handler]
 pub async fn get_question(
-    auth_user: Option<AuthenticatedUser>,
+    auth_user: Option<Principal<User>>,
     State(state): State<AppState>,
     Path((owner, repo, number)): Path<(String, String, i32)>,
 ) -> Result<AppResponse<api::GetQuestionResponse>, AppError> {

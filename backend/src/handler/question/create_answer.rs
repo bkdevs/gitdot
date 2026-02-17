@@ -9,12 +9,12 @@ use gitdot_core::dto::{CreateAnswerRequest, RepositoryAuthorizationRequest, Repo
 use crate::{
     app::{AppError, AppResponse, AppState},
     dto::IntoApi,
-    extract::AuthenticatedUser,
+    extract::{Principal, User},
 };
 
 #[axum::debug_handler]
 pub async fn create_answer(
-    auth_user: AuthenticatedUser,
+    auth_user: Principal<User>,
     State(state): State<AppState>,
     Path((owner, repo, number)): Path<(String, String, i32)>,
     Json(request): Json<api::CreateAnswerRequest>,

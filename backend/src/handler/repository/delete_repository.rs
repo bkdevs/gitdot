@@ -9,12 +9,12 @@ use gitdot_core::dto::{
 
 use crate::{
     app::{AppError, AppResponse, AppState},
-    extract::AuthenticatedUser,
+    extract::{Principal, User},
 };
 
 #[axum::debug_handler]
 pub async fn delete_repository(
-    auth_user: AuthenticatedUser,
+    auth_user: Principal<User>,
     State(state): State<AppState>,
     Path((owner, repo)): Path<(String, String)>,
 ) -> Result<AppResponse<()>, AppError> {

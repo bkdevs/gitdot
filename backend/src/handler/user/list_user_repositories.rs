@@ -8,13 +8,13 @@ use gitdot_core::dto::ListUserRepositoriesRequest;
 
 use crate::{
     app::{AppError, AppResponse, AppState},
-    extract::AuthenticatedUser,
     dto::IntoApi,
+    extract::{Principal, User},
 };
 
 #[axum::debug_handler]
 pub async fn list_user_repositories(
-    auth_user: Option<AuthenticatedUser>,
+    auth_user: Option<Principal<User>>,
     State(state): State<AppState>,
     Path(user_name): Path<String>,
 ) -> Result<AppResponse<api::ListUserRepositoriesResponse>, AppError> {

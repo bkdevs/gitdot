@@ -8,13 +8,13 @@ use gitdot_core::dto::CreateOrganizationRequest;
 
 use crate::{
     app::{AppError, AppResponse, AppState},
-    extract::AuthenticatedUser,
     dto::IntoApi,
+    extract::{Principal, User},
 };
 
 #[axum::debug_handler]
 pub async fn create_organization(
-    auth_user: AuthenticatedUser,
+    auth_user: Principal<User>,
     State(state): State<AppState>,
     Path(org_name): Path<String>,
 ) -> Result<AppResponse<api::CreateOrganizationResponse>, AppError> {

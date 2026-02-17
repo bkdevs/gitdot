@@ -164,7 +164,6 @@ where
         }
 
         let token_hash = hash_token(&request.token);
-
         let access_token = self
             .token_repo
             .get_access_token_by_hash(&token_hash)

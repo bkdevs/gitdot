@@ -10,12 +10,12 @@ use gitdot_core::dto::{AddMemberRequest, OrganizationAuthorizationRequest};
 use crate::{
     app::{AppError, AppResponse, AppState},
     dto::IntoApi,
-    extract::AuthenticatedUser,
+    extract::{Principal, User},
 };
 
 #[axum::debug_handler]
 pub async fn add_member(
-    auth_user: AuthenticatedUser,
+    auth_user: Principal<User>,
     State(state): State<AppState>,
     Path(org_name): Path<String>,
     Json(request): Json<api::AddMemberRequest>,

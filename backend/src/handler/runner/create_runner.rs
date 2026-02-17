@@ -9,13 +9,13 @@ use gitdot_core::dto::CreateRunnerRequest;
 use crate::{
     app::{AppError, AppResponse, AppState},
     dto::IntoApi,
-    extract::{AuthenticatedUser, Jwt},
+    extract::{Principal, UserJwt},
 };
 
 #[axum::debug_handler]
 pub async fn create_runner(
     State(state): State<AppState>,
-    auth_user: AuthenticatedUser<Jwt>,
+    auth_user: Principal<UserJwt>,
     Json(request): Json<api::CreateRunnerRequest>,
 ) -> Result<AppResponse<api::CreateRunnerResponse>, AppError> {
     let request = CreateRunnerRequest::new(

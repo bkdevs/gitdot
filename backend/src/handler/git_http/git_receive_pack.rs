@@ -10,12 +10,12 @@ use gitdot_core::dto::{ReceivePackRequest, RepositoryAuthorizationRequest, Repos
 use crate::{
     app::{AppError, AppState},
     dto::GitHttpServerResponse,
-    extract::{AuthenticatedUser, ContentType},
+    extract::{ContentType, Principal, User},
 };
 
 #[axum::debug_handler]
 pub async fn git_receive_pack(
-    auth_user: AuthenticatedUser,
+    auth_user: Principal<User>,
     State(state): State<AppState>,
     Path((owner, repo)): Path<(String, String)>,
     ContentType(content_type): ContentType,

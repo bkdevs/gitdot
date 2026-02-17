@@ -11,12 +11,12 @@ use gitdot_core::dto::{
 use crate::{
     app::{AppError, AppResponse, AppState},
     dto::IntoApi,
-    extract::AuthenticatedUser,
+    extract::{Principal, User},
 };
 
 #[axum::debug_handler]
 pub async fn get_repository_preview(
-    auth_user: Option<AuthenticatedUser>,
+    auth_user: Option<Principal<User>>,
     State(state): State<AppState>,
     Path((owner, repo)): Path<(String, String)>,
     Query(params): Query<api::GetRepositoryPreviewRequest>,

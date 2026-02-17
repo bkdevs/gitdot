@@ -5,12 +5,12 @@ use gitdot_core::dto::{InfoRefsRequest, RepositoryAuthorizationRequest, Reposito
 use crate::{
     app::{AppError, AppState},
     dto::{GitHttpServerResponse, InfoRefsQuery},
-    extract::AuthenticatedUser,
+    extract::{Principal, User},
 };
 
 #[axum::debug_handler]
 pub async fn git_info_refs(
-    auth_user: Option<AuthenticatedUser>,
+    auth_user: Option<Principal<User>>,
     State(state): State<AppState>,
     Path((owner, repo)): Path<(String, String)>,
     Query(params): Query<InfoRefsQuery>,

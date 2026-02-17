@@ -15,12 +15,12 @@ use gitdot_core::{dto::ValidateTokenRequest, error::AuthorizationError};
 use crate::app::{AppError, AppState};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct AuthenticatedUser<S: AuthScheme = Any> {
+pub struct Principal<S: Authenticator> {
     pub id: Uuid,
     _marker: PhantomData<S>,
 }
 
-impl<S: AuthScheme> AuthenticatedUser<S> {
+impl<S: Authenticator> Principal<S> {
     fn new(id: Uuid) -> Self {
         Self {
             id,
@@ -29,26 +29,26 @@ impl<S: AuthScheme> AuthenticatedUser<S> {
     }
 }
 
-impl<Scheme, S> FromRequestParts<S> for AuthenticatedUser<Scheme>
+impl<A, S> FromRequestParts<S> for Principal<A>
 where
-    Scheme: AuthScheme,
     AppState: FromRef<S>,
+    A: Authenticator,
     S: Send + Sync,
 {
     type Rejection = AppError;
 
     async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
         let app_state = AppState::from_ref(state);
-        Scheme::authenticate(parts, &app_state)
+        A::authenticate(parts, &app_state)
             .await
             .map_err(AppError::from)
     }
 }
 
-impl<Scheme, S> OptionalFromRequestParts<S> for AuthenticatedUser<Scheme>
+impl<A, S> OptionalFromRequestParts<S> for Principal<A>
 where
-    Scheme: AuthScheme,
     AppState: FromRef<S>,
+    A: Authenticator,
     S: Send + Sync,
 {
     type Rejection = Infallible;
@@ -58,37 +58,37 @@ where
         state: &S,
     ) -> Result<Option<Self>, Self::Rejection> {
         let app_state = AppState::from_ref(state);
-        Ok(Scheme::authenticate(parts, &app_state).await.ok())
+        Ok(A::authenticate(parts, &app_state).await.ok())
     }
 }
 
 #[async_trait]
-pub trait AuthScheme: Send + Sync + 'static {
+pub trait Authenticator: Send + Sync + 'static {
     async fn authenticate(
         parts: &Parts,
         app_state: &AppState,
-    ) -> Result<AuthenticatedUser<Self>, AuthorizationError>
+    ) -> Result<Principal<Self>, AuthorizationError>
     where
         Self: Sized;
 }
 
-pub struct Any;
+pub struct User;
 
 #[async_trait]
-impl AuthScheme for Any {
+impl Authenticator for User {
     async fn authenticate(
         parts: &Parts,
         app_state: &AppState,
-    ) -> Result<AuthenticatedUser<Self>, AuthorizationError> {
+    ) -> Result<Principal<Self>, AuthorizationError> {
         let header = extract_auth_header(parts)?;
 
         if header.starts_with("Bearer ") {
-            let jwt_user = Jwt::authenticate(parts, app_state).await?;
-            return Ok(AuthenticatedUser::new(jwt_user.id));
+            let jwt_user = UserJwt::authenticate(parts, app_state).await?;
+            return Ok(Principal::new(jwt_user.id));
         }
         if header.starts_with("Basic ") {
-            let token_user = Token::authenticate(parts, app_state).await?;
-            return Ok(AuthenticatedUser::new(token_user.id));
+            let token_user = UserToken::authenticate(parts, app_state).await?;
+            return Ok(Principal::new(token_user.id));
         }
 
         Err(AuthorizationError::InvalidHeaderFormat)
@@ -105,14 +105,14 @@ struct UserClaims {
     pub role: Option<String>,
 }
 
-pub struct Jwt;
+pub struct UserJwt;
 
 #[async_trait]
-impl AuthScheme for Jwt {
+impl Authenticator for UserJwt {
     async fn authenticate(
         parts: &Parts,
         app_state: &AppState,
-    ) -> Result<AuthenticatedUser<Self>, AuthorizationError> {
+    ) -> Result<Principal<Self>, AuthorizationError> {
         let header = extract_auth_header(parts)?;
         let jwt = header
             .strip_prefix("Bearer ")
@@ -127,18 +127,18 @@ impl AuthScheme for Jwt {
         let id = Uuid::parse_str(&jwt_data.claims.sub)
             .map_err(|e| AuthorizationError::InvalidToken(e.to_string()))?;
 
-        Ok(AuthenticatedUser::new(id))
+        Ok(Principal::new(id))
     }
 }
 
-pub struct Token;
+pub struct UserToken;
 
 #[async_trait]
-impl AuthScheme for Token {
+impl Authenticator for UserToken {
     async fn authenticate(
         parts: &Parts,
         app_state: &AppState,
-    ) -> Result<AuthenticatedUser<Self>, AuthorizationError> {
+    ) -> Result<Principal<Self>, AuthorizationError> {
         let header = extract_auth_header(parts)?;
         let token = header
             .strip_prefix("Basic ")
@@ -166,7 +166,7 @@ impl AuthScheme for Token {
             .await
             .map_err(|_| AuthorizationError::Unauthorized)?;
 
-        Ok(AuthenticatedUser::new(response.user_id))
+        Ok(Principal::new(response.user_id))
     }
 }
 

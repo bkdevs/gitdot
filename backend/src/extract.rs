@@ -1,5 +1,5 @@
 mod auth;
 mod content_type;
 
-pub use auth::{AuthenticatedUser, Jwt};
+pub use auth::{Principal, User, UserJwt};
 pub use content_type::ContentType;
