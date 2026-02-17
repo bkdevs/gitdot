@@ -21,3 +21,6 @@ sqlx = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true }
 uuid = { workspace = true }
+
+[dev-dependencies]
+mockall = { workspace = true }
