@@ -8,7 +8,10 @@ use crate::{
     },
     error::TokenError,
     model::{DeviceAuthorizationStatus, TokenType},
-    repository::{TokenRepository, TokenRepositoryImpl, UserRepository, UserRepositoryImpl},
+    repository::{
+        CodeRepository, CodeRepositoryImpl, TokenRepository, TokenRepositoryImpl, UserRepository,
+        UserRepositoryImpl,
+    },
     util::token::{
         DEVICE_CODE_EXPIRY_MINUTES, POLLING_INTERVAL_SECONDS, generate_access_token,
         generate_device_code, generate_user_code, hash_token, validate_token_format,
@@ -33,18 +36,25 @@ pub trait TokenService: Send + Sync + 'static {
 }
 
 #[derive(Debug, Clone)]
-pub struct TokenServiceImpl<R, U>
+pub struct TokenServiceImpl<D, T, U>
 where
-    R: TokenRepository,
+    D: CodeRepository,
+    T: TokenRepository,
     U: UserRepository,
 {
-    token_repo: R,
+    code_repo: D,
+    token_repo: T,
     user_repo: U,
 }
 
-impl TokenServiceImpl<TokenRepositoryImpl, UserRepositoryImpl> {
-    pub fn new(token_repo: TokenRepositoryImpl, user_repo: UserRepositoryImpl) -> Self {
+impl TokenServiceImpl<CodeRepositoryImpl, TokenRepositoryImpl, UserRepositoryImpl> {
+    pub fn new(
+        code_repo: CodeRepositoryImpl,
+        token_repo: TokenRepositoryImpl,
+        user_repo: UserRepositoryImpl,
+    ) -> Self {
         Self {
+            code_repo,
             token_repo,
             user_repo,
         }
@@ -52,9 +62,10 @@ impl TokenServiceImpl<TokenRepositoryImpl, UserRepositoryImpl> {
 }
 
 #[async_trait]
-impl<R, U> TokenService for TokenServiceImpl<R, U>
+impl<D, T, U> TokenService for TokenServiceImpl<D, T, U>
 where
-    R: TokenRepository,
+    D: CodeRepository,
+    T: TokenRepository,
     U: UserRepository,
 {
     async fn request_device_code(
@@ -65,7 +76,7 @@ where
         let user_code = generate_user_code();
         let expires_at = Utc::now() + Duration::minutes(DEVICE_CODE_EXPIRY_MINUTES);
 
-        self.token_repo
+        self.code_repo
             .create_device_authorization(&device_code, &user_code, &request.client_id, expires_at)
             .await?;
 
@@ -80,7 +91,7 @@ where
 
     async fn poll_token(&self, request: PollTokenRequest) -> Result<TokenResponse, TokenError> {
         let device_auth = self
-            .token_repo
+            .code_repo
             .get_device_authorization_by_device_code(&request.device_code)
             .await?
             .ok_or(TokenError::InvalidDeviceCode)?;
@@ -88,7 +99,7 @@ where
         if device_auth.expires_at < Utc::now()
             && device_auth.status == DeviceAuthorizationStatus::Pending
         {
-            self.token_repo
+            self.code_repo
                 .expire_device_authorization(device_auth.id)
                 .await?;
             return Err(TokenError::ExpiredToken);
@@ -120,7 +131,7 @@ where
                     .create_access_token(user_id, &device_auth.client_id, &token_hash)
                     .await?;
 
-                self.token_repo
+                self.code_repo
                     .expire_device_authorization(device_auth.id)
                     .await?;
 
@@ -134,7 +145,7 @@ where
     }
 
     async fn authorize_device(&self, request: AuthorizeDeviceRequest) -> Result<(), TokenError> {
-        self.token_repo
+        self.code_repo
             .authorize_device(&request.user_code, request.user_id)
             .await?
             .ok_or(TokenError::InvalidUserCode(

@@ -5,8 +5,8 @@ use sqlx::PgPool;
 
 use gitdot_core::{
     repository::{
-        OrganizationRepositoryImpl, QuestionRepositoryImpl, RepositoryRepositoryImpl,
-        TokenRepositoryImpl, UserRepositoryImpl,
+        CodeRepositoryImpl, OrganizationRepositoryImpl, QuestionRepositoryImpl,
+        RepositoryRepositoryImpl, TokenRepositoryImpl, UserRepositoryImpl,
     },
     service::{
         AuthorizationService, AuthorizationServiceImpl, OrganizationService,
@@ -66,6 +66,7 @@ pub struct AppState {
 
 impl AppState {
     pub fn new(settings: Arc<Settings>, pool: PgPool) -> Self {
+        let code_repo = CodeRepositoryImpl::new(pool.clone());
         let token_repo = TokenRepositoryImpl::new(pool.clone());
         let user_repo = UserRepositoryImpl::new(pool.clone());
         let org_repo = OrganizationRepositoryImpl::new(pool.clone());
@@ -90,7 +91,11 @@ impl AppState {
 
         Self {
             settings,
-            token_service: Arc::new(TokenServiceImpl::new(token_repo.clone(), user_repo.clone())),
+            token_service: Arc::new(TokenServiceImpl::new(
+                code_repo.clone(),
+                token_repo.clone(),
+                user_repo.clone(),
+            )),
             auth_service: Arc::new(AuthorizationServiceImpl::new(
                 org_repo.clone(),
                 repo_repo.clone(),

@@ -1,3 +1,4 @@
+mod code;
 mod commit;
 mod dag;
 mod organization;
@@ -8,6 +9,7 @@ mod task;
 mod token;
 mod user;
 
+pub use code::{CodeRepository, CodeRepositoryImpl};
 pub use commit::{CommitRepository, CommitRepositoryImpl};
 pub use dag::{DagRepository, DagRepositoryImpl};
 pub use organization::{OrganizationRepository, OrganizationRepositoryImpl};

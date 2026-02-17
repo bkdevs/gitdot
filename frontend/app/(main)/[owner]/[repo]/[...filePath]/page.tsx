@@ -22,6 +22,7 @@ export default async function Page({
 }) {
   const { owner, repo, filePath } = await params;
 
+  // TODO: only fetch once, this is redundant
   const tree = await getRepositoryTree(owner, repo);
   if (!tree || tree === NotFound) return null;
 
