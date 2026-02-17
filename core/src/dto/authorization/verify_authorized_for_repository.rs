@@ -9,6 +9,7 @@ use crate::{
 pub enum RepositoryPermission {
     Read,
     Write,
+    Admin,
 }
 
 #[derive(Debug, Clone)]

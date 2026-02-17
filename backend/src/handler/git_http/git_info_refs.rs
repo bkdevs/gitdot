@@ -1,6 +1,6 @@
 use axum::extract::{Path, Query, State};
 
-use gitdot_core::dto::{GitHttpAuthorizationRequest, InfoRefsRequest};
+use gitdot_core::dto::{InfoRefsRequest, RepositoryAuthorizationRequest, RepositoryPermission};
 
 use crate::{
     app::{AppError, AppState},
@@ -16,11 +16,14 @@ pub async fn git_info_refs(
     Query(params): Query<InfoRefsQuery>,
 ) -> Result<GitHttpServerResponse, AppError> {
     let user_id = auth_user.map(|u| u.id);
-    let auth_request =
-        GitHttpAuthorizationRequest::for_info_refs(user_id, &owner, &repo, &params.service)?;
+    let permission = match params.service.as_str() {
+        "git-receive-pack" => RepositoryPermission::Write,
+        _ => RepositoryPermission::Read,
+    };
+    let auth_request = RepositoryAuthorizationRequest::new(user_id, &owner, &repo, permission)?;
     state
         .auth_service
-        .verify_authorized_for_git_http(auth_request)
+        .verify_authorized_for_repository(auth_request)
         .await?;
 
     let request = InfoRefsRequest::new(&owner, &repo, &params.service)?;

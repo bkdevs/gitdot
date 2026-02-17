@@ -88,9 +88,3 @@ impl Into<String> for RepositoryVisibility {
         }
     }
 }
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum GitOperation {
-    Read,  // clone, fetch, pull
-    Write, // push
-}

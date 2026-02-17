@@ -2,13 +2,12 @@ use async_trait::async_trait;
 
 use crate::{
     dto::{
-        AnswerAuthorizationRequest, CommentAuthorizationRequest, GitHttpAuthorizationRequest,
-        OrganizationAuthorizationRequest, QuestionAuthorizationRequest,
-        RepositoryAuthorizationRequest, RepositoryCreationAuthorizationRequest,
-        RepositoryPermission,
+        AnswerAuthorizationRequest, CommentAuthorizationRequest, OrganizationAuthorizationRequest,
+        QuestionAuthorizationRequest, RepositoryAuthorizationRequest,
+        RepositoryCreationAuthorizationRequest, RepositoryPermission,
     },
     error::AuthorizationError,
-    model::{GitOperation, OrganizationRole, RepositoryOwnerType},
+    model::{OrganizationRole, RepositoryOwnerType},
     repository::{
         OrganizationRepository, OrganizationRepositoryImpl, QuestionRepository,
         QuestionRepositoryImpl, RepositoryRepository, RepositoryRepositoryImpl, UserRepository,
@@ -18,11 +17,6 @@ use crate::{
 
 #[async_trait]
 pub trait AuthorizationService: Send + Sync + 'static {
-    async fn verify_authorized_for_git_http(
-        &self,
-        request: GitHttpAuthorizationRequest,
-    ) -> Result<(), AuthorizationError>;
-
     async fn verify_authorized_for_repository_creation(
         &self,
         request: RepositoryCreationAuthorizationRequest,
@@ -99,38 +93,6 @@ where
     Q: QuestionRepository,
     U: UserRepository,
 {
-    async fn verify_authorized_for_git_http(
-        &self,
-        request: GitHttpAuthorizationRequest,
-    ) -> Result<(), AuthorizationError> {
-        let repository = self
-            .repo_repo
-            .get(request.owner.as_ref(), request.repo.as_ref())
-            .await?
-            .ok_or_else(|| AuthorizationError::NotFound("Repository not found".to_string()))?;
-
-        if repository.is_public() && request.operation == GitOperation::Read {
-            return Ok(());
-        }
-
-        let user_id = request.user_id.ok_or(AuthorizationError::Unauthorized)?;
-        if repository.is_owned_by_user() {
-            if repository.owner_id != user_id {
-                return Err(AuthorizationError::Unauthorized);
-            }
-        } else {
-            let is_member = self
-                .org_repo
-                .is_member(repository.owner_id, user_id)
-                .await?;
-            if !is_member {
-                return Err(AuthorizationError::Unauthorized);
-            }
-        }
-
-        Ok(())
-    }
-
     async fn verify_authorized_for_repository_creation(
         &self,
         request: RepositoryCreationAuthorizationRequest,
@@ -205,6 +167,22 @@ where
                 }
             }
             RepositoryPermission::Write => {
+                let user_id = request.user_id.ok_or(AuthorizationError::Unauthorized)?;
+                if repository.is_owned_by_user() {
+                    if repository.owner_id != user_id {
+                        return Err(AuthorizationError::Unauthorized);
+                    }
+                } else {
+                    let is_member = self
+                        .org_repo
+                        .is_member(repository.owner_id, user_id)
+                        .await?;
+                    if !is_member {
+                        return Err(AuthorizationError::Unauthorized);
+                    }
+                }
+            }
+            RepositoryPermission::Admin => {
                 let user_id = request.user_id.ok_or(AuthorizationError::Unauthorized)?;
                 if repository.is_owned_by_user() {
                     if repository.owner_id != user_id {

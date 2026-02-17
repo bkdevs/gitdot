@@ -22,7 +22,7 @@ pub async fn delete_repository(
         Some(auth_user.id),
         &owner,
         &repo,
-        RepositoryPermission::Write,
+        RepositoryPermission::Admin,
     )?;
     state
         .auth_service

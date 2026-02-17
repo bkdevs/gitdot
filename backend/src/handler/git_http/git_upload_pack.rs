@@ -5,7 +5,7 @@ use axum::{
 use futures::TryStreamExt;
 use tokio_util::io::StreamReader;
 
-use gitdot_core::dto::{GitHttpAuthorizationRequest, UploadPackRequest};
+use gitdot_core::dto::{RepositoryAuthorizationRequest, RepositoryPermission, UploadPackRequest};
 
 use crate::{
     app::{AppError, AppState},
@@ -22,10 +22,11 @@ pub async fn git_upload_pack(
     body: Body,
 ) -> Result<GitHttpServerResponse, AppError> {
     let user_id = auth_user.map(|u| u.id);
-    let auth_request = GitHttpAuthorizationRequest::for_upload_pack(user_id, &owner, &repo)?;
+    let auth_request =
+        RepositoryAuthorizationRequest::new(user_id, &owner, &repo, RepositoryPermission::Read)?;
     state
         .auth_service
-        .verify_authorized_for_git_http(auth_request)
+        .verify_authorized_for_repository(auth_request)
         .await?;
 
     let body_reader = StreamReader::new(
