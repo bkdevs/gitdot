@@ -7,6 +7,9 @@ pub enum RepositoryError {
     #[error("Repository '{0}' already exists for this owner")]
     Duplicate(String),
 
+    #[error("Repository not found: {0}")]
+    NotFound(String),
+
     #[error("Owner not found: {0}")]
     OwnerNotFound(String),
 

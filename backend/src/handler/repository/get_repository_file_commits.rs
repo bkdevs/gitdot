@@ -4,12 +4,14 @@ use axum::{
 };
 
 use gitdot_api::endpoint::get_repository_file_commits as api;
-use gitdot_core::dto::{GetRepositoryFileCommitsRequest, RepositoryAuthorizationRequest};
+use gitdot_core::dto::{
+    GetRepositoryFileCommitsRequest, RepositoryAuthorizationRequest, RepositoryPermission,
+};
 
 use crate::{
     app::{AppError, AppResponse, AppState},
-    extract::AuthenticatedUser,
     dto::IntoApi,
+    extract::AuthenticatedUser,
 };
 
 #[axum::debug_handler]
@@ -19,7 +21,12 @@ pub async fn get_repository_file_commits(
     Path((owner, repo)): Path<(String, String)>,
     Query(params): Query<api::GetRepositoryFileCommitsRequest>,
 ) -> Result<AppResponse<api::GetRepositoryFileCommitsResponse>, AppError> {
-    let request = RepositoryAuthorizationRequest::new(auth_user.map(|u| u.id), &owner, &repo)?;
+    let request = RepositoryAuthorizationRequest::new(
+        auth_user.map(|u| u.id),
+        &owner,
+        &repo,
+        RepositoryPermission::Read,
+    )?;
     state
         .auth_service
         .verify_authorized_for_repository(request)

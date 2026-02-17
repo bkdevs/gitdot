@@ -20,6 +20,8 @@ pub trait RepositoryRepository: Send + Sync + Clone + 'static {
     async fn get_by_id(&self, id: Uuid) -> Result<Option<Repository>, Error>;
 
     async fn list_by_owner(&self, owner_name: &str) -> Result<Vec<Repository>, Error>;
+
+    async fn delete(&self, id: Uuid) -> Result<(), Error>;
 }
 
 #[derive(Debug, Clone)]
@@ -106,5 +108,14 @@ impl RepositoryRepository for RepositoryRepositoryImpl {
         .await?;
 
         Ok(repositories)
+    }
+
+    async fn delete(&self, id: Uuid) -> Result<(), Error> {
+        sqlx::query("DELETE FROM repositories WHERE id = $1")
+            .bind(id)
+            .execute(&self.pool)
+            .await?;
+
+        Ok(())
     }
 }

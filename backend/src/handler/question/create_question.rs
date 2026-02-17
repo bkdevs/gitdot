@@ -4,12 +4,14 @@ use axum::{
 };
 
 use gitdot_api::endpoint::create_question as api;
-use gitdot_core::dto::{CreateQuestionRequest, RepositoryAuthorizationRequest};
+use gitdot_core::dto::{
+    CreateQuestionRequest, RepositoryAuthorizationRequest, RepositoryPermission,
+};
 
 use crate::{
     app::{AppError, AppResponse, AppState},
-    extract::AuthenticatedUser,
     dto::IntoApi,
+    extract::AuthenticatedUser,
 };
 
 #[axum::debug_handler]
@@ -19,7 +21,12 @@ pub async fn create_question(
     Path((owner, repo)): Path<(String, String)>,
     Json(request): Json<api::CreateQuestionRequest>,
 ) -> Result<AppResponse<api::CreateQuestionResponse>, AppError> {
-    let auth_request = RepositoryAuthorizationRequest::new(Some(auth_user.id), &owner, &repo)?;
+    let auth_request = RepositoryAuthorizationRequest::new(
+        Some(auth_user.id),
+        &owner,
+        &repo,
+        RepositoryPermission::Read,
+    )?;
     state
         .auth_service
         .verify_authorized_for_repository(auth_request)

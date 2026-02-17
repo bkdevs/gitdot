@@ -1,5 +1,7 @@
-use crate::dto::{OwnerName, RepositoryName};
-use crate::error::CommitError;
+use crate::{
+    dto::{OwnerName, RepositoryName},
+    error::CommitError,
+};
 
 #[derive(Debug, Clone)]
 pub struct CreateCommitsRequest {

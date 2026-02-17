@@ -8,8 +8,8 @@ use gitdot_core::dto::{CreateRepositoryRequest, RepositoryCreationAuthorizationR
 
 use crate::{
     app::{AppError, AppResponse, AppState},
-    extract::AuthenticatedUser,
     dto::IntoApi,
+    extract::AuthenticatedUser,
 };
 
 #[axum::debug_handler]

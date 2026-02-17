@@ -133,6 +133,7 @@ impl IntoResponse for AppError {
                 tracing::error!("{}", e);
                 let status_code = match e {
                     RepositoryError::Duplicate(_) => StatusCode::CONFLICT,
+                    RepositoryError::NotFound(_) => StatusCode::NOT_FOUND,
                     RepositoryError::OwnerNotFound(_) => StatusCode::NOT_FOUND,
                     RepositoryError::InvalidOwnerName(_) => StatusCode::BAD_REQUEST,
                     RepositoryError::InvalidRepositoryName(_) => StatusCode::BAD_REQUEST,

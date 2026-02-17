@@ -5,6 +5,7 @@ use crate::{
         AnswerAuthorizationRequest, CommentAuthorizationRequest, GitHttpAuthorizationRequest,
         OrganizationAuthorizationRequest, QuestionAuthorizationRequest,
         RepositoryAuthorizationRequest, RepositoryCreationAuthorizationRequest,
+        RepositoryPermission,
     },
     error::AuthorizationError,
     model::{GitOperation, OrganizationRole, RepositoryOwnerType},
@@ -182,26 +183,42 @@ where
                 ))
             })?;
 
-        if repository.is_public() {
-            return Ok(());
-        }
+        match request.permission {
+            RepositoryPermission::Read => {
+                if repository.is_public() {
+                    return Ok(());
+                }
 
-        if request.user_id.is_none() {
-            return Err(AuthorizationError::Unauthorized);
-        }
-
-        let user_id = request.user_id.unwrap();
-        if repository.is_owned_by_user() {
-            if repository.owner_id != user_id {
-                return Err(AuthorizationError::Unauthorized);
+                let user_id = request.user_id.ok_or(AuthorizationError::Unauthorized)?;
+                if repository.is_owned_by_user() {
+                    if repository.owner_id != user_id {
+                        return Err(AuthorizationError::Unauthorized);
+                    }
+                } else {
+                    let is_member = self
+                        .org_repo
+                        .is_member(repository.owner_id, user_id)
+                        .await?;
+                    if !is_member {
+                        return Err(AuthorizationError::Unauthorized);
+                    }
+                }
             }
-        } else {
-            let is_member = self
-                .org_repo
-                .is_member(repository.owner_id, user_id)
-                .await?;
-            if !is_member {
-                return Err(AuthorizationError::Unauthorized);
+            RepositoryPermission::Write => {
+                let user_id = request.user_id.ok_or(AuthorizationError::Unauthorized)?;
+                if repository.is_owned_by_user() {
+                    if repository.owner_id != user_id {
+                        return Err(AuthorizationError::Unauthorized);
+                    }
+                } else {
+                    let role = self
+                        .org_repo
+                        .get_member_role(request.owner.as_ref(), user_id)
+                        .await?;
+                    if !matches!(role, Some(OrganizationRole::Admin)) {
+                        return Err(AuthorizationError::Unauthorized);
+                    }
+                }
             }
         }
 

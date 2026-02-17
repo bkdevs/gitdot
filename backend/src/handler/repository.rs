@@ -1,4 +1,5 @@
 mod create_repository;
+mod delete_repository;
 mod get_repository_commit;
 mod get_repository_commit_diff;
 mod get_repository_commit_stat;
@@ -16,6 +17,7 @@ use axum::{
 use crate::app::AppState;
 
 use create_repository::create_repository;
+use delete_repository::delete_repository;
 use get_repository_commit::get_repository_commit;
 use get_repository_commit_diff::get_repository_commit_diff;
 use get_repository_commit_stat::get_repository_commit_stat;
@@ -27,7 +29,10 @@ use get_repository_tree::get_repository_tree;
 
 pub fn create_repository_router() -> Router<AppState> {
     Router::new()
-        .route("/repository/{owner}/{repo}", post(create_repository))
+        .route(
+            "/repository/{owner}/{repo}",
+            post(create_repository).delete(delete_repository),
+        )
         .route("/repository/{owner}/{repo}/tree", get(get_repository_tree))
         .route(
             "/repository/{owner}/{repo}/preview",

@@ -11,5 +11,5 @@ pub use verify_authorized_for_comment::CommentAuthorizationRequest;
 pub use verify_authorized_for_git_http::GitHttpAuthorizationRequest;
 pub use verify_authorized_for_organization::OrganizationAuthorizationRequest;
 pub use verify_authorized_for_question::QuestionAuthorizationRequest;
-pub use verify_authorized_for_repository::RepositoryAuthorizationRequest;
+pub use verify_authorized_for_repository::{RepositoryAuthorizationRequest, RepositoryPermission};
 pub use verify_authorized_for_repository_creation::RepositoryCreationAuthorizationRequest;

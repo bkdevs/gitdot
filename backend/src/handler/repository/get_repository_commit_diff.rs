@@ -5,11 +5,13 @@ use axum::{
 
 use crate::{
     app::{AppError, AppResponse, AppState},
-    extract::AuthenticatedUser,
     dto::IntoApi,
+    extract::AuthenticatedUser,
 };
 use gitdot_api::endpoint::get_repository_commit_diff as api;
-use gitdot_core::dto::{GetRepositoryCommitDiffRequest, RepositoryAuthorizationRequest};
+use gitdot_core::dto::{
+    GetRepositoryCommitDiffRequest, RepositoryAuthorizationRequest, RepositoryPermission,
+};
 
 #[axum::debug_handler]
 pub async fn get_repository_commit_diff(
@@ -17,7 +19,12 @@ pub async fn get_repository_commit_diff(
     State(state): State<AppState>,
     Path((owner, repo, sha)): Path<(String, String, String)>,
 ) -> Result<AppResponse<api::GetRepositoryCommitDiffResponse>, AppError> {
-    let request = RepositoryAuthorizationRequest::new(auth_user.map(|u| u.id), &owner, &repo)?;
+    let request = RepositoryAuthorizationRequest::new(
+        auth_user.map(|u| u.id),
+        &owner,
+        &repo,
+        RepositoryPermission::Read,
+    )?;
     state
         .auth_service
         .verify_authorized_for_repository(request)

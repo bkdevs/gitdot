@@ -4,12 +4,14 @@ use axum::{
 };
 
 use gitdot_api::endpoint::get_repository_commit as api;
-use gitdot_core::dto::{GetRepositoryCommitRequest, RepositoryAuthorizationRequest};
+use gitdot_core::dto::{
+    GetRepositoryCommitRequest, RepositoryAuthorizationRequest, RepositoryPermission,
+};
 
 use crate::{
     app::{AppError, AppResponse, AppState},
-    extract::AuthenticatedUser,
     dto::IntoApi,
+    extract::AuthenticatedUser,
 };
 
 #[axum::debug_handler]
@@ -18,7 +20,12 @@ pub async fn get_repository_commit(
     State(state): State<AppState>,
     Path((owner, repo, sha)): Path<(String, String, String)>,
 ) -> Result<AppResponse<api::GetRepositoryCommitResponse>, AppError> {
-    let request = RepositoryAuthorizationRequest::new(auth_user.map(|u| u.id), &owner, &repo)?;
+    let request = RepositoryAuthorizationRequest::new(
+        auth_user.map(|u| u.id),
+        &owner,
+        &repo,
+        RepositoryPermission::Read,
+    )?;
     state
         .auth_service
         .verify_authorized_for_repository(request)

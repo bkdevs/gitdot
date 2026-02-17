@@ -5,12 +5,14 @@ use axum::{
 use uuid::Uuid;
 
 use gitdot_api::endpoint::create_answer_comment as api;
-use gitdot_core::dto::{CreateAnswerCommentRequest, RepositoryAuthorizationRequest};
+use gitdot_core::dto::{
+    CreateAnswerCommentRequest, RepositoryAuthorizationRequest, RepositoryPermission,
+};
 
 use crate::{
     app::{AppError, AppResponse, AppState},
-    extract::AuthenticatedUser,
     dto::IntoApi,
+    extract::AuthenticatedUser,
 };
 
 #[axum::debug_handler]
@@ -20,7 +22,12 @@ pub async fn create_answer_comment(
     Path((owner, repo, _number, answer_id)): Path<(String, String, i32, Uuid)>,
     Json(request): Json<api::CreateAnswerCommentRequest>,
 ) -> Result<AppResponse<api::CreateAnswerCommentResponse>, AppError> {
-    let auth_request = RepositoryAuthorizationRequest::new(Some(auth_user.id), &owner, &repo)?;
+    let auth_request = RepositoryAuthorizationRequest::new(
+        Some(auth_user.id),
+        &owner,
+        &repo,
+        RepositoryPermission::Read,
+    )?;
     state
         .auth_service
         .verify_authorized_for_repository(auth_request)

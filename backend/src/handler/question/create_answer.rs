@@ -4,12 +4,12 @@ use axum::{
 };
 
 use gitdot_api::endpoint::create_answer as api;
-use gitdot_core::dto::{CreateAnswerRequest, RepositoryAuthorizationRequest};
+use gitdot_core::dto::{CreateAnswerRequest, RepositoryAuthorizationRequest, RepositoryPermission};
 
 use crate::{
     app::{AppError, AppResponse, AppState},
-    extract::AuthenticatedUser,
     dto::IntoApi,
+    extract::AuthenticatedUser,
 };
 
 #[axum::debug_handler]
@@ -19,7 +19,12 @@ pub async fn create_answer(
     Path((owner, repo, number)): Path<(String, String, i32)>,
     Json(request): Json<api::CreateAnswerRequest>,
 ) -> Result<AppResponse<api::CreateAnswerResponse>, AppError> {
-    let auth_request = RepositoryAuthorizationRequest::new(Some(auth_user.id), &owner, &repo)?;
+    let auth_request = RepositoryAuthorizationRequest::new(
+        Some(auth_user.id),
+        &owner,
+        &repo,
+        RepositoryPermission::Read,
+    )?;
     state
         .auth_service
         .verify_authorized_for_repository(auth_request)

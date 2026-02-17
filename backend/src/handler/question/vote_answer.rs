@@ -5,12 +5,12 @@ use axum::{
 use uuid::Uuid;
 
 use gitdot_api::endpoint::vote_answer as api;
-use gitdot_core::dto::{RepositoryAuthorizationRequest, VoteAnswerRequest};
+use gitdot_core::dto::{RepositoryAuthorizationRequest, RepositoryPermission, VoteAnswerRequest};
 
 use crate::{
     app::{AppError, AppResponse, AppState},
-    extract::AuthenticatedUser,
     dto::IntoApi,
+    extract::AuthenticatedUser,
 };
 
 #[axum::debug_handler]
@@ -20,7 +20,12 @@ pub async fn vote_answer(
     Path((owner, repo, _number, answer_id)): Path<(String, String, i32, Uuid)>,
     Json(request): Json<api::VoteAnswerRequest>,
 ) -> Result<AppResponse<api::VoteAnswerResponse>, AppError> {
-    let auth_request = RepositoryAuthorizationRequest::new(Some(auth_user.id), &owner, &repo)?;
+    let auth_request = RepositoryAuthorizationRequest::new(
+        Some(auth_user.id),
+        &owner,
+        &repo,
+        RepositoryPermission::Read,
+    )?;
     state
         .auth_service
         .verify_authorized_for_repository(auth_request)

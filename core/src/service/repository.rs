@@ -5,12 +5,13 @@ use async_trait::async_trait;
 use crate::{
     client::{DiffClient, DifftClient, Git2Client, GitClient},
     dto::{
-        CommitAuthorResponse, CreateRepositoryRequest, GetRepositoryCommitDiffRequest,
-        GetRepositoryCommitRequest, GetRepositoryCommitStatRequest, GetRepositoryCommitsRequest,
-        GetRepositoryFileCommitsRequest, GetRepositoryFileRequest, GetRepositoryPreviewRequest,
-        GetRepositoryTreeRequest, RepositoryCommitDiffResponse, RepositoryCommitResponse,
-        RepositoryCommitStatResponse, RepositoryCommitsResponse, RepositoryFileResponse,
-        RepositoryPreviewResponse, RepositoryResponse, RepositoryTreeResponse,
+        CommitAuthorResponse, CreateRepositoryRequest, DeleteRepositoryRequest,
+        GetRepositoryCommitDiffRequest, GetRepositoryCommitRequest, GetRepositoryCommitStatRequest,
+        GetRepositoryCommitsRequest, GetRepositoryFileCommitsRequest, GetRepositoryFileRequest,
+        GetRepositoryPreviewRequest, GetRepositoryTreeRequest, RepositoryCommitDiffResponse,
+        RepositoryCommitResponse, RepositoryCommitStatResponse, RepositoryCommitsResponse,
+        RepositoryFileResponse, RepositoryPreviewResponse, RepositoryResponse,
+        RepositoryTreeResponse,
     },
     error::RepositoryError,
     model::RepositoryOwnerType,
@@ -67,6 +68,11 @@ pub trait RepositoryService: Send + Sync + 'static {
         &self,
         request: GetRepositoryCommitStatRequest,
     ) -> Result<Vec<RepositoryCommitStatResponse>, RepositoryError>;
+
+    async fn delete_repository(
+        &self,
+        request: DeleteRepositoryRequest,
+    ) -> Result<(), RepositoryError>;
 }
 
 #[derive(Debug, Clone)]
@@ -407,5 +413,24 @@ where
             .await?;
 
         Ok(stats)
+    }
+
+    async fn delete_repository(
+        &self,
+        request: DeleteRepositoryRequest,
+    ) -> Result<(), RepositoryError> {
+        let owner = request.owner.as_ref();
+        let repo = request.repo.as_ref();
+
+        let repository = self
+            .repo_repo
+            .get(owner, repo)
+            .await?
+            .ok_or_else(|| RepositoryError::NotFound(format!("{}/{}", owner, repo)))?;
+
+        self.git_client.delete_repo(owner, repo).await?;
+        self.repo_repo.delete(repository.id).await?;
+
+        Ok(())
     }
 }
