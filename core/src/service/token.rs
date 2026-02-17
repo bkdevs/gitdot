@@ -1,11 +1,10 @@
 use async_trait::async_trait;
 use chrono::{Duration, Utc};
-use uuid::Uuid;
 
 use crate::{
     dto::{
         AuthorizeDeviceRequest, DeviceCodeRequest, DeviceCodeResponse, PollTokenRequest,
-        TokenResponse,
+        TokenResponse, ValidateTokenRequest, ValidateTokenResponse,
     },
     error::TokenError,
     model::{DeviceAuthorizationStatus, TokenType},
@@ -27,7 +26,10 @@ pub trait TokenService: Send + Sync + 'static {
 
     async fn authorize_device(&self, request: AuthorizeDeviceRequest) -> Result<(), TokenError>;
 
-    async fn validate_token(&self, token: &str) -> Result<Uuid, TokenError>;
+    async fn validate_token(
+        &self,
+        request: ValidateTokenRequest,
+    ) -> Result<ValidateTokenResponse, TokenError>;
 }
 
 #[derive(Debug, Clone)]
@@ -142,12 +144,15 @@ where
         Ok(())
     }
 
-    async fn validate_token(&self, token: &str) -> Result<Uuid, TokenError> {
-        if !validate_token_format(token) {
+    async fn validate_token(
+        &self,
+        request: ValidateTokenRequest,
+    ) -> Result<ValidateTokenResponse, TokenError> {
+        if !validate_token_format(&request.token) {
             return Err(TokenError::AccessDenied);
         }
 
-        let token_hash = hash_token(token);
+        let token_hash = hash_token(&request.token);
 
         let access_token = self
             .token_repo
@@ -157,6 +162,8 @@ where
 
         self.token_repo.touch_access_token(access_token.id).await?;
 
-        Ok(access_token.user_id)
+        Ok(ValidateTokenResponse {
+            user_id: access_token.user_id,
+        })
     }
 }

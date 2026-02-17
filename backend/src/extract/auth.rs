@@ -10,7 +10,7 @@ use jsonwebtoken::{Algorithm, DecodingKey, Validation, decode};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use gitdot_core::error::AuthorizationError;
+use gitdot_core::{dto::ValidateTokenRequest, error::AuthorizationError};
 
 use crate::app::{AppError, AppState};
 
@@ -157,13 +157,16 @@ impl AuthScheme for Token {
                     "Invalid token format".to_string(),
                 ))?;
 
-        let id = app_state
+        let request = ValidateTokenRequest {
+            token: token.to_owned(),
+        };
+        let response = app_state
             .token_service
-            .validate_token(token)
+            .validate_token(request)
             .await
             .map_err(|_| AuthorizationError::Unauthorized)?;
 
-        Ok(AuthenticatedUser::new(id))
+        Ok(AuthenticatedUser::new(response.user_id))
     }
 }
 
