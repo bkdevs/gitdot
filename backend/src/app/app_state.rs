@@ -103,7 +103,11 @@ impl AppState {
                 question_repo.clone(),
                 user_repo.clone(),
             )),
-            user_service: Arc::new(UserServiceImpl::new(user_repo.clone(), repo_repo.clone())),
+            user_service: Arc::new(UserServiceImpl::new(
+                user_repo.clone(),
+                repo_repo.clone(),
+                org_repo.clone(),
+            )),
             org_service: Arc::new(OrganizationServiceImpl::new(
                 org_repo.clone(),
                 user_repo.clone(),

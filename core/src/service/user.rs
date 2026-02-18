@@ -2,12 +2,14 @@ use async_trait::async_trait;
 
 use crate::{
     dto::{
-        GetCurrentUserRequest, GetUserRequest, HasUserRequest, ListUserRepositoriesRequest,
-        RepositoryResponse, UpdateCurrentUserRequest, UserResponse,
+        GetCurrentUserRequest, GetUserRequest, HasUserRequest, ListUserOrganizationsRequest,
+        ListUserRepositoriesRequest, OrganizationResponse, RepositoryResponse,
+        UpdateCurrentUserRequest, UserResponse,
     },
     error::UserError,
     repository::{
-        RepositoryRepository, RepositoryRepositoryImpl, UserRepository, UserRepositoryImpl,
+        OrganizationRepository, OrganizationRepositoryImpl, RepositoryRepository,
+        RepositoryRepositoryImpl, UserRepository, UserRepositoryImpl,
     },
     util::auth::is_reserved_name,
 };
@@ -32,32 +34,45 @@ pub trait UserService: Send + Sync + 'static {
         &self,
         request: ListUserRepositoriesRequest,
     ) -> Result<Vec<RepositoryResponse>, UserError>;
+
+    async fn list_organizations(
+        &self,
+        request: ListUserOrganizationsRequest,
+    ) -> Result<Vec<OrganizationResponse>, UserError>;
 }
 
 #[derive(Debug, Clone)]
-pub struct UserServiceImpl<U, R>
+pub struct UserServiceImpl<U, R, O>
 where
     U: UserRepository,
     R: RepositoryRepository,
+    O: OrganizationRepository,
 {
     user_repo: U,
     repo_repo: R,
+    org_repo: O,
 }
 
-impl UserServiceImpl<UserRepositoryImpl, RepositoryRepositoryImpl> {
-    pub fn new(user_repo: UserRepositoryImpl, repo_repo: RepositoryRepositoryImpl) -> Self {
+impl UserServiceImpl<UserRepositoryImpl, RepositoryRepositoryImpl, OrganizationRepositoryImpl> {
+    pub fn new(
+        user_repo: UserRepositoryImpl,
+        repo_repo: RepositoryRepositoryImpl,
+        org_repo: OrganizationRepositoryImpl,
+    ) -> Self {
         Self {
             user_repo,
             repo_repo,
+            org_repo,
         }
     }
 }
 
 #[async_trait]
-impl<U, R> UserService for UserServiceImpl<U, R>
+impl<U, R, O> UserService for UserServiceImpl<U, R, O>
 where
     U: UserRepository,
     R: RepositoryRepository,
+    O: OrganizationRepository,
 {
     async fn get_current_user(
         &self,
@@ -129,5 +144,20 @@ where
         };
 
         Ok(repositories.into_iter().map(|r| r.into()).collect())
+    }
+
+    async fn list_organizations(
+        &self,
+        request: ListUserOrganizationsRequest,
+    ) -> Result<Vec<OrganizationResponse>, UserError> {
+        let user_name = request.user_name.to_string();
+        let user = self
+            .user_repo
+            .get(&user_name)
+            .await?
+            .ok_or_else(|| UserError::NotFound(user_name))?;
+
+        let orgs = self.org_repo.list_by_user_id(user.id).await?;
+        Ok(orgs.into_iter().map(|o| o.into()).collect())
     }
 }

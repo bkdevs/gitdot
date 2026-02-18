@@ -1,6 +1,7 @@
 mod get_current_user;
 mod get_user;
 mod has_user;
+mod list_user_organizations;
 mod list_user_repositories;
 mod update_current_user;
 
@@ -11,6 +12,7 @@ use crate::app::AppState;
 use get_current_user::get_current_user;
 use get_user::get_user;
 use has_user::has_user;
+use list_user_organizations::list_user_organizations;
 use list_user_repositories::list_user_repositories;
 use update_current_user::update_current_user;
 
@@ -21,5 +23,9 @@ pub fn create_user_router() -> Router<AppState> {
         .route(
             "/user/{user_name}/repositories",
             get(list_user_repositories),
+        )
+        .route(
+            "/user/{user_name}/organizations",
+            get(list_user_organizations),
         )
 }

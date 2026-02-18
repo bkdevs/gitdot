@@ -1,6 +1,7 @@
 mod get_current_user;
 mod get_user;
 mod has_user;
+mod list_user_organizations;
 mod list_user_repositories;
 mod update_current_user;
 
@@ -12,6 +13,7 @@ use crate::model::User;
 pub use get_current_user::GetCurrentUserRequest;
 pub use get_user::GetUserRequest;
 pub use has_user::HasUserRequest;
+pub use list_user_organizations::ListUserOrganizationsRequest;
 pub use list_user_repositories::ListUserRepositoriesRequest;
 pub use update_current_user::UpdateCurrentUserRequest;
 

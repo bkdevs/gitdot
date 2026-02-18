@@ -12,11 +12,13 @@ use crate::{
         CodeRepository, CodeRepositoryImpl, TokenRepository, TokenRepositoryImpl, UserRepository,
         UserRepositoryImpl,
     },
-    util::code::{
-        DEVICE_CODE_EXPIRY_MINUTES, POLLING_INTERVAL_SECONDS, generate_device_code,
-        generate_user_code,
+    util::{
+        code::{
+            DEVICE_CODE_EXPIRY_MINUTES, POLLING_INTERVAL_SECONDS, generate_device_code,
+            generate_user_code,
+        },
+        token::{generate_access_token, hash_token},
     },
-    util::token::{generate_access_token, hash_token},
 };
 
 #[async_trait]
