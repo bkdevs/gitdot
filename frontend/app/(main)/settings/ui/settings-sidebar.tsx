@@ -8,6 +8,8 @@ const SIDEBAR_WIDTH = "15rem";
 
 const navItems = [
   { path: "", label: "/profile" },
+  { path: "account", label: "/account" },
+  { path: "appearance", label: "/appearance" },
   { path: "runners", label: "/runners" },
 ];
 
