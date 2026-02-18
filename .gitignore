@@ -32,3 +32,5 @@ core/target
 
 # macOS
 .DS_STORE
+
+.cursor/

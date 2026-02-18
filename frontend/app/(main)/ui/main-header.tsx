@@ -1,6 +1,6 @@
 "use client";
 
-import { User } from "lucide-react";
+import { Search, User } from "lucide-react";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { useUser } from "@/(main)/providers/user-provider";
 import { signout } from "@/actions";
@@ -40,12 +40,28 @@ export function MainHeader() {
     );
   });
 
+  const inRepo = "owner" in params && "repo" in params;
+
   return (
     <div className="shrink-0 flex flex-row w-full h-9 items-center justify-between border-b bg-sidebar">
       <div className="flex-1 pl-2 text-sm font-mono flex items-center">
         {pathLinks}
       </div>
-      <UserDropdown />
+      <div className="flex items-center gap-1">
+        {inRepo && (
+          <button
+            type="button"
+            aria-label="Open repo files"
+            onClick={() =>
+              window.dispatchEvent(new CustomEvent("openFileSearch"))
+            }
+            className="w-5.5 h-5.5 mr-1 rounded-full flex items-center justify-center hover:bg-sidebar-accent outline-none transition-colors"
+          >
+            <Search className="size-4" />
+          </button>
+        )}
+        <UserDropdown />
+      </div>
     </div>
   );
 }
