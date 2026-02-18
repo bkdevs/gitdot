@@ -70,7 +70,7 @@ The backend implements smart HTTP git protocol by shelling out to `git http-back
 ### Frontend Patterns
 - Server components and server actions for data fetching (`app/actions.ts`, `app/lib/dal/`)
 - Supabase for auth, custom backend API for application data
-- `@/app/ui/link.tsx` wraps Next.js Link — use it instead of `next/link` directly (enforced by Biome)
+- `@/ui/link.tsx` wraps Next.js Link — use it instead of `next/link` directly (enforced by Biome)
 - Radix UI primitives + Tailwind for components
 
 ## Code Conventions

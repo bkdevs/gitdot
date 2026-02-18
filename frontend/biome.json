@@ -38,7 +38,7 @@
           "level": "error",
           "options": {
             "paths": {
-              "next/link": "Use @/app/ui/link instead to handle dynamic slug segments correctly."
+              "next/link": "Use @/ui/link instead to handle dynamic slug segments correctly."
             }
           }
         }

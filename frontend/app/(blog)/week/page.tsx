@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "@/app/ui/link";
+import Link from "@/ui/link";
 import { getAllPosts } from "../lib/posts";
 
 export const metadata: Metadata = {
