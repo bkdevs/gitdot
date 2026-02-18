@@ -1,4 +1,9 @@
-import { listUserRepositories, NotFound } from "@/lib/dal";
+import {
+  listUserOrganizations,
+  listUserRepositories,
+  NotFound,
+} from "@/lib/dal";
+import { UserOrgs } from "./ui/user-orgs";
 import { UserRepos } from "./ui/user-repos";
 
 export default async function Page({
@@ -7,7 +12,10 @@ export default async function Page({
   params: Promise<{ owner: string }>;
 }) {
   const { owner } = await params;
-  const repos = await listUserRepositories(owner);
+  const [repos, orgs] = await Promise.all([
+    listUserRepositories(owner),
+    listUserOrganizations(owner),
+  ]);
   if (!repos) return null;
 
   return (
@@ -15,7 +23,12 @@ export default async function Page({
       {repos === NotFound ? (
         <p className="p-2 text-sm">User {owner} not found</p>
       ) : (
-        <UserRepos user={owner} repos={repos} />
+        <>
+          {orgs && orgs !== NotFound && orgs.length > 0 && (
+            <UserOrgs orgs={orgs} />
+          )}
+          <UserRepos user={owner} repos={repos} />
+        </>
       )}
     </div>
   );

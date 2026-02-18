@@ -2,6 +2,8 @@ import "server-only";
 
 import {
   type UpdateCurrentUserRequest,
+  type UserOrganizationsResponse,
+  UserOrganizationsResponseSchema,
   type UserRepositoriesResponse,
   UserRepositoriesResponseSchema,
   type UserResponse,
@@ -55,4 +57,15 @@ export async function listUserRepositories(
 
   if (response.status === 404) return NotFound;
   return await handleResponse(response, UserRepositoriesResponseSchema);
+}
+
+export async function listUserOrganizations(
+  username: string,
+): Promise<UserOrganizationsResponse | NotFound | null> {
+  const response = await authFetch(
+    `${GITDOT_SERVER_URL}/user/${username}/organizations`,
+  );
+
+  if (response.status === 404) return NotFound;
+  return await handleResponse(response, UserOrganizationsResponseSchema);
 }
