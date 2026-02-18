@@ -34,7 +34,10 @@ export async function authHead(
   });
 }
 
-export async function authPost(url: string, request: any): Promise<Response> {
+export async function authPost(
+  url: string,
+  request: unknown,
+): Promise<Response> {
   return await authFetch(url, {
     method: "POST",
     headers: {
@@ -44,7 +47,10 @@ export async function authPost(url: string, request: any): Promise<Response> {
   });
 }
 
-export async function authPatch(url: string, request: any): Promise<Response> {
+export async function authPatch(
+  url: string,
+  request: unknown,
+): Promise<Response> {
   return await authFetch(url, {
     method: "PATCH",
     headers: {

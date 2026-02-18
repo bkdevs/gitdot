@@ -1,5 +1,6 @@
 "use client";
 
+import type { VideoHTMLAttributes } from "react";
 import { useState } from "react";
 
 function VideoDialog({
@@ -14,32 +15,51 @@ function VideoDialog({
   if (!isOpen) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
-      onClick={onClose}
+    <button
+      type="button"
+      className="fixed inset-0 w-full z-50 flex items-center justify-center bg-black/80 p-4"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Escape") onClose();
+      }}
+      aria-label="Close video dialog"
     >
-      <div
-        className="relative w-full max-w-6xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <video src={src} controls autoPlay className="w-full rounded-lg" />
+      <div className="relative w-full max-w-6xl">
+        <video src={src} controls autoPlay className="w-full rounded-lg">
+          <track kind="captions" />
+        </video>
       </div>
-    </div>
+    </button>
   );
 }
 
-export function VideoContent({ src, ...props }: any) {
+type VideoContentProps = Omit<VideoHTMLAttributes<HTMLVideoElement>, "src"> & {
+  src?: string;
+};
+
+export function VideoContent({ src, children, ...props }: VideoContentProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const videoSrc =
-    src || props.children?.find((child: any) => child?.props?.src)?.props?.src;
+    src ||
+    (Array.isArray(children)
+      ? (children as Array<{ props?: { src?: string } }>).find(
+          (child) => child?.props?.src,
+        )?.props?.src
+      : undefined);
 
   return (
     <>
-      <div
-        className="relative cursor-pointer group mb-4"
+      <button
+        type="button"
+        className="relative cursor-pointer group mb-4 w-full p-0 border-0 bg-transparent"
         onClick={() => setIsDialogOpen(true)}
+        aria-label="Play video"
       >
-        <video src={videoSrc} muted className="w-full rounded-lg" {...props} />
+        <video src={videoSrc} muted className="w-full rounded-lg" {...props}>
+          <track kind="captions" />
+        </video>
         <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors rounded-lg">
           <div className="bg-white/90 rounded-full p-4 group-hover:scale-110 transition-transform">
             <svg
@@ -47,13 +67,14 @@ export function VideoContent({ src, ...props }: any) {
               fill="currentColor"
               viewBox="0 0 24 24"
             >
+              <title>Play video</title>
               <path d="M8 5v14l11-7z" />
             </svg>
           </div>
         </div>
-      </div>
+      </button>
       <VideoDialog
-        src={videoSrc}
+        src={videoSrc ?? ""}
         isOpen={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
       />

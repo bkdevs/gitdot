@@ -33,14 +33,17 @@ export function RepoFileDialog({
   const filteredFiles = useMemo(() => {
     if (!query) return files;
 
-    return files
-      .map((file) => ({
-        file,
-        result: fuzzyMatch(query, file.path),
-      }))
-      .filter(({ result }) => result !== null)
-      .sort((a, b) => b.result!.score - a.result!.score)
-      .map(({ file }) => file);
+    return (
+      files
+        .map((file) => ({
+          file,
+          result: fuzzyMatch(query, file.path),
+        }))
+        .filter(({ result }) => result !== null)
+        // biome-ignore lint/style/noNonNullAssertion: result is non-null after filter above
+        .sort((a, b) => b.result!.score - a.result!.score)
+        .map(({ file }) => file)
+    );
   }, [files, query]);
 
   const selectedFile = filteredFiles[selectedIndex];
@@ -177,8 +180,9 @@ export function RepoFileDialog({
             {selectedFile && previews.has(selectedFile.path) && (
               <div
                 className="px-2 py-2"
+                // biome-ignore lint/security/noDangerouslySetInnerHtml: trusted Shiki-rendered HTML
                 dangerouslySetInnerHTML={{
-                  __html: previews.get(selectedFile.path)!,
+                  __html: previews.get(selectedFile.path) ?? "",
                 }}
               />
             )}

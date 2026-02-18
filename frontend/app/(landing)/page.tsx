@@ -1,6 +1,6 @@
 import { League_Spartan } from "next/font/google";
 import Image from "next/image";
-import Link from "next/link";
+import Link from "@/app/ui/link";
 import { SubscribeButton } from "./ui/subscribe-button";
 
 const league_spartan = League_Spartan({

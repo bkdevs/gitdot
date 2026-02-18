@@ -84,7 +84,7 @@ export async function renderFilePreviews(
 
   return Promise.all(files.map(renderFile))
     .then((results) =>
-      results.filter((item): item is [string, any] => item !== null),
+      results.filter((item): item is [string, string] => item !== null),
     )
     .then((entries) => new Map(entries));
 }

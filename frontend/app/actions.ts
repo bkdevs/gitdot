@@ -302,9 +302,15 @@ export async function createCommentAction(
   const result =
     parentType === "question"
       ? await createQuestionComment(owner, repo, Number(number), { body })
-      : await createAnswerComment(owner, repo, Number(number), parentId!, {
-          body,
-        });
+      : await createAnswerComment(
+          owner,
+          repo,
+          Number(number),
+          parentId as string,
+          {
+            body,
+          },
+        );
 
   if (!result) {
     return { error: "createComment call failed" };
@@ -359,9 +365,13 @@ export async function voteAction(
   if (targetType === "question") {
     result = await voteQuestion(owner, repo, number, { value });
   } else if (targetType === "answer") {
-    result = await voteAnswer(owner, repo, number, targetId!, { value });
+    result = await voteAnswer(owner, repo, number, targetId as string, {
+      value,
+    });
   } else {
-    result = await voteComment(owner, repo, number, targetId!, { value });
+    result = await voteComment(owner, repo, number, targetId as string, {
+      value,
+    });
   }
 
   if (!result) {

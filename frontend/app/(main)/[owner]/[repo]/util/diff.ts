@@ -18,7 +18,8 @@ export function sortHunks(hunks: DiffHunk[]): DiffHunk[] {
     const firstLine = hunk[0];
     return firstLine.lhs
       ? firstLine.lhs.line_number
-      : firstLine.rhs!.line_number;
+      : // biome-ignore lint/style/noNonNullAssertion: rhs is non-null when lhs is absent
+        firstLine.rhs!.line_number;
   };
 
   const sortedHunks = [...hunks].sort((a, b) => {
@@ -103,7 +104,9 @@ function getEffectivePosition(
     const firstLhs = firstLine.lhs?.line_number ?? line.lhs.line_number;
     return [line.lhs.line_number, firstLhs - 1];
   } else {
+    // biome-ignore lint/style/noNonNullAssertion: rhs-only line is guaranteed by the else branch
     const firstRhs = firstLine.rhs?.line_number ?? line.rhs!.line_number;
+    // biome-ignore lint/style/noNonNullAssertion: rhs-only line is guaranteed by the else branch
     return [firstRhs - 1, line.rhs!.line_number];
   }
 }
@@ -224,9 +227,11 @@ function fillGapsOneSided(pairs: LinePair[]): LinePair[] {
   const result: LinePair[] = [];
 
   for (const pair of pairs) {
+    // biome-ignore lint/style/noNonNullAssertion: isLhsOnly guarantees the corresponding side is non-null
     const value = isLhsOnly ? pair[0]! : pair[1]!;
     if (result.length > 0) {
-      const lastValue = isLhsOnly ? result.at(-1)?.[0]! : result.at(-1)?.[1]!;
+      const last = result[result.length - 1];
+      const lastValue = (isLhsOnly ? last[0] : last[1]) as number;
       for (let v = lastValue + 1; v < value; v++) {
         result.push(isLhsOnly ? [v, null] : [null, v]);
       }
@@ -247,7 +252,9 @@ function fillGapsInRange(
   endAnchor: LinePair,
   entriesBetween: LinePair[],
 ): LinePair[] {
+  // biome-ignore lint/style/noNonNullAssertion: anchor pairs always have both sides non-null
   const lhsGap = endAnchor[0]! - startAnchor[0]! - 1;
+  // biome-ignore lint/style/noNonNullAssertion: anchor pairs always have both sides non-null
   const rhsGap = endAnchor[1]! - startAnchor[1]! - 1;
 
   const existingLhsNulls = entriesBetween.filter((p) => p[0] === null).length;
@@ -257,7 +264,9 @@ function fillGapsInRange(
   const diff = rhsGap - lhsGap - existingLhsNulls + existingRhsNulls;
 
   const result: LinePair[] = [];
+  // biome-ignore lint/style/noNonNullAssertion: anchor pairs always have both sides non-null
   let leftPos = startAnchor[0]! + 1;
+  // biome-ignore lint/style/noNonNullAssertion: anchor pairs always have both sides non-null
   let rightPos = startAnchor[1]! + 1;
 
   // Heuristic: place all new sentinels at the beginning, grouped together
@@ -281,6 +290,7 @@ function fillGapsInRange(
   }
 
   // Fill remaining paired lines to reach endAnchor
+  // biome-ignore lint/style/noNonNullAssertion: anchor pairs always have both sides non-null
   while (leftPos < endAnchor[0]! || rightPos < endAnchor[1]!) {
     result.push([leftPos++, rightPos++]);
   }
@@ -313,6 +323,7 @@ export function expandLines(
   if (i === pairs.length) {
     // lhs or rhs-only pairs
     const offset = pairs.length;
+    // biome-ignore lint/style/noNonNullAssertion: rhs is non-null when lhs is absent in one-sided case
     const first = pairs[0][0] || pairs[0][1]!;
 
     // expand lines before
@@ -325,7 +336,9 @@ export function expandLines(
     pairs.unshift(...context);
 
     // expand lines after
+    // biome-ignore lint/style/noNonNullAssertion: pairs is non-empty here (context was just added)
     const [lastLeft, lastRight] = pairs.at(-1)!;
+    // biome-ignore lint/style/noNonNullAssertion: rhs is non-null when lastLeft is null in one-sided case
     const lastValue = lastLeft !== null ? lastLeft : lastRight!;
 
     const effectiveOffset = lastLeft !== null ? offset : -offset;
@@ -342,7 +355,9 @@ export function expandLines(
   } else {
     // at least one matched lines in the pairs
     const [leftNullsBefore, rightNullsBefore] = countNulls(pairs.slice(0, i));
+    // biome-ignore lint/style/noNonNullAssertion: pairs[i] is a matched anchor with both sides non-null
     const topLeft = pairs[i][0]! - leftNullsBefore;
+    // biome-ignore lint/style/noNonNullAssertion: pairs[i] is a matched anchor with both sides non-null
     const topRight = pairs[i][1]! - rightNullsBefore;
 
     const context: LinePair[] = [];
@@ -363,7 +378,9 @@ export function expandLines(
 
     // Count non-null entries after last matched line
     const [leftNullsAfter, rightNullsAfter] = countNulls(pairs.slice(j + 1));
+    // biome-ignore lint/style/noNonNullAssertion: pairs[j] is the last matched anchor with both sides non-null
     const bottomLeft = pairs[j][0]! + leftNullsAfter;
+    // biome-ignore lint/style/noNonNullAssertion: pairs[j] is the last matched anchor with both sides non-null
     const bottomRight = pairs[j][1]! + rightNullsAfter;
 
     for (let k = 1; k <= CONTEXT_LINES; k++) {

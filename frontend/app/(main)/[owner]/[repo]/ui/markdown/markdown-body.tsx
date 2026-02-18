@@ -79,6 +79,7 @@ export function MarkdownBody({ content }: { content: string }) {
         ),
 
         img: ({ node, ...props }) => (
+          // biome-ignore lint/performance/noImgElement: react-markdown img renderer needs native img; next/image requires known dimensions
           <img
             className="rounded-xl my-8 mx-auto max-w-full h-auto"
             {...props}
