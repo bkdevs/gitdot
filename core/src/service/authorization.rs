@@ -342,6 +342,7 @@ mod tests {
             async fn is_member(&self, org_id: Uuid, user_id: Uuid) -> Result<bool, sqlx::Error>;
             async fn add_member(&self, org_name: &str, user_name: &str, role: OrganizationRole) -> Result<Option<OrganizationMember>, sqlx::Error>;
             async fn get_member_role(&self, org_name: &str, user_id: Uuid) -> Result<Option<OrganizationRole>, sqlx::Error>;
+            async fn list(&self) -> Result<Vec<Organization>, sqlx::Error>;
         }
     }
 
