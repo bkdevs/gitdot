@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use api_derive::EndpointRequest;
 
 use crate::{endpoint::Endpoint, resource::question::AnswerResource};
 
@@ -12,7 +13,7 @@ impl Endpoint for UpdateAnswer {
     type Response = UpdateAnswerResponse;
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(EndpointRequest, Debug, Serialize, Deserialize)]
 pub struct UpdateAnswerRequest {
     pub body: String,
 }

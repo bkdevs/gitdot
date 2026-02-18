@@ -7,7 +7,7 @@ pub mod runner;
 pub mod task;
 pub mod user;
 
-use serde::{Deserialize, Serialize};
+use serde::{Serialize, de::DeserializeOwned};
 
 use crate::ApiResource;
 
@@ -24,6 +24,10 @@ pub trait Endpoint {
     const PATH: &'static str;
     const METHOD: http::Method;
 
-    type Request: Serialize + for<'de> Deserialize<'de> + Send;
+    type Request: EndpointRequest;
     type Response: ApiResource;
 }
+
+pub trait EndpointRequest: Serialize + DeserializeOwned + Send {}
+
+impl EndpointRequest for () {}

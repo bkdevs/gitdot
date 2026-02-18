@@ -1,3 +1,5 @@
+use gitdot_api::endpoint::Endpoint;
+
 const PUBLIC_URL: &str = "https://www.gitdot.io";
 const SERVER_URL: &str = "https://api.gitdot.io";
 
@@ -21,4 +23,16 @@ impl GitdotClient {
     pub fn get_server_url(&self) -> &str {
         &self.server_url
     }
+
+    // async fn post<T, R>(&self, request: T) -> Result<R, Error>
+    // where
+    //     T: Endpoint::Request,
+    //     R: Endpoint::Response,
+    //     Error: From<reqwest::Error>,
+    //     Error: From<serde_json::Error>,
+    // {
+    //     let url = format!("{}/{}", self.server_url, request.path());
+    //     let response = self.client.post(&url).json(&request).send().await?;
+    //     response.json().await
+    // }
 }

@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use api_derive::EndpointRequest;
 
 use crate::{endpoint::Endpoint, resource::question::QuestionResource};
 
@@ -12,7 +13,7 @@ impl Endpoint for GetQuestions {
     type Response = GetQuestionsResponse;
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(EndpointRequest, Debug, Serialize, Deserialize)]
 pub struct GetQuestionsRequest;
 
 pub type GetQuestionsResponse = Vec<QuestionResource>;

@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use api_derive::EndpointRequest;
 
 use crate::{endpoint::Endpoint, resource::OrganizationResource};
 
@@ -12,7 +13,7 @@ impl Endpoint for CreateOrganization {
     type Response = CreateOrganizationResponse;
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(EndpointRequest, Debug, Serialize, Deserialize)]
 pub struct CreateOrganizationRequest {}
 
 pub type CreateOrganizationResponse = OrganizationResource;

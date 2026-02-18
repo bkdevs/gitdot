@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use api_derive::EndpointRequest;
 
 use crate::{endpoint::Endpoint, resource::OrganizationMemberResource};
 
@@ -12,7 +13,7 @@ impl Endpoint for AddMember {
     type Response = AddMemberResponse;
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(EndpointRequest, Debug, Serialize, Deserialize)]
 pub struct AddMemberRequest {
     pub user_name: String,
     pub role: String,

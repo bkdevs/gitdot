@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use api_derive::EndpointRequest;
 
 use super::default_ref;
 use crate::{endpoint::Endpoint, resource::repository::RepositoryPreviewResource};
@@ -13,7 +14,7 @@ impl Endpoint for GetRepositoryPreview {
     type Response = GetRepositoryPreviewResponse;
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(EndpointRequest, Debug, Serialize, Deserialize)]
 pub struct GetRepositoryPreviewRequest {
     #[serde(default = "default_ref")]
     pub ref_name: String,

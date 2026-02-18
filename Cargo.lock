@@ -851,6 +851,7 @@ dependencies = [
 name = "gitdot_client"
 version = "0.1.0"
 dependencies = [
+ "gitdot_api",
  "reqwest",
 ]
 

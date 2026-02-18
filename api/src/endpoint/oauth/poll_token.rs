@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use api_derive::EndpointRequest;
 
 use crate::{endpoint::Endpoint, resource::oauth::TokenResource};
 
@@ -12,7 +13,7 @@ impl Endpoint for PollToken {
     type Response = PollTokenResponse;
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(EndpointRequest, Debug, Serialize, Deserialize)]
 pub struct PollTokenRequest {
     pub device_code: String,
     pub client_id: String,

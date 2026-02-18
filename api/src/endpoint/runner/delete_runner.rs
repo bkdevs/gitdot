@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use api_derive::EndpointRequest;
 use uuid::Uuid;
 
 use crate::endpoint::Endpoint;
@@ -13,7 +14,7 @@ impl Endpoint for DeleteRunner {
     type Response = DeleteRunnerResponse;
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(EndpointRequest, Debug, Serialize, Deserialize)]
 pub struct DeleteRunnerRequest {
     pub id: Uuid,
 }

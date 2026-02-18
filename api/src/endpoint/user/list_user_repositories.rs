@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use api_derive::EndpointRequest;
 
 use crate::{endpoint::Endpoint, resource::repository::RepositoryResource};
 
@@ -12,7 +13,7 @@ impl Endpoint for ListUserRepositories {
     type Response = ListUserRepositoriesResponse;
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(EndpointRequest, Debug, Serialize, Deserialize)]
 pub struct ListUserRepositoriesRequest {}
 
 pub type ListUserRepositoriesResponse = Vec<RepositoryResource>;
