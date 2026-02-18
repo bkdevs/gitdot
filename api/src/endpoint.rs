@@ -24,10 +24,10 @@ pub trait Endpoint {
     const PATH: &'static str;
     const METHOD: http::Method;
 
-    type Request: EndpointRequest;
+    type Request: ApiRequest;
     type Response: ApiResource;
 }
 
-pub trait EndpointRequest: Serialize + DeserializeOwned + Send {}
+pub trait ApiRequest: Serialize + DeserializeOwned + Send {}
 
-impl EndpointRequest for () {}
+impl ApiRequest for () {}

@@ -1,5 +1,5 @@
+use api_derive::ApiRequest;
 use serde::{Deserialize, Serialize};
-use api_derive::EndpointRequest;
 
 use super::{default_page, default_per_page, default_ref};
 use crate::{endpoint::Endpoint, resource::repository::RepositoryCommitsResource};
@@ -14,7 +14,7 @@ impl Endpoint for GetRepositoryCommits {
     type Response = GetRepositoryCommitsResponse;
 }
 
-#[derive(EndpointRequest, Debug, Serialize, Deserialize)]
+#[derive(ApiRequest, Debug, Serialize, Deserialize)]
 pub struct GetRepositoryCommitsRequest {
     #[serde(default = "default_ref")]
     pub ref_name: String,

@@ -1,5 +1,5 @@
+use api_derive::ApiRequest;
 use serde::{Deserialize, Serialize};
-use api_derive::EndpointRequest;
 
 use crate::endpoint::Endpoint;
 
@@ -13,7 +13,7 @@ impl Endpoint for DeleteRepository {
     type Response = DeleteRepositoryResponse;
 }
 
-#[derive(EndpointRequest, Debug, Serialize, Deserialize)]
+#[derive(ApiRequest, Debug, Serialize, Deserialize)]
 pub struct DeleteRepositoryRequest {}
 
 pub type DeleteRepositoryResponse = ();

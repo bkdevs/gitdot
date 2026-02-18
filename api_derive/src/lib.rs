@@ -14,14 +14,14 @@ pub fn derive_api_resource(input: TokenStream) -> TokenStream {
     TokenStream::from(expanded)
 }
 
-#[proc_macro_derive(EndpointRequest)]
-pub fn derive_endpoint_request(input: TokenStream) -> TokenStream {
+#[proc_macro_derive(ApiRequest)]
+pub fn derive_api_request(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     let name = input.ident;
 
     let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
     let expanded = quote! {
-        impl #impl_generics crate::EndpointRequest for #name #ty_generics #where_clause {}
+        impl #impl_generics crate::ApiRequest for #name #ty_generics #where_clause {}
     };
     TokenStream::from(expanded)
 }

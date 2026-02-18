@@ -1,5 +1,5 @@
+use api_derive::ApiRequest;
 use serde::{Deserialize, Serialize};
-use api_derive::EndpointRequest;
 
 use crate::{endpoint::Endpoint, resource::RunnerResource};
 
@@ -13,7 +13,7 @@ impl Endpoint for GetRunner {
     type Response = GetRunnerResponse;
 }
 
-#[derive(EndpointRequest, Debug, Serialize, Deserialize)]
+#[derive(ApiRequest, Debug, Serialize, Deserialize)]
 pub struct GetRunnerRequest {
     pub owner_name: String,
     pub owner_type: String,

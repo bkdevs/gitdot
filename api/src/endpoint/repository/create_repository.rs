@@ -1,5 +1,5 @@
+use api_derive::ApiRequest;
 use serde::{Deserialize, Serialize};
-use api_derive::EndpointRequest;
 
 use super::default_visibility;
 use crate::{endpoint::Endpoint, resource::RepositoryResource};
@@ -14,7 +14,7 @@ impl Endpoint for CreateRepository {
     type Response = CreateRepositoryResponse;
 }
 
-#[derive(EndpointRequest, Debug, Serialize, Deserialize)]
+#[derive(ApiRequest, Debug, Serialize, Deserialize)]
 pub struct CreateRepositoryRequest {
     pub owner_type: String,
 

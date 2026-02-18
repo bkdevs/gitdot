@@ -1,5 +1,5 @@
+use api_derive::ApiRequest;
 use serde::{Deserialize, Serialize};
-use api_derive::EndpointRequest;
 
 use crate::{endpoint::Endpoint, resource::repository::RepositoryCommitResource};
 
@@ -13,7 +13,7 @@ impl Endpoint for GetRepositoryCommit {
     type Response = GetRepositoryCommitResponse;
 }
 
-#[derive(EndpointRequest, Debug, Serialize, Deserialize)]
+#[derive(ApiRequest, Debug, Serialize, Deserialize)]
 pub struct GetRepositoryCommitRequest {}
 
 pub type GetRepositoryCommitResponse = RepositoryCommitResource;

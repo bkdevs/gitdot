@@ -1,5 +1,5 @@
+use api_derive::ApiRequest;
 use serde::{Deserialize, Serialize};
-use api_derive::EndpointRequest;
 
 use crate::{endpoint::Endpoint, resource::question::VoteResource};
 
@@ -14,7 +14,7 @@ impl Endpoint for VoteAnswer {
     type Response = VoteAnswerResponse;
 }
 
-#[derive(EndpointRequest, Debug, Serialize, Deserialize)]
+#[derive(ApiRequest, Debug, Serialize, Deserialize)]
 pub struct VoteAnswerRequest {
     pub value: i16,
 }

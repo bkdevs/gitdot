@@ -27,7 +27,8 @@ pub trait RunnerService: Send + Sync + 'static {
         request: CreateRunnerTokenRequest,
     ) -> Result<CreateRunnerTokenResponse, RunnerError>;
     async fn verify_runner(&self, request: VerifyRunnerRequest) -> Result<(), RunnerError>;
-    async fn get_runner(&self, request: GetRunnerRequest) -> Result<GetRunnerResponse, RunnerError>;
+    async fn get_runner(&self, request: GetRunnerRequest)
+    -> Result<GetRunnerResponse, RunnerError>;
 }
 
 #[derive(Debug, Clone)]
@@ -129,7 +130,10 @@ where
         Ok(())
     }
 
-    async fn get_runner(&self, request: GetRunnerRequest) -> Result<GetRunnerResponse, RunnerError> {
+    async fn get_runner(
+        &self,
+        request: GetRunnerRequest,
+    ) -> Result<GetRunnerResponse, RunnerError> {
         let runner = self
             .runner_repo
             .get_by_name(

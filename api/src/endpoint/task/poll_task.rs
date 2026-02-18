@@ -1,5 +1,5 @@
+use api_derive::ApiRequest;
 use serde::{Deserialize, Serialize};
-use api_derive::EndpointRequest;
 use uuid::Uuid;
 
 use crate::{endpoint::Endpoint, resource::TaskResource};
@@ -14,7 +14,7 @@ impl Endpoint for PollTask {
     type Response = PollTaskResponse;
 }
 
-#[derive(EndpointRequest, Debug, Serialize, Deserialize)]
+#[derive(ApiRequest, Debug, Serialize, Deserialize)]
 pub struct PollTaskRequest {
     pub rid: Uuid,
 }

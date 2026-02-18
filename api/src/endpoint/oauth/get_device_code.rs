@@ -1,5 +1,5 @@
+use api_derive::ApiRequest;
 use serde::{Deserialize, Serialize};
-use api_derive::EndpointRequest;
 
 use crate::{endpoint::Endpoint, resource::oauth::DeviceCodeResource};
 
@@ -13,7 +13,7 @@ impl Endpoint for GetDeviceCode {
     type Response = GetDeviceCodeResponse;
 }
 
-#[derive(EndpointRequest, Debug, Serialize, Deserialize)]
+#[derive(ApiRequest, Debug, Serialize, Deserialize)]
 pub struct GetDeviceCodeRequest {
     pub client_id: String,
 }

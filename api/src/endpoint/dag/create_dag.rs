@@ -1,5 +1,5 @@
+use api_derive::ApiRequest;
 use serde::{Deserialize, Serialize};
-use api_derive::EndpointRequest;
 
 use crate::{endpoint::Endpoint, resource::DagResource};
 
@@ -13,7 +13,7 @@ impl Endpoint for CreateDag {
     type Response = CreateDagResponse;
 }
 
-#[derive(EndpointRequest, Debug, Serialize, Deserialize)]
+#[derive(ApiRequest, Debug, Serialize, Deserialize)]
 pub struct CreateDagRequest {
     pub repo_owner: String,
     pub repo_name: String,
