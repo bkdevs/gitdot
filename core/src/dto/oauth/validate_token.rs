@@ -1,11 +1,14 @@
 use uuid::Uuid;
 
+use crate::model::TokenType;
+
 #[derive(Debug, Clone)]
 pub struct ValidateTokenRequest {
     pub token: String,
+    pub token_type: TokenType,
 }
 
 #[derive(Debug, Clone)]
 pub struct ValidateTokenResponse {
-    pub user_id: Uuid,
+    pub principal_id: Uuid,
 }

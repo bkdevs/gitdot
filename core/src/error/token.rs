@@ -11,6 +11,9 @@ pub enum TokenError {
     #[error("Access denied")]
     AccessDenied,
 
+    #[error("Invalid token type")]
+    InvalidTokenType,
+
     #[error("Invalid device code")]
     InvalidDeviceCode,
 

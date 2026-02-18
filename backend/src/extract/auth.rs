@@ -10,7 +10,7 @@ use jsonwebtoken::{Algorithm, DecodingKey, Validation, decode};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use gitdot_core::{dto::ValidateTokenRequest, error::AuthorizationError};
+use gitdot_core::{dto::ValidateTokenRequest, error::AuthorizationError, model::TokenType};
 
 use crate::app::{AppError, AppState};
 
@@ -159,6 +159,7 @@ impl Authenticator for UserToken {
 
         let request = ValidateTokenRequest {
             token: token.to_owned(),
+            token_type: TokenType::Personal,
         };
         let response = app_state
             .token_service
@@ -166,7 +167,7 @@ impl Authenticator for UserToken {
             .await
             .map_err(|_| AuthorizationError::Unauthorized)?;
 
-        Ok(Principal::new(response.user_id))
+        Ok(Principal::new(response.principal_id))
     }
 }
 

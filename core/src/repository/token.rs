@@ -15,7 +15,7 @@ pub trait TokenRepository: Send + Sync + Clone + 'static {
 
     async fn create_runner_token(
         &self,
-        user_id: Uuid,
+        runner_id: Uuid,
         token_hash: &str,
     ) -> Result<AccessToken, Error>;
 
@@ -50,9 +50,9 @@ impl TokenRepository for TokenRepositoryImpl {
     ) -> Result<AccessToken, Error> {
         let token = sqlx::query_as::<_, AccessToken>(
             r#"
-            INSERT INTO tokens (user_id, client_id, token_hash)
-            VALUES ($1, $2, $3)
-            RETURNING id, user_id, client_id, token_hash, token_type, created_at, last_used_at
+            INSERT INTO tokens (principal_id, client_id, token_hash, token_type)
+            VALUES ($1, $2, $3, 'personal')
+            RETURNING id, principal_id, client_id, token_hash, token_type, created_at, last_used_at
             "#,
         )
         .bind(user_id)
@@ -66,17 +66,17 @@ impl TokenRepository for TokenRepositoryImpl {
 
     async fn create_runner_token(
         &self,
-        user_id: Uuid,
+        runner_id: Uuid,
         token_hash: &str,
     ) -> Result<AccessToken, Error> {
         let token = sqlx::query_as::<_, AccessToken>(
             r#"
-            INSERT INTO tokens (user_id, client_id, token_hash, token_type)
+            INSERT INTO tokens (principal_id, client_id, token_hash, token_type)
             VALUES ($1, '', $2, 'runner')
-            RETURNING id, user_id, client_id, token_hash, token_type, created_at, last_used_at
+            RETURNING id, principal_id, client_id, token_hash, token_type, created_at, last_used_at
             "#,
         )
-        .bind(user_id)
+        .bind(runner_id)
         .bind(token_hash)
         .fetch_one(&self.pool)
         .await?;
@@ -90,7 +90,7 @@ impl TokenRepository for TokenRepositoryImpl {
     ) -> Result<Option<AccessToken>, Error> {
         let token = sqlx::query_as::<_, AccessToken>(
             r#"
-            SELECT id, user_id, client_id, token_hash, token_type, created_at, last_used_at
+            SELECT id, principal_id, client_id, token_hash, token_type, created_at, last_used_at
             FROM tokens
             WHERE token_hash = $1
             "#,

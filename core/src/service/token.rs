@@ -162,6 +162,9 @@ where
         if !validate_token_format(&request.token) {
             return Err(TokenError::AccessDenied);
         }
+        if !&request.token.starts_with(request.token_type.prefix()) {
+            return Err(TokenError::InvalidTokenType);
+        }
 
         let token_hash = hash_token(&request.token);
         let access_token = self
@@ -173,7 +176,7 @@ where
         self.token_repo.touch_access_token(access_token.id).await?;
 
         Ok(ValidateTokenResponse {
-            user_id: access_token.user_id,
+            principal_id: access_token.principal_id,
         })
     }
 }

@@ -81,6 +81,7 @@ impl IntoResponse for AppError {
                     TokenError::AuthorizationPending => StatusCode::BAD_REQUEST,
                     TokenError::ExpiredToken => StatusCode::BAD_REQUEST,
                     TokenError::AccessDenied => StatusCode::BAD_REQUEST,
+                    TokenError::InvalidTokenType => StatusCode::BAD_REQUEST,
                     TokenError::InvalidDeviceCode => StatusCode::BAD_REQUEST,
                     TokenError::InvalidUserCode(_) => StatusCode::BAD_REQUEST,
                     TokenError::InvalidRequest(_) => StatusCode::BAD_REQUEST,

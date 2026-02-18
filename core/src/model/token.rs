@@ -47,7 +47,7 @@ impl Into<String> for TokenType {
 #[derive(Debug, Clone, FromRow)]
 pub struct AccessToken {
     pub id: Uuid,
-    pub user_id: Uuid,
+    pub principal_id: Uuid,
     pub client_id: String,
     pub token_hash: String,
     pub token_type: TokenType,
