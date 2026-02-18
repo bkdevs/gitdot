@@ -6,19 +6,27 @@ const SERVER_URL: &str = "https://api.gitdot.io";
 
 pub struct GitdotClient {
     client: reqwest::Client,
+    client_id: String,
     public_url: String,
     server_url: String,
-    client_id: String,
 }
 
 impl GitdotClient {
     pub fn new(client_id: String) -> Self {
         Self {
             client: reqwest::Client::new(),
+            client_id,
             public_url: PUBLIC_URL.to_string(),
             server_url: SERVER_URL.to_string(),
-            client_id,
         }
+    }
+
+    pub fn get_client_id(&self) -> &str {
+        &self.client_id
+    }
+
+    pub fn get_public_url(&self) -> &str {
+        &self.public_url
     }
 
     pub fn get_server_url(&self) -> &str {

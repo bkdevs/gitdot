@@ -9,18 +9,25 @@ use gitdot_api::endpoint::oauth::{
 use crate::client::GitdotClient;
 
 impl GitdotClient {
-    pub async fn get_device_code(
-        &self,
-        request: GetDeviceCodeRequest,
-    ) -> Result<GetDeviceCodeResponse> {
+    pub async fn get_device_code(&self) -> Result<GetDeviceCodeResponse> {
+        let request = GetDeviceCodeRequest {
+            client_id: self.get_client_id().to_string(),
+        };
         self.post("oauth/device".to_string(), request).await
     }
 
-    pub async fn poll_token(&self, request: PollTokenRequest) -> Result<PollTokenResponse> {
+    pub async fn poll_token(&self, device_code: &str) -> Result<PollTokenResponse> {
+        let request = PollTokenRequest {
+            client_id: self.get_client_id().to_string(),
+            device_code: device_code.to_string(),
+        };
         self.post("oauth/token".to_string(), request).await
     }
 
-    pub async fn authorize_device(&self, request: AuthorizeDeviceRequest) -> Result<()> {
+    pub async fn authorize_device(&self, user_code: &str) -> Result<()> {
+        let request = AuthorizeDeviceRequest {
+            user_code: user_code.to_string(),
+        };
         self.post("oauth/authorize".to_string(), request).await
     }
 }
