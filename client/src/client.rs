@@ -25,7 +25,7 @@ impl GitdotClient {
         &self.server_url
     }
 
-    async fn get<T, R>(&self, path: String, request: T) -> Result<R, Error>
+    pub(crate) async fn get<T, R>(&self, path: String, request: T) -> Result<R, Error>
     where
         T: ApiRequest,
         R: ApiResource,
@@ -44,7 +44,7 @@ impl GitdotClient {
         Ok(response)
     }
 
-    async fn head<T>(&self, path: String, request: T) -> Result<(), Error>
+    pub(crate) async fn head<T>(&self, path: String, request: T) -> Result<(), Error>
     where
         T: ApiRequest,
     {
@@ -59,7 +59,7 @@ impl GitdotClient {
         Ok(())
     }
 
-    async fn post<T, R>(&self, path: String, request: T) -> Result<R, Error>
+    pub(crate) async fn post<T, R>(&self, path: String, request: T) -> Result<R, Error>
     where
         T: ApiRequest,
         R: ApiResource,
@@ -78,7 +78,7 @@ impl GitdotClient {
         Ok(response)
     }
 
-    async fn patch<T, R>(&self, path: String, request: T) -> Result<R, Error>
+    pub(crate) async fn patch<T, R>(&self, path: String, request: T) -> Result<R, Error>
     where
         T: ApiRequest,
         R: ApiResource,
@@ -97,7 +97,7 @@ impl GitdotClient {
         Ok(response)
     }
 
-    async fn delete<T, R>(&self, path: String, request: T) -> Result<R, Error>
+    pub(crate) async fn delete<T, R>(&self, path: String, request: T) -> Result<R, Error>
     where
         T: ApiRequest,
         R: ApiResource,

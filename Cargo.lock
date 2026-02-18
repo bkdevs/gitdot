@@ -854,6 +854,7 @@ dependencies = [
  "anyhow",
  "gitdot_api",
  "reqwest",
+ "uuid",
 ]
 
 [[package]]
