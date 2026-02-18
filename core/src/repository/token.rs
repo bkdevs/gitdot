@@ -27,6 +27,7 @@ pub trait TokenRepository: Send + Sync + Clone + 'static {
     async fn touch_access_token(&self, id: Uuid) -> Result<(), Error>;
 
     async fn delete_access_token(&self, id: Uuid) -> Result<(), Error>;
+    async fn delete_runner_token(&self, runner_id: Uuid) -> Result<(), Error>;
 }
 
 #[derive(Debug, Clone)]
@@ -114,6 +115,15 @@ impl TokenRepository for TokenRepositoryImpl {
     async fn delete_access_token(&self, id: Uuid) -> Result<(), Error> {
         sqlx::query("DELETE FROM tokens WHERE id = $1")
             .bind(id)
+            .execute(&self.pool)
+            .await?;
+
+        Ok(())
+    }
+
+    async fn delete_runner_token(&self, runner_id: Uuid) -> Result<(), Error> {
+        sqlx::query("DELETE FROM tokens WHERE principal_id = $1 AND token_type = 'runner'")
+            .bind(runner_id)
             .execute(&self.pool)
             .await?;
 

@@ -1,6 +1,7 @@
 mod create_runner;
+mod create_runner_token;
 mod delete_runner;
-mod register_runner;
+mod verify_runner;
 
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
@@ -8,8 +9,9 @@ use uuid::Uuid;
 use crate::model::{Runner, RunnerOwnerType};
 
 pub use create_runner::CreateRunnerRequest;
+pub use create_runner_token::{CreateRunnerTokenRequest, CreateRunnerTokenResponse};
 pub use delete_runner::DeleteRunnerRequest;
-pub use register_runner::RegisterRunnerRequest;
+pub use verify_runner::VerifyRunnerRequest;
 
 #[derive(Debug, Clone)]
 pub struct RunnerResponse {

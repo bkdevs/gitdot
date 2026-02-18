@@ -1,0 +1,2 @@
+ALTER TABLE runners ADD COLUMN registered BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE runners ADD COLUMN last_verified TIMESTAMPTZ;

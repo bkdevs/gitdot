@@ -1,12 +1,17 @@
 use async_trait::async_trait;
 
 use crate::{
-    dto::{CreateRunnerRequest, CreateRunnerResponse, DeleteRunnerRequest, RegisterRunnerRequest},
+    dto::{
+        CreateRunnerRequest, CreateRunnerResponse, CreateRunnerTokenRequest,
+        CreateRunnerTokenResponse, DeleteRunnerRequest, VerifyRunnerRequest,
+    },
     error::RunnerError,
-    model::RunnerOwnerType,
+    model::{RunnerOwnerType, TokenType},
     repository::{
         OrganizationRepository, OrganizationRepositoryImpl, RunnerRepository, RunnerRepositoryImpl,
+        TokenRepository, TokenRepositoryImpl,
     },
+    util::token::{generate_access_token, hash_token},
 };
 
 #[async_trait]
@@ -16,33 +21,45 @@ pub trait RunnerService: Send + Sync + 'static {
         request: CreateRunnerRequest,
     ) -> Result<CreateRunnerResponse, RunnerError>;
     async fn delete_runner(&self, request: DeleteRunnerRequest) -> Result<(), RunnerError>;
-    async fn register_runner(&self, request: RegisterRunnerRequest) -> Result<(), RunnerError>;
+    async fn create_runner_token(
+        &self,
+        request: CreateRunnerTokenRequest,
+    ) -> Result<CreateRunnerTokenResponse, RunnerError>;
+    async fn verify_runner(&self, request: VerifyRunnerRequest) -> Result<(), RunnerError>;
 }
 
 #[derive(Debug, Clone)]
-pub struct RunnerServiceImpl<R, O>
+pub struct RunnerServiceImpl<R, O, T>
 where
     R: RunnerRepository,
     O: OrganizationRepository,
+    T: TokenRepository,
 {
     runner_repo: R,
     org_repo: O,
+    token_repo: T,
 }
 
-impl RunnerServiceImpl<RunnerRepositoryImpl, OrganizationRepositoryImpl> {
-    pub fn new(runner_repo: RunnerRepositoryImpl, org_repo: OrganizationRepositoryImpl) -> Self {
+impl RunnerServiceImpl<RunnerRepositoryImpl, OrganizationRepositoryImpl, TokenRepositoryImpl> {
+    pub fn new(
+        runner_repo: RunnerRepositoryImpl,
+        org_repo: OrganizationRepositoryImpl,
+        token_repo: TokenRepositoryImpl,
+    ) -> Self {
         Self {
             runner_repo,
             org_repo,
+            token_repo,
         }
     }
 }
 
 #[async_trait]
-impl<R, O> RunnerService for RunnerServiceImpl<R, O>
+impl<R, O, T> RunnerService for RunnerServiceImpl<R, O, T>
 where
     R: RunnerRepository,
     O: OrganizationRepository,
+    T: TokenRepository,
 {
     async fn create_runner(
         &self,
@@ -80,12 +97,30 @@ where
         Ok(())
     }
 
-    async fn register_runner(&self, request: RegisterRunnerRequest) -> Result<(), RunnerError> {
+    async fn create_runner_token(
+        &self,
+        request: CreateRunnerTokenRequest,
+    ) -> Result<CreateRunnerTokenResponse, RunnerError> {
+        self.token_repo
+            .delete_runner_token(request.runner_id)
+            .await?;
+
+        let raw_token = generate_access_token(&TokenType::Runner);
+        let token_hash = hash_token(&raw_token);
+
+        self.token_repo
+            .create_runner_token(request.runner_id, &token_hash)
+            .await?;
+
+        Ok(CreateRunnerTokenResponse { token: raw_token })
+    }
+
+    async fn verify_runner(&self, request: VerifyRunnerRequest) -> Result<(), RunnerError> {
         self.runner_repo
-            .register(request.id)
+            .touch(request.runner_id)
             .await
             .map_err(|e| match e {
-                sqlx::Error::RowNotFound => RunnerError::NotFound(request.id.to_string()),
+                sqlx::Error::RowNotFound => RunnerError::NotFound(request.runner_id.to_string()),
                 e => RunnerError::DatabaseError(e),
             })?;
 

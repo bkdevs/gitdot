@@ -848,6 +848,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "gitdot_client"
+version = "0.1.0"
+dependencies = [
+ "gitdot_api",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.17",
+]
+
+[[package]]
 name = "gitdot_core"
 version = "0.1.0"
 dependencies = [

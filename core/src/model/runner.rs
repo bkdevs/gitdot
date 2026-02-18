@@ -11,6 +11,7 @@ pub struct Runner {
     pub owner_id: Uuid,
     pub owner_type: RunnerOwnerType,
     pub registered: bool,
+    pub last_verified: Option<DateTime<Utc>>,
     pub created_at: DateTime<Utc>,
 }
 

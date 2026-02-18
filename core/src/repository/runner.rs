@@ -13,7 +13,7 @@ pub trait RunnerRepository: Send + Sync + Clone + 'static {
         owner_type: &RunnerOwnerType,
     ) -> Result<Runner, Error>;
     async fn delete(&self, id: Uuid) -> Result<(), Error>;
-    async fn register(&self, id: Uuid) -> Result<(), Error>;
+    async fn touch(&self, id: Uuid) -> Result<(), Error>;
 }
 
 #[derive(Debug, Clone)]
@@ -39,7 +39,7 @@ impl RunnerRepository for RunnerRepositoryImpl {
             r#"
             INSERT INTO runners (name, owner_id, owner_type)
             VALUES ($1, $2, $3)
-            RETURNING id, name, owner_id, owner_type, registered, created_at
+            RETURNING id, name, owner_id, owner_type, registered, last_verified, created_at
             "#,
         )
         .bind(name)
@@ -64,8 +64,8 @@ impl RunnerRepository for RunnerRepositoryImpl {
         Ok(())
     }
 
-    async fn register(&self, id: Uuid) -> Result<(), Error> {
-        let result = sqlx::query("UPDATE runners SET registered = true WHERE id = $1")
+    async fn touch(&self, id: Uuid) -> Result<(), Error> {
+        let result = sqlx::query("UPDATE runners SET last_verified = NOW() WHERE id = $1")
             .bind(id)
             .execute(&self.pool)
             .await?;

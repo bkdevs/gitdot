@@ -327,6 +327,7 @@ mod tests {
             async fn get_access_token_by_hash(&self, token_hash: &str) -> Result<Option<AccessToken>, sqlx::Error>;
             async fn touch_access_token(&self, id: Uuid) -> Result<(), sqlx::Error>;
             async fn delete_access_token(&self, id: Uuid) -> Result<(), sqlx::Error>;
+            async fn delete_runner_token(&self, runner_id: Uuid) -> Result<(), sqlx::Error>;
         }
     }
 

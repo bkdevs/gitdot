@@ -11,3 +11,8 @@ pub struct RunnerResource {
     pub owner_type: String,
     pub created_at: DateTime<Utc>,
 }
+
+#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RunnerTokenResource {
+    pub token: String,
+}
