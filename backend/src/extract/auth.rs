@@ -140,22 +140,7 @@ impl Authenticator for UserToken {
         app_state: &AppState,
     ) -> Result<Principal<Self>, AuthorizationError> {
         let header = extract_auth_header(parts)?;
-        let token = header
-            .strip_prefix("Basic ")
-            .ok_or(AuthorizationError::InvalidHeaderFormat)?;
-
-        let decoded = base64::engine::general_purpose::STANDARD
-            .decode(token)
-            .map_err(|e| AuthorizationError::InvalidToken(e.to_string()))?;
-        let token_str = String::from_utf8(decoded)
-            .map_err(|e| AuthorizationError::InvalidToken(e.to_string()))?;
-
-        let (_username, token) =
-            token_str
-                .split_once(':')
-                .ok_or(AuthorizationError::InvalidToken(
-                    "Invalid token format".to_string(),
-                ))?;
+        let token = extract_token(header)?;
 
         let request = ValidateTokenRequest {
             token: token.to_owned(),
@@ -169,6 +154,51 @@ impl Authenticator for UserToken {
 
         Ok(Principal::new(response.principal_id))
     }
+}
+
+pub struct Runner;
+
+#[async_trait]
+impl Authenticator for Runner {
+    async fn authenticate(
+        parts: &Parts,
+        app_state: &AppState,
+    ) -> Result<Principal<Self>, AuthorizationError> {
+        let header = extract_auth_header(parts)?;
+        let token = extract_token(header)?;
+
+        let request = ValidateTokenRequest {
+            token: token.to_owned(),
+            token_type: TokenType::Runner,
+        };
+        let response = app_state
+            .auth_service
+            .validate_token(request)
+            .await
+            .map_err(|_| AuthorizationError::Unauthorized)?;
+
+        Ok(Principal::new(response.principal_id))
+    }
+}
+
+fn extract_token(header: &str) -> Result<String, AuthorizationError> {
+    let token = header
+        .strip_prefix("Basic ")
+        .ok_or(AuthorizationError::InvalidHeaderFormat)?;
+
+    let decoded = base64::engine::general_purpose::STANDARD
+        .decode(token)
+        .map_err(|e| AuthorizationError::InvalidToken(e.to_string()))?;
+    let token_str =
+        String::from_utf8(decoded).map_err(|e| AuthorizationError::InvalidToken(e.to_string()))?;
+
+    let (_, token) = token_str
+        .split_once(':')
+        .ok_or(AuthorizationError::InvalidToken(
+            "Invalid token format".to_string(),
+        ))?;
+
+    Ok(token.to_string())
 }
 
 fn extract_auth_header(parts: &Parts) -> Result<&str, AuthorizationError> {
