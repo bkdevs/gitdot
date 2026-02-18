@@ -851,6 +851,7 @@ dependencies = [
 name = "gitdot_client"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "gitdot_api",
  "reqwest",
 ]
@@ -2036,6 +2037,7 @@ dependencies = [
  "rustls-platform-verifier",
  "serde",
  "serde_json",
+ "serde_urlencoded",
  "sync_wrapper",
  "tokio",
  "tokio-rustls",

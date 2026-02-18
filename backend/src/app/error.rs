@@ -2,7 +2,7 @@ use axum::{
     http::StatusCode,
     response::{IntoResponse, Response},
 };
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 use gitdot_api::ApiResource;
@@ -52,7 +52,7 @@ pub enum AppError {
     Internal(#[from] anyhow::Error),
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct AppErrorMessage {
     pub message: String,
 }

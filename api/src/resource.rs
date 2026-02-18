@@ -7,7 +7,7 @@ pub mod runner;
 pub mod task;
 pub mod user;
 
-use serde::Serialize;
+use serde::{Serialize, de::DeserializeOwned};
 
 pub use dag::*;
 pub use oauth::*;
@@ -18,7 +18,7 @@ pub use runner::*;
 pub use task::*;
 pub use user::*;
 
-pub trait ApiResource: Serialize + PartialEq {}
+pub trait ApiResource: Serialize + PartialEq + DeserializeOwned {}
 
 impl<T: ApiResource> ApiResource for Vec<T> {}
 
