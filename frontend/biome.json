@@ -33,6 +33,9 @@
       "suspicious": {
         "noUnknownAtRules": "off"
       },
+      "complexity": {
+        "noUselessEscapeInRegex": "off"
+      },
       "style": {
         "noRestrictedImports": {
           "level": "error",

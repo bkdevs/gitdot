@@ -50,9 +50,12 @@ export async function createSupabaseClient() {
 /**
  * invoked in middleware, checks for session and also updates session if expired
  */
-export async function updateSession(request: NextRequest) {
+export async function updateSession(request: NextRequest): Promise<{
+  user?: JwtPayload | null;
+  response: NextResponse;
+}> {
   const { supabaseUrl, supabaseKey } = getSupabaseConfig();
-  let supabaseResponse = NextResponse.next({ request });
+  let response = NextResponse.next({ request });
 
   const supabase = createServerClient(supabaseUrl, supabaseKey, {
     cookies: {
@@ -63,11 +66,11 @@ export async function updateSession(request: NextRequest) {
         cookiesToSet.forEach(({ name, value }) => {
           request.cookies.set(name, value);
         });
-        supabaseResponse = NextResponse.next({
+        response = NextResponse.next({
           request,
         });
         cookiesToSet.forEach(({ name, value, options }) => {
-          supabaseResponse.cookies.set(name, value, options);
+          response.cookies.set(name, value, options);
         });
       },
     },
@@ -77,17 +80,8 @@ export async function updateSession(request: NextRequest) {
   const { data } = await supabase.auth.getClaims();
   const user = data?.claims;
 
-  const pathname = request.nextUrl.pathname;
-  if (user && (pathname === "/login" || pathname === "/signup")) {
-    return NextResponse.redirect(new URL("/home", request.nextUrl));
-  } else if (!user && pathname === "/oauth/device") {
-    return NextResponse.redirect(
-      new URL("/login?redirect=/oauth/device", request.nextUrl),
-    );
-  }
-
   // return the supabaseResponse object as-is, this is required to ensure that cookies are in sync between the server and client.
-  return supabaseResponse;
+  return { user, response };
 }
 
 /**
