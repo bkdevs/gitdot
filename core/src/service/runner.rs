@@ -3,12 +3,10 @@ use async_trait::async_trait;
 use crate::{
     dto::{CreateRunnerRequest, CreateRunnerResponse, DeleteRunnerRequest, RegisterRunnerRequest},
     error::RunnerError,
-    model::{RunnerOwnerType, TokenType},
+    model::RunnerOwnerType,
     repository::{
         OrganizationRepository, OrganizationRepositoryImpl, RunnerRepository, RunnerRepositoryImpl,
-        TokenRepository, TokenRepositoryImpl,
     },
-    util::token::{generate_access_token, hash_token},
 };
 
 #[async_trait]
@@ -22,37 +20,29 @@ pub trait RunnerService: Send + Sync + 'static {
 }
 
 #[derive(Debug, Clone)]
-pub struct RunnerServiceImpl<R, O, T>
+pub struct RunnerServiceImpl<R, O>
 where
     R: RunnerRepository,
     O: OrganizationRepository,
-    T: TokenRepository,
 {
     runner_repo: R,
     org_repo: O,
-    token_repo: T,
 }
 
-impl RunnerServiceImpl<RunnerRepositoryImpl, OrganizationRepositoryImpl, TokenRepositoryImpl> {
-    pub fn new(
-        runner_repo: RunnerRepositoryImpl,
-        org_repo: OrganizationRepositoryImpl,
-        token_repo: TokenRepositoryImpl,
-    ) -> Self {
+impl RunnerServiceImpl<RunnerRepositoryImpl, OrganizationRepositoryImpl> {
+    pub fn new(runner_repo: RunnerRepositoryImpl, org_repo: OrganizationRepositoryImpl) -> Self {
         Self {
             runner_repo,
             org_repo,
-            token_repo,
         }
     }
 }
 
 #[async_trait]
-impl<R, O, T> RunnerService for RunnerServiceImpl<R, O, T>
+impl<R, O> RunnerService for RunnerServiceImpl<R, O>
 where
     R: RunnerRepository,
     O: OrganizationRepository,
-    T: TokenRepository,
 {
     async fn create_runner(
         &self,
@@ -75,18 +65,7 @@ where
             .create(request.name.as_ref(), owner_id, &request.owner_type)
             .await?;
 
-        let token = generate_access_token(&TokenType::Runner);
-        let token_hash = hash_token(&token);
-
-        self.token_repo
-            .create_runner_token(request.user_id, &token_hash)
-            .await
-            .map_err(|e| RunnerError::DatabaseError(e))?;
-
-        Ok(CreateRunnerResponse {
-            runner: runner.into(),
-            token,
-        })
+        Ok(runner.into())
     }
 
     async fn delete_runner(&self, request: DeleteRunnerRequest) -> Result<(), RunnerError> {

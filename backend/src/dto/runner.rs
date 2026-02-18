@@ -1,5 +1,5 @@
 use gitdot_api::resource::runner as api;
-use gitdot_core::dto::{CreateRunnerResponse, RunnerResponse};
+use gitdot_core::dto::RunnerResponse;
 
 use super::IntoApi;
 
@@ -13,12 +13,5 @@ impl IntoApi for RunnerResponse {
             owner_type: self.owner_type.into(),
             created_at: self.created_at,
         }
-    }
-}
-
-impl IntoApi for CreateRunnerResponse {
-    type ApiType = api::CreateRunnerResource;
-    fn into_api(self) -> Self::ApiType {
-        api::CreateRunnerResource { token: self.token }
     }
 }

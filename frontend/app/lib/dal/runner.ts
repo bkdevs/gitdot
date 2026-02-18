@@ -1,22 +1,18 @@
 import "server-only";
 
-import { z } from "zod";
+import { type RunnerResponse, RunnerResponseSchema } from "../dto/runner";
 import { authPost, GITDOT_SERVER_URL, handleResponse } from "./util";
-
-const CreateRunnerResponseSchema = z.object({
-  token: z.string(),
-});
 
 export async function createRunner(
   name: string,
   ownerName: string,
   ownerType: string,
-): Promise<{ token: string } | null> {
+): Promise<RunnerResponse | null> {
   const response = await authPost(`${GITDOT_SERVER_URL}/ci/runner`, {
     name,
     owner_name: ownerName,
     owner_type: ownerType,
   });
 
-  return await handleResponse(response, CreateRunnerResponseSchema);
+  return await handleResponse(response, RunnerResponseSchema);
 }

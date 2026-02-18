@@ -32,8 +32,4 @@ impl From<Runner> for RunnerResponse {
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct CreateRunnerResponse {
-    pub runner: RunnerResponse,
-    pub token: String,
-}
+pub type CreateRunnerResponse = RunnerResponse;

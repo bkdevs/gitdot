@@ -29,6 +29,7 @@ import type {
   UserResponse,
   VoteResponse,
 } from "./lib/dto";
+import type { RunnerResponse } from "./lib/dto/runner";
 import { delay, validateEmail } from "./util";
 
 export async function getCurrentUserAction(): Promise<UserResponse | null> {
@@ -183,7 +184,9 @@ export async function createRepositoryAction(
   return { repository: result };
 }
 
-export type CreateRunnerActionResult = { token: string } | { error: string };
+export type CreateRunnerActionResult =
+  | { runner: RunnerResponse }
+  | { error: string };
 
 export async function createRunnerAction(
   _prev: CreateRunnerActionResult | null,
@@ -206,7 +209,8 @@ export async function createRunnerAction(
     return { error: "Failed to create runner" };
   }
 
-  return { token: result.token };
+  redirect(`/settings/runners/${result.id}/register`);
+  return { runner: result };
 }
 
 export type CreateQuestionActionResult =

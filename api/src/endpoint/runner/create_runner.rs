@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{endpoint::Endpoint, resource::CreateRunnerResource};
+use crate::{endpoint::Endpoint, resource::RunnerResource};
 
 pub struct CreateRunner;
 
@@ -19,4 +19,4 @@ pub struct CreateRunnerRequest {
     pub owner_type: String,
 }
 
-pub type CreateRunnerResponse = CreateRunnerResource;
+pub type CreateRunnerResponse = RunnerResource;

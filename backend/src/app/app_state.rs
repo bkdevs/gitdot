@@ -137,7 +137,6 @@ impl AppState {
             runner_service: Arc::new(RunnerServiceImpl::new(
                 runner_repo.clone(),
                 org_repo.clone(),
-                token_repo.clone(),
             )),
             #[cfg(feature = "ci")]
             dag_service: Arc::new(DagServiceImpl::new(dag_repo.clone())),
