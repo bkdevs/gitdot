@@ -34,6 +34,8 @@ pub trait OrganizationService: Send + Sync + 'static {
         &self,
         request: ListOrganizationRepositoriesRequest,
     ) -> Result<Vec<RepositoryResponse>, OrganizationError>;
+
+    async fn list_organizations(&self) -> Result<Vec<OrganizationResponse>, OrganizationError>;
 }
 
 #[derive(Debug, Clone)]
@@ -128,6 +130,11 @@ where
                 Err(OrganizationError::MemberAlreadyExists(user_name))
             }
         }
+    }
+
+    async fn list_organizations(&self) -> Result<Vec<OrganizationResponse>, OrganizationError> {
+        let orgs = self.org_repo.list().await?;
+        Ok(orgs.into_iter().map(|o| o.into()).collect())
     }
 
     async fn list_repositories(
