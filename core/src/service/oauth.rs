@@ -4,7 +4,7 @@ use chrono::{Duration, Utc};
 use crate::{
     dto::{
         AuthorizeDeviceRequest, DeviceCodeRequest, DeviceCodeResponse, PollTokenRequest,
-        TokenResponse, ValidateTokenRequest, ValidateTokenResponse,
+        TokenResponse,
     },
     error::TokenError,
     model::{DeviceAuthorizationStatus, TokenType},
@@ -12,14 +12,15 @@ use crate::{
         CodeRepository, CodeRepositoryImpl, TokenRepository, TokenRepositoryImpl, UserRepository,
         UserRepositoryImpl,
     },
-    util::token::{
-        DEVICE_CODE_EXPIRY_MINUTES, POLLING_INTERVAL_SECONDS, generate_access_token,
-        generate_device_code, generate_user_code, hash_token, validate_token_format,
+    util::code::{
+        DEVICE_CODE_EXPIRY_MINUTES, POLLING_INTERVAL_SECONDS, generate_device_code,
+        generate_user_code,
     },
+    util::token::{generate_access_token, hash_token},
 };
 
 #[async_trait]
-pub trait TokenService: Send + Sync + 'static {
+pub trait OAuthService: Send + Sync + 'static {
     async fn request_device_code(
         &self,
         request: DeviceCodeRequest,
@@ -28,15 +29,10 @@ pub trait TokenService: Send + Sync + 'static {
     async fn poll_token(&self, request: PollTokenRequest) -> Result<TokenResponse, TokenError>;
 
     async fn authorize_device(&self, request: AuthorizeDeviceRequest) -> Result<(), TokenError>;
-
-    async fn validate_token(
-        &self,
-        request: ValidateTokenRequest,
-    ) -> Result<ValidateTokenResponse, TokenError>;
 }
 
 #[derive(Debug, Clone)]
-pub struct TokenServiceImpl<D, T, U>
+pub struct OAuthServiceImpl<D, T, U>
 where
     D: CodeRepository,
     T: TokenRepository,
@@ -47,7 +43,7 @@ where
     user_repo: U,
 }
 
-impl TokenServiceImpl<CodeRepositoryImpl, TokenRepositoryImpl, UserRepositoryImpl> {
+impl OAuthServiceImpl<CodeRepositoryImpl, TokenRepositoryImpl, UserRepositoryImpl> {
     pub fn new(
         code_repo: CodeRepositoryImpl,
         token_repo: TokenRepositoryImpl,
@@ -62,7 +58,7 @@ impl TokenServiceImpl<CodeRepositoryImpl, TokenRepositoryImpl, UserRepositoryImp
 }
 
 #[async_trait]
-impl<D, T, U> TokenService for TokenServiceImpl<D, T, U>
+impl<D, T, U> OAuthService for OAuthServiceImpl<D, T, U>
 where
     D: CodeRepository,
     T: TokenRepository,
@@ -153,30 +149,5 @@ where
             ))?;
 
         Ok(())
-    }
-
-    async fn validate_token(
-        &self,
-        request: ValidateTokenRequest,
-    ) -> Result<ValidateTokenResponse, TokenError> {
-        if !validate_token_format(&request.token) {
-            return Err(TokenError::AccessDenied);
-        }
-        if !&request.token.starts_with(request.token_type.prefix()) {
-            return Err(TokenError::InvalidTokenType);
-        }
-
-        let token_hash = hash_token(&request.token);
-        let access_token = self
-            .token_repo
-            .get_access_token_by_hash(&token_hash)
-            .await?
-            .ok_or(TokenError::AccessDenied)?;
-
-        self.token_repo.touch_access_token(access_token.id).await?;
-
-        Ok(ValidateTokenResponse {
-            principal_id: access_token.principal_id,
-        })
     }
 }

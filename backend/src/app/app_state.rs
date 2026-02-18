@@ -9,8 +9,8 @@ use gitdot_core::{
         RepositoryRepositoryImpl, TokenRepositoryImpl, UserRepositoryImpl,
     },
     service::{
-        AuthorizationService, AuthorizationServiceImpl, OrganizationService,
-        OrganizationServiceImpl, TokenService, TokenServiceImpl, UserService, UserServiceImpl,
+        AuthorizationService, AuthorizationServiceImpl, OAuthService, OAuthServiceImpl,
+        OrganizationService, OrganizationServiceImpl, UserService, UserServiceImpl,
     },
 };
 
@@ -41,7 +41,7 @@ use super::Settings;
 pub struct AppState {
     pub settings: Arc<Settings>,
 
-    pub token_service: Arc<dyn TokenService>,
+    pub oauth_service: Arc<dyn OAuthService>,
     pub auth_service: Arc<dyn AuthorizationService>,
 
     pub user_service: Arc<dyn UserService>,
@@ -91,12 +91,13 @@ impl AppState {
 
         Self {
             settings,
-            token_service: Arc::new(TokenServiceImpl::new(
+            oauth_service: Arc::new(OAuthServiceImpl::new(
                 code_repo.clone(),
                 token_repo.clone(),
                 user_repo.clone(),
             )),
             auth_service: Arc::new(AuthorizationServiceImpl::new(
+                token_repo.clone(),
                 org_repo.clone(),
                 repo_repo.clone(),
                 question_repo.clone(),

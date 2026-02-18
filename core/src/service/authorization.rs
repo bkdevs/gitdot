@@ -4,19 +4,26 @@ use crate::{
     dto::{
         AnswerAuthorizationRequest, CommentAuthorizationRequest, OrganizationAuthorizationRequest,
         QuestionAuthorizationRequest, RepositoryAuthorizationRequest,
-        RepositoryCreationAuthorizationRequest, RepositoryPermission,
+        RepositoryCreationAuthorizationRequest, RepositoryPermission, ValidateTokenRequest,
+        ValidateTokenResponse,
     },
     error::AuthorizationError,
     model::{OrganizationRole, RepositoryOwnerType},
     repository::{
         OrganizationRepository, OrganizationRepositoryImpl, QuestionRepository,
-        QuestionRepositoryImpl, RepositoryRepository, RepositoryRepositoryImpl, UserRepository,
-        UserRepositoryImpl,
+        QuestionRepositoryImpl, RepositoryRepository, RepositoryRepositoryImpl, TokenRepository,
+        TokenRepositoryImpl, UserRepository, UserRepositoryImpl,
     },
+    util::token::{hash_token, validate_token_format},
 };
 
 #[async_trait]
 pub trait AuthorizationService: Send + Sync + 'static {
+    async fn validate_token(
+        &self,
+        request: ValidateTokenRequest,
+    ) -> Result<ValidateTokenResponse, AuthorizationError>;
+
     async fn verify_authorized_for_repository_creation(
         &self,
         request: RepositoryCreationAuthorizationRequest,
@@ -49,13 +56,15 @@ pub trait AuthorizationService: Send + Sync + 'static {
 }
 
 #[derive(Debug, Clone)]
-pub struct AuthorizationServiceImpl<O, R, Q, U>
+pub struct AuthorizationServiceImpl<T, O, R, Q, U>
 where
+    T: TokenRepository,
     O: OrganizationRepository,
     R: RepositoryRepository,
     Q: QuestionRepository,
     U: UserRepository,
 {
+    token_repo: T,
     org_repo: O,
     repo_repo: R,
     question_repo: Q,
@@ -64,6 +73,7 @@ where
 
 impl
     AuthorizationServiceImpl<
+        TokenRepositoryImpl,
         OrganizationRepositoryImpl,
         RepositoryRepositoryImpl,
         QuestionRepositoryImpl,
@@ -71,12 +81,14 @@ impl
     >
 {
     pub fn new(
+        token_repo: TokenRepositoryImpl,
         org_repo: OrganizationRepositoryImpl,
         repo_repo: RepositoryRepositoryImpl,
         question_repo: QuestionRepositoryImpl,
         user_repo: UserRepositoryImpl,
     ) -> Self {
         Self {
+            token_repo,
             org_repo,
             repo_repo,
             question_repo,
@@ -86,13 +98,39 @@ impl
 }
 
 #[async_trait]
-impl<O, R, Q, U> AuthorizationService for AuthorizationServiceImpl<O, R, Q, U>
+impl<T, O, R, Q, U> AuthorizationService for AuthorizationServiceImpl<T, O, R, Q, U>
 where
+    T: TokenRepository,
     O: OrganizationRepository,
     R: RepositoryRepository,
     Q: QuestionRepository,
     U: UserRepository,
 {
+    async fn validate_token(
+        &self,
+        request: ValidateTokenRequest,
+    ) -> Result<ValidateTokenResponse, AuthorizationError> {
+        if !validate_token_format(&request.token) {
+            return Err(AuthorizationError::Unauthorized);
+        }
+        if !&request.token.starts_with(request.token_type.prefix()) {
+            return Err(AuthorizationError::Unauthorized);
+        }
+
+        let token_hash = hash_token(&request.token);
+        let access_token = self
+            .token_repo
+            .get_access_token_by_hash(&token_hash)
+            .await?
+            .ok_or(AuthorizationError::Unauthorized)?;
+
+        self.token_repo.touch_access_token(access_token.id).await?;
+
+        Ok(ValidateTokenResponse {
+            principal_id: access_token.principal_id,
+        })
+    }
+
     async fn verify_authorized_for_repository_creation(
         &self,
         request: RepositoryCreationAuthorizationRequest,
@@ -265,15 +303,32 @@ mod tests {
         dto::{RepositoryAuthorizationRequest, RepositoryPermission},
         error::AuthorizationError,
         model::{
-            Answer, Comment, Organization, OrganizationMember, OrganizationRole, Question,
-            Repository, RepositoryOwnerType, RepositoryVisibility, User, VoteResult, VoteTarget,
+            AccessToken, Answer, Comment, Organization, OrganizationMember, OrganizationRole,
+            Question, Repository, RepositoryOwnerType, RepositoryVisibility, User, VoteResult,
+            VoteTarget,
         },
         repository::{
-            OrganizationRepository, QuestionRepository, RepositoryRepository, UserRepository,
+            OrganizationRepository, QuestionRepository, RepositoryRepository, TokenRepository,
+            UserRepository,
         },
     };
 
     use super::{AuthorizationService, AuthorizationServiceImpl};
+
+    mock! {
+        pub TokenRepo {}
+        impl Clone for TokenRepo {
+            fn clone(&self) -> Self;
+        }
+        #[async_trait]
+        impl TokenRepository for TokenRepo {
+            async fn create_access_token(&self, user_id: Uuid, client_id: &str, token_hash: &str) -> Result<AccessToken, sqlx::Error>;
+            async fn create_runner_token(&self, runner_id: Uuid, token_hash: &str) -> Result<AccessToken, sqlx::Error>;
+            async fn get_access_token_by_hash(&self, token_hash: &str) -> Result<Option<AccessToken>, sqlx::Error>;
+            async fn touch_access_token(&self, id: Uuid) -> Result<(), sqlx::Error>;
+            async fn delete_access_token(&self, id: Uuid) -> Result<(), sqlx::Error>;
+        }
+    }
 
     mock! {
         pub OrganizationRepo {}
@@ -365,12 +420,14 @@ mod tests {
         org_repo: MockOrganizationRepo,
         repo_repo: MockRepositoryRepo,
     ) -> AuthorizationServiceImpl<
+        MockTokenRepo,
         MockOrganizationRepo,
         MockRepositoryRepo,
         MockQuestionRepo,
         MockUserRepo,
     > {
         AuthorizationServiceImpl {
+            token_repo: MockTokenRepo::new(),
             org_repo,
             repo_repo,
             question_repo: MockQuestionRepo::new(),

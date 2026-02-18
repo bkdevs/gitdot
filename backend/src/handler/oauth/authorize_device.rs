@@ -17,7 +17,7 @@ pub async fn authorize_device(
 ) -> Result<AppResponse<()>, AppError> {
     let request = AuthorizeDeviceRequest::new(&body.user_code, auth_user.id)?;
     state
-        .token_service
+        .oauth_service
         .authorize_device(request)
         .await
         .map_err(AppError::from)

@@ -21,7 +21,7 @@ pub async fn poll_token(
         client_id: body.client_id,
     };
     state
-        .token_service
+        .oauth_service
         .poll_token(request)
         .await
         .map_err(AppError::from)

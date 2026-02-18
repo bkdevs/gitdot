@@ -162,7 +162,7 @@ impl Authenticator for UserToken {
             token_type: TokenType::Personal,
         };
         let response = app_state
-            .token_service
+            .auth_service
             .validate_token(request)
             .await
             .map_err(|_| AuthorizationError::Unauthorized)?;
