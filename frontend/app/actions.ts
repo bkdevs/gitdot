@@ -192,7 +192,7 @@ export async function createRunnerAction(
   _prev: CreateRunnerActionResult | null,
   formData: FormData,
 ): Promise<CreateRunnerActionResult> {
-  const name = (formData.get("name") as string)?.trim();
+  const name = (formData.get("name") as string)?.trim().toLowerCase();
   const ownerName = (formData.get("owner_name") as string)?.trim();
   const ownerType = formData.get("owner_type") as string;
 
@@ -204,12 +204,25 @@ export async function createRunnerAction(
     return { error: "Owner type must be user or organization" };
   }
 
+  if (name.length < 2 || name.length > 32) {
+    return { error: "Runner name must be 2–32 characters" };
+  }
+  if (name.startsWith("-") || name.endsWith("-")) {
+    return { error: "Runner name cannot start or end with a hyphen" };
+  }
+  if (/[^a-z0-9_-]/.test(name)) {
+    return {
+      error:
+        "Runner name may only contain lowercase letters, numbers, hyphens, and underscores",
+    };
+  }
+
   const result = await createRunner(name, ownerName, ownerType);
   if (!result) {
     return { error: "Failed to create runner" };
   }
 
-  redirect(`/settings/runners/${result.id}/register`);
+  redirect(`/settings/runners/${result.name}/register`);
   return { runner: result };
 }
 

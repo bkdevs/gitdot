@@ -1,11 +1,23 @@
+import { notFound } from "next/navigation";
+
+import { getCurrentUser, getRunner } from "@/lib/dal";
 import Link from "@/ui/link";
 
 export default async function Page({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ name: string }>;
 }) {
-  const { id } = await params;
+  const { name } = await params;
+
+  const user = await getCurrentUser();
+  if (!user) notFound();
+
+  const runner = await getRunner(name, {
+    owner_name: user.name,
+    owner_type: "user",
+  });
+  if (!runner) notFound();
 
   return (
     <div className="p-4">
@@ -13,7 +25,8 @@ export default async function Page({
         Register runner
       </h1>
       <p className="text-sm text-muted-foreground mb-4">
-        Runner {id} — registration instructions to come.
+        Runner <span className="font-mono">{runner.name}</span> — registration
+        instructions to come.
       </p>
       <Link
         href="/settings/runners"

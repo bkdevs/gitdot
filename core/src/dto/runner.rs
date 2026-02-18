@@ -1,6 +1,7 @@
 mod create_runner;
 mod create_runner_token;
 mod delete_runner;
+mod get_runner;
 mod verify_runner;
 
 use chrono::{DateTime, Utc};
@@ -11,6 +12,7 @@ use crate::model::{Runner, RunnerOwnerType};
 pub use create_runner::CreateRunnerRequest;
 pub use create_runner_token::{CreateRunnerTokenRequest, CreateRunnerTokenResponse};
 pub use delete_runner::DeleteRunnerRequest;
+pub use get_runner::GetRunnerRequest;
 pub use verify_runner::VerifyRunnerRequest;
 
 #[derive(Debug, Clone)]
@@ -35,3 +37,4 @@ impl From<Runner> for RunnerResponse {
 }
 
 pub type CreateRunnerResponse = RunnerResponse;
+pub type GetRunnerResponse = RunnerResponse;

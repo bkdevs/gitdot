@@ -3,7 +3,8 @@ use async_trait::async_trait;
 use crate::{
     dto::{
         CreateRunnerRequest, CreateRunnerResponse, CreateRunnerTokenRequest,
-        CreateRunnerTokenResponse, DeleteRunnerRequest, VerifyRunnerRequest,
+        CreateRunnerTokenResponse, DeleteRunnerRequest, GetRunnerRequest, GetRunnerResponse,
+        VerifyRunnerRequest,
     },
     error::RunnerError,
     model::{RunnerOwnerType, TokenType},
@@ -26,6 +27,7 @@ pub trait RunnerService: Send + Sync + 'static {
         request: CreateRunnerTokenRequest,
     ) -> Result<CreateRunnerTokenResponse, RunnerError>;
     async fn verify_runner(&self, request: VerifyRunnerRequest) -> Result<(), RunnerError>;
+    async fn get_runner(&self, request: GetRunnerRequest) -> Result<GetRunnerResponse, RunnerError>;
 }
 
 #[derive(Debug, Clone)]
@@ -125,5 +127,19 @@ where
             })?;
 
         Ok(())
+    }
+
+    async fn get_runner(&self, request: GetRunnerRequest) -> Result<GetRunnerResponse, RunnerError> {
+        let runner = self
+            .runner_repo
+            .get_by_name(
+                request.owner_name.as_ref(),
+                &request.owner_type,
+                request.name.as_ref(),
+            )
+            .await?
+            .ok_or_else(|| RunnerError::NotFound(request.name.to_string()))?;
+
+        Ok(runner.into())
     }
 }
