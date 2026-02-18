@@ -1,7 +1,7 @@
 "use client";
 
-import { Bell, Circle, MoreHorizontal, Plus, Search } from "lucide-react";
-import { usePathname, useRouter } from "next/navigation";
+import { Bell, Circle, Plus, Search, Settings } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import CreateRepoDialog from "@/(main)/[owner]/ui/create-repo-dialog";
 import { useAuthBlocker } from "@/(main)/providers/auth-blocker-provider";
@@ -27,10 +27,9 @@ const SIDEBAR_ICON_WIDTH = "2.5rem";
 
 export function MainSidebar() {
   const pathname = usePathname();
-  const router = useRouter();
-  const isDefault = !["/search", "/notifications", "/settings"].includes(
-    pathname,
-  );
+  const isSettings = pathname.includes("settings");
+  const isDefault =
+    !["/search", "/notifications"].includes(pathname) && !isSettings;
   const [createRepoOpen, setCreateRepoOpen] = useState(false);
   const { requireAuth } = useAuthBlocker();
 
@@ -60,6 +59,13 @@ export function MainSidebar() {
                   isActive={pathname === "/notifications"}
                   requiresAuth={true}
                 />
+                <NavItem
+                  icon={Settings}
+                  label="Settings"
+                  href="/settings"
+                  isActive={isSettings}
+                  requiresAuth={false}
+                />
                 <DropdownNavItem icon={Plus} label="Create">
                   <DropdownMenuItem
                     onClick={() => {
@@ -69,17 +75,6 @@ export function MainSidebar() {
                     className="rounded-none px-2 py-1.5 text-sm cursor-pointer"
                   >
                     New repo
-                  </DropdownMenuItem>
-                </DropdownNavItem>
-                <DropdownNavItem icon={MoreHorizontal} label="More">
-                  <DropdownMenuItem
-                    onClick={() => {
-                      if (requireAuth()) return null;
-                      router.push("/settings");
-                    }}
-                    className="rounded-none px-2 py-1.5 text-sm cursor-pointer"
-                  >
-                    Settings
                   </DropdownMenuItem>
                 </DropdownNavItem>
               </SidebarMenu>
