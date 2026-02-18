@@ -9,6 +9,7 @@ import {
   createQuestion,
   createQuestionComment,
   createRepository,
+  createRunner,
   getCurrentUser,
   hasUser,
   updateAnswer,
@@ -180,6 +181,32 @@ export async function createRepositoryAction(
 
   refresh();
   return { repository: result };
+}
+
+export type CreateRunnerActionResult = { token: string } | { error: string };
+
+export async function createRunnerAction(
+  _prev: CreateRunnerActionResult | null,
+  formData: FormData,
+): Promise<CreateRunnerActionResult> {
+  const name = (formData.get("name") as string)?.trim();
+  const ownerName = (formData.get("owner_name") as string)?.trim();
+  const ownerType = formData.get("owner_type") as string;
+
+  if (!name || !ownerName || !ownerType) {
+    return { error: "Name, owner, and owner type are required" };
+  }
+
+  if (ownerType !== "user" && ownerType !== "organization") {
+    return { error: "Owner type must be user or organization" };
+  }
+
+  const result = await createRunner(name, ownerName, ownerType);
+  if (!result) {
+    return { error: "Failed to create runner" };
+  }
+
+  return { token: result.token };
 }
 
 export type CreateQuestionActionResult =
