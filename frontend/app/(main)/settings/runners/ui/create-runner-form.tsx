@@ -4,7 +4,7 @@ import { useActionState, useState } from "react";
 import { createRunnerAction } from "@/actions";
 import type { UserResponse } from "@/lib/dto";
 
-export default function CreateRunnerForm({ user }: { user: UserResponse }) {
+export function CreateRunnerForm({ user }: { user: UserResponse }) {
   const [name, setName] = useState("");
   const [state, formAction, isPending] = useActionState(
     createRunnerAction,

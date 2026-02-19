@@ -40,7 +40,7 @@ impl RunnerRepository for RunnerRepositoryImpl {
             r#"
             INSERT INTO runners (name, owner_id, owner_type)
             VALUES ($1, $2, $3)
-            RETURNING id, name, owner_id, owner_type, registered, last_verified, created_at
+            RETURNING id, name, owner_id, owner_type, last_verified, created_at
             "#,
         )
         .bind(name)
@@ -81,7 +81,7 @@ impl RunnerRepository for RunnerRepositoryImpl {
     async fn get(&self, owner_name: &str, name: &str) -> Result<Option<Runner>, Error> {
         let runner = sqlx::query_as::<_, Runner>(
             r#"
-            SELECT r.id, r.name, r.owner_id, r.owner_type, r.registered, r.last_verified, r.created_at
+            SELECT r.id, r.name, r.owner_id, r.owner_type, r.last_verified, r.created_at
             FROM runners r
             LEFT JOIN users u ON r.owner_id = u.id AND r.owner_type = 'user'
             LEFT JOIN organizations o ON r.owner_id = o.id AND r.owner_type = 'organization'

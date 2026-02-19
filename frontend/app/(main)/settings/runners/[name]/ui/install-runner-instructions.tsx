@@ -1,4 +1,4 @@
-export function CreateRunnerInstructions() {
+export function VerifyRunnerInstructions() {
   return (
     <div className="text-sm text-muted-foreground space-y-3">
       <p>

@@ -1,10 +1,10 @@
 import "server-only";
 
-import { toQueryString } from "@/util";
 import {
-  type GetRunnerQuery,
   type RunnerResponse,
   RunnerResponseSchema,
+  type RunnerTokenResponse,
+  RunnerTokenResponseSchema,
 } from "../dto/runner";
 import { authFetch, authPost, GITDOT_SERVER_URL, handleResponse } from "./util";
 
@@ -25,12 +25,24 @@ export async function createRunner(
 }
 
 export async function getRunner(
+  owner: string,
   name: string,
-  query: GetRunnerQuery,
 ): Promise<RunnerResponse | null> {
   const response = await authFetch(
-    `${GITDOT_SERVER_URL}/ci/runner/${name}?${toQueryString(query)}`,
+    `${GITDOT_SERVER_URL}/ci/runner/${owner}/${name}`,
   );
 
   return await handleResponse(response, RunnerResponseSchema);
+}
+
+export async function refreshRunnerToken(
+  ownerName: string,
+  name: string,
+): Promise<RunnerTokenResponse | null> {
+  const response = await authPost(
+    `${GITDOT_SERVER_URL}/ci/runner/${ownerName}/${name}/token`,
+    {},
+  );
+
+  return await handleResponse(response, RunnerTokenResponseSchema);
 }

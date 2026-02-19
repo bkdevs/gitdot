@@ -12,6 +12,7 @@ import {
   createRunner,
   getCurrentUser,
   hasUser,
+  refreshRunnerToken,
   updateAnswer,
   updateComment,
   updateCurrentUser,
@@ -192,8 +193,8 @@ export async function createRunnerAction(
   _prev: CreateRunnerActionResult | null,
   formData: FormData,
 ): Promise<CreateRunnerActionResult> {
-  const name = (formData.get("name") as string)?.trim().toLowerCase();
-  const ownerName = (formData.get("owner_name") as string)?.trim();
+  const name = formData.get("name") as string;
+  const ownerName = formData.get("owner_name") as string;
   const ownerType = formData.get("owner_type") as string;
 
   if (!name || !ownerName || !ownerType) {
@@ -204,26 +205,33 @@ export async function createRunnerAction(
     return { error: "Owner type must be user or organization" };
   }
 
-  if (name.length < 2 || name.length > 32) {
-    return { error: "Runner name must be 2–32 characters" };
-  }
-  if (name.startsWith("-") || name.endsWith("-")) {
-    return { error: "Runner name cannot start or end with a hyphen" };
-  }
-  if (/[^a-z0-9_-]/.test(name)) {
-    return {
-      error:
-        "Runner name may only contain lowercase letters, numbers, hyphens, and underscores",
-    };
-  }
-
   const result = await createRunner(name, ownerName, ownerType);
   if (!result) {
     return { error: "Failed to create runner" };
   }
 
-  redirect(`/settings/runners/${result.name}/register`);
+  redirect(`/settings/runners/${result.name}`);
   return { runner: result };
+}
+
+export type RefreshRunnerTokenActionResult =
+  | { token: string }
+  | { error: string };
+
+export async function refreshRunnerTokenAction(
+  runnerName: string,
+  ownerName: string,
+): Promise<RefreshRunnerTokenActionResult> {
+  if (!runnerName || !ownerName) {
+    return { error: "Runner name and owner are required" };
+  }
+
+  const result = await refreshRunnerToken(ownerName, runnerName);
+  if (!result) {
+    return { error: "Failed to generate token" };
+  }
+
+  return { token: result.token };
 }
 
 export type CreateQuestionActionResult =

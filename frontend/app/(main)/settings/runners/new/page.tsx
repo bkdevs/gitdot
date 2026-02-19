@@ -1,9 +1,11 @@
+import { notFound } from "next/navigation";
 import { getCurrentUser } from "@/lib/dal";
-import CreateRunnerForm from "../ui/create-runner-form";
-import CreateRunnerInstructions from "../ui/create-runner-instructions";
+import { CreateRunnerForm } from "../ui/create-runner-form";
+import { CreateRunnerInstructions } from "../ui/create-runner-instructions";
 
 export default async function Page() {
   const user = await getCurrentUser();
+  if (!user) notFound();
 
   return (
     <div className="flex p-4">

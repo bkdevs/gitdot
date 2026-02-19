@@ -3,12 +3,13 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(ApiResource, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct RunnerResource {
     pub id: Uuid,
     pub name: String,
     pub owner_id: Uuid,
     pub owner_type: String,
+    pub last_verified: Option<DateTime<Utc>>,
     pub created_at: DateTime<Utc>,
 }
 

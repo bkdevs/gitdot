@@ -11,6 +11,7 @@ impl IntoApi for RunnerResponse {
             name: self.name,
             owner_id: self.owner_id,
             owner_type: self.owner_type.into(),
+            last_verified: self.last_verified,
             created_at: self.created_at,
         }
     }
