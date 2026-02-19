@@ -7,5 +7,5 @@ edition = "2024"
 anyhow = { workspace = true }
 base64 = { workspace = true }
 gitdot_api = { path = "../api" }
-reqwest = { workspace = true }
+reqwest = { version = "0.13.1", features = ["json", "query"] }
 uuid = { workspace = true }

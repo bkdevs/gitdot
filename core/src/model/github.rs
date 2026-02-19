@@ -1,3 +1,9 @@
-pub struct GitHubInstallation {}
+use chrono::{DateTime, Utc};
+use sqlx::FromRow;
+use uuid::Uuid;
 
-pub struct GitHubRepository {}
+#[derive(Debug, Clone, FromRow)]
+pub struct GitHubInstallation {
+    pub id: Uuid,
+    pub created_at: DateTime<Utc>,
+}

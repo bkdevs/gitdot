@@ -13,8 +13,10 @@ chrono = { workspace = true }
 hex = { workspace = true }
 nutype = { workspace = true }
 git2 = { workspace = true }
+jsonwebtoken = "10.2.0"
+octocrab = "0.49.5"
 rand = { workspace = true }
-reqwest = { workspace = true }
+secrecy = "0.10.3"
 serde = { workspace = true }
 serde_json = { workspace = true }
 tempfile = { workspace = true }
