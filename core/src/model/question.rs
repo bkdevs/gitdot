@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use uuid::Uuid;
 
-use super::user::User;
+use super::User;
 
 #[derive(Debug, Clone, FromRow, Serialize, Deserialize)]
 pub struct Question {

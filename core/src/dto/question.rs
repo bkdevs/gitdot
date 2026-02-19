@@ -14,7 +14,7 @@ mod vote_question;
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
-use crate::model::{question::{Answer, Comment, Question, VoteResult}, user::User};
+use crate::model::{Answer, Comment, Question, User, VoteResult};
 
 pub use create_answer::CreateAnswerRequest;
 pub use create_answer_comment::CreateAnswerCommentRequest;

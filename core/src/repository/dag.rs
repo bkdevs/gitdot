@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use sqlx::{Error, PgPool};
 use uuid::Uuid;
 
-use crate::model::dag::Dag;
+use crate::model::Dag;
 
 #[async_trait]
 pub trait DagRepository: Send + Sync + Clone + 'static {

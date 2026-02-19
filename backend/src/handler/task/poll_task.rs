@@ -3,7 +3,7 @@ use chrono::Utc;
 use uuid::Uuid;
 
 use gitdot_api::endpoint::poll_task as api;
-use gitdot_core::{dto::TaskResponse, model::task::TaskStatus};
+use gitdot_core::{dto::TaskResponse, model::TaskStatus};
 
 use crate::{
     app::{AppResponse, AppState},

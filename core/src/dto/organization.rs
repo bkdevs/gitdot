@@ -6,7 +6,7 @@ mod list_organization_repositories;
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
-use crate::model::organization::Organization;
+use crate::model::Organization;
 
 pub use add_member::{AddMemberRequest, OrganizationMemberResponse};
 pub use create_organization::CreateOrganizationRequest;

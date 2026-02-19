@@ -3,7 +3,7 @@ use uuid::Uuid;
 use crate::{
     dto::{OwnerName, common::RunnerName},
     error::RunnerError,
-    model::runner::RunnerOwnerType,
+    model::RunnerOwnerType,
 };
 
 #[derive(Debug, Clone)]

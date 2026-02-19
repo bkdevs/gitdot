@@ -14,7 +14,7 @@ use crate::{
         RepositoryTreeResponse,
     },
     error::RepositoryError,
-    model::repository::RepositoryOwnerType,
+    model::RepositoryOwnerType,
     repository::{
         OrganizationRepository, OrganizationRepositoryImpl, RepositoryRepository,
         RepositoryRepositoryImpl, UserRepository, UserRepositoryImpl,

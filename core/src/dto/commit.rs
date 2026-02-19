@@ -3,7 +3,7 @@ mod create_commits;
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
-use crate::model::commit::Commit;
+use crate::model::Commit;
 
 pub use create_commits::CreateCommitsRequest;
 

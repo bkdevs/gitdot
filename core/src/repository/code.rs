@@ -3,7 +3,7 @@ use chrono::{DateTime, Utc};
 use sqlx::{Error, PgPool};
 use uuid::Uuid;
 
-use crate::model::code::DeviceAuthorization;
+use crate::model::DeviceAuthorization;
 
 #[async_trait]
 pub trait CodeRepository: Send + Sync + Clone + 'static {

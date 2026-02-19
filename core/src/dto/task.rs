@@ -4,7 +4,7 @@ mod update_task;
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
-use crate::model::task::{Task, TaskStatus};
+use crate::model::{Task, TaskStatus};
 
 pub use create_task::CreateTaskRequest;
 pub use update_task::UpdateTaskRequest;

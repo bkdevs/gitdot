@@ -2,7 +2,7 @@ use async_trait::async_trait;
 
 use crate::{
     error::GitHubError,
-    model::github::{GitHubInstallation, GitHubRepository},
+    model::{GitHubInstallation, GitHubRepository},
 };
 
 #[async_trait]

@@ -7,7 +7,7 @@ use crate::{
         TokenResponse,
     },
     error::TokenError,
-    model::{code::DeviceAuthorizationStatus, token::TokenType},
+    model::{DeviceAuthorizationStatus, TokenType},
     repository::{
         CodeRepository, CodeRepositoryImpl, TokenRepository, TokenRepositoryImpl, UserRepository,
         UserRepositoryImpl,

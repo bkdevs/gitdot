@@ -8,7 +8,7 @@ mod update_current_user;
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
-use crate::model::user::User;
+use crate::model::User;
 
 pub use get_current_user::GetCurrentUserRequest;
 pub use get_user::GetUserRequest;

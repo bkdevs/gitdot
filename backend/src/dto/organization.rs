@@ -1,7 +1,7 @@
 use gitdot_api::resource::organization as api;
 use gitdot_core::{
     dto::{OrganizationMemberResponse, OrganizationResponse},
-    model::organization::OrganizationRole,
+    model::OrganizationRole,
 };
 
 use super::IntoApi;

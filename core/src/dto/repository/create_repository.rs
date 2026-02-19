@@ -3,7 +3,7 @@ use uuid::Uuid;
 use crate::{
     dto::{OwnerName, RepositoryName},
     error::RepositoryError,
-    model::repository::{RepositoryOwnerType, RepositoryVisibility},
+    model::{RepositoryOwnerType, RepositoryVisibility},
 };
 
 #[derive(Debug, Clone)]

@@ -7,7 +7,7 @@ use crate::{
         ListRunnersRequest, ListRunnersResponse, VerifyRunnerRequest,
     },
     error::RunnerError,
-    model::{runner::RunnerOwnerType, token::TokenType},
+    model::{RunnerOwnerType, TokenType},
     repository::{
         OrganizationRepository, OrganizationRepositoryImpl, RunnerRepository, RunnerRepositoryImpl,
         TokenRepository, TokenRepositoryImpl,

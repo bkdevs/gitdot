@@ -4,7 +4,7 @@ use uuid::Uuid;
 use crate::{
     dto::OwnerName,
     error::OrganizationError,
-    model::organization::{OrganizationMember, OrganizationRole},
+    model::{OrganizationMember, OrganizationRole},
 };
 
 #[derive(Debug, Clone)]

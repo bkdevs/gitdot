@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use sqlx::{Error, PgPool};
 use uuid::Uuid;
 
-use crate::model::task::{Task, TaskStatus};
+use crate::model::{Task, TaskStatus};
 
 #[async_trait]
 pub trait TaskRepository: Send + Sync + Clone + 'static {

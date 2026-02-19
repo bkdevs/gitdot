@@ -8,7 +8,7 @@ mod verify_runner;
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
-use crate::model::runner::{Runner, RunnerOwnerType};
+use crate::model::{Runner, RunnerOwnerType};
 
 pub use create_runner::CreateRunnerRequest;
 pub use create_runner_token::{CreateRunnerTokenRequest, CreateRunnerTokenResponse};

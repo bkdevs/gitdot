@@ -10,7 +10,7 @@ use jsonwebtoken::{Algorithm, DecodingKey, Validation, decode};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use gitdot_core::{dto::ValidateTokenRequest, error::AuthorizationError, model::token::TokenType};
+use gitdot_core::{dto::ValidateTokenRequest, error::AuthorizationError, model::TokenType};
 
 use crate::app::{AppError, AppState};
 
