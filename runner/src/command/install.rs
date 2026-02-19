@@ -35,7 +35,12 @@ pub async fn install(mut config: Config) -> anyhow::Result<()> {
     config.runner_token = Some(token);
     config.save().await?;
 
-    print!("Run tasks as user [gitdot-runner]: ");
+    #[cfg(target_os = "macos")]
+    let default_user = std::env::var("USER").unwrap_or_else(|_| "gitdot-runner".to_string());
+    #[cfg(not(target_os = "macos"))]
+    let default_user = "gitdot-runner".to_string();
+
+    print!("Run tasks as user [{default_user}]: ");
     io::stdout().flush()?;
 
     let mut user_input = String::new();
@@ -43,7 +48,7 @@ pub async fn install(mut config: Config) -> anyhow::Result<()> {
     let run_as_user = {
         let trimmed = user_input.trim();
         if trimmed.is_empty() {
-            "gitdot-runner".to_string()
+            default_user
         } else {
             trimmed.to_string()
         }
