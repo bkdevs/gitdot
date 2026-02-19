@@ -13,11 +13,13 @@ export async function createRunner(
   ownerName: string,
   ownerType: string,
 ): Promise<RunnerResponse | null> {
-  const response = await authPost(`${GITDOT_SERVER_URL}/ci/runner`, {
-    name,
-    owner_name: ownerName,
-    owner_type: ownerType,
-  });
+  const response = await authPost(
+    `${GITDOT_SERVER_URL}/ci/runner/${ownerName}`,
+    {
+      name,
+      owner_type: ownerType,
+    },
+  );
 
   return await handleResponse(response, RunnerResponseSchema);
 }

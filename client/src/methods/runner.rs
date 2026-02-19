@@ -16,9 +16,10 @@ impl GitdotClient {
 
     pub async fn create_runner(
         &self,
+        owner: &str,
         request: CreateRunnerRequest,
     ) -> Result<CreateRunnerResponse> {
-        self.post("ci/runner".to_string(), request).await
+        self.post(format!("ci/runner/{}", owner), request).await
     }
 
     pub async fn get_runner(

@@ -1,5 +1,5 @@
 use axum::{
-    extract::{Json, State},
+    extract::{Json, Path, State},
     http::StatusCode,
 };
 
@@ -16,12 +16,13 @@ use crate::{
 pub async fn create_runner(
     State(state): State<AppState>,
     auth_user: Principal<UserJwt>,
+    Path(owner): Path<String>,
     Json(request): Json<api::CreateRunnerRequest>,
 ) -> Result<AppResponse<api::CreateRunnerResponse>, AppError> {
     let request = CreateRunnerRequest::new(
         &request.name,
         auth_user.id,
-        &request.owner_name,
+        &owner,
         &request.owner_type,
     )?;
 
