@@ -1060,6 +1060,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "clap",
+ "gitdot_api",
  "gitdot_client",
  "gitdot_core",
  "reqwest",

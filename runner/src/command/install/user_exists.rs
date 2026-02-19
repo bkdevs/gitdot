@@ -1,4 +1,3 @@
-use crate::util::run_command;
 use std::process::Command;
 
 pub fn user_exists(username: &str) -> bool {

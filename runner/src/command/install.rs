@@ -1,4 +1,4 @@
-use crate::config::Config;
+use crate::{config::Config, executor::ExecutorType};
 use gitdot_client::client::GitdotClient;
 use std::io::{self, Write};
 
@@ -59,6 +59,18 @@ pub async fn install(mut config: Config) -> anyhow::Result<()> {
     }
 
     config.run_as_user = run_as_user;
+    config.save().await?;
+
+    print!("Select executor [local/docker] [local]: ");
+    io::stdout().flush()?;
+    let mut executor_input = String::new();
+    io::stdin().read_line(&mut executor_input)?;
+    let executor = match executor_input.trim().to_lowercase().as_str() {
+        "docker" => ExecutorType::Docker,
+        "local" | "" => ExecutorType::Local,
+        other => anyhow::bail!("Unknown executor '{}'. Must be 'local' or 'docker'.", other),
+    };
+    config.executor = executor;
     config.save().await?;
 
     println!("Runner installed.");
