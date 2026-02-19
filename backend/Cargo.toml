@@ -24,7 +24,7 @@ git2 = { workspace = true }
 gitdot_api = { path = "../api" }
 gitdot_core = { path = "../core" }
 http = { workspace = true }
-jsonwebtoken = "10.2.0"
+jsonwebtoken = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 sqlx = { workspace = true }
