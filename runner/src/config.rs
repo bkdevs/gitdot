@@ -34,6 +34,7 @@ impl Config {
     }
 
     pub async fn save(&self) -> anyhow::Result<()> {
+        // TODO: this needs to request sudo permissions to write to /etc/ on linux
         let config_path = Self::get_config_path()?;
 
         if let Some(parent) = config_path.parent() {
@@ -51,8 +52,13 @@ impl Config {
     }
 
     fn get_config_path() -> anyhow::Result<PathBuf> {
-        let base_dir = PathBuf::from("/etc");
-        let config_dir = base_dir.join(CONFIG_DIR_NAME);
+        let config_dir = match std::env::consts::OS {
+            "macos" => {
+                let home = std::env::var("HOME").context("HOME environment variable not set")?;
+                PathBuf::from(home).join(".config").join(CONFIG_DIR_NAME)
+            }
+            _ => PathBuf::from("/etc").join(CONFIG_DIR_NAME),
+        };
         Ok(config_dir.join(CONFIG_FILE_NAME))
     }
 }
