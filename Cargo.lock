@@ -210,6 +210,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "base62"
+version = "2.2.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1adf9755786e27479693dedd3271691a92b5e242ab139cacb9fb8e7fb5381111"
+
+[[package]]
 name = "base64"
 version = "0.22.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -863,6 +869,7 @@ name = "gitdot_core"
 version = "0.1.0"
 dependencies = [
  "async-trait",
+ "base62",
  "base64",
  "chrono",
  "crc32fast",
