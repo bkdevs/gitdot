@@ -11,10 +11,16 @@ pub struct Config {
     #[serde(default = "default_gitdot_server_url")]
     pub gitdot_server_url: String,
     pub runner_token: Option<String>,
+    #[serde(default = "default_run_as_user")]
+    pub run_as_user: String,
 }
 
 fn default_gitdot_server_url() -> String {
     "https://api.gitdot.io".to_string()
+}
+
+fn default_run_as_user() -> String {
+    "gitdot-runner".to_string()
 }
 
 impl Config {

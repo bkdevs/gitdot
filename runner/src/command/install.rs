@@ -1,8 +1,12 @@
+use crate::config::Config;
+use gitdot_client::client::GitdotClient;
 use std::io::{self, Write};
 
-use gitdot_client::client::GitdotClient;
+mod create_user;
+mod user_exists;
 
-use crate::config::Config;
+use create_user::create_user;
+use user_exists::user_exists;
 
 pub async fn install(mut config: Config) -> anyhow::Result<()> {
     print!("Have you created a runner in the gitdot UI? (y/n): ");
@@ -31,7 +35,32 @@ pub async fn install(mut config: Config) -> anyhow::Result<()> {
     config.runner_token = Some(token);
     config.save().await?;
 
-    println!("Runner installed successfully.");
+    print!("Run tasks as user [gitdot-runner]: ");
+    io::stdout().flush()?;
 
+    let mut user_input = String::new();
+    io::stdin().read_line(&mut user_input)?;
+    let run_as_user = {
+        let trimmed = user_input.trim();
+        if trimmed.is_empty() {
+            "gitdot-runner".to_string()
+        } else {
+            trimmed.to_string()
+        }
+    };
+
+    if run_as_user == "gitdot-runner" {
+        create_user("gitdot-runner")?;
+    } else if !user_exists(&run_as_user) {
+        anyhow::bail!(
+            "User '{}' does not exist. Please create the user before running install.",
+            run_as_user
+        );
+    }
+
+    config.run_as_user = run_as_user;
+    config.save().await?;
+
+    println!("Runner installed.");
     Ok(())
 }
