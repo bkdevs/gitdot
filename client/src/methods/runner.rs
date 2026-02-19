@@ -22,11 +22,7 @@ impl GitdotClient {
         self.post(format!("ci/runner/{}", owner), request).await
     }
 
-    pub async fn get_runner(
-        &self,
-        owner: &str,
-        name: &str,
-    ) -> Result<GetRunnerResponse> {
+    pub async fn get_runner(&self, owner: &str, name: &str) -> Result<GetRunnerResponse> {
         self.get(format!("ci/runner/{}/{}", owner, name), ()).await
     }
 
@@ -39,11 +35,7 @@ impl GitdotClient {
             .await
     }
 
-    pub async fn delete_runner(
-        &self,
-        owner: &str,
-        name: &str,
-    ) -> Result<DeleteRunnerResponse> {
+    pub async fn delete_runner(&self, owner: &str, name: &str) -> Result<DeleteRunnerResponse> {
         self.delete(format!("ci/runner/{}/{}", owner, name), ())
             .await
     }

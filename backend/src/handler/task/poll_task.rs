@@ -1,7 +1,4 @@
-use axum::{
-    extract::{Query, State},
-    http::StatusCode,
-};
+use axum::{extract::State, http::StatusCode};
 use chrono::Utc;
 use uuid::Uuid;
 
@@ -11,12 +8,13 @@ use gitdot_core::{dto::TaskResponse, model::TaskStatus};
 use crate::{
     app::{AppResponse, AppState},
     dto::IntoApi,
+    extract::{Principal, Runner},
 };
 
 #[axum::debug_handler]
 pub async fn poll_task(
     State(_state): State<AppState>,
-    Query(_query): Query<api::PollTaskRequest>,
+    _auth_runner: Principal<Runner>,
 ) -> AppResponse<api::PollTaskResponse> {
     let now = Utc::now();
     let response = TaskResponse {
