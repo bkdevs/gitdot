@@ -19,6 +19,8 @@ pub trait RunnerRepository: Send + Sync + Clone + 'static {
     async fn delete(&self, id: Uuid) -> Result<(), Error>;
 
     async fn touch(&self, id: Uuid) -> Result<(), Error>;
+
+    async fn list_by_owner(&self, owner_name: &str) -> Result<Vec<Runner>, Error>;
 }
 
 #[derive(Debug, Clone)]
@@ -99,5 +101,21 @@ impl RunnerRepository for RunnerRepositoryImpl {
         }
 
         Ok(())
+    }
+
+    async fn list_by_owner(&self, owner_name: &str) -> Result<Vec<Runner>, Error> {
+        let runners = sqlx::query_as::<_, Runner>(
+            r#"
+            SELECT id, name, owner_id, owner_name, owner_type, last_verified, created_at
+            FROM runners
+            WHERE owner_name = $1
+            ORDER BY created_at DESC
+            "#,
+        )
+        .bind(owner_name)
+        .fetch_all(&self.pool)
+        .await?;
+
+        Ok(runners)
     }
 }

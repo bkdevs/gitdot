@@ -4,7 +4,7 @@ use crate::{
     dto::{
         CreateRunnerRequest, CreateRunnerResponse, CreateRunnerTokenRequest,
         CreateRunnerTokenResponse, DeleteRunnerRequest, GetRunnerRequest, GetRunnerResponse,
-        VerifyRunnerRequest,
+        ListRunnersRequest, ListRunnersResponse, VerifyRunnerRequest,
     },
     error::RunnerError,
     model::{RunnerOwnerType, TokenType},
@@ -33,6 +33,11 @@ pub trait RunnerService: Send + Sync + 'static {
         &self,
         request: CreateRunnerTokenRequest,
     ) -> Result<CreateRunnerTokenResponse, RunnerError>;
+
+    async fn list_runners(
+        &self,
+        request: ListRunnersRequest,
+    ) -> Result<ListRunnersResponse, RunnerError>;
 }
 
 #[derive(Debug, Clone)]
@@ -140,6 +145,19 @@ where
             })?;
 
         Ok(())
+    }
+
+    async fn list_runners(
+        &self,
+        request: ListRunnersRequest,
+    ) -> Result<ListRunnersResponse, RunnerError> {
+        let runners = self
+            .runner_repo
+            .list_by_owner(request.owner_name.as_ref())
+            .await
+            .map_err(RunnerError::DatabaseError)?;
+
+        Ok(runners.into_iter().map(Into::into).collect())
     }
 
     async fn refresh_runner_token(

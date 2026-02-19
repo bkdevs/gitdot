@@ -1,6 +1,8 @@
 import "server-only";
 
 import {
+  type RunnerListResponse,
+  RunnerListResponseSchema,
   type RunnerResponse,
   RunnerResponseSchema,
   type RunnerTokenResponse,
@@ -33,6 +35,16 @@ export async function getRunner(
   );
 
   return await handleResponse(response, RunnerResponseSchema);
+}
+
+export async function listRunners(
+  ownerName: string,
+): Promise<RunnerListResponse | null> {
+  const response = await authFetch(
+    `${GITDOT_SERVER_URL}/ci/runner/${ownerName}`,
+  );
+
+  return await handleResponse(response, RunnerListResponseSchema);
 }
 
 export async function refreshRunnerToken(

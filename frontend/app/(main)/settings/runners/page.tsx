@@ -1,19 +1,16 @@
-import Link from "@/ui/link";
+import { getCurrentUser, listRunners } from "@/lib/dal";
+import { Runners } from "./ui/runners";
 
-export default function Page() {
+export default async function Page() {
+  const user = await getCurrentUser();
+  if (!user) return null;
+
+  const runners = await listRunners(user.name);
+  if (!runners) return null;
+
   return (
-    <div className="p-4">
-      <div className="flex items-center gap-4 mb-4">
-        <h1 className="text-lg font-medium">Runners</h1>
-        <Link
-          href="/settings/runners/new"
-          className="text-sm text-primary hover:underline"
-          prefetch={true}
-        >
-          Register new runner
-        </Link>
-      </div>
-      <p className="text-sm text-muted-foreground">To come.</p>
+    <div className="flex flex-col w-full">
+      <Runners runners={runners} />
     </div>
   );
 }

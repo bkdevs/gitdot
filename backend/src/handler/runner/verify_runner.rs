@@ -22,5 +22,5 @@ pub async fn verify_runner(
         .verify_runner(request)
         .await
         .map_err(AppError::from)
-        .map(|_| AppResponse::new(StatusCode::NO_CONTENT, ()))
+        .map(|_| AppResponse::new(StatusCode::OK, ()))
 }
