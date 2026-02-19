@@ -1,9 +1,9 @@
 use gitdot_client::client::GitdotClient;
 
-use crate::config::Config;
-use crate::executor::docker::DockerExecutor;
-use crate::executor::local::LocalExecutor;
-use crate::executor::{Executor, ExecutorType};
+use crate::{
+    config::Config,
+    executor::{Executor, ExecutorType, docker::DockerExecutor, local::LocalExecutor},
+};
 
 pub async fn run(config: Config) -> anyhow::Result<()> {
     let token = match config.runner_token {

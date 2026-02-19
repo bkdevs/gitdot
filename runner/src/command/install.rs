@@ -1,4 +1,8 @@
-use crate::{config::Config, executor::ExecutorType};
+use crate::{
+    config::Config,
+    executor::ExecutorType,
+    service::{Service, ServiceManager},
+};
 use gitdot_client::client::GitdotClient;
 use std::io::{self, Write};
 
@@ -78,6 +82,9 @@ pub async fn install(mut config: Config) -> anyhow::Result<()> {
     config.executor = executor;
     config.save().await?;
 
+    println!("Installing OS service...");
+    let manager = ServiceManager::new(config.run_as_user.clone())?;
+    manager.install()?;
     println!("Runner installed.");
     Ok(())
 }
