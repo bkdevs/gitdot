@@ -1,6 +1,7 @@
 use std::time::{Duration, Instant};
 
 use anyhow::bail;
+
 use gitdot_client::client::GitdotClient;
 
 use crate::{config::Config, store::GitCredentialStore};

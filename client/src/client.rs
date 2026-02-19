@@ -1,7 +1,8 @@
 use anyhow::{Error, Result};
 use base64::{Engine, engine::general_purpose::STANDARD};
-use gitdot_api::{ApiRequest, ApiResource};
 use reqwest::RequestBuilder;
+
+use gitdot_api::{ApiRequest, ApiResource};
 
 const PUBLIC_URL: &str = "https://www.gitdot.io";
 const SERVER_URL: &str = "https://api.gitdot.io";
