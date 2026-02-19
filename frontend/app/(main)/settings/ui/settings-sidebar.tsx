@@ -11,6 +11,7 @@ const navItems = [
   { path: "account", label: "/account" },
   { path: "appearance", label: "/appearance" },
   { path: "runners", label: "/runners" },
+  { path: "migrations", label: "/migrations" },
 ];
 
 export function SettingsSidebar() {
