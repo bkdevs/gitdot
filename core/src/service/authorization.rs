@@ -120,11 +120,11 @@ where
         let token_hash = hash_token(&request.token);
         let access_token = self
             .token_repo
-            .get_access_token_by_hash(&token_hash)
+            .get_token_by_hash(&token_hash)
             .await?
             .ok_or(AuthorizationError::Unauthorized)?;
 
-        self.token_repo.touch_access_token(access_token.id).await?;
+        self.token_repo.touch_token(access_token.id).await?;
 
         Ok(ValidateTokenResponse {
             principal_id: access_token.principal_id,
@@ -304,8 +304,8 @@ mod tests {
         error::AuthorizationError,
         model::{
             AccessToken, Answer, Comment, Organization, OrganizationMember, OrganizationRole,
-            Question, Repository, RepositoryOwnerType, RepositoryVisibility, User, VoteResult,
-            VoteTarget,
+            Question, Repository, RepositoryOwnerType, RepositoryVisibility, TokenType, User,
+            VoteResult, VoteTarget,
         },
         repository::{
             OrganizationRepository, QuestionRepository, RepositoryRepository, TokenRepository,
@@ -322,12 +322,11 @@ mod tests {
         }
         #[async_trait]
         impl TokenRepository for TokenRepo {
-            async fn create_access_token(&self, user_id: Uuid, client_id: &str, token_hash: &str) -> Result<AccessToken, sqlx::Error>;
-            async fn create_runner_token(&self, runner_id: Uuid, token_hash: &str) -> Result<AccessToken, sqlx::Error>;
-            async fn get_access_token_by_hash(&self, token_hash: &str) -> Result<Option<AccessToken>, sqlx::Error>;
-            async fn touch_access_token(&self, id: Uuid) -> Result<(), sqlx::Error>;
-            async fn delete_access_token(&self, id: Uuid) -> Result<(), sqlx::Error>;
-            async fn delete_runner_token(&self, runner_id: Uuid) -> Result<(), sqlx::Error>;
+            async fn create_token(&self, principal_id: Uuid, client_id: &str, token_hash: &str, token_type: TokenType) -> Result<AccessToken, sqlx::Error>;
+            async fn get_token_by_hash(&self, token_hash: &str) -> Result<Option<AccessToken>, sqlx::Error>;
+            async fn touch_token(&self, id: Uuid) -> Result<(), sqlx::Error>;
+            async fn delete_token(&self, id: Uuid) -> Result<(), sqlx::Error>;
+            async fn delete_token_by_principal(&self, runner_id: Uuid) -> Result<(), sqlx::Error>;
         }
     }
 

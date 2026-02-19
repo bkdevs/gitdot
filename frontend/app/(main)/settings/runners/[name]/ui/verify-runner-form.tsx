@@ -99,14 +99,16 @@ export function VerifyRunnerForm({
               paste it when prompted by the CLI.
             </p>
 
-            <button
-              type="button"
-              onClick={handleGenerateToken}
-              disabled={isPending}
-              className="mt-3 px-3 py-2 text-sm bg-primary text-primary-foreground rounded disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isPending ? "Generating..." : "Generate new token"}
-            </button>
+            {!token && (
+              <button
+                type="button"
+                onClick={handleGenerateToken}
+                disabled={isPending}
+                className="mt-3 px-3 py-2 text-sm bg-primary text-primary-foreground rounded disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isPending ? "Generating..." : "Generate new token"}
+              </button>
+            )}
 
             {error && <p className="mt-2 text-sm text-red-500">{error}</p>}
 
@@ -127,7 +129,7 @@ export function VerifyRunnerForm({
                 <p className="text-xs text-muted-foreground">
                   This token will disappear in {secondsLeft}s. Run{" "}
                   <code className="bg-muted px-1 rounded">
-                    gitdot-runner configure
+                    gitdot-runner install
                   </code>{" "}
                   and paste the token when prompted.
                 </p>

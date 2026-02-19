@@ -6,7 +6,7 @@ use crate::{
 #[derive(Debug, Clone)]
 pub struct CreateRunnerTokenRequest {
     pub owner_name: OwnerName,
-    pub name: RunnerName,
+    pub runner_name: RunnerName,
 }
 
 impl CreateRunnerTokenRequest {
@@ -14,7 +14,7 @@ impl CreateRunnerTokenRequest {
         Ok(Self {
             owner_name: OwnerName::try_new(owner_name)
                 .map_err(|e| RunnerError::InvalidOwnerName(e.to_string()))?,
-            name: RunnerName::try_new(name)
+            runner_name: RunnerName::try_new(name)
                 .map_err(|e| RunnerError::InvalidRunnerName(e.to_string()))?,
         })
     }

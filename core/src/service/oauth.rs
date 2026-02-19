@@ -126,7 +126,7 @@ where
                 let token_hash = hash_token(&access_token);
 
                 self.token_repo
-                    .create_access_token(user_id, &device_auth.client_id, &token_hash)
+                    .create_token(user_id, &device_auth.client_id, &token_hash, TokenType::Personal)
                     .await?;
 
                 self.code_repo

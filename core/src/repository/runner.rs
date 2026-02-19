@@ -10,11 +10,15 @@ pub trait RunnerRepository: Send + Sync + Clone + 'static {
         &self,
         name: &str,
         owner_id: Uuid,
+        owner_name: &str,
         owner_type: &RunnerOwnerType,
     ) -> Result<Runner, Error>;
+
+    async fn get(&self, owner_name: &str, runner_name: &str) -> Result<Option<Runner>, Error>;
+
     async fn delete(&self, id: Uuid) -> Result<(), Error>;
+
     async fn touch(&self, id: Uuid) -> Result<(), Error>;
-    async fn get(&self, owner_name: &str, name: &str) -> Result<Option<Runner>, Error>;
 }
 
 #[derive(Debug, Clone)]
@@ -34,19 +38,38 @@ impl RunnerRepository for RunnerRepositoryImpl {
         &self,
         name: &str,
         owner_id: Uuid,
+        owner_name: &str,
         owner_type: &RunnerOwnerType,
     ) -> Result<Runner, Error> {
         let runner = sqlx::query_as::<_, Runner>(
             r#"
-            INSERT INTO runners (name, owner_id, owner_type)
-            VALUES ($1, $2, $3)
-            RETURNING id, name, owner_id, owner_type, last_verified, created_at
+            INSERT INTO runners (name, owner_id, owner_name, owner_type)
+            VALUES ($1, $2, $3, $4)
+            RETURNING id, name, owner_id, owner_name, owner_type, last_verified, created_at
             "#,
         )
         .bind(name)
         .bind(owner_id)
+        .bind(owner_name)
         .bind(owner_type)
         .fetch_one(&self.pool)
+        .await?;
+
+        Ok(runner)
+    }
+
+    async fn get(&self, owner_name: &str, runner_name: &str) -> Result<Option<Runner>, Error> {
+        let runner = sqlx::query_as::<_, Runner>(
+            r#"
+            SELECT r.id, r.name, r.owner_id, r.owner_name, r.owner_type, r.last_verified, r.created_at
+            FROM runners r
+            WHERE r.name = $2
+              AND r.owner_name = $1
+            "#,
+        )
+        .bind(owner_name)
+        .bind(runner_name)
+        .fetch_optional(&self.pool)
         .await?;
 
         Ok(runner)
@@ -76,24 +99,5 @@ impl RunnerRepository for RunnerRepositoryImpl {
         }
 
         Ok(())
-    }
-
-    async fn get(&self, owner_name: &str, name: &str) -> Result<Option<Runner>, Error> {
-        let runner = sqlx::query_as::<_, Runner>(
-            r#"
-            SELECT r.id, r.name, r.owner_id, r.owner_type, r.last_verified, r.created_at
-            FROM runners r
-            LEFT JOIN users u ON r.owner_id = u.id AND r.owner_type = 'user'
-            LEFT JOIN organizations o ON r.owner_id = o.id AND r.owner_type = 'organization'
-            WHERE r.name = $2
-              AND (u.name = $1 OR o.name = $1)
-            "#,
-        )
-        .bind(owner_name)
-        .bind(name)
-        .fetch_optional(&self.pool)
-        .await?;
-
-        Ok(runner)
     }
 }

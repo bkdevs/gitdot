@@ -86,7 +86,12 @@ where
 
         let runner = self
             .runner_repo
-            .create(request.name.as_ref(), owner_id, &request.owner_type)
+            .create(
+                request.name.as_ref(),
+                owner_id,
+                request.owner_name.as_ref(),
+                &request.owner_type,
+            )
             .await?;
 
         Ok(runner.into())
@@ -143,18 +148,24 @@ where
     ) -> Result<CreateRunnerTokenResponse, RunnerError> {
         let runner = self
             .runner_repo
-            .get(request.owner_name.as_ref(), request.name.as_ref())
+            .get(request.owner_name.as_ref(), request.runner_name.as_ref())
             .await
             .map_err(RunnerError::DatabaseError)?
-            .ok_or_else(|| RunnerError::NotFound(request.name.to_string()))?;
+            .ok_or_else(|| RunnerError::NotFound(request.runner_name.to_string()))?;
 
-        self.token_repo.delete_runner_token(runner.id).await?;
+        self.token_repo.delete_token_by_principal(runner.id).await?;
 
         let raw_token = generate_access_token(&TokenType::Runner);
         let token_hash = hash_token(&raw_token);
 
+        let client_id = format!(
+            "gitdot-runner/{}/{}",
+            request.owner_name.as_ref(),
+            request.runner_name.as_ref()
+        );
+
         self.token_repo
-            .create_runner_token(runner.id, &token_hash)
+            .create_token(runner.id, &client_id, &token_hash, TokenType::Runner)
             .await?;
 
         Ok(CreateRunnerTokenResponse { token: raw_token })
