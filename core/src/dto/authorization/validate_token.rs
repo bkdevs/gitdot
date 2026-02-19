@@ -1,6 +1,6 @@
 use uuid::Uuid;
 
-use crate::model::TokenType;
+use crate::model::token::TokenType;
 
 #[derive(Debug, Clone)]
 pub struct ValidateTokenRequest {

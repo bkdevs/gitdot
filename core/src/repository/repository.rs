@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use sqlx::{Error, PgPool};
 use uuid::Uuid;
 
-use crate::model::{Repository, RepositoryOwnerType, RepositoryVisibility};
+use crate::model::repository::{Repository, RepositoryOwnerType, RepositoryVisibility};
 
 #[async_trait]
 pub trait RepositoryRepository: Send + Sync + Clone + 'static {

@@ -1,6 +1,6 @@
 use uuid::Uuid;
 
-use crate::{dto::OwnerName, error::AuthorizationError, model::RepositoryOwnerType};
+use crate::{dto::OwnerName, error::AuthorizationError, model::repository::RepositoryOwnerType};
 
 #[derive(Debug, Clone)]
 pub struct RepositoryCreationAuthorizationRequest {

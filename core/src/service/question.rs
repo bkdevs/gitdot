@@ -9,7 +9,7 @@ use crate::{
         VoteResponse,
     },
     error::QuestionError,
-    model::VoteTarget,
+    model::question::VoteTarget,
     repository::{
         QuestionRepository, QuestionRepositoryImpl, RepositoryRepository, RepositoryRepositoryImpl,
     },

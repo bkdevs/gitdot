@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use sqlx::{Error, PgPool};
 use uuid::Uuid;
 
-use crate::model::{AccessToken, TokenType};
+use crate::model::token::{AccessToken, TokenType};
 
 #[async_trait]
 pub trait TokenRepository: Send + Sync + Clone + 'static {

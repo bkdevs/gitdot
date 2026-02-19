@@ -1,6 +1,6 @@
 use sha2::{Digest, Sha256};
 
-use crate::model::TokenType;
+use crate::model::token::TokenType;
 
 const BODY_HALF_LEN: usize = 22; // base62(u128::MAX) = 22 chars
 const BODY_LEN: usize = BODY_HALF_LEN * 2; // two u128 halves = 44 chars

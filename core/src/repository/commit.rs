@@ -3,7 +3,7 @@ use chrono::{DateTime, Utc};
 use sqlx::{Error, PgPool};
 use uuid::Uuid;
 
-use crate::model::Commit;
+use crate::model::commit::Commit;
 
 #[async_trait]
 pub trait CommitRepository: Send + Sync + Clone + 'static {

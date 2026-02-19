@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use sqlx::{Error, PgPool};
 use uuid::Uuid;
 
-use crate::model::{Organization, OrganizationMember, OrganizationRole};
+use crate::model::organization::{Organization, OrganizationMember, OrganizationRole};
 
 #[async_trait]
 pub trait OrganizationRepository: Send + Sync + Clone + 'static {

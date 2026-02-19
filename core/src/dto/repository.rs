@@ -12,7 +12,7 @@ mod get_repository_tree;
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
-use crate::model::Repository;
+use crate::model::repository::Repository;
 
 pub use create_repository::CreateRepositoryRequest;
 pub use delete_repository::DeleteRepositoryRequest;

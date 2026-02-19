@@ -8,7 +8,7 @@ use crate::{
         ValidateTokenResponse,
     },
     error::AuthorizationError,
-    model::{OrganizationRole, RepositoryOwnerType},
+    model::{organization::OrganizationRole, repository::RepositoryOwnerType},
     repository::{
         OrganizationRepository, OrganizationRepositoryImpl, QuestionRepository,
         QuestionRepositoryImpl, RepositoryRepository, RepositoryRepositoryImpl, TokenRepository,
@@ -303,9 +303,11 @@ mod tests {
         dto::{RepositoryAuthorizationRequest, RepositoryPermission},
         error::AuthorizationError,
         model::{
-            AccessToken, Answer, Comment, Organization, OrganizationMember, OrganizationRole,
-            Question, Repository, RepositoryOwnerType, RepositoryVisibility, TokenType, User,
-            VoteResult, VoteTarget,
+            organization::{Organization, OrganizationMember, OrganizationRole},
+            question::{Answer, Comment, Question, VoteResult, VoteTarget},
+            repository::{Repository, RepositoryOwnerType, RepositoryVisibility},
+            token::{AccessToken, TokenType},
+            user::User,
         },
         repository::{
             OrganizationRepository, QuestionRepository, RepositoryRepository, TokenRepository,
@@ -858,7 +860,7 @@ mod tests {
         org_repo
             .expect_get_member_role()
             .withf(move |name, uid| name == "owner" && *uid == user_id)
-            .returning(|_, _| Ok(Some(crate::model::OrganizationRole::Admin)));
+            .returning(|_, _| Ok(Some(crate::model::organization::OrganizationRole::Admin)));
 
         let service = create_service(org_repo, repo_repo);
         let request = create_repo_auth_request(Some(user_id), RepositoryPermission::Admin);
@@ -884,7 +886,7 @@ mod tests {
         let mut org_repo = MockOrganizationRepo::new();
         org_repo
             .expect_get_member_role()
-            .returning(|_, _| Ok(Some(crate::model::OrganizationRole::Member)));
+            .returning(|_, _| Ok(Some(crate::model::organization::OrganizationRole::Member)));
 
         let service = create_service(org_repo, repo_repo);
         let request = create_repo_auth_request(Some(user_id), RepositoryPermission::Admin);

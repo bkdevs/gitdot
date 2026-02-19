@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use sqlx::{Error, PgPool};
 use uuid::Uuid;
 
-use crate::model::{Answer, Comment, Question, VoteResult, VoteTarget};
+use crate::model::question::{Answer, Comment, Question, VoteResult, VoteTarget};
 
 const QUESTION_DETAILS_QUERY: &str = r#"
 SELECT

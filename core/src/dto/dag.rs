@@ -3,7 +3,7 @@ mod create_dag;
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
-use crate::model::Dag;
+use crate::model::dag::Dag;
 
 pub use create_dag::CreateDagRequest;
 
