@@ -1,5 +1,5 @@
 use axum::{
-    extract::{Path, Query, State},
+    extract::{Path, State},
     http::StatusCode,
 };
 
@@ -16,10 +16,9 @@ use crate::{
 pub async fn get_runner(
     State(state): State<AppState>,
     _auth_user: Principal<UserJwt>,
-    Path(name): Path<String>,
-    Query(query): Query<api::GetRunnerRequest>,
+    Path((owner, name)): Path<(String, String)>,
 ) -> Result<AppResponse<api::GetRunnerResponse>, AppError> {
-    let request = GetRunnerRequest::new(&query.owner_name, &query.owner_type, &name)?;
+    let request = GetRunnerRequest::new(&owner, &name)?;
 
     state
         .runner_service

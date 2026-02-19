@@ -1,16 +1,19 @@
 use anyhow::Result;
-use uuid::Uuid;
 
 use gitdot_api::endpoint::runner::{
     create_runner::{CreateRunnerRequest, CreateRunnerResponse},
     create_runner_token::CreateRunnerTokenResponse,
-    delete_runner::{DeleteRunnerRequest, DeleteRunnerResponse},
-    get_runner::{GetRunnerRequest, GetRunnerResponse},
+    delete_runner::DeleteRunnerResponse,
+    get_runner::GetRunnerResponse,
 };
 
 use crate::client::GitdotClient;
 
 impl GitdotClient {
+    pub async fn verify_runner(&self) -> Result<()> {
+        self.post("ci/runner/verify".to_string(), ()).await
+    }
+
     pub async fn create_runner(
         &self,
         request: CreateRunnerRequest,
@@ -20,25 +23,27 @@ impl GitdotClient {
 
     pub async fn get_runner(
         &self,
+        owner: &str,
         name: &str,
-        request: GetRunnerRequest,
     ) -> Result<GetRunnerResponse> {
-        self.get(format!("ci/runner/{}", name), request).await
+        self.get(format!("ci/runner/{}/{}", owner, name), ()).await
     }
 
-    pub async fn create_runner_token(&self, id: Uuid) -> Result<CreateRunnerTokenResponse> {
-        self.post(format!("ci/runner/{}/token", id), ()).await
-    }
-
-    pub async fn verify_runner(&self, id: Uuid) -> Result<()> {
-        self.post(format!("ci/runner/{}/verify", id), ()).await
+    pub async fn create_runner_token(
+        &self,
+        owner: &str,
+        name: &str,
+    ) -> Result<CreateRunnerTokenResponse> {
+        self.post(format!("ci/runner/{}/{}/token", owner, name), ())
+            .await
     }
 
     pub async fn delete_runner(
         &self,
-        id: Uuid,
-        request: DeleteRunnerRequest,
+        owner: &str,
+        name: &str,
     ) -> Result<DeleteRunnerResponse> {
-        self.delete(format!("ci/runner/{}", id), request).await
+        self.delete(format!("ci/runner/{}/{}", owner, name), ())
+            .await
     }
 }

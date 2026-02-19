@@ -20,8 +20,8 @@ use verify_runner::verify_runner;
 pub fn create_runner_router() -> Router<AppState> {
     Router::new()
         .route("/runner", post(create_runner))
-        // .route("/runner/{name}", get(get_runner))
-        .route("/runner/{id}", delete(delete_runner))
-        .route("/runner/{id}/token", post(refresh_runner_token))
-        .route("/runner/{id}/verify", post(verify_runner))
+        .route("/runner/verify", post(verify_runner))
+        .route("/runner/{owner}/{name}", get(get_runner))
+        .route("/runner/{owner}/{name}", delete(delete_runner))
+        .route("/runner/{owner}/{name}/token", post(refresh_runner_token))
 }

@@ -21,14 +21,18 @@ pub trait RunnerService: Send + Sync + 'static {
         &self,
         request: CreateRunnerRequest,
     ) -> Result<CreateRunnerResponse, RunnerError>;
+
+    async fn verify_runner(&self, request: VerifyRunnerRequest) -> Result<(), RunnerError>;
+
+    async fn get_runner(&self, request: GetRunnerRequest)
+    -> Result<GetRunnerResponse, RunnerError>;
+
     async fn delete_runner(&self, request: DeleteRunnerRequest) -> Result<(), RunnerError>;
-    async fn create_runner_token(
+
+    async fn refresh_runner_token(
         &self,
         request: CreateRunnerTokenRequest,
     ) -> Result<CreateRunnerTokenResponse, RunnerError>;
-    async fn verify_runner(&self, request: VerifyRunnerRequest) -> Result<(), RunnerError>;
-    async fn get_runner(&self, request: GetRunnerRequest)
-    -> Result<GetRunnerResponse, RunnerError>;
 }
 
 #[derive(Debug, Clone)]
@@ -88,36 +92,6 @@ where
         Ok(runner.into())
     }
 
-    async fn delete_runner(&self, request: DeleteRunnerRequest) -> Result<(), RunnerError> {
-        self.runner_repo
-            .delete(request.id)
-            .await
-            .map_err(|e| match e {
-                sqlx::Error::RowNotFound => RunnerError::NotFound(request.id.to_string()),
-                e => RunnerError::DatabaseError(e),
-            })?;
-
-        Ok(())
-    }
-
-    async fn create_runner_token(
-        &self,
-        request: CreateRunnerTokenRequest,
-    ) -> Result<CreateRunnerTokenResponse, RunnerError> {
-        self.token_repo
-            .delete_runner_token(request.runner_id)
-            .await?;
-
-        let raw_token = generate_access_token(&TokenType::Runner);
-        let token_hash = hash_token(&raw_token);
-
-        self.token_repo
-            .create_runner_token(request.runner_id, &token_hash)
-            .await?;
-
-        Ok(CreateRunnerTokenResponse { token: raw_token })
-    }
-
     async fn verify_runner(&self, request: VerifyRunnerRequest) -> Result<(), RunnerError> {
         self.runner_repo
             .touch(request.runner_id)
@@ -136,14 +110,53 @@ where
     ) -> Result<GetRunnerResponse, RunnerError> {
         let runner = self
             .runner_repo
-            .get_by_name(
-                request.owner_name.as_ref(),
-                &request.owner_type,
-                request.name.as_ref(),
-            )
-            .await?
+            .get(request.owner_name.as_ref(), request.name.as_ref())
+            .await
+            .map_err(RunnerError::DatabaseError)?
             .ok_or_else(|| RunnerError::NotFound(request.name.to_string()))?;
 
         Ok(runner.into())
+    }
+
+    async fn delete_runner(&self, request: DeleteRunnerRequest) -> Result<(), RunnerError> {
+        let runner = self
+            .runner_repo
+            .get(request.owner_name.as_ref(), request.name.as_ref())
+            .await
+            .map_err(RunnerError::DatabaseError)?
+            .ok_or_else(|| RunnerError::NotFound(request.name.to_string()))?;
+
+        self.runner_repo
+            .delete(runner.id)
+            .await
+            .map_err(|e| match e {
+                sqlx::Error::RowNotFound => RunnerError::NotFound(request.name.to_string()),
+                e => RunnerError::DatabaseError(e),
+            })?;
+
+        Ok(())
+    }
+
+    async fn refresh_runner_token(
+        &self,
+        request: CreateRunnerTokenRequest,
+    ) -> Result<CreateRunnerTokenResponse, RunnerError> {
+        let runner = self
+            .runner_repo
+            .get(request.owner_name.as_ref(), request.name.as_ref())
+            .await
+            .map_err(RunnerError::DatabaseError)?
+            .ok_or_else(|| RunnerError::NotFound(request.name.to_string()))?;
+
+        self.token_repo.delete_runner_token(runner.id).await?;
+
+        let raw_token = generate_access_token(&TokenType::Runner);
+        let token_hash = hash_token(&raw_token);
+
+        self.token_repo
+            .create_runner_token(runner.id, &token_hash)
+            .await?;
+
+        Ok(CreateRunnerTokenResponse { token: raw_token })
     }
 }
