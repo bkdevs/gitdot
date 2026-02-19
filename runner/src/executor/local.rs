@@ -1,15 +1,34 @@
-use anyhow::Result;
+use std::process::Stdio;
+
+use anyhow::{Context, Result};
 use gitdot_api::resource::TaskResource;
+use tokio::process::Command;
 
 use crate::executor::{Executor, ExecutorType};
 
-pub struct LocalExecutor;
+pub struct LocalExecutor {
+    pub run_as_user: String,
+}
 
 impl Executor for LocalExecutor {
     const TYPE: ExecutorType = ExecutorType::Local;
 
     async fn execute(&self, task: &TaskResource) -> Result<()> {
-        println!("LocalExecutor: executing task {}", task.id);
+        let output = Command::new("sudo")
+            .args(["-u", &self.run_as_user, "sh", "-c", &task.script])
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .output()
+            .await
+            .context("Failed to spawn process")?;
+
+        print!("{}", String::from_utf8_lossy(&output.stdout));
+        eprint!("{}", String::from_utf8_lossy(&output.stderr));
+
+        if !output.status.success() {
+            anyhow::bail!("Task {} exited with status {}", task.id, output.status);
+        }
+
         Ok(())
     }
 }
