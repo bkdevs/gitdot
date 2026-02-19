@@ -1,5 +1,7 @@
 use anyhow::{Error, Result};
+use base64::{Engine, engine::general_purpose::STANDARD};
 use gitdot_api::{ApiRequest, ApiResource};
+use reqwest::RequestBuilder;
 
 const PUBLIC_URL: &str = "https://www.gitdot.io";
 const SERVER_URL: &str = "https://api.gitdot.io";
@@ -7,6 +9,7 @@ const SERVER_URL: &str = "https://api.gitdot.io";
 pub struct GitdotClient {
     client: reqwest::Client,
     client_id: String,
+    token: Option<String>,
     public_url: String,
     server_url: String,
 }
@@ -16,9 +19,15 @@ impl GitdotClient {
         Self {
             client: reqwest::Client::new(),
             client_id,
+            token: None,
             public_url: PUBLIC_URL.to_string(),
             server_url: SERVER_URL.to_string(),
         }
+    }
+
+    pub fn with_token(mut self, token: String) -> Self {
+        self.token = Some(token);
+        self
     }
 
     pub fn get_client_id(&self) -> &str {
@@ -42,6 +51,7 @@ impl GitdotClient {
         let response = self
             .client
             .get(&url)
+            .auth(&self.token)
             .query(&request)
             .send()
             .await?
@@ -59,6 +69,7 @@ impl GitdotClient {
         let url = format!("{}/{}", self.server_url, path);
         self.client
             .head(&url)
+            .auth(&self.token)
             .query(&request)
             .send()
             .await?
@@ -76,6 +87,7 @@ impl GitdotClient {
         let response = self
             .client
             .post(&url)
+            .auth(&self.token)
             .json(&request)
             .send()
             .await?
@@ -95,6 +107,7 @@ impl GitdotClient {
         let response = self
             .client
             .patch(&url)
+            .auth(&self.token)
             .json(&request)
             .send()
             .await?
@@ -114,6 +127,7 @@ impl GitdotClient {
         let response = self
             .client
             .delete(&url)
+            .auth(&self.token)
             .json(&request)
             .send()
             .await?
@@ -122,5 +136,21 @@ impl GitdotClient {
             .await?;
 
         Ok(response)
+    }
+}
+
+trait Auth {
+    fn auth(self, token: &Option<String>) -> Self;
+}
+
+impl Auth for RequestBuilder {
+    fn auth(self, token: &Option<String>) -> Self {
+        match token {
+            Some(t) => {
+                let encoded = STANDARD.encode(format!("runner:{}", t));
+                self.header("Authorization", format!("Basic {}", encoded))
+            }
+            None => self,
+        }
     }
 }

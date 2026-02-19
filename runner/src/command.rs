@@ -1,11 +1,9 @@
 mod install;
-mod register;
 mod run;
 mod start;
 mod stop;
 
 use install::install;
-use register::register;
 use run::run;
 use start::start;
 use stop::stop;
@@ -23,14 +21,11 @@ pub struct Args {
 
 #[derive(Subcommand, Debug)]
 pub enum Commands {
-    /// Register a new runner
-    Register {},
+    /// Install the runner daemon
+    Install {},
 
     /// Synchronously run the runner (TK comment out somehow or hide?)
     Run {},
-
-    /// Install the runner daemon
-    Install {},
 
     /// Start the runner daemon
     Start {},
@@ -40,11 +35,10 @@ pub enum Commands {
 }
 
 impl Commands {
-    pub async fn execute(&self, mut config: Config) -> anyhow::Result<()> {
+    pub async fn execute(&self, config: Config) -> anyhow::Result<()> {
         match self {
-            Commands::Register {} => register(config).await,
-            Commands::Run {} => run(config).await,
             Commands::Install {} => install(config).await,
+            Commands::Run {} => run(config).await,
             Commands::Start {} => start(config).await,
             Commands::Stop {} => stop(config).await,
         }

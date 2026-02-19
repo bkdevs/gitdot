@@ -1,5 +1,5 @@
 use crate::config::Config;
 
-pub async fn start(mut config: Config) -> anyhow::Result<()> {
+pub async fn start(config: Config) -> anyhow::Result<()> {
     Ok(())
 }

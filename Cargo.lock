@@ -852,6 +852,7 @@ name = "gitdot_client"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "base64",
  "gitdot_api",
  "reqwest",
  "uuid",
@@ -887,6 +888,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "clap",
+ "gitdot_client",
  "gitdot_core",
  "reqwest",
  "serde",

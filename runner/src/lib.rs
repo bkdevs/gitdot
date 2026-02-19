@@ -1,4 +1,3 @@
-mod api;
 mod cli;
 mod command;
 mod config;

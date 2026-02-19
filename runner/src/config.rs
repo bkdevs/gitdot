@@ -10,6 +10,7 @@ const CONFIG_FILE_NAME: &str = "config.toml";
 pub struct Config {
     #[serde(default = "default_gitdot_server_url")]
     pub gitdot_server_url: String,
+    pub runner_token: Option<String>,
 }
 
 fn default_gitdot_server_url() -> String {
