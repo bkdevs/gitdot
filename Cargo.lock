@@ -838,13 +838,13 @@ dependencies = [
  "anyhow",
  "clap",
  "dirs-next",
- "reqwest",
+ "gitdot_api",
+ "gitdot_client",
  "serde",
  "serde_json",
  "tokio",
  "toml",
  "url",
- "uuid",
 ]
 
 [[package]]

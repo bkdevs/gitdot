@@ -1,11 +1,12 @@
 use std::time::{Duration, Instant};
 
 use anyhow::bail;
+use gitdot_client::client::GitdotClient;
 
-use crate::{api::ApiClient, config::Config, store::GitCredentialStore};
+use crate::{config::Config, store::GitCredentialStore};
 
 pub async fn login(mut config: Config) -> anyhow::Result<()> {
-    let api_client = ApiClient::new();
+    let api_client = GitdotClient::new("gitdot-cli".to_string());
     let device_code_response = api_client.get_device_code().await?;
 
     println!("Open the following URL in your browser:");
