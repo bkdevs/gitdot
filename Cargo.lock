@@ -879,6 +879,7 @@ dependencies = [
  "mockall",
  "nutype",
  "rand 0.9.2",
+ "reqwest",
  "serde",
  "serde_json",
  "sha2",

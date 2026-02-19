@@ -14,6 +14,7 @@ hex = { workspace = true }
 nutype = { workspace = true }
 git2 = { workspace = true }
 rand = { workspace = true }
+reqwest = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 tempfile = { workspace = true }
