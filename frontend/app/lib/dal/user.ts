@@ -1,5 +1,6 @@
 import "server-only";
 
+import { notFound } from "next/navigation";
 import {
   type UpdateCurrentUserRequest,
   type UserOrganizationsResponse,
@@ -19,16 +20,22 @@ import {
   NotFound,
 } from "./util";
 
-/**
- * this should _not_ be used on any page that we intend to statically render
- * if static pages require auth, rely on useUser in client-side components instead
- */
-export async function getCurrentUser(): Promise<UserResponse | null> {
+export async function getCurrentUser(
+  required = true,
+): Promise<UserResponse | null> {
   const session = await getSession();
-  if (!session) return null;
+  if (!session) {
+    if (required) notFound();
+    return null;
+  }
 
   const response = await authFetch(`${GITDOT_SERVER_URL}/user`);
-  return await handleResponse(response, UserResponseSchema);
+  const user = await handleResponse(response, UserResponseSchema);
+  if (!user) {
+    if (required) notFound();
+    return null;
+  }
+  return user;
 }
 
 export async function updateCurrentUser(

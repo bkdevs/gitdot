@@ -33,7 +33,7 @@ import type {
 import { delay, validateEmail } from "./util";
 
 export async function getCurrentUserAction(): Promise<UserResponse | null> {
-  return await getCurrentUser();
+  return await getCurrentUser(false);
 }
 
 export type AuthActionResult = { success: true } | { error: string };

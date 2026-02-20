@@ -1,10 +1,13 @@
+import { getCurrentUser } from "@/lib/dal";
 import { SettingsSidebar } from "./ui/settings-sidebar";
 
-export default function Layout({
+export default async function Layout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  await getCurrentUser();
+
   return (
     <>
       <div className="flex md:hidden h-full w-full p-2 text-sm">
