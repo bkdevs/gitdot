@@ -30,7 +30,6 @@ import type {
   UserResponse,
   VoteResponse,
 } from "./lib/dto";
-import type { RunnerResponse } from "./lib/dto/runner";
 import { delay, validateEmail } from "./util";
 
 export async function getCurrentUserAction(): Promise<UserResponse | null> {
@@ -45,16 +44,15 @@ export async function login(
 ): Promise<AuthActionResult> {
   const supabase = await createSupabaseClient();
   const email = formData.get("email") as string;
-  const password = formData.get("password") as string;
   const redirectTo = formData.get("redirect") as string;
 
   if (!validateEmail(email)) {
     return await delay(300, { error: "Invalid email" });
   }
 
-  const { error } = await supabase.auth.signInWithPassword({
+  const { error } = await supabase.auth.signInWithOtp({
     email,
-    password,
+    options: { shouldCreateUser: false },
   });
 
   if (error) return { error: error.message };
@@ -185,9 +183,7 @@ export async function createRepositoryAction(
   return { repository: result };
 }
 
-export type CreateRunnerActionResult =
-  | { runner: RunnerResponse }
-  | { error: string };
+export type CreateRunnerActionResult = { error: string };
 
 export async function createRunnerAction(
   _prev: CreateRunnerActionResult | null,
@@ -211,7 +207,6 @@ export async function createRunnerAction(
   }
 
   redirect(`/settings/runners/${result.name}`);
-  return { runner: result };
 }
 
 export type RefreshRunnerTokenActionResult =

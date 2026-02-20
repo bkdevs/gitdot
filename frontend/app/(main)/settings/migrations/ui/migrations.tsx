@@ -6,9 +6,7 @@ export function Migrations() {
   return (
     <div className="flex flex-col w-full">
       <MigrationsHeader />
-      <p className="px-2 py-3 text-sm text-muted-foreground">
-        No migrations.
-      </p>
+      <p className="px-2 py-3 text-sm text-muted-foreground">No migrations.</p>
     </div>
   );
 }

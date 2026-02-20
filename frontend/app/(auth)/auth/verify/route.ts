@@ -9,10 +9,7 @@ import { createSupabaseClient } from "@/lib/supabase";
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const token_hash = searchParams.get("token_hash");
-
-  if (!token_hash) {
-    return;
-  }
+  if (!token_hash) return;
 
   const supabase = await createSupabaseClient();
   const { error } = await supabase.auth.verifyOtp({
@@ -27,5 +24,6 @@ export async function GET(request: NextRequest) {
   }
 
   // redirects preserve cookies, so the user is logged in
-  redirect("/onboarding");
+  const redirectTo = searchParams.get("redirect") || "/home";
+  redirect(redirectTo);
 }

@@ -1,11 +1,9 @@
 "use client";
 
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
-import { useState, useTransition } from "react";
-import { login, signup } from "@/actions";
+import { useEffect, useState, useTransition } from "react";
+import { login } from "@/actions";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
-import { useUser } from "../providers/user-provider";
-
 export function AuthBlockerDialog({
   open,
   setOpen,
@@ -13,44 +11,35 @@ export function AuthBlockerDialog({
   open: boolean;
   setOpen: (open: boolean) => void;
 }) {
-  const [mode, setMode] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  const { refreshUser } = useUser();
+  useEffect(() => {
+    if (open) {
+      setEmail("");
+      setSent(false);
+      setError(null);
+    }
+  }, [open]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-
     const formData = new FormData();
     formData.append("email", email);
-    formData.append("password", password);
-
     startTransition(async () => {
-      const action = mode === "login" ? login : signup;
-      const result = await action(null, formData);
-
+      const result = await login(null, formData);
       if ("success" in result) {
-        refreshUser();
-        setOpen(false);
-        setEmail("");
-        setPassword("");
-        setMode("login");
+        setSent(true);
       } else {
         setError(result.error);
       }
     });
   };
 
-  const _toggleMode = () => {
-    setMode(mode === "login" ? "signup" : "login");
-    setError(null);
-  };
-
-  const isValid = email.trim() !== "" && password.trim() !== "";
+  const isValid = email.trim() !== "";
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -62,66 +51,40 @@ export function AuthBlockerDialog({
         <VisuallyHidden>
           <DialogTitle>Authenticate</DialogTitle>
         </VisuallyHidden>
-        <form onSubmit={handleSubmit}>
-          <p className="p-2 text-sm border-b border-border">
-            Please authenticate to proceed.
-          </p>
-          <input
-            type="email"
-            name="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full p-2 text-sm bg-background outline-none border-b border-border"
-            disabled={isPending}
-            autoFocus
-          />
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-2 text-sm bg-background outline-none border-b border-border"
-            disabled={isPending}
-          />
-          {error && <p className="text-xs text-red-500 px-2 py-1">{error}</p>}
-          <div className="flex items-center justify-end h-9">
-            {/* disable the sign up button for now */}
-            {/*
-              <button
-              type="button"
-              onClick={toggleMode}
-              className="group px-3 py-1.5 h-9 text-xs text-muted-foreground"
-              >
-              {mode === "login" ? (
-              <>
-              Don&apos;t have an account?{" "}
-              <span className="group-hover:text-foreground">Sign up</span>
-              </>
-              ) : (
-              <>
-              Already have an account?{" "}
-              <span className="group-hover:text-foreground">Log in</span>
-              </>
-              )}
-              </button>
-              */}
-            <button
-              type="submit"
-              disabled={!isValid || isPending}
-              className="px-3 py-1.5 h-9 text-xs bg-primary text-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isPending
-                ? mode === "login"
-                  ? "Logging in..."
-                  : "Signing up..."
-                : mode === "login"
-                  ? "Log in"
-                  : "Sign up"}
-            </button>
+        {sent ? (
+          <div className="flex flex-col text-sm p-2">
+            <p>Success.</p>
+            <p className="text-primary/60">
+              We sent a link to your email. Click it to continue.
+            </p>
           </div>
-        </form>
+        ) : (
+          <form onSubmit={handleSubmit}>
+            <p className="p-2 text-sm border-b border-border">
+              Please authenticate to proceed.
+            </p>
+            <input
+              type="email"
+              name="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full p-2 text-sm bg-background outline-none border-b border-border"
+              disabled={isPending}
+              autoFocus
+            />
+            {error && <p className="text-xs text-red-500 px-2 py-1">{error}</p>}
+            <div className="flex items-center justify-end h-9">
+              <button
+                type="submit"
+                disabled={!isValid || isPending}
+                className="px-3 py-1.5 h-9 text-xs bg-primary text-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isPending ? "Submitting..." : "Log in"}
+              </button>
+            </div>
+          </form>
+        )}
       </DialogContent>
     </Dialog>
   );
