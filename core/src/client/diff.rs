@@ -1,3 +1,6 @@
+use async_trait::async_trait;
+use tempfile::Builder;
+
 use crate::{
     dto::{
         DiffChange, DiffHunk, DiffLine, DiffPair, RepositoryDiffResponse, RepositoryFileResponse,
@@ -6,8 +9,9 @@ use crate::{
     error::DiffError,
 };
 
+#[async_trait]
 pub trait DiffClient: Send + Sync + Clone + 'static {
-    fn diff_files(
+    async fn diff_files(
         &self,
         left: Option<&RepositoryFileResponse>,
         right: Option<&RepositoryFileResponse>,
@@ -22,46 +26,49 @@ impl DifftClient {
         Self {}
     }
 
-    fn execute_difftastic(
+    async fn execute_difftastic(
         left_content: &str,
         right_content: &str,
         file_path: Option<&str>,
     ) -> Option<DifftasticOutput> {
-        use std::io::Write;
-        use tempfile::Builder;
-
         let extension = file_path
             .and_then(|p| std::path::Path::new(p).extension())
             .and_then(|ext| ext.to_str())
             .unwrap_or("txt");
 
-        let mut left_file = Builder::new()
+        let left_file = Builder::new()
             .suffix(&format!(".{}", extension))
             .tempfile()
             .ok()?;
-        let mut right_file = Builder::new()
+        let right_file = Builder::new()
             .suffix(&format!(".{}", extension))
             .tempfile()
             .ok()?;
 
-        left_file.write_all(left_content.as_bytes()).ok()?;
-        right_file.write_all(right_content.as_bytes()).ok()?;
+        tokio::fs::write(left_file.path(), left_content.as_bytes())
+            .await
+            .ok()?;
+        tokio::fs::write(right_file.path(), right_content.as_bytes())
+            .await
+            .ok()?;
 
-        let output = std::process::Command::new("difft")
+        let output = tokio::process::Command::new("difft")
             .arg(left_file.path())
             .arg(right_file.path())
             .arg("--display")
             .arg("json")
             .env("DFT_UNSTABLE", "yes")
             .output()
+            .await
             .ok()?;
 
         serde_json::from_slice(&output.stdout).ok()
     }
 }
 
+#[async_trait]
 impl DiffClient for DifftClient {
-    fn diff_files(
+    async fn diff_files(
         &self,
         left: Option<&RepositoryFileResponse>,
         right: Option<&RepositoryFileResponse>,
@@ -73,6 +80,7 @@ impl DiffClient for DifftClient {
             .or_else(|| left.map(|f| f.path.as_str()));
 
         let output = Self::execute_difftastic(left_content, right_content, file_path)
+            .await
             .ok_or_else(|| DiffError::DifftasticFailed("difftastic failed".to_string()))?;
 
         let hunks: Vec<DiffHunk> = output

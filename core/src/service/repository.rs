@@ -370,8 +370,10 @@ where
             .into_iter()
             .map(|(left, right)| {
                 let diff_client = self.diff_client.clone();
-                tokio::task::spawn_blocking(move || {
-                    let diff = diff_client.diff_files(left.as_ref(), right.as_ref())?;
+                tokio::spawn(async move {
+                    let diff = diff_client
+                        .diff_files(left.as_ref(), right.as_ref())
+                        .await?;
                     Ok::<_, RepositoryError>(RepositoryCommitDiffResponse { diff, left, right })
                 })
             })
