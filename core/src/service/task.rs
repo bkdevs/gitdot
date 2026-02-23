@@ -1,4 +1,7 @@
+use std::time::Duration;
+
 use async_trait::async_trait;
+use tokio::time::{Instant, sleep};
 use uuid::Uuid;
 
 use crate::{
@@ -11,6 +14,7 @@ use crate::{
 pub trait TaskService: Send + Sync + 'static {
     async fn get_task(&self, id: Uuid) -> Result<TaskResponse, TaskError>;
     async fn update_task(&self, req: UpdateTaskRequest) -> Result<TaskResponse, TaskError>;
+    async fn poll_task(&self) -> Result<Option<TaskResponse>, TaskError>;
 }
 
 #[derive(Debug, Clone)]
@@ -33,14 +37,10 @@ where
     R: TaskRepository,
 {
     async fn get_task(&self, id: Uuid) -> Result<TaskResponse, TaskError> {
-        let task = self
-            .task_repo
-            .get_by_id(id)
-            .await
-            .map_err(|e| match e {
-                sqlx::Error::RowNotFound => TaskError::NotFound(id.to_string()),
-                e => TaskError::DatabaseError(e),
-            })?;
+        let task = self.task_repo.get_by_id(id).await.map_err(|e| match e {
+            sqlx::Error::RowNotFound => TaskError::NotFound(id.to_string()),
+            e => TaskError::DatabaseError(e),
+        })?;
 
         Ok(task.into())
     }
@@ -56,5 +56,26 @@ where
             })?;
 
         Ok(task.into())
+    }
+
+    async fn poll_task(&self) -> Result<Option<TaskResponse>, TaskError> {
+        let deadline = Instant::now() + Duration::from_secs(60);
+
+        loop {
+            let task = self
+                .task_repo
+                .claim_task()
+                .await
+                .map_err(TaskError::DatabaseError)?;
+
+            if let Some(task) = task {
+                return Ok(Some(task.into()));
+            }
+            if Instant::now() >= deadline {
+                return Ok(None);
+            }
+
+            sleep(Duration::from_secs(1)).await;
+        }
     }
 }

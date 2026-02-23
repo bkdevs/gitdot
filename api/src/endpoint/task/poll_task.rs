@@ -12,4 +12,4 @@ impl Endpoint for PollTask {
 
 pub type PollTaskRequest = ();
 
-pub type PollTaskResponse = TaskResource;
+pub type PollTaskResponse = Option<TaskResource>;

@@ -2,10 +2,7 @@ mod get_task;
 mod poll_task;
 mod update_task;
 
-use axum::{
-    Router,
-    routing::get,
-};
+use axum::{Router, routing::get};
 
 use crate::app::AppState;
 

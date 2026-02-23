@@ -1,31 +1,22 @@
 use axum::{extract::State, http::StatusCode};
-use chrono::Utc;
-use uuid::Uuid;
 
-use gitdot_api::endpoint::poll_task as api;
-use gitdot_core::{dto::TaskResponse, model::TaskStatus};
+use gitdot_api::endpoint::task::poll_task as api;
 
 use crate::{
-    app::{AppResponse, AppState},
+    app::{AppError, AppResponse, AppState},
     dto::IntoApi,
     extract::{Principal, Runner},
 };
 
 #[axum::debug_handler]
 pub async fn poll_task(
-    State(_state): State<AppState>,
+    State(state): State<AppState>,
     _auth_runner: Principal<Runner>,
-) -> AppResponse<api::PollTaskResponse> {
-    let now = Utc::now();
-    let response = TaskResponse {
-        id: Uuid::new_v4(),
-        repo_owner: String::new(),
-        repo_name: String::new(),
-        script: String::new(),
-        status: TaskStatus::Pending,
-        created_at: now,
-        updated_at: now,
-    };
-
-    AppResponse::new(StatusCode::OK, response.into_api())
+) -> Result<AppResponse<api::PollTaskResponse>, AppError> {
+    state
+        .task_service
+        .poll_task()
+        .await
+        .map_err(AppError::from)
+        .map(|task| AppResponse::new(StatusCode::OK, task.map(|t| t.into_api())))
 }

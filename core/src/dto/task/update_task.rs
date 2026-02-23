@@ -12,7 +12,9 @@ impl UpdateTaskRequest {
     pub fn new(id: Uuid, status: &str) -> Result<Self, TaskError> {
         let status = TaskStatus::try_from(status)?;
         match status {
-            TaskStatus::Success | TaskStatus::Failure => Ok(Self { id, status }),
+            TaskStatus::Running | TaskStatus::Success | TaskStatus::Failure => {
+                Ok(Self { id, status })
+            }
             _ => Err(TaskError::InvalidStatus(status.into())),
         }
     }

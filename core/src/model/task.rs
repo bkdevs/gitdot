@@ -22,6 +22,7 @@ pub struct Task {
 #[sqlx(type_name = "task_status", rename_all = "lowercase")]
 pub enum TaskStatus {
     Pending,
+    Assigned,
     Running,
     Success,
     Failure,
@@ -33,6 +34,7 @@ impl TryFrom<&str> for TaskStatus {
     fn try_from(status: &str) -> Result<Self, Self::Error> {
         match status {
             "pending" => Ok(TaskStatus::Pending),
+            "assigned" => Ok(TaskStatus::Assigned),
             "running" => Ok(TaskStatus::Running),
             "success" => Ok(TaskStatus::Success),
             "failure" => Ok(TaskStatus::Failure),
@@ -45,6 +47,7 @@ impl Into<String> for TaskStatus {
     fn into(self) -> String {
         match self {
             TaskStatus::Pending => "pending".to_string(),
+            TaskStatus::Assigned => "assigned".to_string(),
             TaskStatus::Running => "running".to_string(),
             TaskStatus::Success => "success".to_string(),
             TaskStatus::Failure => "failure".to_string(),

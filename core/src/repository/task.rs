@@ -8,6 +8,7 @@ use crate::model::{Task, TaskStatus};
 pub trait TaskRepository: Send + Sync + Clone + 'static {
     async fn get_by_id(&self, id: Uuid) -> Result<Task, Error>;
     async fn update_task(&self, id: Uuid, status: TaskStatus) -> Result<Task, Error>;
+    async fn claim_task(&self) -> Result<Option<Task>, Error>;
 }
 
 #[derive(Debug, Clone)]
@@ -48,6 +49,25 @@ impl TaskRepository for TaskRepositoryImpl {
         .bind(status)
         .bind(id)
         .fetch_one(&self.pool)
+        .await?;
+
+        Ok(task)
+    }
+
+    async fn claim_task(&self) -> Result<Option<Task>, Error> {
+        let task = sqlx::query_as::<_, Task>(
+            r#"
+            UPDATE tasks SET status = 'assigned', updated_at = NOW()
+            WHERE id = (
+                SELECT id FROM tasks WHERE status = 'pending'
+                ORDER BY created_at ASC
+                LIMIT 1
+                FOR UPDATE SKIP LOCKED
+            )
+            RETURNING id, repo_owner, repo_name, script, status, created_at, updated_at
+            "#,
+        )
+        .fetch_optional(&self.pool)
         .await?;
 
         Ok(task)

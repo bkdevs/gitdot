@@ -74,7 +74,7 @@ fn create_router(app_state: AppState) -> Router {
         .layer(CorsLayer::permissive()) // TODO: update CORS policy
         .layer(TimeoutLayer::with_status_code(
             StatusCode::REQUEST_TIMEOUT,
-            Duration::from_secs(10),
+            Duration::from_secs(90), // TODO: only 90s for /task/poll, rest should be 10s
         ))
         .layer(PropagateRequestIdLayer::x_request_id());
 

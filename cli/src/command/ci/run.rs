@@ -17,23 +17,41 @@ pub async fn run(config: RunnerConfig) -> anyhow::Result<()> {
     let client = GitdotClient::new("gitdot-runner".to_string()).with_token(token);
 
     loop {
-        match client.poll_task(()).await {
-            Ok(task) => match config.executor {
-                ExecutorType::Local => {
-                    let executor = LocalExecutor {};
-                    println!("{:?}", task);
-                    if let Err(e) = executor.execute(&task).await {
-                        eprintln!("Task {} failed: {}", task.id, e);
-                    }
-                }
-                ExecutorType::Docker => {
-                    let executor = DockerExecutor;
-                    if let Err(e) = executor.execute(&task).await {
-                        eprintln!("Task {} failed: {}", task.id, e);
-                    }
-                }
-            },
-            Err(e) => eprintln!("Error polling task: {}", e),
+        let task = match client.poll_task(()).await {
+            Ok(Some(task)) => task,
+            Ok(None) => continue,
+            Err(e) => {
+                eprintln!("Error polling task: {}", e);
+                continue;
+            }
+        };
+
+        if let Err(e) = client.update_task(task.id, "running").await {
+            eprintln!("Failed to mark task {} as running: {}", task.id, e);
+            continue;
+        }
+
+        let result = match config.executor {
+            ExecutorType::Local => {
+                let executor = LocalExecutor {};
+                executor.execute(&task).await
+            }
+            ExecutorType::Docker => {
+                let executor = DockerExecutor;
+                executor.execute(&task).await
+            }
+        };
+
+        let final_status = match result {
+            Ok(()) => "success",
+            Err(ref e) => {
+                eprintln!("Task {} failed: {}", task.id, e);
+                "failure"
+            }
+        };
+
+        if let Err(e) = client.update_task(task.id, final_status).await {
+            eprintln!("Failed to mark task {} as {}: {}", task.id, final_status, e);
         }
     }
 }
