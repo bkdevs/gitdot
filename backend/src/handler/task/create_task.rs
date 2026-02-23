@@ -22,6 +22,7 @@ pub async fn create_task(
         &request.repo_owner,
         &request.repo_name,
         request.script,
+        request.dag_id,
         auth_user.id,
     )?;
     state

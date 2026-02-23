@@ -1,5 +1,7 @@
+use std::collections::HashMap;
+
 use async_trait::async_trait;
-use sqlx::{Error, PgPool};
+use sqlx::{Error, PgPool, types::Json};
 use uuid::Uuid;
 
 use crate::model::Dag;
@@ -10,7 +12,7 @@ pub trait DagRepository: Send + Sync + Clone + 'static {
         &self,
         repo_owner: &str,
         repo_name: &str,
-        task_ids: &[Uuid],
+        task_dependencies: &HashMap<Uuid, Vec<Uuid>>,
     ) -> Result<Dag, Error>;
 }
 
@@ -31,18 +33,18 @@ impl DagRepository for DagRepositoryImpl {
         &self,
         repo_owner: &str,
         repo_name: &str,
-        task_ids: &[Uuid],
+        task_dependencies: &HashMap<Uuid, Vec<Uuid>>,
     ) -> Result<Dag, Error> {
         let dag = sqlx::query_as::<_, Dag>(
             r#"
-            INSERT INTO dags (repo_owner, repo_name, task_ids)
+            INSERT INTO dags (repo_owner, repo_name, task_dependencies)
             VALUES ($1, $2, $3)
-            RETURNING id, repo_owner, repo_name, task_ids, created_at, updated_at
+            RETURNING id, repo_owner, repo_name, task_dependencies, created_at, updated_at
             "#,
         )
         .bind(repo_owner)
         .bind(repo_name)
-        .bind(task_ids)
+        .bind(Json(task_dependencies))
         .fetch_one(&self.pool)
         .await?;
 

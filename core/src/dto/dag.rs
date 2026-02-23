@@ -1,5 +1,7 @@
 mod create_dag;
 
+use std::collections::HashMap;
+
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
@@ -12,7 +14,7 @@ pub struct DagResponse {
     pub id: Uuid,
     pub repo_owner: String,
     pub repo_name: String,
-    pub task_ids: Vec<Uuid>,
+    pub task_dependencies: HashMap<Uuid, Vec<Uuid>>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
@@ -23,7 +25,7 @@ impl From<Dag> for DagResponse {
             id: dag.id,
             repo_owner: dag.repo_owner,
             repo_name: dag.repo_name,
-            task_ids: dag.task_ids,
+            task_dependencies: dag.task_dependencies.0,
             created_at: dag.created_at,
             updated_at: dag.updated_at,
         }

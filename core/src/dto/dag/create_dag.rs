@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use uuid::Uuid;
 
 use crate::{
@@ -9,17 +11,21 @@ use crate::{
 pub struct CreateDagRequest {
     pub repo_owner: OwnerName,
     pub repo_name: RepositoryName,
-    pub task_ids: Vec<Uuid>,
+    pub task_dependencies: HashMap<Uuid, Vec<Uuid>>,
 }
 
 impl CreateDagRequest {
-    pub fn new(repo_owner: &str, repo_name: &str, task_ids: Vec<Uuid>) -> Result<Self, DagError> {
+    pub fn new(
+        repo_owner: &str,
+        repo_name: &str,
+        task_dependencies: HashMap<Uuid, Vec<Uuid>>,
+    ) -> Result<Self, DagError> {
         Ok(Self {
             repo_owner: OwnerName::try_new(repo_owner)
                 .map_err(|e| DagError::InvalidOwnerName(e.to_string()))?,
             repo_name: RepositoryName::try_new(repo_name)
                 .map_err(|e| DagError::InvalidRepositoryName(e.to_string()))?,
-            task_ids,
+            task_dependencies,
         })
     }
 }

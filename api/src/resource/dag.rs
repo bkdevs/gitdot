@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use api_derive::ApiResource;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -8,7 +10,7 @@ pub struct DagResource {
     pub id: Uuid,
     pub repo_owner: String,
     pub repo_name: String,
-    pub task_ids: Vec<Uuid>,
+    pub task_dependencies: HashMap<Uuid, Vec<Uuid>>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }

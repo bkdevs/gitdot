@@ -21,7 +21,7 @@ pub async fn run(config: RunnerConfig) -> anyhow::Result<()> {
             Ok(Some(task)) => task,
             Ok(None) => continue,
             Err(e) => {
-                eprintln!("Error polling task: {}", e);
+                eprintln!("Error polling task: {:#?}", e);
                 continue;
             }
         };

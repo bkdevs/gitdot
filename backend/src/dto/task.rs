@@ -10,6 +10,7 @@ impl IntoApi for TaskResponse {
             id: self.id,
             repo_owner: self.repo_owner,
             repo_name: self.repo_name,
+            dag_id: self.dag_id,
             script: self.script,
             status: self.status.into(),
             created_at: self.created_at,

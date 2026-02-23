@@ -8,6 +8,7 @@ pub struct TaskResource {
     pub id: Uuid,
     pub repo_owner: String,
     pub repo_name: String,
+    pub dag_id: Uuid,
     pub script: String,
     pub status: String,
     pub created_at: DateTime<Utc>,

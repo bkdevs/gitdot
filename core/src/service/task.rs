@@ -64,6 +64,7 @@ where
                 req.repo_owner.as_ref(),
                 req.repo_name.as_ref(),
                 &req.script,
+                req.dag_id,
             )
             .await
             .map_err(TaskError::DatabaseError)?;

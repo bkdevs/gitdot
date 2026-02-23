@@ -10,7 +10,7 @@ impl IntoApi for DagResponse {
             id: self.id,
             repo_owner: self.repo_owner,
             repo_name: self.repo_name,
-            task_ids: self.task_ids,
+            task_dependencies: self.task_dependencies,
             created_at: self.created_at,
             updated_at: self.updated_at,
         }

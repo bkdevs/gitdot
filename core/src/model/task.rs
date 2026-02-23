@@ -9,7 +9,7 @@ pub struct Task {
     pub id: Uuid,
     pub repo_owner: String,
     pub repo_name: String,
-
+    pub dag_id: Uuid,
     pub script: String,
     // TODO: arguments?
     pub status: TaskStatus,

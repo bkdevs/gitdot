@@ -1,5 +1,8 @@
+use std::collections::HashMap;
+
 use api_derive::ApiRequest;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 use crate::{endpoint::Endpoint, resource::DagResource};
 
@@ -17,6 +20,7 @@ impl Endpoint for CreateDag {
 pub struct CreateDagRequest {
     pub repo_owner: String,
     pub repo_name: String,
+    pub task_dependencies: HashMap<Uuid, Vec<Uuid>>,
 }
 
 pub type CreateDagResponse = DagResource;

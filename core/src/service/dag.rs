@@ -36,7 +36,7 @@ where
             .create(
                 request.repo_owner.as_ref(),
                 request.repo_name.as_ref(),
-                &request.task_ids,
+                &request.task_dependencies,
             )
             .await?;
 

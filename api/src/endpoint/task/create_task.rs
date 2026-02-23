@@ -1,5 +1,6 @@
 use api_derive::ApiRequest;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 use crate::{endpoint::Endpoint, resource::TaskResource};
 
@@ -18,6 +19,7 @@ pub struct CreateTaskRequest {
     pub repo_owner: String,
     pub repo_name: String,
     pub script: String,
+    pub dag_id: Uuid,
 }
 
 pub type CreateTaskResponse = TaskResource;
