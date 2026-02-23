@@ -2,11 +2,12 @@ use async_trait::async_trait;
 use sqlx::{Error, PgPool};
 use uuid::Uuid;
 
-use crate::model::Task;
+use crate::model::{Task, TaskStatus};
 
 #[async_trait]
 pub trait TaskRepository: Send + Sync + Clone + 'static {
     async fn get_by_id(&self, id: Uuid) -> Result<Task, Error>;
+    async fn update_task(&self, id: Uuid, status: TaskStatus) -> Result<Task, Error>;
 }
 
 #[derive(Debug, Clone)]
@@ -36,4 +37,19 @@ impl TaskRepository for TaskRepositoryImpl {
         Ok(task)
     }
 
+    async fn update_task(&self, id: Uuid, status: TaskStatus) -> Result<Task, Error> {
+        let task = sqlx::query_as::<_, Task>(
+            r#"
+            UPDATE tasks SET status = $1, updated_at = NOW()
+            WHERE id = $2
+            RETURNING id, repo_owner, repo_name, script, status, created_at, updated_at
+            "#,
+        )
+        .bind(status)
+        .bind(id)
+        .fetch_one(&self.pool)
+        .await?;
+
+        Ok(task)
+    }
 }

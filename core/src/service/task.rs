@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use uuid::Uuid;
 
 use crate::{
-    dto::TaskResponse,
+    dto::{TaskResponse, UpdateTaskRequest},
     error::TaskError,
     repository::{TaskRepository, TaskRepositoryImpl},
 };
@@ -10,6 +10,7 @@ use crate::{
 #[async_trait]
 pub trait TaskService: Send + Sync + 'static {
     async fn get_task(&self, id: Uuid) -> Result<TaskResponse, TaskError>;
+    async fn update_task(&self, req: UpdateTaskRequest) -> Result<TaskResponse, TaskError>;
 }
 
 #[derive(Debug, Clone)]
@@ -44,4 +45,16 @@ where
         Ok(task.into())
     }
 
+    async fn update_task(&self, req: UpdateTaskRequest) -> Result<TaskResponse, TaskError> {
+        let task = self
+            .task_repo
+            .update_task(req.id, req.status)
+            .await
+            .map_err(|e| match e {
+                sqlx::Error::RowNotFound => TaskError::NotFound(req.id.to_string()),
+                e => TaskError::DatabaseError(e),
+            })?;
+
+        Ok(task.into())
+    }
 }

@@ -1,4 +1,5 @@
 mod create_task;
+mod update_task;
 
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
@@ -6,6 +7,7 @@ use uuid::Uuid;
 use crate::model::{Task, TaskStatus};
 
 pub use create_task::CreateTaskRequest;
+pub use update_task::UpdateTaskRequest;
 
 #[derive(Debug, Clone)]
 pub struct TaskResponse {
