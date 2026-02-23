@@ -3,6 +3,8 @@ use std::path::PathBuf;
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
 
+use crate::executor::ExecutorType;
+
 const CONFIG_DIR_NAME: &str = "gitdot";
 const CONFIG_FILE_NAME: &str = "config.toml";
 
@@ -13,6 +15,25 @@ pub struct Config {
 
     #[serde(default)]
     pub user_email: String,
+
+    #[serde(default = "default_gitdot_server_url")]
+    pub gitdot_server_url: String,
+
+    pub runner_token: Option<String>,
+
+    #[serde(default = "default_run_as_user")]
+    pub run_as_user: String,
+
+    #[serde(default)]
+    pub executor: ExecutorType,
+}
+
+fn default_gitdot_server_url() -> String {
+    "https://api.gitdot.io".to_string()
+}
+
+fn default_run_as_user() -> String {
+    "gitdot-runner".to_string()
 }
 
 pub enum AuthStatus {
