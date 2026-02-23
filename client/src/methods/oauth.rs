@@ -2,15 +2,15 @@ use anyhow::Result;
 
 use gitdot_api::endpoint::oauth::{
     authorize_device::AuthorizeDeviceRequest,
-    get_device_code::{GetDeviceCodeRequest, GetDeviceCodeResponse},
+    create_device_code::{CreateDeviceCodeRequest, CreateDeviceCodeResponse},
     poll_token::{PollTokenRequest, PollTokenResponse},
 };
 
 use crate::client::GitdotClient;
 
 impl GitdotClient {
-    pub async fn get_device_code(&self) -> Result<GetDeviceCodeResponse> {
-        let request = GetDeviceCodeRequest {
+    pub async fn create_device_code(&self) -> Result<CreateDeviceCodeResponse> {
+        let request = CreateDeviceCodeRequest {
             client_id: self.get_client_id().to_string(),
         };
         self.post("oauth/device".to_string(), request).await

@@ -1,13 +1,10 @@
-use crate::config::{AuthStatus, Config};
+use crate::config::Config;
 
 pub async fn get_status(config: Config) -> anyhow::Result<()> {
-    match config.get_auth_status() {
-        AuthStatus::LoggedIn { user_name } => {
-            println!("Logged in as {}", user_name);
-        }
-        AuthStatus::LoggedOut => {
-            println!("Not logged in");
-        }
+    if config.profile.user_name.is_empty() {
+        println!("Not logged in");
+    } else {
+        println!("Logged in as {}", config.profile.user_name);
     }
     Ok(())
 }

@@ -1,9 +1,10 @@
 use axum::{
-    extract::{Query, State},
+    Json,
+    extract::State,
     http::StatusCode,
 };
 
-use gitdot_api::endpoint::oauth::get_device_code as api;
+use gitdot_api::endpoint::oauth::create_device_code as api;
 use gitdot_core::dto::DeviceCodeRequest;
 
 use crate::{
@@ -12,12 +13,12 @@ use crate::{
 };
 
 #[axum::debug_handler]
-pub async fn get_device_code(
+pub async fn create_device_code(
     State(state): State<AppState>,
-    Query(params): Query<api::GetDeviceCodeRequest>,
-) -> Result<AppResponse<api::GetDeviceCodeResponse>, AppError> {
+    Json(body): Json<api::CreateDeviceCodeRequest>,
+) -> Result<AppResponse<api::CreateDeviceCodeResponse>, AppError> {
     let request = DeviceCodeRequest {
-        client_id: params.client_id,
+        client_id: body.client_id,
         verification_uri: state.settings.oauth_device_verification_uri.clone(),
     };
     state

@@ -8,7 +8,7 @@ use crate::{config::Config, store::GitCredentialStore};
 
 pub async fn login(mut config: Config) -> anyhow::Result<()> {
     let api_client = GitdotClient::new("gitdot-cli".to_string());
-    let device_code_response = api_client.get_device_code().await?;
+    let device_code_response = api_client.create_device_code().await?;
 
     println!("Open the following URL in your browser:");
     println!("{}", device_code_response.verification_uri);

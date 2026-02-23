@@ -3,7 +3,15 @@ use std::path::PathBuf;
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
 
-use crate::executor::ExecutorType;
+#[cfg(feature = "main")]
+mod profile;
+#[cfg(feature = "main")]
+pub use profile::ProfileConfig;
+
+#[cfg(feature = "ci")]
+mod ci;
+#[cfg(feature = "ci")]
+pub use ci::CiConfig;
 
 const CONFIG_DIR_NAME: &str = "gitdot";
 const CONFIG_FILE_NAME: &str = "config.toml";
@@ -13,9 +21,11 @@ pub struct Config {
     #[serde(default = "default_gitdot_server_url")]
     pub gitdot_server_url: String,
 
+    #[cfg(feature = "main")]
     #[serde(default)]
     pub profile: ProfileConfig,
 
+    #[cfg(feature = "ci")]
     #[serde(default)]
     pub ci: CiConfig,
 }
@@ -24,53 +34,16 @@ impl Default for Config {
     fn default() -> Self {
         Self {
             gitdot_server_url: default_gitdot_server_url(),
+            #[cfg(feature = "main")]
             profile: ProfileConfig::default(),
+            #[cfg(feature = "ci")]
             ci: CiConfig::default(),
-        }
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct ProfileConfig {
-    #[serde(default)]
-    pub user_name: String,
-
-    #[serde(default)]
-    pub user_email: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CiConfig {
-    pub runner_token: Option<String>,
-
-    #[serde(default = "default_run_as_user")]
-    pub run_as_user: String,
-
-    #[serde(default)]
-    pub executor: ExecutorType,
-}
-
-impl Default for CiConfig {
-    fn default() -> Self {
-        Self {
-            runner_token: None,
-            run_as_user: default_run_as_user(),
-            executor: ExecutorType::default(),
         }
     }
 }
 
 fn default_gitdot_server_url() -> String {
     "https://api.gitdot.io".to_string()
-}
-
-fn default_run_as_user() -> String {
-    "gitdot-runner".to_string()
-}
-
-pub enum AuthStatus {
-    LoggedIn { user_name: String },
-    LoggedOut,
 }
 
 impl Config {
@@ -107,16 +80,6 @@ impl Config {
             .with_context(|| format!("Failed to write config file: {}", config_path.display()))?;
 
         Ok(())
-    }
-
-    pub fn get_auth_status(&self) -> AuthStatus {
-        if self.profile.user_name.is_empty() {
-            AuthStatus::LoggedOut
-        } else {
-            AuthStatus::LoggedIn {
-                user_name: self.profile.user_name.clone(),
-            }
-        }
     }
 
     fn get_config_path() -> anyhow::Result<PathBuf> {

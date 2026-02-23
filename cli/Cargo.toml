@@ -8,6 +8,11 @@ description = ""
 name = "gitdot"
 path = "src/bin/main.rs"
 
+[features]
+default = ["main", "ci"]
+main = []
+ci = []
+
 [dependencies]
 anyhow = { workspace = true }
 clap = { version = "4.5.54", features = ["derive"] }

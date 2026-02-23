@@ -3,19 +3,19 @@ use serde::{Deserialize, Serialize};
 
 use crate::{endpoint::Endpoint, resource::oauth::DeviceCodeResource};
 
-pub struct GetDeviceCode;
+pub struct CreateDeviceCode;
 
-impl Endpoint for GetDeviceCode {
+impl Endpoint for CreateDeviceCode {
     const PATH: &'static str = "/oauth/device";
     const METHOD: http::Method = http::Method::POST;
 
-    type Request = GetDeviceCodeRequest;
-    type Response = GetDeviceCodeResponse;
+    type Request = CreateDeviceCodeRequest;
+    type Response = CreateDeviceCodeResponse;
 }
 
 #[derive(ApiRequest, Debug, Serialize, Deserialize)]
-pub struct GetDeviceCodeRequest {
+pub struct CreateDeviceCodeRequest {
     pub client_id: String,
 }
 
-pub type GetDeviceCodeResponse = DeviceCodeResource;
+pub type CreateDeviceCodeResponse = DeviceCodeResource;
