@@ -100,13 +100,8 @@ export function AuthBlockerDialog({
               type="button"
               onClick={async () => {
                 setGithubPending(true);
-                const result = await loginWithGithub();
-                if ("redirect_url" in result) {
-                  window.location.href = result.redirect_url;
-                } else {
-                  setError(result.error);
-                  setGithubPending(false);
-                }
+                await loginWithGithub();
+                setGithubPending(false);
               }}
               disabled={githubPending}
               className="flex items-center justify-center gap-2 mx-2 mb-2 py-1.5 text-xs border border-border cursor-pointer hover:bg-gray-50 transition-colors duration-150"

@@ -21,12 +21,8 @@ export default function LoginForm({ redirect }: { redirect?: string }) {
 
   const handleGithubLogin = async () => {
     setGithubPending(true);
-    const result = await loginWithGithub();
-    if ("redirect_url" in result) {
-      window.location.href = result.redirect_url;
-    } else {
-      setGithubPending(false);
-    }
+    await loginWithGithub();
+    setGithubPending(false);
   };
 
   return (

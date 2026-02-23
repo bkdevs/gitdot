@@ -88,9 +88,7 @@ export async function signup(
   return { success: true };
 }
 
-export type GitHubAuthActionResult = { redirect_url: string } | { error: string };
-
-export async function loginWithGithub(): Promise<GitHubAuthActionResult> {
+export async function loginWithGithub(): Promise<AuthActionResult> {
   const supabase = await createSupabaseClient();
   const headersList = await headers();
   const host =
@@ -108,10 +106,11 @@ export async function loginWithGithub(): Promise<GitHubAuthActionResult> {
   });
 
   if (error || !data.url) {
-    return { error: error?.message || "Failed to initiate GitHub login" };
+    return { error: error?.message || "Failed to auth with GitHub" };
   }
 
-  return { redirect_url: data.url };
+  if (data.url) redirect(data.url);
+  return { success: true };
 }
 
 export type UpdateUserActionResult = { user: UserResponse } | { error: string };
