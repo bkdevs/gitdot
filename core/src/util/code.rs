@@ -1,5 +1,5 @@
 pub const DEVICE_CODE_EXPIRY_MINUTES: i64 = 10;
-pub const POLLING_INTERVAL_SECONDS: u64 = 5;
+pub const POLLING_INTERVAL_SECONDS: u64 = 1;
 
 pub fn generate_device_code() -> String {
     use rand::Rng as _;
