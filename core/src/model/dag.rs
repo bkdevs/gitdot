@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use chrono::{DateTime, Utc};
-use sqlx::{types::Json, FromRow};
+use sqlx::{FromRow, types::Json};
 use uuid::Uuid;
 
 #[derive(Debug, Clone, FromRow)]

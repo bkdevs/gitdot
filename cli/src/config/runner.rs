@@ -50,12 +50,10 @@ impl RunnerConfig {
     }
 
     pub fn save(&self) -> anyhow::Result<()> {
-        let contents =
-            toml::to_string_pretty(self).context("Failed to serialize runner config")?;
+        let contents = toml::to_string_pretty(self).context("Failed to serialize runner config")?;
 
         let tmp = std::env::temp_dir().join("gitdot-runner.toml");
-        std::fs::write(&tmp, &contents)
-            .context("Failed to write runner config to temp file")?;
+        std::fs::write(&tmp, &contents).context("Failed to write runner config to temp file")?;
         let tmp_str = tmp.to_str().context("Temp path is not valid UTF-8")?;
 
         crate::util::run_command("sudo", &["mkdir", "-p", "/etc/gitdot"])
