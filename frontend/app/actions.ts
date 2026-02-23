@@ -10,6 +10,7 @@ import {
   createQuestionComment,
   createRepository,
   createRunner,
+  createTask,
   getCurrentUser,
   hasUser,
   refreshRunnerToken,
@@ -27,6 +28,7 @@ import type {
   CommentResponse,
   CreateRepositoryResponse,
   QuestionResponse,
+  TaskResponse,
   UserResponse,
   VoteResponse,
 } from "./lib/dto";
@@ -446,4 +448,29 @@ export async function authorizeDeviceAction(
   }
 
   return { success: true };
+}
+
+export type CreateTaskActionResult = { task: TaskResponse } | { error: string };
+
+export async function createTaskAction(
+  owner: string,
+  repo: string,
+  formData: FormData,
+): Promise<CreateTaskActionResult> {
+  const script = formData.get("script") as string;
+  if (!script) {
+    return { error: "Script cannot be empty" };
+  }
+
+  const result = await createTask({
+    repo_owner: owner,
+    repo_name: repo,
+    script,
+  });
+  if (!result) {
+    return { error: "createTask call failed" };
+  }
+
+  refresh();
+  return { task: result };
 }

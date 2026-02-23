@@ -5,7 +5,7 @@ use tokio::time::{Instant, sleep};
 use uuid::Uuid;
 
 use crate::{
-    dto::{TaskResponse, UpdateTaskRequest},
+    dto::{CreateTaskRequest, ListTasksRequest, TaskResponse, UpdateTaskRequest},
     error::TaskError,
     repository::{TaskRepository, TaskRepositoryImpl},
 };
@@ -13,6 +13,8 @@ use crate::{
 #[async_trait]
 pub trait TaskService: Send + Sync + 'static {
     async fn get_task(&self, id: Uuid) -> Result<TaskResponse, TaskError>;
+    async fn list_tasks(&self, req: ListTasksRequest) -> Result<Vec<TaskResponse>, TaskError>;
+    async fn create_task(&self, req: CreateTaskRequest) -> Result<TaskResponse, TaskError>;
     async fn update_task(&self, req: UpdateTaskRequest) -> Result<TaskResponse, TaskError>;
     async fn poll_task(&self) -> Result<Option<TaskResponse>, TaskError>;
 }
@@ -41,6 +43,30 @@ where
             sqlx::Error::RowNotFound => TaskError::NotFound(id.to_string()),
             e => TaskError::DatabaseError(e),
         })?;
+
+        Ok(task.into())
+    }
+
+    async fn list_tasks(&self, req: ListTasksRequest) -> Result<Vec<TaskResponse>, TaskError> {
+        let tasks = self
+            .task_repo
+            .list_by_repo(req.repo_owner.as_ref(), req.repo_name.as_ref())
+            .await
+            .map_err(TaskError::DatabaseError)?;
+
+        Ok(tasks.into_iter().map(Into::into).collect())
+    }
+
+    async fn create_task(&self, req: CreateTaskRequest) -> Result<TaskResponse, TaskError> {
+        let task = self
+            .task_repo
+            .create(
+                req.repo_owner.as_ref(),
+                req.repo_name.as_ref(),
+                &req.script,
+            )
+            .await
+            .map_err(TaskError::DatabaseError)?;
 
         Ok(task.into())
     }

@@ -4,6 +4,8 @@ use axum::{
 };
 use uuid::Uuid;
 
+use gitdot_api::endpoint::get_task as api;
+
 use crate::{
     app::{AppError, AppResponse, AppState},
     dto::IntoApi,
@@ -13,7 +15,7 @@ use crate::{
 pub async fn get_task(
     State(state): State<AppState>,
     Path(id): Path<Uuid>,
-) -> Result<AppResponse<gitdot_api::endpoint::task::get_task::GetTaskResponse>, AppError> {
+) -> Result<AppResponse<api::GetTaskResponse>, AppError> {
     state
         .task_service
         .get_task(id)

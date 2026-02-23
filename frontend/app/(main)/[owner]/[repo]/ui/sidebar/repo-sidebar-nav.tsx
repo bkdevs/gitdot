@@ -5,6 +5,7 @@ const navItems = [
   { path: "files", label: "/files" },
   { path: "commits", label: "/commits" },
   { path: "questions", label: "/questions" },
+  { path: "tasks", label: "/tasks" },
 ];
 
 export function RepoSidebarNav({

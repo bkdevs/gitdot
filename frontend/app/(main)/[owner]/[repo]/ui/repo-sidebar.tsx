@@ -36,7 +36,9 @@ export function RepoSidebar({
       path === "/commits" ||
       path.startsWith("/commits") ||
       path === "/questions" ||
-      path.startsWith("/questions/");
+      path.startsWith("/questions/") ||
+      path === "/tasks" ||
+      path.startsWith("/tasks/");
 
     if (!isNavRoute && path !== "/") {
       const currentPath = path.slice(1);
