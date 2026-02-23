@@ -1,2 +1,0 @@
-ALTER TABLE dags DROP COLUMN task_ids;
-ALTER TABLE dags ADD COLUMN task_dependencies JSONB NOT NULL DEFAULT '{}';
