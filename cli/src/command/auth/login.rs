@@ -30,8 +30,8 @@ pub async fn login(mut config: UserConfig) -> anyhow::Result<()> {
             .await
         {
             Ok(response) => {
-                config.profile.user_name = response.user_name.clone();
-                config.profile.user_email = response.user_email;
+                config.user_name = response.user_name.clone();
+                config.user_email = response.user_email;
                 config.save().await?;
 
                 GitCredentialStore::store(

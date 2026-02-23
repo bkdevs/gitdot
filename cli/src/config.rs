@@ -1,7 +1,6 @@
 #[cfg(feature = "main")]
-pub mod profile;
-
 pub mod user;
+#[cfg(feature = "main")]
 pub use user::UserConfig;
 
 #[cfg(feature = "ci")]

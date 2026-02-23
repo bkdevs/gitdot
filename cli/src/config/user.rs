@@ -3,9 +3,6 @@ use std::path::PathBuf;
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
 
-#[cfg(feature = "main")]
-use super::profile::ProfileConfig;
-
 const CONFIG_DIR_NAME: &str = "gitdot";
 const CONFIG_FILE_NAME: &str = "config.toml";
 
@@ -14,9 +11,11 @@ pub struct UserConfig {
     #[serde(default = "default_gitdot_server_url")]
     pub gitdot_server_url: String,
 
-    #[cfg(feature = "main")]
     #[serde(default)]
-    pub profile: ProfileConfig,
+    pub user_name: String,
+
+    #[serde(default)]
+    pub user_email: String,
 }
 
 fn default_gitdot_server_url() -> String {
@@ -27,8 +26,8 @@ impl Default for UserConfig {
     fn default() -> Self {
         Self {
             gitdot_server_url: default_gitdot_server_url(),
-            #[cfg(feature = "main")]
-            profile: ProfileConfig::default(),
+            user_name: String::new(),
+            user_email: String::new(),
         }
     }
 }
