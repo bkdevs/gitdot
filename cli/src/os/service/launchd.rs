@@ -2,28 +2,11 @@ use anyhow::Context;
 
 use crate::util::run_command;
 
-use super::Service;
+use super::{Service, ServiceManager};
 
 const LABEL: &str = "io.gitdot.runner";
 
-pub struct ServiceManager {
-    binary_path: String,
-    run_as_user: String,
-}
-
 impl ServiceManager {
-    pub fn new(run_as_user: String) -> anyhow::Result<Self> {
-        let binary_path = std::env::current_exe()
-            .context("Failed to determine current executable path")?
-            .to_str()
-            .context("Executable path is not valid UTF-8")?
-            .to_string();
-        Ok(Self {
-            binary_path,
-            run_as_user,
-        })
-    }
-
     fn agents_dir(&self) -> String {
         format!("/Users/{}/Library/LaunchAgents", self.run_as_user)
     }
@@ -102,10 +85,7 @@ impl Service for ServiceManager {
             "sudo",
             &["-u", &self.run_as_user, "launchctl", "unload", &plist_path],
         );
-        let _ = run_command(
-            "sudo",
-            &["-u", &self.run_as_user, "rm", "-f", &plist_path],
-        );
+        let _ = run_command("sudo", &["-u", &self.run_as_user, "rm", "-f", &plist_path]);
         Ok(())
     }
 

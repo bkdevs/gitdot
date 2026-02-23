@@ -2,29 +2,10 @@ use anyhow::Context;
 
 use crate::util::run_command;
 
-use super::Service;
+use super::{Service, ServiceManager};
 
 const SERVICE_NAME: &str = "gitdot-runner";
 const UNIT_PATH: &str = "/etc/systemd/user/gitdot-runner.service";
-
-pub struct ServiceManager {
-    binary_path: String,
-    run_as_user: String,
-}
-
-impl ServiceManager {
-    pub fn new(run_as_user: String) -> anyhow::Result<Self> {
-        let binary_path = std::env::current_exe()
-            .context("Failed to determine current executable path")?
-            .to_str()
-            .context("Executable path is not valid UTF-8")?
-            .to_string();
-        Ok(Self {
-            binary_path,
-            run_as_user,
-        })
-    }
-}
 
 impl Service for ServiceManager {
     fn install(&self) -> anyhow::Result<()> {

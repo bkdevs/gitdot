@@ -9,7 +9,7 @@ mod store;
 #[cfg(feature = "ci")]
 mod executor;
 #[cfg(feature = "ci")]
-mod service;
+mod os;
 
 pub use cli::run;
 pub use command::Args;

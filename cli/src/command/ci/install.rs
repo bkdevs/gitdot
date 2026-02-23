@@ -1,16 +1,6 @@
-use crate::{
-    config::Config,
-    executor::ExecutorType,
-    service::{Service, ServiceManager},
-};
+use crate::{config::Config, executor::ExecutorType, os::install_service};
 use gitdot_client::client::GitdotClient;
 use std::io::{self, Write};
-
-mod create_user;
-mod user_exists;
-
-use create_user::create_user;
-use user_exists::user_exists;
 
 pub async fn install(mut config: Config) -> anyhow::Result<()> {
     if config.ci.runner_token.is_none() {
@@ -60,16 +50,7 @@ pub async fn install(mut config: Config) -> anyhow::Result<()> {
         }
     };
 
-    if run_as_user == "gitdot-runner" {
-        create_user("gitdot-runner")?;
-    } else if !user_exists(&run_as_user) {
-        anyhow::bail!(
-            "User '{}' does not exist. Please create the user before running install.",
-            run_as_user
-        );
-    }
-
-    config.ci.run_as_user = run_as_user;
+    config.ci.run_as_user = run_as_user.clone();
     config.save().await?;
 
     print!("Select executor [local/docker] [local]: ");
@@ -84,13 +65,7 @@ pub async fn install(mut config: Config) -> anyhow::Result<()> {
     config.ci.executor = executor;
     config.save().await?;
 
-    let manager = ServiceManager::new(config.ci.run_as_user.clone())?;
+    install_service(&run_as_user)?;
 
-    println!("Removing any existing runner service...");
-    manager.uninstall()?;
-
-    println!("Installing OS service...");
-    manager.install()?;
-    println!("Runner installed.");
     Ok(())
 }
