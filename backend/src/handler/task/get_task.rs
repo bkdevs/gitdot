@@ -1,11 +1,8 @@
 use axum::{
-    extract::{Json, Path, State},
+    extract::{Path, State},
     http::StatusCode,
 };
 use uuid::Uuid;
-
-use gitdot_api::endpoint::update_task as api;
-use gitdot_core::dto::UpdateTaskRequest;
 
 use crate::{
     app::{AppError, AppResponse, AppState},
@@ -13,15 +10,13 @@ use crate::{
 };
 
 #[axum::debug_handler]
-pub async fn update_task(
+pub async fn get_task(
     State(state): State<AppState>,
     Path(id): Path<Uuid>,
-    Json(body): Json<api::UpdateTaskRequest>,
-) -> Result<AppResponse<api::UpdateTaskResponse>, AppError> {
-    let request = UpdateTaskRequest::new(id, &body.status)?;
+) -> Result<AppResponse<gitdot_api::endpoint::task::get_task::GetTaskResponse>, AppError> {
     state
         .task_service
-        .update_task(request)
+        .get_task(id)
         .await
         .map_err(AppError::from)
         .map(|task| AppResponse::new(StatusCode::OK, task.into_api()))

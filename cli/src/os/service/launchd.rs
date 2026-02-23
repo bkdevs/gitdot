@@ -44,11 +44,12 @@ impl Service for ServiceManager {
         run_command("sudo", &["cp", tmp_str, PLIST_PATH])
             .with_context(|| format!("Failed to copy plist to {}", PLIST_PATH))?;
 
-        run_command(
-            "sudo",
-            &["launchctl", "bootstrap", "system", PLIST_PATH],
-        )
-        .context("Failed to bootstrap launchd daemon")?;
+        run_command("sudo", &["touch", LOG_PATH]).context("Failed to create log file")?;
+        run_command("sudo", &["chown", SYSTEM_USER, LOG_PATH])
+            .context("Failed to set log file ownership")?;
+
+        run_command("sudo", &["launchctl", "bootstrap", "system", PLIST_PATH])
+            .context("Failed to bootstrap launchd daemon")?;
 
         Ok(())
     }
@@ -80,12 +81,7 @@ impl Service for ServiceManager {
     fn stop(&self) -> anyhow::Result<()> {
         run_command(
             "sudo",
-            &[
-                "launchctl",
-                "kill",
-                "TERM",
-                &format!("system/{}", LABEL),
-            ],
+            &["launchctl", "kill", "TERM", &format!("system/{}", LABEL)],
         )
         .context("Failed to stop launchd daemon")?;
         Ok(())
