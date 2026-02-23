@@ -9,20 +9,16 @@ pub trait Service {
 
 pub struct ServiceManager {
     binary_path: String,
-    run_as_user: String,
 }
 
 impl ServiceManager {
-    pub fn new(run_as_user: String) -> Result<Self> {
+    pub fn new() -> Result<Self> {
         let binary_path = std::env::current_exe()
             .context("Failed to determine current executable path")?
             .to_str()
             .context("Executable path is not valid UTF-8")?
             .to_string();
-        Ok(Self {
-            binary_path,
-            run_as_user,
-        })
+        Ok(Self { binary_path })
     }
 }
 

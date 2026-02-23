@@ -1,20 +1,13 @@
 use std::process::Command;
 
-use crate::util::run_command;
+use crate::{config::ci::SYSTEM_USER, util::run_command};
 
 use super::service::{Service, ServiceManager};
 
-pub fn install_service(run_as_user: &str) -> anyhow::Result<()> {
-    if run_as_user == "gitdot-runner" {
-        ensure_gitdot_runner_user()?;
-    } else if !user_exists(run_as_user) {
-        anyhow::bail!(
-            "User '{}' does not exist. Please create the user before running install.",
-            run_as_user
-        );
-    }
+pub fn install_service() -> anyhow::Result<()> {
+    ensure_gitdot_user()?;
 
-    let manager = ServiceManager::new(run_as_user.to_string())?;
+    let manager = ServiceManager::new()?;
 
     println!("Removing any existing runner service...");
     manager.uninstall()?;
@@ -36,20 +29,18 @@ fn user_exists(username: &str) -> bool {
         .unwrap_or(false)
 }
 
-fn ensure_gitdot_runner_user() -> anyhow::Result<()> {
-    const USERNAME: &str = "gitdot-runner";
-
-    if user_exists(USERNAME) {
+fn ensure_gitdot_user() -> anyhow::Result<()> {
+    if user_exists(SYSTEM_USER) {
         return Ok(());
     }
 
-    println!("Creating system user '{USERNAME}'...");
+    println!("Creating system user '{SYSTEM_USER}'...");
 
     #[cfg(target_os = "macos")]
     {
         let uid = find_free_uid_macos()?;
         let uid_str = uid.to_string();
-        let user_path = format!("/Users/{USERNAME}");
+        let user_path = format!("/Users/{SYSTEM_USER}");
         let cmds: &[&[&str]] = &[
             &["dscl", ".", "-create", &user_path],
             &["dscl", ".", "-create", &user_path, "UniqueID", &uid_str],
@@ -94,12 +85,12 @@ fn ensure_gitdot_runner_user() -> anyhow::Result<()> {
                 "--shell",
                 "/usr/sbin/nologin",
                 "--no-create-home",
-                USERNAME,
+                SYSTEM_USER,
             ],
         )?;
     }
 
-    println!("System user '{USERNAME}' created.");
+    println!("System user '{SYSTEM_USER}' created.");
     Ok(())
 }
 
@@ -113,5 +104,5 @@ fn find_free_uid_macos() -> anyhow::Result<u32> {
             return Ok(uid);
         }
     }
-    anyhow::bail!("No free UID found in range 200-400 for gitdot-runner user");
+    anyhow::bail!("No free UID found in range 200-400 for gitdot user");
 }

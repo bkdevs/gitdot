@@ -4,18 +4,19 @@ use anyhow::{Context, Result};
 use gitdot_api::resource::TaskResource;
 use tokio::process::Command;
 
-use crate::executor::{Executor, ExecutorType};
+use crate::{
+    config::ci::SYSTEM_USER,
+    executor::{Executor, ExecutorType},
+};
 
-pub struct LocalExecutor {
-    pub run_as_user: String,
-}
+pub struct LocalExecutor {}
 
 impl Executor for LocalExecutor {
     const TYPE: ExecutorType = ExecutorType::Local;
 
     async fn execute(&self, task: &TaskResource) -> Result<()> {
         let output = Command::new("sudo")
-            .args(["-u", &self.run_as_user, "sh", "-c", &task.script])
+            .args(["-u", SYSTEM_USER, "sh", "-c", &task.script])
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
             .output()

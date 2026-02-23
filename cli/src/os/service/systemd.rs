@@ -1,6 +1,6 @@
 use anyhow::Context;
 
-use crate::util::run_command;
+use crate::{config::GITDOT_USER, util::run_command};
 
 use super::{Service, ServiceManager};
 
@@ -39,14 +39,14 @@ WantedBy=default.target
 
         // Enable linger so the user's systemd instance starts without an active login session.
         // This also creates /run/user/<uid>/ which the subsequent systemctl --user calls need.
-        run_command("loginctl", &["enable-linger", &self.run_as_user])
+        run_command("loginctl", &["enable-linger", GITDOT_USER])
             .context("Failed to enable linger for user")?;
 
         run_command(
             "sudo",
             &[
                 "-u",
-                &self.run_as_user,
+                GITDOT_USER,
                 "systemctl",
                 "--user",
                 "daemon-reload",
@@ -58,7 +58,7 @@ WantedBy=default.target
             "sudo",
             &[
                 "-u",
-                &self.run_as_user,
+                GITDOT_USER,
                 "systemctl",
                 "--user",
                 "enable",
@@ -74,16 +74,16 @@ WantedBy=default.target
         // Best-effort: ignore errors if service is not installed/running
         let _ = run_command(
             "sudo",
-            &["-u", &self.run_as_user, "systemctl", "--user", "stop", SERVICE_NAME],
+            &["-u", GITDOT_USER, "systemctl", "--user", "stop", SERVICE_NAME],
         );
         let _ = run_command(
             "sudo",
-            &["-u", &self.run_as_user, "systemctl", "--user", "disable", SERVICE_NAME],
+            &["-u", GITDOT_USER, "systemctl", "--user", "disable", SERVICE_NAME],
         );
         let _ = std::fs::remove_file(UNIT_PATH);
         let _ = run_command(
             "sudo",
-            &["-u", &self.run_as_user, "systemctl", "--user", "daemon-reload"],
+            &["-u", GITDOT_USER, "systemctl", "--user", "daemon-reload"],
         );
         Ok(())
     }

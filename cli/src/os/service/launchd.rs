@@ -1,6 +1,6 @@
 use anyhow::Context;
 
-use crate::util::run_command;
+use crate::{config::ci::SYSTEM_USER, util::run_command};
 
 use super::{Service, ServiceManager};
 
@@ -8,18 +8,18 @@ const LABEL: &str = "io.gitdot.runner";
 
 impl ServiceManager {
     fn agents_dir(&self) -> String {
-        format!("/Users/{}/Library/LaunchAgents", self.run_as_user)
+        format!("/Users/{}/Library/LaunchAgents", SYSTEM_USER)
     }
 
     fn plist_path(&self) -> String {
         format!(
             "/Users/{}/Library/LaunchAgents/io.gitdot.runner.plist",
-            self.run_as_user
+            SYSTEM_USER
         )
     }
 
     fn log_path(&self) -> String {
-        format!("/Users/{}/Library/Logs/gitdot-runner.log", self.run_as_user)
+        format!("/Users/{}/Library/Logs/gitdot-runner.log", SYSTEM_USER)
     }
 }
 
@@ -55,7 +55,7 @@ impl Service for ServiceManager {
 
         run_command(
             "sudo",
-            &["-u", &self.run_as_user, "mkdir", "-p", &self.agents_dir()],
+            &["-u", SYSTEM_USER, "mkdir", "-p", &self.agents_dir()],
         )
         .context("Failed to create LaunchAgents directory")?;
 
@@ -63,15 +63,12 @@ impl Service for ServiceManager {
         std::fs::write(&tmp, plist).context("Failed to write plist to temp file")?;
         let tmp_str = tmp.to_str().context("Temp path is not valid UTF-8")?;
 
-        run_command(
-            "sudo",
-            &["-u", &self.run_as_user, "cp", tmp_str, &plist_path],
-        )
-        .context("Failed to copy plist to LaunchAgents")?;
+        run_command("sudo", &["-u", SYSTEM_USER, "cp", tmp_str, &plist_path])
+            .context("Failed to copy plist to LaunchAgents")?;
 
         run_command(
             "sudo",
-            &["-u", &self.run_as_user, "launchctl", "load", &plist_path],
+            &["-u", SYSTEM_USER, "launchctl", "load", &plist_path],
         )
         .context("Failed to load launchd agent")?;
 
@@ -83,9 +80,9 @@ impl Service for ServiceManager {
         // Best-effort: ignore errors if not currently loaded or file doesn't exist
         let _ = run_command(
             "sudo",
-            &["-u", &self.run_as_user, "launchctl", "unload", &plist_path],
+            &["-u", SYSTEM_USER, "launchctl", "unload", &plist_path],
         );
-        let _ = run_command("sudo", &["-u", &self.run_as_user, "rm", "-f", &plist_path]);
+        let _ = run_command("sudo", &["-u", SYSTEM_USER, "rm", "-f", &plist_path]);
         Ok(())
     }
 

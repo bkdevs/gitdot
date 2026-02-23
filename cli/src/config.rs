@@ -4,12 +4,12 @@ use anyhow::Context;
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "main")]
-mod profile;
+pub mod profile;
 #[cfg(feature = "main")]
 pub use profile::ProfileConfig;
 
 #[cfg(feature = "ci")]
-mod ci;
+pub mod ci;
 #[cfg(feature = "ci")]
 pub use ci::CiConfig;
 

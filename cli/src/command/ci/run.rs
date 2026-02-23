@@ -20,9 +20,7 @@ pub async fn run(config: Config) -> anyhow::Result<()> {
         match client.poll_task(()).await {
             Ok(task) => match config.ci.executor {
                 ExecutorType::Local => {
-                    let executor = LocalExecutor {
-                        run_as_user: config.ci.run_as_user.clone(),
-                    };
+                    let executor = LocalExecutor {};
                     println!("{:?}", task);
                     if let Err(e) = executor.execute(&task).await {
                         eprintln!("Task {} failed: {}", task.id, e);
