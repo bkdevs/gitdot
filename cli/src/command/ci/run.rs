@@ -23,6 +23,7 @@ pub async fn run(config: Config) -> anyhow::Result<()> {
                     let executor = LocalExecutor {
                         run_as_user: config.ci.run_as_user.clone(),
                     };
+                    println!("{:?}", task);
                     if let Err(e) = executor.execute(&task).await {
                         eprintln!("Task {} failed: {}", task.id, e);
                     }

@@ -34,7 +34,7 @@ Description=Gitdot Runner
 After=network.target
 
 [Service]
-ExecStart={binary} run
+ExecStart={binary} ci run
 Restart=always
 RestartSec=5
 StandardOutput=journal
@@ -86,6 +86,24 @@ WantedBy=default.target
         )
         .context("Failed to enable systemd user service")?;
 
+        Ok(())
+    }
+
+    fn uninstall(&self) -> anyhow::Result<()> {
+        // Best-effort: ignore errors if service is not installed/running
+        let _ = run_command(
+            "sudo",
+            &["-u", &self.run_as_user, "systemctl", "--user", "stop", SERVICE_NAME],
+        );
+        let _ = run_command(
+            "sudo",
+            &["-u", &self.run_as_user, "systemctl", "--user", "disable", SERVICE_NAME],
+        );
+        let _ = std::fs::remove_file(UNIT_PATH);
+        let _ = run_command(
+            "sudo",
+            &["-u", &self.run_as_user, "systemctl", "--user", "daemon-reload"],
+        );
         Ok(())
     }
 

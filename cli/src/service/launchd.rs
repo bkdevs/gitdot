@@ -55,6 +55,7 @@ impl Service for ServiceManager {
     <key>ProgramArguments</key>
     <array>
         <string>{binary}</string>
+        <string>ci</string>
         <string>run</string>
     </array>
     <key>KeepAlive</key><true/>
@@ -91,6 +92,20 @@ impl Service for ServiceManager {
         )
         .context("Failed to load launchd agent")?;
 
+        Ok(())
+    }
+
+    fn uninstall(&self) -> anyhow::Result<()> {
+        let plist_path = self.plist_path();
+        // Best-effort: ignore errors if not currently loaded or file doesn't exist
+        let _ = run_command(
+            "sudo",
+            &["-u", &self.run_as_user, "launchctl", "unload", &plist_path],
+        );
+        let _ = run_command(
+            "sudo",
+            &["-u", &self.run_as_user, "rm", "-f", &plist_path],
+        );
         Ok(())
     }
 

@@ -2,6 +2,7 @@ use anyhow::Result;
 
 pub trait Service {
     fn install(&self) -> Result<()>;
+    fn uninstall(&self) -> Result<()>;
     fn start(&self) -> Result<()>;
     fn stop(&self) -> Result<()>;
 }
