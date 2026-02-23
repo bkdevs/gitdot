@@ -35,14 +35,15 @@ function VideoDialog({
   );
 }
 
-type VideoContentProps = Omit<VideoHTMLAttributes<HTMLVideoElement>, "src"> & {
-  src?: string;
+type VideoContentProps = VideoHTMLAttributes<HTMLVideoElement> & {
+  node?: unknown;
 };
 
 export function VideoContent({ src, children, ...props }: VideoContentProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const strSrc = typeof src === "string" ? src : undefined;
   const videoSrc =
-    src ||
+    strSrc ||
     (Array.isArray(children)
       ? (children as Array<{ props?: { src?: string } }>).find(
           (child) => child?.props?.src,
@@ -57,7 +58,7 @@ export function VideoContent({ src, children, ...props }: VideoContentProps) {
         onClick={() => setIsDialogOpen(true)}
         aria-label="Play video"
       >
-        <video src={videoSrc} muted className="w-full rounded-lg" {...props}>
+        <video src={videoSrc} muted className="w-full rounded-lg">
           <track kind="captions" />
         </video>
         <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors rounded-lg">

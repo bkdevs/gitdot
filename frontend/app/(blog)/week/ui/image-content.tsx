@@ -87,8 +87,7 @@ function ScaledImage({
   );
 }
 
-type ImageContentProps = Omit<ImgHTMLAttributes<HTMLImageElement>, "height"> & {
-  height?: string;
+type ImageContentProps = ImgHTMLAttributes<HTMLImageElement> & {
   node?: unknown;
 };
 
@@ -102,14 +101,14 @@ export function ImageContent({
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   // If height is specified, use ScaledImage component
-  const hasCustomHeight = height && parseInt(height, 10) > 0;
+  const hasCustomHeight = height && parseInt(String(height), 10) > 0;
 
   if (hasCustomHeight) {
     return (
       <ScaledImage
-        src={src ?? ""}
+        src={typeof src === "string" ? src : ""}
         alt={alt || ""}
-        height={parseInt(height, 10)}
+        height={parseInt(String(height), 10)}
       />
     );
   }
@@ -149,7 +148,7 @@ export function ImageContent({
         </svg>
       </span>
       <ImageDialog
-        src={src ?? ""}
+        src={typeof src === "string" ? src : ""}
         alt={alt || ""}
         isOpen={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
