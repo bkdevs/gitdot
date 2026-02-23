@@ -1,6 +1,6 @@
-use crate::config::Config;
+use crate::config::UserConfig;
 
-pub async fn get_status(config: Config) -> anyhow::Result<()> {
+pub async fn get_status(config: UserConfig) -> anyhow::Result<()> {
     if config.profile.user_name.is_empty() {
         println!("Not logged in");
     } else {

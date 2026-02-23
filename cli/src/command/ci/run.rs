@@ -1,12 +1,12 @@
 use gitdot_client::client::GitdotClient;
 
 use crate::{
-    config::Config,
+    config::RunnerConfig,
     executor::{Executor, ExecutorType, docker::DockerExecutor, local::LocalExecutor},
 };
 
-pub async fn run(config: Config) -> anyhow::Result<()> {
-    let token = match config.ci.runner_token {
+pub async fn run(config: RunnerConfig) -> anyhow::Result<()> {
+    let token = match config.runner_token {
         Some(t) => t,
         None => {
             eprintln!("Error: runner is not installed. Please run `gitdot-runner install` first.");
@@ -18,7 +18,7 @@ pub async fn run(config: Config) -> anyhow::Result<()> {
 
     loop {
         match client.poll_task(()).await {
-            Ok(task) => match config.ci.executor {
+            Ok(task) => match config.executor {
                 ExecutorType::Local => {
                     let executor = LocalExecutor {};
                     println!("{:?}", task);

@@ -1,33 +1,15 @@
 use anyhow::Context;
 
-use crate::{config::ci::SYSTEM_USER, util::run_command};
+use crate::{config::runner::SYSTEM_USER, util::run_command};
 
 use super::{Service, ServiceManager};
 
 const LABEL: &str = "io.gitdot.runner";
-
-impl ServiceManager {
-    fn agents_dir(&self) -> String {
-        format!("/Users/{}/Library/LaunchAgents", SYSTEM_USER)
-    }
-
-    fn plist_path(&self) -> String {
-        format!(
-            "/Users/{}/Library/LaunchAgents/io.gitdot.runner.plist",
-            SYSTEM_USER
-        )
-    }
-
-    fn log_path(&self) -> String {
-        format!("/Users/{}/Library/Logs/gitdot-runner.log", SYSTEM_USER)
-    }
-}
+const PLIST_PATH: &str = "/Library/LaunchDaemons/io.gitdot.runner.plist";
+const LOG_PATH: &str = "/Library/Logs/gitdot-runner.log";
 
 impl Service for ServiceManager {
     fn install(&self) -> anyhow::Result<()> {
-        let plist_path = self.plist_path();
-        let log_path = self.log_path();
-
         let plist = format!(
             r#"<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
@@ -41,6 +23,7 @@ impl Service for ServiceManager {
         <string>ci</string>
         <string>run</string>
     </array>
+    <key>UserName</key><string>{user}</string>
     <key>KeepAlive</key><true/>
     <key>RunAtLoad</key><true/>
     <key>StandardOutPath</key><string>{log}</string>
@@ -50,49 +33,61 @@ impl Service for ServiceManager {
 "#,
             label = LABEL,
             binary = self.binary_path,
-            log = log_path,
+            user = SYSTEM_USER,
+            log = LOG_PATH,
         );
-
-        run_command(
-            "sudo",
-            &["-u", SYSTEM_USER, "mkdir", "-p", &self.agents_dir()],
-        )
-        .context("Failed to create LaunchAgents directory")?;
 
         let tmp = std::env::temp_dir().join("io.gitdot.runner.plist");
         std::fs::write(&tmp, plist).context("Failed to write plist to temp file")?;
         let tmp_str = tmp.to_str().context("Temp path is not valid UTF-8")?;
 
-        run_command("sudo", &["-u", SYSTEM_USER, "cp", tmp_str, &plist_path])
-            .context("Failed to copy plist to LaunchAgents")?;
+        run_command("sudo", &["cp", tmp_str, PLIST_PATH])
+            .with_context(|| format!("Failed to copy plist to {}", PLIST_PATH))?;
 
         run_command(
             "sudo",
-            &["-u", SYSTEM_USER, "launchctl", "load", &plist_path],
+            &["launchctl", "bootstrap", "system", PLIST_PATH],
         )
-        .context("Failed to load launchd agent")?;
+        .context("Failed to bootstrap launchd daemon")?;
 
         Ok(())
     }
 
     fn uninstall(&self) -> anyhow::Result<()> {
-        let plist_path = self.plist_path();
-        // Best-effort: ignore errors if not currently loaded or file doesn't exist
-        let _ = run_command(
-            "sudo",
-            &["-u", SYSTEM_USER, "launchctl", "unload", &plist_path],
-        );
-        let _ = run_command("sudo", &["-u", SYSTEM_USER, "rm", "-f", &plist_path]);
+        // Best-effort: ignore errors and suppress output (service may not be loaded yet)
+        let _ = std::process::Command::new("sudo")
+            .args(["launchctl", "bootout", "system", PLIST_PATH])
+            .stdout(std::process::Stdio::null())
+            .stderr(std::process::Stdio::null())
+            .status();
+        let _ = std::process::Command::new("sudo")
+            .args(["rm", "-f", PLIST_PATH])
+            .stdout(std::process::Stdio::null())
+            .stderr(std::process::Stdio::null())
+            .status();
         Ok(())
     }
 
     fn start(&self) -> anyhow::Result<()> {
-        run_command("launchctl", &["start", LABEL]).context("Failed to start launchd agent")?;
+        run_command(
+            "sudo",
+            &["launchctl", "kickstart", &format!("system/{}", LABEL)],
+        )
+        .context("Failed to start launchd daemon")?;
         Ok(())
     }
 
     fn stop(&self) -> anyhow::Result<()> {
-        run_command("launchctl", &["stop", LABEL]).context("Failed to stop launchd agent")?;
+        run_command(
+            "sudo",
+            &[
+                "launchctl",
+                "kill",
+                "TERM",
+                &format!("system/{}", LABEL),
+            ],
+        )
+        .context("Failed to stop launchd daemon")?;
         Ok(())
     }
 }

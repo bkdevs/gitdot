@@ -1,9 +1,9 @@
-use crate::{config::Config, executor::ExecutorType, os::install_service};
+use crate::{config::RunnerConfig, executor::ExecutorType, os::install_service};
 use gitdot_client::client::GitdotClient;
 use std::io::{self, Write};
 
-pub async fn install(mut config: Config) -> anyhow::Result<()> {
-    if config.ci.runner_token.is_none() {
+pub async fn install(mut config: RunnerConfig) -> anyhow::Result<()> {
+    if config.runner_token.is_none() {
         print!("Have you created a runner in the gitdot UI? (y/n): ");
         io::stdout().flush()?;
 
@@ -27,8 +27,8 @@ pub async fn install(mut config: Config) -> anyhow::Result<()> {
         let client = GitdotClient::new("gitdot-runner".to_string()).with_token(token.clone());
         client.verify_runner().await?;
 
-        config.ci.runner_token = Some(token);
-        config.save().await?;
+        config.runner_token = Some(token);
+        config.save()?;
     }
 
     print!("Select executor [local/docker] [local]: ");
@@ -40,8 +40,8 @@ pub async fn install(mut config: Config) -> anyhow::Result<()> {
         "local" | "" => ExecutorType::Local,
         other => anyhow::bail!("Unknown executor '{}'. Must be 'local' or 'docker'.", other),
     };
-    config.ci.executor = executor;
-    config.save().await?;
+    config.executor = executor;
+    config.save()?;
 
     install_service()?;
 

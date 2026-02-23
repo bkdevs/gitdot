@@ -1,7 +1,7 @@
 mod login;
 mod status;
 
-use crate::config::Config;
+use crate::config::UserConfig;
 use clap::{Args, Subcommand};
 
 pub use login::login;
@@ -23,7 +23,7 @@ pub enum AuthCommand {
 }
 
 impl AuthCommand {
-    pub async fn execute(&self, config: Config) -> anyhow::Result<()> {
+    pub async fn execute(&self, config: UserConfig) -> anyhow::Result<()> {
         match self {
             AuthCommand::Login {} => login(config).await,
             AuthCommand::Status {} => get_status(config).await,

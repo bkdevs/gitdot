@@ -4,9 +4,9 @@ use anyhow::bail;
 
 use gitdot_client::client::GitdotClient;
 
-use crate::{config::Config, store::GitCredentialStore};
+use crate::{config::UserConfig, store::GitCredentialStore};
 
-pub async fn login(mut config: Config) -> anyhow::Result<()> {
+pub async fn login(mut config: UserConfig) -> anyhow::Result<()> {
     let api_client = GitdotClient::new("gitdot-cli".to_string());
     let device_code_response = api_client.create_device_code().await?;
 

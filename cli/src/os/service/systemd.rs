@@ -1,11 +1,11 @@
 use anyhow::Context;
 
-use crate::{config::GITDOT_USER, util::run_command};
+use crate::{config::runner::SYSTEM_USER, util::run_command};
 
 use super::{Service, ServiceManager};
 
 const SERVICE_NAME: &str = "gitdot-runner";
-const UNIT_PATH: &str = "/etc/systemd/user/gitdot-runner.service";
+const UNIT_PATH: &str = "/etc/systemd/system/gitdot-runner.service";
 
 impl Service for ServiceManager {
     fn install(&self) -> anyhow::Result<()> {
@@ -16,6 +16,7 @@ After=network.target
 
 [Service]
 ExecStart={binary} ci run
+User={user}
 Restart=always
 RestartSec=5
 StandardOutput=journal
@@ -23,13 +24,13 @@ StandardError=journal
 SyslogIdentifier={name}
 
 [Install]
-WantedBy=default.target
+WantedBy=multi-user.target
 ",
             binary = self.binary_path,
+            user = SYSTEM_USER,
             name = SERVICE_NAME,
         );
 
-        // /etc/systemd/user/ is admin-managed; install runs as root so write directly
         std::fs::write(UNIT_PATH, unit).with_context(|| {
             format!(
                 "Failed to write unit file to {} (try running with sudo)",
@@ -37,66 +38,40 @@ WantedBy=default.target
             )
         })?;
 
-        // Enable linger so the user's systemd instance starts without an active login session.
-        // This also creates /run/user/<uid>/ which the subsequent systemctl --user calls need.
-        run_command("loginctl", &["enable-linger", GITDOT_USER])
-            .context("Failed to enable linger for user")?;
+        run_command("sudo", &["systemctl", "daemon-reload"])
+            .context("Failed to reload systemd daemon")?;
 
-        run_command(
-            "sudo",
-            &[
-                "-u",
-                GITDOT_USER,
-                "systemctl",
-                "--user",
-                "daemon-reload",
-            ],
-        )
-        .context("Failed to reload systemd user daemon")?;
-
-        run_command(
-            "sudo",
-            &[
-                "-u",
-                GITDOT_USER,
-                "systemctl",
-                "--user",
-                "enable",
-                SERVICE_NAME,
-            ],
-        )
-        .context("Failed to enable systemd user service")?;
+        run_command("sudo", &["systemctl", "enable", SERVICE_NAME])
+            .context("Failed to enable systemd service")?;
 
         Ok(())
     }
 
     fn uninstall(&self) -> anyhow::Result<()> {
-        // Best-effort: ignore errors if service is not installed/running
-        let _ = run_command(
-            "sudo",
-            &["-u", GITDOT_USER, "systemctl", "--user", "stop", SERVICE_NAME],
-        );
-        let _ = run_command(
-            "sudo",
-            &["-u", GITDOT_USER, "systemctl", "--user", "disable", SERVICE_NAME],
-        );
+        // Best-effort: ignore errors and suppress output (service may not be installed yet)
+        let silent = |args: &[&str]| {
+            let _ = std::process::Command::new("sudo")
+                .args(args)
+                .stdout(std::process::Stdio::null())
+                .stderr(std::process::Stdio::null())
+                .status();
+        };
+        silent(&["systemctl", "stop", SERVICE_NAME]);
+        silent(&["systemctl", "disable", SERVICE_NAME]);
         let _ = std::fs::remove_file(UNIT_PATH);
-        let _ = run_command(
-            "sudo",
-            &["-u", GITDOT_USER, "systemctl", "--user", "daemon-reload"],
-        );
+        silent(&["systemctl", "daemon-reload"]);
         Ok(())
     }
 
     fn start(&self) -> anyhow::Result<()> {
-        run_command("systemctl", &["--user", "start", SERVICE_NAME])
-            .context("Failed to start systemd user service")?;
+        run_command("sudo", &["systemctl", "start", SERVICE_NAME])
+            .context("Failed to start systemd service")?;
         Ok(())
     }
 
     fn stop(&self) -> anyhow::Result<()> {
-        run_command("systemctl", &["--user", "stop", SERVICE_NAME])
-            .context("Failed to stop systemd user service")?;
+        run_command("sudo", &["systemctl", "stop", SERVICE_NAME])
+            .context("Failed to stop systemd service")?;
         Ok(())
     }
 }

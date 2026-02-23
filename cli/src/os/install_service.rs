@@ -1,6 +1,6 @@
 use std::process::Command;
 
-use crate::{config::ci::SYSTEM_USER, util::run_command};
+use crate::{config::runner::SYSTEM_USER, util::run_command};
 
 use super::service::{Service, ServiceManager};
 

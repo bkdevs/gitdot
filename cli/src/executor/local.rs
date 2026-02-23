@@ -5,7 +5,7 @@ use gitdot_api::resource::TaskResource;
 use tokio::process::Command;
 
 use crate::{
-    config::ci::SYSTEM_USER,
+    config::runner::SYSTEM_USER,
     executor::{Executor, ExecutorType},
 };
 

@@ -1,11 +1,16 @@
-use crate::{command::Args, config::Config};
+use crate::command::Args;
 
 pub async fn run(args: &Args) -> anyhow::Result<()> {
-    let config = Config::load().await?;
     match args {
         #[cfg(feature = "main")]
-        Args::Auth(auth_args) => auth_args.command.execute(config).await,
+        Args::Auth(auth_args) => {
+            let config = crate::config::UserConfig::load().await?;
+            auth_args.command.execute(config).await
+        }
         #[cfg(feature = "ci")]
-        Args::Ci(ci_args) => ci_args.command.execute(config).await,
+        Args::Ci(ci_args) => {
+            let config = crate::config::RunnerConfig::load()?;
+            ci_args.command.execute(config).await
+        }
     }
 }
