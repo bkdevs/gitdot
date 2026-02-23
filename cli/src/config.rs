@@ -8,17 +8,39 @@ use crate::executor::ExecutorType;
 const CONFIG_DIR_NAME: &str = "gitdot";
 const CONFIG_FILE_NAME: &str = "config.toml";
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Config {
+    #[serde(default = "default_gitdot_server_url")]
+    pub gitdot_server_url: String,
+
+    #[serde(default)]
+    pub profile: ProfileConfig,
+
+    #[serde(default)]
+    pub ci: CiConfig,
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        Self {
+            gitdot_server_url: default_gitdot_server_url(),
+            profile: ProfileConfig::default(),
+            ci: CiConfig::default(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct ProfileConfig {
     #[serde(default)]
     pub user_name: String,
 
     #[serde(default)]
     pub user_email: String,
+}
 
-    #[serde(default = "default_gitdot_server_url")]
-    pub gitdot_server_url: String,
-
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CiConfig {
     pub runner_token: Option<String>,
 
     #[serde(default = "default_run_as_user")]
@@ -26,6 +48,16 @@ pub struct Config {
 
     #[serde(default)]
     pub executor: ExecutorType,
+}
+
+impl Default for CiConfig {
+    fn default() -> Self {
+        Self {
+            runner_token: None,
+            run_as_user: default_run_as_user(),
+            executor: ExecutorType::default(),
+        }
+    }
 }
 
 fn default_gitdot_server_url() -> String {
@@ -78,11 +110,11 @@ impl Config {
     }
 
     pub fn get_auth_status(&self) -> AuthStatus {
-        if self.user_name.is_empty() {
+        if self.profile.user_name.is_empty() {
             AuthStatus::LoggedOut
         } else {
             AuthStatus::LoggedIn {
-                user_name: self.user_name.clone(),
+                user_name: self.profile.user_name.clone(),
             }
         }
     }

@@ -36,7 +36,7 @@ pub async fn install(mut config: Config) -> anyhow::Result<()> {
     let client = GitdotClient::new("gitdot-runner".to_string()).with_token(token.clone());
     client.verify_runner().await?;
 
-    config.runner_token = Some(token);
+    config.ci.runner_token = Some(token);
     config.save().await?;
 
     #[cfg(target_os = "macos")]
@@ -67,7 +67,7 @@ pub async fn install(mut config: Config) -> anyhow::Result<()> {
         );
     }
 
-    config.run_as_user = run_as_user;
+    config.ci.run_as_user = run_as_user;
     config.save().await?;
 
     print!("Select executor [local/docker] [local]: ");
@@ -79,11 +79,11 @@ pub async fn install(mut config: Config) -> anyhow::Result<()> {
         "local" | "" => ExecutorType::Local,
         other => anyhow::bail!("Unknown executor '{}'. Must be 'local' or 'docker'.", other),
     };
-    config.executor = executor;
+    config.ci.executor = executor;
     config.save().await?;
 
     println!("Installing OS service...");
-    let manager = ServiceManager::new(config.run_as_user.clone())?;
+    let manager = ServiceManager::new(config.ci.run_as_user.clone())?;
     manager.install()?;
     println!("Runner installed.");
     Ok(())

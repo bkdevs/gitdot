@@ -6,7 +6,7 @@ use crate::{
 };
 
 pub async fn run(config: Config) -> anyhow::Result<()> {
-    let token = match config.runner_token {
+    let token = match config.ci.runner_token {
         Some(t) => t,
         None => {
             eprintln!("Error: runner is not installed. Please run `gitdot-runner install` first.");
@@ -18,10 +18,10 @@ pub async fn run(config: Config) -> anyhow::Result<()> {
 
     loop {
         match client.poll_task(()).await {
-            Ok(task) => match config.executor {
+            Ok(task) => match config.ci.executor {
                 ExecutorType::Local => {
                     let executor = LocalExecutor {
-                        run_as_user: config.run_as_user.clone(),
+                        run_as_user: config.ci.run_as_user.clone(),
                     };
                     if let Err(e) = executor.execute(&task).await {
                         eprintln!("Task {} failed: {}", task.id, e);

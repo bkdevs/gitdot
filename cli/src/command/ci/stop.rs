@@ -4,7 +4,7 @@ use crate::{
 };
 
 pub async fn stop(config: Config) -> anyhow::Result<()> {
-    let manager = ServiceManager::new(config.run_as_user)?;
+    let manager = ServiceManager::new(config.ci.run_as_user)?;
     manager.stop()?;
     println!("Runner service stopped.");
     Ok(())
