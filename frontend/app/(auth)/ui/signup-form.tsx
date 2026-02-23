@@ -1,7 +1,8 @@
 "use client";
 
+import Image from "next/image";
 import { useActionState, useEffect, useState } from "react";
-import { signup } from "@/actions";
+import { loginWithGithub, signup } from "@/actions";
 import { useIsTyping } from "@/hooks/use-is-typing";
 import { cn, validateEmail } from "@/util";
 
@@ -9,6 +10,7 @@ export default function SignupForm({ redirect }: { redirect?: string }) {
   const [state, formAction, isPending] = useActionState(signup, null);
   const [email, setEmail] = useState("");
   const [canSubmit, setCanSubmit] = useState(false);
+  const [githubPending, setGithubPending] = useState(false);
   const isTyping = useIsTyping(email);
 
   useEffect(() => {
@@ -16,6 +18,16 @@ export default function SignupForm({ redirect }: { redirect?: string }) {
       setCanSubmit(validateEmail(email) && !isPending);
     }
   }, [email, isTyping, isPending]);
+
+  const handleGithubLogin = async () => {
+    setGithubPending(true);
+    const result = await loginWithGithub();
+    if ("redirect_url" in result) {
+      window.location.href = result.redirect_url;
+    } else {
+      setGithubPending(false);
+    }
+  };
 
   return (
     <form action={formAction} className="flex flex-col text-sm w-sm" noValidate>
@@ -50,6 +62,22 @@ export default function SignupForm({ redirect }: { redirect?: string }) {
           {isPending ? "Submitting..." : "Submit."}
         </button>
       </div>
+
+      <div className="flex items-center gap-2 mt-3 mb-3">
+        <div className="flex-1 border-t border-border" />
+        <span className="text-xs text-primary/40">or</span>
+        <div className="flex-1 border-t border-border" />
+      </div>
+
+      <button
+        type="button"
+        onClick={handleGithubLogin}
+        disabled={githubPending}
+        className="flex items-center justify-center gap-2 border border-border py-1.5 cursor-pointer hover:bg-gray-50 transition-colors duration-150"
+      >
+        <Image src="/github-logo.svg" alt="GitHub" width={16} height={16} />
+        {githubPending ? "Redirecting..." : "Continue with GitHub"}
+      </button>
     </form>
   );
 }

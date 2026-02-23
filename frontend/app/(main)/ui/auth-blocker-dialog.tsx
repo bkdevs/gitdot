@@ -1,9 +1,11 @@
 "use client";
 
+import Image from "next/image";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { useEffect, useState, useTransition } from "react";
-import { login } from "@/actions";
+import { login, loginWithGithub } from "@/actions";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
+
 export function AuthBlockerDialog({
   open,
   setOpen,
@@ -14,6 +16,7 @@ export function AuthBlockerDialog({
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [githubPending, setGithubPending] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
@@ -21,6 +24,7 @@ export function AuthBlockerDialog({
       setEmail("");
       setSent(false);
       setError(null);
+      setGithubPending(false);
     }
   }, [open]);
 
@@ -59,31 +63,58 @@ export function AuthBlockerDialog({
             </p>
           </div>
         ) : (
-          <form onSubmit={handleSubmit}>
-            <p className="p-2 text-sm border-b border-border">
-              Please authenticate to proceed.
-            </p>
-            <input
-              type="email"
-              name="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-2 text-sm bg-background outline-none border-b border-border"
-              disabled={isPending}
-              autoFocus
-            />
-            {error && <p className="text-xs text-red-500 px-2 py-1">{error}</p>}
-            <div className="flex items-center justify-end h-9">
-              <button
-                type="submit"
-                disabled={!isValid || isPending}
-                className="px-3 py-1.5 h-9 text-xs bg-primary text-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isPending ? "Submitting..." : "Log in"}
-              </button>
+          <>
+            <form onSubmit={handleSubmit}>
+              <p className="p-2 text-sm border-b border-border">
+                Please authenticate to proceed.
+              </p>
+              <input
+                type="email"
+                name="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full p-2 text-sm bg-background outline-none border-b border-border"
+                disabled={isPending}
+                autoFocus
+              />
+              {error && (
+                <p className="text-xs text-red-500 px-2 py-1">{error}</p>
+              )}
+              <div className="flex items-center justify-end h-9">
+                <button
+                  type="submit"
+                  disabled={!isValid || isPending}
+                  className="px-3 py-1.5 h-9 text-xs bg-primary text-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isPending ? "Submitting..." : "Log in"}
+                </button>
+              </div>
+            </form>
+            <div className="flex items-center gap-2 px-2">
+              <div className="flex-1 border-t border-border" />
+              <span className="text-xs text-primary/40">or</span>
+              <div className="flex-1 border-t border-border" />
             </div>
-          </form>
+            <button
+              type="button"
+              onClick={async () => {
+                setGithubPending(true);
+                const result = await loginWithGithub();
+                if ("redirect_url" in result) {
+                  window.location.href = result.redirect_url;
+                } else {
+                  setError(result.error);
+                  setGithubPending(false);
+                }
+              }}
+              disabled={githubPending}
+              className="flex items-center justify-center gap-2 mx-2 mb-2 py-1.5 text-xs border border-border cursor-pointer hover:bg-gray-50 transition-colors duration-150"
+            >
+              <Image src="/github-logo.svg" alt="GitHub" width={16} height={16} />
+              {githubPending ? "Redirecting..." : "Continue with GitHub"}
+            </button>
+          </>
         )}
       </DialogContent>
     </Dialog>

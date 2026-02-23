@@ -1,6 +1,7 @@
 "use server";
 
 import { refresh } from "next/cache";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import {
   authorizeDevice,
@@ -85,6 +86,32 @@ export async function signup(
   if (error) return { error: error.message };
   if (redirectTo) redirect(redirectTo);
   return { success: true };
+}
+
+export type GitHubAuthActionResult = { redirect_url: string } | { error: string };
+
+export async function loginWithGithub(): Promise<GitHubAuthActionResult> {
+  const supabase = await createSupabaseClient();
+  const headersList = await headers();
+  const host =
+    headersList.get("x-forwarded-host") ||
+    headersList.get("host") ||
+    "localhost:3000";
+  const protocol = headersList.get("x-forwarded-proto") || "http";
+  const origin = `${protocol}://${host}`;
+
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "github",
+    options: {
+      redirectTo: `${origin}/oauth/callback`,
+    },
+  });
+
+  if (error || !data.url) {
+    return { error: error?.message || "Failed to initiate GitHub login" };
+  }
+
+  return { redirect_url: data.url };
 }
 
 export type UpdateUserActionResult = { user: UserResponse } | { error: string };
