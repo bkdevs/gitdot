@@ -1,0 +1,15 @@
+[pull_request]
+tasks = ["build", "lint", "test"]
+
+[[tasks]]
+name = "build"
+script = "echo 'Your build command here'"
+
+[[tasks]]
+name = "lint"
+script = "echo 'Your lint command here'"
+
+[[tasks]]
+name = "test"
+script = "echo 'Your test command here'"
+runs_after = ["build", "lint"]
