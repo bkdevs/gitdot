@@ -1,29 +1,11 @@
-import { redirect } from "next/navigation";
-import { createInstallation, listInstallationRepositories } from "@/lib/dal";
 import Link from "@/ui/link";
+import type { GitHubRepositoryListResponse } from "@/lib/dto/migration";
 
-export default async function Page({
-  searchParams,
+export function RepositorySelect({
+  repositories,
 }: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
+  repositories: GitHubRepositoryListResponse | null;
 }) {
-  const params = await searchParams;
-  const installationId = params.installation_id;
-
-  if (!installationId || typeof installationId !== "string") {
-    redirect("/onboarding/github");
-  }
-
-  const installation = await createInstallation(Number(installationId));
-
-  if (!installation) {
-    redirect("/onboarding/github");
-  }
-
-  const repositories = await listInstallationRepositories(
-    installation.installation_id,
-  );
-
   return (
     <div className="max-w-3xl mx-auto flex gap-4 items-center justify-center h-screen">
       <div className="flex flex-col text-sm w-sm">

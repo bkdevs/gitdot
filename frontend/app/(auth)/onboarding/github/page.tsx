@@ -1,30 +1,19 @@
-import Image from "next/image";
-import Link from "@/ui/link";
+import { listInstallationRepositories } from "@/lib/dal";
+import { GitHubImport } from "./ui/github-import";
+import { RepositorySelect } from "./ui/repository-select";
 
-export default function Page() {
-  return (
-    <div className="max-w-3xl mx-auto flex gap-4 items-center justify-center h-screen">
-      <div className="flex flex-col text-sm w-sm">
-        <p className="pb-2">Import.</p>
-        <p className="text-primary/60 pb-4">
-          You can import your GitHub repositories into gitdot by installing the gitdot
-          GitHub App on your account.
-        </p>
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = await searchParams;
+  const installation_id = typeof params.installation_id === "string" ? params.installation_id : undefined;
 
-        <a
-          href="https://github.com/apps/gitdot-app/installations/new"
-          className="flex items-center justify-center gap-2 border border-border py-1.5 hover:bg-gray-50 transition-colors duration-150"
-        >
-          <Image src="/github-logo.svg" alt="GitHub" width={16} height={16} />
-          Install GitHub App
-        </a>
+  if (installation_id) {
+    const repositories = await listInstallationRepositories(Number(installation_id));
+    return <RepositorySelect repositories={repositories} />;
+  }
 
-        <div className="flex justify-end mt-2">
-          <Link href="/home" className="decoration-primary/40">
-            Skip.
-          </Link>
-        </div>
-      </div>
-    </div>
-  );
+  return <GitHubImport />;
 }
