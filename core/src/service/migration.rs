@@ -4,7 +4,8 @@ use crate::{
     client::GitHubClient,
     dto::{
         CreateGitHubInstallationRequest, GitHubInstallationResponse,
-        ListGitHubInstallationRepositoriesResponse,
+        ListGitHubInstallationRepositoriesResponse, ListGitHubInstallationsRequest,
+        ListGitHubInstallationsResponse,
     },
     error::MigrationError,
     model::GitHubInstallationType,
@@ -17,6 +18,11 @@ pub trait MigrationService: Send + Sync + 'static {
         &self,
         request: CreateGitHubInstallationRequest,
     ) -> Result<GitHubInstallationResponse, MigrationError>;
+
+    async fn list_github_installations(
+        &self,
+        request: ListGitHubInstallationsRequest,
+    ) -> Result<ListGitHubInstallationsResponse, MigrationError>;
 
     async fn list_github_installation_repositories(
         &self,
@@ -74,6 +80,14 @@ where
             .await?;
 
         Ok(installation.into())
+    }
+
+    async fn list_github_installations(
+        &self,
+        request: ListGitHubInstallationsRequest,
+    ) -> Result<ListGitHubInstallationsResponse, MigrationError> {
+        let installations = self.github_repo.list_by_owner(request.owner_id).await?;
+        Ok(installations.into_iter().map(Into::into).collect())
     }
 
     async fn list_github_installation_repositories(

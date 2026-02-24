@@ -1,12 +1,22 @@
 import "server-only";
 
 import {
+  type GitHubInstallationListResponse,
+  GitHubInstallationListResponseSchema,
   type GitHubInstallationResponse,
   GitHubInstallationResponseSchema,
   type GitHubRepositoryListResponse,
   GitHubRepositoryListResponseSchema,
 } from "../dto/migration";
 import { authFetch, authPost, GITDOT_SERVER_URL, handleResponse } from "./util";
+
+export async function listInstallations(): Promise<GitHubInstallationListResponse | null> {
+  const response = await authFetch(
+    `${GITDOT_SERVER_URL}/migration/github/installations`,
+  );
+
+  return await handleResponse(response, GitHubInstallationListResponseSchema);
+}
 
 export async function createInstallation(
   installationId: number,

@@ -26,6 +26,14 @@ export type GitHubRepositoryResponse = z.infer<
   typeof GitHubRepositoryResponseSchema
 >;
 
+export const GitHubInstallationListResponseSchema = z.array(
+  GitHubInstallationResponseSchema,
+);
+
+export type GitHubInstallationListResponse = z.infer<
+  typeof GitHubInstallationListResponseSchema
+>;
+
 export const GitHubRepositoryListResponseSchema = z.array(
   GitHubRepositoryResponseSchema,
 );

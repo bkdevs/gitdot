@@ -13,6 +13,8 @@ pub trait GitHubRepository: Send + Sync + Clone + 'static {
         installation_type: GitHubInstallationType,
         github_login: &str,
     ) -> Result<GitHubInstallation, Error>;
+
+    async fn list_by_owner(&self, owner_id: Uuid) -> Result<Vec<GitHubInstallation>, Error>;
 }
 
 #[derive(Debug, Clone)]
@@ -47,6 +49,20 @@ impl GitHubRepository for GitHubRepositoryImpl {
         .bind(installation_type)
         .bind(github_login)
         .fetch_one(&self.pool)
+        .await
+    }
+
+    async fn list_by_owner(&self, owner_id: Uuid) -> Result<Vec<GitHubInstallation>, Error> {
+        sqlx::query_as::<_, GitHubInstallation>(
+            r#"
+            SELECT id, installation_id, owner_id, type, github_login, created_at
+            FROM github_installations
+            WHERE owner_id = $1
+            ORDER BY created_at DESC
+            "#,
+        )
+        .bind(owner_id)
+        .fetch_all(&self.pool)
         .await
     }
 }
