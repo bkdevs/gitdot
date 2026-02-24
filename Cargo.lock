@@ -3,6 +3,30 @@
 version = 4
 
 [[package]]
+name = "addr"
+version = "0.15.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a93b8a41dbe230ad5087cc721f8d41611de654542180586b315d9f4cf6b72bef"
+dependencies = [
+ "psl",
+ "psl-types",
+]
+
+[[package]]
+name = "ahash"
+version = "0.8.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5a15f179cd60c4584b8a8c596927aadc462e27f2ca70c04e0071964a73ba7a75"
+dependencies = [
+ "cfg-if",
+ "getrandom 0.3.4",
+ "once_cell",
+ "serde",
+ "version_check",
+ "zerocopy",
+]
+
+[[package]]
 name = "aho-corasick"
 version = "1.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -120,10 +144,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "atomic"
+version = "0.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a89cbf775b137e9b968e67227ef7f775587cde3fd31b0d8599dbd0f598a48340"
+dependencies = [
+ "bytemuck",
+]
+
+[[package]]
 name = "atomic-waker"
 version = "1.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1505bd5d3d116872e7271a6d4e16d81d0c8570876c8de68093a09ac269d8aac0"
+
+[[package]]
+name = "auto_impl"
+version = "1.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ffdcb70bdbc4d478427380519163274ac86e52916e10f0a8889adf0f96d3fee7"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
 
 [[package]]
 name = "autocfg"
@@ -181,7 +225,7 @@ dependencies = [
  "serde_urlencoded",
  "sync_wrapper",
  "tokio",
- "tower",
+ "tower 0.5.3",
  "tower-layer",
  "tower-service",
  "tracing",
@@ -242,6 +286,27 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2af50177e190e07a26ab74f8b1efbfe2ef87da2116221318cb1c2e82baf7de06"
 
 [[package]]
+name = "bit-set"
+version = "0.5.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0700ddab506f33b20a03b13996eccd309a48e5ff77d0d95926aa0210fb4e95f1"
+dependencies = [
+ "bit-vec",
+]
+
+[[package]]
+name = "bit-vec"
+version = "0.6.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "349f9b6a179ed607305526ca489b34ad0a41aed5f7980fa90eb03160b69598fb"
+
+[[package]]
+name = "bitflags"
+version = "1.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
+
+[[package]]
 name = "bitflags"
 version = "2.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -266,6 +331,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5dd9dc738b7a8311c7ade152424974d8115f2cdad61e8dab8dac9f2362298510"
 
 [[package]]
+name = "bytemuck"
+version = "1.25.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c8efb64bd706a16a1bdde310ae86b351e4d21550d98d056f22f8a7f7a2183fec"
+
+[[package]]
 name = "byteorder"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -273,9 +344,9 @@ checksum = "1fd0f2584146f6f2ef48085050886acf353beff7305ebd1ae69500e27c67f64b"
 
 [[package]]
 name = "bytes"
-version = "1.11.0"
+version = "1.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b35204fbdc0b3f4446b89fc1ac2cf84a8a68971995d0bf2e925ec7cd960f9cb3"
+checksum = "1e748733b7cbc798e1434b6ac524f0c1ff2ab456fe201501e6497c8417a4fc33"
 
 [[package]]
 name = "camino"
@@ -470,6 +541,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "773648b94d0e5d620f64f280777445740e61fe701025087ec8b57f45c791888b"
 
 [[package]]
+name = "countme"
+version = "3.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7704b5fdd17b18ae31c4c1da5a2e0305a2bf17b5249300a9ee9ed7b72114c636"
+
+[[package]]
 name = "cpufeatures"
 version = "0.2.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -567,6 +644,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "dashmap"
+version = "5.5.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "978747c1d849a7d2ee5e8adc0159961c48fb7e5db2f06af6723b80123bb53856"
+dependencies = [
+ "cfg-if",
+ "hashbrown 0.14.5",
+ "lock_api",
+ "once_cell",
+ "parking_lot_core",
+]
+
+[[package]]
 name = "der"
 version = "0.7.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -599,6 +689,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "dirs"
+version = "6.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c3e8aa94d75141228480295a7d0e7feb620b1a5ad9f12bc40be62411e38cce4e"
+dependencies = [
+ "dirs-sys",
+]
+
+[[package]]
 name = "dirs-next"
 version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -609,13 +708,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "dirs-sys"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e01a3366d27ee9890022452ee61b2b63a67e6f13f58900b651ff5665f0bb1fab"
+dependencies = [
+ "libc",
+ "option-ext",
+ "redox_users 0.5.2",
+ "windows-sys 0.61.2",
+]
+
+[[package]]
 name = "dirs-sys-next"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4ebda144c4fe02d1f7ea1a7d9641b6fc6b580adcfa024ae48797ecdeb6825b4d"
 dependencies = [
  "libc",
- "redox_users",
+ "redox_users 0.4.6",
  "winapi",
 ]
 
@@ -641,6 +752,12 @@ name = "downcast"
 version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1435fa1053d8b2fbbe9be7e97eca7f33d37b28409959813daefc1446a14247f1"
+
+[[package]]
+name = "drop_bomb"
+version = "0.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9bda8e21c04aca2ae33ffc2fd8c23134f3cac46db123ba97bd9d3f3b8a4a85e1"
 
 [[package]]
 name = "dunce"
@@ -717,6 +834,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "email_address"
+version = "0.2.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e079f19b08ca6239f47f8ba8509c11cf3ea30095831f7fed61441475edd8c449"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "encoding_rs"
 version = "0.8.35"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -738,7 +864,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39cab71617ae0d63f51a36d69f866391735b51691dbda63cf6f96d042b63efeb"
 dependencies = [
  "libc",
- "windows-sys 0.61.2",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -761,6 +887,17 @@ dependencies = [
  "concurrent-queue",
  "parking",
  "pin-project-lite",
+]
+
+[[package]]
+name = "fancy-regex"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "531e46835a22af56d1e3b66f04844bed63158bc094a628bec1d321d9b4c44bf2"
+dependencies = [
+ "bit-set",
+ "regex-automata",
+ "regex-syntax",
 ]
 
 [[package]]
@@ -978,7 +1115,7 @@ version = "0.20.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3e2b37e2f62729cdada11f0e6b3b6fe383c69c29fc619e391223e12856af308c"
 dependencies = [
- "bitflags",
+ "bitflags 2.10.0",
  "libc",
  "libgit2-sys",
  "log",
@@ -1011,6 +1148,8 @@ dependencies = [
  "serde",
  "serde_json",
  "tokio",
+ "tombi-formatter",
+ "tombi-linter",
  "toml 0.9.11+spec-1.1.0",
  "url",
 ]
@@ -1078,12 +1217,18 @@ dependencies = [
  "thiserror 2.0.17",
  "tokio",
  "tokio-util",
- "tower",
+ "tower 0.5.3",
  "tower-http",
  "tracing",
  "tracing-subscriber",
  "uuid",
 ]
+
+[[package]]
+name = "glob"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0cc23270f6e1808e30a928bdc84dea0b9b4136a8bc82338574f23baf47bbd280"
 
 [[package]]
 name = "group"
@@ -1114,6 +1259,12 @@ dependencies = [
  "tokio-util",
  "tracing",
 ]
+
+[[package]]
+name = "hashbrown"
+version = "0.14.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e5274423e17b7c9fc20b6e7e208532f9b19825d82dfd615708b70edd83df41f1"
 
 [[package]]
 name = "hashbrown"
@@ -1439,6 +1590,8 @@ checksum = "7714e70437a7dc3ac8eb7e6f8df75fd8eb422675fc7678aff7364301092b1017"
 dependencies = [
  "equivalent",
  "hashbrown 0.16.1",
+ "serde",
+ "serde_core",
 ]
 
 [[package]]
@@ -1462,6 +1615,15 @@ name = "is_terminal_polyfill"
 version = "1.70.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a6cb138bb79a146c1bd460005623e142ef0181e3d0219cb493e02f7d08a35695"
+
+[[package]]
+name = "itertools"
+version = "0.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2b192c782037fadd9cfa75548310488aabdbf3d2da73885b31bd0abd03351285"
+dependencies = [
+ "either",
+]
 
 [[package]]
 name = "itoa"
@@ -1596,7 +1758,7 @@ version = "0.1.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3d0b95e02c851351f877147b7deea7b1afb1df71b63aa5f8270716e0c5720616"
 dependencies = [
- "bitflags",
+ "bitflags 2.10.0",
  "libc",
  "redox_syscall 0.7.0",
 ]
@@ -1669,6 +1831,19 @@ name = "lru-slab"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "112b39cec0b298b6c1999fee3e31427f74f676e4cb9879ed1a121b43661a4154"
+
+[[package]]
+name = "lsp-types"
+version = "0.94.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c66bfd44a06ae10647fe3f8214762e9369fd4248df1350924b4ef9e770a85ea1"
+dependencies = [
+ "bitflags 1.3.2",
+ "serde",
+ "serde_json",
+ "serde_repr",
+ "url",
+]
 
 [[package]]
 name = "matchers"
@@ -1874,7 +2049,7 @@ dependencies = [
  "serde_urlencoded",
  "snafu",
  "tokio",
- "tower",
+ "tower 0.5.3",
  "tower-http",
  "tracing",
  "url",
@@ -1916,6 +2091,12 @@ dependencies = [
  "pkg-config",
  "vcpkg",
 ]
+
+[[package]]
+name = "option-ext"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "04744f49eae99ab78e0d5c0b603ab218f515ea8cfe5a456d7629ad883a3b6e7d"
 
 [[package]]
 name = "p256"
@@ -2123,6 +2304,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "psl"
+version = "2.1.193"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "530defb7f90261f0f83c9af4534efe2e2e7912b265c7890fd402e55f60791fd4"
+dependencies = [
+ "psl-types",
+]
+
+[[package]]
+name = "psl-types"
+version = "2.0.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "33cb294fe86a74cbcf50d4445b37da762029549ebeea341421c7c70370f86cac"
+
+[[package]]
 name = "quinn"
 version = "0.11.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2175,7 +2371,7 @@ dependencies = [
  "once_cell",
  "socket2",
  "tracing",
- "windows-sys 0.60.2",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -2258,7 +2454,7 @@ version = "0.5.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ed2bf2547551a7053d6fdfafda3f938979645c44812fbfcda098faae3f1a362d"
 dependencies = [
- "bitflags",
+ "bitflags 2.10.0",
 ]
 
 [[package]]
@@ -2267,7 +2463,7 @@ version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "49f3fe0889e69e2ae9e41f4d6c4c0181701d00e4697b356fb1f74173a5e0ee27"
 dependencies = [
- "bitflags",
+ "bitflags 2.10.0",
 ]
 
 [[package]]
@@ -2279,6 +2475,17 @@ dependencies = [
  "getrandom 0.2.17",
  "libredox",
  "thiserror 1.0.69",
+]
+
+[[package]]
+name = "redox_users"
+version = "0.5.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a4e608c6638b9c18977b00b475ac1f28d14e84b27d8d42f70e0bf1e3dec127ac"
+dependencies = [
+ "getrandom 0.2.17",
+ "libredox",
+ "thiserror 2.0.17",
 ]
 
 [[package]]
@@ -2330,7 +2537,7 @@ dependencies = [
  "sync_wrapper",
  "tokio",
  "tokio-rustls",
- "tower",
+ "tower 0.5.3",
  "tower-http",
  "tower-service",
  "url",
@@ -2404,11 +2611,11 @@ version = "1.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "146c9e247ccc180c1f61615433868c99f3de3ae256a30a43b49f67c2d9171f34"
 dependencies = [
- "bitflags",
+ "bitflags 2.10.0",
  "errno",
  "libc",
  "linux-raw-sys",
- "windows-sys 0.61.2",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -2467,7 +2674,7 @@ dependencies = [
  "security-framework",
  "security-framework-sys",
  "webpki-root-certs",
- "windows-sys 0.61.2",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -2553,7 +2760,7 @@ version = "3.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b3297343eaf830f66ede390ea39da1d462b6b0c1b000f420d0a83f898bbbe6ef"
 dependencies = [
- "bitflags",
+ "bitflags 2.10.0",
  "core-foundation 0.10.1",
  "core-foundation-sys",
  "libc",
@@ -2616,6 +2823,7 @@ version = "1.0.149"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "83fc039473c5595ace860d8c4fafa220ff474b3fc6bfdb4293327f1a37e94d86"
 dependencies = [
+ "indexmap",
  "itoa",
  "memchr",
  "serde",
@@ -2632,6 +2840,17 @@ dependencies = [
  "itoa",
  "serde",
  "serde_core",
+]
+
+[[package]]
+name = "serde_repr"
+version = "0.1.20"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "175ee3e80ae9982737ca543e96133087cbd9a485eecc3bc4de9c1a37b47ea59c"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]
@@ -2665,6 +2884,12 @@ dependencies = [
  "cpufeatures",
  "digest",
 ]
+
+[[package]]
+name = "sha1_smol"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bbfa15b3dddfee50a0fff136974b3e1bde555604ba463834a7eb7deb6417705d"
 
 [[package]]
 name = "sha2"
@@ -2884,7 +3109,7 @@ checksum = "aa003f0038df784eb8fecbbac13affe3da23b45194bd57dba231c8f48199c526"
 dependencies = [
  "atoi",
  "base64",
- "bitflags",
+ "bitflags 2.10.0",
  "byteorder",
  "bytes",
  "chrono",
@@ -2928,7 +3153,7 @@ checksum = "db58fcd5a53cf07c184b154801ff91347e4c30d17a3562a635ff028ad5deda46"
 dependencies = [
  "atoi",
  "base64",
- "bitflags",
+ "bitflags 2.10.0",
  "byteorder",
  "chrono",
  "crc",
@@ -3051,7 +3276,7 @@ version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3c879d448e9d986b661742763247d3693ed13609438cf3d006f51f5368a5ba6b"
 dependencies = [
- "bitflags",
+ "bitflags 2.10.0",
  "core-foundation 0.9.4",
  "system-configuration-sys",
 ]
@@ -3076,7 +3301,7 @@ dependencies = [
  "getrandom 0.3.4",
  "once_cell",
  "rustix",
- "windows-sys 0.61.2",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -3253,6 +3478,446 @@ dependencies = [
 ]
 
 [[package]]
+name = "tombi-accessor"
+version = "0.0.0-dev"
+source = "git+https://github.com/tombi-toml/tombi?rev=1517a938d105bfffd7515011b0844df5305121ea#1517a938d105bfffd7515011b0844df5305121ea"
+dependencies = [
+ "indexmap",
+ "itertools",
+ "log",
+ "tombi-text",
+]
+
+[[package]]
+name = "tombi-ast"
+version = "0.0.0-dev"
+source = "git+https://github.com/tombi-toml/tombi?rev=1517a938d105bfffd7515011b0844df5305121ea#1517a938d105bfffd7515011b0844df5305121ea"
+dependencies = [
+ "itertools",
+ "thiserror 2.0.17",
+ "tombi-accessor",
+ "tombi-syntax",
+ "tombi-text",
+ "tombi-toml-text",
+ "tombi-toml-version",
+ "tombi-uri",
+]
+
+[[package]]
+name = "tombi-ast-editor"
+version = "0.0.0-dev"
+source = "git+https://github.com/tombi-toml/tombi?rev=1517a938d105bfffd7515011b0844df5305121ea#1517a938d105bfffd7515011b0844df5305121ea"
+dependencies = [
+ "ahash",
+ "indexmap",
+ "itertools",
+ "log",
+ "thiserror 2.0.17",
+ "tombi-ast",
+ "tombi-comment-directive",
+ "tombi-comment-directive-serde",
+ "tombi-document-tree",
+ "tombi-future",
+ "tombi-parser",
+ "tombi-regex",
+ "tombi-schema-store",
+ "tombi-syntax",
+ "tombi-validator",
+ "tombi-version-sort",
+ "tombi-x-keyword",
+]
+
+[[package]]
+name = "tombi-cache"
+version = "0.0.0-dev"
+source = "git+https://github.com/tombi-toml/tombi?rev=1517a938d105bfffd7515011b0844df5305121ea#1517a938d105bfffd7515011b0844df5305121ea"
+dependencies = [
+ "dirs",
+ "log",
+ "thiserror 2.0.17",
+ "tokio",
+ "tombi-uri",
+]
+
+[[package]]
+name = "tombi-comment-directive"
+version = "0.0.0-dev"
+source = "git+https://github.com/tombi-toml/tombi?rev=1517a938d105bfffd7515011b0844df5305121ea#1517a938d105bfffd7515011b0844df5305121ea"
+dependencies = [
+ "serde",
+ "thiserror 2.0.17",
+ "tombi-severity-level",
+ "tombi-text",
+ "tombi-toml-version",
+ "tombi-uri",
+ "tombi-x-keyword",
+]
+
+[[package]]
+name = "tombi-comment-directive-serde"
+version = "0.0.0-dev"
+source = "git+https://github.com/tombi-toml/tombi?rev=1517a938d105bfffd7515011b0844df5305121ea#1517a938d105bfffd7515011b0844df5305121ea"
+dependencies = [
+ "serde",
+ "tombi-ast",
+ "tombi-comment-directive",
+ "tombi-document",
+ "tombi-document-tree",
+ "tombi-parser",
+]
+
+[[package]]
+name = "tombi-comment-directive-store"
+version = "0.0.0-dev"
+source = "git+https://github.com/tombi-toml/tombi?rev=1517a938d105bfffd7515011b0844df5305121ea#1517a938d105bfffd7515011b0844df5305121ea"
+dependencies = [
+ "tokio",
+ "tombi-json",
+ "tombi-schema-store",
+ "tombi-uri",
+]
+
+[[package]]
+name = "tombi-config"
+version = "0.0.0-dev"
+source = "git+https://github.com/tombi-toml/tombi?rev=1517a938d105bfffd7515011b0844df5305121ea#1517a938d105bfffd7515011b0844df5305121ea"
+dependencies = [
+ "serde",
+ "thiserror 2.0.17",
+ "tombi-severity-level",
+ "tombi-toml-version",
+ "tombi-uri",
+ "tombi-x-keyword",
+]
+
+[[package]]
+name = "tombi-date-time"
+version = "0.0.0-dev"
+source = "git+https://github.com/tombi-toml/tombi?rev=1517a938d105bfffd7515011b0844df5305121ea#1517a938d105bfffd7515011b0844df5305121ea"
+dependencies = [
+ "chrono",
+ "serde",
+ "thiserror 2.0.17",
+]
+
+[[package]]
+name = "tombi-diagnostic"
+version = "0.0.0-dev"
+source = "git+https://github.com/tombi-toml/tombi?rev=1517a938d105bfffd7515011b0844df5305121ea#1517a938d105bfffd7515011b0844df5305121ea"
+dependencies = [
+ "nu-ansi-term",
+ "serde",
+ "tombi-text",
+ "tower-lsp",
+]
+
+[[package]]
+name = "tombi-document"
+version = "0.0.0-dev"
+source = "git+https://github.com/tombi-toml/tombi?rev=1517a938d105bfffd7515011b0844df5305121ea#1517a938d105bfffd7515011b0844df5305121ea"
+dependencies = [
+ "indexmap",
+ "itertools",
+ "serde",
+ "thiserror 2.0.17",
+ "tombi-ast",
+ "tombi-date-time",
+ "tombi-document-tree",
+ "tombi-parser",
+ "tombi-text",
+ "tombi-toml-version",
+]
+
+[[package]]
+name = "tombi-document-tree"
+version = "0.0.0-dev"
+source = "git+https://github.com/tombi-toml/tombi?rev=1517a938d105bfffd7515011b0844df5305121ea#1517a938d105bfffd7515011b0844df5305121ea"
+dependencies = [
+ "chrono",
+ "indexmap",
+ "itertools",
+ "thiserror 2.0.17",
+ "tombi-accessor",
+ "tombi-ast",
+ "tombi-date-time",
+ "tombi-diagnostic",
+ "tombi-syntax",
+ "tombi-text",
+ "tombi-toml-text",
+ "tombi-toml-version",
+]
+
+[[package]]
+name = "tombi-formatter"
+version = "0.0.0-dev"
+source = "git+https://github.com/tombi-toml/tombi?rev=1517a938d105bfffd7515011b0844df5305121ea#1517a938d105bfffd7515011b0844df5305121ea"
+dependencies = [
+ "itertools",
+ "log",
+ "tokio",
+ "tombi-ast",
+ "tombi-ast-editor",
+ "tombi-config",
+ "tombi-diagnostic",
+ "tombi-parser",
+ "tombi-schema-store",
+ "tombi-syntax",
+ "tombi-text",
+ "tombi-uri",
+ "tombi-validator",
+ "unicode-segmentation",
+]
+
+[[package]]
+name = "tombi-future"
+version = "0.0.0-dev"
+source = "git+https://github.com/tombi-toml/tombi?rev=1517a938d105bfffd7515011b0844df5305121ea#1517a938d105bfffd7515011b0844df5305121ea"
+dependencies = [
+ "futures",
+]
+
+[[package]]
+name = "tombi-json"
+version = "0.0.0-dev"
+source = "git+https://github.com/tombi-toml/tombi?rev=1517a938d105bfffd7515011b0844df5305121ea#1517a938d105bfffd7515011b0844df5305121ea"
+dependencies = [
+ "indexmap",
+ "itertools",
+ "serde",
+ "thiserror 2.0.17",
+ "tombi-json-lexer",
+ "tombi-json-syntax",
+ "tombi-json-value",
+ "tombi-text",
+]
+
+[[package]]
+name = "tombi-json-lexer"
+version = "0.0.0-dev"
+source = "git+https://github.com/tombi-toml/tombi?rev=1517a938d105bfffd7515011b0844df5305121ea#1517a938d105bfffd7515011b0844df5305121ea"
+dependencies = [
+ "tombi-json-syntax",
+ "tombi-regex",
+ "tombi-text",
+]
+
+[[package]]
+name = "tombi-json-syntax"
+version = "0.0.0-dev"
+source = "git+https://github.com/tombi-toml/tombi?rev=1517a938d105bfffd7515011b0844df5305121ea#1517a938d105bfffd7515011b0844df5305121ea"
+dependencies = [
+ "tombi-rg-tree",
+]
+
+[[package]]
+name = "tombi-json-value"
+version = "0.0.0-dev"
+source = "git+https://github.com/tombi-toml/tombi?rev=1517a938d105bfffd7515011b0844df5305121ea#1517a938d105bfffd7515011b0844df5305121ea"
+dependencies = [
+ "indexmap",
+ "serde",
+]
+
+[[package]]
+name = "tombi-lexer"
+version = "0.0.0-dev"
+source = "git+https://github.com/tombi-toml/tombi?rev=1517a938d105bfffd7515011b0844df5305121ea#1517a938d105bfffd7515011b0844df5305121ea"
+dependencies = [
+ "tombi-regex",
+ "tombi-syntax",
+ "tombi-text",
+]
+
+[[package]]
+name = "tombi-linter"
+version = "0.0.0-dev"
+source = "git+https://github.com/tombi-toml/tombi?rev=1517a938d105bfffd7515011b0844df5305121ea#1517a938d105bfffd7515011b0844df5305121ea"
+dependencies = [
+ "ahash",
+ "itertools",
+ "log",
+ "thiserror 2.0.17",
+ "tombi-ast",
+ "tombi-comment-directive",
+ "tombi-comment-directive-serde",
+ "tombi-config",
+ "tombi-diagnostic",
+ "tombi-document-tree",
+ "tombi-future",
+ "tombi-parser",
+ "tombi-schema-store",
+ "tombi-severity-level",
+ "tombi-text",
+ "tombi-uri",
+ "tombi-validator",
+]
+
+[[package]]
+name = "tombi-parser"
+version = "0.0.0-dev"
+source = "git+https://github.com/tombi-toml/tombi?rev=1517a938d105bfffd7515011b0844df5305121ea#1517a938d105bfffd7515011b0844df5305121ea"
+dependencies = [
+ "drop_bomb",
+ "itertools",
+ "log",
+ "thiserror 2.0.17",
+ "tombi-ast",
+ "tombi-diagnostic",
+ "tombi-lexer",
+ "tombi-rg-tree",
+ "tombi-syntax",
+ "tombi-text",
+]
+
+[[package]]
+name = "tombi-regex"
+version = "0.0.0-dev"
+source = "git+https://github.com/tombi-toml/tombi?rev=1517a938d105bfffd7515011b0844df5305121ea#1517a938d105bfffd7515011b0844df5305121ea"
+dependencies = [
+ "fancy-regex",
+]
+
+[[package]]
+name = "tombi-rg-tree"
+version = "0.0.0-dev"
+source = "git+https://github.com/tombi-toml/tombi?rev=1517a938d105bfffd7515011b0844df5305121ea#1517a938d105bfffd7515011b0844df5305121ea"
+dependencies = [
+ "countme",
+ "hashbrown 0.15.5",
+ "itertools",
+ "rustc-hash",
+ "tombi-text",
+]
+
+[[package]]
+name = "tombi-schema-store"
+version = "0.0.0-dev"
+source = "git+https://github.com/tombi-toml/tombi?rev=1517a938d105bfffd7515011b0844df5305121ea#1517a938d105bfffd7515011b0844df5305121ea"
+dependencies = [
+ "ahash",
+ "bytes",
+ "futures",
+ "glob",
+ "indexmap",
+ "itertools",
+ "log",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.17",
+ "tokio",
+ "tombi-accessor",
+ "tombi-ast",
+ "tombi-cache",
+ "tombi-config",
+ "tombi-future",
+ "tombi-json",
+ "tombi-text",
+ "tombi-uri",
+ "tombi-x-keyword",
+]
+
+[[package]]
+name = "tombi-severity-level"
+version = "0.0.0-dev"
+source = "git+https://github.com/tombi-toml/tombi?rev=1517a938d105bfffd7515011b0844df5305121ea#1517a938d105bfffd7515011b0844df5305121ea"
+dependencies = [
+ "serde",
+]
+
+[[package]]
+name = "tombi-syntax"
+version = "0.0.0-dev"
+source = "git+https://github.com/tombi-toml/tombi?rev=1517a938d105bfffd7515011b0844df5305121ea#1517a938d105bfffd7515011b0844df5305121ea"
+dependencies = [
+ "thiserror 2.0.17",
+ "tombi-rg-tree",
+]
+
+[[package]]
+name = "tombi-text"
+version = "0.0.0-dev"
+source = "git+https://github.com/tombi-toml/tombi?rev=1517a938d105bfffd7515011b0844df5305121ea#1517a938d105bfffd7515011b0844df5305121ea"
+dependencies = [
+ "log",
+ "serde",
+ "tower-lsp",
+ "unicode-segmentation",
+]
+
+[[package]]
+name = "tombi-toml-text"
+version = "0.0.0-dev"
+source = "git+https://github.com/tombi-toml/tombi?rev=1517a938d105bfffd7515011b0844df5305121ea#1517a938d105bfffd7515011b0844df5305121ea"
+dependencies = [
+ "thiserror 2.0.17",
+ "tombi-toml-version",
+]
+
+[[package]]
+name = "tombi-toml-version"
+version = "0.0.0-dev"
+source = "git+https://github.com/tombi-toml/tombi?rev=1517a938d105bfffd7515011b0844df5305121ea#1517a938d105bfffd7515011b0844df5305121ea"
+dependencies = [
+ "clap",
+ "serde",
+]
+
+[[package]]
+name = "tombi-uri"
+version = "0.0.0-dev"
+source = "git+https://github.com/tombi-toml/tombi?rev=1517a938d105bfffd7515011b0844df5305121ea#1517a938d105bfffd7515011b0844df5305121ea"
+dependencies = [
+ "serde",
+ "url",
+]
+
+[[package]]
+name = "tombi-validator"
+version = "0.0.0-dev"
+source = "git+https://github.com/tombi-toml/tombi?rev=1517a938d105bfffd7515011b0844df5305121ea#1517a938d105bfffd7515011b0844df5305121ea"
+dependencies = [
+ "addr",
+ "ahash",
+ "email_address",
+ "itertools",
+ "log",
+ "serde",
+ "thiserror 2.0.17",
+ "tombi-ast",
+ "tombi-comment-directive",
+ "tombi-comment-directive-store",
+ "tombi-diagnostic",
+ "tombi-document",
+ "tombi-document-tree",
+ "tombi-future",
+ "tombi-parser",
+ "tombi-regex",
+ "tombi-schema-store",
+ "tombi-severity-level",
+ "tombi-text",
+ "tombi-uri",
+ "tombi-x-keyword",
+ "unicode-segmentation",
+ "uuid",
+]
+
+[[package]]
+name = "tombi-version-sort"
+version = "0.0.0-dev"
+source = "git+https://github.com/tombi-toml/tombi?rev=1517a938d105bfffd7515011b0844df5305121ea#1517a938d105bfffd7515011b0844df5305121ea"
+dependencies = [
+ "itertools",
+]
+
+[[package]]
+name = "tombi-x-keyword"
+version = "0.0.0-dev"
+source = "git+https://github.com/tombi-toml/tombi?rev=1517a938d105bfffd7515011b0844df5305121ea#1517a938d105bfffd7515011b0844df5305121ea"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "toml"
 version = "0.9.11+spec-1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3317,6 +3982,20 @@ checksum = "ab16f14aed21ee8bfd8ec22513f7287cd4a91aa92e44edfe2c17ddd004e92607"
 
 [[package]]
 name = "tower"
+version = "0.4.13"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b8fa9be0de6cf49e536ce1851f987bd21a43b771b09473c3549a6c853db37c1c"
+dependencies = [
+ "futures-core",
+ "futures-util",
+ "pin-project",
+ "pin-project-lite",
+ "tower-layer",
+ "tower-service",
+]
+
+[[package]]
+name = "tower"
 version = "0.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ebe5ef63511595f1344e2d5cfa636d973292adc0eec1f0ad45fae9f0851ab1d4"
@@ -3338,7 +4017,7 @@ version = "0.6.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d4e6559d53cc268e5031cd8429d05415bc4cb4aefc4aa5d6cc35fbf5b924a1f8"
 dependencies = [
- "bitflags",
+ "bitflags 2.10.0",
  "bytes",
  "futures-util",
  "http",
@@ -3346,7 +4025,7 @@ dependencies = [
  "iri-string",
  "pin-project-lite",
  "tokio",
- "tower",
+ "tower 0.5.3",
  "tower-layer",
  "tower-service",
  "tracing",
@@ -3358,6 +4037,40 @@ name = "tower-layer"
 version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "121c2a6cda46980bb0fcd1647ffaf6cd3fc79a013de288782836f6df9c48780e"
+
+[[package]]
+name = "tower-lsp"
+version = "0.20.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d4ba052b54a6627628d9b3c34c176e7eda8359b7da9acd497b9f20998d118508"
+dependencies = [
+ "async-trait",
+ "auto_impl",
+ "bytes",
+ "dashmap",
+ "futures",
+ "httparse",
+ "lsp-types",
+ "memchr",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tokio-util",
+ "tower 0.4.13",
+ "tower-lsp-macros",
+ "tracing",
+]
+
+[[package]]
+name = "tower-lsp-macros"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "84fd902d4e0b9a4b27f2f440108dc034e1758628a9b702f8ec61ad66355422fa"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
 
 [[package]]
 name = "tower-service"
@@ -3515,9 +4228,12 @@ version = "1.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e2e054861b4bd027cd373e18e8d8d8e6548085000e41290d95ce0c373a654b4a"
 dependencies = [
+ "atomic",
  "getrandom 0.3.4",
  "js-sys",
+ "md-5",
  "serde_core",
+ "sha1_smol",
  "wasm-bindgen",
 ]
 
@@ -3700,7 +4416,7 @@ version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
 dependencies = [
- "windows-sys 0.61.2",
+ "windows-sys 0.48.0",
 ]
 
 [[package]]
