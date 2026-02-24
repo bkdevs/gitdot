@@ -1,5 +1,8 @@
 use gitdot_api::resource::migration as api;
-use gitdot_core::{dto::GitHubInstallationResponse, model::GitHubInstallationType};
+use gitdot_core::{
+    dto::{GitHubInstallationResponse, GitHubRepositoryResponse},
+    model::GitHubInstallationType,
+};
 
 use super::IntoApi;
 
@@ -15,6 +18,20 @@ impl IntoApi for GitHubInstallationResponse {
                 GitHubInstallationType::Organization => "organization".to_string(),
             },
             created_at: self.created_at,
+        }
+    }
+}
+
+impl IntoApi for GitHubRepositoryResponse {
+    type ApiType = api::GitHubRepositoryResource;
+    fn into_api(self) -> Self::ApiType {
+        api::GitHubRepositoryResource {
+            id: self.id,
+            name: self.name,
+            full_name: self.full_name,
+            description: self.description,
+            private: self.private,
+            default_branch: self.default_branch,
         }
     }
 }

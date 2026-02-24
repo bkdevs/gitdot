@@ -12,3 +12,13 @@ pub struct GitHubInstallationResource {
     pub installation_type: String,
     pub created_at: DateTime<Utc>,
 }
+
+#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct GitHubRepositoryResource {
+    pub id: u64,
+    pub name: String,
+    pub full_name: String,
+    pub description: Option<String>,
+    pub private: bool,
+    pub default_branch: String,
+}

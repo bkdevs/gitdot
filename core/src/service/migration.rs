@@ -2,7 +2,10 @@ use async_trait::async_trait;
 
 use crate::{
     client::GitHubClient,
-    dto::{CreateGitHubInstallationRequest, GitHubInstallationResponse},
+    dto::{
+        CreateGitHubInstallationRequest, GitHubInstallationResponse,
+        ListGitHubInstallationRepositoriesResponse,
+    },
     error::MigrationError,
     model::GitHubInstallationType,
     repository::{GitHubRepository, GitHubRepositoryImpl},
@@ -14,6 +17,11 @@ pub trait MigrationService: Send + Sync + 'static {
         &self,
         request: CreateGitHubInstallationRequest,
     ) -> Result<GitHubInstallationResponse, MigrationError>;
+
+    async fn list_github_installation_repositories(
+        &self,
+        installation_id: i64,
+    ) -> Result<ListGitHubInstallationRepositoriesResponse, MigrationError>;
 }
 
 #[derive(Debug, Clone)]
@@ -61,5 +69,17 @@ where
             .await?;
 
         Ok(installation.into())
+    }
+
+    async fn list_github_installation_repositories(
+        &self,
+        installation_id: i64,
+    ) -> Result<ListGitHubInstallationRepositoriesResponse, MigrationError> {
+        let repos = self
+            .github_client
+            .list_installation_repositories(installation_id as u64)
+            .await?;
+
+        Ok(repos.repositories.into_iter().map(Into::into).collect())
     }
 }
