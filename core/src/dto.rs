@@ -1,7 +1,7 @@
 mod authorization;
 mod ci;
 mod commit;
-mod dag;
+mod build;
 mod git_http;
 mod migration;
 mod oauth;
@@ -21,7 +21,7 @@ use common::*;
 pub use authorization::*;
 pub use ci::*;
 pub use commit::*;
-pub use dag::*;
+pub use build::*;
 pub use git_http::*;
 pub use migration::*;
 pub use oauth::*;

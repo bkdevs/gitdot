@@ -7,7 +7,7 @@ use uuid::Uuid;
 use api_derive::ApiResource;
 
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct DagResource {
+pub struct BuildResource {
     pub id: Uuid,
     pub repo_owner: String,
     pub repo_name: String,

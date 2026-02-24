@@ -7,7 +7,7 @@ use thiserror::Error;
 
 use gitdot_api::ApiResource;
 use gitdot_core::error::{
-    AuthorizationError, CommitError, DagError, GitHttpError, MigrationError, OrganizationError,
+    AuthorizationError, BuildError, CommitError, GitHttpError, MigrationError, OrganizationError,
     QuestionError, RepositoryError, RunnerError, TaskError, TokenError, UserError,
 };
 
@@ -46,7 +46,7 @@ pub enum AppError {
     Runner(#[from] RunnerError),
 
     #[error(transparent)]
-    Dag(#[from] DagError),
+    Build(#[from] BuildError),
 
     #[error(transparent)]
     Task(#[from] TaskError),
@@ -236,12 +236,12 @@ impl IntoResponse for AppError {
                 );
                 response.into_response()
             }
-            AppError::Dag(e) => {
+            AppError::Build(e) => {
                 let status_code = match e {
-                    DagError::InvalidOwnerName(_) => StatusCode::BAD_REQUEST,
-                    DagError::InvalidRepositoryName(_) => StatusCode::BAD_REQUEST,
-                    DagError::NotFound(_) => StatusCode::NOT_FOUND,
-                    DagError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+                    BuildError::InvalidOwnerName(_) => StatusCode::BAD_REQUEST,
+                    BuildError::InvalidRepositoryName(_) => StatusCode::BAD_REQUEST,
+                    BuildError::NotFound(_) => StatusCode::NOT_FOUND,
+                    BuildError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                 };
                 let response = AppResponse::new(
                     status_code,

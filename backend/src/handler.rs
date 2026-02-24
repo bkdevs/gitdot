@@ -19,11 +19,11 @@ cfg_modules!("main", {
 });
 
 cfg_modules!("ci", {
-    mod dag;
+    mod build;
     mod runner;
     mod task;
 
-    pub use dag::*;
+    pub use build::*;
     pub use runner::*;
     pub use task::*;
 });

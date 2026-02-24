@@ -28,9 +28,9 @@ cfg_use!("main", {
 
 cfg_use!("ci", {
     use gitdot_core::{
-        repository::{DagRepositoryImpl, RunnerRepositoryImpl, TaskRepositoryImpl},
+        repository::{BuildRepositoryImpl, RunnerRepositoryImpl, TaskRepositoryImpl},
         service::{
-            DagService, DagServiceImpl, RunnerService, RunnerServiceImpl, TaskService,
+            BuildService, BuildServiceImpl, RunnerService, RunnerServiceImpl, TaskService,
             TaskServiceImpl,
         },
     };
@@ -62,7 +62,7 @@ pub struct AppState {
     #[cfg(feature = "ci")]
     pub runner_service: Arc<dyn RunnerService>,
     #[cfg(feature = "ci")]
-    pub dag_service: Arc<dyn DagService>,
+    pub build_service: Arc<dyn BuildService>,
     #[cfg(feature = "ci")]
     pub task_service: Arc<dyn TaskService>,
 }
@@ -95,7 +95,7 @@ impl AppState {
         #[cfg(feature = "ci")]
         let runner_repo = RunnerRepositoryImpl::new(pool.clone());
         #[cfg(feature = "ci")]
-        let dag_repo = DagRepositoryImpl::new(pool.clone());
+        let build_repo = BuildRepositoryImpl::new(pool.clone());
         #[cfg(feature = "ci")]
         let task_repo = TaskRepositoryImpl::new(pool.clone());
 
@@ -159,7 +159,7 @@ impl AppState {
                 token_repo.clone(),
             )),
             #[cfg(feature = "ci")]
-            dag_service: Arc::new(DagServiceImpl::new(dag_repo.clone())),
+            build_service: Arc::new(BuildServiceImpl::new(build_repo.clone())),
             #[cfg(feature = "ci")]
             task_service: Arc::new(TaskServiceImpl::new(task_repo.clone())),
         }

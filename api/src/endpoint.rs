@@ -1,4 +1,4 @@
-pub mod dag;
+pub mod build;
 pub mod migration;
 pub mod oauth;
 pub mod organization;
@@ -12,7 +12,7 @@ use serde::{Serialize, de::DeserializeOwned};
 
 use crate::ApiResource;
 
-pub use dag::*;
+pub use build::*;
 pub use migration::*;
 pub use oauth::*;
 pub use organization::*;

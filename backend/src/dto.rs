@@ -1,4 +1,4 @@
-mod dag;
+mod build;
 mod git_http;
 mod internal;
 mod migration;

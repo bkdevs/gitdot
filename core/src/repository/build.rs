@@ -4,40 +4,40 @@ use async_trait::async_trait;
 use sqlx::{Error, PgPool, types::Json};
 use uuid::Uuid;
 
-use crate::model::Dag;
+use crate::model::Build;
 
 #[async_trait]
-pub trait DagRepository: Send + Sync + Clone + 'static {
+pub trait BuildRepository: Send + Sync + Clone + 'static {
     async fn create(
         &self,
         repo_owner: &str,
         repo_name: &str,
         task_dependencies: &HashMap<Uuid, Vec<Uuid>>,
-    ) -> Result<Dag, Error>;
+    ) -> Result<Build, Error>;
 }
 
 #[derive(Debug, Clone)]
-pub struct DagRepositoryImpl {
+pub struct BuildRepositoryImpl {
     pool: PgPool,
 }
 
-impl DagRepositoryImpl {
-    pub fn new(pool: PgPool) -> DagRepositoryImpl {
-        DagRepositoryImpl { pool }
+impl BuildRepositoryImpl {
+    pub fn new(pool: PgPool) -> BuildRepositoryImpl {
+        BuildRepositoryImpl { pool }
     }
 }
 
 #[async_trait]
-impl DagRepository for DagRepositoryImpl {
+impl BuildRepository for BuildRepositoryImpl {
     async fn create(
         &self,
         repo_owner: &str,
         repo_name: &str,
         task_dependencies: &HashMap<Uuid, Vec<Uuid>>,
-    ) -> Result<Dag, Error> {
-        let dag = sqlx::query_as::<_, Dag>(
+    ) -> Result<Build, Error> {
+        let build = sqlx::query_as::<_, Build>(
             r#"
-            INSERT INTO dags (repo_owner, repo_name, task_dependencies)
+            INSERT INTO builds (repo_owner, repo_name, task_dependencies)
             VALUES ($1, $2, $3)
             RETURNING id, repo_owner, repo_name, task_dependencies, created_at, updated_at
             "#,
@@ -48,6 +48,6 @@ impl DagRepository for DagRepositoryImpl {
         .fetch_one(&self.pool)
         .await?;
 
-        Ok(dag)
+        Ok(build)
     }
 }

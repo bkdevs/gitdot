@@ -5,7 +5,7 @@ use sqlx::{FromRow, types::Json};
 use uuid::Uuid;
 
 #[derive(Debug, Clone, FromRow)]
-pub struct Dag {
+pub struct Build {
     pub id: Uuid,
     pub repo_owner: String,
     pub repo_name: String,

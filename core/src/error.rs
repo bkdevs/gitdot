@@ -1,7 +1,7 @@
 mod authorization;
 mod ci;
 mod commit;
-mod dag;
+mod build;
 mod diff;
 mod git;
 mod git_http;
@@ -18,7 +18,7 @@ mod user;
 pub use authorization::AuthorizationError;
 pub use ci::CiConfigError;
 pub use commit::CommitError;
-pub use dag::DagError;
+pub use build::BuildError;
 pub use diff::DiffError;
 pub use git::GitError;
 pub use git_http::GitHttpError;

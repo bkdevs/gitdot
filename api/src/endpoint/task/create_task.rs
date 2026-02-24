@@ -20,7 +20,7 @@ pub struct CreateTaskRequest {
     pub repo_owner: String,
     pub repo_name: String,
     pub script: String,
-    pub dag_id: Uuid,
+    pub build_id: Uuid,
 }
 
 pub type CreateTaskResponse = TaskResource;

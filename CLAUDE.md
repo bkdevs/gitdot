@@ -60,7 +60,7 @@ Handler (backend) → Service (core) → Repository (core) → PostgreSQL (sqlx)
 ### Feature Flags
 The backend uses cargo features `main` and `ci` (both on by default):
 - `main` — Core platform: git HTTP, repos, users, orgs, questions, oauth
-- `ci` — CI/CD: runners, DAGs, tasks
+- `ci` — CI/CD: runners, builds, tasks
 
 Feature gates only live in `app.rs` (routing) and `app_state.rs` (service construction).
 

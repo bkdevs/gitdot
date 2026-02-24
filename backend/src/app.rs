@@ -27,7 +27,7 @@ use crate::handler::{
 };
 
 #[cfg(feature = "ci")]
-use crate::handler::{create_dag_router, create_runner_router, create_task_router};
+use crate::handler::{create_build_router, create_runner_router, create_task_router};
 
 pub use app_state::AppState;
 pub use error::AppError;
@@ -101,7 +101,7 @@ fn create_router(app_state: AppState) -> Router {
             "/ci",
             Router::new()
                 .merge(create_runner_router())
-                .merge(create_dag_router())
+                .merge(create_build_router())
                 .merge(create_task_router()),
         );
     }

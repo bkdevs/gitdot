@@ -28,7 +28,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Features
 
 - `main` (default) — Core platform: git HTTP, repos, users, orgs, questions, oauth
-- `ci` (default) — CI/CD: runners, DAGs, tasks
+- `ci` (default) — CI/CD: runners, builds, tasks
 
 Feature gates live only in `app.rs` (routing) and `app_state.rs` (fields/construction). Handler modules are always compiled.
 

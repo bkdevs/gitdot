@@ -1,12 +1,12 @@
-use gitdot_api::resource::dag as api;
-use gitdot_core::dto::DagResponse;
+use gitdot_api::resource::build as api;
+use gitdot_core::dto::BuildResponse;
 
 use super::IntoApi;
 
-impl IntoApi for DagResponse {
-    type ApiType = api::DagResource;
+impl IntoApi for BuildResponse {
+    type ApiType = api::BuildResource;
     fn into_api(self) -> Self::ApiType {
-        api::DagResource {
+        api::BuildResource {
             id: self.id,
             repo_owner: self.repo_owner,
             repo_name: self.repo_name,

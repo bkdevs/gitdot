@@ -1,6 +1,6 @@
 mod code;
 mod commit;
-mod dag;
+mod build;
 mod github;
 mod migration;
 mod organization;
@@ -13,7 +13,7 @@ mod user;
 
 pub use code::*;
 pub use commit::*;
-pub use dag::*;
+pub use build::*;
 pub use github::*;
 pub use migration::*;
 pub use organization::*;
