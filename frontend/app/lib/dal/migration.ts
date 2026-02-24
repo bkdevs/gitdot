@@ -3,8 +3,10 @@ import "server-only";
 import {
   type GitHubInstallationResponse,
   GitHubInstallationResponseSchema,
+  type GitHubRepositoryListResponse,
+  GitHubRepositoryListResponseSchema,
 } from "../dto/migration";
-import { authPost, GITDOT_SERVER_URL, handleResponse } from "./util";
+import { authFetch, authPost, GITDOT_SERVER_URL, handleResponse } from "./util";
 
 export async function createInstallation(
   installationId: number,
@@ -15,4 +17,14 @@ export async function createInstallation(
   );
 
   return await handleResponse(response, GitHubInstallationResponseSchema);
+}
+
+export async function listInstallationRepositories(
+  installationId: number,
+): Promise<GitHubRepositoryListResponse | null> {
+  const response = await authFetch(
+    `${GITDOT_SERVER_URL}/migration/github/${installationId}/repositories`,
+  );
+
+  return await handleResponse(response, GitHubRepositoryListResponseSchema);
 }
