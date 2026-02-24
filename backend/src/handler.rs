@@ -1,6 +1,7 @@
 cfg_modules!("main", {
     mod git_http;
     mod internal;
+    mod migration;
     mod oauth;
     mod organization;
     mod question;
@@ -9,6 +10,7 @@ cfg_modules!("main", {
 
     pub use git_http::*;
     pub use internal::*;
+    pub use migration::*;
     pub use oauth::*;
     pub use organization::*;
     pub use question::*;

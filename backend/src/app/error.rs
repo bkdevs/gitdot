@@ -7,8 +7,8 @@ use thiserror::Error;
 
 use gitdot_api::ApiResource;
 use gitdot_core::error::{
-    AuthorizationError, CommitError, DagError, GitHttpError, OrganizationError, QuestionError,
-    RepositoryError, RunnerError, TaskError, TokenError, UserError,
+    AuthorizationError, CommitError, DagError, GitHttpError, MigrationError, OrganizationError,
+    QuestionError, RepositoryError, RunnerError, TaskError, TokenError, UserError,
 };
 
 use super::AppResponse;
@@ -35,6 +35,9 @@ pub enum AppError {
 
     #[error(transparent)]
     Question(#[from] QuestionError),
+
+    #[error(transparent)]
+    Migration(#[from] MigrationError),
 
     #[error(transparent)]
     GitHttp(#[from] GitHttpError),
@@ -179,6 +182,19 @@ impl IntoResponse for AppError {
                     QuestionError::RepositoryNotFound(_) => StatusCode::NOT_FOUND,
                     QuestionError::VoteTargetNotFound(_) => StatusCode::NOT_FOUND,
                     QuestionError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+                };
+                let response = AppResponse::new(
+                    status_code,
+                    AppErrorMessage {
+                        message: e.to_string(),
+                    },
+                );
+                response.into_response()
+            }
+            AppError::Migration(e) => {
+                let status_code = match e {
+                    MigrationError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+                    MigrationError::GitHubError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                 };
                 let response = AppResponse::new(
                     status_code,

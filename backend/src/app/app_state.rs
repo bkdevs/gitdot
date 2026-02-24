@@ -5,18 +5,19 @@ use sqlx::PgPool;
 
 use gitdot_core::{
     repository::{
-        CodeRepositoryImpl, OrganizationRepositoryImpl, QuestionRepositoryImpl,
-        RepositoryRepositoryImpl, TokenRepositoryImpl, UserRepositoryImpl,
+        CodeRepositoryImpl, GitHubRepositoryImpl, OrganizationRepositoryImpl,
+        QuestionRepositoryImpl, RepositoryRepositoryImpl, TokenRepositoryImpl, UserRepositoryImpl,
     },
     service::{
-        AuthorizationService, AuthorizationServiceImpl, OAuthService, OAuthServiceImpl,
-        OrganizationService, OrganizationServiceImpl, UserService, UserServiceImpl,
+        AuthorizationService, AuthorizationServiceImpl, MigrationService, MigrationServiceImpl,
+        OAuthService, OAuthServiceImpl, OrganizationService, OrganizationServiceImpl, UserService,
+        UserServiceImpl,
     },
 };
 
 cfg_use!("main", {
     use gitdot_core::{
-        client::{DifftClient, Git2Client, GitHttpClientImpl},
+        client::{DifftClient, Git2Client, GitHttpClientImpl, OctocrabClient},
         repository::CommitRepositoryImpl,
         service::{
             CommitService, CommitServiceImpl, GitHttpService, GitHttpServiceImpl, QuestionService,
@@ -55,6 +56,8 @@ pub struct AppState {
     pub question_service: Arc<dyn QuestionService>,
     #[cfg(feature = "main")]
     pub commit_service: Arc<dyn CommitService>,
+    #[cfg(feature = "main")]
+    pub migration_service: Arc<dyn MigrationService>,
 
     #[cfg(feature = "ci")]
     pub runner_service: Arc<dyn RunnerService>,
@@ -81,6 +84,13 @@ impl AppState {
         let diff_client = DifftClient::new();
         #[cfg(feature = "main")]
         let commit_repo = CommitRepositoryImpl::new(pool.clone());
+        #[cfg(feature = "main")]
+        let github_repo = GitHubRepositoryImpl::new(pool.clone());
+        #[cfg(feature = "main")]
+        let github_client = OctocrabClient::new(
+            settings.github_app_id,
+            settings.github_app_private_key.clone(),
+        );
 
         #[cfg(feature = "ci")]
         let runner_repo = RunnerRepositoryImpl::new(pool.clone());
@@ -135,6 +145,11 @@ impl AppState {
                 repo_repo.clone(),
                 user_repo.clone(),
                 git_client.clone(),
+            )),
+            #[cfg(feature = "main")]
+            migration_service: Arc::new(MigrationServiceImpl::new(
+                github_repo.clone(),
+                github_client.clone(),
             )),
 
             #[cfg(feature = "ci")]

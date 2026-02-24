@@ -1,6 +1,7 @@
 mod dag;
 mod git_http;
 mod internal;
+mod migration;
 mod oauth;
 mod organization;
 mod question;

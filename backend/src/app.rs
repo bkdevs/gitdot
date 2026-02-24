@@ -21,7 +21,7 @@ use tower_http::{
 
 #[cfg(feature = "main")]
 use crate::handler::{
-    create_git_http_router, create_internal_router, create_oauth_router,
+    create_git_http_router, create_internal_router, create_migration_router, create_oauth_router,
     create_organization_router, create_question_router, create_repository_router,
     create_user_router,
 };
@@ -89,7 +89,8 @@ fn create_router(app_state: AppState) -> Router {
             .merge(create_organization_router())
             .merge(create_repository_router())
             .merge(create_question_router())
-            .merge(create_oauth_router());
+            .merge(create_oauth_router())
+            .merge(create_migration_router());
         git_router = git_router.merge(create_git_http_router());
         internal_router = internal_router.merge(create_internal_router());
     }
