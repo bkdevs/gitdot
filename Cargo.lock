@@ -1145,11 +1145,15 @@ dependencies = [
  "dirs-next",
  "gitdot_api",
  "gitdot_client",
+ "itertools",
  "serde",
  "serde_json",
  "tokio",
+ "tombi-config",
+ "tombi-diagnostic",
  "tombi-formatter",
  "tombi-linter",
+ "tombi-schema-store",
  "toml 0.9.11+spec-1.1.0",
  "url",
 ]
@@ -1161,7 +1165,7 @@ dependencies = [
  "anyhow",
  "base64",
  "gitdot_api",
- "reqwest",
+ "reqwest 0.13.1",
  "uuid",
 ]
 
@@ -2507,6 +2511,44 @@ checksum = "7a2d987857b319362043e95f5353c0535c1f58eec5336fdfcf626430af7def58"
 
 [[package]]
 name = "reqwest"
+version = "0.12.28"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "eddd3ca559203180a307f12d114c268abf583f59b03cb906fd0b3ff8646c1147"
+dependencies = [
+ "base64",
+ "bytes",
+ "futures-core",
+ "http",
+ "http-body",
+ "http-body-util",
+ "hyper",
+ "hyper-rustls",
+ "hyper-util",
+ "js-sys",
+ "log",
+ "percent-encoding",
+ "pin-project-lite",
+ "quinn",
+ "rustls",
+ "rustls-native-certs",
+ "rustls-pki-types",
+ "serde",
+ "serde_json",
+ "serde_urlencoded",
+ "sync_wrapper",
+ "tokio",
+ "tokio-rustls",
+ "tower 0.5.3",
+ "tower-http",
+ "tower-service",
+ "url",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+]
+
+[[package]]
+name = "reqwest"
 version = "0.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "04e9018c9d814e5f30cc16a0f03271aeab3571e609612d9fe78c1aa8d11c2f62"
@@ -3801,6 +3843,7 @@ dependencies = [
  "indexmap",
  "itertools",
  "log",
+ "reqwest 0.12.28",
  "serde",
  "serde_json",
  "thiserror 2.0.17",
