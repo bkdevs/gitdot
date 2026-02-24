@@ -5,6 +5,7 @@ use anyhow::Result;
 use gitdot_api::resource::TaskResource;
 use serde::{Deserialize, Serialize};
 
+#[allow(dead_code)]
 pub trait Executor {
     const TYPE: ExecutorType;
 
