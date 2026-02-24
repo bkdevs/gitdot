@@ -138,3 +138,450 @@ fn check_dag(config: &CiConfig) -> Vec<String> {
 
     errors
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::ci::CiConfig;
+
+    fn valid_toml() -> &'static str {
+        r#"
+            [[builds]]
+            trigger = "pull_request"
+            tasks = ["test"]
+
+            [[tasks]]
+            name = "test"
+            command = "cargo test"
+        "#
+    }
+
+    fn assert_validation_errors(toml: &str, expected: &[&str]) {
+        let err = CiConfig::new(toml).unwrap_err();
+        let msg = err.to_string();
+        for expected_substr in expected {
+            assert!(
+                msg.contains(expected_substr),
+                "expected error to contain {expected_substr:?}, got:\n{msg}"
+            );
+        }
+    }
+
+    // --- Valid configs ---
+
+    #[test]
+    fn valid_minimal_config() {
+        let config = CiConfig::new(valid_toml()).unwrap();
+        assert_eq!(config.tasks.len(), 1);
+        assert_eq!(config.builds.len(), 1);
+    }
+
+    #[test]
+    fn valid_multi_task_with_deps() {
+        let toml = r#"
+            [[builds]]
+            trigger = "push_to_main"
+            tasks = ["build", "test", "lint"]
+
+            [[tasks]]
+            name = "lint"
+            command = "cargo clippy"
+
+            [[tasks]]
+            name = "build"
+            command = "cargo build"
+            runs_after = ["lint"]
+
+            [[tasks]]
+            name = "test"
+            command = "cargo test"
+            runs_after = ["build"]
+        "#;
+        let config = CiConfig::new(toml).unwrap();
+        assert_eq!(config.tasks.len(), 3);
+    }
+
+    #[test]
+    fn valid_multiple_builds_sharing_tasks() {
+        let toml = r#"
+            [[builds]]
+            trigger = "pull_request"
+            tasks = ["lint", "test"]
+
+            [[builds]]
+            trigger = "push_to_main"
+            tasks = ["lint", "test", "deploy"]
+
+            [[tasks]]
+            name = "lint"
+            command = "cargo clippy"
+
+            [[tasks]]
+            name = "test"
+            command = "cargo test"
+            runs_after = ["lint"]
+
+            [[tasks]]
+            name = "deploy"
+            command = "./deploy.sh"
+            runs_after = ["test"]
+        "#;
+        CiConfig::new(toml).unwrap();
+    }
+
+    #[test]
+    fn valid_diamond_dependency() {
+        let toml = r#"
+            [[builds]]
+            trigger = "pull_request"
+            tasks = ["a", "b", "c", "d"]
+
+            [[tasks]]
+            name = "a"
+            command = "echo a"
+
+            [[tasks]]
+            name = "b"
+            command = "echo b"
+            runs_after = ["a"]
+
+            [[tasks]]
+            name = "c"
+            command = "echo c"
+            runs_after = ["a"]
+
+            [[tasks]]
+            name = "d"
+            command = "echo d"
+            runs_after = ["b", "c"]
+        "#;
+        CiConfig::new(toml).unwrap();
+    }
+
+    // --- Parse errors ---
+
+    #[test]
+    fn parse_error_invalid_toml() {
+        let err = CiConfig::new("not valid toml {{{").unwrap_err();
+        let msg = err.to_string();
+        assert!(
+            msg.contains("failed to parse config"),
+            "expected parse error, got:\n{msg}"
+        );
+    }
+
+    #[test]
+    fn parse_error_missing_required_field() {
+        let toml = r#"
+            [[builds]]
+            trigger = "pull_request"
+            tasks = ["test"]
+
+            [[tasks]]
+            name = "test"
+        "#;
+        let err = CiConfig::new(toml).unwrap_err();
+        let msg = err.to_string();
+        assert!(
+            msg.contains("failed to parse config"),
+            "expected parse error for missing `command`, got:\n{msg}"
+        );
+    }
+
+    #[test]
+    fn parse_error_invalid_trigger() {
+        let toml = r#"
+            [[builds]]
+            trigger = "on_commit"
+            tasks = ["test"]
+
+            [[tasks]]
+            name = "test"
+            command = "cargo test"
+        "#;
+        let err = CiConfig::new(toml).unwrap_err();
+        let msg = err.to_string();
+        assert!(
+            msg.contains("failed to parse config"),
+            "expected parse error for bad trigger, got:\n{msg}"
+        );
+    }
+
+    // --- Empty builds / tasks ---
+
+    #[test]
+    fn empty_builds() {
+        let toml = r#"
+            builds = []
+
+            [[tasks]]
+            name = "test"
+            command = "cargo test"
+        "#;
+        assert_validation_errors(toml, &["builds cannot be empty"]);
+    }
+
+    #[test]
+    fn empty_tasks() {
+        let toml = r#"
+            [[builds]]
+            trigger = "pull_request"
+            tasks = ["test"]
+
+            tasks = []
+        "#;
+        let err = CiConfig::new(toml).unwrap_err();
+        let msg = err.to_string();
+        assert!(
+            msg.contains("tasks cannot be empty") || msg.contains("failed to parse config"),
+            "expected empty tasks or parse error, got:\n{msg}"
+        );
+    }
+
+    #[test]
+    fn both_empty() {
+        let toml = r#"
+            builds = []
+            tasks = []
+        "#;
+        assert_validation_errors(toml, &["builds cannot be empty", "tasks cannot be empty"]);
+    }
+
+    // --- Unknown task references ---
+
+    #[test]
+    fn build_references_unknown_task() {
+        let toml = r#"
+            [[builds]]
+            trigger = "pull_request"
+            tasks = ["test", "missing_task"]
+
+            [[tasks]]
+            name = "test"
+            command = "cargo test"
+        "#;
+        assert_validation_errors(toml, &["builds[0] references unknown task 'missing_task'"]);
+    }
+
+    #[test]
+    fn multiple_builds_reference_unknown_tasks() {
+        let toml = r#"
+            [[builds]]
+            trigger = "pull_request"
+            tasks = ["ghost1"]
+
+            [[builds]]
+            trigger = "push_to_main"
+            tasks = ["ghost2"]
+
+            [[tasks]]
+            name = "real"
+            command = "echo hi"
+        "#;
+        assert_validation_errors(
+            toml,
+            &[
+                "builds[0] references unknown task 'ghost1'",
+                "builds[1] references unknown task 'ghost2'",
+            ],
+        );
+    }
+
+    // --- Orphaned tasks ---
+
+    #[test]
+    fn orphaned_task() {
+        let toml = r#"
+            [[builds]]
+            trigger = "pull_request"
+            tasks = ["test"]
+
+            [[tasks]]
+            name = "test"
+            command = "cargo test"
+
+            [[tasks]]
+            name = "orphan"
+            command = "echo lonely"
+        "#;
+        assert_validation_errors(toml, &["task 'orphan' is not referenced by any build"]);
+    }
+
+    #[test]
+    fn multiple_orphaned_tasks() {
+        let toml = r#"
+            [[builds]]
+            trigger = "pull_request"
+            tasks = ["used"]
+
+            [[tasks]]
+            name = "used"
+            command = "echo used"
+
+            [[tasks]]
+            name = "orphan1"
+            command = "echo a"
+
+            [[tasks]]
+            name = "orphan2"
+            command = "echo b"
+        "#;
+        assert_validation_errors(
+            toml,
+            &[
+                "task 'orphan1' is not referenced by any build",
+                "task 'orphan2' is not referenced by any build",
+            ],
+        );
+    }
+
+    // --- Cycle detection ---
+
+    #[test]
+    fn self_cycle() {
+        let toml = r#"
+            [[builds]]
+            trigger = "pull_request"
+            tasks = ["a"]
+
+            [[tasks]]
+            name = "a"
+            command = "echo a"
+            runs_after = ["a"]
+        "#;
+        assert_validation_errors(toml, &["cyclical dependency detected: a -> a"]);
+    }
+
+    #[test]
+    fn two_node_cycle() {
+        let toml = r#"
+            [[builds]]
+            trigger = "pull_request"
+            tasks = ["a", "b"]
+
+            [[tasks]]
+            name = "a"
+            command = "echo a"
+            runs_after = ["b"]
+
+            [[tasks]]
+            name = "b"
+            command = "echo b"
+            runs_after = ["a"]
+        "#;
+        assert_validation_errors(toml, &["cyclical dependency detected"]);
+    }
+
+    #[test]
+    fn three_node_cycle() {
+        let toml = r#"
+            [[builds]]
+            trigger = "pull_request"
+            tasks = ["a", "b", "c"]
+
+            [[tasks]]
+            name = "a"
+            command = "echo a"
+            runs_after = ["c"]
+
+            [[tasks]]
+            name = "b"
+            command = "echo b"
+            runs_after = ["a"]
+
+            [[tasks]]
+            name = "c"
+            command = "echo c"
+            runs_after = ["b"]
+        "#;
+        assert_validation_errors(toml, &["cyclical dependency detected"]);
+    }
+
+    #[test]
+    fn cycle_in_subset_of_tasks() {
+        let toml = r#"
+            [[builds]]
+            trigger = "pull_request"
+            tasks = ["ok", "a", "b"]
+
+            [[tasks]]
+            name = "ok"
+            command = "echo ok"
+
+            [[tasks]]
+            name = "a"
+            command = "echo a"
+            runs_after = ["b"]
+
+            [[tasks]]
+            name = "b"
+            command = "echo b"
+            runs_after = ["a"]
+        "#;
+        assert_validation_errors(toml, &["cyclical dependency detected"]);
+    }
+
+    // --- Multiple errors at once ---
+
+    #[test]
+    fn unknown_ref_and_orphan_together() {
+        let toml = r#"
+            [[builds]]
+            trigger = "pull_request"
+            tasks = ["nonexistent"]
+
+            [[tasks]]
+            name = "orphan"
+            command = "echo orphan"
+        "#;
+        assert_validation_errors(
+            toml,
+            &[
+                "builds[0] references unknown task 'nonexistent'",
+                "task 'orphan' is not referenced by any build",
+            ],
+        );
+    }
+
+    #[test]
+    fn error_message_formatting() {
+        let toml = r#"
+            builds = []
+            tasks = []
+        "#;
+        let err = CiConfig::new(toml).unwrap_err();
+        let msg = err.to_string();
+        assert!(
+            msg.starts_with("config validation failed:\n"),
+            "expected 'config validation failed:' prefix, got:\n{msg}"
+        );
+        assert!(
+            msg.contains("  - builds cannot be empty"),
+            "expected bullet-formatted error, got:\n{msg}"
+        );
+        assert!(
+            msg.contains("  - tasks cannot be empty"),
+            "expected bullet-formatted error, got:\n{msg}"
+        );
+    }
+
+    // --- runs_after references unknown task (ignored by DAG check, no crash) ---
+
+    #[test]
+    fn runs_after_references_undefined_task_no_panic() {
+        let toml = r#"
+            [[builds]]
+            trigger = "pull_request"
+            tasks = ["a"]
+
+            [[tasks]]
+            name = "a"
+            command = "echo a"
+            runs_after = ["nonexistent"]
+        "#;
+        // Should not panic — the undefined dep is silently skipped in check_dag
+        let result = CiConfig::new(toml);
+        // It may or may not error (orphan check won't fire since 'a' is referenced),
+        // but it must not panic.
+        let _ = result;
+    }
+}
