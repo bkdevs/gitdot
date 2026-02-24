@@ -5,8 +5,10 @@ use axum::{
 
 use gitdot_core::dto::CreateCommitsRequest;
 
-use crate::app::{AppError, AppResponse, AppState};
-use crate::dto::ProcessPostReceiveServerRequest;
+use crate::{
+    app::{AppError, AppResponse, AppState},
+    dto::ProcessPostReceiveServerRequest,
+};
 
 #[axum::debug_handler]
 pub async fn process_post_receive(

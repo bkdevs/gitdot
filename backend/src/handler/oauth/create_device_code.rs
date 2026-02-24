@@ -1,8 +1,4 @@
-use axum::{
-    Json,
-    extract::State,
-    http::StatusCode,
-};
+use axum::{Json, extract::State, http::StatusCode};
 
 use gitdot_api::endpoint::oauth::create_device_code as api;
 use gitdot_core::dto::DeviceCodeRequest;

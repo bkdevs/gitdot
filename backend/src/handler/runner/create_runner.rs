@@ -19,12 +19,8 @@ pub async fn create_runner(
     Path(owner): Path<String>,
     Json(request): Json<api::CreateRunnerRequest>,
 ) -> Result<AppResponse<api::CreateRunnerResponse>, AppError> {
-    let request = CreateRunnerRequest::new(
-        &request.name,
-        auth_user.id,
-        &owner,
-        &request.owner_type,
-    )?;
+    let request =
+        CreateRunnerRequest::new(&request.name, auth_user.id, &owner, &request.owner_type)?;
 
     state
         .runner_service
