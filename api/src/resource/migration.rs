@@ -5,9 +5,10 @@ use uuid::Uuid;
 use api_derive::ApiResource;
 
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct UserResource {
+pub struct GitHubInstallationResource {
     pub id: Uuid,
-    pub name: String,
-    pub email: String,
+    pub installation_id: i64,
+    pub owner_id: Uuid,
+    pub installation_type: String,
     pub created_at: DateTime<Utc>,
 }

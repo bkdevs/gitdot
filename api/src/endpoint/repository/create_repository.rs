@@ -1,5 +1,6 @@
-use api_derive::ApiRequest;
 use serde::{Deserialize, Serialize};
+
+use api_derive::ApiRequest;
 
 use super::default_visibility;
 use crate::{endpoint::Endpoint, resource::RepositoryResource};

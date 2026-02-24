@@ -1,6 +1,7 @@
-use api_derive::ApiRequest;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+
+use api_derive::ApiRequest;
 
 use crate::{endpoint::Endpoint, resource::TaskResource};
 
