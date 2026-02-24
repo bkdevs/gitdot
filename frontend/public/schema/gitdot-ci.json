@@ -1,0 +1,63 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "x-tombi-toml-version": "v1.0.0",
+  "title": "Gitdot CI Configuration",
+  "description": "Configuration schema for gitdot.toml CI/CD pipelines",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["pull_request", "push_to_main", "tasks"],
+  "properties": {
+    "pull_request": {
+      "type": "object",
+      "description": "Tasks to run on pull request events",
+      "additionalProperties": false,
+      "required": ["tasks"],
+      "properties": {
+        "tasks": {
+          "type": "array",
+          "description": "Names of tasks to run",
+          "items": { "type": "string" },
+          "minItems": 1
+        }
+      }
+    },
+    "push_to_main": {
+      "type": "object",
+      "description": "Tasks to run on push to main branch",
+      "additionalProperties": false,
+      "required": ["tasks"],
+      "properties": {
+        "tasks": {
+          "type": "array",
+          "description": "Names of tasks to run",
+          "items": { "type": "string" },
+          "minItems": 1
+        }
+      }
+    },
+    "tasks": {
+      "type": "array",
+      "description": "Task definitions — TOML [[tasks]] array of tables",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "script"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Unique task identifier referenced by event configs"
+          },
+          "script": {
+            "type": "string",
+            "description": "Shell command to execute"
+          },
+          "runs_after": {
+            "type": "array",
+            "description": "Task names that must complete before this task runs",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    }
+  }
+}
