@@ -33,7 +33,11 @@ pub async fn lint() -> anyhow::Result<()> {
             for d in &diagnostics {
                 d.clone().with_source_file(&config_path).print(&mut printer);
             }
-            anyhow::bail!("{}: {} issue(s) found", config_path.display(), diagnostics.len())
+            anyhow::bail!(
+                "{}: {} issue(s) found",
+                config_path.display(),
+                diagnostics.len()
+            )
         }
     }
 }

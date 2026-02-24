@@ -1,21 +1,27 @@
 use crate::util::ci;
 
 const TEMPLATE: &str = r#"#:schema https://www.gitdot.io/schema/gitdot-ci.json
-[pull_request]
-tasks = ["build", "lint", "test"]
 
-[[tasks]]
-name = "build"
-script = "echo 'Your build command here'"
+[[builds]]
+trigger = "pull_request"
+tasks = ["lint", "test", "build"]
+
+[[builds]]
+trigger = "push_to_main"
+tasks = ["lint", "test", "build"]
 
 [[tasks]]
 name = "lint"
-script = "echo 'Your lint command here'"
+command = "echo 'Your lint command here'"
 
 [[tasks]]
 name = "test"
-script = "echo 'Your test command here'"
-runs_after = ["build", "lint"]
+command = "echo 'Your test command here'"
+
+[[tasks]]
+name = "build"
+command = "echo 'Your build command here'"
+runs_after = ["lint", "test"]
 "#;
 
 pub async fn init() -> anyhow::Result<()> {

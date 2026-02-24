@@ -2,24 +2,26 @@ use serde::Deserialize;
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct CiConfig {
-    pub pull_request: PullRequestConfig,
-    pub push_to_main: PushToMainConfig,
+    pub builds: Vec<BuildConfig>,
     pub tasks: Vec<TaskConfig>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
-pub struct PullRequestConfig {
-    pub tasks: Vec<String>,
+#[serde(rename_all = "snake_case")]
+pub enum BuildTrigger {
+    PullRequest,
+    PushToMain,
 }
 
 #[derive(Debug, Clone, Deserialize)]
-pub struct PushToMainConfig {
+pub struct BuildConfig {
+    pub trigger: BuildTrigger,
     pub tasks: Vec<String>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct TaskConfig {
     pub name: String,
-    pub script: String,
+    pub command: String,
     pub runs_after: Option<Vec<String>>,
 }

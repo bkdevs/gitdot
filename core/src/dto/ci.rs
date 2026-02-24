@@ -1,3 +1,3 @@
 mod config;
 
-pub use config::{CiConfig, PullRequestConfig, PushToMainConfig, TaskConfig};
+pub use config::{BuildConfig, BuildTrigger, CiConfig, TaskConfig};

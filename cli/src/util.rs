@@ -1,4 +1,4 @@
-mod command;
 pub mod ci;
+mod command;
 
 pub use command::*;
