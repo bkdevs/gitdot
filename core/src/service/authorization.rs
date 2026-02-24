@@ -2,10 +2,10 @@ use async_trait::async_trait;
 
 use crate::{
     dto::{
-        AnswerAuthorizationRequest, CommentAuthorizationRequest, OrganizationAuthorizationRequest,
-        QuestionAuthorizationRequest, RepositoryAuthorizationRequest,
-        RepositoryCreationAuthorizationRequest, RepositoryPermission, ValidateTokenRequest,
-        ValidateTokenResponse,
+        AnswerAuthorizationRequest, CommentAuthorizationRequest, MigrationAuthorizationRequest,
+        OrganizationAuthorizationRequest, QuestionAuthorizationRequest,
+        RepositoryAuthorizationRequest, RepositoryCreationAuthorizationRequest,
+        RepositoryPermission, ValidateTokenRequest, ValidateTokenResponse,
     },
     error::AuthorizationError,
     model::{OrganizationRole, RepositoryOwnerType},
@@ -52,6 +52,11 @@ pub trait AuthorizationService: Send + Sync + 'static {
     async fn verify_authorized_for_comment(
         &self,
         request: CommentAuthorizationRequest,
+    ) -> Result<(), AuthorizationError>;
+
+    async fn verify_authorized_for_migration(
+        &self,
+        request: MigrationAuthorizationRequest,
     ) -> Result<(), AuthorizationError>;
 }
 
@@ -286,6 +291,39 @@ where
             })?;
 
         if author_id != request.user_id {
+            return Err(AuthorizationError::Unauthorized);
+        }
+
+        Ok(())
+    }
+
+    async fn verify_authorized_for_migration(
+        &self,
+        request: MigrationAuthorizationRequest,
+    ) -> Result<(), AuthorizationError> {
+        let user = self
+            .user_repo
+            .get_by_id(request.user_id)
+            .await?
+            .ok_or(AuthorizationError::Unauthorized)?;
+
+        if user.name.to_lowercase() == request.owner_name.as_ref().to_lowercase() {
+            return Ok(());
+        }
+
+        let org = self
+            .org_repo
+            .get(request.owner_name.as_ref())
+            .await?
+            .ok_or_else(|| {
+                AuthorizationError::NotFound(format!(
+                    "Owner not found: {}",
+                    request.owner_name.as_ref()
+                ))
+            })?;
+
+        let is_member = self.org_repo.is_member(org.id, request.user_id).await?;
+        if !is_member {
             return Err(AuthorizationError::Unauthorized);
         }
 

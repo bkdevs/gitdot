@@ -4,11 +4,13 @@ mod verify_authorized_for_comment;
 mod verify_authorized_for_organization;
 mod verify_authorized_for_question;
 mod verify_authorized_for_repository;
+mod verify_authorized_for_migration;
 mod verify_authorized_for_repository_creation;
 
 pub use validate_token::{ValidateTokenRequest, ValidateTokenResponse};
 pub use verify_authorized_for_answer::AnswerAuthorizationRequest;
 pub use verify_authorized_for_comment::CommentAuthorizationRequest;
+pub use verify_authorized_for_migration::MigrationAuthorizationRequest;
 pub use verify_authorized_for_organization::OrganizationAuthorizationRequest;
 pub use verify_authorized_for_question::QuestionAuthorizationRequest;
 pub use verify_authorized_for_repository::{RepositoryAuthorizationRequest, RepositoryPermission};
