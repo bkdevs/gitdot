@@ -9,6 +9,8 @@ pub struct Build {
     pub id: Uuid,
     pub repo_owner: String,
     pub repo_name: String,
+    pub trigger: String,
+    pub commit_sha: String,
     pub task_dependencies: Json<HashMap<Uuid, Vec<Uuid>>>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,

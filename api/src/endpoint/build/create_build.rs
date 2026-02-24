@@ -1,8 +1,5 @@
-use std::collections::HashMap;
-
 use api_derive::ApiRequest;
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
 use crate::{endpoint::Endpoint, resource::BuildResource};
 
@@ -20,7 +17,8 @@ impl Endpoint for CreateBuild {
 pub struct CreateBuildRequest {
     pub repo_owner: String,
     pub repo_name: String,
-    pub task_dependencies: HashMap<Uuid, Vec<Uuid>>,
+    pub trigger: String,
+    pub commit_sha: String,
 }
 
 pub type CreateBuildResponse = BuildResource;

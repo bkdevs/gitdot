@@ -240,8 +240,10 @@ impl IntoResponse for AppError {
                 let status_code = match e {
                     BuildError::InvalidOwnerName(_) => StatusCode::BAD_REQUEST,
                     BuildError::InvalidRepositoryName(_) => StatusCode::BAD_REQUEST,
+                    BuildError::InvalidTrigger(_) => StatusCode::BAD_REQUEST,
                     BuildError::NotFound(_) => StatusCode::NOT_FOUND,
                     BuildError::ConfigNotFound(_) => StatusCode::NOT_FOUND,
+                    BuildError::NoMatchingBuildConfig => StatusCode::UNPROCESSABLE_ENTITY,
                     BuildError::InvalidConfig(_) => StatusCode::UNPROCESSABLE_ENTITY,
                     BuildError::GitError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                     BuildError::JoinError(_) => StatusCode::INTERNAL_SERVER_ERROR,

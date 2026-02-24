@@ -1,6 +1,4 @@
-use std::collections::HashMap;
-
-use uuid::Uuid;
+use gitdot_config::ci::BuildTrigger;
 
 use crate::{
     dto::common::{OwnerName, RepositoryName},
@@ -11,21 +9,24 @@ use crate::{
 pub struct CreateBuildRequest {
     pub repo_owner: OwnerName,
     pub repo_name: RepositoryName,
-    pub task_dependencies: HashMap<Uuid, Vec<Uuid>>,
+    pub trigger: BuildTrigger,
+    pub commit_sha: String,
 }
 
 impl CreateBuildRequest {
     pub fn new(
         repo_owner: &str,
         repo_name: &str,
-        task_dependencies: HashMap<Uuid, Vec<Uuid>>,
+        trigger: BuildTrigger,
+        commit_sha: String,
     ) -> Result<Self, BuildError> {
         Ok(Self {
             repo_owner: OwnerName::try_new(repo_owner)
                 .map_err(|e| BuildError::InvalidOwnerName(e.to_string()))?,
             repo_name: RepositoryName::try_new(repo_name)
                 .map_err(|e| BuildError::InvalidRepositoryName(e.to_string()))?,
-            task_dependencies,
+            trigger,
+            commit_sha,
         })
     }
 }

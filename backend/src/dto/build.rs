@@ -10,7 +10,10 @@ impl IntoApi for BuildResponse {
             id: self.id,
             repo_owner: self.repo_owner,
             repo_name: self.repo_name,
+            trigger: self.trigger,
+            commit_sha: self.commit_sha,
             task_dependencies: self.task_dependencies,
+            tasks: self.tasks.into_iter().map(|t| t.into_api()).collect(),
             created_at: self.created_at,
             updated_at: self.updated_at,
         }

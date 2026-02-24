@@ -14,6 +14,7 @@ pub trait TaskRepository: Send + Sync + Clone + 'static {
         repo: &str,
         script: &str,
         build_id: Uuid,
+        status: TaskStatus,
     ) -> Result<Task, Error>;
     async fn update_task(&self, id: Uuid, status: TaskStatus) -> Result<Task, Error>;
     async fn claim_task(&self) -> Result<Option<Task>, Error>;
@@ -68,11 +69,12 @@ impl TaskRepository for TaskRepositoryImpl {
         repo: &str,
         script: &str,
         build_id: Uuid,
+        status: TaskStatus,
     ) -> Result<Task, Error> {
         let task = sqlx::query_as::<_, Task>(
             r#"
-            INSERT INTO tasks (repo_owner, repo_name, script, build_id)
-            VALUES ($1, $2, $3, $4)
+            INSERT INTO tasks (repo_owner, repo_name, script, build_id, status)
+            VALUES ($1, $2, $3, $4, $5)
             RETURNING id, repo_owner, repo_name, build_id, script, status, created_at, updated_at
             "#,
         )
@@ -80,6 +82,7 @@ impl TaskRepository for TaskRepositoryImpl {
         .bind(repo)
         .bind(script)
         .bind(build_id)
+        .bind(status)
         .fetch_one(&self.pool)
         .await?;
 

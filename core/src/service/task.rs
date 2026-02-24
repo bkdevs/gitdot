@@ -7,6 +7,7 @@ use uuid::Uuid;
 use crate::{
     dto::{CreateTaskRequest, ListTasksRequest, TaskResponse, UpdateTaskRequest},
     error::TaskError,
+    model::TaskStatus,
     repository::{TaskRepository, TaskRepositoryImpl},
 };
 
@@ -65,6 +66,7 @@ where
                 req.repo_name.as_ref(),
                 &req.script,
                 req.build_id,
+                TaskStatus::Pending,
             )
             .await
             .map_err(TaskError::DatabaseError)?;

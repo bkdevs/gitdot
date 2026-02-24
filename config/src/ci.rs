@@ -1,4 +1,4 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::validate::ci::{self, CiConfigError};
 
@@ -16,11 +16,20 @@ impl CiConfig {
     }
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum BuildTrigger {
     PullRequest,
     PushToMain,
+}
+
+impl Into<String> for BuildTrigger {
+    fn into(self) -> String {
+        match self {
+            BuildTrigger::PullRequest => "pull_request".to_string(),
+            BuildTrigger::PushToMain => "push_to_main".to_string(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Deserialize)]

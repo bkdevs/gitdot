@@ -10,6 +10,9 @@ pub enum BuildError {
     #[error("Invalid repository name: {0}")]
     InvalidRepositoryName(String),
 
+    #[error("Invalid trigger: {0}")]
+    InvalidTrigger(String),
+
     #[error("Build not found: {0}")]
     NotFound(String),
 
@@ -18,6 +21,9 @@ pub enum BuildError {
 
     #[error("Invalid build config: {0}")]
     InvalidConfig(#[from] gitdot_config::validate::ci::CiConfigError),
+
+    #[error("No build config found for trigger")]
+    NoMatchingBuildConfig,
 
     #[error("Git error: {0}")]
     GitError(GitError),
