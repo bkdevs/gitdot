@@ -2,7 +2,7 @@ use async_trait::async_trait;
 
 use crate::{
     client::{Git2Client, GitClient},
-    dto::{BuildConfig, BuildResponse, CreateBuildRequest, GetBuildConfigRequest},
+    dto::{BuildResponse, CiConfig, CreateBuildRequest, GetBuildConfigRequest},
     error::{BuildError, GitError},
     repository::{BuildRepository, BuildRepositoryImpl},
 };
@@ -14,7 +14,7 @@ pub trait BuildService: Send + Sync + 'static {
     async fn get_build_config(
         &self,
         request: GetBuildConfigRequest,
-    ) -> Result<BuildConfig, BuildError>;
+    ) -> Result<CiConfig, BuildError>;
 }
 
 #[derive(Debug, Clone)]
@@ -56,7 +56,7 @@ where
     async fn get_build_config(
         &self,
         request: GetBuildConfigRequest,
-    ) -> Result<BuildConfig, BuildError> {
+    ) -> Result<CiConfig, BuildError> {
         let file = self
             .git_client
             .get_repo_file(
@@ -75,6 +75,6 @@ where
                 other => BuildError::GitError(other),
             })?;
 
-        toml::from_str(&file.content).map_err(BuildError::ParseError)
+        CiConfig::new(&file.content).map_err(BuildError::InvalidConfig)
     }
 }

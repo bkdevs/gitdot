@@ -9,7 +9,7 @@ use uuid::Uuid;
 
 use crate::model::Build;
 
-pub use config::{BuildConfig, BuildSpec, BuildTrigger, TaskConfig};
+pub use config::{BuildConfig, BuildTrigger, CiConfig, CiConfigError, TaskConfig};
 pub use create_build::CreateBuildRequest;
 pub use get_build_config::GetBuildConfigRequest;
 

@@ -1,4 +1,4 @@
-use gitdot_config::ci::BuildConfig;
+use gitdot_config::ci::CiConfig;
 use itertools::Either;
 use tombi_config::TomlVersion;
 use tombi_diagnostic::printer::{Pretty, Print};
@@ -48,8 +48,7 @@ async fn toml_lint(config_path: &std::path::Path, source: &str) -> anyhow::Resul
 }
 
 fn semantic_lint(config_path: &std::path::Path, source: &str) -> anyhow::Result<()> {
-    let _config: BuildConfig = toml::from_str(source)
-        .map_err(|e| anyhow::anyhow!("{}: failed to parse config: {e}", config_path.display()))?;
+    CiConfig::new(source).map_err(|e| anyhow::anyhow!("{}: {e}", config_path.display()))?;
 
     Ok(())
 }

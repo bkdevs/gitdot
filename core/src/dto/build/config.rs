@@ -1,1 +1,4 @@
-pub use gitdot_config::ci::{BuildConfig, BuildSpec, BuildTrigger, TaskConfig};
+pub use gitdot_config::{
+    ci::{BuildConfig, BuildTrigger, CiConfig, TaskConfig},
+    validate::ci::CiConfigError,
+};

@@ -1,9 +1,19 @@
 use serde::Deserialize;
 
+use crate::validate::ci::{self, CiConfigError};
+
 #[derive(Debug, Clone, Deserialize)]
-pub struct BuildConfig {
-    pub builds: Vec<BuildSpec>,
+pub struct CiConfig {
+    pub builds: Vec<BuildConfig>,
     pub tasks: Vec<TaskConfig>,
+}
+
+impl CiConfig {
+    pub fn new(toml: &str) -> Result<Self, CiConfigError> {
+        let config: CiConfig = toml::from_str(toml).map_err(CiConfigError::Parse)?;
+        ci::validate(&config)?;
+        Ok(config)
+    }
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -14,7 +24,7 @@ pub enum BuildTrigger {
 }
 
 #[derive(Debug, Clone, Deserialize)]
-pub struct BuildSpec {
+pub struct BuildConfig {
     pub trigger: BuildTrigger,
     pub tasks: Vec<String>,
 }

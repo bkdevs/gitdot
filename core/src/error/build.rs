@@ -16,8 +16,8 @@ pub enum BuildError {
     #[error(".gitdot-ci.toml not found at ref '{0}'")]
     ConfigNotFound(String),
 
-    #[error("Failed to parse build config: {0}")]
-    ParseError(#[from] toml::de::Error),
+    #[error("Invalid build config: {0}")]
+    InvalidConfig(#[from] gitdot_config::validate::ci::CiConfigError),
 
     #[error("Git error: {0}")]
     GitError(GitError),
