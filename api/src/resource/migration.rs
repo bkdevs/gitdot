@@ -23,3 +23,25 @@ pub struct GitHubRepositoryResource {
     pub private: bool,
     pub default_branch: String,
 }
+
+#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct MigrationResource {
+    pub id: Uuid,
+    pub owner_id: Uuid,
+    pub origin: String,
+    pub status: String,
+    pub repositories: Vec<MigrationRepositoryResource>,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct MigrationRepositoryResource {
+    pub id: Uuid,
+    pub repository_id: Option<Uuid>,
+    pub full_name: String,
+    pub status: String,
+    pub error: Option<String>,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
