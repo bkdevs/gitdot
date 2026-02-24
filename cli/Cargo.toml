@@ -14,6 +14,7 @@ clap = { version = "4.5.54", features = ["derive"] }
 dirs-next = "2.0.0"
 gitdot_api = { path = "../api" }
 gitdot_client = { path = "../client" }
+gitdot_config = { path = "../config" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 tokio = { workspace = true }

@@ -19,15 +19,11 @@ use tower_http::{
     trace::TraceLayer,
 };
 
-#[cfg(feature = "main")]
 use crate::handler::{
-    create_git_http_router, create_internal_router, create_migration_router, create_oauth_router,
-    create_organization_router, create_question_router, create_repository_router,
-    create_user_router,
+    create_build_router, create_git_http_router, create_internal_router, create_migration_router,
+    create_oauth_router, create_organization_router, create_question_router,
+    create_repository_router, create_runner_router, create_task_router, create_user_router,
 };
-
-#[cfg(feature = "ci")]
-use crate::handler::{create_build_router, create_runner_router, create_task_router};
 
 pub use app_state::AppState;
 pub use error::AppError;
@@ -78,35 +74,24 @@ fn create_router(app_state: AppState) -> Router {
         ))
         .layer(PropagateRequestIdLayer::x_request_id());
 
-    let mut api_router = Router::new();
-    let mut git_router = Router::new();
-    let mut internal_router = Router::new();
-
-    #[cfg(feature = "main")]
-    {
-        api_router = api_router
-            .merge(create_user_router())
-            .merge(create_organization_router())
-            .merge(create_repository_router())
-            .merge(create_question_router())
-            .merge(create_oauth_router())
-            .merge(create_migration_router());
-        git_router = git_router.merge(create_git_http_router());
-        internal_router = internal_router.merge(create_internal_router());
-    }
-
-    #[cfg(feature = "ci")]
-    {
-        api_router = api_router.nest(
+    let api_router = Router::new()
+        .merge(create_user_router())
+        .merge(create_organization_router())
+        .merge(create_repository_router())
+        .merge(create_question_router())
+        .merge(create_oauth_router())
+        .merge(create_migration_router())
+        .nest(
             "/ci",
             Router::new()
                 .merge(create_runner_router())
                 .merge(create_build_router())
                 .merge(create_task_router()),
-        );
-    }
+        )
+        .layer(api_middleware);
 
-    let api_router = api_router.layer(api_middleware);
+    let git_router = Router::new().merge(create_git_http_router());
+    let internal_router = Router::new().merge(create_internal_router());
 
     Router::new()
         .route("/health", get(|| async { "OK" }))

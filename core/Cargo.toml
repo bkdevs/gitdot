@@ -24,6 +24,7 @@ sqlx = { workspace = true }
 tempfile = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true }
+gitdot_config = { path = "../config" }
 toml = "1.0.3"
 uuid = { workspace = true }
 

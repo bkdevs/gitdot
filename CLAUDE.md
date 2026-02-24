@@ -57,13 +57,6 @@ Handler (backend) → Service (core) → Repository (core) → PostgreSQL (sqlx)
 - **Repositories** are the data access layer, also trait-based
 - **DTOs** flow between layers; `IntoApi` converts core DTOs to API resource types
 
-### Feature Flags
-The backend uses cargo features `main` and `ci` (both on by default):
-- `main` — Core platform: git HTTP, repos, users, orgs, questions, oauth
-- `ci` — CI/CD: runners, builds, tasks
-
-Feature gates only live in `app.rs` (routing) and `app_state.rs` (service construction).
-
 ### Git HTTP Protocol
 The backend implements smart HTTP git protocol by shelling out to `git http-backend` CGI. Repos are stored as bare git repos under `GIT_PROJECT_ROOT`.
 

@@ -1145,6 +1145,7 @@ dependencies = [
  "dirs-next",
  "gitdot_api",
  "gitdot_client",
+ "gitdot_config",
  "itertools",
  "serde",
  "serde_json",
@@ -1170,6 +1171,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "gitdot_config"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "toml 0.9.11+spec-1.1.0",
+]
+
+[[package]]
 name = "gitdot_core"
 version = "0.1.0"
 dependencies = [
@@ -1180,6 +1189,7 @@ dependencies = [
  "crc32fast",
  "futures",
  "git2",
+ "gitdot_config",
  "hex",
  "jsonwebtoken",
  "mockall",
