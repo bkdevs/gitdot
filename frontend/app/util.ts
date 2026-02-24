@@ -162,3 +162,7 @@ export function validatePassword(password: string): boolean {
 export function delay<T>(ms: number, value: T): Promise<T> {
   return new Promise((resolve) => setTimeout(() => resolve(value), ms));
 }
+
+export function githubAppInstallUrl(state: string): string {
+  return `https://github.com/apps/gitdot-app/installations/new?state=${encodeURIComponent(state)}`;
+}

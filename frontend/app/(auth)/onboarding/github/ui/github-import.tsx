@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "@/ui/link";
+import { githubAppInstallUrl } from "@/util";
 
 export function GitHubImport() {
   return (
@@ -12,7 +13,7 @@ export function GitHubImport() {
         </p>
 
         <a
-          href="https://github.com/apps/gitdot-app/installations/new?state=onboarding"
+          href={githubAppInstallUrl("onboarding")}
           className="flex items-center justify-center gap-2 border border-border py-1.5 hover:bg-gray-50 transition-colors duration-150"
         >
           <Image src="/github-logo.svg" alt="GitHub" width={16} height={16} />

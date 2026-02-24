@@ -1,11 +1,28 @@
-import Link from "@/ui/link";
+"use client";
+
+import { useState } from "react";
 import type { GitHubRepositoryListResponse } from "@/lib/dto/migration";
+import Link from "@/ui/link";
 
 export function RepositorySelect({
   repositories,
 }: {
   repositories: GitHubRepositoryListResponse | null;
 }) {
+  const [selectedRepos, setSelectedRepos] = useState<Set<string>>(new Set());
+
+  function toggleRepo(name: string) {
+    setSelectedRepos((prev) => {
+      const next = new Set(prev);
+      if (next.has(name)) {
+        next.delete(name);
+      } else {
+        next.add(name);
+      }
+      return next;
+    });
+  }
+
   return (
     <div className="max-w-3xl mx-auto flex gap-4 items-center justify-center h-screen">
       <div className="flex flex-col text-sm w-sm">
@@ -15,13 +32,22 @@ export function RepositorySelect({
         </p>
 
         {repositories && repositories.length > 0 ? (
-          <ul className="flex flex-col border border-border divide-y divide-border">
+          <ul className="border border-border rounded divide-y divide-border max-h-64 overflow-y-auto">
             {repositories.map((repo) => (
-              <li key={repo.id} className="flex items-center gap-3 px-3 py-2">
-                <span className="flex-1 truncate">{repo.full_name}</span>
-                {repo.private && (
-                  <span className="text-xs text-primary/40">private</span>
-                )}
+              <li key={repo.id}>
+                <label className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-accent/50">
+                  <input
+                    type="checkbox"
+                    name="repositories"
+                    value={repo.full_name}
+                    checked={selectedRepos.has(repo.full_name)}
+                    onChange={() => toggleRepo(repo.full_name)}
+                  />
+                  <span className="flex-1 truncate">{repo.full_name}</span>
+                  {repo.private && (
+                    <span className="text-xs text-primary/40">private</span>
+                  )}
+                </label>
               </li>
             ))}
           </ul>
