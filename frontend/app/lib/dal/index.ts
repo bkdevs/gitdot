@@ -1,5 +1,6 @@
 import "server-only";
 
+export * from "./migration";
 export * from "./oauth";
 export * from "./question";
 export * from "./repository";

@@ -1,3 +1,4 @@
+export * from "./migration";
 export * from "./oauth";
 export * from "./organization";
 export * from "./question";
