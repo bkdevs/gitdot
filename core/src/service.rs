@@ -1,4 +1,5 @@
 mod authorization;
+mod ci;
 mod commit;
 mod dag;
 mod git_http;
@@ -12,6 +13,7 @@ mod task;
 mod user;
 
 pub use authorization::{AuthorizationService, AuthorizationServiceImpl};
+pub use ci::{CiService, CiServiceImpl};
 pub use commit::{CommitService, CommitServiceImpl};
 pub use dag::{DagService, DagServiceImpl};
 pub use git_http::{GitHttpService, GitHttpServiceImpl};

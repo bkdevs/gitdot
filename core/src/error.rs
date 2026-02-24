@@ -1,4 +1,5 @@
 mod authorization;
+mod ci;
 mod commit;
 mod dag;
 mod diff;
@@ -15,6 +16,7 @@ mod token;
 mod user;
 
 pub use authorization::AuthorizationError;
+pub use ci::CiConfigError;
 pub use commit::CommitError;
 pub use dag::DagError;
 pub use diff::DiffError;

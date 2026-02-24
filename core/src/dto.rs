@@ -1,4 +1,5 @@
 mod authorization;
+mod ci;
 mod commit;
 mod dag;
 mod git_http;
@@ -18,6 +19,7 @@ use common::*;
 
 /// Re-export to expose flattened namespace to public
 pub use authorization::*;
+pub use ci::*;
 pub use commit::*;
 pub use dag::*;
 pub use git_http::*;
