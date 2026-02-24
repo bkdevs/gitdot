@@ -5,7 +5,11 @@
   "description": "Configuration schema for gitdot.toml CI/CD pipelines",
   "type": "object",
   "additionalProperties": false,
-  "required": ["pull_request", "push_to_main", "tasks"],
+  "required": ["tasks"],
+  "anyOf": [
+    { "required": ["pull_request"] },
+    { "required": ["push_to_main"] }
+  ],
   "properties": {
     "pull_request": {
       "type": "object",

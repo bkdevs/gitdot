@@ -1,6 +1,7 @@
 const CONFIG_FILENAME: &str = ".gitdot-ci.toml";
 
-const TEMPLATE: &str = r#"[pull_request]
+const TEMPLATE: &str = r#"#:schema https://www.gitdot.io/schema/gitdot-ci.json
+[pull_request]
 tasks = ["build", "lint", "test"]
 
 [[tasks]]
