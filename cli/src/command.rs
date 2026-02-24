@@ -3,10 +3,10 @@ pub mod auth;
 #[cfg(feature = "main")]
 use auth::AuthArgs;
 
-#[cfg(feature = "ci")]
-pub mod ci;
-#[cfg(feature = "ci")]
-use ci::CiArgs;
+#[cfg(feature = "runner")]
+pub mod runner;
+#[cfg(feature = "runner")]
+use runner::RunnerArgs;
 
 use clap::Parser;
 
@@ -17,7 +17,7 @@ pub enum Args {
     /// Manage authentication credentials for gitdot account
     Auth(AuthArgs),
 
-    #[cfg(feature = "ci")]
-    /// CI commands
-    Ci(CiArgs),
+    #[cfg(feature = "runner")]
+    /// Install, configure, and manage the gitdot runner
+    Runner(RunnerArgs),
 }

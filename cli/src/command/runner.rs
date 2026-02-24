@@ -14,13 +14,13 @@ use clap::{Parser, Subcommand};
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 #[command(arg_required_else_help = true)]
-pub struct CiArgs {
+pub struct RunnerArgs {
     #[command(subcommand)]
-    pub command: CiCommand,
+    pub command: RunnerCommand,
 }
 
 #[derive(Subcommand, Debug)]
-pub enum CiCommand {
+pub enum RunnerCommand {
     /// Install the runner daemon
     Install {},
 
@@ -34,13 +34,13 @@ pub enum CiCommand {
     Stop {},
 }
 
-impl CiCommand {
+impl RunnerCommand {
     pub async fn execute(&self, config: RunnerConfig) -> anyhow::Result<()> {
         match self {
-            CiCommand::Install {} => install(config).await,
-            CiCommand::Run {} => run(config).await,
-            CiCommand::Start {} => start().await,
-            CiCommand::Stop {} => stop().await,
+            RunnerCommand::Install {} => install(config).await,
+            RunnerCommand::Run {} => run(config).await,
+            RunnerCommand::Start {} => start().await,
+            RunnerCommand::Stop {} => stop().await,
         }
     }
 }

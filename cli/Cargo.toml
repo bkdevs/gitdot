@@ -9,9 +9,9 @@ name = "gitdot"
 path = "src/bin/main.rs"
 
 [features]
-default = ["main", "ci"]
+default = ["main", "runner"]
 main = []
-ci = []
+runner = []
 
 [dependencies]
 anyhow = { workspace = true }

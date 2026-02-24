@@ -7,10 +7,10 @@ pub async fn run(args: &Args) -> anyhow::Result<()> {
             let config = crate::config::UserConfig::load().await?;
             auth_args.command.execute(config).await
         }
-        #[cfg(feature = "ci")]
-        Args::Ci(ci_args) => {
+        #[cfg(feature = "runner")]
+        Args::Runner(runner_args) => {
             let config = crate::config::RunnerConfig::load()?;
-            ci_args.command.execute(config).await
+            runner_args.command.execute(config).await
         }
     }
 }
