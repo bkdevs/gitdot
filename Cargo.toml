@@ -1,14 +1,14 @@
 [workspace]
-members = ["api", "api_derive","backend", "cli", "client", "core"]
 resolver = "3"
+members = ["api", "api_derive", "backend", "cli", "client", "core"]
 
 [workspace.dependencies]
 anyhow = "1.0.100"
 async-trait = "0.1.89"
 base62 = "2.2.3"
 base64 = "0.22"
-crc32fast = "1.4"
 chrono = { version = "0.4.42", features = ["serde"] }
+crc32fast = "1.4"
 futures = "0.3.32"
 git2 = "0.20.3"
 hex = "0.4.3"
@@ -19,10 +19,16 @@ nutype = { version = "0.6.2", features = ["serde"] }
 rand = "0.9.2"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0.149"
-tempfile = "3.24.0"
 sha2 = "0.10.9"
-sqlx = { version = "0.8.6", features = ["runtime-tokio", "postgres", "uuid", "chrono", "json"] }
+sqlx = { version = "0.8.6", features = [
+  "chrono",
+  "json",
+  "postgres",
+  "runtime-tokio",
+  "uuid"
+] }
+tempfile = "3.24.0"
 thiserror = "2.0.17"
 tokio = { version = "1", features = ["full"] }
 tokio-util = { version = "0.7.18", features = ["io"] }
-uuid = { version = "1.19.0", features = ["v4", "serde"] }
+uuid = { version = "1.19.0", features = ["serde", "v4"] }

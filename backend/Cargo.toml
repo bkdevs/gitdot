@@ -7,11 +7,6 @@ edition = "2024"
 name = "gitdot_server"
 path = "src/bin/main.rs"
 
-[features]
-default = ["main", "ci"]
-main = []
-ci = []
-
 [dependencies]
 anyhow = { workspace = true }
 async-trait = { workspace = true }
@@ -33,7 +28,17 @@ thiserror = { workspace = true }
 tokio = { workspace = true }
 tokio-util = { workspace = true }
 tower = "0.5.2"
-tower-http = { version = "0.6.8", features = ["cors", "request-id", "timeout", "trace"] }
+tower-http = { version = "0.6.8", features = [
+  "cors",
+  "request-id",
+  "timeout",
+  "trace"
+] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 uuid = { workspace = true }
+
+[features]
+default = ["ci", "main"]
+ci = []
+main = []
