@@ -8,6 +8,7 @@ pub struct GitHubInstallation {
     pub installation_id: i64,
     pub owner_id: Uuid,
     pub r#type: GitHubInstallationType,
+    pub github_login: String,
     pub created_at: DateTime<Utc>,
 }
 

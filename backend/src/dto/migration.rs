@@ -17,6 +17,7 @@ impl IntoApi for GitHubInstallationResponse {
                 GitHubInstallationType::User => "user".to_string(),
                 GitHubInstallationType::Organization => "organization".to_string(),
             },
+            github_login: self.github_login,
             created_at: self.created_at,
         }
     }

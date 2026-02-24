@@ -5,6 +5,7 @@ export const GitHubInstallationResponseSchema = z.object({
   installation_id: z.number(),
   owner_id: z.uuid(),
   installation_type: z.string(),
+  github_login: z.string(),
   created_at: z.string(),
 });
 

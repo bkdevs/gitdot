@@ -10,6 +10,7 @@ pub struct GitHubInstallationResource {
     pub installation_id: i64,
     pub owner_id: Uuid,
     pub installation_type: String,
+    pub github_login: String,
     pub created_at: DateTime<Utc>,
 }
 

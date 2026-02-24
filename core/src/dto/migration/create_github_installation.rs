@@ -24,6 +24,7 @@ pub struct GitHubInstallationResponse {
     pub installation_id: i64,
     pub owner_id: Uuid,
     pub installation_type: GitHubInstallationType,
+    pub github_login: String,
     pub created_at: DateTime<Utc>,
 }
 
@@ -34,6 +35,7 @@ impl From<GitHubInstallation> for GitHubInstallationResponse {
             installation_id: i.installation_id,
             owner_id: i.owner_id,
             installation_type: i.r#type,
+            github_login: i.github_login,
             created_at: i.created_at,
         }
     }

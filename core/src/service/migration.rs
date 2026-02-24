@@ -65,7 +65,12 @@ where
 
         let installation = self
             .github_repo
-            .create(request.installation_id, request.owner_id, installation_type)
+            .create(
+                request.installation_id,
+                request.owner_id,
+                installation_type,
+                &installation.account.login,
+            )
             .await?;
 
         Ok(installation.into())
