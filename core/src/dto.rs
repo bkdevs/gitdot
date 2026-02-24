@@ -1,7 +1,6 @@
 mod authorization;
-mod ci;
-mod commit;
 mod build;
+mod commit;
 mod git_http;
 mod migration;
 mod oauth;
@@ -19,9 +18,8 @@ use common::*;
 
 /// Re-export to expose flattened namespace to public
 pub use authorization::*;
-pub use ci::*;
-pub use commit::*;
 pub use build::*;
+pub use commit::*;
 pub use git_http::*;
 pub use migration::*;
 pub use oauth::*;

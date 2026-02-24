@@ -1,6 +1,6 @@
+mod build;
 mod code;
 mod commit;
-mod build;
 mod github;
 mod migration;
 mod organization;
@@ -11,9 +11,9 @@ mod task;
 mod token;
 mod user;
 
+pub use build::*;
 pub use code::*;
 pub use commit::*;
-pub use build::*;
 pub use github::*;
 pub use migration::*;
 pub use organization::*;

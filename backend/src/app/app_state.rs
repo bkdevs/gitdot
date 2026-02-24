@@ -18,21 +18,19 @@ use gitdot_core::{
 cfg_use!("main", {
     use gitdot_core::{
         client::{DifftClient, Git2Client, GitHttpClientImpl, OctocrabClient},
-        repository::CommitRepositoryImpl,
+        repository::{BuildRepositoryImpl, CommitRepositoryImpl},
         service::{
-            CommitService, CommitServiceImpl, GitHttpService, GitHttpServiceImpl, QuestionService,
-            QuestionServiceImpl, RepositoryService, RepositoryServiceImpl,
+            BuildService, BuildServiceImpl, CommitService, CommitServiceImpl, GitHttpService,
+            GitHttpServiceImpl, QuestionService, QuestionServiceImpl, RepositoryService,
+            RepositoryServiceImpl,
         },
     };
 });
 
 cfg_use!("ci", {
     use gitdot_core::{
-        repository::{BuildRepositoryImpl, RunnerRepositoryImpl, TaskRepositoryImpl},
-        service::{
-            BuildService, BuildServiceImpl, RunnerService, RunnerServiceImpl, TaskService,
-            TaskServiceImpl,
-        },
+        repository::{RunnerRepositoryImpl, TaskRepositoryImpl},
+        service::{RunnerService, RunnerServiceImpl, TaskService, TaskServiceImpl},
     };
 });
 
@@ -58,11 +56,11 @@ pub struct AppState {
     pub commit_service: Arc<dyn CommitService>,
     #[cfg(feature = "main")]
     pub migration_service: Arc<dyn MigrationService>,
+    #[cfg(feature = "main")]
+    pub build_service: Arc<dyn BuildService>,
 
     #[cfg(feature = "ci")]
     pub runner_service: Arc<dyn RunnerService>,
-    #[cfg(feature = "ci")]
-    pub build_service: Arc<dyn BuildService>,
     #[cfg(feature = "ci")]
     pub task_service: Arc<dyn TaskService>,
 }
@@ -85,6 +83,8 @@ impl AppState {
         #[cfg(feature = "main")]
         let commit_repo = CommitRepositoryImpl::new(pool.clone());
         #[cfg(feature = "main")]
+        let build_repo = BuildRepositoryImpl::new(pool.clone());
+        #[cfg(feature = "main")]
         let github_repo = GitHubRepositoryImpl::new(pool.clone());
         #[cfg(feature = "main")]
         let github_client = OctocrabClient::new(
@@ -94,8 +94,6 @@ impl AppState {
 
         #[cfg(feature = "ci")]
         let runner_repo = RunnerRepositoryImpl::new(pool.clone());
-        #[cfg(feature = "ci")]
-        let build_repo = BuildRepositoryImpl::new(pool.clone());
         #[cfg(feature = "ci")]
         let task_repo = TaskRepositoryImpl::new(pool.clone());
 
@@ -151,6 +149,11 @@ impl AppState {
                 github_repo.clone(),
                 github_client.clone(),
             )),
+            #[cfg(feature = "main")]
+            build_service: Arc::new(BuildServiceImpl::new(
+                build_repo.clone(),
+                git_client.clone(),
+            )),
 
             #[cfg(feature = "ci")]
             runner_service: Arc::new(RunnerServiceImpl::new(
@@ -158,8 +161,6 @@ impl AppState {
                 org_repo.clone(),
                 token_repo.clone(),
             )),
-            #[cfg(feature = "ci")]
-            build_service: Arc::new(BuildServiceImpl::new(build_repo.clone())),
             #[cfg(feature = "ci")]
             task_service: Arc::new(TaskServiceImpl::new(task_repo.clone())),
         }

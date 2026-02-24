@@ -1,6 +1,6 @@
+mod build;
 mod code;
 mod commit;
-mod build;
 mod github;
 mod organization;
 mod question;
@@ -10,9 +10,9 @@ mod task;
 mod token;
 mod user;
 
+pub use build::{BuildRepository, BuildRepositoryImpl};
 pub use code::{CodeRepository, CodeRepositoryImpl};
 pub use commit::{CommitRepository, CommitRepositoryImpl};
-pub use build::{BuildRepository, BuildRepositoryImpl};
 pub use github::{GitHubRepository, GitHubRepositoryImpl};
 pub use organization::{OrganizationRepository, OrganizationRepositoryImpl};
 pub use question::{QuestionRepository, QuestionRepositoryImpl};

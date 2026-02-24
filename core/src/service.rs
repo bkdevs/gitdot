@@ -1,7 +1,6 @@
 mod authorization;
-mod ci;
-mod commit;
 mod build;
+mod commit;
 mod git_http;
 mod migration;
 mod oauth;
@@ -13,9 +12,8 @@ mod task;
 mod user;
 
 pub use authorization::{AuthorizationService, AuthorizationServiceImpl};
-pub use ci::{CiService, CiServiceImpl};
-pub use commit::{CommitService, CommitServiceImpl};
 pub use build::{BuildService, BuildServiceImpl};
+pub use commit::{CommitService, CommitServiceImpl};
 pub use git_http::{GitHttpService, GitHttpServiceImpl};
 pub use migration::{MigrationService, MigrationServiceImpl};
 pub use oauth::{OAuthService, OAuthServiceImpl};

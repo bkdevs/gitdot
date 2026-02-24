@@ -1,4 +1,6 @@
+mod config;
 mod create_build;
+mod get_build_config;
 
 use std::collections::HashMap;
 
@@ -7,7 +9,9 @@ use uuid::Uuid;
 
 use crate::model::Build;
 
+pub use config::{BuildConfig, BuildSpec, BuildTrigger, TaskConfig};
 pub use create_build::CreateBuildRequest;
+pub use get_build_config::GetBuildConfigRequest;
 
 #[derive(Debug, Clone)]
 pub struct BuildResponse {

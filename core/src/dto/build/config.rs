@@ -1,8 +1,8 @@
 use serde::Deserialize;
 
 #[derive(Debug, Clone, Deserialize)]
-pub struct CiConfig {
-    pub builds: Vec<BuildConfig>,
+pub struct BuildConfig {
+    pub builds: Vec<BuildSpec>,
     pub tasks: Vec<TaskConfig>,
 }
 
@@ -14,7 +14,7 @@ pub enum BuildTrigger {
 }
 
 #[derive(Debug, Clone, Deserialize)]
-pub struct BuildConfig {
+pub struct BuildSpec {
     pub trigger: BuildTrigger,
     pub tasks: Vec<String>,
 }

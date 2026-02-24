@@ -241,6 +241,10 @@ impl IntoResponse for AppError {
                     BuildError::InvalidOwnerName(_) => StatusCode::BAD_REQUEST,
                     BuildError::InvalidRepositoryName(_) => StatusCode::BAD_REQUEST,
                     BuildError::NotFound(_) => StatusCode::NOT_FOUND,
+                    BuildError::ConfigNotFound(_) => StatusCode::NOT_FOUND,
+                    BuildError::ParseError(_) => StatusCode::UNPROCESSABLE_ENTITY,
+                    BuildError::GitError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+                    BuildError::JoinError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                     BuildError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                 };
                 let response = AppResponse::new(
