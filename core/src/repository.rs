@@ -1,6 +1,7 @@
 mod code;
 mod commit;
 mod dag;
+mod github;
 mod organization;
 mod question;
 mod repository;
@@ -12,6 +13,7 @@ mod user;
 pub use code::{CodeRepository, CodeRepositoryImpl};
 pub use commit::{CommitRepository, CommitRepositoryImpl};
 pub use dag::{DagRepository, DagRepositoryImpl};
+pub use github::{GitHubRepository, GitHubRepositoryImpl};
 pub use organization::{OrganizationRepository, OrganizationRepositoryImpl};
 pub use question::{QuestionRepository, QuestionRepositoryImpl};
 pub use repository::{RepositoryRepository, RepositoryRepositoryImpl};
