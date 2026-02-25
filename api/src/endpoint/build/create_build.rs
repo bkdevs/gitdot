@@ -1,4 +1,3 @@
-use api_derive::ApiRequest;
 use serde::{Deserialize, Serialize};
 
 use crate::{endpoint::Endpoint, resource::BuildResource};

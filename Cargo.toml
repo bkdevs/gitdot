@@ -2,7 +2,7 @@
 resolver = "3"
 members = [
   "api",
-  "api/api_derive",
+  "api/derive",
   "backend",
   "cli",
   "client",

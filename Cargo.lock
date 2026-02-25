@@ -119,14 +119,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a23eb6b1614318a8071c9b2521f36b424b2c83db5eb3a0fead4a6c0809af6e61"
 
 [[package]]
-name = "api_derive"
-version = "0.1.0"
-dependencies = [
- "quote",
- "syn 2.0.114",
-]
-
-[[package]]
 name = "arc-swap"
 version = "1.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2215,12 +2207,20 @@ dependencies = [
 name = "gitdot_api"
 version = "0.1.0"
 dependencies = [
- "api_derive",
  "chrono",
+ "gitdot_api_derive",
  "http 1.4.0",
  "serde",
  "serde_json",
  "uuid",
+]
+
+[[package]]
+name = "gitdot_api_derive"
+version = "0.1.0"
+dependencies = [
+ "quote",
+ "syn 2.0.114",
 ]
 
 [[package]]

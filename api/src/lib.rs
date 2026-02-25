@@ -1,3 +1,6 @@
+#[macro_use]
+extern crate gitdot_api_derive;
+
 pub mod endpoint;
 pub mod resource;
 

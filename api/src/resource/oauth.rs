@@ -1,7 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-use api_derive::ApiResource;
-
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DeviceCodeResource {
     pub device_code: String,

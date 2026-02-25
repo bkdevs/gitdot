@@ -1,7 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-use api_derive::ApiRequest;
-
 use crate::{endpoint::Endpoint, resource::BuildResource};
 
 pub struct ListBuilds;
