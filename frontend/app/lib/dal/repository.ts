@@ -19,6 +19,7 @@ import {
   type RepositoryFileCommitsQuery,
   type RepositoryFileQuery,
   RepositoryFileSchema,
+  RepositoryPermissionResponseSchema,
   type RepositoryPreview,
   type RepositoryPreviewQuery,
   RepositoryPreviewSchema,
@@ -150,4 +151,32 @@ export async function getRepositoryPreview(
   if (response.status === 404) return NotFound;
 
   return await handleResponse(response, RepositoryPreviewSchema);
+}
+
+export async function getRepositoryPermission(
+  owner: string,
+  repo: string,
+): Promise<string | null> {
+  try {
+    const response = await authFetch(
+      `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/permission`,
+    );
+    if (!response.ok) return null;
+
+    const data = await handleResponse(
+      response,
+      RepositoryPermissionResponseSchema,
+    );
+    return data?.permission ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function isRepositoryAdmin(
+  owner: string,
+  repo: string,
+): Promise<boolean> {
+  const permission = await getRepositoryPermission(owner, repo);
+  return permission === "admin";
 }

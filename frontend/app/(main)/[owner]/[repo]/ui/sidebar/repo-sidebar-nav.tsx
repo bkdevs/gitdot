@@ -12,11 +12,16 @@ export function RepoSidebarNav({
   owner,
   repo,
   currentPath,
+  showSettings,
 }: {
   owner: string;
   repo: string;
   currentPath: string;
+  showSettings?: boolean;
 }) {
+  const items = showSettings
+    ? [...navItems, { path: "settings", label: "/settings" }]
+    : navItems;
   const isActive = (itemPath: string) => {
     if (itemPath === "") {
       return currentPath === "/" || currentPath === "";
@@ -28,7 +33,7 @@ export function RepoSidebarNav({
 
   return (
     <div className="flex flex-col w-full">
-      {navItems.map((item) => {
+      {items.map((item) => {
         const active = isActive(item.path);
         return (
           <Link

@@ -2,6 +2,7 @@ import {
   getRepositoryCommits,
   getRepositoryPreview,
   getRepositoryTree,
+  isRepositoryAdmin,
   NotFound,
 } from "@/lib/dal";
 import { RepoDialogs } from "./ui/dialog/repo-dialogs";
@@ -17,9 +18,10 @@ export default async function Layout({
 }>) {
   const { owner, repo } = await params;
 
-  const [tree, commits] = await Promise.all([
+  const [tree, commits, isAdmin] = await Promise.all([
     getRepositoryTree(owner, repo),
     getRepositoryCommits(owner, repo),
+    isRepositoryAdmin(owner, repo),
   ]);
 
   if (!tree || !commits) {
@@ -55,6 +57,7 @@ export default async function Layout({
           folders={folders}
           entries={entries}
           commits={commits?.commits ?? []}
+          showSettings={isAdmin}
         />
         <div className="flex-1 min-w-0 overflow-auto scrollbar-thin">
           {children}

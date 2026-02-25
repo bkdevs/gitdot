@@ -205,3 +205,11 @@ export const RepositoryPreviewSchema = z.object({
 });
 
 export type RepositoryPreview = z.infer<typeof RepositoryPreviewSchema>;
+
+export const RepositoryPermissionResponseSchema = z.object({
+  permission: z.string(),
+});
+
+export type RepositoryPermissionResponse = z.infer<
+  typeof RepositoryPermissionResponseSchema
+>;

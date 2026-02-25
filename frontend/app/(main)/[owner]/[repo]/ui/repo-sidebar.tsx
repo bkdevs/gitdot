@@ -15,12 +15,14 @@ export function RepoSidebar({
   folders,
   entries,
   commits,
+  showSettings,
 }: {
   owner: string;
   repo: string;
   folders: Map<string, string[]>;
   entries: Map<string, RepositoryTreeEntry>;
   commits: RepositoryCommit[];
+  showSettings?: boolean;
 }) {
   const pathname = usePathname();
   const path = pathname.replace(`/${owner}/${repo}`, "") || "/";
@@ -38,7 +40,9 @@ export function RepoSidebar({
       path === "/questions" ||
       path.startsWith("/questions/") ||
       path === "/builds" ||
-      path.startsWith("/builds/");
+      path.startsWith("/builds/") ||
+      path === "/settings" ||
+      path.startsWith("/settings/");
 
     if (!isNavRoute && path !== "/") {
       const currentPath = path.slice(1);
@@ -53,7 +57,14 @@ export function RepoSidebar({
       );
     }
 
-    return <RepoSidebarNav owner={owner} repo={repo} currentPath={path} />;
+    return (
+      <RepoSidebarNav
+        owner={owner}
+        repo={repo}
+        currentPath={path}
+        showSettings={showSettings}
+      />
+    );
   };
 
   return (
