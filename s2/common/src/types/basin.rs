@@ -75,7 +75,6 @@ impl<T: StrProps> BasinNameStr<T> {
     }
 }
 
-
 impl<T: StrProps> serde::Serialize for BasinNameStr<T> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where

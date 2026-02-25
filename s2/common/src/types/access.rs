@@ -37,7 +37,6 @@ impl<T: StrProps> AccessTokenIdStr<T> {
     }
 }
 
-
 impl<T: StrProps> serde::Serialize for AccessTokenIdStr<T> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where

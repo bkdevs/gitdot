@@ -13,7 +13,6 @@ pub struct FencingTokenTooLongError(pub usize);
 #[derive(Debug, Default, Clone, PartialEq, Eq, Hash)]
 pub struct FencingToken(CompactString);
 
-
 impl serde::Serialize for FencingToken {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where

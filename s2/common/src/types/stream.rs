@@ -43,7 +43,6 @@ impl<T: StrProps> StreamNameStr<T> {
     }
 }
 
-
 impl<T: StrProps> serde::Serialize for StreamNameStr<T> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where

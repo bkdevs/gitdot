@@ -13,9 +13,8 @@ use crate::{
     types::{
         AccessTokenId, AccessTokenInfo, AppendAck, AppendInput, BasinConfig, BasinInfo, BasinName,
         BasinState, CreateBasinInput, CreateStreamInput, DeleteBasinInput, DeleteStreamInput,
-        IssueAccessTokenInput,
-        ListAccessTokensInput, ListAllAccessTokensInput, ListAllBasinsInput, ListAllStreamsInput,
-        ListBasinsInput, ListStreamsInput, Page, ReadBatch, ReadInput,
+        IssueAccessTokenInput, ListAccessTokensInput, ListAllAccessTokensInput, ListAllBasinsInput,
+        ListAllStreamsInput, ListBasinsInput, ListStreamsInput, Page, ReadBatch, ReadInput,
         ReconfigureBasinInput, ReconfigureStreamInput, S2Config, S2Error, StreamConfig, StreamInfo,
         StreamName, StreamPosition, Streaming,
     },
@@ -219,7 +218,6 @@ impl S2 {
     pub async fn revoke_access_token(&self, id: AccessTokenId) -> Result<(), S2Error> {
         Ok(self.client.revoke_access_token(id).await?)
     }
-
 }
 
 #[derive(Debug, Clone)]

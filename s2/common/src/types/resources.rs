@@ -140,7 +140,6 @@ pub struct RequestTokenTooLongError(pub usize);
 #[derive(Debug, Default, Clone, PartialEq, Eq, Hash)]
 pub struct RequestToken(CompactString);
 
-
 impl serde::Serialize for RequestToken {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
