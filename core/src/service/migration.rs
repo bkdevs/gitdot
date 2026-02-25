@@ -127,6 +127,7 @@ where
         owner_id: Uuid,
         owner_type: &RepositoryOwnerType,
         full_name: &str,
+        visibility: &RepositoryVisibility,
         token: &str,
     ) -> Result<(Repository, Option<String>), MigrationError> {
         let repo_name = full_name
@@ -147,7 +148,7 @@ where
             .await?;
 
         let result = self
-            .setup_mirrored_repository(owner_name, repo_name, owner_id, owner_type)
+            .setup_mirrored_repository(owner_name, repo_name, owner_id, owner_type, visibility)
             .await;
         if result.is_err() {
             let _ = self.git_client.delete_repo(owner_name, repo_name).await;
@@ -162,6 +163,7 @@ where
         repo_name: &str,
         owner_id: Uuid,
         owner_type: &RepositoryOwnerType,
+        visibility: &RepositoryVisibility,
     ) -> Result<(Repository, Option<String>), MigrationError> {
         self.git_client.empty_hooks(owner_name, repo_name).await?;
         self.git_client
@@ -175,13 +177,7 @@ where
 
         let repository = self
             .repo_repo
-            .create(
-                repo_name,
-                owner_id,
-                owner_name,
-                owner_type,
-                &RepositoryVisibility::Public,
-            )
+            .create(repo_name, owner_id, owner_name, owner_type, visibility)
             .await?;
 
         let head_sha = self
@@ -292,6 +288,23 @@ where
             }
         };
 
+        let github_repos = self
+            .github_client
+            .list_installation_repositories(request.installation_id as u64)
+            .await?;
+        let visibility_map: std::collections::HashMap<String, RepositoryVisibility> = github_repos
+            .repositories
+            .iter()
+            .map(|r| {
+                let visibility = if r.private.unwrap_or(false) {
+                    RepositoryVisibility::Private
+                } else {
+                    RepositoryVisibility::Public
+                };
+                (r.name.clone(), visibility)
+            })
+            .collect();
+
         let migration = self
             .migration_repo
             .create(
@@ -308,12 +321,17 @@ where
         for name in &request.repositories {
             let origin_full_name = format!("{}/{}", request.origin, name);
             let destination_full_name = format!("{}/{}", request.destination.as_ref(), name);
+            let visibility = visibility_map
+                .get(name)
+                .cloned()
+                .unwrap_or(RepositoryVisibility::Public);
             let migration_repository = self
                 .migration_repo
                 .create_migration_repository(
                     migration.id,
                     &origin_full_name,
                     &destination_full_name,
+                    &visibility,
                 )
                 .await?;
             repositories.push(migration_repository);
@@ -352,6 +370,7 @@ where
             let owner_type = request.owner_type.clone();
             let migration_repo_id = migration_repo_entry.id;
             let full_name = migration_repo_entry.origin_full_name.clone();
+            let visibility = migration_repo_entry.visibility.clone();
 
             let handle = tokio::spawn(async move {
                 let _ = service
@@ -369,6 +388,7 @@ where
                         owner_id,
                         &owner_type,
                         &full_name,
+                        &visibility,
                         &token,
                     )
                     .await

@@ -80,6 +80,7 @@ impl IntoApi for MigrationRepositoryResponse {
             id: self.id,
             origin_full_name: self.origin_full_name,
             destination_full_name: self.destination_full_name,
+            visibility: self.visibility.into(),
             status: match self.status {
                 MigrationRepositoryStatus::Pending => "pending".to_string(),
                 MigrationRepositoryStatus::Running => "running".to_string(),

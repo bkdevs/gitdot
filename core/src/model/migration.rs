@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, Type};
 use uuid::Uuid;
 
-use super::RepositoryOwnerType;
+use super::{RepositoryOwnerType, RepositoryVisibility};
 
 #[derive(Debug, Clone, FromRow)]
 pub struct Migration {
@@ -47,6 +47,7 @@ pub struct MigrationRepository {
 
     pub origin_full_name: String,
     pub destination_full_name: String,
+    pub visibility: RepositoryVisibility,
 
     pub status: MigrationRepositoryStatus,
     pub error: Option<String>,

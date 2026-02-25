@@ -7,7 +7,7 @@ use uuid::Uuid;
 
 use crate::model::{
     Migration, MigrationOriginService, MigrationRepository, MigrationRepositoryStatus,
-    MigrationStatus, RepositoryOwnerType,
+    MigrationStatus, RepositoryOwnerType, RepositoryVisibility,
 };
 
 pub use get_migration::GetMigrationRequest;
@@ -71,6 +71,7 @@ pub struct MigrationRepositoryResponse {
 
     pub origin_full_name: String,
     pub destination_full_name: String,
+    pub visibility: RepositoryVisibility,
 
     pub status: MigrationRepositoryStatus,
     pub error: Option<String>,
@@ -84,6 +85,7 @@ impl From<MigrationRepository> for MigrationRepositoryResponse {
             id: r.id,
             origin_full_name: r.origin_full_name,
             destination_full_name: r.destination_full_name,
+            visibility: r.visibility,
             status: r.status,
             error: r.error,
             created_at: r.created_at,

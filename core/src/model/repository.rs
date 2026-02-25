@@ -1,4 +1,5 @@
 use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, Type};
 use uuid::Uuid;
 
@@ -61,8 +62,9 @@ impl Into<String> for RepositoryOwnerType {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Type)]
+#[derive(Debug, Clone, PartialEq, Eq, Type, Serialize, Deserialize)]
 #[sqlx(type_name = "repository_visibility", rename_all = "lowercase")]
+#[serde(rename_all = "lowercase")]
 pub enum RepositoryVisibility {
     Public,
     Private,

@@ -4,7 +4,7 @@ use uuid::Uuid;
 
 use crate::model::{
     Migration, MigrationOriginService, MigrationRepository as MigrationRepositoryModel,
-    MigrationRepositoryStatus, MigrationStatus, RepositoryOwnerType,
+    MigrationRepositoryStatus, MigrationStatus, RepositoryOwnerType, RepositoryVisibility,
 };
 
 #[async_trait]
@@ -30,6 +30,7 @@ pub trait MigrationRepository: Send + Sync + Clone + 'static {
         migration_id: Uuid,
         origin_full_name: &str,
         destination_full_name: &str,
+        visibility: &RepositoryVisibility,
     ) -> Result<MigrationRepositoryModel, Error>;
 
     async fn update_migration_repository_status(
@@ -93,6 +94,7 @@ impl MigrationRepository for MigrationRepositoryImpl {
                            'migration_id', mr.migration_id,
                            'origin_full_name', mr.origin_full_name,
                            'destination_full_name', mr.destination_full_name,
+                           'visibility', mr.visibility,
                            'status', mr.status,
                            'error', mr.error,
                            'created_at', mr.created_at,
@@ -122,6 +124,7 @@ impl MigrationRepository for MigrationRepositoryImpl {
                            'migration_id', mr.migration_id,
                            'origin_full_name', mr.origin_full_name,
                            'destination_full_name', mr.destination_full_name,
+                           'visibility', mr.visibility,
                            'status', mr.status,
                            'error', mr.error,
                            'created_at', mr.created_at,
@@ -159,17 +162,19 @@ impl MigrationRepository for MigrationRepositoryImpl {
         migration_id: Uuid,
         origin_full_name: &str,
         destination_full_name: &str,
+        visibility: &RepositoryVisibility,
     ) -> Result<MigrationRepositoryModel, Error> {
         sqlx::query_as::<_, MigrationRepositoryModel>(
             r#"
-            INSERT INTO migration_repositories (migration_id, origin_full_name, destination_full_name)
-            VALUES ($1, $2, $3)
-            RETURNING id, migration_id, origin_full_name, destination_full_name, status, error, created_at, updated_at
+            INSERT INTO migration_repositories (migration_id, origin_full_name, destination_full_name, visibility)
+            VALUES ($1, $2, $3, $4)
+            RETURNING id, migration_id, origin_full_name, destination_full_name, visibility, status, error, created_at, updated_at
             "#,
         )
         .bind(migration_id)
         .bind(origin_full_name)
         .bind(destination_full_name)
+        .bind(visibility)
         .fetch_one(&self.pool)
         .await
     }
@@ -185,7 +190,7 @@ impl MigrationRepository for MigrationRepositoryImpl {
             UPDATE migration_repositories
             SET status = $2, error = $3, updated_at = NOW()
             WHERE id = $1
-            RETURNING id, migration_id, origin_full_name, destination_full_name, status, error, created_at, updated_at
+            RETURNING id, migration_id, origin_full_name, destination_full_name, visibility, status, error, created_at, updated_at
             "#,
         )
         .bind(id)

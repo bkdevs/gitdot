@@ -46,6 +46,7 @@ export const MigrationRepositoryResponseSchema = z.object({
   id: z.uuid(),
   origin_full_name: z.string(),
   destination_full_name: z.string(),
+  visibility: z.string(),
   status: z.string(),
   error: z.string().nullable(),
   created_at: z.string(),

@@ -34,6 +34,7 @@ pub async fn migrate_github_repositories(
 
     let request = CreateGitHubMigrationRequest::new(
         auth_user.id,
+        installation_id,
         &request.origin,
         &request.origin_type,
         &request.destination,

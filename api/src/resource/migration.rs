@@ -47,6 +47,7 @@ pub struct MigrationRepositoryResource {
 
     pub origin_full_name: String,
     pub destination_full_name: String,
+    pub visibility: String,
 
     pub status: String,
     pub error: Option<String>,
