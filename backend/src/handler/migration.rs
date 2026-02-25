@@ -1,6 +1,7 @@
 mod create_github_installation;
 mod list_github_installation_repositories;
 mod list_github_installations;
+mod migrate_github_repositories;
 
 use axum::{
     Router,
@@ -12,6 +13,7 @@ use crate::app::AppState;
 use create_github_installation::create_github_installation;
 use list_github_installation_repositories::list_github_installation_repositories;
 use list_github_installations::list_github_installations;
+use migrate_github_repositories::migrate_github_repositories;
 
 pub fn create_migration_router() -> Router<AppState> {
     Router::new()
@@ -26,5 +28,9 @@ pub fn create_migration_router() -> Router<AppState> {
         .route(
             "/migration/github/{installation_id}/repositories",
             get(list_github_installation_repositories),
+        )
+        .route(
+            "/migration/github/{installation_id}/migrate",
+            post(migrate_github_repositories),
         )
 }

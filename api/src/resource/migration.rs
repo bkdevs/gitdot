@@ -27,7 +27,7 @@ pub struct GitHubRepositoryResource {
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct MigrationResource {
     pub id: Uuid,
-    pub owner_id: Uuid,
+    pub author_id: Uuid,
     pub origin: String,
     pub status: String,
     pub repositories: Vec<MigrationRepositoryResource>,

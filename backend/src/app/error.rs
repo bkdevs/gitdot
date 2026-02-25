@@ -193,8 +193,12 @@ impl IntoResponse for AppError {
             }
             AppError::Migration(e) => {
                 let status_code = match e {
-                    MigrationError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+                    MigrationError::UserNotFound(_) => StatusCode::NOT_FOUND,
+                    MigrationError::OwnerNotFound(_) => StatusCode::NOT_FOUND,
+                    MigrationError::RepositoryAlreadyExists(_) => StatusCode::CONFLICT,
+                    MigrationError::GitError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                     MigrationError::GitHubError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+                    MigrationError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                 };
                 let response = AppResponse::new(
                     status_code,

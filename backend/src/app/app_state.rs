@@ -7,8 +7,9 @@ use gitdot_core::{
     client::{DifftClient, Git2Client, GitHttpClientImpl, OctocrabClient},
     repository::{
         BuildRepositoryImpl, CodeRepositoryImpl, CommitRepositoryImpl, GitHubRepositoryImpl,
-        OrganizationRepositoryImpl, QuestionRepositoryImpl, RepositoryRepositoryImpl,
-        RunnerRepositoryImpl, TaskRepositoryImpl, TokenRepositoryImpl, UserRepositoryImpl,
+        MigrationRepositoryImpl, OrganizationRepositoryImpl, QuestionRepositoryImpl,
+        RepositoryRepositoryImpl, RunnerRepositoryImpl, TaskRepositoryImpl, TokenRepositoryImpl,
+        UserRepositoryImpl,
     },
     service::{
         AuthorizationService, AuthorizationServiceImpl, BuildService, BuildServiceImpl,
@@ -51,20 +52,20 @@ impl AppState {
         let org_repo = OrganizationRepositoryImpl::new(pool.clone());
         let repo_repo = RepositoryRepositoryImpl::new(pool.clone());
         let question_repo = QuestionRepositoryImpl::new(pool.clone());
+        let commit_repo = CommitRepositoryImpl::new(pool.clone());
+        let github_repo = GitHubRepositoryImpl::new(pool.clone());
+        let migration_repo = MigrationRepositoryImpl::new(pool.clone());
+        let build_repo = BuildRepositoryImpl::new(pool.clone());
+        let runner_repo = RunnerRepositoryImpl::new(pool.clone());
+        let task_repo = TaskRepositoryImpl::new(pool.clone());
 
         let git_client = Git2Client::new(settings.git_project_root.clone());
         let git_http_client = GitHttpClientImpl::new(settings.git_project_root.clone());
         let diff_client = DifftClient::new();
-        let commit_repo = CommitRepositoryImpl::new(pool.clone());
-        let build_repo = BuildRepositoryImpl::new(pool.clone());
-        let github_repo = GitHubRepositoryImpl::new(pool.clone());
         let github_client = OctocrabClient::new(
             settings.github_app_id,
             settings.github_app_private_key.clone(),
         );
-
-        let runner_repo = RunnerRepositoryImpl::new(pool.clone());
-        let task_repo = TaskRepositoryImpl::new(pool.clone());
 
         Self {
             settings,
@@ -110,8 +111,12 @@ impl AppState {
                 git_client.clone(),
             )),
             migration_service: Arc::new(MigrationServiceImpl::new(
-                github_repo.clone(),
+                git_client.clone(),
                 github_client.clone(),
+                repo_repo.clone(),
+                migration_repo.clone(),
+                org_repo.clone(),
+                github_repo.clone(),
             )),
             build_service: Arc::new(BuildServiceImpl::new(
                 build_repo.clone(),
