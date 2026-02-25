@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use super::error::CiConfigError;
-use super::validate::validate_ci_config;
+use super::{error::CiConfigError, validate::validate_ci_config};
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct CiConfig {

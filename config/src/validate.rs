@@ -113,7 +113,9 @@ fn check_duplicate_task_refs_in_build(config: &CiConfig) -> Vec<String> {
         let mut seen = HashSet::new();
         for task_ref in &build.tasks {
             if !seen.insert(task_ref.as_str()) {
-                errors.push(format!("builds[{i}] lists task '{task_ref}' more than once"));
+                errors.push(format!(
+                    "builds[{i}] lists task '{task_ref}' more than once"
+                ));
             }
         }
     }
@@ -716,7 +718,10 @@ mod tests {
             name = "b"
             command = "echo b2"
         "#;
-        assert_validation_errors(toml, &["duplicate task name 'a'", "duplicate task name 'b'"]);
+        assert_validation_errors(
+            toml,
+            &["duplicate task name 'a'", "duplicate task name 'b'"],
+        );
     }
 
     // --- Duplicate build triggers ---

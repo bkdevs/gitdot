@@ -1,10 +1,6 @@
-mod create_github_installation;
-mod create_github_migration;
 mod get_migration;
-mod list_github_installation_repositories;
-mod list_github_installations;
+mod github;
 mod list_migrations;
-mod migrate_github_repositories;
 
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
@@ -13,19 +9,15 @@ use crate::model::{
     Migration, MigrationOrigin, MigrationRepository, MigrationRepositoryStatus, MigrationStatus,
 };
 
-pub use create_github_installation::{CreateGitHubInstallationRequest, GitHubInstallationResponse};
-pub use create_github_migration::{CreateGitHubMigrationRequest, CreateGitHubMigrationResponse};
 pub use get_migration::GetMigrationRequest;
-pub use list_github_installation_repositories::{
-    GitHubRepositoryResponse, ListGitHubInstallationRepositoriesResponse,
-};
-pub use list_github_installations::{
-    ListGitHubInstallationsRequest, ListGitHubInstallationsResponse,
+pub use github::{
+    CreateGitHubInstallationRequest, CreateGitHubMigrationRequest, CreateGitHubMigrationResponse,
+    GitHubInstallationResponse, GitHubRepositoryResponse,
+    ListGitHubInstallationRepositoriesResponse, ListGitHubInstallationsRequest,
+    ListGitHubInstallationsResponse, MigrateGitHubRepositoriesRequest,
+    MigrateGitHubRepositoriesResponse, MigratedRepositoryInfo,
 };
 pub use list_migrations::{ListMigrationsRequest, ListMigrationsResponse};
-pub use migrate_github_repositories::{
-    MigrateGitHubRepositoriesRequest, MigrateGitHubRepositoriesResponse, MigratedRepositoryInfo,
-};
 
 #[derive(Debug, Clone)]
 pub struct MigrationResponse {
