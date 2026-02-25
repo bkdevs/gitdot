@@ -54,6 +54,7 @@ export const MigrationRepositoryResponseSchema = z.object({
 
 export const MigrationResponseSchema = z.object({
   id: z.uuid(),
+  number: z.number(),
   author_id: z.uuid(),
   origin: z.string(),
   status: z.string(),

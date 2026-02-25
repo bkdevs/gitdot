@@ -48,7 +48,7 @@ impl IntoApi for MigrationResponse {
             number: self.number,
             author_id: self.author_id,
             origin: match self.origin {
-                MigrationOrigin::GitHub => "github".to_string(),
+                MigrationOrigin::GitHub => "GitHub".to_string(),
             },
             status: match self.status {
                 MigrationStatus::Pending => "pending".to_string(),
