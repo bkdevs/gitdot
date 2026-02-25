@@ -52,7 +52,9 @@ export default async function Page({
               key={repo.id}
               className="flex flex-row items-center justify-between px-2 py-2 border-b last:border-b-0 text-sm"
             >
-              <span>{repo.origin_full_name} &rarr; {repo.destination_full_name}</span>
+              <span>
+                {repo.origin_full_name} &rarr; {repo.destination_full_name}
+              </span>
               <RepositoryStatus status={repo.status} error={repo.error} />
             </div>
           ))}
@@ -91,9 +93,7 @@ function RepositoryStatus({
 }) {
   switch (status) {
     case "pending":
-      return (
-        <span className="text-xs text-muted-foreground">Pending</span>
-      );
+      return <span className="text-xs text-muted-foreground">Pending</span>;
     case "running":
       return <span className="text-xs text-yellow-500">Running</span>;
     case "completed":

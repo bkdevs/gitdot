@@ -2,7 +2,7 @@
 default:
     @just --list
 
-# ── Gitdot setup & dev ───────────────────────────────────────────────────────
+# ── Setup ───────────────────────────────────────────────────────────────────
 
 # Install dependencies and build (requires pnpm and cargo)
 setup:
@@ -24,6 +24,8 @@ setup:
     cd .. && cargo build
     echo "Setup complete!"
 
+# ── Dev (run services) ──────────────────────────────────────────────────────
+
 # Start frontend, backend, and s2-lite in a tmux session
 dev:
     #!/usr/bin/env bash
@@ -39,100 +41,75 @@ dev:
     tmux new-window -t "$SESSION_NAME" -c "$PROJECT_ROOT/s2/lite" -n "s2" "cargo run"
     tmux attach-session -t "$SESSION_NAME"
 
-# ── Gitdot backend ───────────────────────────────────────────────────────────
-
-# Type check all Rust crates
-check:
-    cargo check
-
-# Build the backend server
-build:
-    cargo build -p gitdot_server
+# Run frontend dev server
+frontend:
+    cd frontend && pnpm dev
 
 # Run backend server
 backend:
     cargo run -p gitdot_server
 
-# Run core tests
-test:
-    cargo test -p gitdot_core
+# Run s2-lite server
+s2:
+    cd s2 && cargo run --release -p s2-lite --bin server
 
-# Format Rust code (requires nightly)
-fmt: _ensure-nightly
-    cargo +nightly fmt
+# ── Build ───────────────────────────────────────────────────────────────────
 
-# ── Gitdot frontend ──────────────────────────────────────────────────────────
+# Build everything
+build: build-all
 
-# Run frontend dev server
-frontend:
-    cd frontend && pnpm dev
+# Build all (backend + cli + frontend)
+build-all: build-backend build-cli build-frontend
+
+# Build the backend server
+build-backend:
+    cargo build -p gitdot_server
+
+# Build the CLI
+build-cli:
+    cargo build -p gitdot_cli
 
 # Build frontend for production
-frontend-build:
+build-frontend:
     cd frontend && pnpm build
 
+# ── Test ────────────────────────────────────────────────────────────────────
+
+# Run all tests
+test: test-all
+
+# Run all tests (backend + frontend)
+test-all: test-backend test-frontend
+
+# Run backend (core) tests
+test-backend:
+    cargo test -p gitdot_core
+
 # Run frontend tests
-frontend-test:
+test-frontend:
     cd frontend && pnpm test
 
-# Lint and format check frontend
-lint:
-    cd frontend && pnpm biome check .
+# ── Lint & Format ──────────────────────────────────────────────────────────
 
-# Auto-fix frontend lint and format issues
-lint-fix:
+# Lint and format everything
+lint: lint-all
+
+# Lint and format all (backend + frontend)
+lint-all: lint-backend lint-frontend
+
+# Lint and format Rust code
+lint-backend: _ensure-nightly
+    cargo +nightly fmt
+
+# Lint and format frontend
+lint-frontend:
     cd frontend && pnpm biome check . --write
 
-# ── s2 ───────────────────────────────────────────────────────────────────────
+# Type check all Rust crates
+check:
+    cargo check
 
-# Sync git submodules
-s2-sync:
-    git submodule update --init --recursive
-
-# Build the s2 CLI binary
-s2-build *args: s2-sync
-    cd s2 && cargo build --locked --release -p s2-cli {{args}}
-
-# Run clippy on s2 workspace
-s2-clippy *args: s2-sync
-    cd s2 && cargo clippy --workspace --all-features --all-targets {{args}} -- -D warnings --allow deprecated
-
-# Run cargo-deny checks on s2
-s2-deny *args: _s2-ensure-deny
-    cd s2 && cargo deny check {{args}}
-
-# Format s2 code with rustfmt (requires nightly)
-s2-fmt: _ensure-nightly
-    cd s2 && cargo +nightly fmt
-
-# Run s2 tests with nextest
-s2-test *args: s2-sync _ensure-nextest
-    cd s2 && cargo nextest run --workspace --all-features -E 'not (package(s2-cli) & binary(integration))' {{args}}
-
-# Run s2 CLI integration tests (requires s2 lite server running)
-s2-test-integration: s2-sync _ensure-nextest
-    cd s2 && S2_ACCESS_TOKEN=test S2_ACCOUNT_ENDPOINT=http://localhost S2_BASIN_ENDPOINT=http://localhost \
-    cargo nextest run -p s2-cli --test integration
-
-# Verify s2 Cargo.lock is up-to-date
-s2-check-locked:
-    cd s2 && cargo metadata --locked --format-version 1 >/dev/null
-
-# Clean s2 build artifacts
-s2-clean:
-    cd s2 && cargo clean
-
-# Run s2-lite
-s2-lite *args: s2-sync
-    cd s2 && cargo run --release -p s2-lite --bin server {{args}}
-
-# ── Helpers (private) ────────────────────────────────────────────────────────
+# ── Helpers (private) ──────────────────────────────────────────────────────
 
 _ensure-nightly:
     @rustup toolchain list | grep -q nightly || (echo "Nightly toolchain required. Run: rustup toolchain install nightly" && exit 1)
-
-_ensure-nextest:
-    @cargo nextest --version > /dev/null 2>&1 || cargo install cargo-nextest
-
-_s2-ensure-deny:
-    @cargo deny --version > /dev/null 2>&1 || cargo install cargo-deny

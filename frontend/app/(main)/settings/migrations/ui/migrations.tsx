@@ -20,9 +20,7 @@ export function Migrations({
         >
           <div className="flex flex-col">
             <div className="flex flex-row text-sm">
-              <span className="text-muted-foreground">
-                #{migration.number}
-              </span>
+              <span className="text-muted-foreground">#{migration.number}</span>
               <span className="mx-1">&middot;</span>
               {migration.origin} &middot; {migration.repositories.length} repo
               {migration.repositories.length !== 1 && "s"}
