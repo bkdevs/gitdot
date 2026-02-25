@@ -76,7 +76,7 @@ fn check_dag(config: &CiConfig) -> Vec<String> {
     let mut adj: HashMap<&str, Vec<&str>> = HashMap::new();
     for task in &config.tasks {
         adj.entry(task.name.as_str()).or_default();
-        if let Some(deps) = &task.runs_after {
+        if let Some(deps) = &task.waits_for {
             for dep in deps {
                 if defined.contains(dep.as_str()) {
                     adj.entry(dep.as_str())
@@ -192,12 +192,12 @@ mod tests {
             [[tasks]]
             name = "build"
             command = "cargo build"
-            runs_after = ["lint"]
+            waits_for = ["lint"]
 
             [[tasks]]
             name = "test"
             command = "cargo test"
-            runs_after = ["build"]
+            waits_for = ["build"]
         "#;
         let config = CiConfig::new(toml).unwrap();
         assert_eq!(config.tasks.len(), 3);
@@ -221,12 +221,12 @@ mod tests {
             [[tasks]]
             name = "test"
             command = "cargo test"
-            runs_after = ["lint"]
+            waits_for = ["lint"]
 
             [[tasks]]
             name = "deploy"
             command = "./deploy.sh"
-            runs_after = ["test"]
+            waits_for = ["test"]
         "#;
         CiConfig::new(toml).unwrap();
     }
@@ -245,17 +245,17 @@ mod tests {
             [[tasks]]
             name = "b"
             command = "echo b"
-            runs_after = ["a"]
+            waits_for = ["a"]
 
             [[tasks]]
             name = "c"
             command = "echo c"
-            runs_after = ["a"]
+            waits_for = ["a"]
 
             [[tasks]]
             name = "d"
             command = "echo d"
-            runs_after = ["b", "c"]
+            waits_for = ["b", "c"]
         "#;
         CiConfig::new(toml).unwrap();
     }
@@ -449,7 +449,7 @@ mod tests {
             [[tasks]]
             name = "a"
             command = "echo a"
-            runs_after = ["a"]
+            waits_for = ["a"]
         "#;
         assert_validation_errors(toml, &["cyclical dependency detected: a -> a"]);
     }
@@ -464,12 +464,12 @@ mod tests {
             [[tasks]]
             name = "a"
             command = "echo a"
-            runs_after = ["b"]
+            waits_for = ["b"]
 
             [[tasks]]
             name = "b"
             command = "echo b"
-            runs_after = ["a"]
+            waits_for = ["a"]
         "#;
         assert_validation_errors(toml, &["cyclical dependency detected"]);
     }
@@ -484,17 +484,17 @@ mod tests {
             [[tasks]]
             name = "a"
             command = "echo a"
-            runs_after = ["c"]
+            waits_for = ["c"]
 
             [[tasks]]
             name = "b"
             command = "echo b"
-            runs_after = ["a"]
+            waits_for = ["a"]
 
             [[tasks]]
             name = "c"
             command = "echo c"
-            runs_after = ["b"]
+            waits_for = ["b"]
         "#;
         assert_validation_errors(toml, &["cyclical dependency detected"]);
     }
@@ -513,12 +513,12 @@ mod tests {
             [[tasks]]
             name = "a"
             command = "echo a"
-            runs_after = ["b"]
+            waits_for = ["b"]
 
             [[tasks]]
             name = "b"
             command = "echo b"
-            runs_after = ["a"]
+            waits_for = ["a"]
         "#;
         assert_validation_errors(toml, &["cyclical dependency detected"]);
     }
@@ -567,10 +567,10 @@ mod tests {
         );
     }
 
-    // --- runs_after references unknown task (ignored by DAG check, no crash) ---
+    // --- waits_for references unknown task (ignored by DAG check, no crash) ---
 
     #[test]
-    fn runs_after_references_undefined_task_no_panic() {
+    fn waits_for_references_undefined_task_no_panic() {
         let toml = r#"
             [[builds]]
             trigger = "pull_request"
@@ -579,7 +579,7 @@ mod tests {
             [[tasks]]
             name = "a"
             command = "echo a"
-            runs_after = ["nonexistent"]
+            waits_for = ["nonexistent"]
         "#;
         // Should not panic — the undefined dep is silently skipped in check_dag
         let result = CiConfig::new(toml);

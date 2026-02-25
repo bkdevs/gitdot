@@ -68,5 +68,5 @@ pub struct BuildConfig {
 pub struct TaskConfig {
     pub name: String,
     pub command: String,
-    pub runs_after: Option<Vec<String>>,
+    pub waits_for: Option<Vec<String>>,
 }

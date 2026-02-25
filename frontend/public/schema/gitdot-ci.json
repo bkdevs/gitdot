@@ -46,7 +46,7 @@
             "type": "string",
             "description": "Shell command to execute"
           },
-          "runs_after": {
+          "waits_for": {
             "type": "array",
             "description": "Task names that must complete before this task runs",
             "items": { "type": "string" }

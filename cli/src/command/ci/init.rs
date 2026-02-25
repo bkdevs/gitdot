@@ -21,7 +21,7 @@ command = "echo 'Your test command here'"
 [[tasks]]
 name = "build"
 command = "echo 'Your build command here'"
-runs_after = ["lint", "test"]
+waits_for = ["lint", "test"]
 "#;
 
 pub async fn init() -> anyhow::Result<()> {

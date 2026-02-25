@@ -84,7 +84,7 @@ where
         let mut task_responses: Vec<TaskResponse> = Vec::new();
         for task_config in &task_configs {
             let has_deps = task_config
-                .runs_after
+                .waits_for
                 .as_deref()
                 .map_or(false, |d| !d.is_empty());
             if !has_deps {

@@ -87,7 +87,7 @@ where
             };
 
             let all_deps_succeeded = task_config
-                .runs_after
+                .waits_for
                 .as_deref()
                 .unwrap_or(&[])
                 .iter()
