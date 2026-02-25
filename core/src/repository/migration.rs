@@ -27,6 +27,12 @@ pub trait MigrationRepository: Send + Sync + Clone + 'static {
         error: Option<&str>,
     ) -> Result<MigrationRepositoryModel, Error>;
 
+    async fn get_by_author_and_number(
+        &self,
+        author_id: Uuid,
+        number: i32,
+    ) -> Result<Option<Migration>, Error>;
+
     async fn list_by_author(&self, author_id: Uuid) -> Result<Vec<Migration>, Error>;
 
     async fn list_migration_repositories(
@@ -117,6 +123,24 @@ impl MigrationRepository for MigrationRepositoryImpl {
         .bind(repository_id)
         .bind(error)
         .fetch_one(&self.pool)
+        .await
+    }
+
+    async fn get_by_author_and_number(
+        &self,
+        author_id: Uuid,
+        number: i32,
+    ) -> Result<Option<Migration>, Error> {
+        sqlx::query_as::<_, Migration>(
+            r#"
+            SELECT id, number, author_id, origin, status, created_at, updated_at
+            FROM migrations
+            WHERE author_id = $1 AND number = $2
+            "#,
+        )
+        .bind(author_id)
+        .bind(number)
+        .fetch_optional(&self.pool)
         .await
     }
 

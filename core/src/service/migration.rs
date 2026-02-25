@@ -5,7 +5,7 @@ use crate::{
     client::{Git2Client, GitClient, GitHubClient, OctocrabClient},
     dto::{
         CreateGitHubInstallationRequest, CreateGitHubMigrationRequest,
-        CreateGitHubMigrationResponse, GitHubInstallationResponse,
+        CreateGitHubMigrationResponse, GetMigrationRequest, GitHubInstallationResponse,
         ListGitHubInstallationRepositoriesResponse, ListGitHubInstallationsRequest,
         ListGitHubInstallationsResponse, ListMigrationsRequest, ListMigrationsResponse,
         MigrateGitHubRepositoriesRequest, MigrateGitHubRepositoriesResponse,
@@ -29,6 +29,16 @@ use crate::{
 
 #[async_trait]
 pub trait MigrationService: Send + Sync + 'static {
+    async fn get_migration(
+        &self,
+        request: GetMigrationRequest,
+    ) -> Result<MigrationResponse, MigrationError>;
+
+    async fn list_migrations(
+        &self,
+        request: ListMigrationsRequest,
+    ) -> Result<ListMigrationsResponse, MigrationError>;
+
     async fn create_github_installation(
         &self,
         request: CreateGitHubInstallationRequest,
@@ -48,11 +58,6 @@ pub trait MigrationService: Send + Sync + 'static {
         &self,
         request: CreateGitHubMigrationRequest,
     ) -> Result<CreateGitHubMigrationResponse, MigrationError>;
-
-    async fn list_migrations(
-        &self,
-        request: ListMigrationsRequest,
-    ) -> Result<ListMigrationsResponse, MigrationError>;
 
     async fn migrate_github_repositories(
         &self,
@@ -193,6 +198,42 @@ where
     OR: OrganizationRepository,
     GHR: GitHubRepository,
 {
+    async fn get_migration(
+        &self,
+        request: GetMigrationRequest,
+    ) -> Result<MigrationResponse, MigrationError> {
+        let migration = self
+            .migration_repo
+            .get_by_author_and_number(request.user_id, request.number)
+            .await?
+            .ok_or(MigrationError::MigrationNotFound(request.number))?;
+
+        let repositories = self
+            .migration_repo
+            .list_migration_repositories(migration.id)
+            .await?;
+
+        Ok(MigrationResponse::from_parts(migration, repositories))
+    }
+
+    async fn list_migrations(
+        &self,
+        request: ListMigrationsRequest,
+    ) -> Result<ListMigrationsResponse, MigrationError> {
+        let migrations = self.migration_repo.list_by_author(request.user_id).await?;
+
+        let mut responses = Vec::with_capacity(migrations.len());
+        for migration in migrations {
+            let repositories = self
+                .migration_repo
+                .list_migration_repositories(migration.id)
+                .await?;
+            responses.push(MigrationResponse::from_parts(migration, repositories));
+        }
+
+        Ok(responses)
+    }
+
     async fn create_github_installation(
         &self,
         request: CreateGitHubInstallationRequest,
@@ -277,24 +318,6 @@ where
             owner_name: request.owner_name,
             owner_type: request.owner_type,
         })
-    }
-
-    async fn list_migrations(
-        &self,
-        request: ListMigrationsRequest,
-    ) -> Result<ListMigrationsResponse, MigrationError> {
-        let migrations = self.migration_repo.list_by_author(request.user_id).await?;
-
-        let mut responses = Vec::with_capacity(migrations.len());
-        for migration in migrations {
-            let repositories = self
-                .migration_repo
-                .list_migration_repositories(migration.id)
-                .await?;
-            responses.push(MigrationResponse::from_parts(migration, repositories));
-        }
-
-        Ok(responses)
     }
 
     async fn migrate_github_repositories(

@@ -1,5 +1,6 @@
 mod create_github_installation;
 mod create_github_migration;
+mod get_migration;
 mod list_github_installation_repositories;
 mod list_github_installations;
 mod list_migrations;
@@ -14,6 +15,7 @@ use crate::model::{
 
 pub use create_github_installation::{CreateGitHubInstallationRequest, GitHubInstallationResponse};
 pub use create_github_migration::{CreateGitHubMigrationRequest, CreateGitHubMigrationResponse};
+pub use get_migration::GetMigrationRequest;
 pub use list_github_installation_repositories::{
     GitHubRepositoryResponse, ListGitHubInstallationRepositoriesResponse,
 };
