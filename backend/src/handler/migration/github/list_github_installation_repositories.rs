@@ -3,7 +3,7 @@ use axum::{
     http::StatusCode,
 };
 
-use gitdot_api::endpoint::migration::list_github_installation_repositories as api;
+use gitdot_api::endpoint::migration::github::list_github_installation_repositories as api;
 
 use crate::{
     app::{AppError, AppResponse, AppState},

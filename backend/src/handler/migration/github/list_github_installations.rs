@@ -1,6 +1,6 @@
 use axum::{extract::State, http::StatusCode};
 
-use gitdot_api::endpoint::migration::list_github_installations as api;
+use gitdot_api::endpoint::migration::github::list_github_installations as api;
 use gitdot_core::dto::ListGitHubInstallationsRequest;
 
 use crate::{

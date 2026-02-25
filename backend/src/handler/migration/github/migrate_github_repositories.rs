@@ -3,7 +3,7 @@ use axum::{
     http::StatusCode,
 };
 
-use gitdot_api::endpoint::migration::migrate_github_repositories as api;
+use gitdot_api::endpoint::migration::github::migrate_github_repositories as api;
 use gitdot_core::dto::{
     CreateCommitsRequest, CreateGitHubMigrationRequest, MigrateGitHubRepositoriesRequest,
     MigrationAuthorizationRequest, MigrationResponse,

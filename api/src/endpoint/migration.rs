@@ -1,6 +1,3 @@
-pub mod create_github_installation;
 pub mod get_migration;
-pub mod list_github_installation_repositories;
-pub mod list_github_installations;
+pub mod github;
 pub mod list_migrations;
-pub mod migrate_github_repositories;
