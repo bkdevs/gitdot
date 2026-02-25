@@ -51,9 +51,12 @@ impl MigrationRepository for MigrationRepositoryImpl {
     async fn create(&self, author_id: Uuid, origin: MigrationOrigin) -> Result<Migration, Error> {
         sqlx::query_as::<_, Migration>(
             r#"
-            INSERT INTO migrations (author_id, origin)
-            VALUES ($1, $2)
-            RETURNING id, author_id, origin, status, created_at, updated_at
+            INSERT INTO migrations (number, author_id, origin)
+            VALUES (
+                COALESCE((SELECT MAX(number) FROM migrations WHERE author_id = $1), 0) + 1,
+                $1, $2
+            )
+            RETURNING id, number, author_id, origin, status, created_at, updated_at
             "#,
         )
         .bind(author_id)
@@ -67,7 +70,7 @@ impl MigrationRepository for MigrationRepositoryImpl {
             r#"
             UPDATE migrations SET status = $2, updated_at = NOW()
             WHERE id = $1
-            RETURNING id, author_id, origin, status, created_at, updated_at
+            RETURNING id, number, author_id, origin, status, created_at, updated_at
             "#,
         )
         .bind(id)
@@ -120,7 +123,7 @@ impl MigrationRepository for MigrationRepositoryImpl {
     async fn list_by_author(&self, author_id: Uuid) -> Result<Vec<Migration>, Error> {
         sqlx::query_as::<_, Migration>(
             r#"
-            SELECT id, author_id, origin, status, created_at, updated_at
+            SELECT id, number, author_id, origin, status, created_at, updated_at
             FROM migrations
             WHERE author_id = $1
             ORDER BY created_at DESC

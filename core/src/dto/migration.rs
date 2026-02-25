@@ -28,6 +28,7 @@ pub use migrate_github_repositories::{
 #[derive(Debug, Clone)]
 pub struct MigrationResponse {
     pub id: Uuid,
+    pub number: i32,
     pub author_id: Uuid,
     pub origin: MigrationOrigin,
     pub status: MigrationStatus,
@@ -40,6 +41,7 @@ impl MigrationResponse {
     pub fn from_parts(migration: Migration, repositories: Vec<MigrationRepository>) -> Self {
         Self {
             id: migration.id,
+            number: migration.number,
             author_id: migration.author_id,
             origin: migration.origin,
             status: migration.status,

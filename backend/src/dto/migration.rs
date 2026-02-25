@@ -45,6 +45,7 @@ impl IntoApi for MigrationResponse {
     fn into_api(self) -> Self::ApiType {
         api::MigrationResource {
             id: self.id,
+            number: self.number,
             author_id: self.author_id,
             origin: match self.origin {
                 MigrationOrigin::GitHub => "github".to_string(),

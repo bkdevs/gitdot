@@ -5,6 +5,7 @@ use uuid::Uuid;
 #[derive(Debug, Clone, FromRow)]
 pub struct Migration {
     pub id: Uuid,
+    pub number: i32,
     pub author_id: Uuid,
     pub origin: MigrationOrigin,
     pub status: MigrationStatus,
