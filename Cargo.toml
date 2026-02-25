@@ -1,24 +1,31 @@
 [workspace]
 resolver = "3"
-members = ["api", "api/api_derive", "backend", "cli", "client", "config", "core"]
+members = [
+  "api",
+  "api/api_derive",
+  "backend",
+  "cli",
+  "client",
+  "config",
+  "core",
+  "s2/api",
+  "s2/common",
+  "s2/lite",
+  "s2/sdk",
+]
 
 [workspace.dependencies]
+# gitdot deps
 anyhow = "1.0.100"
-async-trait = "0.1.89"
 base62 = "2.2.3"
 base64 = "0.22"
 chrono = { version = "0.4.42", features = ["serde"] }
 crc32fast = "1.4"
-futures = "0.3.32"
 git2 = "0.20.3"
 hex = "0.4.3"
-http = "1.4.0"
 jsonwebtoken = "10.2.0"
 mockall = "0.14.0"
 nutype = { version = "0.6.2", features = ["serde"] }
-rand = "0.9.2"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0.149"
 sha2 = "0.10.9"
 sqlx = { version = "0.8.6", features = [
   "chrono",
@@ -28,7 +35,71 @@ sqlx = { version = "0.8.6", features = [
   "uuid"
 ] }
 tempfile = "3.24.0"
+
+# shared deps (merged versions)
+async-stream = "0.3"
+async-trait = "0.1.89"
+aws-config = "1"
+aws-credential-types = "1"
+axum = "0.8"
+axum-server = "0.8"
+base64ct = "1.8"
+blake3 = "1.8"
+bytes = "1.11"
+bytesize = "2.3"
+clap = "4.5"
+color-print = "0.3"
+colored = "3.1"
+compact_str = "0.9"
+config = "0.15"
+dashmap = "6.1"
+dirs = "6.0"
+enum-ordinalize = "4.3"
+enumset = "1.1"
+eyre = "0.6"
+flate2 = "1.1"
+futures = "0.3.32"
+http = "1.4.0"
+humantime = "2.3"
+indexmap = "2.13"
+indicatif = "0.18"
+itertools = "0.14"
+json_to_table = "0.12"
+miette = "7.6"
+mimalloc = "0.1"
+mime = "0.3"
+parking_lot = "0.12"
+prometheus = "0.14"
+proptest = "1.10"
+prost = "0.14"
+prost-build = "0.14"
+rand = "0.10"
+rcgen = { version = "0.14", default-features = false, features = ["crypto", "pem", "aws_lc_rs"] }
+rkyv = "0.8"
+rstest = "0.26"
+rustls = "0.23"
+s2-api = { path = "s2/api", version = "0.27" }
+s2-common = { path = "s2/common", version = "0.28" }
+s2-lite = { path = "s2/lite", version = "0.29" }
+s2-sdk = { path = "s2/sdk", version = "0.24" }
+schemars = "0.8"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0.149"
+slatedb = "0.10"
+strum = "0.27"
+tabled = "0.20"
 thiserror = "2.0.17"
-tokio = { version = "1", features = ["full"] }
+time = "0.3"
+tokio = { version = "1.49", features = ["full"] }
+tokio-stream = "0.1"
 tokio-util = { version = "0.7.18", features = ["io"] }
-uuid = { version = "1.19.0", features = ["serde", "v4"] }
+toml = "1.0"
+tower-http = "0.6"
+tracing = "0.1"
+tracing-subscriber = "0.3"
+uuid = { version = "1.21.0", features = ["serde", "v4"] }
+xxhash-rust = "0.8"
+zstd = "0.13"
+
+[patch.crates-io]
+slatedb = { git = "https://github.com/slatedb/slatedb", rev = "9efc9f55a31d5634c5685ae1580971715c03bd37" }

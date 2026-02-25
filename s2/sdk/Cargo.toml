@@ -2,10 +2,10 @@
 name = "s2-sdk"
 description = "Rust SDK for S2"
 version = "0.24.3"
-edition.workspace = true
-license.workspace = true
+edition = "2024"
+license = "MIT"
 repository = "https://github.com/s2-streamstore/s2/tree/main/sdk"
-homepage.workspace = true
+homepage = "https://s2.dev"
 documentation = "https://docs.rs/s2-sdk/latest/s2_sdk/"
 keywords = ["s2", "durable", "streams", "client", "sdk"]
 categories = ["api-bindings", "database"]

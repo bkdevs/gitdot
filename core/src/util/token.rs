@@ -12,7 +12,7 @@ fn base62_encode_padded(value: u128, width: usize) -> String {
 }
 
 pub fn generate_access_token(token_type: &TokenType) -> String {
-    use rand::Rng as _;
+    use rand::RngExt as _;
     let mut rng = rand::rng();
     let bytes: [u8; 32] = rng.random();
 
