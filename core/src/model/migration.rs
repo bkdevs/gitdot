@@ -2,20 +2,28 @@ use chrono::{DateTime, Utc};
 use sqlx::{FromRow, Type};
 use uuid::Uuid;
 
+use super::RepositoryOwnerType;
+
 #[derive(Debug, Clone, FromRow)]
 pub struct Migration {
     pub id: Uuid,
     pub number: i32,
     pub author_id: Uuid,
-    pub origin: MigrationOrigin,
+
+    pub origin_service: MigrationOriginService,
+    pub origin: String,
+    pub origin_type: RepositoryOwnerType,
+    pub destination: String,
+    pub destination_type: RepositoryOwnerType,
+
     pub status: MigrationStatus,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Type)]
-#[sqlx(type_name = "migration_origin", rename_all = "lowercase")]
-pub enum MigrationOrigin {
+#[sqlx(type_name = "migration_origin_service", rename_all = "lowercase")]
+pub enum MigrationOriginService {
     GitHub,
 }
 
@@ -32,8 +40,10 @@ pub enum MigrationStatus {
 pub struct MigrationRepository {
     pub id: Uuid,
     pub migration_id: Uuid,
-    pub repository_id: Option<Uuid>,
-    pub full_name: String,
+
+    pub origin_full_name: String,
+    pub destination_full_name: String,
+
     pub status: MigrationRepositoryStatus,
     pub error: Option<String>,
     pub created_at: DateTime<Utc>,
