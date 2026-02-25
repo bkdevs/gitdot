@@ -1,14 +1,56 @@
 import { Plus } from "lucide-react";
 
+import type { MigrationListResponse } from "@/lib/dto/migration";
 import Link from "@/ui/link";
+import { formatDate } from "@/util";
 
-export function Migrations() {
+export function Migrations({
+  migrations,
+}: {
+  migrations: MigrationListResponse;
+}) {
   return (
     <div className="flex flex-col w-full">
       <MigrationsHeader />
-      <p className="px-2 py-3 text-sm text-muted-foreground">No migrations.</p>
+      {migrations.map((migration) => (
+        <div
+          key={migration.id}
+          className="flex flex-row items-center px-2 py-2 border-b select-none"
+        >
+          <div className="flex flex-col">
+            <div className="flex flex-row text-sm">
+              {migration.origin} &middot; {migration.repositories.length} repo
+              {migration.repositories.length !== 1 && "s"}
+            </div>
+            <div className="flex flex-row text-xs text-muted-foreground pt-0.5">
+              <MigrationStatus status={migration.status} /> &middot;{" "}
+              {formatDate(new Date(migration.created_at))}
+            </div>
+          </div>
+        </div>
+      ))}
+      {migrations.length === 0 && (
+        <p className="px-2 py-3 text-sm text-muted-foreground">
+          No migrations.
+        </p>
+      )}
     </div>
   );
+}
+
+function MigrationStatus({ status }: { status: string }) {
+  switch (status) {
+    case "pending":
+      return <span className="text-muted-foreground">Pending</span>;
+    case "running":
+      return <span className="text-yellow-500">Running</span>;
+    case "completed":
+      return <span className="text-green-500">Completed</span>;
+    case "failed":
+      return <span className="text-destructive">Failed</span>;
+    default:
+      return <span>{status}</span>;
+  }
 }
 
 function MigrationsHeader() {

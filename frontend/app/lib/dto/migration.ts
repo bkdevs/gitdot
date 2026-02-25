@@ -63,3 +63,7 @@ export const MigrationResponseSchema = z.object({
 });
 
 export type MigrationResponse = z.infer<typeof MigrationResponseSchema>;
+
+export const MigrationListResponseSchema = z.array(MigrationResponseSchema);
+
+export type MigrationListResponse = z.infer<typeof MigrationListResponseSchema>;

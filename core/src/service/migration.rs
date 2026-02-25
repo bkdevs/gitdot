@@ -7,8 +7,9 @@ use crate::{
         CreateGitHubInstallationRequest, CreateGitHubMigrationRequest,
         CreateGitHubMigrationResponse, GitHubInstallationResponse,
         ListGitHubInstallationRepositoriesResponse, ListGitHubInstallationsRequest,
-        ListGitHubInstallationsResponse, MigrateGitHubRepositoriesRequest,
-        MigrateGitHubRepositoriesResponse, MigratedRepositoryInfo,
+        ListGitHubInstallationsResponse, ListMigrationsRequest, ListMigrationsResponse,
+        MigrateGitHubRepositoriesRequest, MigrateGitHubRepositoriesResponse,
+        MigratedRepositoryInfo, MigrationResponse,
     },
     error::MigrationError,
     model::{
@@ -47,6 +48,11 @@ pub trait MigrationService: Send + Sync + 'static {
         &self,
         request: CreateGitHubMigrationRequest,
     ) -> Result<CreateGitHubMigrationResponse, MigrationError>;
+
+    async fn list_migrations(
+        &self,
+        request: ListMigrationsRequest,
+    ) -> Result<ListMigrationsResponse, MigrationError>;
 
     async fn migrate_github_repositories(
         &self,
@@ -271,6 +277,24 @@ where
             owner_name: request.owner_name,
             owner_type: request.owner_type,
         })
+    }
+
+    async fn list_migrations(
+        &self,
+        request: ListMigrationsRequest,
+    ) -> Result<ListMigrationsResponse, MigrationError> {
+        let migrations = self.migration_repo.list_by_author(request.user_id).await?;
+
+        let mut responses = Vec::with_capacity(migrations.len());
+        for migration in migrations {
+            let repositories = self
+                .migration_repo
+                .list_migration_repositories(migration.id)
+                .await?;
+            responses.push(MigrationResponse::from_parts(migration, repositories));
+        }
+
+        Ok(responses)
     }
 
     async fn migrate_github_repositories(

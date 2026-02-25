@@ -2,6 +2,7 @@ mod create_github_installation;
 mod create_github_migration;
 mod list_github_installation_repositories;
 mod list_github_installations;
+mod list_migrations;
 mod migrate_github_repositories;
 
 use chrono::{DateTime, Utc};
@@ -19,6 +20,7 @@ pub use list_github_installation_repositories::{
 pub use list_github_installations::{
     ListGitHubInstallationsRequest, ListGitHubInstallationsResponse,
 };
+pub use list_migrations::{ListMigrationsRequest, ListMigrationsResponse};
 pub use migrate_github_repositories::{
     MigrateGitHubRepositoriesRequest, MigrateGitHubRepositoriesResponse, MigratedRepositoryInfo,
 };
