@@ -16,10 +16,17 @@ pub struct RunnerConfig {
 
     #[serde(default = "default_gitdot_server_url")]
     pub gitdot_server_url: String,
+
+    #[serde(default = "default_s2_server_url")]
+    pub s2_server_url: String,
 }
 
 fn default_gitdot_server_url() -> String {
     "https://api.gitdot.io".to_string()
+}
+
+fn default_s2_server_url() -> String {
+    "https://s2.gitdot.io".to_string()
 }
 
 impl Default for RunnerConfig {
@@ -28,6 +35,7 @@ impl Default for RunnerConfig {
             runner_token: None,
             executor: ExecutorType::default(),
             gitdot_server_url: default_gitdot_server_url(),
+            s2_server_url: default_s2_server_url(),
         }
     }
 }

@@ -51,9 +51,7 @@ impl ErrorCode {
             | Self::BadProto
             | Self::BadQuery => http::StatusCode::BAD_REQUEST,
             Self::PermissionDenied | Self::QuotaExhausted => http::StatusCode::FORBIDDEN,
-            Self::BasinNotFound | Self::StreamNotFound => {
-                http::StatusCode::NOT_FOUND
-            }
+            Self::BasinNotFound | Self::StreamNotFound => http::StatusCode::NOT_FOUND,
             Self::RequestTimeout => http::StatusCode::REQUEST_TIMEOUT,
             Self::BasinDeletionPending
             | Self::ResourceAlreadyExists

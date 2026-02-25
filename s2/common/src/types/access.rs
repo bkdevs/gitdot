@@ -1,4 +1,4 @@
-use enumset::{EnumSetType};
+use enumset::EnumSetType;
 
 use super::{
     basin::{BasinName, BasinNamePrefix},

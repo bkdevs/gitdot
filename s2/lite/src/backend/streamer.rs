@@ -30,17 +30,15 @@ use tokio::{
     time::Instant,
 };
 
-use crate::{
-    backend::{
-        append,
-        bgtasks::BgtaskTrigger,
-        error::{
-            AppendConditionFailedError, AppendErrorInternal, AppendTimestampRequiredError,
-            DeleteStreamError, RequestDroppedError, StreamerMissingInActionError,
-        },
-        kv,
-        stream_id::StreamId,
+use crate::backend::{
+    append,
+    bgtasks::BgtaskTrigger,
+    error::{
+        AppendConditionFailedError, AppendErrorInternal, AppendTimestampRequiredError,
+        DeleteStreamError, RequestDroppedError, StreamerMissingInActionError,
     },
+    kv,
+    stream_id::StreamId,
 };
 
 const DORMANT_TIMEOUT: Duration = Duration::from_secs(60);

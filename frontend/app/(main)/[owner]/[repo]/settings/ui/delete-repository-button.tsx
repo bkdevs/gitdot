@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-
+import { deleteRepositoryAction } from "@/actions";
 import { Button } from "@/ui/button";
 import {
   Dialog,
@@ -10,7 +10,6 @@ import {
   DialogDescription,
   DialogTitle,
 } from "@/ui/dialog";
-import { deleteRepositoryAction } from "@/actions";
 
 export function DeleteRepositoryButton({
   owner,

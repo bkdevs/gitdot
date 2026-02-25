@@ -1,4 +1,9 @@
+use anyhow::Context;
 use gitdot_client::client::GitdotClient;
+use s2_sdk::{
+    S2,
+    types::{AccountEndpoint, BasinEndpoint, S2Config, S2Endpoints},
+};
 
 use crate::{
     config::RunnerConfig,
@@ -18,6 +23,19 @@ pub async fn run(config: RunnerConfig) -> anyhow::Result<()> {
         .with_token(token)
         .with_server_url(config.gitdot_server_url);
 
+    let account_endpoint: AccountEndpoint = config
+        .s2_server_url
+        .parse()
+        .context("invalid s2_server_url (account endpoint)")?;
+    let basin_endpoint: BasinEndpoint = config
+        .s2_server_url
+        .parse()
+        .context("invalid s2_server_url (basin endpoint)")?;
+    let s2_endpoints = S2Endpoints::new(account_endpoint, basin_endpoint)
+        .context("failed to build S2 endpoints")?;
+    let s2 = S2::new(S2Config::new().with_endpoints(s2_endpoints))
+        .context("failed to init S2 client")?;
+
     loop {
         let task = match client.poll_task(()).await {
             Ok(Some(task)) => task,
@@ -35,7 +53,7 @@ pub async fn run(config: RunnerConfig) -> anyhow::Result<()> {
 
         let result = match config.executor {
             ExecutorType::Local => {
-                let executor = LocalExecutor {};
+                let executor = LocalExecutor::new(s2.clone());
                 executor.execute(&task).await
             }
             ExecutorType::Docker => {

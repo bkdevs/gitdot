@@ -53,7 +53,8 @@ export default async function Page({
               className="flex flex-row items-center justify-between px-2 py-2 border-b last:border-b-0 text-sm"
             >
               <span>
-                {repo.origin_full_name} &rarr; {repo.destination_full_name} ({repo.visibility})
+                {repo.origin_full_name} &rarr; {repo.destination_full_name} (
+                {repo.visibility})
               </span>
               <RepositoryStatus status={repo.status} error={repo.error} />
             </div>

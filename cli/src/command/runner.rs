@@ -24,7 +24,7 @@ pub enum RunnerCommand {
     /// Install the runner daemon
     Install {},
 
-    /// Synchronously run the runner (TK comment out somehow or hide?)
+    /// Synchronously run the runner
     Run {},
 
     /// Start the runner daemon
