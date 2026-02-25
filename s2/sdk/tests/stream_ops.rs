@@ -1654,49 +1654,6 @@ async fn record_submit_ticket_drop_should_not_affect_others(
     Ok(())
 }
 
-#[tokio::test]
-async fn create_stream_inherits_basin_default_config() -> Result<(), S2Error> {
-    let config = s2_config(Compression::None).expect("valid S2 config");
-    let s2 = s2_sdk::S2::new(config).expect("valid S2");
-
-    let basin_name = unique_basin_name();
-    let default_stream_config = StreamConfig::new()
-        .with_storage_class(StorageClass::Standard)
-        .with_retention_policy(RetentionPolicy::Age(3600))
-        .with_delete_on_empty(DeleteOnEmptyConfig::new().with_min_age(Duration::from_secs(3600)));
-    let basin_config = BasinConfig::new().with_default_stream_config(default_stream_config);
-
-    s2.create_basin(CreateBasinInput::new(basin_name.clone()).with_config(basin_config))
-        .await?;
-
-    let basin = s2.basin(basin_name.clone());
-    let stream_name = unique_stream_name();
-    basin
-        .create_stream(CreateStreamInput::new(stream_name.clone()))
-        .await?;
-
-    let stream_config = basin.get_stream_config(stream_name.clone()).await?;
-    assert_matches!(
-        stream_config,
-        StreamConfig {
-            storage_class: Some(StorageClass::Standard),
-            retention_policy: Some(RetentionPolicy::Age(3600)),
-            delete_on_empty: Some(DeleteOnEmptyConfig {
-                min_age_secs: 3600,
-                ..
-            }),
-            ..
-        }
-    );
-
-    basin
-        .delete_stream(DeleteStreamInput::new(stream_name))
-        .await?;
-    s2.delete_basin(DeleteBasinInput::new(basin_name)).await?;
-
-    Ok(())
-}
-
 #[rstest]
 #[case::gzip(Compression::Gzip)]
 #[case::zstd(Compression::Zstd)]
@@ -1706,15 +1663,14 @@ async fn compression_roundtrip_unary(#[case] compression: Compression) -> Result
     let s2 = s2_sdk::S2::new(config).expect("valid S2");
 
     let basin_name = unique_basin_name();
-    let basin_config = BasinConfig::new()
-        .with_default_stream_config(StreamConfig::new().with_storage_class(StorageClass::Standard));
-    s2.create_basin(CreateBasinInput::new(basin_name.clone()).with_config(basin_config))
+    s2.create_basin(CreateBasinInput::new(basin_name.clone()))
         .await?;
 
     let basin = s2.basin(basin_name.clone());
     let stream_name = unique_stream_name();
-    let stream_config =
-        StreamConfig::new().with_timestamping(TimestampingConfig::new().with_uncapped(true));
+    let stream_config = StreamConfig::new()
+        .with_storage_class(StorageClass::Standard)
+        .with_timestamping(TimestampingConfig::new().with_uncapped(true));
     basin
         .create_stream(CreateStreamInput::new(stream_name.clone()).with_config(stream_config))
         .await?;
@@ -1749,16 +1705,14 @@ async fn compression_roundtrip_session(#[case] compression: Compression) -> Resu
     let s2 = s2_sdk::S2::new(config).expect("valid S2");
 
     let basin_name = unique_basin_name();
-    let basin_config = BasinConfig::new().with_default_stream_config(
-        StreamConfig::new()
-            .with_timestamping(TimestampingConfig::new().with_mode(TimestampingMode::Arrival)),
-    );
-    s2.create_basin(CreateBasinInput::new(basin_name.clone()).with_config(basin_config))
+    s2.create_basin(CreateBasinInput::new(basin_name.clone()))
         .await?;
 
     let basin = s2.basin(basin_name.clone());
     let stream_name = unique_stream_name();
-    let stream_config = StreamConfig::new().with_storage_class(StorageClass::Standard);
+    let stream_config = StreamConfig::new()
+        .with_storage_class(StorageClass::Standard)
+        .with_timestamping(TimestampingConfig::new().with_mode(TimestampingMode::Arrival));
     basin
         .create_stream(CreateStreamInput::new(stream_name.clone()).with_config(stream_config))
         .await?;

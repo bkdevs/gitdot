@@ -47,16 +47,15 @@ The Rust SDK provides ergonomic interface and utilities to interact with the
 
 1. Perform an operation.
    ```rust
-    use s2_sdk::{
-        S2,
-        types::{ListBasinsInput, S2Config},
-    };
+    use s2_sdk::{S2, types::{CreateBasinInput, DeleteBasinInput, S2Config}};
 
     #[tokio::main]
     async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let s2 = S2::new(S2Config::new("<YOUR_ACCESS_TOKEN>"))?;
-        let page = s2.list_basins(ListBasinsInput::new()).await?;
-        println!("My basins: {:?}", page.values);
+        let name = "my-basin".parse()?;
+        let info = s2.create_basin(CreateBasinInput::new(name.clone())).await?;
+        println!("Created basin: {:?}", info.name);
+        s2.delete_basin(DeleteBasinInput::new(name)).await?;
         Ok(())
     }
    ```

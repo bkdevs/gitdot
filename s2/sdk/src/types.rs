@@ -25,10 +25,6 @@ pub use s2_common::types::ValidationError;
 /// **Note:** It must be globally unique and between 8 and 48 bytes in length. It can only
 /// comprise lowercase letters, numbers, and hyphens. It cannot begin or end with a hyphen.
 pub use s2_common::types::basin::BasinName;
-/// See [`ListBasinsInput::prefix`].
-pub use s2_common::types::basin::BasinNamePrefix;
-/// See [`ListBasinsInput::start_after`].
-pub use s2_common::types::basin::BasinNameStartAfter;
 /// Stream name.
 ///
 /// **Note:** It must be unique to the basin and between 1 and 512 bytes in length.
@@ -202,6 +198,15 @@ impl S2Endpoints {
             account_authority: account_endpoint.authority,
             basin_authority: basin_endpoint.authority,
         })
+    }
+
+    /// Create endpoints from a single URL used for both account and basin.
+    ///
+    /// Use this when the same server handles account and basin traffic (e.g. a single S2 deployment).
+    pub fn from_url(url: &str) -> Result<Self, ValidationError> {
+        let account_endpoint: AccountEndpoint = url.parse()?;
+        let basin_endpoint: BasinEndpoint = url.parse()?;
+        Self::new(account_endpoint, basin_endpoint)
     }
 
     /// Create a new [`S2Endpoints`] from environment variables.
@@ -757,76 +762,6 @@ impl From<StreamConfig> for api::config::StreamConfig {
     }
 }
 
-#[derive(Debug, Clone, Default)]
-#[non_exhaustive]
-/// Configuration for a basin.
-pub struct BasinConfig {
-    /// Default configuration for all streams in the basin.
-    ///
-    /// See [`StreamConfig`] for defaults.
-    pub default_stream_config: Option<StreamConfig>,
-    /// Whether to create stream on append if it doesn't exist using default stream configuration.
-    ///
-    /// Defaults to `false`.
-    pub create_stream_on_append: bool,
-    /// Whether to create stream on read if it doesn't exist using default stream configuration.
-    ///
-    /// Defaults to `false`.
-    pub create_stream_on_read: bool,
-}
-
-impl BasinConfig {
-    /// Create a new [`BasinConfig`] with default settings.
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    /// Set the default configuration for all streams in the basin.
-    pub fn with_default_stream_config(self, config: StreamConfig) -> Self {
-        Self {
-            default_stream_config: Some(config),
-            ..self
-        }
-    }
-
-    /// Set whether to create stream on append if it doesn't exist using default stream
-    /// configuration.
-    pub fn with_create_stream_on_append(self, create_stream_on_append: bool) -> Self {
-        Self {
-            create_stream_on_append,
-            ..self
-        }
-    }
-
-    /// Set whether to create stream on read if it doesn't exist using default stream configuration.
-    pub fn with_create_stream_on_read(self, create_stream_on_read: bool) -> Self {
-        Self {
-            create_stream_on_read,
-            ..self
-        }
-    }
-}
-
-impl From<api::config::BasinConfig> for BasinConfig {
-    fn from(value: api::config::BasinConfig) -> Self {
-        Self {
-            default_stream_config: value.default_stream_config.map(Into::into),
-            create_stream_on_append: value.create_stream_on_append,
-            create_stream_on_read: value.create_stream_on_read,
-        }
-    }
-}
-
-impl From<BasinConfig> for api::config::BasinConfig {
-    fn from(value: BasinConfig) -> Self {
-        Self {
-            default_stream_config: value.default_stream_config.map(Into::into),
-            create_stream_on_append: value.create_stream_on_append,
-            create_stream_on_read: value.create_stream_on_read,
-        }
-    }
-}
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 /// Scope of a basin.
 pub enum BasinScope {
@@ -885,10 +820,6 @@ impl<T> CreateOrReconfigured<T> {
 pub struct CreateBasinInput {
     /// Basin name.
     pub name: BasinName,
-    /// Configuration for the basin.
-    ///
-    /// See [`BasinConfig`] for defaults.
-    pub config: Option<BasinConfig>,
     /// Scope of the basin.
     ///
     /// Defaults to [`AwsUsEast1`](BasinScope::AwsUsEast1).
@@ -901,17 +832,8 @@ impl CreateBasinInput {
     pub fn new(name: BasinName) -> Self {
         Self {
             name,
-            config: None,
             scope: None,
             idempotency_token: idempotency_token(),
-        }
-    }
-
-    /// Set the configuration for the basin.
-    pub fn with_config(self, config: BasinConfig) -> Self {
-        Self {
-            config: Some(config),
-            ..self
         }
     }
 
@@ -929,184 +851,11 @@ impl From<CreateBasinInput> for (api::basin::CreateBasinRequest, String) {
         (
             api::basin::CreateBasinRequest {
                 basin: value.name,
-                config: value.config.map(Into::into),
+                config: None,
                 scope: value.scope.map(Into::into),
             },
             value.idempotency_token,
         )
-    }
-}
-
-#[derive(Debug, Clone)]
-#[non_exhaustive]
-/// Input for [`create_or_reconfigure_basin`](crate::S2::create_or_reconfigure_basin) operation.
-#[doc(hidden)]
-#[cfg(feature = "_hidden")]
-pub struct CreateOrReconfigureBasinInput {
-    /// Basin name.
-    pub name: BasinName,
-    /// Reconfiguration for the basin.
-    ///
-    /// If `None`, the basin is created with default configuration or left unchanged if it exists.
-    pub config: Option<BasinReconfiguration>,
-    /// Scope of the basin.
-    ///
-    /// Defaults to [`AwsUsEast1`](BasinScope::AwsUsEast1). Cannot be changed once set.
-    pub scope: Option<BasinScope>,
-}
-
-#[cfg(feature = "_hidden")]
-impl CreateOrReconfigureBasinInput {
-    /// Create a new [`CreateOrReconfigureBasinInput`] with the given basin name.
-    pub fn new(name: BasinName) -> Self {
-        Self {
-            name,
-            config: None,
-            scope: None,
-        }
-    }
-
-    /// Set the reconfiguration for the basin.
-    pub fn with_config(self, config: BasinReconfiguration) -> Self {
-        Self {
-            config: Some(config),
-            ..self
-        }
-    }
-
-    /// Set the scope of the basin.
-    pub fn with_scope(self, scope: BasinScope) -> Self {
-        Self {
-            scope: Some(scope),
-            ..self
-        }
-    }
-}
-
-#[cfg(feature = "_hidden")]
-impl From<CreateOrReconfigureBasinInput>
-    for (
-        BasinName,
-        Option<api::basin::CreateOrReconfigureBasinRequest>,
-    )
-{
-    fn from(value: CreateOrReconfigureBasinInput) -> Self {
-        let request = if value.config.is_some() || value.scope.is_some() {
-            Some(api::basin::CreateOrReconfigureBasinRequest {
-                config: value.config.map(Into::into),
-                scope: value.scope.map(Into::into),
-            })
-        } else {
-            None
-        };
-        (value.name, request)
-    }
-}
-
-#[derive(Debug, Clone, Default)]
-#[non_exhaustive]
-/// Input for [`list_basins`](crate::S2::list_basins) operation.
-pub struct ListBasinsInput {
-    /// Filter basins whose names begin with this value.
-    ///
-    /// Defaults to `""`.
-    pub prefix: BasinNamePrefix,
-    /// Filter basins whose names are lexicographically greater than this value.
-    ///
-    /// **Note:** It must be greater than or equal to [`prefix`](ListBasinsInput::prefix).
-    ///
-    /// Defaults to `""`.
-    pub start_after: BasinNameStartAfter,
-    /// Number of basins to return in a page. Will be clamped to a maximum of `1000`.
-    ///
-    /// Defaults to `1000`.
-    pub limit: Option<usize>,
-}
-
-impl ListBasinsInput {
-    /// Create a new [`ListBasinsInput`] with default values.
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    /// Set the prefix used to filter basins whose names begin with this value.
-    pub fn with_prefix(self, prefix: BasinNamePrefix) -> Self {
-        Self { prefix, ..self }
-    }
-
-    /// Set the value used to filter basins whose names are lexicographically greater than this
-    /// value.
-    pub fn with_start_after(self, start_after: BasinNameStartAfter) -> Self {
-        Self {
-            start_after,
-            ..self
-        }
-    }
-
-    /// Set the limit on number of basins to return in a page.
-    pub fn with_limit(self, limit: usize) -> Self {
-        Self {
-            limit: Some(limit),
-            ..self
-        }
-    }
-}
-
-impl From<ListBasinsInput> for api::basin::ListBasinsRequest {
-    fn from(value: ListBasinsInput) -> Self {
-        Self {
-            prefix: Some(value.prefix),
-            start_after: Some(value.start_after),
-            limit: value.limit,
-        }
-    }
-}
-
-#[derive(Debug, Clone, Default)]
-/// Input for [`S2::list_all_basins`](crate::S2::list_all_basins).
-pub struct ListAllBasinsInput {
-    /// Filter basins whose names begin with this value.
-    ///
-    /// Defaults to `""`.
-    pub prefix: BasinNamePrefix,
-    /// Filter basins whose names are lexicographically greater than this value.
-    ///
-    /// **Note:** It must be greater than or equal to [`prefix`](ListAllBasinsInput::prefix).
-    ///
-    /// Defaults to `""`.
-    pub start_after: BasinNameStartAfter,
-    /// Whether to include basins that are being deleted.
-    ///
-    /// Defaults to `false`.
-    pub include_deleted: bool,
-}
-
-impl ListAllBasinsInput {
-    /// Create a new [`ListAllBasinsInput`] with default values.
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    /// Set the prefix used to filter basins whose names begin with this value.
-    pub fn with_prefix(self, prefix: BasinNamePrefix) -> Self {
-        Self { prefix, ..self }
-    }
-
-    /// Set the value used to filter basins whose names are lexicographically greater than this
-    /// value.
-    pub fn with_start_after(self, start_after: BasinNameStartAfter) -> Self {
-        Self {
-            start_after,
-            ..self
-        }
-    }
-
-    /// Set whether to include basins that are being deleted.
-    pub fn with_include_deleted(self, include_deleted: bool) -> Self {
-        Self {
-            include_deleted,
-            ..self
-        }
     }
 }
 
@@ -1314,80 +1063,6 @@ impl From<StreamReconfiguration> for api::config::StreamReconfiguration {
             timestamping: value.timestamping.map(|m| m.map(Into::into)),
             delete_on_empty: value.delete_on_empty.map(|m| m.map(Into::into)),
         }
-    }
-}
-
-#[derive(Debug, Clone, Default)]
-#[non_exhaustive]
-/// Reconfiguration for [`BasinConfig`].
-pub struct BasinReconfiguration {
-    /// Override for the existing [`default_stream_config`](BasinConfig::default_stream_config).
-    pub default_stream_config: Maybe<Option<StreamReconfiguration>>,
-    /// Override for the existing
-    /// [`create_stream_on_append`](BasinConfig::create_stream_on_append).
-    pub create_stream_on_append: Maybe<bool>,
-    /// Override for the existing [`create_stream_on_read`](BasinConfig::create_stream_on_read).
-    pub create_stream_on_read: Maybe<bool>,
-}
-
-impl BasinReconfiguration {
-    /// Create a new [`BasinReconfiguration`].
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    /// Set the override for the existing
-    /// [`default_stream_config`](BasinConfig::default_stream_config).
-    pub fn with_default_stream_config(self, config: StreamReconfiguration) -> Self {
-        Self {
-            default_stream_config: Maybe::Specified(Some(config)),
-            ..self
-        }
-    }
-
-    /// Set the override for the existing
-    /// [`create_stream_on_append`](BasinConfig::create_stream_on_append).
-    pub fn with_create_stream_on_append(self, create_stream_on_append: bool) -> Self {
-        Self {
-            create_stream_on_append: Maybe::Specified(create_stream_on_append),
-            ..self
-        }
-    }
-
-    /// Set the override for the existing
-    /// [`create_stream_on_read`](BasinConfig::create_stream_on_read).
-    pub fn with_create_stream_on_read(self, create_stream_on_read: bool) -> Self {
-        Self {
-            create_stream_on_read: Maybe::Specified(create_stream_on_read),
-            ..self
-        }
-    }
-}
-
-impl From<BasinReconfiguration> for api::config::BasinReconfiguration {
-    fn from(value: BasinReconfiguration) -> Self {
-        Self {
-            default_stream_config: value.default_stream_config.map(|m| m.map(Into::into)),
-            create_stream_on_append: value.create_stream_on_append,
-            create_stream_on_read: value.create_stream_on_read,
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
-#[non_exhaustive]
-/// Input for [`reconfigure_basin`](crate::S2::reconfigure_basin) operation.
-pub struct ReconfigureBasinInput {
-    /// Basin name.
-    pub name: BasinName,
-    /// Reconfiguration for [`BasinConfig`].
-    pub config: BasinReconfiguration,
-}
-
-impl ReconfigureBasinInput {
-    /// Create a new [`ReconfigureBasinInput`] with the given basin name and reconfiguration.
-    pub fn new(name: BasinName, config: BasinReconfiguration) -> Self {
-        Self { name, config }
     }
 }
 

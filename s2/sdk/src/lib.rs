@@ -21,16 +21,15 @@ The Rust SDK provides ergonomic wrappers and utilities to interact with the
 1. Perform an operation.
 
    ```no_run
-    use s2_sdk::{
-        S2,
-        types::{ListBasinsInput, S2Config},
-    };
+    use s2_sdk::{S2, types::{CreateBasinInput, DeleteBasinInput, S2Config}};
 
     #[tokio::main]
     async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let s2 = S2::new(S2Config::new())?;
-        let page = s2.list_basins(ListBasinsInput::new()).await?;
-        println!("My basins: {:?}", page.values);
+        let name = "my-basin".parse()?;
+        let info = s2.create_basin(CreateBasinInput::new(name.clone())).await?;
+        println!("Created basin: {:?}", info.name);
+        s2.delete_basin(DeleteBasinInput::new(name)).await?;
         Ok(())
     }
    ```
@@ -44,7 +43,6 @@ We have curated a bunch of examples in the
 [repository](https://github.com/s2-streamstore/s2/tree/main/sdk/examples)
 demonstrating how to use the SDK effectively:
 
-* [List all basins](https://github.com/s2-streamstore/s2/blob/main/sdk/examples/list_all_basins.rs)
 * [Explicit stream trimming](https://github.com/s2-streamstore/s2/blob/main/sdk/examples/explicit_trim.rs)
 * [Producer](https://github.com/s2-streamstore/s2/blob/main/sdk/examples/producer.rs)
 * [Consumer](https://github.com/s2-streamstore/s2/blob/main/sdk/examples/consumer.rs)

@@ -1,10 +1,7 @@
 use async_trait::async_trait;
 use s2_sdk::{
     S2,
-    types::{
-        AccountEndpoint, BasinEndpoint, BasinName, CreateBasinInput, CreateStreamInput,
-        ErrorResponse, S2Config, S2Endpoints, S2Error, StreamName,
-    },
+    types::{BasinName, CreateBasinInput, CreateStreamInput, ErrorResponse, S2Error, StreamName},
 };
 use uuid::Uuid;
 
@@ -21,13 +18,7 @@ pub struct S2ClientImpl {
 
 impl S2ClientImpl {
     pub fn new(server_url: &str) -> Self {
-        let account_endpoint: AccountEndpoint =
-            server_url.parse().expect("valid S2 account endpoint");
-        let basin_endpoint: BasinEndpoint = server_url.parse().expect("valid S2 basin endpoint");
-        let s2_endpoints =
-            S2Endpoints::new(account_endpoint, basin_endpoint).expect("valid S2 endpoints");
-        let s2 =
-            S2::new(S2Config::new().with_endpoints(s2_endpoints)).expect("S2 client init failed");
+        let s2 = S2::from_url(server_url).expect("valid S2 server URL");
         Self { s2 }
     }
 }

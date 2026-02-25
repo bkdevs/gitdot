@@ -3,19 +3,16 @@ use futures::StreamExt;
 #[cfg(feature = "_hidden")]
 use crate::client::Connect;
 #[cfg(feature = "_hidden")]
-use crate::types::{
-    CreateOrReconfigureBasinInput, CreateOrReconfigureStreamInput, CreateOrReconfigured,
-};
+use crate::types::{CreateOrReconfigureStreamInput, CreateOrReconfigured};
 use crate::{
     api::{AccountClient, BaseClient, BasinClient},
     producer::{Producer, ProducerConfig},
     session::{self, AppendSession, AppendSessionConfig},
     types::{
-        AppendAck, AppendInput, BasinConfig, BasinInfo, BasinName, BasinState, CreateBasinInput,
-        CreateStreamInput, DeleteBasinInput, DeleteStreamInput, ListAllBasinsInput,
-        ListAllStreamsInput, ListBasinsInput, ListStreamsInput, Page, ReadBatch, ReadInput,
-        ReconfigureBasinInput, ReconfigureStreamInput, S2Config, S2Error, StreamConfig, StreamInfo,
-        StreamName, StreamPosition, Streaming,
+        AppendAck, AppendInput, BasinInfo, BasinName, CreateBasinInput, CreateStreamInput,
+        DeleteBasinInput, DeleteStreamInput, ListAllStreamsInput, ListStreamsInput, Page, ReadBatch,
+        ReadInput, ReconfigureStreamInput, S2Config, S2Error, StreamConfig, StreamInfo, StreamName,
+        StreamPosition, Streaming,
     },
 };
 
@@ -32,6 +29,13 @@ impl S2 {
         Ok(Self {
             client: AccountClient::init(config, base_client),
         })
+    }
+
+    /// Create a new [`S2`] using a single URL for both account and basin endpoints.
+    pub fn from_url(url: &str) -> Result<Self, S2Error> {
+        let endpoints = crate::types::S2Endpoints::from_url(url)?;
+        let config = S2Config::new().with_endpoints(endpoints);
+        Self::new(config)
     }
 
     #[doc(hidden)]
@@ -53,88 +57,11 @@ impl S2 {
         }
     }
 
-    /// List a page of basins.
-    ///
-    /// See [`list_all_basins`](crate::S2::list_all_basins) for automatic pagination.
-    pub async fn list_basins(&self, input: ListBasinsInput) -> Result<Page<BasinInfo>, S2Error> {
-        let response = self.client.list_basins(input.into()).await?;
-        Ok(Page::new(
-            response
-                .basins
-                .into_iter()
-                .map(Into::into)
-                .collect::<Vec<_>>(),
-            response.has_more,
-        ))
-    }
-
-    /// List all basins, paginating automatically.
-    pub fn list_all_basins(&self, input: ListAllBasinsInput) -> Streaming<BasinInfo> {
-        let s2 = self.clone();
-        let prefix = input.prefix;
-        let start_after = input.start_after;
-        let include_deleted = input.include_deleted;
-        let mut input = ListBasinsInput::new()
-            .with_prefix(prefix)
-            .with_start_after(start_after);
-        Box::pin(async_stream::try_stream! {
-            loop {
-                let page = s2.list_basins(input.clone()).await?;
-
-                let start_after = page.values.last().map(|info| info.name.clone().into());
-                for info in page.values {
-                    if !include_deleted && info.state == BasinState::Deleting {
-                        continue;
-                    }
-                    yield info;
-                }
-
-                if page.has_more && let Some(start_after) = start_after {
-                    input = input.with_start_after(start_after);
-                } else {
-                    break;
-                }
-            }
-        })
-    }
-
     /// Create a basin.
     pub async fn create_basin(&self, input: CreateBasinInput) -> Result<BasinInfo, S2Error> {
         let (request, idempotency_token) = input.into();
         let info = self.client.create_basin(request, idempotency_token).await?;
         Ok(info.into())
-    }
-
-    /// Create or reconfigure a basin.
-    ///
-    /// Creates the basin if it doesn't exist, or reconfigures it to match the provided
-    /// configuration if it does. Uses HTTP PUT semantics — always idempotent.
-    ///
-    /// Returns [`CreateOrReconfigured::Created`] with the basin info if the basin was newly
-    /// created, or [`CreateOrReconfigured::Reconfigured`] if it already existed.
-    #[doc(hidden)]
-    #[cfg(feature = "_hidden")]
-    pub async fn create_or_reconfigure_basin(
-        &self,
-        input: CreateOrReconfigureBasinInput,
-    ) -> Result<CreateOrReconfigured<BasinInfo>, S2Error> {
-        let (name, request) = input.into();
-        let (was_created, info) = self
-            .client
-            .create_or_reconfigure_basin(name, request)
-            .await?;
-        let info = info.into();
-        Ok(if was_created {
-            CreateOrReconfigured::Created(info)
-        } else {
-            CreateOrReconfigured::Reconfigured(info)
-        })
-    }
-
-    /// Get basin configuration.
-    pub async fn get_basin_config(&self, name: BasinName) -> Result<BasinConfig, S2Error> {
-        let config = self.client.get_basin_config(name).await?;
-        Ok(config.into())
     }
 
     /// Delete a basin.
@@ -145,17 +72,6 @@ impl S2 {
             .await?)
     }
 
-    /// Reconfigure a basin.
-    pub async fn reconfigure_basin(
-        &self,
-        input: ReconfigureBasinInput,
-    ) -> Result<BasinConfig, S2Error> {
-        let config = self
-            .client
-            .reconfigure_basin(input.name, input.config.into())
-            .await?;
-        Ok(config.into())
-    }
 }
 
 #[derive(Debug, Clone)]

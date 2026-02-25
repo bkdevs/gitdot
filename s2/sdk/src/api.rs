@@ -10,10 +10,8 @@ use http::{
 };
 use prost::{self, Message};
 use s2_api::v1::{
-    basin::{
-        BasinInfo, CreateBasinRequest, ListBasinsRequest, ListBasinsResponse,
-    },
-    config::{BasinConfig, BasinReconfiguration, StreamConfig, StreamReconfiguration},
+    basin::{BasinInfo, CreateBasinRequest},
+    config::{StreamConfig, StreamReconfiguration},
     stream::{
         AppendConditionFailed, CreateStreamRequest, ListStreamsRequest, ListStreamsResponse,
         ReadEnd, ReadStart, StreamInfo, TailResponse,
@@ -24,8 +22,6 @@ use s2_api::v1::{
 use tokio_util::codec::Decoder;
 use tracing::{debug, warn};
 use url::Url;
-#[cfg(feature = "_hidden")]
-use s2_api::v1::basin::CreateOrReconfigureBasinRequest;
 
 use crate::{
     client::{self, StreamingResponse, UnaryResponse},
@@ -63,16 +59,6 @@ impl AccountClient {
         BasinClient::init(name, self.config.clone(), self.client.clone())
     }
 
-    pub async fn list_basins(
-        &self,
-        request: ListBasinsRequest,
-    ) -> Result<ListBasinsResponse, ApiError> {
-        let url = self.base_url.join("v1/basins")?;
-        let request = self.get(url).query(&request).build()?;
-        let response = self.request(request).send().await?;
-        Ok(response.json::<ListBasinsResponse>()?)
-    }
-
     pub async fn create_basin(
         &self,
         request: CreateBasinRequest,
@@ -86,40 +72,6 @@ impl AccountClient {
             .build()?;
         let response = self.request(request).send().await?;
         Ok(response.json::<BasinInfo>()?)
-    }
-
-    pub async fn get_basin_config(&self, name: BasinName) -> Result<BasinConfig, ApiError> {
-        let url = self.base_url.join(&format!("v1/basins/{name}"))?;
-        let request = self.get(url).build()?;
-        let response = self.request(request).send().await?;
-        Ok(response.json::<BasinConfig>()?)
-    }
-
-    pub async fn reconfigure_basin(
-        &self,
-        name: BasinName,
-        config: BasinReconfiguration,
-    ) -> Result<BasinConfig, ApiError> {
-        let url = self.base_url.join(&format!("v1/basins/{name}"))?;
-        let request = self.patch(url).json(&config).build()?;
-        let response = self.request(request).send().await?;
-        Ok(response.json::<BasinConfig>()?)
-    }
-
-    #[cfg(feature = "_hidden")]
-    pub async fn create_or_reconfigure_basin(
-        &self,
-        name: BasinName,
-        request: Option<CreateOrReconfigureBasinRequest>,
-    ) -> Result<(bool, BasinInfo), ApiError> {
-        let url = self.base_url.join(&format!("v1/basins/{name}"))?;
-        let request = match request {
-            Some(body) => self.put(url).json(&body).build()?,
-            None => self.put(url).build()?,
-        };
-        let response = self.request(request).send().await?;
-        let was_created = response.status() == StatusCode::CREATED;
-        Ok((was_created, response.json::<BasinInfo>()?))
     }
 
     pub async fn delete_basin(
