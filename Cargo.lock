@@ -2284,6 +2284,7 @@ dependencies = [
  "nutype",
  "octocrab",
  "rand 0.10.0",
+ "s2-sdk",
  "secrecy",
  "serde",
  "serde_json",

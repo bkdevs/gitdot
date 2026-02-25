@@ -336,7 +336,7 @@ mod tests {
     fn basin_name_prefix_strategy() -> impl Strategy<Value = BasinNamePrefix> {
         prop_oneof![
             Just(BasinNamePrefix::default()),
-            "[a-z][a-z0-9-]{0,46}".prop_map(|s| BasinNamePrefix::from_str(&s).unwrap()),
+            "[a-z0-9_.][a-z0-9_.-]{0,46}".prop_map(|s| BasinNamePrefix::from_str(&s).unwrap()),
         ]
     }
 

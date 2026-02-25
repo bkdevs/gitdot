@@ -43,9 +43,13 @@ impl<T: StrProps> BasinNameStr<T> {
             return Ok(());
         };
 
-        if !first_char.is_ascii_lowercase() && !first_char.is_ascii_digit() {
+        if !first_char.is_ascii_lowercase()
+            && !first_char.is_ascii_digit()
+            && first_char != '_'
+            && first_char != '.'
+        {
             return Err(format!(
-                "basin {} must begin with a lowercase letter or number",
+                "basin {} must begin with a lowercase letter, number, underscore, or period",
                 T::FIELD_NAME
             )
             .into());
@@ -55,17 +59,21 @@ impl<T: StrProps> BasinNameStr<T> {
             && let Some(last_char) = chars.next_back()
             && !last_char.is_ascii_lowercase()
             && !last_char.is_ascii_digit()
+            && last_char != '_'
+            && last_char != '.'
         {
             return Err(format!(
-                "basin {} must end with a lowercase letter or number",
+                "basin {} must end with a lowercase letter, number, underscore, or period",
                 T::FIELD_NAME
             )
             .into());
         }
 
-        if chars.any(|c| !c.is_ascii_lowercase() && !c.is_ascii_digit() && c != '-') {
+        if chars.any(|c| {
+            !c.is_ascii_lowercase() && !c.is_ascii_digit() && c != '-' && c != '_' && c != '.'
+        }) {
             return Err(format!(
-                "basin {} must comprise lowercase letters, numbers, and hyphens",
+                "basin {} must comprise lowercase letters, numbers, hyphens, underscores, and periods",
                 T::FIELD_NAME
             )
             .into());
@@ -212,6 +220,8 @@ mod test {
     #[case::min_len("abcdefgh".to_owned())]
     #[case::starts_with_digit("1abcdefg".to_owned())]
     #[case::contains_hyphen("abcd-efg".to_owned())]
+    #[case::contains_underscore("abcd_efg".to_owned())]
+    #[case::contains_period("abcd.efg".to_owned())]
     #[case::max_len("a".repeat(crate::caps::MAX_BASIN_NAME_LEN))]
     fn validate_name_ok(#[case] name: String) {
         assert_eq!(BasinNameStr::<NameProps>::validate_str(&name), Ok(()));
@@ -223,7 +233,7 @@ mod test {
     #[case::empty("".to_owned())]
     #[case::invalid_first_char("Abcdefgh".to_owned())]
     #[case::invalid_last_char("abcdefg-".to_owned())]
-    #[case::invalid_characters("abcd_efg".to_owned())]
+    #[case::invalid_characters("abcd@efg".to_owned())]
     fn validate_name_err(#[case] name: String) {
         BasinNameStr::<NameProps>::validate_str(&name).expect_err("expected validation error");
     }
@@ -232,6 +242,8 @@ mod test {
     #[case::empty("".to_owned())]
     #[case::single_char("a".to_owned())]
     #[case::trailing_hyphen("abcdefg-".to_owned())]
+    #[case::contains_underscore("ab_cd".to_owned())]
+    #[case::contains_period("ab.cd".to_owned())]
     #[case::max_len("a".repeat(crate::caps::MAX_BASIN_NAME_LEN))]
     fn validate_prefix_ok(#[case] prefix: String) {
         assert_eq!(BasinNameStr::<PrefixProps>::validate_str(&prefix), Ok(()));
@@ -240,7 +252,7 @@ mod test {
     #[rstest]
     #[case::too_long("a".repeat(crate::caps::MAX_BASIN_NAME_LEN + 1))]
     #[case::invalid_first_char("-abc".to_owned())]
-    #[case::invalid_characters("ab_cd".to_owned())]
+    #[case::invalid_characters("ab#cd".to_owned())]
     fn validate_prefix_err(#[case] prefix: String) {
         BasinNameStr::<PrefixProps>::validate_str(&prefix).expect_err("expected validation error");
     }
@@ -249,6 +261,8 @@ mod test {
     #[case::empty("".to_owned())]
     #[case::single_char("a".to_owned())]
     #[case::trailing_hyphen("abcdefg-".to_owned())]
+    #[case::contains_underscore("ab_cd".to_owned())]
+    #[case::contains_period("ab.cd".to_owned())]
     fn validate_start_after_ok(#[case] start_after: String) {
         assert_eq!(
             BasinNameStr::<StartAfterProps>::validate_str(&start_after),
@@ -259,7 +273,7 @@ mod test {
     #[rstest]
     #[case::too_long("a".repeat(crate::caps::MAX_BASIN_NAME_LEN + 1))]
     #[case::invalid_first_char("-abc".to_owned())]
-    #[case::invalid_characters("ab_cd".to_owned())]
+    #[case::invalid_characters("ab#cd".to_owned())]
     fn validate_start_after_err(#[case] start_after: String) {
         BasinNameStr::<StartAfterProps>::validate_str(&start_after)
             .expect_err("expected validation error");

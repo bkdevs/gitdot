@@ -233,7 +233,7 @@ mod proptest_strategies {
     use s2_common::types::{basin::BasinName, stream::StreamName};
 
     pub(super) fn basin_name_strategy() -> impl Strategy<Value = BasinName> {
-        "[a-z][a-z0-9-]{6,46}[a-z0-9]".prop_map(|s| BasinName::from_str(&s).unwrap())
+        "[a-z0-9_.][a-z0-9_.-]{6,46}[a-z0-9_.]".prop_map(|s| BasinName::from_str(&s).unwrap())
     }
 
     pub(super) fn stream_name_strategy() -> impl Strategy<Value = StreamName> {
