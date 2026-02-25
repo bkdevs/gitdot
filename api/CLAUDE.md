@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Purpose
 
-`gitdot_api` defines the shared API contract — resource types (response shapes) and endpoint definitions (request/response pairs with HTTP metadata). Used by both the backend (to type handlers) and potentially clients.
+`gitdot-api` defines the shared API contract — resource types (response shapes) and endpoint definitions (request/response pairs with HTTP metadata). Used by both the backend (to type handlers) and potentially clients.
 
 ## Structure
 

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Purpose
 
-`gitdot_core` contains all business logic, data access, and external client integrations. The backend server depends on this crate and calls its services.
+`gitdot-core` contains all business logic, data access, and external client integrations. The backend server depends on this crate and calls its services.
 
 ## Structure
 

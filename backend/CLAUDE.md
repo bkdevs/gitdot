@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Purpose
 
-`gitdot_server` is the Axum HTTP server. It's a thin layer — handlers extract request params, call core services, and map responses. Business logic lives in `gitdot_core`.
+`gitdot-server` is the Axum HTTP server. It's a thin layer — handlers extract request params, call core services, and map responses. Business logic lives in `gitdot-core`.
 
 ## Structure
 

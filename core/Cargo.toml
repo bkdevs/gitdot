@@ -1,5 +1,5 @@
 [package]
-name = "gitdot_core"
+name = "gitdot-core"
 version = "0.1.0"
 edition = "2024"
 
@@ -11,6 +11,7 @@ chrono = { workspace = true }
 crc32fast = { workspace = true }
 futures = { workspace = true }
 git2 = { workspace = true }
+gitdot-config = { path = "../config" }
 hex = { workspace = true }
 jsonwebtoken = { workspace = true }
 nutype = { workspace = true }
@@ -24,7 +25,6 @@ sqlx = { workspace = true }
 tempfile = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true }
-gitdot_config = { path = "../config" }
 toml = "1.0.3"
 uuid = { workspace = true }
 

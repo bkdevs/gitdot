@@ -1,5 +1,5 @@
 [package]
-name = "gitdot_config"
+name = "gitdot-config"
 version = "0.1.0"
 edition = "2024"
 

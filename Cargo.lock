@@ -2204,11 +2204,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "gitdot_api"
+name = "gitdot-api"
 version = "0.1.0"
 dependencies = [
  "chrono",
- "gitdot_api_derive",
+ "gitdot-api-derive",
  "http 1.4.0",
  "serde",
  "serde_json",
@@ -2216,7 +2216,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "gitdot_api_derive"
+name = "gitdot-api-derive"
 version = "0.1.0"
 dependencies = [
  "quote",
@@ -2224,15 +2224,15 @@ dependencies = [
 ]
 
 [[package]]
-name = "gitdot_cli"
+name = "gitdot-cli"
 version = "0.1.0"
 dependencies = [
  "anyhow",
  "clap",
  "dirs-next",
- "gitdot_api",
- "gitdot_client",
- "gitdot_config",
+ "gitdot-api",
+ "gitdot-client",
+ "gitdot-config",
  "itertools",
  "serde",
  "serde_json",
@@ -2247,18 +2247,18 @@ dependencies = [
 ]
 
 [[package]]
-name = "gitdot_client"
+name = "gitdot-client"
 version = "0.1.0"
 dependencies = [
  "anyhow",
  "base64",
- "gitdot_api",
+ "gitdot-api",
  "reqwest 0.13.1",
  "uuid",
 ]
 
 [[package]]
-name = "gitdot_config"
+name = "gitdot-config"
 version = "0.1.0"
 dependencies = [
  "serde",
@@ -2267,7 +2267,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "gitdot_core"
+name = "gitdot-core"
 version = "0.1.0"
 dependencies = [
  "async-trait",
@@ -2277,7 +2277,7 @@ dependencies = [
  "crc32fast",
  "futures",
  "git2",
- "gitdot_config",
+ "gitdot-config",
  "hex",
  "jsonwebtoken",
  "mockall",
@@ -2297,7 +2297,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "gitdot_server"
+name = "gitdot-server"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -2308,8 +2308,8 @@ dependencies = [
  "dotenvy",
  "futures",
  "git2",
- "gitdot_api",
- "gitdot_core",
+ "gitdot-api",
+ "gitdot-core",
  "http 1.4.0",
  "jsonwebtoken",
  "serde",

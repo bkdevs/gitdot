@@ -11,9 +11,9 @@ Gitdot is a GitHub alternative for open-source maintainers. It's a full-stack ap
 ### Backend (Rust)
 ```bash
 cargo check                          # Type check all crates
-cargo build -p gitdot_server         # Build backend server
-cargo run -p gitdot_server           # Run backend (reads backend/.env)
-cargo test -p gitdot_core            # Run core tests
+cargo build -p gitdot-server         # Build backend server
+cargo run -p gitdot-server           # Run backend (reads backend/.env)
+cargo test -p gitdot-core            # Run core tests
 cargo +nightly fmt                   # Format code with rustfmt
 ```
 
@@ -36,12 +36,12 @@ pnpm biome check . --write           # Auto-fix lint & format
 
 Six Rust crates in the workspace:
 
-- **`core`** (`gitdot_core`) — Business logic, services, repositories, models, DB migrations. The bulk of backend logic lives here.
-- **`backend`** (`gitdot_server`) — Axum HTTP handlers, routing, auth middleware. Thin layer that delegates to core services.
-- **`api`** (`gitdot_api`) — Shared API resource types and endpoint request/response definitions.
+- **`core`** (`gitdot-core`) — Business logic, services, repositories, models, DB migrations. The bulk of backend logic lives here.
+- **`backend`** (`gitdot-server`) — Axum HTTP handlers, routing, auth middleware. Thin layer that delegates to core services.
+- **`api`** (`gitdot-api`) — Shared API resource types and endpoint request/response definitions.
 - **`api_derive`** — Proc macro crate providing `#[derive(ApiResource)]`.
-- **`cli`** (`gitdot_cli`) — CLI tool (clap-based).
-- **`runner`** (`gitdot_runner`) — CI/CD task runner.
+- **`cli`** (`gitdot-cli`) — CLI tool (clap-based).
+- **`runner`** (`gitdot-runner`) — CI/CD task runner.
 
 Plus `frontend/` — Next.js 16, React 19, App Router.
 
@@ -73,7 +73,7 @@ The backend implements smart HTTP git protocol by shelling out to `git http-back
 // 1. mod declarations
 // 2. std imports
 // 3. 3rd-party crate imports
-// 4. Workspace imports (gitdot_api, gitdot_core)
+// 4. Workspace imports (gitdot-api, gitdot-core)
 // 5. crate/super imports
 // 6. pub use re-exports
 // 7. Logic

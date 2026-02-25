@@ -1,11 +1,11 @@
 [package]
-name = "gitdot_api"
+name = "gitdot-api"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-gitdot_api_derive = { path = "./derive" }
 chrono = { workspace = true }
+gitdot-api-derive = { path = "./derive" }
 http = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }

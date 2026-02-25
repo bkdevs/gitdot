@@ -1,11 +1,11 @@
 [package]
-name = "gitdot_client"
+name = "gitdot-client"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
 anyhow = { workspace = true }
 base64 = { workspace = true }
-gitdot_api = { path = "../api" }
+gitdot-api = { path = "../api" }
 reqwest = { version = "0.13.1", features = ["json", "query"] }
 uuid = { workspace = true }

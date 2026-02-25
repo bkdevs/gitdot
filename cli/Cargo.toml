@@ -1,5 +1,5 @@
 [package]
-name = "gitdot_cli"
+name = "gitdot-cli"
 version = "0.1.0"
 edition = "2024"
 description = ""
@@ -12,9 +12,9 @@ path = "src/bin/main.rs"
 anyhow = { workspace = true }
 clap = { version = "4.5.54", features = ["derive"] }
 dirs-next = "2.0.0"
-gitdot_api = { path = "../api" }
-gitdot_client = { path = "../client" }
-gitdot_config = { path = "../config" }
+gitdot-api = { path = "../api" }
+gitdot-client = { path = "../client" }
+gitdot-config = { path = "../config" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 tokio = { workspace = true }

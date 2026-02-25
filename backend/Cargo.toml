@@ -1,10 +1,10 @@
 [package]
-name = "gitdot_server"
+name = "gitdot-server"
 version = "0.1.0"
 edition = "2024"
 
 [[bin]]
-name = "gitdot_server"
+name = "gitdot-server"
 path = "src/bin/main.rs"
 
 [dependencies]
@@ -16,8 +16,8 @@ chrono = { workspace = true }
 dotenvy = "0.15.7"
 futures = { workspace = true }
 git2 = { workspace = true }
-gitdot_api = { path = "../api" }
-gitdot_core = { path = "../core" }
+gitdot-api = { path = "../api" }
+gitdot-core = { path = "../core" }
 http = { workspace = true }
 jsonwebtoken = { workspace = true }
 serde = { workspace = true }

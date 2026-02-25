@@ -1,5 +1,5 @@
 [package]
-name = "gitdot_api_derive"
+name = "gitdot-api-derive"
 version = "0.1.0"
 edition = "2024"
 

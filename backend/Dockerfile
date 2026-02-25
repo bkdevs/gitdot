@@ -12,7 +12,7 @@ RUN apt-get update && \
 COPY . .
 
 # Build the application
-RUN cargo build --release -p gitdot_server
+RUN cargo build --release -p gitdot-server
 
 # Runtime stage
 FROM debian:bookworm-slim
@@ -38,7 +38,7 @@ RUN git config --system user.name "Git Server" && \
   git config --system uploadpack.allowAnySHA1InWant true
 
 # Copy the binary from builder
-COPY --from=builder /app/target/release/gitdot_server /app/gitdot_server
+COPY --from=builder /app/target/release/gitdot-server /app/gitdot-server
 
 # Set environment variables with defaults for Cloud Run
 ENV GIT_PROJECT_ROOT="/srv/git"
@@ -49,4 +49,4 @@ ENV SERVER_PORT="8080"
 EXPOSE 8080
 
 # Run the binary
-CMD ["/app/gitdot_server"]
+CMD ["/app/gitdot-server"]
