@@ -13,9 +13,10 @@ export function Migrations({
     <div className="flex flex-col w-full">
       <MigrationsHeader />
       {migrations.map((migration) => (
-        <div
+        <Link
           key={migration.id}
-          className="flex flex-row items-center px-2 py-2 border-b select-none"
+          className="flex flex-row items-center px-2 py-2 border-b hover:bg-accent/50 select-none"
+          href={`/settings/migrations/${migration.number}`}
         >
           <div className="flex flex-col">
             <div className="flex flex-row text-sm">
@@ -31,7 +32,7 @@ export function Migrations({
               {formatDate(new Date(migration.created_at))}
             </div>
           </div>
-        </div>
+        </Link>
       ))}
       {migrations.length === 0 && (
         <p className="px-2 py-3 text-sm text-muted-foreground">

@@ -43,6 +43,16 @@ export async function listInstallationRepositories(
   return await handleResponse(response, GitHubRepositoryListResponseSchema);
 }
 
+export async function getMigration(
+  number: number,
+): Promise<MigrationResponse | null> {
+  const response = await authFetch(
+    `${GITDOT_SERVER_URL}/migration/${number}`,
+  );
+
+  return await handleResponse(response, MigrationResponseSchema);
+}
+
 export async function listMigrations(): Promise<MigrationListResponse | null> {
   const response = await authFetch(`${GITDOT_SERVER_URL}/migrations`);
 
