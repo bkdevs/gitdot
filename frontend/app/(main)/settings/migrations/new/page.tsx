@@ -6,8 +6,8 @@ import {
   listUserOrganizations,
   NotFound,
 } from "@/lib/dal";
-import { CreateMigrationForm } from "../ui/create-migration-form";
-import { CreateMigrationInstructions } from "../ui/create-migration-instructions";
+import { CreateMigrationForm } from "./ui/create-migration-form";
+import { CreateMigrationInstructions } from "./ui/create-migration-instructions";
 
 export default async function Page({
   searchParams,
