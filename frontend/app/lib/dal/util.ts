@@ -47,6 +47,16 @@ export async function authPost(
   });
 }
 
+export async function authDelete(
+  url: string,
+  options?: RequestInit,
+): Promise<Response> {
+  return await authFetch(url, {
+    ...options,
+    method: "DELETE",
+  });
+}
+
 export async function authPatch(
   url: string,
   request: unknown,

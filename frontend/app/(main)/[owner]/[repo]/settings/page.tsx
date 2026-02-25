@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { isRepositoryAdmin } from "@/lib/dal";
+import { DeleteRepositoryButton } from "./ui/delete-repository-button";
 
 export default async function Page({
   params,
@@ -19,10 +20,15 @@ export default async function Page({
           General
         </h3>
       </div>
-      <div className="flex flex-col gap-3 p-4">
-        <div className="text-sm">
-          <span className="text-muted-foreground">Repository:</span>{" "}
-          {owner}/{repo}
+      <div className="flex flex-col gap-4 p-4">
+        <div className="flex flex-col gap-2">
+          <h4 className="text-sm font-medium text-destructive">Danger Zone</h4>
+          <p className="text-xs text-muted-foreground">
+            Once you delete a repository, there is no going back.
+          </p>
+          <div>
+            <DeleteRepositoryButton owner={owner} repo={repo} />
+          </div>
         </div>
       </div>
     </div>

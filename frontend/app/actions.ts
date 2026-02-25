@@ -13,6 +13,7 @@ import {
   createQuestionComment,
   createRepository,
   createRunner,
+  deleteRepository,
   getCurrentUser,
   hasUser,
   migrateGitHubRepositories,
@@ -551,5 +552,25 @@ export async function migrateGitHubRepositoriesAction(
   }
 
   redirect("/settings/migrations");
+  return { success: true };
+}
+
+export type DeleteRepositoryActionResult =
+  | { success: true }
+  | { error: string };
+
+export async function deleteRepositoryAction(
+  owner: string,
+  repo: string,
+): Promise<DeleteRepositoryActionResult> {
+  try {
+    await deleteRepository(owner, repo);
+  } catch (e) {
+    return {
+      error: e instanceof Error ? e.message : "Failed to delete repository",
+    };
+  }
+
+  redirect(`/${owner}`);
   return { success: true };
 }

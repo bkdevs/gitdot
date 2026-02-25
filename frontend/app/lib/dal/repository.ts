@@ -28,6 +28,7 @@ import {
   RepositoryTreeSchema,
 } from "../dto";
 import {
+  authDelete,
   authFetch,
   authPost,
   GITDOT_SERVER_URL,
@@ -151,6 +152,23 @@ export async function getRepositoryPreview(
   if (response.status === 404) return NotFound;
 
   return await handleResponse(response, RepositoryPreviewSchema);
+}
+
+export async function deleteRepository(
+  owner: string,
+  repo: string,
+): Promise<void> {
+  const response = await authDelete(
+    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}`,
+  );
+  if (!response.ok) {
+    let message = response.statusText;
+    try {
+      const body = await response.json();
+      if (typeof body?.message === "string") message = body.message;
+    } catch {}
+    throw new Error(message);
+  }
 }
 
 export async function getRepositoryPermission(
