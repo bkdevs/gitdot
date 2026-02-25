@@ -8,8 +8,8 @@ export function GitHubImport() {
       <div className="flex flex-col text-sm w-sm">
         <p className="pb-2">Import.</p>
         <p className="text-primary/60 pb-4">
-          You can import your GitHub repositories into gitdot by installing the gitdot
-          GitHub App on your account.
+          You can import your GitHub repositories into gitdot by installing the
+          gitdot GitHub App on your account.
         </p>
 
         <a

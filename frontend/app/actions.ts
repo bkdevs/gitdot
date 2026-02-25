@@ -4,14 +4,15 @@ import { refresh } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import {
+  ApiError,
   authorizeDevice,
   createAnswer,
   createAnswerComment,
+  createBuild,
   createQuestion,
   createQuestionComment,
   createRepository,
   createRunner,
-  createTask,
   getCurrentUser,
   hasUser,
   refreshRunnerToken,
@@ -26,10 +27,10 @@ import {
 import { createSupabaseClient } from "@/lib/supabase";
 import type {
   AnswerResponse,
+  BuildResponse,
   CommentResponse,
   CreateRepositoryResponse,
   QuestionResponse,
-  TaskResponse,
   UserResponse,
   VoteResponse,
 } from "./lib/dto";
@@ -476,27 +477,43 @@ export async function authorizeDeviceAction(
   return { success: true };
 }
 
-export type CreateTaskActionResult = { task: TaskResponse } | { error: string };
+export type CreateBuildActionResult =
+  | { build: BuildResponse }
+  | { error: string };
 
-export async function createTaskAction(
+export async function createBuildAction(
   owner: string,
   repo: string,
   formData: FormData,
-): Promise<CreateTaskActionResult> {
-  const script = formData.get("script") as string;
-  if (!script) {
-    return { error: "Script cannot be empty" };
+): Promise<CreateBuildActionResult> {
+  const trigger = formData.get("trigger") as string;
+  const commit_sha = formData.get("commit_sha") as string;
+
+  if (!trigger || !commit_sha) {
+    return { error: "Trigger and commit SHA are required" };
   }
 
-  const result = await createTask({
-    repo_owner: owner,
-    repo_name: repo,
-    script,
-  });
+  if (trigger !== "pull_request" && trigger !== "push_to_main") {
+    return { error: "Trigger must be pull_request or push_to_main" };
+  }
+
+  let result: BuildResponse | null;
+  try {
+    result = await createBuild({
+      repo_owner: owner,
+      repo_name: repo,
+      trigger,
+      commit_sha,
+    });
+  } catch (e) {
+    return {
+      error: e instanceof ApiError ? e.message : "createBuild call failed",
+    };
+  }
   if (!result) {
-    return { error: "createTask call failed" };
+    return { error: "createBuild call failed" };
   }
 
   refresh();
-  return { task: result };
+  return { build: result };
 }

@@ -3,9 +3,9 @@
 import { Plus } from "lucide-react";
 import { useState } from "react";
 import { useAuthBlocker } from "@/(main)/providers/auth-blocker-provider";
-import { CreateTaskDialog } from "./create-task-dialog";
+import { CreateBuildDialog } from "./create-build-dialog";
 
-export function CreateTaskButton({
+export function CreateBuildButton({
   owner,
   repo,
 }: {
@@ -26,9 +26,9 @@ export function CreateTaskButton({
         }}
       >
         <Plus className="size-3 mr-1.5" />
-        New task
+        New build
       </button>
-      <CreateTaskDialog
+      <CreateBuildDialog
         open={open}
         setOpen={setOpen}
         owner={owner}

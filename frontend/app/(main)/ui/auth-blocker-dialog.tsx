@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import Image from "next/image";
 import { useEffect, useState, useTransition } from "react";
 import { login, loginWithGithub } from "@/actions";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
@@ -106,7 +106,12 @@ export function AuthBlockerDialog({
               disabled={githubPending}
               className="flex items-center justify-center gap-2 mx-2 mb-2 py-1.5 text-xs border border-border cursor-pointer hover:bg-gray-50 transition-colors duration-150"
             >
-              <Image src="/github-logo.svg" alt="GitHub" width={16} height={16} />
+              <Image
+                src="/github-logo.svg"
+                alt="GitHub"
+                width={16}
+                height={16}
+              />
               {githubPending ? "Redirecting..." : "Continue with GitHub"}
             </button>
           </>

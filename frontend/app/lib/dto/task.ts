@@ -12,6 +12,8 @@ export const TaskResponseSchema = z.object({
   id: z.uuid(),
   repo_owner: z.string(),
   repo_name: z.string(),
+  build_id: z.uuid().optional(),
+  name: z.string().optional(),
   script: z.string(),
   status: z.string(),
   created_at: z.iso.datetime(),

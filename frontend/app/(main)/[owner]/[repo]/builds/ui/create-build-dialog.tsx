@@ -2,10 +2,15 @@
 
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { useActionState, useState } from "react";
-import { type CreateTaskActionResult, createTaskAction } from "@/actions";
+import { type CreateBuildActionResult, createBuildAction } from "@/actions";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
 
-export function CreateTaskDialog({
+const TRIGGERS = [
+  { value: "push_to_main", label: "Push to main" },
+  { value: "pull_request", label: "Pull request" },
+] as const;
+
+export function CreateBuildDialog({
   open,
   setOpen,
   owner,
@@ -16,22 +21,26 @@ export function CreateTaskDialog({
   owner: string;
   repo: string;
 }) {
-  const [script, setScript] = useState("");
+  const [commitSha, setCommitSha] = useState("");
+  const [trigger, setTrigger] = useState<"push_to_main" | "pull_request">(
+    "push_to_main",
+  );
 
-  const createTask = createTaskAction.bind(null, owner, repo);
+  const createBuild = createBuildAction.bind(null, owner, repo);
   const [state, formAction, isPending] = useActionState(
-    async (_prev: CreateTaskActionResult | null, formData: FormData) => {
-      const result = await createTask(formData);
-      if ("task" in result) {
+    async (_prev: CreateBuildActionResult | null, formData: FormData) => {
+      const result = await createBuild(formData);
+      if ("build" in result) {
         setOpen(false);
-        setScript("");
+        setCommitSha("");
+        setTrigger("push_to_main");
       }
       return result;
     },
     null,
   );
 
-  const isValid = script.trim() !== "";
+  const isValid = commitSha.trim() !== "";
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -41,24 +50,44 @@ export function CreateTaskDialog({
         showOverlay={true}
       >
         <VisuallyHidden>
-          <DialogTitle title={"New task"} />
+          <DialogTitle title={"New build"} />
         </VisuallyHidden>
         <form action={formAction} className="relative">
-          <textarea
-            name="script"
-            placeholder="Enter script command..."
-            value={script}
-            onChange={(e) => setScript(e.target.value)}
-            className="w-full p-2 text-sm font-mono bg-background outline-none resize-none min-h-32"
+          <input
+            type="text"
+            name="commit_sha"
+            placeholder="Commit SHA..."
+            value={commitSha}
+            onChange={(e) => setCommitSha(e.target.value)}
+            className="w-full p-2 text-sm font-mono bg-background outline-none border-b border-border"
             disabled={isPending}
             autoFocus
           />
+          <div className="flex flex-row border-b border-border">
+            {TRIGGERS.map((t) => (
+              <label
+                key={t.value}
+                className="flex flex-row items-center gap-2 px-3 py-2 text-sm cursor-pointer hover:bg-accent/50 select-none"
+              >
+                <input
+                  type="radio"
+                  name="trigger"
+                  value={t.value}
+                  checked={trigger === t.value}
+                  onChange={() => setTrigger(t.value)}
+                  disabled={isPending}
+                  className="accent-primary"
+                />
+                {t.label}
+              </label>
+            ))}
+          </div>
           {state && "error" in state && (
             <p className="text-xs text-red-500 px-3 pb-2">{state.error}</p>
           )}
           <div className="flex items-center justify-between pl-2 py-2 border-t border-border h-9">
             <span className="text-xs text-muted-foreground">
-              Run a task in{" "}
+              Trigger a build in{" "}
               <span className="text-foreground">
                 {owner}/{repo}
               </span>

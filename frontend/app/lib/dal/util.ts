@@ -60,17 +60,30 @@ export async function authPatch(
   });
 }
 
+export class ApiError extends Error {
+  constructor(
+    public readonly status: number,
+    message: string,
+  ) {
+    super(message);
+    this.name = "ApiError";
+  }
+}
+
 export async function handleResponse<T>(
   response: Response,
   schema: ZodType<T>,
 ): Promise<T | null> {
   if (!response.ok) {
-    console.error(
-      `${response.url} failed:`,
-      response?.status,
-      response?.statusText,
-    );
-    return null;
+    let message = response.statusText;
+    try {
+      const body = await response.json();
+      if (typeof body?.message === "string") message = body.message;
+    } catch {
+      // ignore parse failure, keep statusText
+    }
+    console.error(`${response.url} failed:`, response.status, message);
+    throw new ApiError(response.status, message);
   }
 
   const data = await response.json();
