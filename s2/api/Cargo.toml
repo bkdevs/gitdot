@@ -1,0 +1,44 @@
+[package]
+name = "s2-api"
+version = "0.27.7"
+description = "API types for S2, the durable streams API"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+keywords = ["s2", "durable", "streams", "log", "api"]
+categories = ["api-bindings"]
+
+[features]
+axum = ["dep:axum", "s2-common/axum"]
+utoipa = ["dep:utoipa"]
+codegen = ["dep:prost-build"]
+
+[dependencies]
+axum = { workspace = true, optional = true }
+base64ct = { workspace = true, features = ["alloc"] }
+bytes = { workspace = true }
+compact_str = { workspace = true, features = ["serde"] }
+enum-ordinalize = { workspace = true }
+flate2 = { workspace = true }
+futures = { workspace = true }
+http = { workspace = true }
+itertools = { workspace = true }
+mime = { workspace = true }
+prost = { workspace = true }
+s2-common = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+strum = { workspace = true, features = ["derive"] }
+thiserror = { workspace = true }
+time = { workspace = true, features = ["serde", "formatting", "parsing"] }
+tokio-util = { workspace = true, features = ["codec", "io"] }
+utoipa = { workspace = true, optional = true, features = ["time"] }
+zstd = { workspace = true }
+
+[build-dependencies]
+prost-build = { workspace = true, optional = true }
+
+[dev-dependencies]
+proptest = { workspace = true }
+rstest = { workspace = true }

@@ -1,0 +1,36 @@
+[package]
+name = "s2-common"
+version = "0.28.1"
+description = "Common stuff for client and servers for S2, the durable streams API"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+keywords = ["s2", "durable", "streams", "log", "api"]
+
+[features]
+axum = ["dep:axum"]
+clap = ["dep:clap"]
+rkyv = ["dep:rkyv", "compact_str/rkyv"]
+utoipa = ["dep:utoipa"]
+
+[dependencies]
+axum = { workspace = true, optional = true }
+blake3 = { workspace = true }
+bytes = { workspace = true }
+clap = { workspace = true, optional = true, features = ["derive"] }
+compact_str = { workspace = true, features = ["serde"] }
+enum-ordinalize = { workspace = true }
+enumset = { workspace = true }
+http = { workspace = true }
+rkyv = { workspace = true, optional = true }
+serde = { workspace = true, features = ["derive"] }
+strum = { workspace = true, features = ["derive"] }
+thiserror = { workspace = true }
+time = { workspace = true }
+utoipa = { workspace = true, optional = true, features = ["time"] }
+
+[dev-dependencies]
+proptest = { workspace = true }
+rstest = { workspace = true }
+serde_json = { workspace = true }
