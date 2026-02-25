@@ -10,6 +10,7 @@ path = "src/bin/main.rs"
 
 [dependencies]
 anyhow = { workspace = true }
+rustls = { workspace = true, features = ["aws-lc-rs"] }
 clap = { version = "4.5.54", features = ["derive"] }
 futures = { workspace = true }
 s2-sdk = { workspace = true }

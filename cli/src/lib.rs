@@ -1,3 +1,4 @@
+pub mod bootstrap;
 mod cli;
 mod command;
 mod config;

@@ -31,7 +31,7 @@ impl S2Client for S2ClientImpl {
         repo: &str,
         task_id: Uuid,
     ) -> Result<String, String> {
-        let basin_name_str = format!("{}.{}", owner.to_lowercase(), repo.to_lowercase());
+        let basin_name_str = format!("{}-{}", owner.to_lowercase(), repo.to_lowercase());
         let basin_name: BasinName = basin_name_str
             .parse()
             .map_err(|_| format!("invalid basin name: {basin_name_str}"))?;
@@ -59,7 +59,7 @@ impl S2Client for S2ClientImpl {
             .map_err(|e| e.to_string())?;
 
         Ok(format!(
-            "s2://{}.{}/task/{task_id}",
+            "s2://{}-{}/task/{task_id}",
             owner.to_lowercase(),
             repo.to_lowercase()
         ))
