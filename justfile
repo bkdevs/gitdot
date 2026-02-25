@@ -38,7 +38,7 @@ dev:
     echo "Starting tmux session '$SESSION_NAME'..."
     tmux new-session -d -s "$SESSION_NAME" -c "$PROJECT_ROOT/frontend" -n "frontend" "pnpm run dev"
     tmux new-window -t "$SESSION_NAME" -c "$PROJECT_ROOT/backend" -n "backend" "cargo run"
-    tmux new-window -t "$SESSION_NAME" -c "$PROJECT_ROOT/s2/lite" -n "s2" "cargo run"
+    tmux new-window -t "$SESSION_NAME" -c "$PROJECT_ROOT/s2/lite" -n "s2" "cargo run -- --port 8081"
     tmux attach-session -t "$SESSION_NAME"
 
 # Run frontend dev server
@@ -51,7 +51,7 @@ backend:
 
 # Run s2-lite server
 s2:
-    cd s2 && cargo run --release -p s2-lite --bin server
+    cargo run -p s2-lite -- --port 8081
 
 # ── Build ───────────────────────────────────────────────────────────────────
 
