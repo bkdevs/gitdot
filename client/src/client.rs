@@ -16,14 +16,24 @@ pub struct GitdotClient {
 }
 
 impl GitdotClient {
-    pub fn new(client_id: String) -> Self {
+    pub fn new(client_id: &str) -> Self {
         Self {
             client: reqwest::Client::new(),
-            client_id,
+            client_id: String::from(client_id),
             token: None,
             public_url: PUBLIC_URL.to_string(),
             server_url: SERVER_URL.to_string(),
         }
+    }
+
+    pub fn with_public_url(mut self, public_url: String) -> Self {
+        self.public_url = public_url;
+        self
+    }
+
+    pub fn with_server_url(mut self, server_url: String) -> Self {
+        self.server_url = server_url;
+        self
     }
 
     pub fn with_token(mut self, token: String) -> Self {

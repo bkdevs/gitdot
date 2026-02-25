@@ -14,7 +14,9 @@ pub async fn run(config: RunnerConfig) -> anyhow::Result<()> {
         }
     };
 
-    let client = GitdotClient::new("gitdot-runner".to_string()).with_token(token);
+    let client = GitdotClient::new("gitdot-runner")
+        .with_token(token)
+        .with_server_url(config.gitdot_server_url);
 
     loop {
         let task = match client.poll_task(()).await {

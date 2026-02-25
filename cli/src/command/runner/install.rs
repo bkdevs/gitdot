@@ -24,7 +24,7 @@ pub async fn install(mut config: RunnerConfig) -> anyhow::Result<()> {
 
         println!("Verifying your runner token...");
 
-        let client = GitdotClient::new("gitdot-runner".to_string()).with_token(token.clone());
+        let client = GitdotClient::new("gitdot-runner").with_token(token.clone());
         client.verify_runner().await?;
 
         config.runner_token = Some(token);
