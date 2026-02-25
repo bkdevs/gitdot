@@ -4,7 +4,7 @@ use axum::extract::FromRef;
 use sqlx::PgPool;
 
 use gitdot_core::{
-    client::{DifftClient, Git2Client, GitHttpClientImpl, OctocrabClient},
+    client::{DifftClient, Git2Client, GitHttpClientImpl, OctocrabClient, S2ClientImpl},
     repository::{
         BuildRepositoryImpl, CodeRepositoryImpl, CommitRepositoryImpl, GitHubRepositoryImpl,
         MigrationRepositoryImpl, OrganizationRepositoryImpl, QuestionRepositoryImpl,
@@ -67,6 +67,8 @@ impl AppState {
             settings.github_app_private_key.clone(),
         );
 
+        let s2_client = S2ClientImpl::new(&settings.s2_server_url);
+
         Self {
             settings,
             oauth_service: Arc::new(OAuthServiceImpl::new(
@@ -122,6 +124,7 @@ impl AppState {
                 build_repo.clone(),
                 task_repo.clone(),
                 git_client.clone(),
+                s2_client,
             )),
 
             runner_service: Arc::new(RunnerServiceImpl::new(

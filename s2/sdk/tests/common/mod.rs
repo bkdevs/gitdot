@@ -177,9 +177,7 @@ fn default_s2_config() -> Result<S2Config, ValidationError> {
 }
 
 pub fn s2_config(compression: Compression) -> Result<S2Config, ValidationError> {
-    let access_token =
-        std::env::var("S2_ACCESS_TOKEN").map_err(|_| "S2_ACCESS_TOKEN env var not set")?;
-    let mut config = S2Config::new(access_token);
+    let mut config = S2Config::new();
     if std::env::var("S2_ACCOUNT_ENDPOINT").is_ok() && std::env::var("S2_BASIN_ENDPOINT").is_ok() {
         config = config.with_endpoints(S2Endpoints::from_env()?)
     }

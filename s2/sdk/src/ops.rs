@@ -11,9 +11,8 @@ use crate::{
     producer::{Producer, ProducerConfig},
     session::{self, AppendSession, AppendSessionConfig},
     types::{
-        AccessTokenId, AccessTokenInfo, AppendAck, AppendInput, BasinConfig, BasinInfo, BasinName,
-        BasinState, CreateBasinInput, CreateStreamInput, DeleteBasinInput, DeleteStreamInput,
-        IssueAccessTokenInput, ListAccessTokensInput, ListAllAccessTokensInput, ListAllBasinsInput,
+        AppendAck, AppendInput, BasinConfig, BasinInfo, BasinName, BasinState, CreateBasinInput,
+        CreateStreamInput, DeleteBasinInput, DeleteStreamInput, ListAllBasinsInput,
         ListAllStreamsInput, ListBasinsInput, ListStreamsInput, Page, ReadBatch, ReadInput,
         ReconfigureBasinInput, ReconfigureStreamInput, S2Config, S2Error, StreamConfig, StreamInfo,
         StreamName, StreamPosition, Streaming,
@@ -156,67 +155,6 @@ impl S2 {
             .reconfigure_basin(input.name, input.config.into())
             .await?;
         Ok(config.into())
-    }
-
-    /// List a page of access tokens.
-    ///
-    /// See [`list_all_access_tokens`](crate::S2::list_all_access_tokens) for automatic pagination.
-    pub async fn list_access_tokens(
-        &self,
-        input: ListAccessTokensInput,
-    ) -> Result<Page<AccessTokenInfo>, S2Error> {
-        let response = self.client.list_access_tokens(input.into()).await?;
-        Ok(Page::new(
-            response
-                .access_tokens
-                .into_iter()
-                .map(TryInto::try_into)
-                .collect::<Result<Vec<_>, _>>()?,
-            response.has_more,
-        ))
-    }
-
-    /// List all access tokens, paginating automatically.
-    pub fn list_all_access_tokens(
-        &self,
-        input: ListAllAccessTokensInput,
-    ) -> Streaming<AccessTokenInfo> {
-        let s2 = self.clone();
-        let prefix = input.prefix;
-        let start_after = input.start_after;
-        let mut input = ListAccessTokensInput::new()
-            .with_prefix(prefix)
-            .with_start_after(start_after);
-        Box::pin(async_stream::try_stream! {
-            loop {
-                let page = s2.list_access_tokens(input.clone()).await?;
-
-                let start_after = page.values.last().map(|info| info.id.clone().into());
-                for info in page.values {
-                    yield info;
-                }
-
-                if page.has_more && let Some(start_after) = start_after {
-                    input = input.with_start_after(start_after);
-                } else {
-                    break;
-                }
-            }
-        })
-    }
-
-    /// Issue an access token.
-    pub async fn issue_access_token(
-        &self,
-        input: IssueAccessTokenInput,
-    ) -> Result<String, S2Error> {
-        let response = self.client.issue_access_token(input.into()).await?;
-        Ok(response.access_token)
-    }
-
-    /// Revoke an access token.
-    pub async fn revoke_access_token(&self, id: AccessTokenId) -> Result<(), S2Error> {
-        Ok(self.client.revoke_access_token(id).await?)
     }
 }
 

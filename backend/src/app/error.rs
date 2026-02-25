@@ -252,6 +252,7 @@ impl IntoResponse for AppError {
                     BuildError::GitError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                     BuildError::JoinError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                     BuildError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+                    BuildError::S2Error(_) => StatusCode::INTERNAL_SERVER_ERROR,
                 };
                 let response = AppResponse::new(
                     status_code,

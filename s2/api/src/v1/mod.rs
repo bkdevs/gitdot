@@ -1,4 +1,3 @@
-pub mod access;
 pub mod basin;
 pub mod config;
 pub mod error;
@@ -11,13 +10,6 @@ use s2_common::types::{self, resources::RequestToken};
 pub struct S2RequestTokenHeader {
     /// Client-specified request token for idempotent retries.
     pub s2_request_token: RequestToken,
-}
-
-#[rustfmt::skip]
-#[derive(Debug)]
-pub struct AccessTokenIdPathSegment {
-    /// Access token ID.
-    pub id: types::access::AccessTokenId,
 }
 
 #[rustfmt::skip]

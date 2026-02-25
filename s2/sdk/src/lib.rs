@@ -18,8 +18,6 @@ The Rust SDK provides ergonomic wrappers and utilities to interact with the
    cargo add s2-sdk
    ```
 
-1. Generate an access token by logging into the web console at [s2.dev](https://s2.dev/dashboard).
-
 1. Perform an operation.
 
    ```no_run
@@ -30,7 +28,7 @@ The Rust SDK provides ergonomic wrappers and utilities to interact with the
 
     #[tokio::main]
     async fn main() -> Result<(), Box<dyn std::error::Error>> {
-        let s2 = S2::new(S2Config::new("<YOUR_ACCESS_TOKEN>"))?;
+        let s2 = S2::new(S2Config::new())?;
         let page = s2.list_basins(ListBasinsInput::new()).await?;
         println!("My basins: {:?}", page.values);
         Ok(())

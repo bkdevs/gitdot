@@ -1,10 +1,11 @@
 use std::collections::HashMap;
 
 use async_trait::async_trait;
+use futures::future::try_join_all;
 use uuid::Uuid;
 
 use crate::{
-    client::{Git2Client, GitClient},
+    client::{Git2Client, GitClient, S2Client, S2ClientImpl},
     dto::{BuildResponse, CiConfig, CreateBuildRequest, ListBuildsRequest, TaskResponse},
     error::{BuildError, GitError},
     model::TaskStatus,
@@ -32,6 +33,7 @@ where
     build_repo: B,
     task_repo: T,
     git_client: Git2Client,
+    s2_client: S2ClientImpl,
 }
 
 impl BuildServiceImpl<BuildRepositoryImpl, TaskRepositoryImpl> {
@@ -39,11 +41,13 @@ impl BuildServiceImpl<BuildRepositoryImpl, TaskRepositoryImpl> {
         build_repo: BuildRepositoryImpl,
         task_repo: TaskRepositoryImpl,
         git_client: Git2Client,
+        s2_client: S2ClientImpl,
     ) -> Self {
         Self {
             build_repo,
             task_repo,
             git_client,
+            s2_client,
         }
     }
 }
@@ -90,7 +94,10 @@ where
             name_to_id.insert(task_config.name.clone(), Uuid::new_v4());
         }
 
-        for task_config in &task_configs {
+        let s2_client = &self.s2_client;
+        let task_repo = &self.task_repo;
+
+        let task_futures = task_configs.iter().map(|task_config| {
             let id = name_to_id[&task_config.name];
             let waits_for: Vec<Uuid> = task_config
                 .waits_for
@@ -105,21 +112,30 @@ where
                 TaskStatus::Blocked
             };
 
-            let s2_uri = format!("s2://{owner}/{repo}");
-            self.task_repo
-                .create(
-                    id,
-                    owner,
-                    repo,
-                    &task_config.name,
-                    &task_config.command,
-                    build.id,
-                    &s2_uri,
-                    status,
-                    &waits_for,
-                )
-                .await?;
-        }
+            async move {
+                let s2_uri = s2_client
+                    .create_stream(owner, repo, id)
+                    .await
+                    .map_err(BuildError::S2Error)?;
+
+                task_repo
+                    .create(
+                        id,
+                        owner,
+                        repo,
+                        &task_config.name,
+                        &task_config.command,
+                        build.id,
+                        &s2_uri,
+                        status,
+                        &waits_for,
+                    )
+                    .await
+                    .map_err(BuildError::DatabaseError)
+            }
+        });
+
+        try_join_all(task_futures).await?;
 
         Ok(build.into())
     }

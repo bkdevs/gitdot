@@ -6,14 +6,10 @@ use bytes::BytesMut;
 use futures::{Stream, StreamExt};
 use http::{
     HeaderMap, HeaderValue, StatusCode,
-    header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE, InvalidHeaderValue},
+    header::{ACCEPT, CONTENT_TYPE, InvalidHeaderValue},
 };
 use prost::{self, Message};
 use s2_api::v1::{
-    access::{
-        AccessTokenInfo, IssueAccessTokenResponse, ListAccessTokensRequest,
-        ListAccessTokensResponse,
-    },
     basin::{
         BasinInfo, CreateBasinRequest, ListBasinsRequest, ListBasinsResponse,
     },
@@ -25,7 +21,6 @@ use s2_api::v1::{
         s2s::{self, FrameDecoder, SessionMessage, TerminalMessage},
     },
 };
-use secrecy::ExposeSecret;
 use tokio_util::codec::Decoder;
 use tracing::{debug, warn};
 use url::Url;
@@ -36,8 +31,7 @@ use crate::{
     client::{self, StreamingResponse, UnaryResponse},
     retry::{RetryBackoff, RetryBackoffBuilder},
     types::{
-        AccessTokenId, BasinAuthority, BasinName, Compression, RetryConfig, S2Config, S2Endpoints,
-        StreamName,
+        BasinAuthority, BasinName, Compression, RetryConfig, S2Config, S2Endpoints, StreamName,
     },
 };
 
@@ -67,35 +61,6 @@ impl AccountClient {
 
     pub fn basin_client(&self, name: BasinName) -> BasinClient {
         BasinClient::init(name, self.config.clone(), self.client.clone())
-    }
-
-    pub async fn list_access_tokens(
-        &self,
-        request: ListAccessTokensRequest,
-    ) -> Result<ListAccessTokensResponse, ApiError> {
-        let url = self.base_url.join("v1/access-tokens")?;
-        let request = self.get(url).query(&request).build()?;
-        let response = self.request(request).send().await?;
-        Ok(response.json::<ListAccessTokensResponse>()?)
-    }
-
-    pub async fn issue_access_token(
-        &self,
-        info: AccessTokenInfo,
-    ) -> Result<IssueAccessTokenResponse, ApiError> {
-        let url = self.base_url.join("v1/access-tokens")?;
-        let request = self.post(url).json(&info).build()?;
-        let response = self.request(request).send().await?;
-        Ok(response.json::<IssueAccessTokenResponse>()?)
-    }
-
-    pub async fn revoke_access_token(&self, id: AccessTokenId) -> Result<(), ApiError> {
-        let url = self
-            .base_url
-            .join(&format!("v1/access-tokens/{}", urlencoding::encode(&id)))?;
-        let request = self.delete(url).build()?;
-        let _response = self.request(request).send().await?;
-        Ok(())
     }
 
     pub async fn list_basins(
@@ -706,10 +671,6 @@ impl BaseClient {
         C: client::Connect + Clone + Send + Sync + 'static,
     {
         let mut default_headers = HeaderMap::new();
-        default_headers.insert(
-            AUTHORIZATION,
-            format!("Bearer {}", config.access_token.expose_secret()).try_into()?,
-        );
         default_headers.insert(http::header::USER_AGENT, config.user_agent.clone());
         match config.compression {
             Compression::Gzip => {

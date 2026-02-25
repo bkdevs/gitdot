@@ -47,7 +47,7 @@ frontend:
 
 # Run backend server
 backend:
-    cargo run -p gitdot-server
+    cd backend && cargo run
 
 # Run s2-lite server
 s2:

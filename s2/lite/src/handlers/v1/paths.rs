@@ -10,15 +10,6 @@ pub mod basins {
     pub const RECONFIGURE: &str = "/basins/{basin}";
 }
 
-pub mod access_tokens {
-    pub const TAG: &str = "access-tokens";
-    pub const DESCRIPTION: &str = "Manage access tokens";
-
-    pub const LIST: &str = "/access-tokens";
-    pub const ISSUE: &str = "/access-tokens";
-    pub const REVOKE: &str = "/access-tokens/{id}";
-}
-
 pub mod streams {
     pub const TAG: &str = "streams";
     pub const DESCRIPTION: &str = "Manage streams";

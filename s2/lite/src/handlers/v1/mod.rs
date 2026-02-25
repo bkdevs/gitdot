@@ -2,7 +2,6 @@ use tower_http::{compression::CompressionLayer, decompression::RequestDecompress
 
 use crate::backend::Backend;
 
-pub mod access_tokens;
 pub mod basins;
 mod error;
 pub mod paths;
@@ -23,7 +22,6 @@ pub fn router() -> axum::Router<Backend> {
         .merge(basins::router())
         .merge(streams::router())
         .merge(records::router())
-        .merge(access_tokens::router())
         .route_layer((
             CompressionLayer::new().compress_when(compress_when),
             RequestDecompressionLayer::new(),

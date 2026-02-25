@@ -41,7 +41,6 @@ use crate::{
         kv,
         stream_id::StreamId,
     },
-    metrics,
 };
 
 const DORMANT_TIMEOUT: Duration = Duration::from_secs(60);
@@ -458,8 +457,6 @@ impl StreamerClient {
         input: AppendInput,
     ) -> Result<AppendPermit<'_>, StreamerMissingInActionError> {
         let metered_size = input.records.metered_size();
-        metrics::observe_append_batch_size(input.records.len(), metered_size);
-        let start = Instant::now();
         // Allow admitting at least one batch if none are in flight.
         let num_permits = metered_size.clamp(1, self.append_inflight_bytes_max) as u32;
         let sema_permit = tokio::select! {
@@ -470,7 +467,6 @@ impl StreamerClient {
                 Err(StreamerMissingInActionError)
             }
         }?;
-        metrics::observe_append_permit_latency(start.elapsed());
         Ok(AppendPermit {
             sema_permit,
             msg_tx: &self.msg_tx,
@@ -550,7 +546,6 @@ impl AppendPermit<'_> {
         session: Option<append::SessionHandle>,
         append_type: AppendType,
     ) -> Result<AppendAck, AppendErrorInternal> {
-        let start = Instant::now();
         let AppendPermit {
             sema_permit,
             msg_tx,
@@ -567,7 +562,6 @@ impl AppendPermit<'_> {
             .map_err(|_| StreamerMissingInActionError)?;
         let ack = reply_rx.await.map_err(|_| RequestDroppedError)??;
         drop(sema_permit);
-        metrics::observe_append_ack_latency(start.elapsed());
         Ok(ack)
     }
 }

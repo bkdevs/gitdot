@@ -9,6 +9,7 @@ pub struct Settings {
     pub oauth_device_verification_uri: String,
     pub github_app_id: u64,
     pub github_app_private_key: String,
+    pub s2_server_url: String,
 }
 
 impl Settings {
@@ -30,6 +31,7 @@ impl Settings {
                 .expect("GITHUB_APP_ID must be a valid u64"),
             github_app_private_key: env::var("GITHUB_APP_PRIVATE_KEY")
                 .expect("GITHUB_APP_PRIVATE_KEY must be set"),
+            s2_server_url: env::var("S2_SERVER_URL").expect("S2_SERVER_URL must be set"),
         })
     }
 

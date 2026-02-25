@@ -30,4 +30,7 @@ pub enum BuildError {
 
     #[error("Database error: {0}")]
     DatabaseError(#[from] sqlx::Error),
+
+    #[error("S2 error: {0}")]
+    S2Error(String),
 }
