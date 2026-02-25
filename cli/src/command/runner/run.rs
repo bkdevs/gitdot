@@ -18,7 +18,7 @@ pub async fn run(config: RunnerConfig) -> anyhow::Result<()> {
 
     let client = GitdotClient::new("gitdot-runner")
         .with_token(token)
-        .with_server_url(config.gitdot_server_url);
+        .with_server_url(&config.gitdot_server_url);
 
     let s2 = S2::from_url(&config.s2_server_url).context("failed to init S2 client")?;
 

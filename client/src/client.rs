@@ -26,13 +26,13 @@ impl GitdotClient {
         }
     }
 
-    pub fn with_web_url(mut self, web_url: String) -> Self {
-        self.web_url = web_url;
+    pub fn with_web_url(mut self, web_url: &str) -> Self {
+        self.web_url = web_url.to_string();
         self
     }
 
-    pub fn with_server_url(mut self, server_url: String) -> Self {
-        self.server_url = server_url;
+    pub fn with_server_url(mut self, server_url: &str) -> Self {
+        self.server_url = server_url.to_string();
         self
     }
 
