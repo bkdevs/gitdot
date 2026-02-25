@@ -17,7 +17,7 @@ impl CreateBuildRequest {
     pub fn new(
         repo_owner: &str,
         repo_name: &str,
-        trigger: BuildTrigger,
+        trigger: &str,
         commit_sha: String,
     ) -> Result<Self, BuildError> {
         Ok(Self {
@@ -25,7 +25,8 @@ impl CreateBuildRequest {
                 .map_err(|e| BuildError::InvalidOwnerName(e.to_string()))?,
             repo_name: RepositoryName::try_new(repo_name)
                 .map_err(|e| BuildError::InvalidRepositoryName(e.to_string()))?,
-            trigger,
+            trigger: BuildTrigger::try_from(trigger.to_string())
+                .map_err(BuildError::InvalidTrigger)?,
             commit_sha,
         })
     }

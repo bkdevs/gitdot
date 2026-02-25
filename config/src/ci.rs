@@ -14,6 +14,20 @@ impl CiConfig {
         ci::validate(&config)?;
         Ok(config)
     }
+
+    pub fn get_build_config(&self, trigger: &BuildTrigger) -> Result<&BuildConfig, CiConfigError> {
+        self.builds
+            .iter()
+            .find(|b| &b.trigger == trigger)
+            .ok_or_else(|| CiConfigError::NoMatchingBuild(String::from(trigger.clone())))
+    }
+
+    pub fn get_task_configs(&self, build: &BuildConfig) -> Vec<&TaskConfig> {
+        self.tasks
+            .iter()
+            .filter(|t| build.tasks.contains(&t.name))
+            .collect()
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -23,11 +37,23 @@ pub enum BuildTrigger {
     PushToMain,
 }
 
-impl Into<String> for BuildTrigger {
-    fn into(self) -> String {
-        match self {
+impl From<BuildTrigger> for String {
+    fn from(trigger: BuildTrigger) -> String {
+        match trigger {
             BuildTrigger::PullRequest => "pull_request".to_string(),
             BuildTrigger::PushToMain => "push_to_main".to_string(),
+        }
+    }
+}
+
+impl TryFrom<String> for BuildTrigger {
+    type Error = String;
+
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        match s.as_str() {
+            "pull_request" => Ok(BuildTrigger::PullRequest),
+            "push_to_main" => Ok(BuildTrigger::PushToMain),
+            other => Err(format!("invalid trigger: {other}")),
         }
     }
 }

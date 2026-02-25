@@ -243,7 +243,6 @@ impl IntoResponse for AppError {
                     BuildError::InvalidTrigger(_) => StatusCode::BAD_REQUEST,
                     BuildError::NotFound(_) => StatusCode::NOT_FOUND,
                     BuildError::ConfigNotFound(_) => StatusCode::NOT_FOUND,
-                    BuildError::NoMatchingBuildConfig => StatusCode::UNPROCESSABLE_ENTITY,
                     BuildError::InvalidConfig(_) => StatusCode::UNPROCESSABLE_ENTITY,
                     BuildError::GitError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                     BuildError::JoinError(_) => StatusCode::INTERNAL_SERVER_ERROR,

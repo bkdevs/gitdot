@@ -11,6 +11,7 @@ use crate::{
 #[async_trait]
 pub trait BuildService: Send + Sync + 'static {
     async fn create_build(&self, request: CreateBuildRequest) -> Result<BuildResponse, BuildError>;
+
     async fn list_builds(
         &self,
         request: ListBuildsRequest,
@@ -52,7 +53,6 @@ where
         let owner = request.repo_owner.as_ref();
         let repo = request.repo_name.as_ref();
 
-        // 1. Fetch .gitdot-ci.toml from git at commit_sha
         let file = self
             .git_client
             .get_repo_file(owner, repo, &request.commit_sha, ".gitdot-ci.toml")
@@ -66,35 +66,21 @@ where
                 other => BuildError::GitError(other),
             })?;
 
-        let raw_config = file.content;
+        let ci_config = CiConfig::new(&file.content).map_err(BuildError::InvalidConfig)?;
+        let build_config = ci_config.get_build_config(&request.trigger)?;
+        let task_configs = ci_config.get_task_configs(build_config);
 
-        // 2. Parse and validate
-        let ci_config = CiConfig::new(&raw_config).map_err(BuildError::InvalidConfig)?;
-
-        // 3. Find the BuildConfig matching trigger
-        let build_config = ci_config
-            .builds
-            .iter()
-            .find(|b| b.trigger == request.trigger)
-            .ok_or(BuildError::NoMatchingBuildConfig)?;
-
-        let trigger_str: String = request.trigger.clone().into();
-
-        // 4. Create the Build, storing raw config
         let build = self
             .build_repo
-            .create(owner, repo, &trigger_str, &request.commit_sha, &raw_config)
+            .create(
+                owner,
+                repo,
+                &String::from(request.trigger),
+                &request.commit_sha,
+                &file.content,
+            )
             .await?;
 
-        // 5. Resolve TaskConfigs for this build's task names
-        let task_names: &[String] = &build_config.tasks;
-        let task_configs: Vec<_> = ci_config
-            .tasks
-            .iter()
-            .filter(|t| task_names.contains(&t.name))
-            .collect();
-
-        // 6. Create only tasks with no runs_after as Pending
         let mut task_responses: Vec<TaskResponse> = Vec::new();
         for task_config in &task_configs {
             let has_deps = task_config
@@ -117,7 +103,6 @@ where
             }
         }
 
-        // 7. Return BuildResponse
         Ok(BuildResponse {
             id: build.id,
             repo_owner: build.repo_owner,

@@ -22,9 +22,6 @@ pub enum BuildError {
     #[error("Invalid build config: {0}")]
     InvalidConfig(#[from] gitdot_config::validate::ci::CiConfigError),
 
-    #[error("No build config found for trigger")]
-    NoMatchingBuildConfig,
-
     #[error("Git error: {0}")]
     GitError(GitError),
 
