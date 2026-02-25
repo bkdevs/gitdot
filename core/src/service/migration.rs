@@ -13,7 +13,7 @@ use crate::{
     },
     error::MigrationError,
     model::{
-        GitHubInstallationType, MigrationOrigin, MigrationRepositoryStatus, MigrationStatus,
+        GitHubInstallationType, MigrationOriginService, MigrationRepositoryStatus, MigrationStatus,
         Repository, RepositoryOwnerType, RepositoryVisibility,
     },
     repository::{
@@ -285,28 +285,42 @@ where
         &self,
         request: CreateGitHubMigrationRequest,
     ) -> Result<CreateGitHubMigrationResponse, MigrationError> {
-        let owner_id = match request.owner_type {
-            RepositoryOwnerType::User => request.user_id,
+        let owner_id = match request.destination_type {
+            RepositoryOwnerType::User => request.author_id,
             RepositoryOwnerType::Organization => {
                 let org = self
                     .org_repo
-                    .get(request.owner_name.as_ref())
+                    .get(request.destination.as_ref())
                     .await?
-                    .ok_or_else(|| MigrationError::OwnerNotFound(request.owner_name.to_string()))?;
+                    .ok_or_else(|| {
+                        MigrationError::OwnerNotFound(request.destination.to_string())
+                    })?;
                 org.id
             }
         };
 
         let migration = self
             .migration_repo
-            .create(request.user_id, MigrationOrigin::GitHub)
+            .create(
+                request.author_id,
+                MigrationOriginService::GitHub,
+                &request.origin,
+                &request.origin_type,
+                request.destination.as_ref(),
+                &request.destination_type,
+            )
             .await?;
 
         let mut migration_repositories = Vec::new();
         for full_name in &request.repositories {
+            let destination_full_name = format!(
+                "{}/{}",
+                request.destination.as_ref(),
+                full_name.split('/').last().unwrap_or(full_name)
+            );
             let migration_repository = self
                 .migration_repo
-                .create_migration_repository(migration.id, full_name)
+                .create_migration_repository(migration.id, full_name, &destination_full_name)
                 .await?;
             migration_repositories.push(migration_repository);
         }
@@ -315,8 +329,8 @@ where
             migration,
             migration_repositories,
             owner_id,
-            owner_name: request.owner_name,
-            owner_type: request.owner_type,
+            owner_name: request.destination,
+            owner_type: request.destination_type,
         })
     }
 
@@ -341,7 +355,7 @@ where
             let owner_id = request.owner_id;
             let owner_type = request.owner_type.clone();
             let migration_repo_id = migration_repo_entry.id;
-            let full_name = migration_repo_entry.full_name.clone();
+            let full_name = migration_repo_entry.origin_full_name.clone();
 
             let handle = tokio::spawn(async move {
                 let _ = service
@@ -349,7 +363,6 @@ where
                     .update_migration_repository_status(
                         migration_repo_id,
                         MigrationRepositoryStatus::Running,
-                        None,
                         None,
                     )
                     .await;
@@ -370,7 +383,6 @@ where
                             .update_migration_repository_status(
                                 migration_repo_id,
                                 MigrationRepositoryStatus::Completed,
-                                Some(repository.id),
                                 None,
                             )
                             .await;
@@ -387,7 +399,6 @@ where
                             .update_migration_repository_status(
                                 migration_repo_id,
                                 MigrationRepositoryStatus::Failed,
-                                None,
                                 Some(&e.to_string()),
                             )
                             .await;

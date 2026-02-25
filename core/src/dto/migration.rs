@@ -6,7 +6,8 @@ use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
 use crate::model::{
-    Migration, MigrationOrigin, MigrationRepository, MigrationRepositoryStatus, MigrationStatus,
+    Migration, MigrationOriginService, MigrationRepository, MigrationRepositoryStatus,
+    MigrationStatus, RepositoryOwnerType,
 };
 
 pub use get_migration::GetMigrationRequest;
@@ -24,11 +25,18 @@ pub struct MigrationResponse {
     pub id: Uuid,
     pub number: i32,
     pub author_id: Uuid,
-    pub origin: MigrationOrigin,
+
+    pub origin_service: MigrationOriginService,
+    pub origin: String,
+    pub origin_type: RepositoryOwnerType,
+    pub destination: String,
+    pub destination_type: RepositoryOwnerType,
+
     pub status: MigrationStatus,
-    pub repositories: Vec<MigrationRepositoryResponse>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+
+    pub repositories: Vec<MigrationRepositoryResponse>,
 }
 
 impl MigrationResponse {
@@ -37,7 +45,11 @@ impl MigrationResponse {
             id: migration.id,
             number: migration.number,
             author_id: migration.author_id,
+            origin_service: migration.origin_service,
             origin: migration.origin,
+            origin_type: migration.origin_type,
+            destination: migration.destination,
+            destination_type: migration.destination_type,
             status: migration.status,
             repositories: repositories.into_iter().map(Into::into).collect(),
             created_at: migration.created_at,
@@ -49,8 +61,10 @@ impl MigrationResponse {
 #[derive(Debug, Clone)]
 pub struct MigrationRepositoryResponse {
     pub id: Uuid,
-    pub repository_id: Option<Uuid>,
-    pub full_name: String,
+
+    pub origin_full_name: String,
+    pub destination_full_name: String,
+
     pub status: MigrationRepositoryStatus,
     pub error: Option<String>,
     pub created_at: DateTime<Utc>,
@@ -61,8 +75,8 @@ impl From<MigrationRepository> for MigrationRepositoryResponse {
     fn from(r: MigrationRepository) -> Self {
         Self {
             id: r.id,
-            repository_id: r.repository_id,
-            full_name: r.full_name,
+            origin_full_name: r.origin_full_name,
+            destination_full_name: r.destination_full_name,
             status: r.status,
             error: r.error,
             created_at: r.created_at,

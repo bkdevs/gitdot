@@ -27,18 +27,27 @@ pub struct MigrationResource {
     pub id: Uuid,
     pub number: i32,
     pub author_id: Uuid,
+
+    pub origin_service: String,
     pub origin: String,
+    pub origin_type: String,
+    pub destination: String,
+    pub destination_type: String,
+
     pub status: String,
-    pub repositories: Vec<MigrationRepositoryResource>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+
+    pub repositories: Vec<MigrationRepositoryResource>,
 }
 
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct MigrationRepositoryResource {
     pub id: Uuid,
-    pub repository_id: Option<Uuid>,
-    pub full_name: String,
+
+    pub origin_full_name: String,
+    pub destination_full_name: String,
+
     pub status: String,
     pub error: Option<String>,
     pub created_at: DateTime<Utc>,

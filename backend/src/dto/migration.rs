@@ -4,7 +4,9 @@ use gitdot_core::{
         GitHubInstallationResponse, GitHubRepositoryResponse, MigrationRepositoryResponse,
         MigrationResponse,
     },
-    model::{GitHubInstallationType, MigrationOrigin, MigrationRepositoryStatus, MigrationStatus},
+    model::{
+        GitHubInstallationType, MigrationOriginService, MigrationRepositoryStatus, MigrationStatus,
+    },
 };
 
 use super::IntoApi;
@@ -47,9 +49,13 @@ impl IntoApi for MigrationResponse {
             id: self.id,
             number: self.number,
             author_id: self.author_id,
-            origin: match self.origin {
-                MigrationOrigin::GitHub => "GitHub".to_string(),
+            origin_service: match self.origin_service {
+                MigrationOriginService::GitHub => "github".to_string(),
             },
+            origin: self.origin,
+            origin_type: self.origin_type.into(),
+            destination: self.destination,
+            destination_type: self.destination_type.into(),
             status: match self.status {
                 MigrationStatus::Pending => "pending".to_string(),
                 MigrationStatus::Running => "running".to_string(),
@@ -72,8 +78,8 @@ impl IntoApi for MigrationRepositoryResponse {
     fn into_api(self) -> Self::ApiType {
         api::MigrationRepositoryResource {
             id: self.id,
-            repository_id: self.repository_id,
-            full_name: self.full_name,
+            origin_full_name: self.origin_full_name,
+            destination_full_name: self.destination_full_name,
             status: match self.status {
                 MigrationRepositoryStatus::Pending => "pending".to_string(),
                 MigrationRepositoryStatus::Running => "running".to_string(),

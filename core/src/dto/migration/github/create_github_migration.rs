@@ -8,26 +8,36 @@ use crate::{
 
 #[derive(Debug, Clone)]
 pub struct CreateGitHubMigrationRequest {
-    pub owner_name: OwnerName,
-    pub owner_type: RepositoryOwnerType,
+    pub author_id: Uuid,
+    pub installation_id: i64,
+    pub origin: String,
+    pub origin_type: RepositoryOwnerType,
+    pub destination: OwnerName,
+    pub destination_type: RepositoryOwnerType,
     pub repositories: Vec<String>,
-    pub user_id: Uuid,
 }
 
 impl CreateGitHubMigrationRequest {
     pub fn new(
-        owner_name: &str,
-        owner_type: &str,
+        author_id: Uuid,
+        installation_id: i64,
+        origin: &str,
+        origin_type: &str,
+        destination: &str,
+        destination_type: &str,
         repositories: Vec<String>,
-        user_id: Uuid,
     ) -> Result<Self, MigrationError> {
         Ok(Self {
-            owner_name: OwnerName::try_new(owner_name)
+            author_id,
+            installation_id,
+            origin: origin.to_string(),
+            origin_type: RepositoryOwnerType::try_from(origin_type)
                 .map_err(|e| MigrationError::OwnerNotFound(e.to_string()))?,
-            owner_type: RepositoryOwnerType::try_from(owner_type)
+            destination: OwnerName::try_new(destination)
+                .map_err(|e| MigrationError::OwnerNotFound(e.to_string()))?,
+            destination_type: RepositoryOwnerType::try_from(destination_type)
                 .map_err(|e| MigrationError::OwnerNotFound(e.to_string()))?,
             repositories,
-            user_id,
         })
     }
 }

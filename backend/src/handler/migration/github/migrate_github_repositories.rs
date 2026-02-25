@@ -22,18 +22,24 @@ pub async fn migrate_github_repositories(
     Path(installation_id): Path<i64>,
     Json(request): Json<api::MigrateGitHubRepositoriesRequest>,
 ) -> Result<AppResponse<api::MigrateGitHubRepositoriesResponse>, AppError> {
-    let auth_request =
-        MigrationAuthorizationRequest::new(auth_user.id, &request.owner, &request.owner_type)?;
+    let auth_request = MigrationAuthorizationRequest::new(
+        auth_user.id,
+        &request.destination,
+        &request.destination_type,
+    )?;
     state
         .auth_service
         .verify_authorized_for_migration(auth_request)
         .await?;
 
     let request = CreateGitHubMigrationRequest::new(
-        &request.owner,
-        &request.owner_type,
-        request.repositories,
         auth_user.id,
+        installation_id,
+        &request.origin,
+        &request.origin_type,
+        &request.destination,
+        &request.destination_type,
+        request.repositories,
     )?;
     let response = state
         .migration_service
