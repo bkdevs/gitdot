@@ -33,4 +33,6 @@ core/target
 # macOS
 .DS_STORE
 
+# agent files
+.claude/
 .cursor/
