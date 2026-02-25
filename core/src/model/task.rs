@@ -11,6 +11,7 @@ pub struct Task {
     pub repo_name: String,
 
     pub build_id: Uuid,
+    pub s2_uri: String,
     pub waits_for: Vec<Uuid>,
     pub status: TaskStatus,
 

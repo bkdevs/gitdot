@@ -4,7 +4,7 @@ use gitdot_api::endpoint::task::poll_task as api;
 
 use crate::{
     app::{AppError, AppResponse, AppState},
-    dto::IntoApi,
+    dto::into_poll_api,
     extract::{Principal, Runner},
 };
 
@@ -18,5 +18,5 @@ pub async fn poll_task(
         .poll_task()
         .await
         .map_err(AppError::from)
-        .map(|task| AppResponse::new(StatusCode::OK, task.map(|t| t.into_api())))
+        .map(|task| AppResponse::new(StatusCode::OK, task.map(into_poll_api)))
 }

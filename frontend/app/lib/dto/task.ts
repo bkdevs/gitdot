@@ -5,6 +5,7 @@ export const TaskResponseSchema = z.object({
   repo_owner: z.string(),
   repo_name: z.string(),
   build_id: z.uuid(),
+  s2_uri: z.string(),
   name: z.string(),
   command: z.string(),
   status: z.string(),

@@ -105,6 +105,7 @@ where
                 TaskStatus::Blocked
             };
 
+            let s2_uri = format!("s2://{owner}/{repo}");
             self.task_repo
                 .create(
                     id,
@@ -113,6 +114,7 @@ where
                     &task_config.name,
                     &task_config.command,
                     build.id,
+                    &s2_uri,
                     status,
                     &waits_for,
                 )

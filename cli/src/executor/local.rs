@@ -1,7 +1,7 @@
 use std::process::Stdio;
 
 use anyhow::{Context, Result};
-use gitdot_api::resource::TaskResource;
+use gitdot_api::resource::PollTaskResource;
 use tokio::process::Command;
 
 use crate::executor::{Executor, ExecutorType};
@@ -11,7 +11,7 @@ pub struct LocalExecutor {}
 impl Executor for LocalExecutor {
     const TYPE: ExecutorType = ExecutorType::Local;
 
-    async fn execute(&self, task: &TaskResource) -> Result<()> {
+    async fn execute(&self, task: &PollTaskResource) -> Result<()> {
         let output = Command::new("sh")
             .args(["-c", &task.command])
             .stdout(Stdio::piped())

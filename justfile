@@ -47,7 +47,7 @@ frontend:
 
 # Run backend server
 backend:
-    cargo run -p gitdot_server
+    cargo run -p gitdot-server
 
 # Run s2-lite server
 s2:
@@ -63,11 +63,11 @@ build-all: build-backend build-cli build-frontend
 
 # Build the backend server
 build-backend:
-    cargo build -p gitdot_server
+    cargo build -p gitdot-server
 
 # Build the CLI
 build-cli:
-    cargo build -p gitdot_cli
+    cargo build -p gitdot-cli
 
 # Build frontend for production
 build-frontend:
@@ -83,7 +83,7 @@ test-all: test-backend test-frontend
 
 # Run backend (core) tests
 test-backend:
-    cargo test -p gitdot_core
+    cargo test -p gitdot-core
 
 # Run frontend tests
 test-frontend:

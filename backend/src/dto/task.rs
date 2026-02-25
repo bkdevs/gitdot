@@ -11,6 +11,7 @@ impl IntoApi for TaskResponse {
             repo_owner: self.repo_owner,
             repo_name: self.repo_name,
             build_id: self.build_id,
+            s2_uri: self.s2_uri,
             name: self.name,
             command: self.command,
             status: self.status.into(),
@@ -18,5 +19,17 @@ impl IntoApi for TaskResponse {
             created_at: self.created_at,
             updated_at: self.updated_at,
         }
+    }
+}
+
+pub fn into_poll_api(task: TaskResponse) -> api::PollTaskResource {
+    api::PollTaskResource {
+        id: task.id,
+        repo_owner: task.repo_owner,
+        repo_name: task.repo_name,
+        s2_uri: task.s2_uri,
+        name: task.name,
+        command: task.command,
+        status: task.status.into(),
     }
 }

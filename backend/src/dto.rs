@@ -12,6 +12,7 @@ mod user;
 
 pub use git_http::*;
 pub use internal::*;
+pub use task::*;
 
 pub trait IntoApi {
     type ApiType;

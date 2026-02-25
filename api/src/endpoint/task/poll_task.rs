@@ -1,4 +1,4 @@
-use crate::{endpoint::Endpoint, resource::TaskResource};
+use crate::{endpoint::Endpoint, resource::PollTaskResource};
 
 pub struct PollTask;
 
@@ -12,4 +12,4 @@ impl Endpoint for PollTask {
 
 pub type PollTaskRequest = ();
 
-pub type PollTaskResponse = Option<TaskResource>;
+pub type PollTaskResponse = Option<PollTaskResource>;
