@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 
-use crate::validate::ci::{self, CiConfigError};
+use super::error::CiConfigError;
+use super::validate::validate_ci_config;
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct CiConfig {
@@ -11,7 +12,7 @@ pub struct CiConfig {
 impl CiConfig {
     pub fn new(toml: &str) -> Result<Self, CiConfigError> {
         let config: CiConfig = toml::from_str(toml).map_err(CiConfigError::Parse)?;
-        ci::validate(&config)?;
+        validate_ci_config(&config)?;
         Ok(config)
     }
 
@@ -19,7 +20,7 @@ impl CiConfig {
         self.builds
             .iter()
             .find(|b| &b.trigger == trigger)
-            .ok_or_else(|| CiConfigError::NoMatchingBuild(String::from(trigger.clone())))
+            .ok_or_else(|| CiConfigError::NoMatchingBuild(format!("{trigger:?}")))
     }
 
     pub fn get_task_configs(&self, build: &BuildConfig) -> Vec<&TaskConfig> {
@@ -35,27 +36,6 @@ impl CiConfig {
 pub enum BuildTrigger {
     PullRequest,
     PushToMain,
-}
-
-impl From<BuildTrigger> for String {
-    fn from(trigger: BuildTrigger) -> String {
-        match trigger {
-            BuildTrigger::PullRequest => "pull_request".to_string(),
-            BuildTrigger::PushToMain => "push_to_main".to_string(),
-        }
-    }
-}
-
-impl TryFrom<String> for BuildTrigger {
-    type Error = String;
-
-    fn try_from(s: String) -> Result<Self, Self::Error> {
-        match s.as_str() {
-            "pull_request" => Ok(BuildTrigger::PullRequest),
-            "push_to_main" => Ok(BuildTrigger::PushToMain),
-            other => Err(format!("invalid trigger: {other}")),
-        }
-    }
 }
 
 #[derive(Debug, Clone, Deserialize)]

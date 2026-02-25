@@ -14,6 +14,7 @@ impl IntoApi for TaskResponse {
             name: self.name,
             script: self.script,
             status: self.status.into(),
+            waits_for: self.waits_for,
             created_at: self.created_at,
             updated_at: self.updated_at,
         }

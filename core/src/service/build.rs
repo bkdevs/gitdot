@@ -1,4 +1,7 @@
+use std::collections::HashMap;
+
 use async_trait::async_trait;
+use uuid::Uuid;
 
 use crate::{
     client::{Git2Client, GitClient},
@@ -69,38 +72,52 @@ where
         let ci_config = CiConfig::new(&file.content).map_err(BuildError::InvalidConfig)?;
         let build_config = ci_config.get_build_config(&request.trigger)?;
         let task_configs = ci_config.get_task_configs(build_config);
+        let trigger_str = match &request.trigger {
+            crate::dto::BuildTrigger::PullRequest => "pull_request",
+            crate::dto::BuildTrigger::PushToMain => "push_to_main",
+        };
 
         let build = self
             .build_repo
-            .create(
-                owner,
-                repo,
-                &String::from(request.trigger),
-                &request.commit_sha,
-                &file.content,
-            )
+            .create(owner, repo, trigger_str, &request.commit_sha)
             .await?;
+
+        // Pre-generate UUIDs for all tasks so dependencies can reference each other by ID
+        let mut name_to_id: HashMap<String, Uuid> = HashMap::new();
+        for task_config in &task_configs {
+            name_to_id.insert(task_config.name.clone(), Uuid::new_v4());
+        }
 
         let mut task_responses: Vec<TaskResponse> = Vec::new();
         for task_config in &task_configs {
-            let has_deps = task_config
+            let id = name_to_id[&task_config.name];
+            let waits_for: Vec<Uuid> = task_config
                 .waits_for
                 .as_deref()
-                .map_or(false, |d| !d.is_empty());
-            if !has_deps {
-                let task = self
-                    .task_repo
-                    .create(
-                        owner,
-                        repo,
-                        &task_config.name,
-                        &task_config.command,
-                        build.id,
-                        TaskStatus::Pending,
-                    )
-                    .await?;
-                task_responses.push(task.into());
-            }
+                .unwrap_or(&[])
+                .iter()
+                .filter_map(|dep_name| name_to_id.get(dep_name).copied())
+                .collect();
+            let status = if waits_for.is_empty() {
+                TaskStatus::Pending
+            } else {
+                TaskStatus::Blocked
+            };
+
+            let task = self
+                .task_repo
+                .create(
+                    id,
+                    owner,
+                    repo,
+                    &task_config.name,
+                    &task_config.command,
+                    build.id,
+                    status,
+                    &waits_for,
+                )
+                .await?;
+            task_responses.push(task.into());
         }
 
         Ok(BuildResponse {
@@ -109,7 +126,6 @@ where
             repo_name: build.repo_name,
             trigger: build.trigger,
             commit_sha: build.commit_sha,
-            build_config: build.build_config,
             tasks: task_responses,
             created_at: build.created_at,
             updated_at: build.updated_at,

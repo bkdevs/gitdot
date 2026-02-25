@@ -267,7 +267,6 @@ impl IntoResponse for AppError {
                     TaskError::InvalidOwnerName(_) => StatusCode::BAD_REQUEST,
                     TaskError::InvalidRepositoryName(_) => StatusCode::BAD_REQUEST,
                     TaskError::NotFound(_) => StatusCode::NOT_FOUND,
-                    TaskError::InvalidConfig(_) => StatusCode::UNPROCESSABLE_ENTITY,
                     TaskError::NoBuildConfig => StatusCode::UNPROCESSABLE_ENTITY,
                     TaskError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                 };

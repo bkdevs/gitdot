@@ -1,4 +1,3 @@
-mod create_task;
 mod list_tasks;
 mod update_task;
 
@@ -7,7 +6,6 @@ use uuid::Uuid;
 
 use crate::model::{Task, TaskStatus};
 
-pub use create_task::CreateTaskRequest;
 pub use list_tasks::ListTasksRequest;
 pub use update_task::UpdateTaskRequest;
 
@@ -20,6 +18,7 @@ pub struct TaskResponse {
     pub name: String,
     pub script: String,
     pub status: TaskStatus,
+    pub waits_for: Vec<Uuid>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
@@ -34,6 +33,7 @@ impl From<Task> for TaskResponse {
             name: task.name,
             script: task.script,
             status: task.status,
+            waits_for: task.waits_for,
             created_at: task.created_at,
             updated_at: task.updated_at,
         }

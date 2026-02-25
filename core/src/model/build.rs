@@ -9,7 +9,6 @@ pub struct Build {
     pub repo_name: String,
     pub trigger: String,
     pub commit_sha: String,
-    pub build_config: String,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }

@@ -129,7 +129,7 @@ impl AppState {
                 org_repo.clone(),
                 token_repo.clone(),
             )),
-            task_service: Arc::new(TaskServiceImpl::new(task_repo.clone(), build_repo.clone())),
+            task_service: Arc::new(TaskServiceImpl::new(task_repo.clone())),
         }
     }
 }

@@ -13,6 +13,7 @@ pub struct TaskResource {
     pub name: String,
     pub script: String,
     pub status: String,
+    pub waits_for: Vec<Uuid>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
