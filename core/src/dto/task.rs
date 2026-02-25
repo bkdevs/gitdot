@@ -1,4 +1,3 @@
-mod list_tasks;
 mod update_task;
 
 use chrono::{DateTime, Utc};
@@ -6,7 +5,6 @@ use uuid::Uuid;
 
 use crate::model::{Task, TaskStatus};
 
-pub use list_tasks::ListTasksRequest;
 pub use update_task::UpdateTaskRequest;
 
 #[derive(Debug, Clone)]

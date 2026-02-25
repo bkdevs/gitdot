@@ -5,7 +5,7 @@ use tokio::time::{Instant, sleep};
 use uuid::Uuid;
 
 use crate::{
-    dto::{ListTasksRequest, TaskResponse, UpdateTaskRequest},
+    dto::{TaskResponse, UpdateTaskRequest},
     error::TaskError,
     model::TaskStatus,
     repository::{TaskRepository, TaskRepositoryImpl},
@@ -14,8 +14,9 @@ use crate::{
 #[async_trait]
 pub trait TaskService: Send + Sync + 'static {
     async fn get_task(&self, id: Uuid) -> Result<TaskResponse, TaskError>;
-    async fn list_tasks(&self, req: ListTasksRequest) -> Result<Vec<TaskResponse>, TaskError>;
+
     async fn update_task(&self, req: UpdateTaskRequest) -> Result<TaskResponse, TaskError>;
+
     async fn poll_task(&self) -> Result<Option<TaskResponse>, TaskError>;
 }
 
@@ -45,16 +46,6 @@ where
         })?;
 
         Ok(task.into())
-    }
-
-    async fn list_tasks(&self, req: ListTasksRequest) -> Result<Vec<TaskResponse>, TaskError> {
-        let tasks = self
-            .task_repo
-            .list_by_repo(req.repo_owner.as_ref(), req.repo_name.as_ref())
-            .await
-            .map_err(TaskError::DatabaseError)?;
-
-        Ok(tasks.into_iter().map(Into::into).collect())
     }
 
     async fn update_task(&self, req: UpdateTaskRequest) -> Result<TaskResponse, TaskError> {

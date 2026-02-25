@@ -1,10 +1,10 @@
 use axum::{
-    extract::{Query, State},
+    extract::{Path, State},
     http::StatusCode,
 };
+use uuid::Uuid;
 
-use gitdot_api::endpoint::task::list_tasks as api;
-use gitdot_core::dto::ListTasksRequest;
+use gitdot_api::endpoint::build::list_build_tasks as api;
 
 use crate::{
     app::{AppError, AppResponse, AppState},
@@ -13,15 +13,14 @@ use crate::{
 };
 
 #[axum::debug_handler]
-pub async fn list_tasks(
+pub async fn list_build_tasks(
     _auth_user: Principal<User>,
     State(state): State<AppState>,
-    Query(query): Query<api::ListTasksRequest>,
-) -> Result<AppResponse<api::ListTasksResponse>, AppError> {
-    let request = ListTasksRequest::new(&query.owner, &query.repo)?;
+    Path(id): Path<Uuid>,
+) -> Result<AppResponse<api::ListBuildTasksResponse>, AppError> {
     state
-        .task_service
-        .list_tasks(request)
+        .build_service
+        .list_build_tasks(id)
         .await
         .map_err(AppError::from)
         .map(|tasks| AppResponse::new(StatusCode::OK, tasks.into_api()))

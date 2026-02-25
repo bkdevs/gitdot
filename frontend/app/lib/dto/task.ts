@@ -1,21 +1,14 @@
 import { z } from "zod";
 
-export const CreateTaskRequestSchema = z.object({
-  repo_owner: z.string(),
-  repo_name: z.string(),
-  command: z.string(),
-});
-
-export type CreateTaskRequest = z.infer<typeof CreateTaskRequestSchema>;
-
 export const TaskResponseSchema = z.object({
   id: z.uuid(),
   repo_owner: z.string(),
   repo_name: z.string(),
-  build_id: z.uuid().optional(),
-  name: z.string().optional(),
+  build_id: z.uuid(),
+  name: z.string(),
   command: z.string(),
   status: z.string(),
+  waits_for: z.array(z.uuid()),
   created_at: z.iso.datetime(),
   updated_at: z.iso.datetime(),
 });
