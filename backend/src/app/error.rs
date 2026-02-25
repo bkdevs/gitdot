@@ -134,7 +134,6 @@ impl IntoResponse for AppError {
                 response.into_response()
             }
             AppError::Repository(e) => {
-                tracing::error!("{}", e);
                 let status_code = match e {
                     RepositoryError::Duplicate(_) => StatusCode::CONFLICT,
                     RepositoryError::NotFound(_) => StatusCode::NOT_FOUND,
@@ -192,7 +191,6 @@ impl IntoResponse for AppError {
                 response.into_response()
             }
             AppError::Migration(e) => {
-                tracing::error!("{}", e);
                 let status_code = match e {
                     MigrationError::UserNotFound(_) => StatusCode::NOT_FOUND,
                     MigrationError::OwnerNotFound(_) => StatusCode::NOT_FOUND,
