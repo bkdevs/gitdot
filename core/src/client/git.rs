@@ -21,6 +21,8 @@ pub trait GitClient: Send + Sync + Clone + 'static {
 
     async fn delete_repo(&self, owner: &str, repo: &str) -> Result<(), GitError>;
 
+    async fn mirror_repo(&self, owner: &str, repo: &str, url: &str) -> Result<(), GitError>;
+
     async fn get_repo_tree(
         &self,
         owner: &str,
@@ -107,6 +109,8 @@ pub trait GitClient: Send + Sync + Clone + 'static {
         hook_type: GitHookType,
         hook_script: &str,
     ) -> Result<(), GitError>;
+
+    async fn empty_hooks(&self, owner: &str, repo: &str) -> Result<(), GitError>;
 
     fn normalize_repo_name(&self, repo: &str) -> String {
         format!(
@@ -492,6 +496,43 @@ impl GitClient for Git2Client {
     async fn delete_repo(&self, owner: &str, repo: &str) -> Result<(), GitError> {
         let repo_path = self.get_repo_path(owner, repo);
         fs::remove_dir_all(&repo_path).await?;
+        Ok(())
+    }
+
+    async fn mirror_repo(&self, owner: &str, repo: &str, url: &str) -> Result<(), GitError> {
+        let owner_path = self.get_owner_path(owner);
+        fs::create_dir_all(&owner_path).await?;
+
+        let repo_path = self.get_repo_path(owner, repo);
+        let output = tokio::process::Command::new("git")
+            .arg("clone")
+            .arg("--mirror")
+            .arg(&url)
+            .arg(&repo_path)
+            .output()
+            .await?;
+        if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            return Err(GitError::Git2Error(git2::Error::from_str(&format!(
+                "git clone failed: {}",
+                stderr
+            ))));
+        }
+
+        // Configure the repository for HTTP access
+        let repo_path_clone = repo_path.clone();
+        task::spawn_blocking(move || -> Result<(), git2::Error> {
+            let repo = git2::Repository::open_bare(&repo_path_clone)?;
+            let mut config = repo.config()?;
+            config.set_bool("http.receivepack", true)?;
+            Ok(())
+        })
+        .await??;
+
+        // Create git-daemon-export-ok file to allow HTTP access
+        let export_ok_path = format!("{}/git-daemon-export-ok", repo_path);
+        fs::write(&export_ok_path, "").await?;
+
         Ok(())
     }
 
@@ -943,6 +984,21 @@ impl GitClient for Git2Client {
             use std::os::unix::fs::PermissionsExt;
             let perms = std::fs::Permissions::from_mode(0o755);
             fs::set_permissions(&hook_path, perms).await?;
+        }
+
+        Ok(())
+    }
+
+    async fn empty_hooks(&self, owner: &str, repo: &str) -> Result<(), GitError> {
+        let repo_path = self.get_repo_path(owner, repo);
+        let hooks_dir = format!("{}/hooks", repo_path);
+
+        let mut entries = fs::read_dir(&hooks_dir).await?;
+        while let Some(entry) = entries.next_entry().await? {
+            let path = entry.path();
+            if path.is_file() {
+                fs::remove_file(&path).await?;
+            }
         }
 
         Ok(())
