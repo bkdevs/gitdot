@@ -16,7 +16,7 @@ pub enum MigrationError {
     #[error("Migration not found: #{0}")]
     MigrationNotFound(i32),
 
-    #[error("Repository already exists: {0}")]
+    #[error("Repository with the same name already exists: {0}")]
     RepositoryAlreadyExists(String),
 
     #[error("Git error: {0}")]

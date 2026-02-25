@@ -134,6 +134,13 @@ where
             .nth(1)
             .ok_or_else(|| MigrationError::InvalidRepositoryName(full_name.to_string()))?;
 
+        if self.repo_repo.get(owner_name, repo_name).await?.is_some() {
+            return Err(MigrationError::RepositoryAlreadyExists(format!(
+                "{}/{}",
+                owner_name, repo_name
+            )));
+        }
+
         let clone_url = get_github_clone_url(token, full_name);
         self.git_client
             .mirror_repo(owner_name, repo_name, &clone_url)
