@@ -5,7 +5,7 @@ use uuid::Uuid;
 
 use crate::{
     client::{Git2Client, GitClient},
-    dto::{BuildResponse, CiConfig, CreateBuildRequest, ListBuildsRequest, TaskResponse},
+    dto::{BuildResponse, CiConfig, CreateBuildRequest, ListBuildsRequest},
     error::{BuildError, GitError},
     model::TaskStatus,
     repository::{BuildRepository, BuildRepositoryImpl, TaskRepository, TaskRepositoryImpl},
@@ -88,7 +88,6 @@ where
             name_to_id.insert(task_config.name.clone(), Uuid::new_v4());
         }
 
-        let mut task_responses: Vec<TaskResponse> = Vec::new();
         for task_config in &task_configs {
             let id = name_to_id[&task_config.name];
             let waits_for: Vec<Uuid> = task_config
@@ -104,8 +103,7 @@ where
                 TaskStatus::Blocked
             };
 
-            let task = self
-                .task_repo
+            self.task_repo
                 .create(
                     id,
                     owner,
@@ -117,19 +115,9 @@ where
                     &waits_for,
                 )
                 .await?;
-            task_responses.push(task.into());
         }
 
-        Ok(BuildResponse {
-            id: build.id,
-            repo_owner: build.repo_owner,
-            repo_name: build.repo_name,
-            trigger: build.trigger,
-            commit_sha: build.commit_sha,
-            tasks: task_responses,
-            created_at: build.created_at,
-            updated_at: build.updated_at,
-        })
+        Ok(build.into())
     }
 
     async fn list_builds(

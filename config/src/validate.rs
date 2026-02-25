@@ -7,8 +7,14 @@ pub fn validate_ci_config(config: &CiConfig) -> Result<(), CiConfigError> {
     let mut errors = Vec::new();
 
     errors.extend(check_non_empty(config));
+    errors.extend(check_duplicate_task_names(config));
+    errors.extend(check_duplicate_build_triggers(config));
+    errors.extend(check_empty_build_task_lists(config));
+    errors.extend(check_empty_commands(config));
     errors.extend(check_task_references(config));
+    errors.extend(check_duplicate_task_refs_in_build(config));
     errors.extend(check_no_orphaned_tasks(config));
+    errors.extend(check_waits_for_unknown_tasks(config));
     errors.extend(check_dag(config));
 
     if errors.is_empty() {
@@ -57,6 +63,79 @@ fn check_no_orphaned_tasks(config: &CiConfig) -> Vec<String> {
         .filter(|t| !referenced.contains(t.name.as_str()))
         .map(|t| format!("task '{}' is not referenced by any build", t.name))
         .collect()
+}
+
+fn check_duplicate_task_names(config: &CiConfig) -> Vec<String> {
+    let mut seen = HashSet::new();
+    let mut errors = Vec::new();
+    for task in &config.tasks {
+        if !seen.insert(task.name.as_str()) {
+            errors.push(format!("duplicate task name '{}'", task.name));
+        }
+    }
+    errors
+}
+
+fn check_duplicate_build_triggers(config: &CiConfig) -> Vec<String> {
+    let mut seen = HashSet::new();
+    let mut errors = Vec::new();
+    for build in &config.builds {
+        let trigger: String = build.trigger.clone().into();
+        if !seen.insert(trigger.clone()) {
+            errors.push(format!("duplicate build trigger '{trigger}'"));
+        }
+    }
+    errors
+}
+
+fn check_empty_build_task_lists(config: &CiConfig) -> Vec<String> {
+    config
+        .builds
+        .iter()
+        .enumerate()
+        .filter(|(_, b)| b.tasks.is_empty())
+        .map(|(i, _)| format!("builds[{i}] has an empty task list"))
+        .collect()
+}
+
+fn check_empty_commands(config: &CiConfig) -> Vec<String> {
+    config
+        .tasks
+        .iter()
+        .filter(|t| t.command.trim().is_empty())
+        .map(|t| format!("task '{}' has an empty command", t.name))
+        .collect()
+}
+
+fn check_duplicate_task_refs_in_build(config: &CiConfig) -> Vec<String> {
+    let mut errors = Vec::new();
+    for (i, build) in config.builds.iter().enumerate() {
+        let mut seen = HashSet::new();
+        for task_ref in &build.tasks {
+            if !seen.insert(task_ref.as_str()) {
+                errors.push(format!("builds[{i}] lists task '{task_ref}' more than once"));
+            }
+        }
+    }
+    errors
+}
+
+fn check_waits_for_unknown_tasks(config: &CiConfig) -> Vec<String> {
+    let defined: HashSet<&str> = config.tasks.iter().map(|t| t.name.as_str()).collect();
+    let mut errors = Vec::new();
+    for task in &config.tasks {
+        if let Some(deps) = &task.waits_for {
+            for dep in deps {
+                if !defined.contains(dep.as_str()) {
+                    errors.push(format!(
+                        "task '{}' waits_for unknown task '{dep}'",
+                        task.name
+                    ));
+                }
+            }
+        }
+    }
+    errors
 }
 
 fn check_dag(config: &CiConfig) -> Vec<String> {
@@ -556,10 +635,10 @@ mod tests {
         );
     }
 
-    // --- waits_for references unknown task (ignored by DAG check, no crash) ---
+    // --- waits_for references unknown task ---
 
     #[test]
-    fn waits_for_references_undefined_task_no_panic() {
+    fn waits_for_references_undefined_task() {
         let toml = r#"
             [[builds]]
             trigger = "pull_request"
@@ -570,10 +649,207 @@ mod tests {
             command = "echo a"
             waits_for = ["nonexistent"]
         "#;
-        // Should not panic — the undefined dep is silently skipped in check_dag
-        let result = CiConfig::new(toml);
-        // It may or may not error (orphan check won't fire since 'a' is referenced),
-        // but it must not panic.
-        let _ = result;
+        assert_validation_errors(toml, &["task 'a' waits_for unknown task 'nonexistent'"]);
+    }
+
+    #[test]
+    fn waits_for_multiple_undefined_tasks() {
+        let toml = r#"
+            [[builds]]
+            trigger = "pull_request"
+            tasks = ["a"]
+
+            [[tasks]]
+            name = "a"
+            command = "echo a"
+            waits_for = ["ghost1", "ghost2"]
+        "#;
+        assert_validation_errors(
+            toml,
+            &[
+                "task 'a' waits_for unknown task 'ghost1'",
+                "task 'a' waits_for unknown task 'ghost2'",
+            ],
+        );
+    }
+
+    // --- Duplicate task names ---
+
+    #[test]
+    fn duplicate_task_names() {
+        let toml = r#"
+            [[builds]]
+            trigger = "pull_request"
+            tasks = ["test"]
+
+            [[tasks]]
+            name = "test"
+            command = "cargo test"
+
+            [[tasks]]
+            name = "test"
+            command = "cargo test --release"
+        "#;
+        assert_validation_errors(toml, &["duplicate task name 'test'"]);
+    }
+
+    #[test]
+    fn multiple_duplicate_task_names() {
+        let toml = r#"
+            [[builds]]
+            trigger = "pull_request"
+            tasks = ["a", "b"]
+
+            [[tasks]]
+            name = "a"
+            command = "echo a"
+
+            [[tasks]]
+            name = "b"
+            command = "echo b"
+
+            [[tasks]]
+            name = "a"
+            command = "echo a2"
+
+            [[tasks]]
+            name = "b"
+            command = "echo b2"
+        "#;
+        assert_validation_errors(toml, &["duplicate task name 'a'", "duplicate task name 'b'"]);
+    }
+
+    // --- Duplicate build triggers ---
+
+    #[test]
+    fn duplicate_build_triggers() {
+        let toml = r#"
+            [[builds]]
+            trigger = "pull_request"
+            tasks = ["test"]
+
+            [[builds]]
+            trigger = "pull_request"
+            tasks = ["test"]
+
+            [[tasks]]
+            name = "test"
+            command = "cargo test"
+        "#;
+        assert_validation_errors(toml, &["duplicate build trigger 'pull_request'"]);
+    }
+
+    // --- Empty build task lists ---
+
+    #[test]
+    fn empty_build_task_list() {
+        let toml = r#"
+            [[builds]]
+            trigger = "pull_request"
+            tasks = []
+
+            [[tasks]]
+            name = "test"
+            command = "cargo test"
+        "#;
+        assert_validation_errors(toml, &["builds[0] has an empty task list"]);
+    }
+
+    #[test]
+    fn multiple_builds_with_empty_task_lists() {
+        let toml = r#"
+            [[builds]]
+            trigger = "pull_request"
+            tasks = []
+
+            [[builds]]
+            trigger = "push_to_main"
+            tasks = []
+
+            [[tasks]]
+            name = "test"
+            command = "cargo test"
+        "#;
+        assert_validation_errors(
+            toml,
+            &[
+                "builds[0] has an empty task list",
+                "builds[1] has an empty task list",
+            ],
+        );
+    }
+
+    // --- Empty commands ---
+
+    #[test]
+    fn empty_command() {
+        let toml = r#"
+            [[builds]]
+            trigger = "pull_request"
+            tasks = ["test"]
+
+            [[tasks]]
+            name = "test"
+            command = ""
+        "#;
+        assert_validation_errors(toml, &["task 'test' has an empty command"]);
+    }
+
+    #[test]
+    fn whitespace_only_command() {
+        let toml = r#"
+            [[builds]]
+            trigger = "pull_request"
+            tasks = ["test"]
+
+            [[tasks]]
+            name = "test"
+            command = "   "
+        "#;
+        assert_validation_errors(toml, &["task 'test' has an empty command"]);
+    }
+
+    // --- Duplicate task refs in a build ---
+
+    #[test]
+    fn duplicate_task_ref_in_build() {
+        let toml = r#"
+            [[builds]]
+            trigger = "pull_request"
+            tasks = ["test", "test"]
+
+            [[tasks]]
+            name = "test"
+            command = "cargo test"
+        "#;
+        assert_validation_errors(toml, &["builds[0] lists task 'test' more than once"]);
+    }
+
+    #[test]
+    fn duplicate_task_refs_across_builds() {
+        let toml = r#"
+            [[builds]]
+            trigger = "pull_request"
+            tasks = ["a", "a"]
+
+            [[builds]]
+            trigger = "push_to_main"
+            tasks = ["b", "b"]
+
+            [[tasks]]
+            name = "a"
+            command = "echo a"
+
+            [[tasks]]
+            name = "b"
+            command = "echo b"
+        "#;
+        assert_validation_errors(
+            toml,
+            &[
+                "builds[0] lists task 'a' more than once",
+                "builds[1] lists task 'b' more than once",
+            ],
+        );
     }
 }

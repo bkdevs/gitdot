@@ -12,7 +12,6 @@ impl IntoApi for BuildResponse {
             repo_name: self.repo_name,
             trigger: self.trigger,
             commit_sha: self.commit_sha,
-            tasks: self.tasks.into_iter().map(|t| t.into_api()).collect(),
             created_at: self.created_at,
             updated_at: self.updated_at,
         }

@@ -4,8 +4,6 @@ use uuid::Uuid;
 
 use api_derive::ApiResource;
 
-use crate::resource::TaskResource;
-
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct BuildResource {
     pub id: Uuid,
@@ -13,7 +11,6 @@ pub struct BuildResource {
     pub repo_name: String,
     pub trigger: String,
     pub commit_sha: String,
-    pub tasks: Vec<TaskResource>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }

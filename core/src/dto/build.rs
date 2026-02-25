@@ -9,7 +9,7 @@ pub use config::{BuildConfig, BuildTrigger, CiConfig, TaskConfig};
 pub use create_build::CreateBuildRequest;
 pub use list_builds::ListBuildsRequest;
 
-use crate::{dto::TaskResponse, model::Build};
+use crate::model::Build;
 
 #[derive(Debug, Clone)]
 pub struct BuildResponse {
@@ -18,7 +18,6 @@ pub struct BuildResponse {
     pub repo_name: String,
     pub trigger: String,
     pub commit_sha: String,
-    pub tasks: Vec<TaskResponse>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
@@ -31,7 +30,6 @@ impl From<Build> for BuildResponse {
             repo_name: build.repo_name,
             trigger: build.trigger,
             commit_sha: build.commit_sha,
-            tasks: vec![],
             created_at: build.created_at,
             updated_at: build.updated_at,
         }

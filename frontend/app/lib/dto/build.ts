@@ -1,7 +1,5 @@
 import { z } from "zod";
 
-import { TaskResponseSchema } from "./task";
-
 export const CreateBuildRequestSchema = z.object({
   repo_owner: z.string(),
   repo_name: z.string(),
@@ -17,8 +15,6 @@ export const BuildResponseSchema = z.object({
   repo_name: z.string(),
   trigger: z.string(),
   commit_sha: z.string(),
-  build_config: z.string(),
-  tasks: z.array(TaskResponseSchema),
   created_at: z.iso.datetime(),
   updated_at: z.iso.datetime(),
 });
