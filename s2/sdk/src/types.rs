@@ -390,6 +390,7 @@ pub struct S2Config {
 }
 
 impl S2Config {
+    /// Creates a new s2 config
     pub fn new() -> Self {
         Self {
             endpoints: S2Endpoints::for_aws(),

@@ -12,14 +12,6 @@ impl StrProps for NameProps {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct IdProps;
-
-impl StrProps for IdProps {
-    const IS_PREFIX: bool = false;
-    const FIELD_NAME: &'static str = "id";
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct PrefixProps;
 
 impl StrProps for PrefixProps {
