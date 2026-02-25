@@ -4,14 +4,14 @@ use reqwest::RequestBuilder;
 
 use gitdot_api::{ApiRequest, ApiResource};
 
-const PUBLIC_URL: &str = "https://www.gitdot.io";
+const WEB_URL: &str = "https://www.gitdot.io";
 const SERVER_URL: &str = "https://api.gitdot.io";
 
 pub struct GitdotClient {
     client: reqwest::Client,
     client_id: String,
     token: Option<String>,
-    public_url: String,
+    web_url: String,
     server_url: String,
 }
 
@@ -21,13 +21,13 @@ impl GitdotClient {
             client: reqwest::Client::new(),
             client_id: String::from(client_id),
             token: None,
-            public_url: PUBLIC_URL.to_string(),
+            web_url: WEB_URL.to_string(),
             server_url: SERVER_URL.to_string(),
         }
     }
 
-    pub fn with_public_url(mut self, public_url: String) -> Self {
-        self.public_url = public_url;
+    pub fn with_web_url(mut self, web_url: String) -> Self {
+        self.web_url = web_url;
         self
     }
 
@@ -45,8 +45,8 @@ impl GitdotClient {
         &self.client_id
     }
 
-    pub fn get_public_url(&self) -> &str {
-        &self.public_url
+    pub fn get_web_url(&self) -> &str {
+        &self.web_url
     }
 
     pub fn get_server_url(&self) -> &str {

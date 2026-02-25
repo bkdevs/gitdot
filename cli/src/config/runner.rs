@@ -1,6 +1,7 @@
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
 
+use super::default::{default_gitdot_server_url, default_gitdot_web_url, default_s2_server_url};
 use crate::executor::ExecutorType;
 
 pub const SYSTEM_USER: &str = "gitdot";
@@ -9,24 +10,19 @@ const RUNNER_CONFIG_PATH: &str = "/etc/gitdot/runner.toml";
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RunnerConfig {
+    #[serde(default = "default_gitdot_server_url")]
+    pub gitdot_server_url: String,
+
+    #[serde(default = "default_gitdot_web_url")]
+    pub gitdot_web_url: String,
+
+    #[serde(default = "default_s2_server_url")]
+    pub s2_server_url: String,
+
     pub runner_token: Option<String>,
 
     #[serde(default)]
     pub executor: ExecutorType,
-
-    #[serde(default = "default_gitdot_server_url")]
-    pub gitdot_server_url: String,
-
-    #[serde(default = "default_s2_server_url")]
-    pub s2_server_url: String,
-}
-
-fn default_gitdot_server_url() -> String {
-    "https://api.gitdot.io".to_string()
-}
-
-fn default_s2_server_url() -> String {
-    "https://s2.gitdot.io".to_string()
 }
 
 impl Default for RunnerConfig {
@@ -35,6 +31,7 @@ impl Default for RunnerConfig {
             runner_token: None,
             executor: ExecutorType::default(),
             gitdot_server_url: default_gitdot_server_url(),
+            gitdot_web_url: default_gitdot_web_url(),
             s2_server_url: default_s2_server_url(),
         }
     }

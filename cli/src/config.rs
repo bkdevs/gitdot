@@ -1,3 +1,5 @@
+mod default;
+
 #[cfg(feature = "main")]
 pub mod user;
 #[cfg(feature = "main")]
