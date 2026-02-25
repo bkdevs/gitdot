@@ -1,18 +1,18 @@
 #:schema https://www.gitdot.io/schema/gitdot-ci.json
 
 [[builds]]
-trigger = "pull_request"
+trigger = "push_to_main"
 tasks = ["build", "lint", "test"]
 
 [[tasks]]
 name = "build"
-command = "echo 'Your build command here'"
+command = 'for i in 1 2 3 4 5 6 7 8 9 10 11 12; do echo "[BUILD] Compiling artifact $i/12..."; echo "[BUILD] Linking dependencies..."; sleep 5; done; echo "[BUILD] Done."'
 
 [[tasks]]
 name = "lint"
-command = "echo 'Your lint command here'"
+command = 'for i in 1 2 3 4 5 6 7 8 9 10 11 12; do echo "[LINT] Checking file $i/12..."; echo "[LINT] No issues found."; sleep 5; done; echo "[LINT] Done."'
 
 [[tasks]]
 name = "test"
-command = "echo 'Your test command here'"
+command = 'for i in 1 2 3 4 5 6 7 8 9 10 11 12; do echo "[TEST] Running test case $i/12..."; echo "[TEST] PASS"; sleep 5; done; echo "[TEST] Done."'
 waits_for = ["build", "lint"]
