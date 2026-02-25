@@ -13,7 +13,7 @@ impl Executor for LocalExecutor {
 
     async fn execute(&self, task: &TaskResource) -> Result<()> {
         let output = Command::new("sh")
-            .args(["-c", &task.script])
+            .args(["-c", &task.command])
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
             .output()

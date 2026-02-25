@@ -12,7 +12,7 @@ impl IntoApi for TaskResponse {
             repo_name: self.repo_name,
             build_id: self.build_id,
             name: self.name,
-            script: self.script,
+            command: self.command,
             status: self.status.into(),
             waits_for: self.waits_for,
             created_at: self.created_at,

@@ -15,7 +15,7 @@ pub struct Task {
     pub status: TaskStatus,
 
     pub name: String,
-    pub script: String,
+    pub command: String,
 
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
