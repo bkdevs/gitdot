@@ -195,6 +195,7 @@ impl IntoResponse for AppError {
                 let status_code = match e {
                     MigrationError::UserNotFound(_) => StatusCode::NOT_FOUND,
                     MigrationError::OwnerNotFound(_) => StatusCode::NOT_FOUND,
+                    MigrationError::InvalidRepositoryName(_) => StatusCode::BAD_REQUEST,
                     MigrationError::RepositoryAlreadyExists(_) => StatusCode::CONFLICT,
                     MigrationError::GitError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                     MigrationError::GitHubError(_) => StatusCode::INTERNAL_SERVER_ERROR,

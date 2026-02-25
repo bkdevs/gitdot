@@ -4,7 +4,10 @@ use axum::{
 };
 
 use gitdot_api::endpoint::migration::migrate_github_repositories as api;
-use gitdot_core::dto::{MigrateGitHubRepositoriesRequest, MigrationAuthorizationRequest};
+use gitdot_core::dto::{
+    CreateCommitsRequest, CreateGitHubMigrationRequest, MigrateGitHubRepositoriesRequest,
+    MigrationAuthorizationRequest, MigrationResponse,
+};
 
 use crate::{
     app::{AppError, AppResponse, AppState},
@@ -26,17 +29,56 @@ pub async fn migrate_github_repositories(
         .verify_authorized_for_migration(auth_request)
         .await?;
 
-    let request = MigrateGitHubRepositoriesRequest::new(
-        installation_id,
+    let request = CreateGitHubMigrationRequest::new(
         &request.owner,
         &request.owner_type,
         request.repositories,
         auth_user.id,
     )?;
-    state
+    let response = state
         .migration_service
-        .migrate_github_repositories(request)
-        .await
-        .map_err(AppError::from)
-        .map(|migration| AppResponse::new(StatusCode::CREATED, migration.into_api()))
+        .create_github_migration(request)
+        .await?;
+
+    let api_response = MigrationResponse::from_parts(
+        response.migration.clone(),
+        response.migration_repositories.clone(),
+    )
+    .into_api();
+
+    let migration_service = state.migration_service.clone();
+    let commit_service = state.commit_service.clone();
+    tokio::spawn(async move {
+        let request = MigrateGitHubRepositoriesRequest {
+            migration_id: response.migration.id,
+            installation_id,
+            owner_id: response.owner_id,
+            owner_name: response.owner_name,
+            owner_type: response.owner_type,
+            migration_repositories: response.migration_repositories,
+        };
+        let response = migration_service.migrate_github_repositories(request).await;
+
+        // Create commits, starting from the initial commit
+        let zero_sha = "0000000000000000000000000000000000000000".to_string();
+        for info in response
+            .map(|r| r.migrated_repositories)
+            .unwrap_or_default()
+        {
+            if let Some(head_sha) = info.head_sha {
+                // Only create commits for HEAD ref for migrated repositories
+                if let Ok(req) = CreateCommitsRequest::new(
+                    &info.owner_name,
+                    &info.repo_name,
+                    zero_sha.clone(),
+                    head_sha,
+                    "refs/heads/main".to_string(),
+                ) {
+                    let _ = commit_service.create_commits(req).await;
+                }
+            }
+        }
+    });
+
+    Ok(AppResponse::new(StatusCode::CREATED, api_response))
 }

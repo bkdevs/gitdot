@@ -10,6 +10,9 @@ pub enum MigrationError {
     #[error("Owner not found: {0}")]
     OwnerNotFound(String),
 
+    #[error("Invalid repository name: {0}")]
+    InvalidRepositoryName(String),
+
     #[error("Repository already exists: {0}")]
     RepositoryAlreadyExists(String),
 
