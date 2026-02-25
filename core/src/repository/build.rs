@@ -17,6 +17,8 @@ pub trait BuildRepository: Send + Sync + Clone + 'static {
         task_dependencies: &HashMap<Uuid, Vec<Uuid>>,
     ) -> Result<Build, Error>;
 
+    async fn list_by_repo(&self, owner: &str, repo: &str) -> Result<Vec<Build>, Error>;
+
     async fn update_task_dependencies(
         &self,
         id: Uuid,
@@ -61,6 +63,22 @@ impl BuildRepository for BuildRepositoryImpl {
         .await?;
 
         Ok(build)
+    }
+
+    async fn list_by_repo(&self, owner: &str, repo: &str) -> Result<Vec<Build>, Error> {
+        let builds = sqlx::query_as::<_, Build>(
+            r#"
+            SELECT id, repo_owner, repo_name, trigger, commit_sha, task_dependencies, created_at, updated_at
+            FROM builds WHERE repo_owner = $1 AND repo_name = $2
+            ORDER BY created_at ASC
+            "#,
+        )
+        .bind(owner)
+        .bind(repo)
+        .fetch_all(&self.pool)
+        .await?;
+
+        Ok(builds)
     }
 
     async fn update_task_dependencies(

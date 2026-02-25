@@ -5,7 +5,7 @@ use uuid::Uuid;
 
 use crate::{
     client::{Git2Client, GitClient},
-    dto::{BuildResponse, CiConfig, CreateBuildRequest, TaskResponse},
+    dto::{BuildResponse, CiConfig, CreateBuildRequest, ListBuildsRequest, TaskResponse},
     error::{BuildError, GitError},
     model::TaskStatus,
     repository::{BuildRepository, BuildRepositoryImpl, TaskRepository, TaskRepositoryImpl},
@@ -14,6 +14,10 @@ use crate::{
 #[async_trait]
 pub trait BuildService: Send + Sync + 'static {
     async fn create_build(&self, request: CreateBuildRequest) -> Result<BuildResponse, BuildError>;
+    async fn list_builds(
+        &self,
+        request: ListBuildsRequest,
+    ) -> Result<Vec<BuildResponse>, BuildError>;
 }
 
 #[derive(Debug, Clone)]
@@ -166,5 +170,18 @@ where
             created_at: updated_build.created_at,
             updated_at: updated_build.updated_at,
         })
+    }
+
+    async fn list_builds(
+        &self,
+        request: ListBuildsRequest,
+    ) -> Result<Vec<BuildResponse>, BuildError> {
+        let builds = self
+            .build_repo
+            .list_by_repo(request.repo_owner.as_ref(), request.repo_name.as_ref())
+            .await
+            .map_err(BuildError::DatabaseError)?;
+
+        Ok(builds.into_iter().map(Into::into).collect())
     }
 }
