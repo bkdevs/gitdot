@@ -5,12 +5,7 @@ use crate::{
     error::AuthorizationError,
 };
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum RepositoryPermission {
-    Read,
-    Write,
-    Admin,
-}
+use super::RepositoryPermission;
 
 #[derive(Debug, Clone)]
 pub struct RepositoryAuthorizationRequest {

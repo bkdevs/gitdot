@@ -1,5 +1,6 @@
 mod create_repository;
 mod delete_repository;
+mod get_permission;
 mod get_repository_commit;
 mod get_repository_commit_diff;
 mod get_repository_commit_stat;
@@ -18,6 +19,7 @@ use crate::app::AppState;
 
 use create_repository::create_repository;
 use delete_repository::delete_repository;
+use get_permission::get_permission;
 use get_repository_commit::get_repository_commit;
 use get_repository_commit_diff::get_repository_commit_diff;
 use get_repository_commit_stat::get_repository_commit_stat;
@@ -33,12 +35,17 @@ pub fn create_repository_router() -> Router<AppState> {
             "/repository/{owner}/{repo}",
             post(create_repository).delete(delete_repository),
         )
+        .route("/repository/{owner}/{repo}/permission", get(get_permission))
         .route("/repository/{owner}/{repo}/tree", get(get_repository_tree))
         .route(
             "/repository/{owner}/{repo}/preview",
             get(get_repository_preview),
         )
         .route("/repository/{owner}/{repo}/file", get(get_repository_file))
+        .route(
+            "/repository/{owner}/{repo}/file/commits",
+            get(get_repository_file_commits),
+        )
         .route(
             "/repository/{owner}/{repo}/commits",
             get(get_repository_commits),
@@ -54,9 +61,5 @@ pub fn create_repository_router() -> Router<AppState> {
         .route(
             "/repository/{owner}/{repo}/commits/{sha}/stat",
             get(get_repository_commit_stat),
-        )
-        .route(
-            "/repository/{owner}/{repo}/file/commits",
-            get(get_repository_file_commits),
         )
 }

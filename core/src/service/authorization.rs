@@ -2,7 +2,8 @@ use async_trait::async_trait;
 
 use crate::{
     dto::{
-        AnswerAuthorizationRequest, CommentAuthorizationRequest, MigrationAuthorizationRequest,
+        AnswerAuthorizationRequest, CommentAuthorizationRequest, GetRepositoryPermissionRequest,
+        GetRepositoryPermissionResponse, MigrationAuthorizationRequest,
         OrganizationAuthorizationRequest, QuestionAuthorizationRequest,
         RepositoryAuthorizationRequest, RepositoryCreationAuthorizationRequest,
         RepositoryPermission, ValidateTokenRequest, ValidateTokenResponse,
@@ -23,6 +24,11 @@ pub trait AuthorizationService: Send + Sync + 'static {
         &self,
         request: ValidateTokenRequest,
     ) -> Result<ValidateTokenResponse, AuthorizationError>;
+
+    async fn get_repository_permission(
+        &self,
+        request: GetRepositoryPermissionRequest,
+    ) -> Result<GetRepositoryPermissionResponse, AuthorizationError>;
 
     async fn verify_authorized_for_repository_creation(
         &self,
@@ -134,6 +140,46 @@ where
         Ok(ValidateTokenResponse {
             principal_id: access_token.principal_id,
         })
+    }
+
+    async fn get_repository_permission(
+        &self,
+        request: GetRepositoryPermissionRequest,
+    ) -> Result<GetRepositoryPermissionResponse, AuthorizationError> {
+        let repository = self
+            .repo_repo
+            .get(request.owner.as_ref(), request.repo.as_ref())
+            .await?
+            .ok_or_else(|| {
+                AuthorizationError::NotFound(format!(
+                    "Repository not found: {}/{}",
+                    request.owner.as_ref(),
+                    request.repo.as_ref()
+                ))
+            })?;
+
+        let permission = if repository.is_owned_by_user() {
+            if repository.owner_id == request.user_id {
+                RepositoryPermission::Admin
+            } else if repository.is_public() {
+                RepositoryPermission::Read
+            } else {
+                return Err(AuthorizationError::Unauthorized);
+            }
+        } else {
+            match self
+                .org_repo
+                .get_member_role(request.owner.as_ref(), request.user_id)
+                .await?
+            {
+                Some(OrganizationRole::Admin) => RepositoryPermission::Admin,
+                Some(OrganizationRole::Member) => RepositoryPermission::Write,
+                None if repository.is_public() => RepositoryPermission::Read,
+                None => return Err(AuthorizationError::Unauthorized),
+            }
+        };
+
+        Ok(GetRepositoryPermissionResponse { permission })
     }
 
     async fn verify_authorized_for_repository_creation(

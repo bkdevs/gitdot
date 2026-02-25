@@ -1,5 +1,6 @@
 pub mod create_repository;
 pub mod delete_repository;
+pub mod get_permission;
 pub mod get_repository_commit;
 pub mod get_repository_commit_diff;
 pub mod get_repository_commit_stat;
