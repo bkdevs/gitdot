@@ -1,7 +1,5 @@
-use std::collections::HashMap;
-
 use async_trait::async_trait;
-use sqlx::{Error, PgPool, types::Json};
+use sqlx::{Error, PgPool};
 use uuid::Uuid;
 
 use crate::model::Build;
@@ -14,16 +12,12 @@ pub trait BuildRepository: Send + Sync + Clone + 'static {
         repo_name: &str,
         trigger: &str,
         commit_sha: &str,
-        task_dependencies: &HashMap<Uuid, Vec<Uuid>>,
+        build_config: &str,
     ) -> Result<Build, Error>;
+
+    async fn get_by_id(&self, id: Uuid) -> Result<Build, Error>;
 
     async fn list_by_repo(&self, owner: &str, repo: &str) -> Result<Vec<Build>, Error>;
-
-    async fn update_task_dependencies(
-        &self,
-        id: Uuid,
-        task_dependencies: &HashMap<Uuid, Vec<Uuid>>,
-    ) -> Result<Build, Error>;
 }
 
 #[derive(Debug, Clone)]
@@ -45,20 +39,34 @@ impl BuildRepository for BuildRepositoryImpl {
         repo_name: &str,
         trigger: &str,
         commit_sha: &str,
-        task_dependencies: &HashMap<Uuid, Vec<Uuid>>,
+        build_config: &str,
     ) -> Result<Build, Error> {
         let build = sqlx::query_as::<_, Build>(
             r#"
-            INSERT INTO builds (repo_owner, repo_name, trigger, commit_sha, task_dependencies)
+            INSERT INTO builds (repo_owner, repo_name, trigger, commit_sha, build_config)
             VALUES ($1, $2, $3, $4, $5)
-            RETURNING id, repo_owner, repo_name, trigger, commit_sha, task_dependencies, created_at, updated_at
+            RETURNING id, repo_owner, repo_name, trigger, commit_sha, build_config, created_at, updated_at
             "#,
         )
         .bind(repo_owner)
         .bind(repo_name)
         .bind(trigger)
         .bind(commit_sha)
-        .bind(Json(task_dependencies))
+        .bind(build_config)
+        .fetch_one(&self.pool)
+        .await?;
+
+        Ok(build)
+    }
+
+    async fn get_by_id(&self, id: Uuid) -> Result<Build, Error> {
+        let build = sqlx::query_as::<_, Build>(
+            r#"
+            SELECT id, repo_owner, repo_name, trigger, commit_sha, build_config, created_at, updated_at
+            FROM builds WHERE id = $1
+            "#,
+        )
+        .bind(id)
         .fetch_one(&self.pool)
         .await?;
 
@@ -68,7 +76,7 @@ impl BuildRepository for BuildRepositoryImpl {
     async fn list_by_repo(&self, owner: &str, repo: &str) -> Result<Vec<Build>, Error> {
         let builds = sqlx::query_as::<_, Build>(
             r#"
-            SELECT id, repo_owner, repo_name, trigger, commit_sha, task_dependencies, created_at, updated_at
+            SELECT id, repo_owner, repo_name, trigger, commit_sha, build_config, created_at, updated_at
             FROM builds WHERE repo_owner = $1 AND repo_name = $2
             ORDER BY created_at ASC
             "#,
@@ -79,25 +87,5 @@ impl BuildRepository for BuildRepositoryImpl {
         .await?;
 
         Ok(builds)
-    }
-
-    async fn update_task_dependencies(
-        &self,
-        id: Uuid,
-        task_dependencies: &HashMap<Uuid, Vec<Uuid>>,
-    ) -> Result<Build, Error> {
-        let build = sqlx::query_as::<_, Build>(
-            r#"
-            UPDATE builds SET task_dependencies = $1, updated_at = NOW()
-            WHERE id = $2
-            RETURNING id, repo_owner, repo_name, trigger, commit_sha, task_dependencies, created_at, updated_at
-            "#,
-        )
-        .bind(Json(task_dependencies))
-        .bind(id)
-        .fetch_one(&self.pool)
-        .await?;
-
-        Ok(build)
     }
 }

@@ -1,7 +1,5 @@
-use std::collections::HashMap;
-
 use chrono::{DateTime, Utc};
-use sqlx::{FromRow, types::Json};
+use sqlx::FromRow;
 use uuid::Uuid;
 
 #[derive(Debug, Clone, FromRow)]
@@ -11,7 +9,7 @@ pub struct Build {
     pub repo_name: String,
     pub trigger: String,
     pub commit_sha: String,
-    pub task_dependencies: Json<HashMap<Uuid, Vec<Uuid>>>,
+    pub build_config: String,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }

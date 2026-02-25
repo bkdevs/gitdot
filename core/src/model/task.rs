@@ -10,6 +10,7 @@ pub struct Task {
     pub repo_owner: String,
     pub repo_name: String,
     pub build_id: Uuid,
+    pub name: String,
     pub script: String,
     // TODO: arguments?
     pub status: TaskStatus,
@@ -21,7 +22,6 @@ pub struct Task {
 #[derive(Debug, Clone, PartialEq, Eq, Type)]
 #[sqlx(type_name = "task_status", rename_all = "lowercase")]
 pub enum TaskStatus {
-    Blocked,
     Pending,
     Assigned,
     Running,
@@ -34,7 +34,6 @@ impl TryFrom<&str> for TaskStatus {
 
     fn try_from(status: &str) -> Result<Self, Self::Error> {
         match status {
-            "blocked" => Ok(TaskStatus::Blocked),
             "pending" => Ok(TaskStatus::Pending),
             "assigned" => Ok(TaskStatus::Assigned),
             "running" => Ok(TaskStatus::Running),
@@ -48,7 +47,6 @@ impl TryFrom<&str> for TaskStatus {
 impl Into<String> for TaskStatus {
     fn into(self) -> String {
         match self {
-            TaskStatus::Blocked => "blocked".to_string(),
             TaskStatus::Pending => "pending".to_string(),
             TaskStatus::Assigned => "assigned".to_string(),
             TaskStatus::Running => "running".to_string(),

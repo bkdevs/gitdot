@@ -21,6 +21,7 @@ pub async fn create_task(
     let request = CreateTaskRequest::new(
         &request.repo_owner,
         &request.repo_name,
+        request.name,
         request.script,
         request.build_id,
         auth_user.id,

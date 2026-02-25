@@ -2,8 +2,6 @@ mod config;
 mod create_build;
 mod list_builds;
 
-use std::collections::HashMap;
-
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
@@ -20,7 +18,7 @@ pub struct BuildResponse {
     pub repo_name: String,
     pub trigger: String,
     pub commit_sha: String,
-    pub task_dependencies: HashMap<Uuid, Vec<Uuid>>,
+    pub build_config: String,
     pub tasks: Vec<TaskResponse>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
@@ -34,7 +32,7 @@ impl From<Build> for BuildResponse {
             repo_name: build.repo_name,
             trigger: build.trigger,
             commit_sha: build.commit_sha,
-            task_dependencies: build.task_dependencies.0,
+            build_config: build.build_config,
             tasks: vec![],
             created_at: build.created_at,
             updated_at: build.updated_at,

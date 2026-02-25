@@ -14,6 +14,12 @@ pub enum TaskError {
     #[error("Task not found: {0}")]
     NotFound(String),
 
+    #[error("Invalid CI config: {0}")]
+    InvalidConfig(#[from] gitdot_config::validate::ci::CiConfigError),
+
+    #[error("No matching build config for trigger")]
+    NoBuildConfig,
+
     #[error("Database error: {0}")]
     DatabaseError(#[from] sqlx::Error),
 }

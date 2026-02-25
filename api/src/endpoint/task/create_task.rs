@@ -19,6 +19,7 @@ impl Endpoint for CreateTask {
 pub struct CreateTaskRequest {
     pub repo_owner: String,
     pub repo_name: String,
+    pub name: String,
     pub script: String,
     pub build_id: Uuid,
 }

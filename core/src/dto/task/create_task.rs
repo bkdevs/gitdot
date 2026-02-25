@@ -9,6 +9,7 @@ use crate::{
 pub struct CreateTaskRequest {
     pub repo_owner: OwnerName,
     pub repo_name: RepositoryName,
+    pub name: String,
     pub script: String,
     pub build_id: Uuid,
     pub user_id: Uuid,
@@ -18,6 +19,7 @@ impl CreateTaskRequest {
     pub fn new(
         repo_owner: &str,
         repo_name: &str,
+        name: String,
         script: String,
         build_id: Uuid,
         user_id: Uuid,
@@ -27,6 +29,7 @@ impl CreateTaskRequest {
                 .map_err(|e| TaskError::InvalidOwnerName(e.to_string()))?,
             repo_name: RepositoryName::try_new(repo_name)
                 .map_err(|e| TaskError::InvalidRepositoryName(e.to_string()))?,
+            name,
             script,
             build_id,
             user_id,

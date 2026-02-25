@@ -1,7 +1,4 @@
-use std::collections::HashMap;
-
 use async_trait::async_trait;
-use uuid::Uuid;
 
 use crate::{
     client::{Git2Client, GitClient},
@@ -69,8 +66,10 @@ where
                 other => BuildError::GitError(other),
             })?;
 
+        let raw_config = file.content;
+
         // 2. Parse and validate
-        let ci_config = CiConfig::new(&file.content).map_err(BuildError::InvalidConfig)?;
+        let ci_config = CiConfig::new(&raw_config).map_err(BuildError::InvalidConfig)?;
 
         // 3. Find the BuildConfig matching trigger
         let build_config = ci_config
@@ -81,16 +80,10 @@ where
 
         let trigger_str: String = request.trigger.clone().into();
 
-        // 4. Create the Build with empty task_dependencies initially
+        // 4. Create the Build, storing raw config
         let build = self
             .build_repo
-            .create(
-                owner,
-                repo,
-                &trigger_str,
-                &request.commit_sha,
-                &HashMap::new(),
-            )
+            .create(owner, repo, &trigger_str, &request.commit_sha, &raw_config)
             .await?;
 
         // 5. Resolve TaskConfigs for this build's task names
@@ -101,74 +94,40 @@ where
             .filter(|t| task_names.contains(&t.name))
             .collect();
 
-        // 6. Create each Task as Blocked
-        let mut created_tasks: Vec<(String, crate::model::Task)> = Vec::new();
+        // 6. Create only tasks with no runs_after as Pending
+        let mut task_responses: Vec<TaskResponse> = Vec::new();
         for task_config in &task_configs {
-            let task = self
-                .task_repo
-                .create(
-                    owner,
-                    repo,
-                    &task_config.command,
-                    build.id,
-                    TaskStatus::Blocked,
-                )
-                .await?;
-            created_tasks.push((task_config.name.clone(), task));
-        }
-
-        // 7. Build name → task_id map
-        let name_to_id: HashMap<String, Uuid> = created_tasks
-            .iter()
-            .map(|(name, task)| (name.clone(), task.id))
-            .collect();
-
-        // 8. Compute task_dependencies: HashMap<Uuid, Vec<Uuid>>
-        let mut task_dependencies: HashMap<Uuid, Vec<Uuid>> = HashMap::new();
-        for (name, task) in &created_tasks {
-            let task_config = task_configs.iter().find(|t| &t.name == name).unwrap();
-            if let Some(runs_after) = &task_config.runs_after {
-                let deps: Vec<Uuid> = runs_after
-                    .iter()
-                    .filter_map(|dep_name| name_to_id.get(dep_name).copied())
-                    .collect();
-                if !deps.is_empty() {
-                    task_dependencies.insert(task.id, deps);
-                }
+            let has_deps = task_config
+                .runs_after
+                .as_deref()
+                .map_or(false, |d| !d.is_empty());
+            if !has_deps {
+                let task = self
+                    .task_repo
+                    .create(
+                        owner,
+                        repo,
+                        &task_config.name,
+                        &task_config.command,
+                        build.id,
+                        TaskStatus::Pending,
+                    )
+                    .await?;
+                task_responses.push(task.into());
             }
         }
 
-        // 9. Update tasks with no runs_after to Pending
-        let mut task_responses: Vec<TaskResponse> = Vec::new();
-        for (_name, task) in &created_tasks {
-            let has_deps = task_dependencies.contains_key(&task.id);
-            let updated_task = if !has_deps {
-                self.task_repo
-                    .update_task(task.id, TaskStatus::Pending)
-                    .await?
-            } else {
-                task.clone()
-            };
-            task_responses.push(updated_task.into());
-        }
-
-        // 10. Update build's task_dependencies
-        let updated_build = self
-            .build_repo
-            .update_task_dependencies(build.id, &task_dependencies)
-            .await?;
-
-        // 11. Return BuildResponse
+        // 7. Return BuildResponse
         Ok(BuildResponse {
-            id: updated_build.id,
-            repo_owner: updated_build.repo_owner,
-            repo_name: updated_build.repo_name,
-            trigger: updated_build.trigger,
-            commit_sha: updated_build.commit_sha,
-            task_dependencies: updated_build.task_dependencies.0,
+            id: build.id,
+            repo_owner: build.repo_owner,
+            repo_name: build.repo_name,
+            trigger: build.trigger,
+            commit_sha: build.commit_sha,
+            build_config: build.build_config,
             tasks: task_responses,
-            created_at: updated_build.created_at,
-            updated_at: updated_build.updated_at,
+            created_at: build.created_at,
+            updated_at: build.updated_at,
         })
     }
 
