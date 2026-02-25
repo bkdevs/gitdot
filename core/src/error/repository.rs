@@ -26,11 +26,20 @@ pub enum RepositoryError {
     InvalidVisibility(String),
 
     #[error("Git error: {0}")]
-    GitError(#[from] Git2Error),
+    GitError(Git2Error),
 
     #[error("Diff error: {0}")]
     DiffError(#[from] DiffError),
 
     #[error("Database error: {0}")]
     DatabaseError(#[from] sqlx::Error),
+}
+
+impl From<Git2Error> for RepositoryError {
+    fn from(e: Git2Error) -> Self {
+        match e {
+            Git2Error::NotFound(path) => RepositoryError::NotFound(path),
+            other => RepositoryError::GitError(other),
+        }
+    }
 }

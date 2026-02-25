@@ -2,6 +2,9 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum GitError {
+    #[error("Not found: {0}")]
+    NotFound(String),
+
     #[error("IO error: {0}")]
     IoError(#[from] std::io::Error),
 
