@@ -7,7 +7,6 @@ use s2_common::types::{
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub enum MaybeEmpty<T> {
     Empty,
     NonEmpty(T),
@@ -46,7 +45,6 @@ use time::OffsetDateTime;
 
 #[rustfmt::skip]
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 #[serde(rename_all = "kebab-case")]
 pub enum Operation {
     /// List basins.
@@ -85,12 +83,6 @@ pub enum Operation {
     Trim,
     /// Set the fencing token on a stream.
     Fence,
-    /// Retrieve account-level metrics.
-    AccountMetrics,
-    /// Retrieve basin-level metrics.
-    BasinMetrics,
-    /// Retrieve stream-level metrics.
-    StreamMetrics,
 }
 
 impl From<Operation> for types::access::Operation {
@@ -114,9 +106,6 @@ impl From<Operation> for types::access::Operation {
             Operation::Read => Self::Read,
             Operation::Trim => Self::Trim,
             Operation::Fence => Self::Fence,
-            Operation::AccountMetrics => Self::AccountMetrics,
-            Operation::BasinMetrics => Self::BasinMetrics,
-            Operation::StreamMetrics => Self::StreamMetrics,
         }
     }
 }
@@ -143,16 +132,12 @@ impl From<types::access::Operation> for Operation {
             Read => Self::Read,
             Trim => Self::Trim,
             Fence => Self::Fence,
-            AccountMetrics => Self::AccountMetrics,
-            BasinMetrics => Self::BasinMetrics,
-            StreamMetrics => Self::StreamMetrics,
         }
     }
 }
 
 #[rustfmt::skip]
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct AccessTokenInfo {
     /// Access token ID.
     /// It must be unique to the account and between 1 and 96 bytes in length.
@@ -163,7 +148,6 @@ pub struct AccessTokenInfo {
     pub expires_at: Option<OffsetDateTime>,
     /// Namespace streams based on the configured stream-level scope, which must be a prefix.
     /// Stream name arguments will be automatically prefixed, and the prefix will be stripped when listing streams.
-    #[cfg_attr(feature = "utoipa", schema(value_type = bool, default = false, required = false))]
     pub auto_prefix_streams: Option<bool>,
     /// Access token scope.
     pub scope: AccessTokenScope,
@@ -206,7 +190,6 @@ impl From<types::access::IssueAccessTokenRequest> for AccessTokenInfo {
 
 #[rustfmt::skip]
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct AccessTokenScope {
     /// Basin names allowed.
     pub basins: Option<ResourceSet<MaybeEmpty<BasinName>, BasinNamePrefix>>,
@@ -218,7 +201,6 @@ pub struct AccessTokenScope {
     pub op_groups: Option<PermittedOperationGroups>,
     /// Operations allowed for the token.
     /// A union of allowed operations and groups is used as an effective set of allowed operations.
-    #[cfg_attr(feature = "utoipa", schema(required = false))]
     pub ops: Option<Vec<Operation>>,
 }
 
@@ -268,16 +250,13 @@ impl From<types::access::AccessTokenScope> for AccessTokenScope {
 
 #[rustfmt::skip]
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 #[serde(rename_all = "kebab-case")]
 pub enum ResourceSet<E, P> {
     /// Match only the resource with this exact name.
     /// Use an empty string to match no resources.
-    #[cfg_attr(feature = "utoipa", schema(title = "exact", value_type = String))]
     Exact(E),
     /// Match all resources that start with this prefix.
     /// Use an empty string to match all resource.
-    #[cfg_attr(feature = "utoipa", schema(title = "prefix", value_type = String))]
     Prefix(P),
 }
 
@@ -305,7 +284,6 @@ impl<E, P> From<ResourceSet<MaybeEmpty<E>, P>> for types::access::ResourceSet<E,
 
 #[rustfmt::skip]
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct PermittedOperationGroups {
     /// Account-level access permissions.
     pub account: Option<ReadWritePermissions>,
@@ -349,13 +327,10 @@ impl From<types::access::PermittedOperationGroups> for PermittedOperationGroups 
 
 #[rustfmt::skip]
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct ReadWritePermissions {
     /// Read permission.
-    #[cfg_attr(feature = "utoipa", schema(value_type = bool, default = false, required = false))]
     pub read: Option<bool>,
     /// Write permission.
-    #[cfg_attr(feature = "utoipa", schema(value_type = bool, default = false, required = false))]
     pub write: Option<bool>,
 }
 
@@ -383,17 +358,12 @@ impl From<types::access::ReadWritePermissions> for ReadWritePermissions {
 
 #[rustfmt::skip]
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::IntoParams))]
-#[cfg_attr(feature = "utoipa", into_params(parameter_in = Query))]
 pub struct ListAccessTokensRequest {
     /// Filter to access tokens whose IDs begin with this prefix.
-    #[cfg_attr(feature = "utoipa", param(value_type = String, default = "", required = false))]
     pub prefix: Option<types::access::AccessTokenIdPrefix>,
     /// Filter to access tokens whose IDs lexicographically start after this string.
-    #[cfg_attr(feature = "utoipa", param(value_type = String, default = "", required = false))]
     pub start_after: Option<types::access::AccessTokenIdStartAfter>,
     /// Number of results, up to a maximum of 1000.
-    #[cfg_attr(feature = "utoipa", param(value_type = usize, maximum = 1000, default = 1000, required = false))]
     pub limit: Option<usize>,
 }
 
@@ -405,10 +375,8 @@ super::impl_list_request_conversions!(
 
 #[rustfmt::skip]
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct ListAccessTokensResponse {
     /// Matching access tokens.
-    #[cfg_attr(feature = "utoipa", schema(max_items = 1000))]
     pub access_tokens: Vec<AccessTokenInfo>,
     /// Indicates that there are more access tokens that match the criteria.
     pub has_more: bool,
@@ -416,7 +384,6 @@ pub struct ListAccessTokensResponse {
 
 #[rustfmt::skip]
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct IssueAccessTokenResponse {
     /// Created access token.
     pub access_token: String,

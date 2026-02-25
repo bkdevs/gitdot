@@ -2,25 +2,19 @@ pub mod access;
 pub mod basin;
 pub mod config;
 pub mod error;
-pub mod metrics;
 pub mod stream;
 
 use s2_common::types::{self, resources::RequestToken};
 
 #[rustfmt::skip]
 #[derive(Debug)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::IntoParams))]
-#[cfg_attr(feature = "utoipa", into_params(parameter_in = Header))]
 pub struct S2RequestTokenHeader {
     /// Client-specified request token for idempotent retries.
-    #[cfg_attr(feature = "utoipa", param(required = false, rename = "s2-request-token"))]
     pub s2_request_token: RequestToken,
 }
 
 #[rustfmt::skip]
 #[derive(Debug)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::IntoParams))]
-#[cfg_attr(feature = "utoipa", into_params(parameter_in = Path))]
 pub struct AccessTokenIdPathSegment {
     /// Access token ID.
     pub id: types::access::AccessTokenId,
@@ -28,8 +22,6 @@ pub struct AccessTokenIdPathSegment {
 
 #[rustfmt::skip]
 #[derive(Debug)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::IntoParams))]
-#[cfg_attr(feature = "utoipa", into_params(parameter_in = Path))]
 pub struct BasinNamePathSegment {
     /// Basin name.
     pub basin: types::basin::BasinName,
@@ -37,8 +29,6 @@ pub struct BasinNamePathSegment {
 
 #[rustfmt::skip]
 #[derive(Debug)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::IntoParams))]
-#[cfg_attr(feature = "utoipa", into_params(parameter_in = Path))]
 pub struct StreamNamePathSegment {
     /// Stream name.
     pub stream: types::stream::StreamName,

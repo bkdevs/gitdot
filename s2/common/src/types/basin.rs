@@ -75,22 +75,6 @@ impl<T: StrProps> BasinNameStr<T> {
     }
 }
 
-#[cfg(feature = "utoipa")]
-impl<T> utoipa::PartialSchema for BasinNameStr<T>
-where
-    T: StrProps,
-{
-    fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
-        utoipa::openapi::Object::builder()
-            .schema_type(utoipa::openapi::Type::String)
-            .min_length((!T::IS_PREFIX).then_some(caps::MIN_BASIN_NAME_LEN))
-            .max_length(Some(caps::MAX_BASIN_NAME_LEN))
-            .into()
-    }
-}
-
-#[cfg(feature = "utoipa")]
-impl<T> utoipa::ToSchema for BasinNameStr<T> where T: StrProps {}
 
 impl<T: StrProps> serde::Serialize for BasinNameStr<T> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>

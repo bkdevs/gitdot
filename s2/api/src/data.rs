@@ -38,12 +38,9 @@ where
 
 #[rustfmt::skip]
 #[derive(Debug, Default, Clone, Copy)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub enum Format {
     #[default]
-    #[cfg_attr(feature = "utoipa", schema(rename = "raw"))]
     Raw,
-    #[cfg_attr(feature = "utoipa", schema(rename = "base64"))]
     Base64,
 }
 
@@ -86,13 +83,10 @@ impl FromStr for Format {
 pub static FORMAT_HEADER: http::HeaderName = http::HeaderName::from_static("s2-format");
 
 #[rustfmt::skip]
-#[cfg_attr(feature = "utoipa", derive(utoipa::IntoParams))]
-#[cfg_attr(feature = "utoipa", into_params(parameter_in = Header))]
 pub struct S2FormatHeader {
     /// Defines the interpretation of record data (header name, header value, and body) with the JSON content type.
     /// Use `raw` (default) for efficient transmission and storage of Unicode data — storage will be in UTF-8.
     /// Use `base64` for safe transmission with efficient storage of binary data.
-    #[cfg_attr(feature = "utoipa", param(required = false, rename = "s2-format"))]
     pub s2_format: Format,
 }
 

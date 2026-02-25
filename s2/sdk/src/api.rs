@@ -18,9 +18,6 @@ use s2_api::v1::{
         BasinInfo, CreateBasinRequest, ListBasinsRequest, ListBasinsResponse,
     },
     config::{BasinConfig, BasinReconfiguration, StreamConfig, StreamReconfiguration},
-    metrics::{
-        AccountMetricSetRequest, BasinMetricSetRequest, MetricSetResponse, StreamMetricSetRequest,
-    },
     stream::{
         AppendConditionFailed, CreateStreamRequest, ListStreamsRequest, ListStreamsResponse,
         ReadEnd, ReadStart, StreamInfo, TailResponse,
@@ -174,41 +171,6 @@ impl AccountClient {
         Ok(())
     }
 
-    pub async fn get_account_metrics(
-        &self,
-        request: AccountMetricSetRequest,
-    ) -> Result<MetricSetResponse, ApiError> {
-        let url = self.base_url.join("v1/metrics")?;
-        let request = self.get(url).query(&request).build()?;
-        let response = self.request(request).send().await?;
-        Ok(response.json::<MetricSetResponse>()?)
-    }
-
-    pub async fn get_basin_metrics(
-        &self,
-        name: BasinName,
-        request: BasinMetricSetRequest,
-    ) -> Result<MetricSetResponse, ApiError> {
-        let url = self.base_url.join(&format!("v1/metrics/{name}"))?;
-        let request = self.get(url).query(&request).build()?;
-        let response = self.request(request).send().await?;
-        Ok(response.json::<MetricSetResponse>()?)
-    }
-
-    pub async fn get_stream_metrics(
-        &self,
-        basin_name: BasinName,
-        stream_name: StreamName,
-        request: StreamMetricSetRequest,
-    ) -> Result<MetricSetResponse, ApiError> {
-        let url = self.base_url.join(&format!(
-            "v1/metrics/{basin_name}/{}",
-            urlencoding::encode(&stream_name)
-        ))?;
-        let request = self.get(url).query(&request).build()?;
-        let response = self.request(request).send().await?;
-        Ok(response.json::<MetricSetResponse>()?)
-    }
 }
 
 impl Deref for AccountClient {

@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["api", "cli", "common", "lite", "sdk"]
+members = ["api", "common", "lite", "sdk"]
 
 [workspace.package]
 edition = "2024"
@@ -69,14 +69,12 @@ toml = "1.0"
 tower-http = "0.6"
 tracing = "0.1"
 tracing-subscriber = "0.3"
-utoipa = "5.4"
 uuid = "1.21"
 xxhash-rust = "0.8"
 zstd = "0.13"
 
 [patch.crates-io]
 slatedb = { git = "https://github.com/slatedb/slatedb", rev = "9efc9f55a31d5634c5685ae1580971715c03bd37" }
-utoipa = { git = "https://github.com/infiniteregrets/utoipa", rev = "9cd181d40ac0a50551ebe1995a4d73e8685890d6" }
 
 [profile.release]
 lto = true

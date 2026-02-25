@@ -5,7 +5,6 @@ use crate::backend::Backend;
 pub mod access_tokens;
 pub mod basins;
 mod error;
-pub mod metrics;
 pub mod paths;
 pub mod records;
 pub mod streams;
@@ -25,7 +24,6 @@ pub fn router() -> axum::Router<Backend> {
         .merge(streams::router())
         .merge(records::router())
         .merge(access_tokens::router())
-        .merge(metrics::router())
         .route_layer((
             CompressionLayer::new().compress_when(compress_when),
             RequestDecompressionLayer::new(),

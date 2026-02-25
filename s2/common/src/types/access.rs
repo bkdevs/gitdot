@@ -37,22 +37,6 @@ impl<T: StrProps> AccessTokenIdStr<T> {
     }
 }
 
-#[cfg(feature = "utoipa")]
-impl<T> utoipa::PartialSchema for AccessTokenIdStr<T>
-where
-    T: StrProps,
-{
-    fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
-        utoipa::openapi::Object::builder()
-            .schema_type(utoipa::openapi::Type::String)
-            .min_length((!T::IS_PREFIX).then_some(1))
-            .max_length(Some(caps::MAX_ACCESS_TOKEN_ID_LEN))
-            .into()
-    }
-}
-
-#[cfg(feature = "utoipa")]
-impl<T> utoipa::ToSchema for AccessTokenIdStr<T> where T: StrProps {}
 
 impl<T: StrProps> serde::Serialize for AccessTokenIdStr<T> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -173,9 +157,6 @@ pub enum Operation {
     Read = 16,
     Trim = 17,
     Fence = 18,
-    AccountMetrics = 19,
-    BasinMetrics = 20,
-    StreamMetrics = 21,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Default, serde::Serialize, serde::Deserialize)]

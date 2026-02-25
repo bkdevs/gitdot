@@ -8,16 +8,6 @@ pub mod basins {
     pub const DELETE: &str = "/basins/{basin}";
     pub const GET_CONFIG: &str = "/basins/{basin}";
     pub const RECONFIGURE: &str = "/basins/{basin}";
-    pub const METRICS: &str = "/basins/metrics";
-}
-
-pub mod metrics {
-    pub const TAG: &str = "metrics";
-    pub const DESCRIPTION: &str = "Usage metrics and data.";
-
-    pub const ACCOUNT: &str = "/metrics";
-    pub const BASIN: &str = "/metrics/{basin}";
-    pub const STREAM: &str = "/metrics/{basin}/{stream}";
 }
 
 pub mod access_tokens {

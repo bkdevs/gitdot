@@ -5,7 +5,6 @@ use serde::{Deserialize, Serialize};
 
 #[rustfmt::skip]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 #[serde(rename_all = "kebab-case")]
 pub enum StorageClass {
     /// Append tail latency under 400 milliseconds with s2.dev.
@@ -34,7 +33,6 @@ impl From<types::config::StorageClass> for StorageClass {
 
 #[rustfmt::skip]
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 #[serde(rename_all = "kebab-case")]
 pub enum RetentionPolicy {
     /// Age in seconds for automatic trimming of records older than this threshold.
@@ -45,7 +43,6 @@ pub enum RetentionPolicy {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 #[serde(rename_all = "kebab-case")]
 pub struct InfiniteRetention {}
 
@@ -74,7 +71,6 @@ impl From<types::config::RetentionPolicy> for RetentionPolicy {
 
 #[rustfmt::skip]
 #[derive(Debug, Default, PartialEq, Eq, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 #[serde(rename_all = "kebab-case")]
 pub enum TimestampingMode {
     /// Prefer client-specified timestamp if present otherwise use arrival time.
@@ -108,7 +104,6 @@ impl From<types::config::TimestampingMode> for TimestampingMode {
 
 #[rustfmt::skip]
 #[derive(Debug, Default, PartialEq, Eq, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct TimestampingConfig {
     /// Timestamping mode for appends that influences how timestamps are handled.
     pub mode: Option<TimestampingMode>,
@@ -151,15 +146,12 @@ impl From<TimestampingConfig> for types::config::OptionalTimestampingConfig {
 
 #[rustfmt::skip]
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct TimestampingReconfiguration {
     /// Timestamping mode for appends that influences how timestamps are handled.
     #[serde(default, skip_serializing_if = "Maybe::is_unspecified")]
-    #[cfg_attr(feature = "utoipa", schema(value_type = Option<TimestampingMode>))]
     pub mode: Maybe<Option<TimestampingMode>>,
     /// Allow client-specified timestamps to exceed the arrival time.
     #[serde(default, skip_serializing_if = "Maybe::is_unspecified")]
-    #[cfg_attr(feature = "utoipa", schema(value_type = Option<bool>))]
     pub uncapped: Maybe<Option<bool>>,
 }
 
@@ -183,7 +175,6 @@ impl From<types::config::TimestampingReconfiguration> for TimestampingReconfigur
 
 #[rustfmt::skip]
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct DeleteOnEmptyConfig {
     /// Minimum age in seconds before an empty stream can be deleted.
     /// Set to 0 (default) to disable delete-on-empty (don't delete automatically).
@@ -230,12 +221,10 @@ impl From<DeleteOnEmptyConfig> for types::config::OptionalDeleteOnEmptyConfig {
 
 #[rustfmt::skip]
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct DeleteOnEmptyReconfiguration {
     /// Minimum age in seconds before an empty stream can be deleted.
     /// Set to 0 to disable delete-on-empty (don't delete automatically).
     #[serde(default, skip_serializing_if = "Maybe::is_unspecified")]
-    #[cfg_attr(feature = "utoipa", schema(value_type = Option<u64>))]
     pub min_age_secs: Maybe<Option<u64>>,
 }
 
@@ -257,7 +246,6 @@ impl From<types::config::DeleteOnEmptyReconfiguration> for DeleteOnEmptyReconfig
 
 #[rustfmt::skip]
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct StreamConfig {
     /// Storage class for recent writes.
     pub storage_class: Option<StorageClass>,
@@ -339,24 +327,19 @@ impl TryFrom<StreamConfig> for types::config::OptionalStreamConfig {
 
 #[rustfmt::skip]
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct StreamReconfiguration {
     /// Storage class for recent writes.
     #[serde(default, skip_serializing_if = "Maybe::is_unspecified")]
-    #[cfg_attr(feature = "utoipa", schema(value_type = Option<StorageClass>))]
     pub storage_class: Maybe<Option<StorageClass>>,
     /// Retention policy for the stream.
     /// If unspecified, the default is to retain records for 7 days.
     #[serde(default, skip_serializing_if = "Maybe::is_unspecified")]
-    #[cfg_attr(feature = "utoipa", schema(value_type = Option<RetentionPolicy>))]
     pub retention_policy: Maybe<Option<RetentionPolicy>>,
     /// Timestamping behavior.
     #[serde(default, skip_serializing_if = "Maybe::is_unspecified")]
-    #[cfg_attr(feature = "utoipa", schema(value_type = Option<TimestampingReconfiguration>))]
     pub timestamping: Maybe<Option<TimestampingReconfiguration>>,
     /// Delete-on-empty configuration.
     #[serde(default, skip_serializing_if = "Maybe::is_unspecified")]
-    #[cfg_attr(feature = "utoipa", schema(value_type = Option<DeleteOnEmptyReconfiguration>))]
     pub delete_on_empty: Maybe<Option<DeleteOnEmptyReconfiguration>>,
 }
 
@@ -400,17 +383,14 @@ impl From<types::config::StreamReconfiguration> for StreamReconfiguration {
 
 #[rustfmt::skip]
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct BasinConfig {
     /// Default stream configuration.
     pub default_stream_config: Option<StreamConfig>,
     /// Create stream on append if it doesn't exist, using the default stream configuration.
     #[serde(default)]
-    #[cfg_attr(feature = "utoipa", schema(default = false))]
     pub create_stream_on_append: bool,
     /// Create stream on read if it doesn't exist, using the default stream configuration.
     #[serde(default)]
-    #[cfg_attr(feature = "utoipa", schema(default = false))]
     pub create_stream_on_read: bool,
 }
 
@@ -453,19 +433,15 @@ impl From<types::config::BasinConfig> for BasinConfig {
 
 #[rustfmt::skip]
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct BasinReconfiguration {
     /// Basin configuration.
     #[serde(default, skip_serializing_if = "Maybe::is_unspecified")]
-    #[cfg_attr(feature = "utoipa", schema(value_type = Option<StreamReconfiguration>))]
     pub default_stream_config: Maybe<Option<StreamReconfiguration>>,
     /// Create a stream on append.
     #[serde(default, skip_serializing_if = "Maybe::is_unspecified")]
-    #[cfg_attr(feature = "utoipa", schema(value_type = Option<bool>))]
     pub create_stream_on_append: Maybe<bool>,
     /// Create a stream on read.
     #[serde(default, skip_serializing_if = "Maybe::is_unspecified")]
-    #[cfg_attr(feature = "utoipa", schema(value_type = Option<bool>))]
     pub create_stream_on_read: Maybe<bool>,
 }
 

@@ -43,22 +43,6 @@ impl<T: StrProps> StreamNameStr<T> {
     }
 }
 
-#[cfg(feature = "utoipa")]
-impl<T> utoipa::PartialSchema for StreamNameStr<T>
-where
-    T: StrProps,
-{
-    fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
-        utoipa::openapi::Object::builder()
-            .schema_type(utoipa::openapi::Type::String)
-            .min_length((!T::IS_PREFIX).then_some(caps::MIN_STREAM_NAME_LEN))
-            .max_length(Some(caps::MAX_STREAM_NAME_LEN))
-            .into()
-    }
-}
-
-#[cfg(feature = "utoipa")]
-impl<T> utoipa::ToSchema for StreamNameStr<T> where T: StrProps {}
 
 impl<T: StrProps> serde::Serialize for StreamNameStr<T> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>

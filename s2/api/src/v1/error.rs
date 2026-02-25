@@ -13,7 +13,6 @@ use serde::{Deserialize, Serialize};
     strum::EnumString,
     strum::IntoStaticStr,
 )]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 #[strum(serialize_all = "snake_case")]
 // Keep this alphabetized.
 pub enum ErrorCode {
@@ -73,7 +72,6 @@ impl ErrorCode {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct ErrorInfo {
     pub code: &'static str,
     pub message: String,

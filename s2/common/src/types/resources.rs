@@ -140,18 +140,6 @@ pub struct RequestTokenTooLongError(pub usize);
 #[derive(Debug, Default, Clone, PartialEq, Eq, Hash)]
 pub struct RequestToken(CompactString);
 
-#[cfg(feature = "utoipa")]
-impl utoipa::PartialSchema for RequestToken {
-    fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
-        utoipa::openapi::Object::builder()
-            .schema_type(utoipa::openapi::Type::String)
-            .max_length(Some(MAX_REQUEST_TOKEN_LENGTH))
-            .into()
-    }
-}
-
-#[cfg(feature = "utoipa")]
-impl utoipa::ToSchema for RequestToken {}
 
 impl serde::Serialize for RequestToken {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>

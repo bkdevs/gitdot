@@ -76,7 +76,6 @@ impl FromStr for LastEventId {
 macro_rules! event {
     ($name:ident, $val:expr) => {
         #[derive(Serialize)]
-        #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
         #[serde(rename_all = "snake_case")]
         pub enum $name {
             $name,
@@ -95,33 +94,23 @@ event!(Error, "error");
 event!(Ping, "ping");
 
 #[derive(Serialize)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 #[serde(untagged)]
 pub enum ReadEvent {
-    #[cfg_attr(feature = "utoipa", schema(title = "batch"))]
     Batch {
-        #[cfg_attr(feature = "utoipa", schema(inline))]
         event: Batch,
         data: ReadBatch,
-        #[cfg_attr(feature = "utoipa", schema(value_type = String, pattern = "^[0-9]+,[0-9]+,[0-9]+$"))]
         id: LastEventId,
     },
-    #[cfg_attr(feature = "utoipa", schema(title = "error"))]
     Error {
-        #[cfg_attr(feature = "utoipa", schema(inline))]
         event: Error,
         data: String,
     },
-    #[cfg_attr(feature = "utoipa", schema(title = "ping"))]
     Ping {
-        #[cfg_attr(feature = "utoipa", schema(inline))]
         event: Ping,
         data: PingEventData,
     },
-    #[cfg_attr(feature = "utoipa", schema(title = "done"))]
     #[serde(skip)]
     Done {
-        #[cfg_attr(feature = "utoipa", schema(value_type = String, pattern = r"^\[DONE\]$"))]
         data: DoneEventData,
     },
 }
@@ -182,7 +171,6 @@ impl TryFrom<ReadEvent> for axum::response::sse::Event {
 }
 
 #[derive(Debug, Clone, Serialize)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 #[serde(rename = "[DONE]")]
 pub struct DoneEventData;
 
@@ -194,7 +182,6 @@ impl AsRef<str> for DoneEventData {
 
 #[rustfmt::skip]
 #[derive(Debug, Clone, Serialize)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct PingEventData {
     pub timestamp: u64,
 }

@@ -13,9 +13,9 @@ use crate::{
     types::{
         AccessTokenId, AccessTokenInfo, AppendAck, AppendInput, BasinConfig, BasinInfo, BasinName,
         BasinState, CreateBasinInput, CreateStreamInput, DeleteBasinInput, DeleteStreamInput,
-        GetAccountMetricsInput, GetBasinMetricsInput, GetStreamMetricsInput, IssueAccessTokenInput,
+        IssueAccessTokenInput,
         ListAccessTokensInput, ListAllAccessTokensInput, ListAllBasinsInput, ListAllStreamsInput,
-        ListBasinsInput, ListStreamsInput, Metric, Page, ReadBatch, ReadInput,
+        ListBasinsInput, ListStreamsInput, Page, ReadBatch, ReadInput,
         ReconfigureBasinInput, ReconfigureStreamInput, S2Config, S2Error, StreamConfig, StreamInfo,
         StreamName, StreamPosition, Streaming,
     },
@@ -220,37 +220,6 @@ impl S2 {
         Ok(self.client.revoke_access_token(id).await?)
     }
 
-    /// Get account metrics.
-    pub async fn get_account_metrics(
-        &self,
-        input: GetAccountMetricsInput,
-    ) -> Result<Vec<Metric>, S2Error> {
-        let response = self.client.get_account_metrics(input.into()).await?;
-        Ok(response.values.into_iter().map(Into::into).collect())
-    }
-
-    /// Get basin metrics.
-    pub async fn get_basin_metrics(
-        &self,
-        input: GetBasinMetricsInput,
-    ) -> Result<Vec<Metric>, S2Error> {
-        let (name, request) = input.into();
-        let response = self.client.get_basin_metrics(name, request).await?;
-        Ok(response.values.into_iter().map(Into::into).collect())
-    }
-
-    /// Get stream metrics.
-    pub async fn get_stream_metrics(
-        &self,
-        input: GetStreamMetricsInput,
-    ) -> Result<Vec<Metric>, S2Error> {
-        let (basin_name, stream_name, request) = input.into();
-        let response = self
-            .client
-            .get_stream_metrics(basin_name, stream_name, request)
-            .await?;
-        Ok(response.values.into_iter().map(Into::into).collect())
-    }
 }
 
 #[derive(Debug, Clone)]

@@ -10,14 +10,7 @@ keywords = ["s2", "durable", "streams", "object", "storage"]
 categories = ["database-implementations"]
 
 [[bin]]
-name = "openapi"
-required-features = ["utoipa"]
-
-[[bin]]
 name = "server"
-
-[features]
-utoipa = ["dep:utoipa", "s2-api/utoipa", "s2-common/utoipa"]
 
 [dependencies]
 async-stream = { workspace = true }
@@ -66,8 +59,6 @@ tower-http = { workspace = true, features = [
 ] }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true, features = ["env-filter"] }
-utoipa = { version = "5.4", optional = true, features = ["time"] }
-
 [dev-dependencies]
 proptest = { workspace = true }
 uuid = { workspace = true, features = ["v4"] }
