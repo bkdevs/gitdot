@@ -20,7 +20,7 @@ pub enum BuildError {
     ConfigNotFound(String),
 
     #[error("Invalid build config: {0}")]
-    InvalidConfig(#[from] gitdot_config::error::CiConfigError),
+    InvalidConfig(String),
 
     #[error("Git error: {0}")]
     GitError(GitError),

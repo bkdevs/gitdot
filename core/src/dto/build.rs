@@ -5,7 +5,7 @@ mod list_builds;
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
-pub use config::{BuildConfig, BuildTrigger, CiConfig, CiConfigError, TaskConfig};
+pub use config::{BuildConfig, BuildTrigger, CiConfig, TaskConfig};
 pub use create_build::CreateBuildRequest;
 pub use list_builds::ListBuildsRequest;
 

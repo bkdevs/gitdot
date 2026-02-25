@@ -69,17 +69,17 @@ where
                 other => BuildError::GitError(other),
             })?;
 
-        let ci_config = CiConfig::new(&file.content).map_err(BuildError::InvalidConfig)?;
-        let build_config = ci_config.get_build_config(&request.trigger)?;
+        let ci_config =
+            CiConfig::new(&file.content).map_err(|e| BuildError::InvalidConfig(e.to_string()))?;
+        let build_config = ci_config
+            .get_build_config(&request.trigger)
+            .map_err(|e| BuildError::InvalidConfig(e.to_string()))?;
         let task_configs = ci_config.get_task_configs(build_config);
-        let trigger_str = match &request.trigger {
-            crate::dto::BuildTrigger::PullRequest => "pull_request",
-            crate::dto::BuildTrigger::PushToMain => "push_to_main",
-        };
 
+        let trigger: String = request.trigger.into();
         let build = self
             .build_repo
-            .create(owner, repo, trigger_str, &request.commit_sha)
+            .create(owner, repo, &trigger, &request.commit_sha)
             .await?;
 
         // Pre-generate UUIDs for all tasks so dependencies can reference each other by ID

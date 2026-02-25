@@ -8,4 +8,7 @@ pub enum CiConfigError {
 
     #[error("no build config found for trigger '{0}'")]
     NoMatchingBuild(String),
+
+    #[error("unknown build trigger '{0}'")]
+    InvalidTrigger(String),
 }

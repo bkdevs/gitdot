@@ -25,11 +25,8 @@ impl CreateBuildRequest {
                 .map_err(|e| BuildError::InvalidOwnerName(e.to_string()))?,
             repo_name: RepositoryName::try_new(repo_name)
                 .map_err(|e| BuildError::InvalidRepositoryName(e.to_string()))?,
-            trigger: match trigger {
-                "pull_request" => BuildTrigger::PullRequest,
-                "push_to_main" => BuildTrigger::PushToMain,
-                other => return Err(BuildError::InvalidTrigger(format!("{other:?}"))),
-            },
+            trigger: BuildTrigger::try_from(trigger)
+                .map_err(|e| BuildError::InvalidTrigger(e.to_string()))?,
             commit_sha,
         })
     }
