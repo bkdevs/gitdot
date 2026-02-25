@@ -24,7 +24,7 @@ setup:
     cd .. && cargo build
     echo "Setup complete!"
 
-# Start frontend + backend in a tmux session
+# Start frontend, backend, and s2-lite in a tmux session
 dev:
     #!/usr/bin/env bash
     SESSION_NAME="gitdot"
@@ -35,8 +35,8 @@ dev:
     PROJECT_ROOT="{{justfile_directory()}}"
     echo "Starting tmux session '$SESSION_NAME'..."
     tmux new-session -d -s "$SESSION_NAME" -c "$PROJECT_ROOT/frontend" -n "frontend" "pnpm run dev"
-    tmux new-window -t "$SESSION_NAME" -c "$PROJECT_ROOT/backend" -n "backend" "cargo run -p gitdot_server"
-    tmux select-window -t "$SESSION_NAME:0"
+    tmux new-window -t "$SESSION_NAME" -c "$PROJECT_ROOT/backend" -n "backend" "cargo run"
+    tmux new-window -t "$SESSION_NAME" -c "$PROJECT_ROOT/s2/lite" -n "s2" "cargo run"
     tmux attach-session -t "$SESSION_NAME"
 
 # ── Gitdot backend ───────────────────────────────────────────────────────────
@@ -124,7 +124,7 @@ s2-clean:
 
 # Run s2-lite
 s2-lite *args: s2-sync
-    cd s2 && cargo run --release -p s2-cli -- lite {{args}}
+    cd s2 && cargo run --release -p s2-lite --bin server {{args}}
 
 # ── Helpers (private) ────────────────────────────────────────────────────────
 

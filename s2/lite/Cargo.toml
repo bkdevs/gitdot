@@ -10,7 +10,8 @@ keywords = ["s2", "durable", "streams", "object", "storage"]
 categories = ["database-implementations"]
 
 [[bin]]
-name = "server"
+name = "s2-server"
+path = "src/bin/main.rs"
 
 [dependencies]
 async-stream = { workspace = true }
