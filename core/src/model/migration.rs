@@ -1,4 +1,5 @@
 use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, Type};
 use uuid::Uuid;
 
@@ -19,6 +20,9 @@ pub struct Migration {
     pub status: MigrationStatus,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+
+    #[sqlx(json(nullable))]
+    pub repositories: Option<Vec<MigrationRepository>>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Type)]
@@ -36,7 +40,7 @@ pub enum MigrationStatus {
     Failed,
 }
 
-#[derive(Debug, Clone, FromRow)]
+#[derive(Debug, Clone, FromRow, Serialize, Deserialize)]
 pub struct MigrationRepository {
     pub id: Uuid,
     pub migration_id: Uuid,
@@ -50,7 +54,7 @@ pub struct MigrationRepository {
     pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Type)]
+#[derive(Debug, Clone, PartialEq, Eq, Type, Serialize, Deserialize)]
 #[sqlx(type_name = "migration_repository_status", rename_all = "lowercase")]
 pub enum MigrationRepositoryStatus {
     Pending,

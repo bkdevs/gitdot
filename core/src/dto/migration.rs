@@ -39,8 +39,15 @@ pub struct MigrationResponse {
     pub repositories: Vec<MigrationRepositoryResponse>,
 }
 
-impl MigrationResponse {
-    pub fn from_parts(migration: Migration, repositories: Vec<MigrationRepository>) -> Self {
+impl From<Migration> for MigrationResponse {
+    fn from(migration: Migration) -> Self {
+        let repositories = migration
+            .repositories
+            .unwrap_or_default()
+            .into_iter()
+            .map(Into::into)
+            .collect();
+
         Self {
             id: migration.id,
             number: migration.number,
@@ -51,7 +58,7 @@ impl MigrationResponse {
             destination: migration.destination,
             destination_type: migration.destination_type,
             status: migration.status,
-            repositories: repositories.into_iter().map(Into::into).collect(),
+            repositories,
             created_at: migration.created_at,
             updated_at: migration.updated_at,
         }

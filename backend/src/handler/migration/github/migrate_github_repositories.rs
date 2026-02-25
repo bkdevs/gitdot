@@ -46,11 +46,9 @@ pub async fn migrate_github_repositories(
         .create_github_migration(request)
         .await?;
 
-    let api_response = MigrationResponse::from_parts(
-        response.migration.clone(),
-        response.migration_repositories.clone(),
-    )
-    .into_api();
+    let mut migration_for_response = response.migration.clone();
+    migration_for_response.repositories = Some(response.migration_repositories.clone());
+    let api_response = MigrationResponse::from(migration_for_response).into_api();
 
     let migration_service = state.migration_service.clone();
     let commit_service = state.commit_service.clone();

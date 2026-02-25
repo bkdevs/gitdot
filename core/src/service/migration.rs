@@ -204,34 +204,20 @@ where
     ) -> Result<MigrationResponse, MigrationError> {
         let migration = self
             .migration_repo
-            .get_by_author_and_number(request.user_id, request.number)
+            .get(request.user_id, request.number)
             .await?
             .ok_or(MigrationError::MigrationNotFound(request.number))?;
 
-        let repositories = self
-            .migration_repo
-            .list_migration_repositories(migration.id)
-            .await?;
-
-        Ok(MigrationResponse::from_parts(migration, repositories))
+        Ok(migration.into())
     }
 
     async fn list_migrations(
         &self,
         request: ListMigrationsRequest,
     ) -> Result<ListMigrationsResponse, MigrationError> {
-        let migrations = self.migration_repo.list_by_author(request.user_id).await?;
+        let migrations = self.migration_repo.list(request.user_id).await?;
 
-        let mut responses = Vec::with_capacity(migrations.len());
-        for migration in migrations {
-            let repositories = self
-                .migration_repo
-                .list_migration_repositories(migration.id)
-                .await?;
-            responses.push(MigrationResponse::from_parts(migration, repositories));
-        }
-
-        Ok(responses)
+        Ok(migrations.into_iter().map(Into::into).collect())
     }
 
     async fn create_github_installation(
