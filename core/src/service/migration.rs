@@ -297,23 +297,26 @@ where
             )
             .await?;
 
-        let mut migration_repositories = Vec::new();
-        for full_name in &request.repositories {
-            let destination_full_name = format!(
-                "{}/{}",
-                request.destination.as_ref(),
-                full_name.split('/').last().unwrap_or(full_name)
-            );
+        let mut repositories = Vec::new();
+        for name in &request.repositories {
+            let origin_full_name = format!("{}/{}", request.origin, name);
+            let destination_full_name = format!("{}/{}", request.destination.as_ref(), name);
             let migration_repository = self
                 .migration_repo
-                .create_migration_repository(migration.id, full_name, &destination_full_name)
+                .create_migration_repository(
+                    migration.id,
+                    &origin_full_name,
+                    &destination_full_name,
+                )
                 .await?;
-            migration_repositories.push(migration_repository);
+            repositories.push(migration_repository);
         }
+
+        let mut migration = migration;
+        migration.repositories = Some(repositories);
 
         Ok(CreateGitHubMigrationResponse {
             migration,
-            migration_repositories,
             owner_id,
             owner_name: request.destination,
             owner_type: request.destination_type,

@@ -34,7 +34,6 @@ pub async fn migrate_github_repositories(
 
     let request = CreateGitHubMigrationRequest::new(
         auth_user.id,
-        installation_id,
         &request.origin,
         &request.origin_type,
         &request.destination,
@@ -46,10 +45,9 @@ pub async fn migrate_github_repositories(
         .create_github_migration(request)
         .await?;
 
-    let mut migration_for_response = response.migration.clone();
-    migration_for_response.repositories = Some(response.migration_repositories.clone());
-    let api_response = MigrationResponse::from(migration_for_response).into_api();
+    let api_response = MigrationResponse::from(response.migration.clone()).into_api();
 
+    let migration_repositories = response.migration.repositories.unwrap_or_default();
     let migration_service = state.migration_service.clone();
     let commit_service = state.commit_service.clone();
     tokio::spawn(async move {
@@ -59,7 +57,7 @@ pub async fn migrate_github_repositories(
             owner_id: response.owner_id,
             owner_name: response.owner_name,
             owner_type: response.owner_type,
-            migration_repositories: response.migration_repositories,
+            migration_repositories,
         };
         let response = migration_service.migrate_github_repositories(request).await;
 
