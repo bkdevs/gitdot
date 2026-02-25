@@ -17,6 +17,7 @@ impl Endpoint for MigrateGitHubRepositories {
 #[derive(ApiRequest, Debug, Serialize, Deserialize)]
 pub struct MigrateGitHubRepositoriesRequest {
     pub owner: String,
+    pub owner_type: String,
     pub repositories: Vec<String>,
 }
 
