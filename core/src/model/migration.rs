@@ -56,6 +56,7 @@ pub struct MigrationRepository {
 
 #[derive(Debug, Clone, PartialEq, Eq, Type, Serialize, Deserialize)]
 #[sqlx(type_name = "migration_repository_status", rename_all = "lowercase")]
+#[serde(rename_all = "lowercase")]
 pub enum MigrationRepositoryStatus {
     Pending,
     Running,

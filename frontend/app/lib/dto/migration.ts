@@ -44,8 +44,8 @@ export type GitHubRepositoryListResponse = z.infer<
 
 export const MigrationRepositoryResponseSchema = z.object({
   id: z.uuid(),
-  repository_id: z.uuid().nullable(),
-  full_name: z.string(),
+  origin_full_name: z.string(),
+  destination_full_name: z.string(),
   status: z.string(),
   error: z.string().nullable(),
   created_at: z.string(),
@@ -56,7 +56,11 @@ export const MigrationResponseSchema = z.object({
   id: z.uuid(),
   number: z.number(),
   author_id: z.uuid(),
+  origin_service: z.string(),
   origin: z.string(),
+  origin_type: z.string(),
+  destination: z.string(),
+  destination_type: z.string(),
   status: z.string(),
   repositories: z.array(MigrationRepositoryResponseSchema),
   created_at: z.string(),

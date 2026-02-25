@@ -29,6 +29,10 @@ export default async function Page({
             {migration.origin}
           </div>
           <div>
+            <span className="text-muted-foreground">Destination:</span>{" "}
+            {migration.destination}
+          </div>
+          <div>
             <span className="text-muted-foreground">Status:</span>{" "}
             <MigrationStatus status={migration.status} />
           </div>
@@ -48,7 +52,7 @@ export default async function Page({
               key={repo.id}
               className="flex flex-row items-center justify-between px-2 py-2 border-b last:border-b-0 text-sm"
             >
-              <span>{repo.full_name}</span>
+              <span>{repo.origin_full_name} &rarr; {repo.destination_full_name}</span>
               <RepositoryStatus status={repo.status} error={repo.error} />
             </div>
           ))}

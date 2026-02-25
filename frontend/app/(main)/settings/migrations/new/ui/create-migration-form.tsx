@@ -54,14 +54,17 @@ export function CreateMigrationForm({
     const installation = installations.find((i) => i.github_login === origin);
     if (!installation) return;
 
-    const ownerType = destination === user.name ? "user" : "organization";
+    const destinationType = destination === user.name ? "user" : "organization";
+    const originType = installation.installation_type;
 
     setError(null);
     startTransition(async () => {
       const result = await migrateGitHubRepositoriesAction(
         installation.installation_id,
+        origin,
+        originType,
         destination,
-        ownerType,
+        destinationType,
         [...selectedRepos],
       );
       if ("error" in result) {
@@ -127,9 +130,9 @@ export function CreateMigrationForm({
                     <input
                       type="checkbox"
                       name="repositories"
-                      value={repo.full_name}
-                      checked={selectedRepos.has(repo.full_name)}
-                      onChange={() => toggleRepo(repo.full_name)}
+                      value={repo.name}
+                      checked={selectedRepos.has(repo.name)}
+                      onChange={() => toggleRepo(repo.name)}
                     />
                     <span className="flex-1 truncate">{repo.name}</span>
                     {repo.private && (

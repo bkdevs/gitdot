@@ -192,6 +192,7 @@ impl IntoResponse for AppError {
                 response.into_response()
             }
             AppError::Migration(e) => {
+                tracing::error!("{}", e);
                 let status_code = match e {
                     MigrationError::UserNotFound(_) => StatusCode::NOT_FOUND,
                     MigrationError::OwnerNotFound(_) => StatusCode::NOT_FOUND,

@@ -61,13 +61,21 @@ export async function listMigrations(): Promise<MigrationListResponse | null> {
 
 export async function migrateGitHubRepositories(
   installationId: number,
-  owner: string,
-  ownerType: string,
+  origin: string,
+  originType: string,
+  destination: string,
+  destinationType: string,
   repositories: string[],
 ): Promise<MigrationResponse | null> {
   const response = await authPost(
     `${GITDOT_SERVER_URL}/migration/github/${installationId}/migrate`,
-    { owner, owner_type: ownerType, repositories },
+    {
+      origin,
+      origin_type: originType,
+      destination,
+      destination_type: destinationType,
+      repositories,
+    },
   );
 
   return await handleResponse(response, MigrationResponseSchema);

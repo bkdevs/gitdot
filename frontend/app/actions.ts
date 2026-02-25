@@ -525,19 +525,23 @@ export type MigrateGitHubRepositoriesActionResult =
 
 export async function migrateGitHubRepositoriesAction(
   installationId: number,
-  owner: string,
-  ownerType: string,
+  origin: string,
+  originType: string,
+  destination: string,
+  destinationType: string,
   repositories: string[],
 ): Promise<MigrateGitHubRepositoriesActionResult> {
-  if (!owner || repositories.length === 0) {
-    return { error: "Owner and repositories are required" };
+  if (!destination || repositories.length === 0) {
+    return { error: "Destination and repositories are required" };
   }
 
   try {
     await migrateGitHubRepositories(
       installationId,
-      owner,
-      ownerType,
+      origin,
+      originType,
+      destination,
+      destinationType,
       repositories,
     );
   } catch (e) {
