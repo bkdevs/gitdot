@@ -15,6 +15,7 @@ import {
   createRunner,
   getCurrentUser,
   hasUser,
+  migrateGitHubRepositories,
   refreshRunnerToken,
   updateAnswer,
   updateComment,
@@ -516,4 +517,35 @@ export async function createBuildAction(
 
   refresh();
   return { build: result };
+}
+
+export type MigrateGitHubRepositoriesActionResult =
+  | { success: true }
+  | { error: string };
+
+export async function migrateGitHubRepositoriesAction(
+  installationId: number,
+  owner: string,
+  ownerType: string,
+  repositories: string[],
+): Promise<MigrateGitHubRepositoriesActionResult> {
+  if (!owner || repositories.length === 0) {
+    return { error: "Owner and repositories are required" };
+  }
+
+  try {
+    await migrateGitHubRepositories(
+      installationId,
+      owner,
+      ownerType,
+      repositories,
+    );
+  } catch (e) {
+    return {
+      error: e instanceof ApiError ? e.message : "Failed to start migration",
+    };
+  }
+
+  redirect("/settings/migrations");
+  return { success: true };
 }

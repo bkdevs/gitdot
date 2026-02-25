@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useTransition } from "react";
+import { migrateGitHubRepositoriesAction } from "@/actions";
 import type { OrganizationResponse, UserResponse } from "@/lib/dto";
 import type {
   GitHubInstallationListResponse,
@@ -27,6 +28,8 @@ export function CreateMigrationForm({
   const [origin, setOrigin] = useState(defaultLogin);
   const [selectedRepos, setSelectedRepos] = useState<Set<string>>(new Set());
   const [destination, setDestination] = useState(user.name);
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
 
   const repositories = reposByInstallation[origin] ?? [];
 
@@ -44,6 +47,26 @@ export function CreateMigrationForm({
         next.add(name);
       }
       return next;
+    });
+  }
+
+  function handleSubmit() {
+    const installation = installations.find((i) => i.github_login === origin);
+    if (!installation) return;
+
+    const ownerType = destination === user.name ? "user" : "organization";
+
+    setError(null);
+    startTransition(async () => {
+      const result = await migrateGitHubRepositoriesAction(
+        installation.installation_id,
+        destination,
+        ownerType,
+        [...selectedRepos],
+      );
+      if ("error" in result) {
+        setError(result.error);
+      }
     });
   }
 
@@ -142,12 +165,14 @@ export function CreateMigrationForm({
             ))}
           </select>
         </div>
+        {error && <p className="text-sm text-destructive">{error}</p>}
         <button
           type="button"
-          disabled={selectedRepos.size === 0}
+          disabled={selectedRepos.size === 0 || isPending}
+          onClick={handleSubmit}
           className="px-3 py-2 text-sm bg-primary text-primary-foreground rounded disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Start migration
+          {isPending ? "Starting migration..." : "Start migration"}
         </button>
       </form>
     </>

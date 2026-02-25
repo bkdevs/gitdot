@@ -7,6 +7,8 @@ import {
   GitHubInstallationResponseSchema,
   type GitHubRepositoryListResponse,
   GitHubRepositoryListResponseSchema,
+  type MigrationResponse,
+  MigrationResponseSchema,
 } from "../dto/migration";
 import { authFetch, authPost, GITDOT_SERVER_URL, handleResponse } from "./util";
 
@@ -37,4 +39,18 @@ export async function listInstallationRepositories(
   );
 
   return await handleResponse(response, GitHubRepositoryListResponseSchema);
+}
+
+export async function migrateGitHubRepositories(
+  installationId: number,
+  owner: string,
+  ownerType: string,
+  repositories: string[],
+): Promise<MigrationResponse | null> {
+  const response = await authPost(
+    `${GITDOT_SERVER_URL}/migration/github/${installationId}/migrate`,
+    { owner, owner_type: ownerType, repositories },
+  );
+
+  return await handleResponse(response, MigrationResponseSchema);
 }
