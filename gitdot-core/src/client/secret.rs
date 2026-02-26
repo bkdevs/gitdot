@@ -3,6 +3,9 @@ use google_cloud_secretmanager_v1::client::SecretManagerService;
 
 use crate::error::SecretError;
 
+const GITHUB_APP_ID_SECRET_NAME: &str = "github-app-id";
+const GITHUB_APP_PRIVATE_KEY_SECRET_NAME: &str = "github-app-private-key";
+
 #[async_trait]
 pub trait SecretClient: Send + Sync + Clone + 'static {
     async fn get_github_app_id(&self) -> Result<u64, SecretError>;
@@ -17,8 +20,12 @@ pub struct GoogleSecretClient {
 }
 
 impl GoogleSecretClient {
-    pub async fn new(project_id: String) -> Result<Self, SecretError> {
+    pub async fn new(project_id: Option<String>) -> Result<Self, SecretError> {
         let client = SecretManagerService::builder().build().await?;
+        let project_id = match project_id {
+            Some(id) => id,
+            None => google_cloud_metadata::project_id().await,
+        };
         Ok(Self { client, project_id })
     }
 
@@ -46,14 +53,16 @@ impl GoogleSecretClient {
 #[async_trait]
 impl SecretClient for GoogleSecretClient {
     async fn get_github_app_id(&self) -> Result<u64, SecretError> {
-        let value = self.access_secret("github-app-id").await?;
-        value
-            .trim()
-            .parse::<u64>()
-            .map_err(|e| SecretError::ParseError(format!("github-app-id is not a valid u64: {e}")))
+        let value = self.access_secret(GITHUB_APP_ID_SECRET_NAME).await?;
+        value.trim().parse::<u64>().map_err(|e| {
+            SecretError::ParseError(format!(
+                "{} is not a valid u64: {e}",
+                GITHUB_APP_ID_SECRET_NAME
+            ))
+        })
     }
 
     async fn get_github_app_private_key(&self) -> Result<String, SecretError> {
-        self.access_secret("github-app-private-key").await
+        self.access_secret(GITHUB_APP_PRIVATE_KEY_SECRET_NAME).await
     }
 }

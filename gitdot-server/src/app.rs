@@ -19,6 +19,8 @@ use tower_http::{
     trace::TraceLayer,
 };
 
+use gitdot_core::client::GoogleSecretClient;
+
 use crate::handler::{
     create_build_router, create_git_http_router, create_internal_router, create_migration_router,
     create_oauth_router, create_organization_router, create_question_router,
@@ -41,7 +43,9 @@ impl GitdotServer {
 
         let settings = Arc::new(Settings::new()?);
         let pool = PgPool::connect(&settings.database_url).await?;
-        let state = AppState::new(settings.clone(), pool);
+        let secret_client = GoogleSecretClient::new(settings.gcp_project_id.clone()).await?;
+
+        let state = AppState::new(settings.clone(), pool, secret_client).await?;
         let router = create_router(state);
         let listener = tokio::net::TcpListener::bind(&settings.get_server_address())
             .await

@@ -4,7 +4,9 @@ use axum::extract::FromRef;
 use sqlx::PgPool;
 
 use gitdot_core::{
-    client::{DifftClient, Git2Client, GitHttpClientImpl, OctocrabClient, S2ClientImpl},
+    client::{
+        DifftClient, Git2Client, GitHttpClientImpl, OctocrabClient, S2ClientImpl, SecretClient,
+    },
     repository::{
         BuildRepositoryImpl, CodeRepositoryImpl, CommitRepositoryImpl, GitHubRepositoryImpl,
         MigrationRepositoryImpl, OrganizationRepositoryImpl, QuestionRepositoryImpl,
@@ -45,7 +47,11 @@ pub struct AppState {
 }
 
 impl AppState {
-    pub fn new(settings: Arc<Settings>, pool: PgPool) -> Self {
+    pub async fn new(
+        settings: Arc<Settings>,
+        pool: PgPool,
+        secret_client: impl SecretClient,
+    ) -> anyhow::Result<Self> {
         let code_repo = CodeRepositoryImpl::new(pool.clone());
         let token_repo = TokenRepositoryImpl::new(pool.clone());
         let user_repo = UserRepositoryImpl::new(pool.clone());
@@ -63,13 +69,13 @@ impl AppState {
         let git_http_client = GitHttpClientImpl::new(settings.git_project_root.clone());
         let diff_client = DifftClient::new();
         let github_client = OctocrabClient::new(
-            settings.github_app_id,
-            settings.github_app_private_key.clone(),
+            secret_client.get_github_app_id().await?,
+            secret_client.get_github_app_private_key().await?,
         );
 
         let s2_client = S2ClientImpl::new(&settings.s2_server_url);
 
-        Self {
+        Ok(Self {
             settings,
             oauth_service: Arc::new(OAuthServiceImpl::new(
                 code_repo.clone(),
@@ -134,6 +140,6 @@ impl AppState {
                 token_repo.clone(),
             )),
             task_service: Arc::new(TaskServiceImpl::new(task_repo.clone())),
-        }
+        })
     }
 }

@@ -2272,6 +2272,7 @@ dependencies = [
  "git2",
  "gitdot-config",
  "google-cloud-gax",
+ "google-cloud-metadata",
  "google-cloud-secretmanager-v1",
  "hex",
  "jsonwebtoken",
@@ -2455,6 +2456,17 @@ dependencies = [
  "serde_json",
  "serde_with",
  "tracing",
+]
+
+[[package]]
+name = "google-cloud-metadata"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d901aeb453fd80e51d64df4ee005014f6cf39f2d736dd64f7239c132d9d39a6a"
+dependencies = [
+ "reqwest 0.12.28",
+ "thiserror 1.0.69",
+ "tokio",
 ]
 
 [[package]]
