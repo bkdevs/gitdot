@@ -14,13 +14,13 @@ axum = { version = "0.8.8", features = ["macros"] }
 base64 = { workspace = true }
 chrono = { workspace = true }
 dotenvy = "0.15.7"
-rustls = { workspace = true, features = ["aws-lc-rs"] }
 futures = { workspace = true }
 git2 = { workspace = true }
-gitdot-api = { path = "../gitdot-api" }
-gitdot-core = { path = "../gitdot-core" }
+gitdot-api = { workspace = true }
+gitdot-core = { workspace = true }
 http = { workspace = true }
 jsonwebtoken = { workspace = true }
+rustls = { workspace = true, features = ["aws-lc-rs"] }
 serde = { workspace = true }
 serde_json = { workspace = true }
 sqlx = { workspace = true }

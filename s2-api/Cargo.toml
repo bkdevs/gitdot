@@ -1,17 +1,13 @@
 [package]
 name = "s2-api"
 version = "0.27.7"
-description = "API types for S2, the durable streams API"
 edition = "2024"
-license = "MIT"
-repository = "https://github.com/s2-streamstore/s2"
+description = "API types for S2, the durable streams API"
 homepage = "https://s2.dev"
-keywords = ["s2", "durable", "streams", "log", "api"]
+repository = "https://github.com/s2-streamstore/s2"
+license = "MIT"
+keywords = ["api", "durable", "log", "s2", "streams"]
 categories = ["api-bindings"]
-
-[features]
-axum = ["dep:axum", "s2-common/axum"]
-codegen = ["dep:prost-build"]
 
 [dependencies]
 axum = { workspace = true, optional = true }
@@ -30,13 +26,17 @@ serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 strum = { workspace = true, features = ["derive"] }
 thiserror = { workspace = true }
-time = { workspace = true, features = ["serde", "formatting", "parsing"] }
+time = { workspace = true, features = ["formatting", "parsing", "serde"] }
 tokio-util = { workspace = true, features = ["codec", "io"] }
 zstd = { workspace = true }
-
-[build-dependencies]
-prost-build = { workspace = true, optional = true }
 
 [dev-dependencies]
 proptest = { workspace = true }
 rstest = { workspace = true }
+
+[build-dependencies]
+prost-build = { workspace = true, optional = true }
+
+[features]
+axum = ["dep:axum", "s2-common/axum"]
+codegen = ["dep:prost-build"]

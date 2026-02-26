@@ -10,24 +10,24 @@ path = "src/bin/main.rs"
 
 [dependencies]
 anyhow = { workspace = true }
-rustls = { workspace = true, features = ["aws-lc-rs"] }
 clap = { version = "4.5.54", features = ["derive"] }
-futures = { workspace = true }
-s2-sdk = { workspace = true }
 dirs-next = "2.0.0"
-gitdot-api = { path = "../gitdot-api" }
-gitdot-sdk = { path = "../gitdot-sdk" }
-gitdot-config = { path = "../gitdot-config" }
+futures = { workspace = true }
+gitdot-api = { workspace = true }
+gitdot-config = { workspace = true }
+gitdot-sdk = { workspace = true }
+itertools = "0.14.0"
+rustls = { workspace = true, features = ["aws-lc-rs"] }
+s2-sdk = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 tokio = { workspace = true }
-toml = "0.9.11"
 tombi-config = { git = "https://github.com/tombi-toml/tombi", rev = "1517a938d105bfffd7515011b0844df5305121ea" }
 tombi-diagnostic = { git = "https://github.com/tombi-toml/tombi", rev = "1517a938d105bfffd7515011b0844df5305121ea" }
 tombi-formatter = { git = "https://github.com/tombi-toml/tombi", rev = "1517a938d105bfffd7515011b0844df5305121ea" }
 tombi-linter = { git = "https://github.com/tombi-toml/tombi", rev = "1517a938d105bfffd7515011b0844df5305121ea" }
 tombi-schema-store = { git = "https://github.com/tombi-toml/tombi", rev = "1517a938d105bfffd7515011b0844df5305121ea" }
-itertools = "0.14.0"
+toml = "0.9.11"
 url = "2.5.8"
 
 [features]

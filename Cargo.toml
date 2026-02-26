@@ -3,39 +3,19 @@ resolver = "3"
 members = [
   "gitdot-api",
   "gitdot-api/derive",
-  "gitdot-server",
   "gitdot-cli",
-  "gitdot-sdk",
   "gitdot-config",
   "gitdot-core",
-  "s2/api",
-  "s2/common",
-  "s2/lite",
-  "s2/sdk",
+  "gitdot-sdk",
+  "gitdot-server",
+  "s2-api",
+  "s2-common",
+  "s2-lite",
+  "s2-sdk",
 ]
 
 [workspace.dependencies]
-# gitdot deps
 anyhow = "1.0.100"
-base62 = "2.2.3"
-base64 = "0.22"
-chrono = { version = "0.4.42", features = ["serde"] }
-crc32fast = "1.4"
-git2 = "0.20.3"
-hex = "0.4.3"
-jsonwebtoken = "10.2.0"
-mockall = "0.14.0"
-nutype = { version = "0.6.2", features = ["serde"] }
-sha2 = "0.10.9"
-sqlx = { version = "0.8.6", features = [
-  "chrono",
-  "json",
-  "postgres",
-  "runtime-tokio",
-  "uuid"
-] }
-tempfile = "3.24.0"
-
 # shared deps (merged versions)
 async-stream = "0.3"
 async-trait = "0.1.89"
@@ -43,15 +23,19 @@ aws-config = "1"
 aws-credential-types = "1"
 axum = "0.8"
 axum-server = "0.8"
+base62 = "2.2.3"
+base64 = "0.22"
 base64ct = "1.8"
 blake3 = "1.8"
 bytes = "1.11"
 bytesize = "2.3"
+chrono = { version = "0.4.42", features = ["serde"] }
 clap = "4.5"
 color-print = "0.3"
 colored = "3.1"
 compact_str = "0.9"
 config = "0.15"
+crc32fast = "1.4"
 dashmap = "6.1"
 dirs = "6.0"
 enum-ordinalize = "4.3"
@@ -59,35 +43,59 @@ enumset = "1.1"
 eyre = "0.6"
 flate2 = "1.1"
 futures = "0.3.32"
+git2 = "0.20.3"
+gitdot-api = { path = "gitdot-api" }
+gitdot-cli = { path = "gitdot-cli" }
+gitdot-config = { path = "gitdot-config" }
+gitdot-core = { path = "gitdot-core" }
+gitdot-sdk = { path = "gitdot-sdk" }
+gitdot-server = { path = "gitdot-server" }
+hex = "0.4.3"
 http = "1.4.0"
 humantime = "2.3"
 indexmap = "2.13"
 indicatif = "0.18"
 itertools = "0.14"
 json_to_table = "0.12"
+jsonwebtoken = "10.2.0"
 miette = "7.6"
 mimalloc = "0.1"
 mime = "0.3"
+mockall = "0.14.0"
+nutype = { version = "0.6.2", features = ["serde"] }
 parking_lot = "0.12"
 prometheus = "0.14"
 proptest = "1.10"
 prost = "0.14"
 prost-build = "0.14"
 rand = "0.10"
-rcgen = { version = "0.14", default-features = false, features = ["crypto", "pem", "aws_lc_rs"] }
+rcgen = { version = "0.14", default-features = false, features = [
+  "aws_lc_rs",
+  "crypto",
+  "pem"
+] }
 rkyv = "0.8"
 rstest = "0.26"
 rustls = "0.23"
-s2-api = { path = "s2/api", version = "0.27" }
-s2-common = { path = "s2/common", version = "0.28" }
-s2-lite = { path = "s2/lite", version = "0.29" }
-s2-sdk = { path = "s2/sdk", version = "0.24" }
+s2-api = { path = "s2-api", version = "0.27" }
+s2-common = { path = "s2-common", version = "0.28" }
+s2-lite = { path = "s2-lite", version = "0.29" }
+s2-sdk = { path = "s2-sdk", version = "0.24" }
 schemars = "0.8"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0.149"
+sha2 = "0.10.9"
 slatedb = "0.10"
+sqlx = { version = "0.8.6", features = [
+  "chrono",
+  "json",
+  "postgres",
+  "runtime-tokio",
+  "uuid"
+] }
 strum = "0.27"
 tabled = "0.20"
+tempfile = "3.24.0"
 thiserror = "2.0.17"
 time = "0.3"
 tokio = { version = "1.49", features = ["full"] }

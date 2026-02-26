@@ -1,23 +1,20 @@
 [package]
 name = "s2-sdk"
-description = "Rust SDK for S2"
 version = "0.24.3"
 edition = "2024"
-license = "MIT"
-repository = "https://github.com/s2-streamstore/s2/tree/main/sdk"
-homepage = "https://s2.dev"
+description = "Rust SDK for S2"
 documentation = "https://docs.rs/s2-sdk/latest/s2_sdk/"
-keywords = ["s2", "durable", "streams", "client", "sdk"]
+homepage = "https://s2.dev"
+repository = "https://github.com/s2-streamstore/s2/tree/main/sdk"
+license = "MIT"
+keywords = ["client", "durable", "s2", "sdk", "streams"]
 categories = ["api-bindings", "database"]
 
 [package.metadata.docs.rs]
 cargo-args = ["-Zunstable-options", "-Zrustdoc-scrape-examples"]
 
-[features]
-_hidden = []
-
 [dependencies]
-async-compression = { version = "0.4", features = ["tokio", "gzip", "zstd"] }
+async-compression = { version = "0.4", features = ["gzip", "tokio", "zstd"] }
 async-stream = { workspace = true }
 async-trait = { workspace = true }
 bytes = { workspace = true }
@@ -26,16 +23,16 @@ http = { workspace = true }
 http-body-util = "0.1"
 hyper = "1.8"
 hyper-rustls = { version = "0.27", default-features = false, features = [
-    "http2",
-    "native-tokio",
-    "aws-lc-rs",
-    "tls12",
+  "aws-lc-rs",
+  "http2",
+  "native-tokio",
+  "tls12",
 ] }
 hyper-util = { version = "0.1", features = [
-    "client-legacy",
-    "tokio",
-    "http1",
-    "http2",
+  "client-legacy",
+  "http1",
+  "http2",
+  "tokio",
 ] }
 prost = { workspace = true }
 rand = { workspace = true }
@@ -48,14 +45,14 @@ serde_json = { workspace = true }
 serde_urlencoded = "0.7"
 thiserror = { workspace = true }
 time = { workspace = true }
-tokio = { workspace = true, features = ["time", "macros", "io-util", "sync"] }
+tokio = { workspace = true, features = ["io-util", "macros", "sync", "time"] }
 tokio-muxt = "0.7"
 tokio-stream = { workspace = true }
-tokio-util = { workspace = true, features = ["rt", "codec"] }
+tokio-util = { workspace = true, features = ["codec", "rt"] }
 tracing = { workspace = true }
 url = "2.5"
 urlencoding = "2.1"
-uuid = { workspace = true, features = ["v4", "fast-rng"] }
+uuid = { workspace = true, features = ["fast-rng", "v4"] }
 
 [dev-dependencies]
 assert_matches = "1.5"
@@ -63,3 +60,6 @@ rstest = { workspace = true }
 test-context = { version = "0.5" }
 tokio = { workspace = true, features = ["full", "test-util"] }
 tokio-shared-rt = "0.1"
+
+[features]
+_hidden = []

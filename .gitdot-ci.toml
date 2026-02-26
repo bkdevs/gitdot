@@ -6,4 +6,4 @@ tasks = ["build"]
 
 [[tasks]]
 name = "build"
-command = 'cargo clean && cargo build'
+command = "cargo clean && cargo build"
