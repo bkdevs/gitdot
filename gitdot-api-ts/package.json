@@ -2,10 +2,19 @@
   "name": "gitdot-api-ts",
   "version": "0.1.0",
   "private": true,
-  "exports": { ".": "./src/index.ts" },
-  "scripts": {
-    "typecheck": "tsc --noEmit"
+  "exports": {
+    ".": "./src/index.ts"
   },
-  "dependencies": { "zod": "catalog:" },
-  "devDependencies": { "typescript": "catalog:" }
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check",
+    "format": "biome format --write"
+  },
+  "dependencies": {
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "catalog:",
+    "typescript": "catalog:"
+  }
 }

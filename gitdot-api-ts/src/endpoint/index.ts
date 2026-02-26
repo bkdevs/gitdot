@@ -1,3 +1,4 @@
+export { type Endpoint } from "./endpoint";
 export * from "./build";
 export * from "./migration";
 export * from "./oauth";

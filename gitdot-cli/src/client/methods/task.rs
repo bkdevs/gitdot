@@ -14,6 +14,7 @@ impl GitdotClient {
         self.get("ci/task/poll".to_string(), request).await
     }
 
+    #[allow(dead_code)]
     pub async fn get_task(&self, id: Uuid) -> Result<GetTaskResponse> {
         self.get(format!("ci/task/{}", id), ()).await
     }

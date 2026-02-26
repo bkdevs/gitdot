@@ -1,6 +1,6 @@
 import { z } from "zod";
-
 import { RunnerResource } from "../../resource";
+import type { Endpoint } from "../endpoint";
 
 export const CreateRunnerRequest = z.object({
   name: z.string(),
@@ -8,10 +8,13 @@ export const CreateRunnerRequest = z.object({
 });
 export type CreateRunnerRequest = z.infer<typeof CreateRunnerRequest>;
 
+export const CreateRunnerResponse = RunnerResource;
+export type CreateRunnerResponse = z.infer<typeof CreateRunnerResponse>;
+
 export const CreateRunner = {
   path: "/ci/runner/{owner}",
   method: "POST",
   request: CreateRunnerRequest,
-  response: RunnerResource,
-} as const;
+  response: CreateRunnerResponse,
+} satisfies Endpoint;
 export type CreateRunner = typeof CreateRunner;

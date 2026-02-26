@@ -49,6 +49,7 @@ impl GitdotClient {
         &self.web_url
     }
 
+    #[allow(dead_code)]
     pub fn get_server_url(&self) -> &str {
         &self.server_url
     }
@@ -73,6 +74,7 @@ impl GitdotClient {
         Ok(response)
     }
 
+    #[allow(dead_code)]
     pub(crate) async fn head<T>(&self, path: String, request: T) -> Result<(), Error>
     where
         T: ApiRequest,
@@ -129,6 +131,7 @@ impl GitdotClient {
         Ok(response)
     }
 
+    #[allow(dead_code)]
     pub(crate) async fn delete<T, R>(&self, path: String, request: T) -> Result<R, Error>
     where
         T: ApiRequest,

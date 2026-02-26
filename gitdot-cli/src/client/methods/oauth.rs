@@ -8,6 +8,7 @@ use gitdot_api::endpoint::oauth::{
 
 use crate::client::GitdotClient;
 
+#[allow(dead_code)]
 impl GitdotClient {
     pub async fn create_device_code(&self) -> Result<CreateDeviceCodeResponse> {
         let request = CreateDeviceCodeRequest {

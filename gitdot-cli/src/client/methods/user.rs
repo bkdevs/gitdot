@@ -11,6 +11,7 @@ use gitdot_api::endpoint::user::{
 
 use crate::client::GitdotClient;
 
+#[allow(dead_code)]
 impl GitdotClient {
     pub async fn get_current_user(
         &self,

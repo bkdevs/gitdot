@@ -1,6 +1,6 @@
 import { z } from "zod";
-
 import { MigrationResource } from "../../../resource";
+import type { Endpoint } from "../../endpoint";
 
 export const MigrateGitHubRepositoriesRequest = z.object({
   origin: z.string(),
@@ -13,10 +13,15 @@ export type MigrateGitHubRepositoriesRequest = z.infer<
   typeof MigrateGitHubRepositoriesRequest
 >;
 
+export const MigrateGitHubRepositoriesResponse = MigrationResource;
+export type MigrateGitHubRepositoriesResponse = z.infer<
+  typeof MigrateGitHubRepositoriesResponse
+>;
+
 export const MigrateGitHubRepositories = {
   path: "/migration/github/{installation_id}/migrate",
   method: "POST",
   request: MigrateGitHubRepositoriesRequest,
-  response: MigrationResource,
-} as const;
+  response: MigrateGitHubRepositoriesResponse,
+} satisfies Endpoint;
 export type MigrateGitHubRepositories = typeof MigrateGitHubRepositories;
