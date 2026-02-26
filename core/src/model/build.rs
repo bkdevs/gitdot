@@ -5,6 +5,7 @@ use uuid::Uuid;
 #[derive(Debug, Clone, FromRow)]
 pub struct Build {
     pub id: Uuid,
+    pub number: i32,
     pub repo_owner: String,
     pub repo_name: String,
     pub trigger: String,

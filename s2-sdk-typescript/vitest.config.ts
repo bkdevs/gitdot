@@ -1,0 +1,24 @@
+import { loadEnv } from 'vite'
+import { defineConfig } from 'vitest/config'
+import { fileURLToPath } from 'node:url'
+import { dirname, resolve } from 'node:path'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+
+export default defineConfig(({ mode }) => ({
+  resolve: {
+    alias: {
+      '@s2-dev/streamstore': resolve(__dirname, 'src/index.ts'),
+    },
+  },
+  test: {
+    env: loadEnv(mode, process.cwd(), ''),
+    // Run e2e tests in a separate pool with limited concurrency
+    poolMatchGlobs: [['**/*.e2e.test.ts', 'forks']],
+    poolOptions: {
+      forks: {
+        maxForks: 1,
+      },
+    },
+  },
+}))

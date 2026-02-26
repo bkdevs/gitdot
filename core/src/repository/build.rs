@@ -14,7 +14,14 @@ pub trait BuildRepository: Send + Sync + Clone + 'static {
         commit_sha: &str,
     ) -> Result<Build, Error>;
 
-    async fn get_by_id(&self, id: Uuid) -> Result<Build, Error>;
+    async fn get(&self, id: Uuid) -> Result<Build, Error>;
+
+    async fn get_by_number(
+        &self,
+        owner: &str,
+        repo: &str,
+        number: i32,
+    ) -> Result<Option<Build>, Error>;
 
     async fn list_by_repo(&self, owner: &str, repo: &str) -> Result<Vec<Build>, Error>;
 }
@@ -41,9 +48,9 @@ impl BuildRepository for BuildRepositoryImpl {
     ) -> Result<Build, Error> {
         let build = sqlx::query_as::<_, Build>(
             r#"
-            INSERT INTO builds (repo_owner, repo_name, trigger, commit_sha)
-            VALUES ($1, $2, $3, $4)
-            RETURNING id, repo_owner, repo_name, trigger, commit_sha, created_at, updated_at
+            INSERT INTO builds (repo_owner, repo_name, trigger, commit_sha, number)
+            VALUES ($1, $2, $3, $4, COALESCE((SELECT MAX(number) FROM builds WHERE repo_owner = $1 AND repo_name = $2), 0) + 1)
+            RETURNING id, number, repo_owner, repo_name, trigger, commit_sha, created_at, updated_at
             "#,
         )
         .bind(repo_owner)
@@ -56,10 +63,10 @@ impl BuildRepository for BuildRepositoryImpl {
         Ok(build)
     }
 
-    async fn get_by_id(&self, id: Uuid) -> Result<Build, Error> {
+    async fn get(&self, id: Uuid) -> Result<Build, Error> {
         let build = sqlx::query_as::<_, Build>(
             r#"
-            SELECT id, repo_owner, repo_name, trigger, commit_sha, created_at, updated_at
+            SELECT id, number, repo_owner, repo_name, trigger, commit_sha, created_at, updated_at
             FROM builds WHERE id = $1
             "#,
         )
@@ -70,10 +77,31 @@ impl BuildRepository for BuildRepositoryImpl {
         Ok(build)
     }
 
+    async fn get_by_number(
+        &self,
+        owner: &str,
+        repo: &str,
+        number: i32,
+    ) -> Result<Option<Build>, Error> {
+        let build = sqlx::query_as::<_, Build>(
+            r#"
+            SELECT id, number, repo_owner, repo_name, trigger, commit_sha, created_at, updated_at
+            FROM builds WHERE repo_owner = $1 AND repo_name = $2 AND number = $3
+            "#,
+        )
+        .bind(owner)
+        .bind(repo)
+        .bind(number)
+        .fetch_optional(&self.pool)
+        .await?;
+
+        Ok(build)
+    }
+
     async fn list_by_repo(&self, owner: &str, repo: &str) -> Result<Vec<Build>, Error> {
         let builds = sqlx::query_as::<_, Build>(
             r#"
-            SELECT id, repo_owner, repo_name, trigger, commit_sha, created_at, updated_at
+            SELECT id, number, repo_owner, repo_name, trigger, commit_sha, created_at, updated_at
             FROM builds WHERE repo_owner = $1 AND repo_name = $2
             ORDER BY created_at ASC
             "#,

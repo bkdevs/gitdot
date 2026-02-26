@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { TasksResponseSchema } from "./task";
 
 export const CreateBuildRequestSchema = z.object({
   repo_owner: z.string(),
@@ -11,6 +12,7 @@ export type CreateBuildRequest = z.infer<typeof CreateBuildRequestSchema>;
 
 export const BuildResponseSchema = z.object({
   id: z.uuid(),
+  number: z.number().int(),
   repo_owner: z.string(),
   repo_name: z.string(),
   trigger: z.string(),
@@ -24,3 +26,12 @@ export type BuildResponse = z.infer<typeof BuildResponseSchema>;
 export const BuildsResponseSchema = z.array(BuildResponseSchema);
 
 export type BuildsResponse = z.infer<typeof BuildsResponseSchema>;
+
+export const GetBuildByNumberResponseSchema = z.object({
+  build: BuildResponseSchema,
+  tasks: TasksResponseSchema,
+});
+
+export type GetBuildByNumberResponse = z.infer<
+  typeof GetBuildByNumberResponseSchema
+>;

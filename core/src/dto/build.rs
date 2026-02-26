@@ -14,6 +14,7 @@ use crate::model::Build;
 #[derive(Debug, Clone)]
 pub struct BuildResponse {
     pub id: Uuid,
+    pub number: i32,
     pub repo_owner: String,
     pub repo_name: String,
     pub trigger: String,
@@ -26,6 +27,7 @@ impl From<Build> for BuildResponse {
     fn from(build: Build) -> Self {
         Self {
             id: build.id,
+            number: build.number,
             repo_owner: build.repo_owner,
             repo_name: build.repo_name,
             trigger: build.trigger,

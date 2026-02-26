@@ -15,7 +15,7 @@ export function BuildRow({
 
   return (
     <Link
-      href={`/${owner}/${repo}/builds/${build.id}`}
+      href={`/${owner}/${repo}/builds/${build.number}`}
       className="flex flex-row w-full border-b hover:bg-accent/50 select-none py-2 px-3 gap-3 items-start min-h-14"
     >
       <div className="flex flex-col min-w-0 flex-1">

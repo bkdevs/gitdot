@@ -22,6 +22,13 @@ pub trait BuildService: Send + Sync + 'static {
     ) -> Result<Vec<BuildResponse>, BuildError>;
 
     async fn list_build_tasks(&self, build_id: Uuid) -> Result<Vec<TaskResponse>, BuildError>;
+
+    async fn get_build_with_tasks(
+        &self,
+        owner: &str,
+        repo: &str,
+        number: i32,
+    ) -> Result<(BuildResponse, Vec<TaskResponse>), BuildError>;
 }
 
 #[derive(Debug, Clone)]
@@ -161,5 +168,27 @@ where
             .map_err(BuildError::DatabaseError)?;
 
         Ok(tasks.into_iter().map(Into::into).collect())
+    }
+
+    async fn get_build_with_tasks(
+        &self,
+        owner: &str,
+        repo: &str,
+        number: i32,
+    ) -> Result<(BuildResponse, Vec<TaskResponse>), BuildError> {
+        let build = self
+            .build_repo
+            .get_by_number(owner, repo, number)
+            .await
+            .map_err(BuildError::DatabaseError)?
+            .ok_or_else(|| BuildError::NotFound(format!("{owner}/{repo}#{number}")))?;
+
+        let tasks = self
+            .task_repo
+            .list_by_build_id(build.id)
+            .await
+            .map_err(BuildError::DatabaseError)?;
+
+        Ok((build.into(), tasks.into_iter().map(Into::into).collect()))
     }
 }

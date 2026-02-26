@@ -8,6 +8,7 @@ impl IntoApi for BuildResponse {
     fn into_api(self) -> Self::ApiType {
         api::BuildResource {
             id: self.id,
+            number: self.number,
             repo_owner: self.repo_owner,
             repo_name: self.repo_name,
             trigger: self.trigger,
