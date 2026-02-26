@@ -17,8 +17,8 @@ dotenvy = "0.15.7"
 rustls = { workspace = true, features = ["aws-lc-rs"] }
 futures = { workspace = true }
 git2 = { workspace = true }
-gitdot-api = { path = "../api" }
-gitdot-core = { path = "../core" }
+gitdot-api = { path = "../gitdot-api" }
+gitdot-core = { path = "../gitdot-core" }
 http = { workspace = true }
 jsonwebtoken = { workspace = true }
 serde = { workspace = true }

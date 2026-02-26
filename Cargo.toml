@@ -1,13 +1,13 @@
 [workspace]
 resolver = "3"
 members = [
-  "api",
-  "api/derive",
-  "backend",
-  "cli",
-  "client",
-  "config",
-  "core",
+  "gitdot-api",
+  "gitdot-api/derive",
+  "gitdot-backend",
+  "gitdot-cli",
+  "gitdot-client",
+  "gitdot-config",
+  "gitdot-core",
   "s2/api",
   "s2/common",
   "s2/lite",
