@@ -1,5 +1,6 @@
-use crate::{config::RunnerConfig, executor::ExecutorType, os::install_service};
-use gitdot_sdk::client::GitdotClient;
+use crate::{
+    client::GitdotClient, config::RunnerConfig, executor::ExecutorType, os::install_service,
+};
 use std::io::{self, Write};
 
 pub async fn install(mut config: RunnerConfig) -> anyhow::Result<()> {

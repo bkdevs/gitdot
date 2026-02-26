@@ -1,0 +1,11 @@
+{
+  "name": "gitdot-api-ts",
+  "version": "0.1.0",
+  "private": true,
+  "exports": { ".": "./src/index.ts" },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": { "zod": "catalog:" },
+  "devDependencies": { "typescript": "catalog:" }
+}

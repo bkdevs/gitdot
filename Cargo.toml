@@ -6,7 +6,6 @@ members = [
   "gitdot-cli",
   "gitdot-config",
   "gitdot-core",
-  "gitdot-sdk",
   "gitdot-server",
   "s2-api",
   "s2-common",
@@ -48,7 +47,6 @@ gitdot-api = { path = "gitdot-api" }
 gitdot-cli = { path = "gitdot-cli" }
 gitdot-config = { path = "gitdot-config" }
 gitdot-core = { path = "gitdot-core" }
-gitdot-sdk = { path = "gitdot-sdk" }
 gitdot-server = { path = "gitdot-server" }
 hex = "0.4.3"
 http = "1.4.0"

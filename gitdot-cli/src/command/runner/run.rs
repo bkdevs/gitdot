@@ -1,5 +1,5 @@
+use crate::client::GitdotClient;
 use anyhow::Context;
-use gitdot_sdk::client::GitdotClient;
 use s2_sdk::S2;
 
 use crate::{

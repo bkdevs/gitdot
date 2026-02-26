@@ -1,5 +1,6 @@
 packages:
   - gitdot-web
+  - gitdot-api-ts
 catalog:
   "@biomejs/biome": 2.3.11
   "@types/jest": ^30.0.0

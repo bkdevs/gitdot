@@ -1,5 +1,6 @@
 pub mod bootstrap;
 mod cli;
+mod client;
 mod command;
 mod config;
 mod util;

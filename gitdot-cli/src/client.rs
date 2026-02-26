@@ -165,3 +165,5 @@ impl Auth for RequestBuilder {
         }
     }
 }
+
+pub mod methods;
