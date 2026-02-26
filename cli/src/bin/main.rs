@@ -1,6 +1,6 @@
 use clap::Parser;
 
-use gitdot_cli::{bootstrap, Args, run};
+use gitdot_cli::{Args, bootstrap, run};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {

@@ -7,8 +7,7 @@ use crate::error::TaskError;
 #[derive(Debug, Clone, FromRow)]
 pub struct Task {
     pub id: Uuid,
-    pub repo_owner: String,
-    pub repo_name: String,
+    pub repository_id: Uuid,
 
     pub build_id: Uuid,
     pub s2_uri: String,

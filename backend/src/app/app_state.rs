@@ -123,6 +123,7 @@ impl AppState {
             build_service: Arc::new(BuildServiceImpl::new(
                 build_repo.clone(),
                 task_repo.clone(),
+                repo_repo.clone(),
                 git_client.clone(),
                 s2_client,
             )),

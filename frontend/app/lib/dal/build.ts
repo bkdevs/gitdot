@@ -6,8 +6,8 @@ import {
   type BuildsResponse,
   BuildsResponseSchema,
   type CreateBuildRequest,
-  GetBuildByNumberResponseSchema,
   type GetBuildByNumberResponse,
+  GetBuildByNumberResponseSchema,
 } from "../dto";
 import { authFetch, authPost, GITDOT_SERVER_URL, handleResponse } from "./util";
 

@@ -6,8 +6,7 @@ use uuid::Uuid;
 pub struct Build {
     pub id: Uuid,
     pub number: i32,
-    pub repo_owner: String,
-    pub repo_name: String,
+    pub repository_id: Uuid,
     pub trigger: String,
     pub commit_sha: String,
     pub created_at: DateTime<Utc>,

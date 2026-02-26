@@ -2,8 +2,7 @@ import { z } from "zod";
 
 export const TaskResponseSchema = z.object({
   id: z.uuid(),
-  repo_owner: z.string(),
-  repo_name: z.string(),
+  repository_id: z.uuid(),
   build_id: z.uuid(),
   s2_uri: z.string(),
   name: z.string(),

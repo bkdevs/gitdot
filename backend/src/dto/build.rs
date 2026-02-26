@@ -9,8 +9,7 @@ impl IntoApi for BuildResponse {
         api::BuildResource {
             id: self.id,
             number: self.number,
-            repo_owner: self.repo_owner,
-            repo_name: self.repo_name,
+            repository_id: self.repository_id,
             trigger: self.trigger,
             commit_sha: self.commit_sha,
             created_at: self.created_at,

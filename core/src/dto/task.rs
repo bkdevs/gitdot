@@ -10,8 +10,7 @@ pub use update_task::UpdateTaskRequest;
 #[derive(Debug, Clone)]
 pub struct TaskResponse {
     pub id: Uuid,
-    pub repo_owner: String,
-    pub repo_name: String,
+    pub repository_id: Uuid,
     pub build_id: Uuid,
     pub s2_uri: String,
     pub name: String,
@@ -26,8 +25,7 @@ impl From<Task> for TaskResponse {
     fn from(task: Task) -> Self {
         Self {
             id: task.id,
-            repo_owner: task.repo_owner,
-            repo_name: task.repo_name,
+            repository_id: task.repository_id,
             build_id: task.build_id,
             s2_uri: task.s2_uri,
             name: task.name,

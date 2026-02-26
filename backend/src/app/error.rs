@@ -246,6 +246,7 @@ impl IntoResponse for AppError {
                     BuildError::InvalidOwnerName(_) => StatusCode::BAD_REQUEST,
                     BuildError::InvalidRepositoryName(_) => StatusCode::BAD_REQUEST,
                     BuildError::InvalidTrigger(_) => StatusCode::BAD_REQUEST,
+                    BuildError::RepositoryNotFound(_) => StatusCode::NOT_FOUND,
                     BuildError::NotFound(_) => StatusCode::NOT_FOUND,
                     BuildError::ConfigNotFound(_) => StatusCode::NOT_FOUND,
                     BuildError::InvalidConfig(_) => StatusCode::UNPROCESSABLE_ENTITY,

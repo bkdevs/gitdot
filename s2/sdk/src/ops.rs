@@ -10,9 +10,9 @@ use crate::{
     session::{self, AppendSession, AppendSessionConfig},
     types::{
         AppendAck, AppendInput, BasinInfo, BasinName, CreateBasinInput, CreateStreamInput,
-        DeleteBasinInput, DeleteStreamInput, ListAllStreamsInput, ListStreamsInput, Page, ReadBatch,
-        ReadInput, ReconfigureStreamInput, S2Config, S2Error, StreamConfig, StreamInfo, StreamName,
-        StreamPosition, Streaming,
+        DeleteBasinInput, DeleteStreamInput, ListAllStreamsInput, ListStreamsInput, Page,
+        ReadBatch, ReadInput, ReconfigureStreamInput, S2Config, S2Error, StreamConfig, StreamInfo,
+        StreamName, StreamPosition, Streaming,
     },
 };
 
@@ -71,7 +71,6 @@ impl S2 {
             .delete_basin(input.name, input.ignore_not_found)
             .await?)
     }
-
 }
 
 #[derive(Debug, Clone)]

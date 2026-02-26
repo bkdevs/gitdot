@@ -202,7 +202,8 @@ impl S2Endpoints {
 
     /// Create endpoints from a single URL used for both account and basin.
     ///
-    /// Use this when the same server handles account and basin traffic (e.g. a single S2 deployment).
+    /// Use this when the same server handles account and basin traffic (e.g. a single S2
+    /// deployment).
     pub fn from_url(url: &str) -> Result<Self, ValidationError> {
         let account_endpoint: AccountEndpoint = url.parse()?;
         let basin_endpoint: BasinEndpoint = url.parse()?;

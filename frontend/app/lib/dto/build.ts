@@ -13,8 +13,7 @@ export type CreateBuildRequest = z.infer<typeof CreateBuildRequestSchema>;
 export const BuildResponseSchema = z.object({
   id: z.uuid(),
   number: z.number().int(),
-  repo_owner: z.string(),
-  repo_name: z.string(),
+  repository_id: z.uuid(),
   trigger: z.string(),
   commit_sha: z.string(),
   created_at: z.iso.datetime(),

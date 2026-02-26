@@ -13,6 +13,9 @@ pub enum BuildError {
     #[error("Invalid trigger: {0}")]
     InvalidTrigger(String),
 
+    #[error("Repository not found: {0}")]
+    RepositoryNotFound(String),
+
     #[error("Build not found: {0}")]
     NotFound(String),
 

@@ -9,7 +9,10 @@ use crate::{
     dto::{BuildResponse, CiConfig, CreateBuildRequest, ListBuildsRequest, TaskResponse},
     error::{BuildError, GitError},
     model::TaskStatus,
-    repository::{BuildRepository, BuildRepositoryImpl, TaskRepository, TaskRepositoryImpl},
+    repository::{
+        BuildRepository, BuildRepositoryImpl, RepositoryRepository, RepositoryRepositoryImpl,
+        TaskRepository, TaskRepositoryImpl,
+    },
 };
 
 #[async_trait]
@@ -32,27 +35,31 @@ pub trait BuildService: Send + Sync + 'static {
 }
 
 #[derive(Debug, Clone)]
-pub struct BuildServiceImpl<B, T>
+pub struct BuildServiceImpl<B, T, R>
 where
     B: BuildRepository,
     T: TaskRepository,
+    R: RepositoryRepository,
 {
     build_repo: B,
     task_repo: T,
+    repo_repo: R,
     git_client: Git2Client,
     s2_client: S2ClientImpl,
 }
 
-impl BuildServiceImpl<BuildRepositoryImpl, TaskRepositoryImpl> {
+impl BuildServiceImpl<BuildRepositoryImpl, TaskRepositoryImpl, RepositoryRepositoryImpl> {
     pub fn new(
         build_repo: BuildRepositoryImpl,
         task_repo: TaskRepositoryImpl,
+        repo_repo: RepositoryRepositoryImpl,
         git_client: Git2Client,
         s2_client: S2ClientImpl,
     ) -> Self {
         Self {
             build_repo,
             task_repo,
+            repo_repo,
             git_client,
             s2_client,
         }
@@ -60,14 +67,22 @@ impl BuildServiceImpl<BuildRepositoryImpl, TaskRepositoryImpl> {
 }
 
 #[async_trait]
-impl<B, T> BuildService for BuildServiceImpl<B, T>
+impl<B, T, R> BuildService for BuildServiceImpl<B, T, R>
 where
     B: BuildRepository,
     T: TaskRepository,
+    R: RepositoryRepository,
 {
     async fn create_build(&self, request: CreateBuildRequest) -> Result<BuildResponse, BuildError> {
         let owner = request.repo_owner.as_ref();
         let repo = request.repo_name.as_ref();
+
+        let repository = self
+            .repo_repo
+            .get(owner, repo)
+            .await
+            .map_err(BuildError::DatabaseError)?
+            .ok_or_else(|| BuildError::RepositoryNotFound(format!("{owner}/{repo}")))?;
 
         let file = self
             .git_client
@@ -92,7 +107,7 @@ where
         let trigger: String = request.trigger.into();
         let build = self
             .build_repo
-            .create(owner, repo, &trigger, &request.commit_sha)
+            .create(repository.id, &trigger, &request.commit_sha)
             .await?;
 
         // Pre-generate UUIDs for all tasks so dependencies can reference each other by ID
@@ -103,6 +118,7 @@ where
 
         let s2_client = &self.s2_client;
         let task_repo = &self.task_repo;
+        let repository_id = repository.id;
 
         let task_futures = task_configs.iter().map(|task_config| {
             let id = name_to_id[&task_config.name];
@@ -128,8 +144,7 @@ where
                 task_repo
                     .create(
                         id,
-                        owner,
-                        repo,
+                        repository_id,
                         &task_config.name,
                         &task_config.command,
                         build.id,
@@ -151,9 +166,19 @@ where
         &self,
         request: ListBuildsRequest,
     ) -> Result<Vec<BuildResponse>, BuildError> {
+        let owner = request.repo_owner.as_ref();
+        let repo = request.repo_name.as_ref();
+
+        let repository = self
+            .repo_repo
+            .get(owner, repo)
+            .await
+            .map_err(BuildError::DatabaseError)?
+            .ok_or_else(|| BuildError::RepositoryNotFound(format!("{owner}/{repo}")))?;
+
         let builds = self
             .build_repo
-            .list_by_repo(request.repo_owner.as_ref(), request.repo_name.as_ref())
+            .list_by_repo(repository.id)
             .await
             .map_err(BuildError::DatabaseError)?;
 
@@ -176,9 +201,16 @@ where
         repo: &str,
         number: i32,
     ) -> Result<(BuildResponse, Vec<TaskResponse>), BuildError> {
+        let repository = self
+            .repo_repo
+            .get(owner, repo)
+            .await
+            .map_err(BuildError::DatabaseError)?
+            .ok_or_else(|| BuildError::RepositoryNotFound(format!("{owner}/{repo}")))?;
+
         let build = self
             .build_repo
-            .get_by_number(owner, repo, number)
+            .get(repository.id, number)
             .await
             .map_err(BuildError::DatabaseError)?
             .ok_or_else(|| BuildError::NotFound(format!("{owner}/{repo}#{number}")))?;

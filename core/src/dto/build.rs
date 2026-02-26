@@ -15,8 +15,7 @@ use crate::model::Build;
 pub struct BuildResponse {
     pub id: Uuid,
     pub number: i32,
-    pub repo_owner: String,
-    pub repo_name: String,
+    pub repository_id: Uuid,
     pub trigger: String,
     pub commit_sha: String,
     pub created_at: DateTime<Utc>,
@@ -28,8 +27,7 @@ impl From<Build> for BuildResponse {
         Self {
             id: build.id,
             number: build.number,
-            repo_owner: build.repo_owner,
-            repo_name: build.repo_name,
+            repository_id: build.repository_id,
             trigger: build.trigger,
             commit_sha: build.commit_sha,
             created_at: build.created_at,
