@@ -30,6 +30,7 @@ s2/target
 # agent files
 .claude/
 .cursor/
+.zed/
 
 # front-end
 node_modules/
