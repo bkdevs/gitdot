@@ -24,6 +24,9 @@ export function TaskRow({ task }: { task: TaskResponse }) {
           <span className="text-xs text-muted-foreground capitalize">
             {task.status}
           </span>
+          <span className="text-xs text-muted-foreground font-mono">
+            {task.id}
+          </span>
         </div>
         <span className="text-xs text-muted-foreground font-mono mt-0.5">
           {task.command}
