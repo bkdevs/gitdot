@@ -16,7 +16,7 @@ futures = { workspace = true }
 s2-sdk = { workspace = true }
 dirs-next = "2.0.0"
 gitdot-api = { path = "../gitdot-api" }
-gitdot-client = { path = "../gitdot-client" }
+gitdot-sdk = { path = "../gitdot-sdk" }
 gitdot-config = { path = "../gitdot-config" }
 serde = { workspace = true }
 serde_json = { workspace = true }

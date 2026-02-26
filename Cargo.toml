@@ -3,9 +3,9 @@ resolver = "3"
 members = [
   "gitdot-api",
   "gitdot-api/derive",
-  "gitdot-backend",
+  "gitdot-server",
   "gitdot-cli",
-  "gitdot-client",
+  "gitdot-sdk",
   "gitdot-config",
   "gitdot-core",
   "s2/api",
