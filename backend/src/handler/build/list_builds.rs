@@ -1,5 +1,5 @@
 use axum::{
-    extract::{Query, State},
+    extract::{Path, State},
     http::StatusCode,
 };
 
@@ -16,9 +16,9 @@ use crate::{
 pub async fn list_builds(
     _auth_user: Principal<User>,
     State(state): State<AppState>,
-    Query(query): Query<api::ListBuildsRequest>,
+    Path((owner, repo)): Path<(String, String)>,
 ) -> Result<AppResponse<api::ListBuildsResponse>, AppError> {
-    let request = ListBuildsRequest::new(&query.owner, &query.repo)?;
+    let request = ListBuildsRequest::new(&owner, &repo)?;
     state
         .build_service
         .list_builds(request)

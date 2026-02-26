@@ -16,7 +16,7 @@ pub struct BuildResource {
 }
 
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct GetBuildByNumberResource {
+pub struct GetBuildResource {
     pub build: BuildResource,
     pub tasks: Vec<TaskResource>,
 }

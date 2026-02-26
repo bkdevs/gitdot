@@ -5,7 +5,7 @@ use crate::{endpoint::Endpoint, resource::BuildResource};
 pub struct ListBuilds;
 
 impl Endpoint for ListBuilds {
-    const PATH: &'static str = "/ci/builds";
+    const PATH: &'static str = "/repository/{owner}/{repo}/builds";
     const METHOD: http::Method = http::Method::GET;
 
     type Request = ListBuildsRequest;
@@ -13,9 +13,6 @@ impl Endpoint for ListBuilds {
 }
 
 #[derive(ApiRequest, Debug, Serialize, Deserialize)]
-pub struct ListBuildsRequest {
-    pub owner: String,
-    pub repo: String,
-}
+pub struct ListBuildsRequest {}
 
 pub type ListBuildsResponse = Vec<BuildResource>;

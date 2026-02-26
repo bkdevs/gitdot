@@ -501,9 +501,7 @@ export async function createBuildAction(
 
   let result: BuildResponse | null;
   try {
-    result = await createBuild({
-      repo_owner: owner,
-      repo_name: repo,
+    result = await createBuild(owner, repo, {
       trigger,
       commit_sha,
     });

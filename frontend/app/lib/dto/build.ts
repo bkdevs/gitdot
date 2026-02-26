@@ -2,8 +2,6 @@ import { z } from "zod";
 import { TasksResponseSchema } from "./task";
 
 export const CreateBuildRequestSchema = z.object({
-  repo_owner: z.string(),
-  repo_name: z.string(),
   trigger: z.enum(["pull_request", "push_to_main"]),
   commit_sha: z.string(),
 });
@@ -26,11 +24,9 @@ export const BuildsResponseSchema = z.array(BuildResponseSchema);
 
 export type BuildsResponse = z.infer<typeof BuildsResponseSchema>;
 
-export const GetBuildByNumberResponseSchema = z.object({
+export const GetBuildResponseSchema = z.object({
   build: BuildResponseSchema,
   tasks: TasksResponseSchema,
 });
 
-export type GetBuildByNumberResponse = z.infer<
-  typeof GetBuildByNumberResponseSchema
->;
+export type GetBuildResponse = z.infer<typeof GetBuildResponseSchema>;

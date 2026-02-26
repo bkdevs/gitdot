@@ -1,4 +1,4 @@
-use axum::extract::{Json, State};
+use axum::extract::{Json, Path, State};
 use http::StatusCode;
 
 use gitdot_api::endpoint::create_build as api;
@@ -12,14 +12,10 @@ use crate::{
 #[axum::debug_handler]
 pub async fn create_build(
     State(state): State<AppState>,
+    Path((owner, repo)): Path<(String, String)>,
     Json(request): Json<api::CreateBuildRequest>,
 ) -> Result<AppResponse<api::CreateBuildResponse>, AppError> {
-    let request = CreateBuildRequest::new(
-        &request.repo_owner,
-        &request.repo_name,
-        &request.trigger,
-        request.commit_sha,
-    )?;
+    let request = CreateBuildRequest::new(&owner, &repo, &request.trigger, request.commit_sha)?;
 
     state
         .build_service

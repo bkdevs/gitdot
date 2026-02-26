@@ -2,7 +2,6 @@ use axum::{
     extract::{Path, State},
     http::StatusCode,
 };
-use uuid::Uuid;
 
 use gitdot_api::endpoint::build::list_build_tasks as api;
 
@@ -16,12 +15,13 @@ use crate::{
 pub async fn list_build_tasks(
     _auth_user: Principal<User>,
     State(state): State<AppState>,
-    Path(id): Path<Uuid>,
+    Path((owner, repo, number)): Path<(String, String, i32)>,
 ) -> Result<AppResponse<api::ListBuildTasksResponse>, AppError> {
-    state
+    let (_, tasks) = state
         .build_service
-        .list_build_tasks(id)
+        .get_build_with_tasks(&owner, &repo, number)
         .await
-        .map_err(AppError::from)
-        .map(|tasks| AppResponse::new(StatusCode::OK, tasks.into_api()))
+        .map_err(AppError::from)?;
+
+    Ok(AppResponse::new(StatusCode::OK, tasks.into_api()))
 }

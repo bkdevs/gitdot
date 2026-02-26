@@ -1,4 +1,4 @@
-import { getBuildByNumber } from "@/lib/dal";
+import { getBuild } from "@/lib/dal";
 import { TaskRow } from "./ui/task-row";
 
 export default async function Page({
@@ -10,7 +10,7 @@ export default async function Page({
   const number = Number(numberStr);
   if (Number.isNaN(number)) return null;
 
-  const data = await getBuildByNumber(owner, repo, number);
+  const data = await getBuild(owner, repo, number);
   if (!data) return null;
 
   const { build, tasks } = data;

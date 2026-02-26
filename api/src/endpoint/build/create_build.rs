@@ -5,7 +5,7 @@ use crate::{endpoint::Endpoint, resource::BuildResource};
 pub struct CreateBuild;
 
 impl Endpoint for CreateBuild {
-    const PATH: &'static str = "/ci/build";
+    const PATH: &'static str = "/repository/{owner}/{repo}/build";
     const METHOD: http::Method = http::Method::POST;
 
     type Request = CreateBuildRequest;
@@ -14,8 +14,6 @@ impl Endpoint for CreateBuild {
 
 #[derive(ApiRequest, Debug, Serialize, Deserialize)]
 pub struct CreateBuildRequest {
-    pub repo_owner: String,
-    pub repo_name: String,
     pub trigger: String,
     pub commit_sha: String,
 }

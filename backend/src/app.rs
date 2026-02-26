@@ -79,13 +79,13 @@ fn create_router(app_state: AppState) -> Router {
         .merge(create_organization_router())
         .merge(create_repository_router())
         .merge(create_question_router())
+        .merge(create_build_router())
         .merge(create_oauth_router())
         .merge(create_migration_router())
         .nest(
             "/ci",
             Router::new()
                 .merge(create_runner_router())
-                .merge(create_build_router())
                 .merge(create_task_router()),
         )
         .layer(api_middleware);
