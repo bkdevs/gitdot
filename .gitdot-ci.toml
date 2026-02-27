@@ -2,8 +2,16 @@
 
 [[builds]]
 trigger = "push_to_main"
-tasks = ["build"]
+tasks = ["build", "lint", "check"]
 
 [[tasks]]
 name = "build"
-command = "cargo clean && cargo build"
+command = "cargo clean && just build"
+
+[[tasks]]
+name = "lint"
+command = "just lint"
+
+[[tasks]]
+name = "check"
+command = "just check"
