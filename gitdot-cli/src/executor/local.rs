@@ -69,8 +69,17 @@ impl Executor for LocalExecutor {
             }
         }
 
-        producer.close().await?;
         let status = child.wait().await?;
+
+        let task_status = if status.success() {
+            "success"
+        } else {
+            "failure"
+        };
+        let record =
+            AppendRecord::new(vec![])?.with_headers([Header::new("task-finished", task_status)])?;
+        producer.submit(record).await?;
+        producer.close().await?;
 
         if !status.success() {
             anyhow::bail!("Task {} exited with status {}", task.id, status);
