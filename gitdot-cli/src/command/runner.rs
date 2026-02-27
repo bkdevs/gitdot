@@ -3,12 +3,14 @@ mod install;
 mod run;
 mod start;
 mod stop;
+mod verify;
 
 use config::config as print_config;
 use install::install;
 use run::run;
 use start::start;
 use stop::stop;
+use verify::verify;
 
 use crate::config::RunnerConfig;
 use clap::{Parser, Subcommand};
@@ -35,8 +37,11 @@ pub enum RunnerCommand {
     /// Stop the runner daemon
     Stop {},
 
-    /// Print the path to the runner config file
+    /// Edit runner configuration
     Config {},
+
+    /// Verify runner configuration
+    Verify {},
 }
 
 impl RunnerCommand {
@@ -47,6 +52,7 @@ impl RunnerCommand {
             RunnerCommand::Start {} => start().await,
             RunnerCommand::Stop {} => stop().await,
             RunnerCommand::Config {} => print_config().await,
+            RunnerCommand::Verify {} => verify(config).await,
         }
     }
 }
