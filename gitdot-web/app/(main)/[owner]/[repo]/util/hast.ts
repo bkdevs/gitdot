@@ -57,6 +57,18 @@ export async function fileToHast(
   });
 }
 
+export async function renderFileToHtml(
+  file: RepositoryFileResource,
+  theme: "vitesse-light" | "gitdot-light",
+): Promise<string> {
+  const lang = inferLanguage(file.path);
+  const highlighter = await getHighlighter(lang, theme);
+  return highlighter.codeToHtml(file.content, {
+    lang: lang ?? "plaintext",
+    theme,
+  });
+}
+
 export async function renderFilePreviews(
   files: RepositoryPreviewEntryResource[],
 ): Promise<Map<string, string>> {

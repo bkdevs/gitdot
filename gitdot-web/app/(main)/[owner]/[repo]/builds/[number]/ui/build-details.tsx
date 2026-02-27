@@ -1,18 +1,25 @@
+"use client";
+
 import type { BuildResource, RepositoryCommitResource } from "gitdot-api";
 import { FileCog } from "lucide-react";
+import { useState } from "react";
 import { formatDateTime } from "@/util";
+import { BuildConfigDialog } from "./build-config-dialog";
 import { JobTimer } from "./job-timer";
 
 export function BuildDetails({
   build,
   commit,
+  configHtml,
 }: {
   build: BuildResource;
   commit: RepositoryCommitResource | null;
+  configHtml: string | null;
 }) {
   const createdAt = new Date(build.created_at);
   const updatedAt = new Date(build.updated_at);
   const running = build.status === "running";
+  const [configOpen, setConfigOpen] = useState(false);
 
   return (
     <div className="flex h-full w-1/4 flex-col border-l">
@@ -46,11 +53,17 @@ export function BuildDetails({
         <button
           type="button"
           className="flex h-8 items-center justify-center gap-1.5 rounded-none border-l border-border bg-background pl-2 pr-1 text-xs text-foreground outline-0! ring-0! hover:bg-accent/50"
+          onClick={() => setConfigOpen(true)}
         >
           <FileCog className="size-3" />
           Config
         </button>
       </div>
+      <BuildConfigDialog
+        open={configOpen}
+        setOpen={setConfigOpen}
+        configHtml={configHtml}
+      />
     </div>
   );
 }
