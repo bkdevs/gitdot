@@ -1,7 +1,15 @@
 "use client";
 
 import type { TaskResource } from "gitdot-api";
-import { Check, ChevronDown, ChevronRight, Loader2, X } from "lucide-react";
+import {
+	Ban,
+	Check,
+	ChevronDown,
+	ChevronRight,
+	CircleSlash,
+	Loader2,
+	X,
+} from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/util";
 
@@ -24,17 +32,15 @@ const LOG_LINES = [
 
 function StatusIcon({ status }: { status: string }) {
 	if (status === "running" || status === "assigned") {
-		return <Loader2 className="size-3.5 animate-spin text-blue-400" />;
+		return <Loader2 className="size-3 animate-spin text-muted-foreground" />;
 	}
 	if (status === "success") {
-		return <Check className="size-3.5 text-green-500" />;
+		return <Check className="size-3 text-green-600" />;
 	}
 	if (status === "failure") {
-		return <X className="size-3.5 text-red-500" />;
+		return <X className="size-3 text-red-600" />;
 	}
-	return (
-		<span className="size-3.5 rounded-full bg-muted-foreground inline-block" />
-	);
+	return <CircleSlash className="size-3 text-muted-foreground" />;
 }
 
 export function BuildTask({ task }: { task: TaskResource }) {
@@ -50,7 +56,7 @@ export function BuildTask({ task }: { task: TaskResource }) {
 					open ? "bg-sidebar" : "bg-sidebar-primary",
 				)}
 			>
-				<div className="flex items-center gap-2">
+				<div className="flex items-center gap-1.5">
 					<StatusIcon status={task.status} />
 					<span>{task.name}: </span>
 					<span className="text-muted-foreground">{task.command}</span>
@@ -62,7 +68,7 @@ export function BuildTask({ task }: { task: TaskResource }) {
 				)}
 			</button>
 			{open && (
-				<div className="bg-background p-2 font-mono text-xs">
+				<div className="bg-background p-2 font-mono text-xs border-border border-b">
 					{LOG_LINES.map((line) => (
 						<div key={line} className="text-muted-foreground">
 							{line}
