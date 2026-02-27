@@ -1,3 +1,8 @@
+import type {
+  DiffChangeResource,
+  RepositoryFileResource,
+  RepositoryPreviewEntryResource,
+} from "gitdot-api-ts";
 import type { Element, ElementContent, Root } from "hast";
 import {
   addClassToHast,
@@ -6,11 +11,6 @@ import {
   type Highlighter,
   type ShikiTransformer,
 } from "shiki";
-import type {
-  DiffChange,
-  RepositoryFile,
-  RepositoryPreviewEntry,
-} from "@/lib/dto";
 import { inferLanguage } from "./language";
 
 /**
@@ -27,7 +27,7 @@ async function getHighlighter(
 
   if (!highlighter.getLoadedThemes().includes(theme)) {
     if (theme === "gitdot-light") {
-      const gitdotLight = (await import("@/lib/themes/gitdot-light")).default;
+      const gitdotLight = (await import("@/themes/gitdot-light")).default;
       await highlighter.loadTheme(gitdotLight);
     } else if (theme === "vitesse-light") {
       const vitesseLight = (await import("@shikijs/themes/vitesse-light"))
@@ -43,7 +43,7 @@ async function getHighlighter(
 }
 
 export async function fileToHast(
-  file: RepositoryFile,
+  file: RepositoryFileResource,
   theme: "vitesse-light" | "gitdot-light",
   transformers: ShikiTransformer[],
 ) {
@@ -58,10 +58,10 @@ export async function fileToHast(
 }
 
 export async function renderFilePreviews(
-  files: RepositoryPreviewEntry[],
+  files: RepositoryPreviewEntryResource[],
 ): Promise<Map<string, string>> {
   const renderFile = async (
-    file: RepositoryPreviewEntry,
+    file: RepositoryPreviewEntryResource,
   ): Promise<[string, string] | null> => {
     const preview = file.preview;
     if (!preview) return null;
@@ -91,8 +91,8 @@ export async function renderFilePreviews(
 
 export async function renderSpans(
   side: "left" | "right",
-  file: RepositoryFile,
-  changeMap: Map<number, DiffChange[]>,
+  file: RepositoryFileResource,
+  changeMap: Map<number, DiffChangeResource[]>,
 ): Promise<Element[]> {
   const hast = await fileToHast(file, "gitdot-light", [
     {
@@ -133,7 +133,7 @@ export async function renderSpans(
 export function highlightWords(
   side: "left" | "right",
   lineNode: Element,
-  changes: DiffChange[],
+  changes: DiffChangeResource[],
 ): void {
   const processedChanges = processChanges(changes);
   const colorClass = side === "left" ? "text-red-600!" : "text-green-600!";
@@ -177,8 +177,8 @@ export function highlightWords(
  *
  * so we process the changes to split out quotes
  */
-function processChanges(changes: DiffChange[]): DiffChange[] {
-  const result: DiffChange[] = [];
+function processChanges(changes: DiffChangeResource[]): DiffChangeResource[] {
+  const result: DiffChangeResource[] = [];
 
   for (const change of changes) {
     if (change.highlight !== "string") {
@@ -246,7 +246,7 @@ function getSpanText(node: Element): string {
 function splitSpan(
   span: Element,
   spanStart: number,
-  changes: DiffChange[],
+  changes: DiffChangeResource[],
   colorClass: string,
 ): void {
   const text = getSpanText(span);

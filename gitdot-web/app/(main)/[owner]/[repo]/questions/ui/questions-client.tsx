@@ -1,7 +1,7 @@
 "use client";
 
+import type { QuestionResource } from "gitdot-api-ts";
 import { useMemo, useState } from "react";
-import type { QuestionResponse } from "@/lib/dto";
 import { processQuestions } from "../util";
 import { QuestionRow } from "./question-row";
 import { QuestionsHeader } from "./questions-header";
@@ -22,7 +22,7 @@ export function QuestionsClient({
 }: {
   owner: string;
   repo: string;
-  questions: QuestionResponse[];
+  questions: QuestionResource[];
 }) {
   const [filter, setFilter] = useState<QuestionsFilter>("popular");
   const [sort, setSort] = useState<QuestionsSort>("created-asc");

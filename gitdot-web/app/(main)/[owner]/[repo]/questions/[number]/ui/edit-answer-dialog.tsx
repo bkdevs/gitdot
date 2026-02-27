@@ -1,9 +1,9 @@
 "use client";
 
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import type { AnswerResource } from "gitdot-api-ts";
 import { useActionState, useState } from "react";
 import { type UpdateAnswerActionResult, updateAnswerAction } from "@/actions";
-import type { AnswerResponse } from "@/lib/dto/question";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
 
 export function EditAnswerDialog({
@@ -17,7 +17,7 @@ export function EditAnswerDialog({
   owner: string;
   repo: string;
   number: number;
-  answer: AnswerResponse;
+  answer: AnswerResource;
   open: boolean;
   setOpen: (open: boolean) => void;
 }) {

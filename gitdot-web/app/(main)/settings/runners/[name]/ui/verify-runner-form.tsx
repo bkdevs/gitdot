@@ -1,14 +1,14 @@
 "use client";
 
+import type { RunnerResource } from "gitdot-api-ts";
 import { useEffect, useState, useTransition } from "react";
 import { refreshRunnerTokenAction } from "@/actions";
-import type { RunnerResponse } from "@/lib/dto/runner";
 
 export function VerifyRunnerForm({
   runner,
   ownerName,
 }: {
-  runner: RunnerResponse;
+  runner: RunnerResource;
   ownerName: string;
 }) {
   const [token, setToken] = useState<string | null>(null);

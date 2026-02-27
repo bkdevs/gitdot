@@ -1,5 +1,14 @@
 "use server";
 
+import type {
+  AnswerResource,
+  BuildResource,
+  CommentResource,
+  QuestionResource,
+  RepositoryResource,
+  UserResource,
+  VoteResource,
+} from "gitdot-api-ts";
 import { refresh } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -27,18 +36,9 @@ import {
   voteQuestion,
 } from "@/lib/dal";
 import { createSupabaseClient } from "@/lib/supabase";
-import type {
-  AnswerResponse,
-  BuildResponse,
-  CommentResponse,
-  CreateRepositoryResponse,
-  QuestionResponse,
-  UserResponse,
-  VoteResponse,
-} from "./lib/dto";
 import { delay, validateEmail } from "./util";
 
-export async function getCurrentUserAction(): Promise<UserResponse | null> {
+export async function getCurrentUserAction(): Promise<UserResource | null> {
   return await getCurrentUser(false);
 }
 
@@ -116,7 +116,7 @@ export async function loginWithGithub(): Promise<AuthActionResult> {
   return { success: true };
 }
 
-export type UpdateUserActionResult = { user: UserResponse } | { error: string };
+export type UpdateUserActionResult = { user: UserResource } | { error: string };
 
 export async function updateUserAction(
   _prev: UpdateUserActionResult | null,
@@ -188,7 +188,7 @@ export async function signout() {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 export type CreateRepositoryActionResult =
-  | { repository: CreateRepositoryResponse }
+  | { repository: RepositoryResource }
   | { error: string };
 
 export async function createRepositoryAction(
@@ -261,7 +261,7 @@ export async function refreshRunnerTokenAction(
 }
 
 export type CreateQuestionActionResult =
-  | { question: QuestionResponse }
+  | { question: QuestionResource }
   | { error: string };
 
 export async function createQuestionAction(
@@ -285,7 +285,7 @@ export async function createQuestionAction(
 }
 
 export type UpdateQuestionActionResult =
-  | { question: QuestionResponse }
+  | { question: QuestionResource }
   | { error: string };
 
 export async function updateQuestionAction(
@@ -310,7 +310,7 @@ export async function updateQuestionAction(
 }
 
 export type CreateAnswerActionResult =
-  | { answer: AnswerResponse }
+  | { answer: AnswerResource }
   | { error: string };
 
 export async function createAnswerAction(
@@ -334,7 +334,7 @@ export async function createAnswerAction(
 }
 
 export type UpdateAnswerActionResult =
-  | { answer: AnswerResponse }
+  | { answer: AnswerResource }
   | { error: string };
 
 export async function updateAnswerAction(
@@ -359,7 +359,7 @@ export async function updateAnswerAction(
 }
 
 export type CreateCommentActionResult =
-  | { comment: CommentResponse }
+  | { comment: CommentResource }
   | { error: string };
 
 export async function createCommentAction(
@@ -399,7 +399,7 @@ export async function createCommentAction(
 }
 
 export type UpdateCommentActionResult =
-  | { comment: CommentResponse }
+  | { comment: CommentResource }
   | { error: string };
 
 export async function updateCommentAction(
@@ -423,7 +423,7 @@ export async function updateCommentAction(
   return { comment: result };
 }
 
-export type VoteActionResult = { vote: VoteResponse } | { error: string };
+export type VoteActionResult = { vote: VoteResource } | { error: string };
 
 export async function voteAction(
   owner: string,
@@ -439,7 +439,7 @@ export async function voteAction(
     return { error: `targetId must be set for target type ${targetType}` };
   }
 
-  let result: VoteResponse | null;
+  let result: VoteResource | null;
   if (targetType === "question") {
     result = await voteQuestion(owner, repo, number, { value });
   } else if (targetType === "answer") {
@@ -480,7 +480,7 @@ export async function authorizeDeviceAction(
 }
 
 export type CreateBuildActionResult =
-  | { build: BuildResponse }
+  | { build: BuildResource }
   | { error: string };
 
 export async function createBuildAction(
@@ -499,7 +499,7 @@ export async function createBuildAction(
     return { error: "Trigger must be pull_request or push_to_main" };
   }
 
-  let result: BuildResponse | null;
+  let result: BuildResource | null;
   try {
     result = await createBuild(owner, repo, {
       trigger,

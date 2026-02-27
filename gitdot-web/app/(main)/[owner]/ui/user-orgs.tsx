@@ -1,8 +1,8 @@
-import type { OrganizationResponse } from "@/lib/dto";
+import type { OrganizationResource } from "gitdot-api-ts";
 import Link from "@/ui/link";
 import { formatDate } from "@/util";
 
-export function UserOrgs({ orgs }: { orgs: OrganizationResponse[] }) {
+export function UserOrgs({ orgs }: { orgs: OrganizationResource[] }) {
   return (
     <div className="flex flex-col w-full">
       <OrgHeader />

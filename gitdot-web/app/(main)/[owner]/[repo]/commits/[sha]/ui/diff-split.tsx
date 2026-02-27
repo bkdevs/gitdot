@@ -1,3 +1,4 @@
+import type { DiffHunkResource, RepositoryFileResource } from "gitdot-api-ts";
 import type { Element } from "hast";
 import { toJsxRuntime } from "hast-util-to-jsx-runtime";
 import type { JSX } from "react";
@@ -9,7 +10,6 @@ import {
   pairLines,
   renderSpans,
 } from "@/(main)/[owner]/[repo]/util";
-import type { DiffHunk, RepositoryFile } from "@/lib/dto";
 import { DiffLine } from "./diff-line";
 
 export async function DiffSplit({
@@ -17,9 +17,9 @@ export async function DiffSplit({
   right,
   hunks,
 }: {
-  left: RepositoryFile;
-  right: RepositoryFile;
-  hunks: DiffHunk[];
+  left: RepositoryFileResource;
+  right: RepositoryFileResource;
+  hunks: DiffHunkResource[];
 }) {
   const { leftChangeMap, rightChangeMap } = createChangeMaps(hunks);
   const [leftSpans, rightSpans] = await Promise.all([
@@ -69,7 +69,7 @@ function DiffSection({
   leftSpans,
   rightSpans,
 }: {
-  hunk: DiffHunk;
+  hunk: DiffHunkResource;
   leftSpans: Element[];
   rightSpans: Element[];
 }) {

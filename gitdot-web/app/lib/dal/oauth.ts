@@ -1,35 +1,31 @@
 import "server-only";
 
+import { DeviceCodeResource, TokenResource } from "gitdot-api-ts";
 import { toQueryString } from "@/util";
-import {
-  type AuthorizeDeviceRequest,
-  type DeviceCodeResponse,
-  DeviceCodeResponseSchema,
-  type GetDeviceCodeQuery,
-  type PollTokenRequest,
-  type TokenResponse,
-  TokenResponseSchema,
-} from "../dto";
 import { authFetch, authPost, GITDOT_SERVER_URL, handleResponse } from "./util";
+
+type GetDeviceCodeQuery = { client_id: string };
+type PollTokenRequest = { device_code: string; client_id: string };
+type AuthorizeDeviceRequest = { user_code: string };
 
 export async function getDeviceCode(
   query: GetDeviceCodeQuery,
-): Promise<DeviceCodeResponse | null> {
+): Promise<DeviceCodeResource | null> {
   const queryString = toQueryString(query);
   const response = await authFetch(
     `${GITDOT_SERVER_URL}/oauth/device?${queryString}`,
     { method: "POST" },
   );
 
-  return await handleResponse(response, DeviceCodeResponseSchema);
+  return await handleResponse(response, DeviceCodeResource);
 }
 
 export async function pollToken(
   request: PollTokenRequest,
-): Promise<TokenResponse | null> {
+): Promise<TokenResource | null> {
   const response = await authPost(`${GITDOT_SERVER_URL}/oauth/token`, request);
 
-  return await handleResponse(response, TokenResponseSchema);
+  return await handleResponse(response, TokenResource);
 }
 
 export async function authorizeDevice(

@@ -1,6 +1,6 @@
 "use client";
 
-import type { BuildsResponse } from "@/lib/dto";
+import type { BuildResource } from "gitdot-api-ts";
 import { BuildRow } from "./build-row";
 import { BuildsHeader } from "./builds-header";
 
@@ -11,7 +11,7 @@ export function BuildsClient({
 }: {
   owner: string;
   repo: string;
-  builds: BuildsResponse;
+  builds: BuildResource[];
 }) {
   return (
     <div className="flex flex-col">

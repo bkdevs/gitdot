@@ -1,24 +1,12 @@
 import "server-only";
 
 import {
-  type AnswerResponse,
-  AnswerResponseSchema,
-  type CommentResponse,
-  CommentResponseSchema,
-  type CreateAnswerRequest,
-  type CreateCommentRequest,
-  type CreateQuestionRequest,
-  type QuestionResponse,
-  QuestionResponseSchema,
-  type QuestionsResponse,
-  QuestionsResponseSchema,
-  type UpdateAnswerRequest,
-  type UpdateCommentRequest,
-  type UpdateQuestionRequest,
-  type VoteRequest,
-  type VoteResponse,
-  VoteResponseSchema,
-} from "../dto";
+  AnswerResource,
+  CommentResource,
+  QuestionResource,
+  VoteResource,
+} from "gitdot-api-ts";
+import { z } from "zod";
 import {
   authFetch,
   authPatch,
@@ -27,29 +15,37 @@ import {
   handleResponse,
 } from "./util";
 
+type CreateQuestionRequest = { title: string; body: string };
+type UpdateQuestionRequest = { title: string; body: string };
+type CreateAnswerRequest = { body: string };
+type UpdateAnswerRequest = { body: string };
+type CreateCommentRequest = { body: string };
+type UpdateCommentRequest = { body: string };
+type VoteRequest = { value: number };
+
 export async function createQuestion(
   owner: string,
   repo: string,
   request: CreateQuestionRequest,
-): Promise<QuestionResponse | null> {
+): Promise<QuestionResource | null> {
   const response = await authPost(
     `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/question`,
     request,
   );
 
-  return await handleResponse(response, QuestionResponseSchema);
+  return await handleResponse(response, QuestionResource);
 }
 
 export async function getQuestion(
   owner: string,
   repo: string,
   number: number,
-): Promise<QuestionResponse | null> {
+): Promise<QuestionResource | null> {
   const response = await authFetch(
     `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/question/${number}`,
   );
 
-  return await handleResponse(response, QuestionResponseSchema);
+  return await handleResponse(response, QuestionResource);
 }
 
 export async function updateQuestion(
@@ -57,24 +53,24 @@ export async function updateQuestion(
   repo: string,
   number: number,
   request: UpdateQuestionRequest,
-): Promise<QuestionResponse | null> {
+): Promise<QuestionResource | null> {
   const response = await authPatch(
     `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/question/${number}`,
     request,
   );
 
-  return await handleResponse(response, QuestionResponseSchema);
+  return await handleResponse(response, QuestionResource);
 }
 
 export async function getQuestions(
   owner: string,
   repo: string,
-): Promise<QuestionsResponse | null> {
+): Promise<QuestionResource[] | null> {
   const response = await authFetch(
     `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/questions`,
   );
 
-  return await handleResponse(response, QuestionsResponseSchema);
+  return await handleResponse(response, z.array(QuestionResource));
 }
 
 export async function createAnswer(
@@ -82,13 +78,13 @@ export async function createAnswer(
   repo: string,
   number: number,
   request: CreateAnswerRequest,
-): Promise<AnswerResponse | null> {
+): Promise<AnswerResource | null> {
   const response = await authPost(
     `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/question/${number}/answer`,
     request,
   );
 
-  return await handleResponse(response, AnswerResponseSchema);
+  return await handleResponse(response, AnswerResource);
 }
 
 export async function updateAnswer(
@@ -97,13 +93,13 @@ export async function updateAnswer(
   number: number,
   answerId: string,
   request: UpdateAnswerRequest,
-): Promise<AnswerResponse | null> {
+): Promise<AnswerResource | null> {
   const response = await authPatch(
     `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/question/${number}/answer/${answerId}`,
     request,
   );
 
-  return await handleResponse(response, AnswerResponseSchema);
+  return await handleResponse(response, AnswerResource);
 }
 
 export async function createQuestionComment(
@@ -111,13 +107,13 @@ export async function createQuestionComment(
   repo: string,
   number: number,
   request: CreateCommentRequest,
-): Promise<CommentResponse | null> {
+): Promise<CommentResource | null> {
   const response = await authPost(
     `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/question/${number}/comment`,
     request,
   );
 
-  return await handleResponse(response, CommentResponseSchema);
+  return await handleResponse(response, CommentResource);
 }
 
 export async function createAnswerComment(
@@ -126,13 +122,13 @@ export async function createAnswerComment(
   number: number,
   answerId: string,
   request: CreateCommentRequest,
-): Promise<CommentResponse | null> {
+): Promise<CommentResource | null> {
   const response = await authPost(
     `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/question/${number}/answer/${answerId}/comment`,
     request,
   );
 
-  return await handleResponse(response, CommentResponseSchema);
+  return await handleResponse(response, CommentResource);
 }
 
 export async function updateComment(
@@ -141,13 +137,13 @@ export async function updateComment(
   number: number,
   commentId: string,
   request: UpdateCommentRequest,
-): Promise<CommentResponse | null> {
+): Promise<CommentResource | null> {
   const response = await authPatch(
     `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/question/${number}/comment/${commentId}`,
     request,
   );
 
-  return await handleResponse(response, CommentResponseSchema);
+  return await handleResponse(response, CommentResource);
 }
 
 export async function voteQuestion(
@@ -155,13 +151,13 @@ export async function voteQuestion(
   repo: string,
   number: number,
   request: VoteRequest,
-): Promise<VoteResponse | null> {
+): Promise<VoteResource | null> {
   const response = await authPost(
     `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/question/${number}/vote`,
     request,
   );
 
-  return await handleResponse(response, VoteResponseSchema);
+  return await handleResponse(response, VoteResource);
 }
 
 export async function voteAnswer(
@@ -170,13 +166,13 @@ export async function voteAnswer(
   number: number,
   answerId: string,
   request: VoteRequest,
-): Promise<VoteResponse | null> {
+): Promise<VoteResource | null> {
   const response = await authPost(
     `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/question/${number}/answer/${answerId}/vote`,
     request,
   );
 
-  return await handleResponse(response, VoteResponseSchema);
+  return await handleResponse(response, VoteResource);
 }
 
 export async function voteComment(
@@ -185,11 +181,11 @@ export async function voteComment(
   number: number,
   commentId: string,
   request: VoteRequest,
-): Promise<VoteResponse | null> {
+): Promise<VoteResource | null> {
   const response = await authPost(
     `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/question/${number}/comment/${commentId}/vote`,
     request,
   );
 
-  return await handleResponse(response, VoteResponseSchema);
+  return await handleResponse(response, VoteResource);
 }

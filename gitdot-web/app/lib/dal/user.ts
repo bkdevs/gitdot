@@ -1,15 +1,12 @@
 import "server-only";
 
-import { notFound } from "next/navigation";
 import {
-  type UpdateCurrentUserRequest,
-  type UserOrganizationsResponse,
-  UserOrganizationsResponseSchema,
-  type UserRepositoriesResponse,
-  UserRepositoriesResponseSchema,
-  type UserResponse,
-  UserResponseSchema,
-} from "../dto";
+  OrganizationResource,
+  RepositoryResource,
+  UserResource,
+} from "gitdot-api-ts";
+import { notFound } from "next/navigation";
+import { z } from "zod";
 import { getSession } from "../supabase";
 import {
   authFetch,
@@ -22,7 +19,7 @@ import {
 
 export async function getCurrentUser(
   required = true,
-): Promise<UserResponse | null> {
+): Promise<UserResource | null> {
   const session = await getSession();
   if (!session) {
     if (required) notFound();
@@ -30,7 +27,7 @@ export async function getCurrentUser(
   }
 
   const response = await authFetch(`${GITDOT_SERVER_URL}/user`);
-  const user = await handleResponse(response, UserResponseSchema);
+  const user = await handleResponse(response, UserResource);
   if (!user) {
     if (required) notFound();
     return null;
@@ -38,11 +35,11 @@ export async function getCurrentUser(
   return user;
 }
 
-export async function updateCurrentUser(
-  request: UpdateCurrentUserRequest,
-): Promise<UserResponse | null> {
+export async function updateCurrentUser(request: {
+  name: string;
+}): Promise<UserResource | null> {
   const response = await authPatch(`${GITDOT_SERVER_URL}/user`, request);
-  return await handleResponse(response, UserResponseSchema);
+  return await handleResponse(response, UserResource);
 }
 
 export async function hasUser(username: string): Promise<boolean> {
@@ -50,29 +47,29 @@ export async function hasUser(username: string): Promise<boolean> {
   return response.ok;
 }
 
-export async function getUser(username: string): Promise<UserResponse | null> {
+export async function getUser(username: string): Promise<UserResource | null> {
   const response = await authFetch(`${GITDOT_SERVER_URL}/user/${username}`);
-  return await handleResponse(response, UserResponseSchema);
+  return await handleResponse(response, UserResource);
 }
 
 export async function listUserRepositories(
   username: string,
-): Promise<UserRepositoriesResponse | NotFound | null> {
+): Promise<RepositoryResource[] | NotFound | null> {
   const response = await authFetch(
     `${GITDOT_SERVER_URL}/user/${username}/repositories`,
   );
 
   if (response.status === 404) return NotFound;
-  return await handleResponse(response, UserRepositoriesResponseSchema);
+  return await handleResponse(response, z.array(RepositoryResource));
 }
 
 export async function listUserOrganizations(
   username: string,
-): Promise<UserOrganizationsResponse | NotFound | null> {
+): Promise<OrganizationResource[] | NotFound | null> {
   const response = await authFetch(
     `${GITDOT_SERVER_URL}/user/${username}/organizations`,
   );
 
   if (response.status === 404) return NotFound;
-  return await handleResponse(response, UserOrganizationsResponseSchema);
+  return await handleResponse(response, z.array(OrganizationResource));
 }

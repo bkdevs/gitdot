@@ -1,7 +1,10 @@
 "use client";
 
+import type {
+  RepositoryCommitResource,
+  RepositoryTreeEntryResource,
+} from "gitdot-api-ts";
 import { usePathname } from "next/navigation";
-import type { RepositoryCommit, RepositoryTreeEntry } from "@/lib/dto";
 import { Sidebar, SidebarContent } from "@/ui/sidebar";
 import { RepoSidebarCommits } from "./sidebar/repo-sidebar-commits";
 import { RepoSidebarFiles } from "./sidebar/repo-sidebar-files";
@@ -20,8 +23,8 @@ export function RepoSidebar({
   owner: string;
   repo: string;
   folders: Map<string, string[]>;
-  entries: Map<string, RepositoryTreeEntry>;
-  commits: RepositoryCommit[];
+  entries: Map<string, RepositoryTreeEntryResource>;
+  commits: RepositoryCommitResource[];
   showSettings?: boolean;
 }) {
   const pathname = usePathname();

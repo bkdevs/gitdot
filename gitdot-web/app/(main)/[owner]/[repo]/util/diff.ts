@@ -1,4 +1,8 @@
-import type { DiffChange, DiffHunk, DiffLine } from "@/lib/dto";
+import type {
+  DiffChangeResource,
+  DiffHunkResource,
+  DiffPairResource,
+} from "gitdot-api-ts";
 
 export type LinePair = [number | null, number | null];
 export const CONTEXT_LINES = 4;
@@ -13,8 +17,8 @@ export const CONTEXT_LINES = 4;
  *
  * so to avoid that, and enable consistent processing in mergeHunks and downstream, sort hunks here
  */
-export function sortHunks(hunks: DiffHunk[]): DiffHunk[] {
-  const getStartingLine = (hunk: DiffHunk): number => {
+export function sortHunks(hunks: DiffHunkResource[]): DiffHunkResource[] {
+  const getStartingLine = (hunk: DiffHunkResource): number => {
     const firstLine = hunk[0];
     return firstLine.lhs
       ? firstLine.lhs.line_number
@@ -40,11 +44,11 @@ export function sortHunks(hunks: DiffHunk[]): DiffHunk[] {
  * note that this occurs prior to any pairing of lines, as if we were to try and merge lines after they were paired,
  * we _may_ find logically conflicting pairs (e.g., we accounted for gaps in one hunk, but are unaware in the second)
  */
-export function mergeHunks(hunks: DiffHunk[]): DiffHunk[] {
+export function mergeHunks(hunks: DiffHunkResource[]): DiffHunkResource[] {
   if (hunks.length <= 1) return hunks;
 
   const sortedHunks = sortHunks(hunks);
-  const result: DiffHunk[] = [];
+  const result: DiffHunkResource[] = [];
   let current = [...sortedHunks[0]];
 
   for (let i = 1; i < sortedHunks.length; i++) {
@@ -62,7 +66,10 @@ export function mergeHunks(hunks: DiffHunk[]): DiffHunk[] {
   return result;
 }
 
-function hunksOverlap(left: DiffHunk, right: DiffHunk): boolean {
+function hunksOverlap(
+  left: DiffHunkResource,
+  right: DiffHunkResource,
+): boolean {
   const lastLine = left[left.length - 1];
   const firstLine = right[0];
 
@@ -82,8 +89,8 @@ function hunksOverlap(left: DiffHunk, right: DiffHunk): boolean {
 
 // todo: rename this
 function getEffectivePosition(
-  line: DiffLine,
-  hunk: DiffHunk,
+  line: DiffPairResource,
+  hunk: DiffHunkResource,
   lineIndex: number,
 ): [number, number] {
   if (line.lhs && line.rhs) {
@@ -144,7 +151,7 @@ function getEffectivePosition(
  * - each side must be monotonically increasing, exlcuding null sentinels
  * this also implies that the size of the list _may_ be greater than the full range of indices as a result of padding, which is fine.
  */
-export function pairLines(hunk: DiffHunk): LinePair[] {
+export function pairLines(hunk: DiffHunkResource): LinePair[] {
   const hunkPairs: LinePair[] = [];
 
   // first add all paired lines (those that are matched) and use those as anchors to generate the full alignment
@@ -415,12 +422,12 @@ function countNulls(pairs: LinePair[]): [number, number] {
  *
  * used by syntax highlighting functions
  */
-export function createChangeMaps(hunks: DiffHunk[]): {
-  leftChangeMap: Map<number, DiffChange[]>;
-  rightChangeMap: Map<number, DiffChange[]>;
+export function createChangeMaps(hunks: DiffHunkResource[]): {
+  leftChangeMap: Map<number, DiffChangeResource[]>;
+  rightChangeMap: Map<number, DiffChangeResource[]>;
 } {
-  const leftLines = new Map<number, DiffChange[]>();
-  const rightLines = new Map<number, DiffChange[]>();
+  const leftLines = new Map<number, DiffChangeResource[]>();
+  const rightLines = new Map<number, DiffChangeResource[]>();
   for (const hunk of hunks) {
     for (const line of hunk) {
       if (line.lhs) {

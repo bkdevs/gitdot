@@ -1,13 +1,14 @@
 "use client";
 
+import type {
+  GitHubInstallationResource,
+  GitHubRepositoryResource,
+  OrganizationResource,
+  UserResource,
+} from "gitdot-api-ts";
 import Image from "next/image";
 import { useState, useTransition } from "react";
 import { migrateGitHubRepositoriesAction } from "@/actions";
-import type { OrganizationResponse, UserResponse } from "@/lib/dto";
-import type {
-  GitHubInstallationListResponse,
-  GitHubRepositoryListResponse,
-} from "@/lib/dto/migration";
 import { githubAppInstallUrl } from "@/util";
 
 export function CreateMigrationForm({
@@ -17,10 +18,10 @@ export function CreateMigrationForm({
   reposByInstallation,
   defaultOrigin,
 }: {
-  user: UserResponse;
-  organizations: OrganizationResponse[];
-  installations: GitHubInstallationListResponse;
-  reposByInstallation: Record<string, GitHubRepositoryListResponse>;
+  user: UserResource;
+  organizations: OrganizationResource[];
+  installations: GitHubInstallationResource[];
+  reposByInstallation: Record<string, GitHubRepositoryResource[]>;
   defaultOrigin?: string;
 }) {
   const defaultLogin = defaultOrigin ?? installations[0]?.github_login ?? "";

@@ -1,32 +1,18 @@
 import "server-only";
 
+import {
+  RepositoryCommitDiffResource,
+  RepositoryCommitResource,
+  RepositoryCommitStatResource,
+  RepositoryCommitsResource,
+  RepositoryFileResource,
+  RepositoryPermissionResource,
+  RepositoryPreviewResource,
+  RepositoryResource,
+  RepositoryTreeResource,
+} from "gitdot-api-ts";
 import { z } from "zod";
 import { toQueryString } from "@/util";
-import {
-  type CreateRepositoryRequest,
-  type CreateRepositoryResponse,
-  CreateRepositoryResponseSchema,
-  type RepositoryCommit,
-  type RepositoryCommitDiff,
-  RepositoryCommitDiffSchema,
-  RepositoryCommitSchema,
-  type RepositoryCommitStat,
-  RepositoryCommitStatSchema,
-  type RepositoryCommits,
-  type RepositoryCommitsQuery,
-  RepositoryCommitsSchema,
-  type RepositoryFile,
-  type RepositoryFileCommitsQuery,
-  type RepositoryFileQuery,
-  RepositoryFileSchema,
-  RepositoryPermissionResponseSchema,
-  type RepositoryPreview,
-  type RepositoryPreviewQuery,
-  RepositoryPreviewSchema,
-  type RepositoryTree,
-  type RepositoryTreeQuery,
-  RepositoryTreeSchema,
-} from "../dto";
 import {
   authDelete,
   authFetch,
@@ -36,122 +22,138 @@ import {
   NotFound,
 } from "./util";
 
+type CreateRepositoryRequest = { owner_type: string; visibility: string };
+type RepositoryCommitsQuery = {
+  ref_name?: string;
+  page?: number;
+  per_page?: number;
+};
+type RepositoryTreeQuery = { ref_name?: string };
+type RepositoryFileQuery = { ref_name?: string; path: string };
+type RepositoryFileCommitsQuery = {
+  path: string;
+  ref_name?: string;
+  page?: number;
+  per_page?: number;
+};
+type RepositoryPreviewQuery = { ref_name?: string; preview_lines?: number };
+
 export async function createRepository(
   owner: string,
   repo: string,
   request: CreateRepositoryRequest,
-): Promise<CreateRepositoryResponse | null> {
+): Promise<RepositoryResource | null> {
   const response = await authPost(
     `${GITDOT_SERVER_URL}/repository/${owner}/${repo}`,
     request,
   );
 
-  return await handleResponse(response, CreateRepositoryResponseSchema);
+  return await handleResponse(response, RepositoryResource);
 }
 
 export async function getRepositoryFile(
   owner: string,
   repo: string,
   query: RepositoryFileQuery,
-): Promise<RepositoryFile | NotFound | null> {
+): Promise<RepositoryFileResource | NotFound | null> {
   const queryString = toQueryString(query);
   const response = await authFetch(
     `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/file?${queryString}`,
   );
   if (response.status === 404) return NotFound;
 
-  return await handleResponse(response, RepositoryFileSchema);
+  return await handleResponse(response, RepositoryFileResource);
 }
 
 export async function getRepositoryTree(
   owner: string,
   repo: string,
   query?: RepositoryTreeQuery,
-): Promise<RepositoryTree | NotFound | null> {
+): Promise<RepositoryTreeResource | NotFound | null> {
   const queryString = toQueryString(query);
   const response = await authFetch(
     `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/tree?${queryString}`,
   );
   if (response.status === 404) return NotFound;
 
-  return await handleResponse(response, RepositoryTreeSchema);
+  return await handleResponse(response, RepositoryTreeResource);
 }
 
 export async function getRepositoryCommits(
   owner: string,
   repo: string,
   query?: RepositoryCommitsQuery,
-): Promise<RepositoryCommits | NotFound | null> {
+): Promise<RepositoryCommitsResource | NotFound | null> {
   const queryString = toQueryString(query);
   const response = await authFetch(
     `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/commits?${queryString}`,
   );
   if (response.status === 404) return NotFound;
 
-  return await handleResponse(response, RepositoryCommitsSchema);
+  return await handleResponse(response, RepositoryCommitsResource);
 }
 
 export async function getRepositoryFileCommits(
   owner: string,
   repo: string,
   query: RepositoryFileCommitsQuery,
-): Promise<RepositoryCommits | null> {
+): Promise<RepositoryCommitsResource | null> {
   const queryString = toQueryString(query);
   const response = await authFetch(
     `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/file/commits?${queryString}`,
   );
 
-  return await handleResponse(response, RepositoryCommitsSchema);
+  return await handleResponse(response, RepositoryCommitsResource);
 }
 
 export async function getRepositoryCommit(
   owner: string,
   repo: string,
   sha: string,
-): Promise<RepositoryCommit | null> {
+): Promise<RepositoryCommitResource | null> {
   const response = await authFetch(
     `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/commits/${sha}`,
   );
 
-  return await handleResponse(response, RepositoryCommitSchema);
+  return await handleResponse(response, RepositoryCommitResource);
 }
 
 export async function getRepositoryCommitStat(
   owner: string,
   repo: string,
   sha: string,
-): Promise<RepositoryCommitStat[] | null> {
+): Promise<RepositoryCommitStatResource[] | null> {
   const response = await authFetch(
     `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/commits/${sha}/stat`,
   );
 
-  return await handleResponse(response, z.array(RepositoryCommitStatSchema));
+  return await handleResponse(response, z.array(RepositoryCommitStatResource));
 }
 
 export async function getRepositoryCommitDiff(
   owner: string,
   repo: string,
   sha: string,
-): Promise<RepositoryCommitDiff[] | null> {
+): Promise<RepositoryCommitDiffResource[] | null> {
   const response = await authFetch(
     `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/commits/${sha}/diff`,
   );
 
-  return await handleResponse(response, z.array(RepositoryCommitDiffSchema));
+  return await handleResponse(response, z.array(RepositoryCommitDiffResource));
 }
 
 export async function getRepositoryPreview(
   owner: string,
   repo: string,
   query?: RepositoryPreviewQuery,
-): Promise<RepositoryPreview | NotFound | null> {
+): Promise<RepositoryPreviewResource | NotFound | null> {
   const queryString = toQueryString(query);
   const response = await authFetch(
     `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/preview?${queryString}`,
   );
   if (response.status === 404) return NotFound;
 
-  return await handleResponse(response, RepositoryPreviewSchema);
+  return await handleResponse(response, RepositoryPreviewResource);
 }
 
 export async function deleteRepository(
@@ -181,10 +183,7 @@ export async function getRepositoryPermission(
     );
     if (!response.ok) return null;
 
-    const data = await handleResponse(
-      response,
-      RepositoryPermissionResponseSchema,
-    );
+    const data = await handleResponse(response, RepositoryPermissionResource);
     return data?.permission ?? null;
   } catch {
     return null;

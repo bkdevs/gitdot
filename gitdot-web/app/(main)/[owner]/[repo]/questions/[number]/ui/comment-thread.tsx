@@ -1,9 +1,9 @@
 "use client";
 
+import type { CommentResource } from "gitdot-api-ts";
 import { useOptimistic } from "react";
 import { useUser } from "@/(main)/providers/user-provider";
 import { createCommentAction } from "@/actions";
-import type { CommentResponse } from "@/lib/dto";
 import { CommentInput } from "./comment-input";
 import { CommentRow } from "./comment-row";
 
@@ -20,7 +20,7 @@ export function CommentThread({
   owner: string;
   repo: string;
   number: number;
-  comments: CommentResponse[];
+  comments: CommentResource[];
 }) {
   const { user } = useUser();
   const createComment = createCommentAction.bind(

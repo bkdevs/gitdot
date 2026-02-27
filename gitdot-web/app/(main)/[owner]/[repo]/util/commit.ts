@@ -1,12 +1,12 @@
-import type { RepositoryCommit } from "@/lib/dto";
+import type { RepositoryCommitResource } from "gitdot-api-ts";
 
 /**
  * Group commits by date (most recent first)
  */
 export function groupCommitsByDate(
-  commits: RepositoryCommit[],
-): [string, RepositoryCommit[]][] {
-  const groups = new Map<string, RepositoryCommit[]>();
+  commits: RepositoryCommitResource[],
+): [string, RepositoryCommitResource[]][] {
+  const groups = new Map<string, RepositoryCommitResource[]>();
 
   for (const commit of commits) {
     const date = new Date(commit.date);

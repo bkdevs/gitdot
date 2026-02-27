@@ -1,10 +1,13 @@
-import type { RepositoryTree, RepositoryTreeEntry } from "@/lib/dto";
+import type {
+  RepositoryTreeEntryResource,
+  RepositoryTreeResource,
+} from "gitdot-api-ts";
 
-export function parseRepositoryTree(tree: RepositoryTree): {
-  entries: Map<string, RepositoryTreeEntry>;
+export function parseRepositoryTree(tree: RepositoryTreeResource): {
+  entries: Map<string, RepositoryTreeEntryResource>;
   folders: Map<string, string[]>;
 } {
-  const entries = new Map<string, RepositoryTreeEntry>();
+  const entries = new Map<string, RepositoryTreeEntryResource>();
   const folders = new Map<string, string[]>();
 
   for (const entry of tree.entries) {
@@ -54,13 +57,15 @@ export type FolderFile = {
 export const getFolderEntries = (
   folderPath: string,
   folders: Map<string, string[]>,
-  entries: Map<string, RepositoryTreeEntry>,
-): RepositoryTreeEntry[] => {
+  entries: Map<string, RepositoryTreeEntryResource>,
+): RepositoryTreeEntryResource[] => {
   const files = folders.get(folderPath);
   if (!files) return [];
   return files
     .map((fileName) =>
       entries.get(folderPath ? `${folderPath}/${fileName}` : fileName),
     )
-    .filter((entry): entry is RepositoryTreeEntry => entry !== undefined);
+    .filter(
+      (entry): entry is RepositoryTreeEntryResource => entry !== undefined,
+    );
 };

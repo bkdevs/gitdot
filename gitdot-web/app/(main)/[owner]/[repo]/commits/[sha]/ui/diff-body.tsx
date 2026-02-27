@@ -1,9 +1,13 @@
+import type { RepositoryCommitDiffResource } from "gitdot-api-ts";
 import { mergeHunks } from "@/(main)/[owner]/[repo]/util";
-import type { RepositoryCommitDiff } from "@/lib/dto";
 import { DiffSingle } from "./diff-single";
 import { DiffSplit } from "./diff-split";
 
-export async function DiffBody({ diff }: { diff: RepositoryCommitDiff }) {
+export async function DiffBody({
+  diff,
+}: {
+  diff: RepositoryCommitDiffResource;
+}) {
   const { left, right, diff: fileDiff } = diff;
 
   const processedHunks = mergeHunks(fileDiff.hunks);

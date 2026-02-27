@@ -1,5 +1,5 @@
+import type { DiffChangeResource } from "gitdot-api-ts";
 import type { Element } from "hast";
-import type { DiffChange } from "@/lib/dto";
 import { highlightWords } from "../hast";
 
 function createLineNode(texts: string[]): Element {
@@ -29,7 +29,7 @@ function getSpanClasses(lineNode: Element): string[][] {
 describe("highlightChanges", () => {
   describe("with closing delimiters: '      )' and '}'", () => {
     const texts = ["      )", "}"];
-    const changes: DiffChange[] = [
+    const changes: DiffChangeResource[] = [
       { start: 6, end: 7, content: ")", highlight: "delimiter" },
       { start: 7, end: 8, content: "}", highlight: "delimiter" },
     ];
@@ -89,7 +89,7 @@ describe("highlightChanges", () => {
 
   describe("with JSX-like content", () => {
     const texts = ["{", "!", "leftPath", " &&", " rightPath", " &&", " ("];
-    const changes: DiffChange[] = [
+    const changes: DiffChangeResource[] = [
       { start: 6, end: 7, content: "{", highlight: "delimiter" },
       { start: 7, end: 8, content: "!", highlight: "keyword" },
       { start: 8, end: 16, content: "leftPath", highlight: "normal" },
@@ -113,7 +113,7 @@ describe("highlightChanges", () => {
 
   describe("with aligned changes matching span positions", () => {
     const texts = ["      ", "{", "!", "leftPath"];
-    const changes: DiffChange[] = [
+    const changes: DiffChangeResource[] = [
       { start: 6, end: 7, content: "{", highlight: "delimiter" },
       { start: 7, end: 8, content: "!", highlight: "keyword" },
       { start: 8, end: 16, content: "leftPath", highlight: "normal" },
@@ -151,7 +151,7 @@ describe("highlightChanges", () => {
       "(created)",
       "</span>",
     ];
-    const changes: DiffChange[] = [
+    const changes: DiffChangeResource[] = [
       { start: 8, end: 9, content: "<", highlight: "delimiter" },
       { start: 9, end: 13, content: "span", highlight: "normal" },
       { start: 14, end: 23, content: "className", highlight: "normal" },
@@ -217,7 +217,7 @@ describe("highlightChanges", () => {
 
     it("should handle single span matching single change", () => {
       const lineNode = createLineNode(["hello"]);
-      const changes: DiffChange[] = [
+      const changes: DiffChangeResource[] = [
         { start: 0, end: 5, content: "hello", highlight: "normal" },
       ];
       highlightWords("right", lineNode, changes);
@@ -228,7 +228,7 @@ describe("highlightChanges", () => {
 
     it("should not highlight when change extends beyond span", () => {
       const lineNode = createLineNode(["hel", "lo"]);
-      const changes: DiffChange[] = [
+      const changes: DiffChangeResource[] = [
         { start: 0, end: 5, content: "hello", highlight: "normal" },
       ];
       highlightWords("right", lineNode, changes);
@@ -242,7 +242,7 @@ describe("highlightChanges", () => {
 
     it("should handle partial overlap where change is subset of span", () => {
       const lineNode = createLineNode(["hello world"]);
-      const changes: DiffChange[] = [
+      const changes: DiffChangeResource[] = [
         { start: 0, end: 5, content: "hello", highlight: "normal" },
       ];
       highlightWords("right", lineNode, changes);
@@ -269,7 +269,7 @@ describe("highlightChanges", () => {
 
     it("should handle multiple changes within single span", () => {
       const lineNode = createLineNode(["hello world"]);
-      const changes: DiffChange[] = [
+      const changes: DiffChangeResource[] = [
         { start: 0, end: 5, content: "hello", highlight: "normal" },
         { start: 6, end: 11, content: "world", highlight: "normal" },
       ];
@@ -308,7 +308,7 @@ describe("highlightChanges", () => {
 
     it("should highlight only the end of a span when change is at end", () => {
       const lineNode = createLineNode(["hello world"]);
-      const changes: DiffChange[] = [
+      const changes: DiffChangeResource[] = [
         { start: 6, end: 11, content: "world", highlight: "normal" },
       ];
       highlightWords("right", lineNode, changes);
@@ -335,7 +335,7 @@ describe("highlightChanges", () => {
 
     it("should highlight only the middle of a span when change is in middle", () => {
       const lineNode = createLineNode(["hello world"]);
-      const changes: DiffChange[] = [
+      const changes: DiffChangeResource[] = [
         { start: 3, end: 8, content: "lo wo", highlight: "normal" },
       ];
       highlightWords("right", lineNode, changes);
@@ -365,7 +365,7 @@ describe("highlightChanges", () => {
 
     it("should highlight whole span when change equals span exactly", () => {
       const lineNode = createLineNode(["hello"]);
-      const changes: DiffChange[] = [
+      const changes: DiffChangeResource[] = [
         { start: 0, end: 5, content: "hello", highlight: "normal" },
       ];
       highlightWords("right", lineNode, changes);
@@ -384,7 +384,7 @@ describe("highlightChanges", () => {
 
     it("should use red highlight for left side partial changes", () => {
       const lineNode = createLineNode(["hello world"]);
-      const changes: DiffChange[] = [
+      const changes: DiffChangeResource[] = [
         { start: 0, end: 5, content: "hello", highlight: "normal" },
       ];
       highlightWords("left", lineNode, changes);

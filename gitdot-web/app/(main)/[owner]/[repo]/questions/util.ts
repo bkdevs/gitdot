@@ -1,12 +1,12 @@
-import type { QuestionResponse } from "@/lib/dto";
+import type { QuestionResource } from "gitdot-api-ts";
 import type { QuestionsFilter, QuestionsSort } from "./ui/questions-client";
 
 export function processQuestions(
-  questions: QuestionResponse[],
+  questions: QuestionResource[],
   filter: QuestionsFilter,
   sort: QuestionsSort,
 ) {
-  let result: QuestionResponse[];
+  let result: QuestionResource[];
   switch (filter) {
     case "unanswered":
       result = questions.filter((q) => q.answers.length === 0);

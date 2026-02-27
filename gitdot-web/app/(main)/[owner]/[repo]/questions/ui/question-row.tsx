@@ -1,4 +1,4 @@
-import type { QuestionResponse } from "@/lib/dto";
+import type { QuestionResource } from "gitdot-api-ts";
 import Link from "@/ui/link";
 import { pluralize, timeAgo } from "@/util";
 import { VoteBox } from "../[number]/ui/vote-box";
@@ -10,7 +10,7 @@ export function QuestionRow({
 }: {
   owner: string;
   repo: string;
-  question: QuestionResponse;
+  question: QuestionResource;
 }) {
   return (
     <div className="flex flex-row w-full border-b hover:bg-accent/50 select-none cursor-default py-2 h-18">

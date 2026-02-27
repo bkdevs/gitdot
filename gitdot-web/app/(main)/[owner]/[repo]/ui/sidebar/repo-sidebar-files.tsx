@@ -1,6 +1,6 @@
+import type { RepositoryTreeEntryResource } from "gitdot-api-ts";
 import { File, Folder, FolderOpen } from "lucide-react";
 import { useMemo } from "react";
-import type { RepositoryTreeEntry } from "@/lib/dto";
 import Link from "@/ui/link";
 import { getFolderEntries, getParentPath } from "../../util";
 
@@ -47,7 +47,7 @@ export function RepoSidebarFiles({
   owner: string;
   repo: string;
   folders: Map<string, string[]>;
-  entries: Map<string, RepositoryTreeEntry>;
+  entries: Map<string, RepositoryTreeEntryResource>;
   currentPath: string;
 }) {
   const contextFiles = useMemo(() => {

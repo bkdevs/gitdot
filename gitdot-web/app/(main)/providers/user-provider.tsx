@@ -1,5 +1,6 @@
 "use client";
 
+import type { UserResource } from "gitdot-api-ts";
 import {
   createContext,
   useCallback,
@@ -8,10 +9,9 @@ import {
   useState,
 } from "react";
 import { getCurrentUserAction } from "@/actions";
-import type { UserResponse } from "@/lib/dto";
 
 type UserContextType = {
-  user: UserResponse | null;
+  user: UserResource | null;
   refreshUser: () => void;
 };
 
@@ -24,7 +24,7 @@ const UserContext = createContext<UserContextType | null>(null);
  * in client-side components
  */
 export function UserProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<UserResponse | null>(null);
+  const [user, setUser] = useState<UserResource | null>(null);
 
   const refreshUser = useCallback(() => {
     getCurrentUserAction().then(setUser);

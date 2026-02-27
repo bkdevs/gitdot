@@ -1,4 +1,4 @@
-import type { TaskResponse } from "@/lib/dto";
+import type { TaskResource } from "gitdot-api-ts";
 import { cn } from "@/util";
 
 const STATUS_STYLES: Record<string, string> = {
@@ -10,7 +10,7 @@ const STATUS_STYLES: Record<string, string> = {
   failure: "bg-red-500",
 };
 
-export function TaskRow({ task }: { task: TaskResponse }) {
+export function TaskRow({ task }: { task: TaskResource }) {
   const dotClass = STATUS_STYLES[task.status] ?? "bg-muted-foreground";
 
   return (

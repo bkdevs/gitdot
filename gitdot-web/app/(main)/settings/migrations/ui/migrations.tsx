@@ -1,13 +1,12 @@
+import type { MigrationResource } from "gitdot-api-ts";
 import { Plus } from "lucide-react";
-
-import type { MigrationListResponse } from "@/lib/dto/migration";
 import Link from "@/ui/link";
 import { formatDate } from "@/util";
 
 export function Migrations({
   migrations,
 }: {
-  migrations: MigrationListResponse;
+  migrations: MigrationResource[];
 }) {
   return (
     <div className="flex flex-col w-full">

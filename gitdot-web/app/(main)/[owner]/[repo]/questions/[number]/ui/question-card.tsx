@@ -1,15 +1,15 @@
 "use client";
 
+import type { QuestionResource } from "gitdot-api-ts";
 import { MarkdownBody } from "@/(main)/[owner]/[repo]/ui/markdown/markdown-body";
 import { useUser } from "@/(main)/providers/user-provider";
-import type { QuestionResponse } from "@/lib/dto/question";
 import { formatDate, timeAgoFull } from "@/util";
 import { CommentThread } from "./comment-thread";
 import { QuestionDropdown } from "./question-dropdown";
 import { VoteBox } from "./vote-box";
 
 type QuestionCardProps = {
-  question: QuestionResponse;
+  question: QuestionResource;
   owner: string;
   repo: string;
 };

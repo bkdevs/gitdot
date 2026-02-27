@@ -1,9 +1,9 @@
+import type { RepositoryFileResource } from "gitdot-api-ts";
 import { toJsxRuntime } from "hast-util-to-jsx-runtime";
 import type { JSX } from "react";
 import { Fragment } from "react";
 import { jsx, jsxs } from "react/jsx-runtime";
 import { fileToHast } from "@/(main)/[owner]/[repo]/util";
-import type { RepositoryFile } from "@/lib/dto";
 import type { LineSelection } from "../util";
 import { FileLine } from "./file-line";
 import { FileViewerClient } from "./file-viewer-client";
@@ -12,7 +12,7 @@ export async function FileBody({
   file,
   selectedLines,
 }: {
-  file: RepositoryFile;
+  file: RepositoryFileResource;
   selectedLines: LineSelection | null;
 }) {
   const hast = await fileToHast(file, "vitesse-light", [

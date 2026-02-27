@@ -87,6 +87,9 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
+      gitdot-api-ts:
+        specifier: workspace:*
+        version: link:../gitdot-api-ts
       hast-util-to-jsx-runtime:
         specifier: ^2.3.6
         version: 2.3.6

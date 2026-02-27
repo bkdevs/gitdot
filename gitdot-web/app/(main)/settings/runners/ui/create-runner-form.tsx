@@ -1,10 +1,10 @@
 "use client";
 
+import type { UserResource } from "gitdot-api-ts";
 import { useActionState, useState } from "react";
 import { createRunnerAction } from "@/actions";
-import type { UserResponse } from "@/lib/dto";
 
-export function CreateRunnerForm({ user }: { user: UserResponse }) {
+export function CreateRunnerForm({ user }: { user: UserResource }) {
   const [name, setName] = useState("");
   const [state, formAction, isPending] = useActionState(
     createRunnerAction,

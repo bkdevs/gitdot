@@ -1,8 +1,8 @@
 "use client";
 
+import type { AnswerResource } from "gitdot-api-ts";
 import { MoreHorizontal } from "lucide-react";
 import { useState } from "react";
-import type { AnswerResponse } from "@/lib/dto";
 import { Button } from "@/ui/button";
 import {
   DropdownMenu,
@@ -21,7 +21,7 @@ export const AnswerDropdown = ({
   owner: string;
   repo: string;
   number: number;
-  answer: AnswerResponse;
+  answer: AnswerResource;
 }) => {
   const [editing, setEditing] = useState(false);
 

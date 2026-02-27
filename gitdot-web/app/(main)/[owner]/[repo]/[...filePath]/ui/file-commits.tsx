@@ -1,7 +1,7 @@
 "use client";
 
+import type { RepositoryCommitsResource } from "gitdot-api-ts";
 import { usePathname, useSearchParams } from "next/navigation";
-import type { RepositoryCommits } from "@/lib/dto";
 import Link from "@/ui/link";
 import { timeAgo } from "@/util";
 
@@ -53,7 +53,7 @@ export function FileCommits({
   commits,
   selectedCommitSha,
 }: {
-  commits: RepositoryCommits;
+  commits: RepositoryCommitsResource;
   selectedCommitSha: string;
 }) {
   const pathname = usePathname();

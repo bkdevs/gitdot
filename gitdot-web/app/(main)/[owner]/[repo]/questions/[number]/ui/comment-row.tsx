@@ -1,5 +1,6 @@
 "use client";
 
+import type { CommentResource } from "gitdot-api-ts";
 import { Check, Edit3 } from "lucide-react";
 import { useActionState, useOptimistic, useRef, useState } from "react";
 import { useAuthBlocker } from "@/(main)/providers/auth-blocker-provider";
@@ -10,7 +11,6 @@ import {
   type VoteActionResult,
   voteAction,
 } from "@/actions";
-import type { CommentResponse } from "@/lib/dto";
 import { TriangleUp } from "@/lib/icons";
 import { cn, timeAgoFull } from "@/util";
 
@@ -23,7 +23,7 @@ export function CommentRow({
   owner: string;
   repo: string;
   number: number;
-  comment: CommentResponse;
+  comment: CommentResource;
 }) {
   const { body, author, created_at } = comment;
   const [editing, setEditing] = useState(false);
@@ -137,7 +137,7 @@ function CommentVote({
   owner: string;
   repo: string;
   number: number;
-  comment: CommentResponse;
+  comment: CommentResource;
 }) {
   const { id, upvote, user_vote } = comment;
   const { requireAuth } = useAuthBlocker();

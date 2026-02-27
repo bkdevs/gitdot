@@ -1,13 +1,13 @@
 "use client";
 
+import type { GitHubRepositoryResource } from "gitdot-api-ts";
 import { useState } from "react";
-import type { GitHubRepositoryListResponse } from "@/lib/dto/migration";
 import Link from "@/ui/link";
 
 export function RepositorySelect({
   repositories,
 }: {
-  repositories: GitHubRepositoryListResponse | null;
+  repositories: GitHubRepositoryResource[] | null;
 }) {
   const [selectedRepos, setSelectedRepos] = useState<Set<string>>(new Set());
 

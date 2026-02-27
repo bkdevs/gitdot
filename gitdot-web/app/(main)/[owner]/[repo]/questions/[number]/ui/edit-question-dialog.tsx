@@ -1,12 +1,12 @@
 "use client";
 
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import type { QuestionResource } from "gitdot-api-ts";
 import { useActionState, useState } from "react";
 import {
   type UpdateQuestionActionResult,
   updateQuestionAction,
 } from "@/actions";
-import type { QuestionResponse } from "@/lib/dto/question";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
 
 export function EditQuestionDialog({
@@ -18,7 +18,7 @@ export function EditQuestionDialog({
 }: {
   owner: string;
   repo: string;
-  question: QuestionResponse;
+  question: QuestionResource;
   open: boolean;
   setOpen: (open: boolean) => void;
 }) {

@@ -1,4 +1,7 @@
-import type { RepositoryCommit, RepositoryCommitStat } from "@/lib/dto";
+import type {
+  RepositoryCommitResource,
+  RepositoryCommitStatResource,
+} from "gitdot-api-ts";
 import { formatDateTime } from "@/util";
 import { DiffStatBar } from "./diff-stat-bar";
 
@@ -6,15 +9,15 @@ export function CommitHeader({
   commit,
   stats,
 }: {
-  commit: RepositoryCommit;
-  stats: RepositoryCommitStat[];
+  commit: RepositoryCommitResource;
+  stats: RepositoryCommitStatResource[];
 }) {
   const midpoint = Math.ceil(stats.length / 2);
   const leftColumn = stats.slice(0, midpoint);
   const rightColumn = stats.slice(midpoint);
   const author = commit.author.name;
 
-  const renderStatItem = (stat: RepositoryCommitStat) => {
+  const renderStatItem = (stat: RepositoryCommitStatResource) => {
     return (
       <li key={stat.path} className="font-mono text-sm flex items-center">
         <a

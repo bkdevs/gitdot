@@ -1,5 +1,5 @@
+import type { RepositoryTreeEntryResource } from "gitdot-api-ts";
 import { File, Folder } from "lucide-react";
-import type { RepositoryTreeEntry } from "@/lib/dto";
 import Link from "@/ui/link";
 import { timeAgo } from "@/util";
 
@@ -10,7 +10,7 @@ export async function FolderViewer({
 }: {
   owner: string;
   repo: string;
-  folderEntries: RepositoryTreeEntry[];
+  folderEntries: RepositoryTreeEntryResource[];
 }) {
   const sortedEntries = folderEntries.toSorted((a, b) => {
     if (a.entry_type === b.entry_type) {
@@ -38,7 +38,7 @@ function FolderEntryRow({
   entry,
   href,
 }: {
-  entry: RepositoryTreeEntry;
+  entry: RepositoryTreeEntryResource;
   href: string;
 }) {
   const author = entry.commit.author.name;

@@ -1,10 +1,9 @@
+import type { RunnerResource } from "gitdot-api-ts";
 import { Plus } from "lucide-react";
-
-import type { RunnerListResponse } from "@/lib/dto/runner";
 import Link from "@/ui/link";
 import { formatDate } from "@/util";
 
-export function Runners({ runners }: { runners: RunnerListResponse }) {
+export function Runners({ runners }: { runners: RunnerResource[] }) {
   return (
     <div className="flex flex-col w-full">
       <RunnersHeader />

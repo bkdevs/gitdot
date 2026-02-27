@@ -1,8 +1,8 @@
 "use client";
 
+import type { RepositoryTreeEntryResource } from "gitdot-api-ts";
 import { useRouter } from "next/navigation";
 import { use, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { RepositoryTreeEntry } from "@/lib/dto";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
 import { fuzzyMatch } from "../../util";
 
@@ -18,7 +18,7 @@ export function RepoFileDialog({
   setOpen: (open: boolean) => void;
   owner: string;
   repo: string;
-  files: RepositoryTreeEntry[];
+  files: RepositoryTreeEntryResource[];
   previewsPromise: Promise<Map<string, string>>;
 }) {
   const router = useRouter();
@@ -48,7 +48,7 @@ export function RepoFileDialog({
 
   const selectedFile = filteredFiles[selectedIndex];
   const handleSelect = useCallback(
-    (entry: RepositoryTreeEntry) => {
+    (entry: RepositoryTreeEntryResource) => {
       setOpen(false);
       router.push(`/${owner}/${repo}/${entry.path}`);
     },

@@ -1,7 +1,7 @@
 "use client";
 
+import type { RepositoryTreeEntryResource } from "gitdot-api-ts";
 import { Suspense, useEffect, useState } from "react";
-import type { RepositoryTreeEntry } from "@/lib/dto";
 import { RepoFileDialog } from "./repo-file-dialog";
 
 export function RepoDialogs({
@@ -12,7 +12,7 @@ export function RepoDialogs({
 }: {
   owner: string;
   repo: string;
-  files: RepositoryTreeEntry[];
+  files: RepositoryTreeEntryResource[];
   previewsPromise: Promise<Map<string, string>>;
 }) {
   const [fileDialogOpen, setFileDialogOpen] = useState(false);

@@ -1,4 +1,4 @@
-import type { DiffHunk } from "@/lib/dto";
+import type { DiffHunkResource } from "gitdot-api-ts";
 import {
   CONTEXT_LINES,
   expandLines,
@@ -10,12 +10,12 @@ import {
 
 interface TestCase {
   name: string;
-  input: DiffHunk;
+  input: DiffHunkResource;
   expected: LinePair[];
 }
 
 /**
- * Helper to create a DiffHunk from a more readable format.
+ * Helper to create a DiffHunkResource from a more readable format.
  * - { lhs: lineNum } for left-only (removed)
  * - { rhs: lineNum } for right-only (added)
  * - { lhs: lineNum, rhs: lineNum } for modified/matched
@@ -24,7 +24,7 @@ function chunk(
   entries: Array<
     { lhs: number } | { rhs: number } | { lhs: number; rhs: number }
   >,
-): DiffHunk {
+): DiffHunkResource {
   return entries.map((entry) => ({
     lhs: "lhs" in entry ? { line_number: entry.lhs, changes: [] } : undefined,
     rhs: "rhs" in entry ? { line_number: entry.rhs, changes: [] } : undefined,
@@ -557,7 +557,10 @@ describe("sortHunks", () => {
   /**
    * Helper to get the starting line number for a hunk on a given side
    */
-  function getStartingLine(hunk: DiffHunk, side: "lhs" | "rhs"): number | null {
+  function getStartingLine(
+    hunk: DiffHunkResource,
+    side: "lhs" | "rhs",
+  ): number | null {
     let min: number | null = null;
     for (const line of hunk) {
       const value = line[side]?.line_number;
@@ -571,7 +574,7 @@ describe("sortHunks", () => {
   /**
    * Verifies that hunks are sorted correctly on both lhs and rhs independently
    */
-  function expectBothSidesSorted(hunks: DiffHunk[]) {
+  function expectBothSidesSorted(hunks: DiffHunkResource[]) {
     const lhsStarts = hunks
       .map((h) => getStartingLine(h, "lhs"))
       .filter((n): n is number => n !== null);
@@ -592,14 +595,14 @@ describe("sortHunks", () => {
   });
 
   test("single hunk returns unchanged", () => {
-    const hunks: DiffHunk[] = [chunk([{ lhs: 5 }, { lhs: 6 }])];
+    const hunks: DiffHunkResource[] = [chunk([{ lhs: 5 }, { lhs: 6 }])];
     const result = sortHunks(hunks);
     expect(result).toEqual(hunks);
     expectBothSidesSorted(result);
   });
 
   test("already sorted hunks remain in order", () => {
-    const hunks: DiffHunk[] = [
+    const hunks: DiffHunkResource[] = [
       chunk([
         { lhs: 1, rhs: 1 },
         { lhs: 2, rhs: 2 },
@@ -619,7 +622,7 @@ describe("sortHunks", () => {
   });
 
   test("sorts hunks by starting line number", () => {
-    const hunks: DiffHunk[] = [
+    const hunks: DiffHunkResource[] = [
       chunk([
         { lhs: 20, rhs: 22 },
         { lhs: 21, rhs: 23 },
@@ -652,7 +655,7 @@ describe("sortHunks", () => {
   });
 
   test("sorts hunks with rhs-only lines", () => {
-    const hunks: DiffHunk[] = [
+    const hunks: DiffHunkResource[] = [
       chunk([{ rhs: 15 }, { rhs: 16 }]),
       chunk([{ rhs: 5 }, { rhs: 6 }]),
     ];
@@ -665,7 +668,7 @@ describe("sortHunks", () => {
   });
 
   test("sorts hunks with lhs-only lines", () => {
-    const hunks: DiffHunk[] = [
+    const hunks: DiffHunkResource[] = [
       chunk([{ lhs: 25 }, { lhs: 26 }]),
       chunk([{ lhs: 5 }, { lhs: 6 }]),
     ];
@@ -678,7 +681,7 @@ describe("sortHunks", () => {
   });
 
   test("maintains both lhs and rhs sorted with offset lines", () => {
-    const hunks: DiffHunk[] = [
+    const hunks: DiffHunkResource[] = [
       chunk([{ lhs: 50, rhs: 55 }]),
       chunk([{ lhs: 10, rhs: 12 }]),
       chunk([{ lhs: 30, rhs: 35 }]),
@@ -693,7 +696,7 @@ describe("sortHunks", () => {
   });
 
   test("does not mutate original hunks array", () => {
-    const hunks: DiffHunk[] = [
+    const hunks: DiffHunkResource[] = [
       chunk([{ lhs: 20, rhs: 20 }]),
       chunk([{ lhs: 1, rhs: 1 }]),
     ];
@@ -710,7 +713,7 @@ describe("mergeHunks", () => {
     });
 
     test("single hunk returns unchanged", () => {
-      const hunks: DiffHunk[] = [
+      const hunks: DiffHunkResource[] = [
         chunk([
           { lhs: 5, rhs: 5 },
           { lhs: 6, rhs: 6 },
@@ -726,7 +729,7 @@ describe("mergeHunks", () => {
     test("two hunks exactly at merge boundary", () => {
       // CONTEXT_LINES = 4, so CONTEXT_LINES * 2 = 8
       // Hunks with gap of exactly 8 should merge
-      const hunks: DiffHunk[] = [
+      const hunks: DiffHunkResource[] = [
         chunk([{ lhs: 1, rhs: 1 }]),
         chunk([{ lhs: 9, rhs: 9 }]), // diff = 8, should merge
       ];
@@ -736,7 +739,7 @@ describe("mergeHunks", () => {
     });
 
     test("two hunks within merge boundary", () => {
-      const hunks: DiffHunk[] = [
+      const hunks: DiffHunkResource[] = [
         chunk([{ lhs: 1, rhs: 1 }]),
         chunk([{ lhs: 5, rhs: 5 }]), // diff = 4, well within boundary
       ];
@@ -746,7 +749,7 @@ describe("mergeHunks", () => {
     });
 
     test("two adjacent hunks merge", () => {
-      const hunks: DiffHunk[] = [
+      const hunks: DiffHunkResource[] = [
         chunk([
           { lhs: 1, rhs: 1 },
           { lhs: 2, rhs: 2 },
@@ -762,7 +765,7 @@ describe("mergeHunks", () => {
     });
 
     test("three consecutive hunks all merge into one", () => {
-      const hunks: DiffHunk[] = [
+      const hunks: DiffHunkResource[] = [
         chunk([{ lhs: 1, rhs: 1 }]),
         chunk([{ lhs: 5, rhs: 5 }]),
         chunk([{ lhs: 10, rhs: 10 }]),
@@ -777,7 +780,7 @@ describe("mergeHunks", () => {
     test("two hunks beyond merge boundary", () => {
       // CONTEXT_LINES = 4, so CONTEXT_LINES * 2 = 8
       // Hunks with gap > 8 on BOTH sides should not merge
-      const hunks: DiffHunk[] = [
+      const hunks: DiffHunkResource[] = [
         chunk([{ lhs: 1, rhs: 1 }]),
         chunk([{ lhs: 10, rhs: 10 }]), // diff = 9 on both sides, should NOT merge
       ];
@@ -786,7 +789,7 @@ describe("mergeHunks", () => {
     });
 
     test("two far apart hunks stay separate", () => {
-      const hunks: DiffHunk[] = [
+      const hunks: DiffHunkResource[] = [
         chunk([
           { lhs: 1, rhs: 1 },
           { lhs: 2, rhs: 2 },
@@ -803,7 +806,7 @@ describe("mergeHunks", () => {
     });
 
     test("three hunks where middle is far from both", () => {
-      const hunks: DiffHunk[] = [
+      const hunks: DiffHunkResource[] = [
         chunk([{ lhs: 1, rhs: 1 }]),
         chunk([{ lhs: 50, rhs: 50 }]),
         chunk([{ lhs: 100, rhs: 100 }]),
@@ -815,7 +818,7 @@ describe("mergeHunks", () => {
 
   describe("partial merging", () => {
     test("first two merge, third stays separate", () => {
-      const hunks: DiffHunk[] = [
+      const hunks: DiffHunkResource[] = [
         chunk([{ lhs: 1, rhs: 1 }]),
         chunk([{ lhs: 5, rhs: 5 }]), // merges with first (diff = 4)
         chunk([{ lhs: 50, rhs: 50 }]), // stays separate (diff = 45)
@@ -827,7 +830,7 @@ describe("mergeHunks", () => {
     });
 
     test("first stays alone, last two merge", () => {
-      const hunks: DiffHunk[] = [
+      const hunks: DiffHunkResource[] = [
         chunk([{ lhs: 1, rhs: 1 }]),
         chunk([{ lhs: 50, rhs: 50 }]), // far from first
         chunk([{ lhs: 55, rhs: 55 }]), // merges with second (diff = 5)
@@ -839,7 +842,7 @@ describe("mergeHunks", () => {
     });
 
     test("alternating merge pattern", () => {
-      const hunks: DiffHunk[] = [
+      const hunks: DiffHunkResource[] = [
         chunk([{ lhs: 1, rhs: 1 }]),
         chunk([{ lhs: 5, rhs: 5 }]), // merges with 1st
         chunk([{ lhs: 50, rhs: 50 }]), // separate
@@ -854,7 +857,7 @@ describe("mergeHunks", () => {
 
   describe("one-sided hunks (lhs-only or rhs-only)", () => {
     test("lhs-only hunks that should merge", () => {
-      const hunks: DiffHunk[] = [
+      const hunks: DiffHunkResource[] = [
         chunk([{ lhs: 1 }, { lhs: 2 }]),
         chunk([{ lhs: 6 }, { lhs: 7 }]), // diff = 4, should merge
       ];
@@ -864,7 +867,7 @@ describe("mergeHunks", () => {
     });
 
     test("lhs-only hunks that should not merge", () => {
-      const hunks: DiffHunk[] = [
+      const hunks: DiffHunkResource[] = [
         chunk([{ lhs: 1 }, { lhs: 2 }]),
         chunk([{ lhs: 20 }, { lhs: 21 }]), // diff = 18, should not merge
       ];
@@ -873,7 +876,7 @@ describe("mergeHunks", () => {
     });
 
     test("rhs-only hunks that should merge", () => {
-      const hunks: DiffHunk[] = [
+      const hunks: DiffHunkResource[] = [
         chunk([{ rhs: 1 }, { rhs: 2 }]),
         chunk([{ rhs: 6 }, { rhs: 7 }]), // diff = 4, should merge
       ];
@@ -883,7 +886,7 @@ describe("mergeHunks", () => {
     });
 
     test("rhs-only hunks that should not merge", () => {
-      const hunks: DiffHunk[] = [
+      const hunks: DiffHunkResource[] = [
         chunk([{ rhs: 1 }, { rhs: 2 }]),
         chunk([{ rhs: 20 }, { rhs: 21 }]), // diff = 18, should not merge
       ];
@@ -897,7 +900,7 @@ describe("mergeHunks", () => {
       // First hunk ends at lhs=10, rhs stays at anchor (5)
       // Second hunk starts at rhs=8, lhs stays at anchor-1 (7)
       // rhs diff = 8 - 5 = 3, should merge
-      const hunks: DiffHunk[] = [
+      const hunks: DiffHunkResource[] = [
         chunk([{ lhs: 5, rhs: 5 }, { lhs: 10 }]), // ends at lhs=10, effective rhs=5
         chunk([{ rhs: 8 }, { lhs: 15, rhs: 15 }]), // starts at rhs=8, effective lhs=7
       ];
@@ -909,7 +912,7 @@ describe("mergeHunks", () => {
       // Hunk 1: anchor at [5,5], then rhs-only additions at 6,7,8
       // Hunk 2: starts at [15, 18]
       // lhs diff = 15 - 5 = 10, rhs diff = 18 - 8 = 10, should NOT merge
-      const hunks: DiffHunk[] = [
+      const hunks: DiffHunkResource[] = [
         chunk([{ lhs: 5, rhs: 5 }, { rhs: 6 }, { rhs: 7 }, { rhs: 8 }]),
         chunk([{ lhs: 15, rhs: 18 }]),
       ];
@@ -920,7 +923,7 @@ describe("mergeHunks", () => {
     test("hunk with deletions before anchor", () => {
       // Hunk 1: lhs-only deletions, then anchor
       // Hunk 2: starts close on rhs but far on lhs
-      const hunks: DiffHunk[] = [
+      const hunks: DiffHunkResource[] = [
         chunk([{ lhs: 1 }, { lhs: 2 }, { lhs: 3, rhs: 1 }]),
         chunk([{ lhs: 20, rhs: 5 }]), // lhs diff = 17, rhs diff = 4
       ];
@@ -932,7 +935,7 @@ describe("mergeHunks", () => {
 
   describe("sorting behavior", () => {
     test("unsorted hunks are sorted before merging", () => {
-      const hunks: DiffHunk[] = [
+      const hunks: DiffHunkResource[] = [
         chunk([{ lhs: 50, rhs: 50 }]),
         chunk([{ lhs: 1, rhs: 1 }]),
         chunk([{ lhs: 5, rhs: 5 }]), // should merge with line 1 hunk
@@ -946,7 +949,7 @@ describe("mergeHunks", () => {
     });
 
     test("reverse ordered hunks merge correctly", () => {
-      const hunks: DiffHunk[] = [
+      const hunks: DiffHunkResource[] = [
         chunk([{ lhs: 10, rhs: 10 }]),
         chunk([{ lhs: 5, rhs: 5 }]),
         chunk([{ lhs: 1, rhs: 1 }]),
@@ -960,7 +963,7 @@ describe("mergeHunks", () => {
 
   describe("does not mutate input", () => {
     test("original hunks array is unchanged", () => {
-      const hunks: DiffHunk[] = [
+      const hunks: DiffHunkResource[] = [
         chunk([{ lhs: 1, rhs: 1 }]),
         chunk([{ lhs: 5, rhs: 5 }]),
       ];
@@ -972,7 +975,7 @@ describe("mergeHunks", () => {
 
   describe("CONTEXT_LINES boundary verification", () => {
     test(`gap of exactly ${CONTEXT_LINES * 2} merges`, () => {
-      const hunks: DiffHunk[] = [
+      const hunks: DiffHunkResource[] = [
         chunk([{ lhs: 1, rhs: 1 }]),
         chunk([{ lhs: 1 + CONTEXT_LINES * 2, rhs: 1 + CONTEXT_LINES * 2 }]),
       ];
@@ -981,7 +984,7 @@ describe("mergeHunks", () => {
     });
 
     test(`gap of ${CONTEXT_LINES * 2 + 1} does not merge`, () => {
-      const hunks: DiffHunk[] = [
+      const hunks: DiffHunkResource[] = [
         chunk([{ lhs: 1, rhs: 1 }]),
         chunk([{ lhs: 2 + CONTEXT_LINES * 2, rhs: 2 + CONTEXT_LINES * 2 }]),
       ];

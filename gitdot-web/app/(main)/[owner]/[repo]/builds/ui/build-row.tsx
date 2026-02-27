@@ -1,4 +1,4 @@
-import type { BuildResponse } from "@/lib/dto";
+import type { BuildResource } from "gitdot-api-ts";
 import Link from "@/ui/link";
 import { timeAgo } from "@/util";
 
@@ -9,7 +9,7 @@ export function BuildRow({
 }: {
   owner: string;
   repo: string;
-  build: BuildResponse;
+  build: BuildResource;
 }) {
   const shortSha = build.commit_sha.slice(0, 7);
 

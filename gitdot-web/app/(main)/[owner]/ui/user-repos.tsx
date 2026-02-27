@@ -1,4 +1,4 @@
-import type { UserRepositoryResponse } from "@/lib/dto";
+import type { RepositoryResource } from "gitdot-api-ts";
 import Link from "@/ui/link";
 import { formatDate } from "@/util";
 import { CreateRepoButton } from "./create-repo-button";
@@ -8,7 +8,7 @@ export function UserRepos({
   repos,
 }: {
   user: string;
-  repos: UserRepositoryResponse[];
+  repos: RepositoryResource[];
 }) {
   return (
     <div className="flex flex-col w-full">

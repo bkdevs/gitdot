@@ -1,8 +1,8 @@
 "use client";
 
+import type { RepositoryCommitResource } from "gitdot-api-ts";
 import { usePathname } from "next/navigation";
 import { Fragment } from "react";
-import type { RepositoryCommit } from "@/lib/dto";
 import Link from "@/ui/link";
 import { formatDateKey, formatTime } from "@/util";
 import { groupCommitsByDate } from "../../util/commit";
@@ -10,7 +10,7 @@ import { groupCommitsByDate } from "../../util/commit";
 export function RepoSidebarCommits({
   commits,
 }: {
-  commits: RepositoryCommit[];
+  commits: RepositoryCommitResource[];
 }) {
   const pathname = usePathname();
   const [owner, repo, section, currentSha] = pathname
