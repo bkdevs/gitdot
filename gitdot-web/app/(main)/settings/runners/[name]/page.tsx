@@ -1,8 +1,9 @@
 import { notFound } from "next/navigation";
 
 import { getCurrentUser, getRunner } from "@/dal";
-import { VerifyRunnerForm } from "./ui/verify-runner-form";
-import { VerifyRunnerInstructions } from "./ui/verify-runner-instructions";
+import { formatDateTime, timeAgoFull } from "@/util";
+import { InstallRunnerForm } from "./ui/install-runner-form";
+import { RunnerStatus } from "./ui/runner-status";
 
 export default async function Page({
   params,
@@ -16,30 +17,32 @@ export default async function Page({
   const runner = await getRunner(user.name, name);
   if (!runner) notFound();
 
-  if (runner.last_active) {
-    return (
-      <div className="p-4">
-        <h1 className="text-lg font-medium border-b border-border pb-2 mb-4">
-          {runner.name}
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
-          eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
-          minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-          aliquip ex ea commodo consequat.
-        </p>
-      </div>
-    );
+  if (!runner.last_active) {
+    return <InstallRunnerForm runner={runner} ownerName={user.name} />;
   }
 
+  const createdAt = new Date(runner.created_at);
+  const lastActive = new Date(runner.last_active);
+  const isActive = Date.now() - lastActive.getTime() <= 90 * 1000;
+
   return (
-    <div className="flex p-4">
-      <div className="min-w-0 flex-1 max-w-3xl">
-        <VerifyRunnerForm runner={runner} ownerName={user.name} />
+    <div>
+      <h1 className="flex items-center border-b border-border pl-2 h-9">
+        {runner.name}
+      </h1>
+      <div className="p-2">
+        <ul className="text-sm text-muted-foreground space-y-1">
+          <li>
+            <RunnerStatus runner={runner} />
+          </li>
+          <li>
+            <span>Owner:</span> {runner.owner_name}</li>
+          <li>
+            <span>Created:</span>{" "}
+            {formatDateTime(createdAt)}
+          </li>
+        </ul>
       </div>
-      <aside className="w-72 shrink-0 hidden md:block border-l border-border ml-6 pl-6">
-        <VerifyRunnerInstructions />
-      </aside>
     </div>
   );
 }
