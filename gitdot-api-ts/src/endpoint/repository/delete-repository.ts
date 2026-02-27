@@ -12,5 +12,5 @@ export const DeleteRepository = {
   method: "DELETE",
   request: DeleteRepositoryRequest,
   response: DeleteRepositoryResponse,
-} satisfies Endpoint;
+} as const satisfies Endpoint;
 export type DeleteRepository = typeof DeleteRepository;

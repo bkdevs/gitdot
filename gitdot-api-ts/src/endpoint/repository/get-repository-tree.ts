@@ -17,5 +17,5 @@ export const GetRepositoryTree = {
   method: "GET",
   request: GetRepositoryTreeRequest,
   response: GetRepositoryTreeResponse,
-} satisfies Endpoint;
+} as const satisfies Endpoint;
 export type GetRepositoryTree = typeof GetRepositoryTree;

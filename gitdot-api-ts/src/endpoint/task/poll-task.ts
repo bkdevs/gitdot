@@ -13,5 +13,5 @@ export const PollTask = {
   method: "GET",
   request: PollTaskRequest,
   response: PollTaskResponse,
-} satisfies Endpoint;
+} as const satisfies Endpoint;
 export type PollTask = typeof PollTask;

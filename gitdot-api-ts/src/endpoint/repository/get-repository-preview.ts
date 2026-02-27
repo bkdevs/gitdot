@@ -20,5 +20,5 @@ export const GetRepositoryPreview = {
   method: "GET",
   request: GetRepositoryPreviewRequest,
   response: GetRepositoryPreviewResponse,
-} satisfies Endpoint;
+} as const satisfies Endpoint;
 export type GetRepositoryPreview = typeof GetRepositoryPreview;

@@ -15,5 +15,5 @@ export const UpdateTask = {
   method: "PATCH",
   request: UpdateTaskRequest,
   response: UpdateTaskResponse,
-} satisfies Endpoint;
+} as const satisfies Endpoint;
 export type UpdateTask = typeof UpdateTask;

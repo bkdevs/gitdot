@@ -15,5 +15,5 @@ export const UpdateAnswer = {
   method: "PATCH",
   request: UpdateAnswerRequest,
   response: UpdateAnswerResponse,
-} satisfies Endpoint;
+} as const satisfies Endpoint;
 export type UpdateAnswer = typeof UpdateAnswer;

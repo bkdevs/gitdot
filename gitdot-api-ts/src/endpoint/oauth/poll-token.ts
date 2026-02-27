@@ -16,5 +16,5 @@ export const PollToken = {
   method: "POST",
   request: PollTokenRequest,
   response: PollTokenResponse,
-} satisfies Endpoint;
+} as const satisfies Endpoint;
 export type PollToken = typeof PollToken;

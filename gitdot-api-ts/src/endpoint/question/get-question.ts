@@ -13,5 +13,5 @@ export const GetQuestion = {
   method: "GET",
   request: GetQuestionRequest,
   response: GetQuestionResponse,
-} satisfies Endpoint;
+} as const satisfies Endpoint;
 export type GetQuestion = typeof GetQuestion;

@@ -16,5 +16,5 @@ export const CreateBuild = {
   method: "POST",
   request: CreateBuildRequest,
   response: CreateBuildResponse,
-} satisfies Endpoint;
+} as const satisfies Endpoint;
 export type CreateBuild = typeof CreateBuild;

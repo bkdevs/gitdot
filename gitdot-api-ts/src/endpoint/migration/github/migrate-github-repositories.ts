@@ -23,5 +23,5 @@ export const MigrateGitHubRepositories = {
   method: "POST",
   request: MigrateGitHubRepositoriesRequest,
   response: MigrateGitHubRepositoriesResponse,
-} satisfies Endpoint;
+} as const satisfies Endpoint;
 export type MigrateGitHubRepositories = typeof MigrateGitHubRepositories;

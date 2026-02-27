@@ -12,5 +12,5 @@ export const VerifyRunner = {
   method: "POST",
   request: VerifyRunnerRequest,
   response: VerifyRunnerResponse,
-} satisfies Endpoint;
+} as const satisfies Endpoint;
 export type VerifyRunner = typeof VerifyRunner;

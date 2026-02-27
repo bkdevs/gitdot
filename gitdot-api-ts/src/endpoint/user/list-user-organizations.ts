@@ -17,5 +17,5 @@ export const ListUserOrganizations = {
   method: "GET",
   request: ListUserOrganizationsRequest,
   response: ListUserOrganizationsResponse,
-} satisfies Endpoint;
+} as const satisfies Endpoint;
 export type ListUserOrganizations = typeof ListUserOrganizations;

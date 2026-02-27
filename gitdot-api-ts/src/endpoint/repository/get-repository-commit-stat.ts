@@ -19,5 +19,5 @@ export const GetRepositoryCommitStat = {
   method: "GET",
   request: GetRepositoryCommitStatRequest,
   response: GetRepositoryCommitStatResponse,
-} satisfies Endpoint;
+} as const satisfies Endpoint;
 export type GetRepositoryCommitStat = typeof GetRepositoryCommitStat;

@@ -15,5 +15,5 @@ export const VoteAnswer = {
   method: "POST",
   request: VoteAnswerRequest,
   response: VoteAnswerResponse,
-} satisfies Endpoint;
+} as const satisfies Endpoint;
 export type VoteAnswer = typeof VoteAnswer;

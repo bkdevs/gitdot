@@ -17,5 +17,5 @@ export const UpdateCurrentUser = {
   method: "PATCH",
   request: UpdateCurrentUserRequest,
   response: UpdateCurrentUserResponse,
-} satisfies Endpoint;
+} as const satisfies Endpoint;
 export type UpdateCurrentUser = typeof UpdateCurrentUser;

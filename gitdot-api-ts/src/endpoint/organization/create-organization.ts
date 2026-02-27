@@ -17,5 +17,5 @@ export const CreateOrganization = {
   method: "POST",
   request: CreateOrganizationRequest,
   response: CreateOrganizationResponse,
-} satisfies Endpoint;
+} as const satisfies Endpoint;
 export type CreateOrganization = typeof CreateOrganization;

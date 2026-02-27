@@ -15,6 +15,6 @@ export const CreateDeviceCode = {
   method: "POST",
   request: CreateDeviceCodeRequest,
   response: CreateDeviceCodeResponse,
-} satisfies Endpoint;
+} as const satisfies Endpoint;
 
 export type CreateDeviceCode = typeof CreateDeviceCode;

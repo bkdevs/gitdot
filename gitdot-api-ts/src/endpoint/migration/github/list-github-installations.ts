@@ -19,5 +19,5 @@ export const ListGitHubInstallations = {
   method: "GET",
   request: ListGitHubInstallationsRequest,
   response: ListGitHubInstallationsResponse,
-} satisfies Endpoint;
+} as const satisfies Endpoint;
 export type ListGitHubInstallations = typeof ListGitHubInstallations;

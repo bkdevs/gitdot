@@ -19,5 +19,5 @@ export const GetRepositoryCommitDiff = {
   method: "GET",
   request: GetRepositoryCommitDiffRequest,
   response: GetRepositoryCommitDiffResponse,
-} satisfies Endpoint;
+} as const satisfies Endpoint;
 export type GetRepositoryCommitDiff = typeof GetRepositoryCommitDiff;

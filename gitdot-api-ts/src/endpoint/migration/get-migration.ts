@@ -13,5 +13,5 @@ export const GetMigration = {
   method: "GET",
   request: GetMigrationRequest,
   response: GetMigrationResponse,
-} satisfies Endpoint;
+} as const satisfies Endpoint;
 export type GetMigration = typeof GetMigration;

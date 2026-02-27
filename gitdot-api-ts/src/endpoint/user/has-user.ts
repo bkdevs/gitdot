@@ -14,5 +14,5 @@ export const HasUser = {
   method: "HEAD",
   request: HasUserRequest,
   response: HasUserResponse,
-} satisfies Endpoint;
+} as const satisfies Endpoint;
 export type HasUser = typeof HasUser;

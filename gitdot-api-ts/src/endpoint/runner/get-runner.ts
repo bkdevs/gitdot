@@ -13,5 +13,5 @@ export const GetRunner = {
   method: "GET",
   request: GetRunnerRequest,
   response: GetRunnerResponse,
-} satisfies Endpoint;
+} as const satisfies Endpoint;
 export type GetRunner = typeof GetRunner;

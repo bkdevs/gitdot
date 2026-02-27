@@ -16,5 +16,5 @@ export const CreateRepository = {
   method: "POST",
   request: CreateRepositoryRequest,
   response: CreateRepositoryResponse,
-} satisfies Endpoint;
+} as const satisfies Endpoint;
 export type CreateRepository = typeof CreateRepository;

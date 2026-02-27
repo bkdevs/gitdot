@@ -12,5 +12,5 @@ export const DeleteRunner = {
   method: "DELETE",
   request: DeleteRunnerRequest,
   response: DeleteRunnerResponse,
-} satisfies Endpoint;
+} as const satisfies Endpoint;
 export type DeleteRunner = typeof DeleteRunner;

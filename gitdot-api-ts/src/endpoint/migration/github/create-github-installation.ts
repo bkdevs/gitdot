@@ -17,5 +17,5 @@ export const CreateGitHubInstallation = {
   method: "POST",
   request: CreateGitHubInstallationRequest,
   response: CreateGitHubInstallationResponse,
-} satisfies Endpoint;
+} as const satisfies Endpoint;
 export type CreateGitHubInstallation = typeof CreateGitHubInstallation;

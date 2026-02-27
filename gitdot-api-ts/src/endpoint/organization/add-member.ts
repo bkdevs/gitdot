@@ -16,5 +16,5 @@ export const AddMember = {
   method: "POST",
   request: AddMemberRequest,
   response: AddMemberResponse,
-} satisfies Endpoint;
+} as const satisfies Endpoint;
 export type AddMember = typeof AddMember;

@@ -14,6 +14,6 @@ export const AuthorizeDevice = {
   method: "POST",
   request: AuthorizeDeviceRequest,
   response: AuthorizeDeviceResponse,
-} satisfies Endpoint;
+} as const satisfies Endpoint;
 
 export type AuthorizeDevice = typeof AuthorizeDevice;

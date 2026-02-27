@@ -15,5 +15,5 @@ export const CreateRunnerToken = {
   method: "POST",
   request: CreateRunnerTokenRequest,
   response: CreateRunnerTokenResponse,
-} satisfies Endpoint;
+} as const satisfies Endpoint;
 export type CreateRunnerToken = typeof CreateRunnerToken;

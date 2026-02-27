@@ -22,5 +22,5 @@ export const GetRepositoryFileCommits = {
   method: "GET",
   request: GetRepositoryFileCommitsRequest,
   response: GetRepositoryFileCommitsResponse,
-} satisfies Endpoint;
+} as const satisfies Endpoint;
 export type GetRepositoryFileCommits = typeof GetRepositoryFileCommits;

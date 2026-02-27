@@ -13,5 +13,5 @@ export const GetPermission = {
   method: "GET",
   request: GetPermissionRequest,
   response: GetPermissionResponse,
-} satisfies Endpoint;
+} as const satisfies Endpoint;
 export type GetPermission = typeof GetPermission;

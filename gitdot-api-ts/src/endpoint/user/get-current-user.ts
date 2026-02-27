@@ -13,5 +13,5 @@ export const GetCurrentUser = {
   method: "GET",
   request: GetCurrentUserRequest,
   response: GetCurrentUserResponse,
-} satisfies Endpoint;
+} as const satisfies Endpoint;
 export type GetCurrentUser = typeof GetCurrentUser;

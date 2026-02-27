@@ -16,5 +16,5 @@ export const CreateRunner = {
   method: "POST",
   request: CreateRunnerRequest,
   response: CreateRunnerResponse,
-} satisfies Endpoint;
+} as const satisfies Endpoint;
 export type CreateRunner = typeof CreateRunner;

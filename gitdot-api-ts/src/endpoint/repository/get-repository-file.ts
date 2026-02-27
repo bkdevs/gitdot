@@ -18,5 +18,5 @@ export const GetRepositoryFile = {
   method: "GET",
   request: GetRepositoryFileRequest,
   response: GetRepositoryFileResponse,
-} satisfies Endpoint;
+} as const satisfies Endpoint;
 export type GetRepositoryFile = typeof GetRepositoryFile;

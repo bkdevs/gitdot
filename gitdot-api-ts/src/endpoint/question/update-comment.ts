@@ -15,5 +15,5 @@ export const UpdateComment = {
   method: "PATCH",
   request: UpdateCommentRequest,
   response: UpdateCommentResponse,
-} satisfies Endpoint;
+} as const satisfies Endpoint;
 export type UpdateComment = typeof UpdateComment;
