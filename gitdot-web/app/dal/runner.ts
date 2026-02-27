@@ -3,69 +3,69 @@ import "server-only";
 import { RunnerResource, RunnerTokenResource } from "gitdot-api";
 import { z } from "zod";
 import {
-	authDelete,
-	authFetch,
-	authPost,
-	GITDOT_SERVER_URL,
-	handleEmptyResponse,
-	handleResponse,
+  authDelete,
+  authFetch,
+  authPost,
+  GITDOT_SERVER_URL,
+  handleEmptyResponse,
+  handleResponse,
 } from "./util";
 
 export async function createRunner(
-	name: string,
-	ownerName: string,
-	ownerType: string,
+  name: string,
+  ownerName: string,
+  ownerType: string,
 ): Promise<RunnerResource | null> {
-	const response = await authPost(
-		`${GITDOT_SERVER_URL}/ci/runner/${ownerName}`,
-		{
-			name,
-			owner_type: ownerType,
-		},
-	);
+  const response = await authPost(
+    `${GITDOT_SERVER_URL}/ci/runner/${ownerName}`,
+    {
+      name,
+      owner_type: ownerType,
+    },
+  );
 
-	return await handleResponse(response, RunnerResource);
+  return await handleResponse(response, RunnerResource);
 }
 
 export async function getRunner(
-	owner: string,
-	name: string,
+  owner: string,
+  name: string,
 ): Promise<RunnerResource | null> {
-	const response = await authFetch(
-		`${GITDOT_SERVER_URL}/ci/runner/${owner}/${name}`,
-	);
+  const response = await authFetch(
+    `${GITDOT_SERVER_URL}/ci/runner/${owner}/${name}`,
+  );
 
-	return await handleResponse(response, RunnerResource);
+  return await handleResponse(response, RunnerResource);
 }
 
 export async function listRunners(
-	ownerName: string,
+  ownerName: string,
 ): Promise<RunnerResource[] | null> {
-	const response = await authFetch(
-		`${GITDOT_SERVER_URL}/ci/runner/${ownerName}`,
-	);
+  const response = await authFetch(
+    `${GITDOT_SERVER_URL}/ci/runner/${ownerName}`,
+  );
 
-	return await handleResponse(response, z.array(RunnerResource));
+  return await handleResponse(response, z.array(RunnerResource));
 }
 
 export async function refreshRunnerToken(
-	ownerName: string,
-	name: string,
+  ownerName: string,
+  name: string,
 ): Promise<RunnerTokenResource | null> {
-	const response = await authPost(
-		`${GITDOT_SERVER_URL}/ci/runner/${ownerName}/${name}/token`,
-		{},
-	);
+  const response = await authPost(
+    `${GITDOT_SERVER_URL}/ci/runner/${ownerName}/${name}/token`,
+    {},
+  );
 
-	return await handleResponse(response, RunnerTokenResource);
+  return await handleResponse(response, RunnerTokenResource);
 }
 
 export async function deleteRunner(
-	ownerName: string,
-	name: string,
+  ownerName: string,
+  name: string,
 ): Promise<void> {
-	const response = await authDelete(
-		`${GITDOT_SERVER_URL}/ci/runner/${ownerName}/${name}`,
-	);
-	await handleEmptyResponse(response);
+  const response = await authDelete(
+    `${GITDOT_SERVER_URL}/ci/runner/${ownerName}/${name}`,
+  );
+  await handleEmptyResponse(response);
 }

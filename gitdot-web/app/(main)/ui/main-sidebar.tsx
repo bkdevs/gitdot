@@ -156,9 +156,7 @@ function DropdownNavItem({
             <span className="sr-only">{label}</span>
           </SidebarMenuButton>
         </DropdownMenuTrigger>
-        <DropdownMenuContent side="right">
-          {children}
-        </DropdownMenuContent>
+        <DropdownMenuContent side="right">{children}</DropdownMenuContent>
       </DropdownMenu>
     </SidebarMenuItem>
   );

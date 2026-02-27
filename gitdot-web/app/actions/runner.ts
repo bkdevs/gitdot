@@ -1,7 +1,12 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { authorizeDevice, createRunner, deleteRunner, refreshRunnerToken } from "@/dal";
+import {
+  authorizeDevice,
+  createRunner,
+  deleteRunner,
+  refreshRunnerToken,
+} from "@/dal";
 
 export type CreateRunnerActionResult = { error: string };
 

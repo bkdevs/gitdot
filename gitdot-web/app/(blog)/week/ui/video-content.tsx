@@ -39,7 +39,7 @@ type VideoContentProps = VideoHTMLAttributes<HTMLVideoElement> & {
   node?: unknown;
 };
 
-export function VideoContent({ src, children, ...props }: VideoContentProps) {
+export function VideoContent({ src, children }: VideoContentProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const strSrc = typeof src === "string" ? src : undefined;
   const videoSrc =

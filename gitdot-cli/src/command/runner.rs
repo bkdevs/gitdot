@@ -1,8 +1,10 @@
+mod config;
 mod install;
 mod run;
 mod start;
 mod stop;
 
+use config::config as print_config;
 use install::install;
 use run::run;
 use start::start;
@@ -32,6 +34,9 @@ pub enum RunnerCommand {
 
     /// Stop the runner daemon
     Stop {},
+
+    /// Print the path to the runner config file
+    Config {},
 }
 
 impl RunnerCommand {
@@ -41,6 +46,7 @@ impl RunnerCommand {
             RunnerCommand::Run {} => run(config).await,
             RunnerCommand::Start {} => start().await,
             RunnerCommand::Stop {} => stop().await,
+            RunnerCommand::Config {} => print_config().await,
         }
     }
 }

@@ -86,10 +86,7 @@ function UserDropdown() {
           />
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent
-        side="bottom"
-        align="end"
-      >
+      <DropdownMenuContent side="bottom" align="end">
         {user ? <AuthenticatedMenuItems /> : <UnauthenticatedMenuItems />}
       </DropdownMenuContent>
     </DropdownMenu>
@@ -101,9 +98,7 @@ function AuthenticatedMenuItems() {
 
   return (
     <>
-      <DropdownMenuItem
-        onClick={() => router.push("/settings")}
-      >
+      <DropdownMenuItem onClick={() => router.push("/settings")}>
         Profile
       </DropdownMenuItem>
       <DropdownMenuItem
@@ -123,14 +118,10 @@ function UnauthenticatedMenuItems() {
 
   return (
     <>
-      <DropdownMenuItem
-        onClick={() => router.push("/login")}
-      >
+      <DropdownMenuItem onClick={() => router.push("/login")}>
         Log in
       </DropdownMenuItem>
-      <DropdownMenuItem
-        onClick={() => router.push("/signup")}
-      >
+      <DropdownMenuItem onClick={() => router.push("/signup")}>
         Sign up
       </DropdownMenuItem>
     </>

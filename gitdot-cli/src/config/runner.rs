@@ -6,7 +6,7 @@ use crate::executor::ExecutorType;
 
 pub const SYSTEM_USER: &str = "gitdot";
 
-const RUNNER_CONFIG_PATH: &str = "/etc/gitdot/runner.toml";
+pub const RUNNER_CONFIG_PATH: &str = "/etc/gitdot/runner.toml";
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RunnerConfig {

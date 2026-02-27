@@ -1,5 +1,8 @@
 "use client";
 
+import type { RunnerResource } from "gitdot-api";
+import { Settings } from "lucide-react";
+import { useState } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -7,13 +10,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/ui/dropdown-menu";
-import type { RunnerResource } from "gitdot-api";
-import { Settings } from "lucide-react";
-import { useState } from "react";
 import { DeleteRunnerDialog } from "./delete-runner-dialog";
+import { RefreshRunnerTokenDialog } from "./refresh-runner-token-dialog";
 
 export function RunnerSettings({ runner }: { runner: RunnerResource }) {
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [refreshOpen, setRefreshOpen] = useState(false);
 
   return (
     <>
@@ -27,11 +29,13 @@ export function RunnerSettings({ runner }: { runner: RunnerResource }) {
             Settings
           </button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent
-          side="bottom"
-          align="end"
-        >
-          <DropdownMenuItem>
+        <DropdownMenuContent side="bottom" align="end">
+          <DropdownMenuItem
+            onSelect={(event) => {
+              event.preventDefault();
+              setRefreshOpen(true);
+            }}
+          >
             Refresh token
           </DropdownMenuItem>
           <DropdownMenuSeparator />
@@ -47,6 +51,11 @@ export function RunnerSettings({ runner }: { runner: RunnerResource }) {
         </DropdownMenuContent>
       </DropdownMenu>
 
+      <RefreshRunnerTokenDialog
+        open={refreshOpen}
+        setOpen={setRefreshOpen}
+        runner={runner}
+      />
       <DeleteRunnerDialog
         open={deleteOpen}
         setOpen={setDeleteOpen}

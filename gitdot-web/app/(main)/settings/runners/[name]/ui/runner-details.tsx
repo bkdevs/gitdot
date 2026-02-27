@@ -25,8 +25,8 @@ export function RunnerDetails({ runner }: { runner: RunnerResource }) {
               {isActive && lastActive
                 ? "Now"
                 : lastActive
-                ? formatDateTime(lastActive)
-                : "Never"}
+                  ? formatDateTime(lastActive)
+                  : "Never"}
             </dd>
           </div>
         </dl>
