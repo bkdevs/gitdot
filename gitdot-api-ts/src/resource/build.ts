@@ -3,13 +3,13 @@ import { z } from "zod";
 import { TaskResource } from "./task";
 
 export const BuildResource = z.object({
-  id: z.string().uuid(),
+  id: z.uuid(),
   number: z.number().int(),
-  repository_id: z.string().uuid(),
+  repository_id: z.uuid(),
   trigger: z.string(),
   commit_sha: z.string(),
-  created_at: z.string().datetime(),
-  updated_at: z.string().datetime(),
+  created_at: z.iso.datetime(),
+  updated_at: z.iso.datetime(),
 });
 export type BuildResource = z.infer<typeof BuildResource>;
 

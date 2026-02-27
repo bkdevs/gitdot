@@ -1,4 +1,4 @@
-import type { QuestionResource } from "gitdot-api-ts";
+import type { QuestionResource } from "gitdot-api";
 import Link from "@/ui/link";
 import { pluralize, timeAgo } from "@/util";
 import { VoteBox } from "../[number]/ui/vote-box";

@@ -1,4 +1,4 @@
-import type { RepositoryCommitDiffResource } from "gitdot-api-ts";
+import type { RepositoryCommitDiffResource } from "gitdot-api";
 import { mergeHunks } from "@/(main)/[owner]/[repo]/util";
 import { DiffSingle } from "./diff-single";
 import { DiffSplit } from "./diff-split";

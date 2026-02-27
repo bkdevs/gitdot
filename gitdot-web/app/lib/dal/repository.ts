@@ -10,7 +10,7 @@ import {
   RepositoryPreviewResource,
   RepositoryResource,
   RepositoryTreeResource,
-} from "gitdot-api-ts";
+} from "gitdot-api";
 import { z } from "zod";
 import { toQueryString } from "@/util";
 import {

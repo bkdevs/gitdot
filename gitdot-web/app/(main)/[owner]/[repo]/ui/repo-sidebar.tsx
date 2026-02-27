@@ -3,7 +3,7 @@
 import type {
   RepositoryCommitResource,
   RepositoryTreeEntryResource,
-} from "gitdot-api-ts";
+} from "gitdot-api";
 import { usePathname } from "next/navigation";
 import { Sidebar, SidebarContent } from "@/ui/sidebar";
 import { RepoSidebarCommits } from "./sidebar/repo-sidebar-commits";

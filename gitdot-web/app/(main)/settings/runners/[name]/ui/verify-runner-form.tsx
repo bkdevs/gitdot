@@ -1,6 +1,6 @@
 "use client";
 
-import type { RunnerResource } from "gitdot-api-ts";
+import type { RunnerResource } from "gitdot-api";
 import { useEffect, useState, useTransition } from "react";
 import { refreshRunnerTokenAction } from "@/actions";
 

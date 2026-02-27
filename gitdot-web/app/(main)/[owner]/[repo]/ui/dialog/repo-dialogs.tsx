@@ -1,6 +1,6 @@
 "use client";
 
-import type { RepositoryTreeEntryResource } from "gitdot-api-ts";
+import type { RepositoryTreeEntryResource } from "gitdot-api";
 import { Suspense, useEffect, useState } from "react";
 import { RepoFileDialog } from "./repo-file-dialog";
 

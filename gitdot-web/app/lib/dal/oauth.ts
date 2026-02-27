@@ -1,6 +1,6 @@
 import "server-only";
 
-import { DeviceCodeResource, TokenResource } from "gitdot-api-ts";
+import { DeviceCodeResource, TokenResource } from "gitdot-api";
 import { toQueryString } from "@/util";
 import { authFetch, authPost, GITDOT_SERVER_URL, handleResponse } from "./util";
 

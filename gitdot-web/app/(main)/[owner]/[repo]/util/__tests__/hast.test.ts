@@ -1,4 +1,4 @@
-import type { DiffChangeResource } from "gitdot-api-ts";
+import type { DiffChangeResource } from "gitdot-api";
 import type { Element } from "hast";
 import { highlightWords } from "../hast";
 

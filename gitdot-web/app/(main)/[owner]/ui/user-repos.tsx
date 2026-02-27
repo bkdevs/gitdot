@@ -1,4 +1,4 @@
-import type { RepositoryResource } from "gitdot-api-ts";
+import type { RepositoryResource } from "gitdot-api";
 import Link from "@/ui/link";
 import { formatDate } from "@/util";
 import { CreateRepoButton } from "./create-repo-button";

@@ -1,4 +1,4 @@
-import type { RepositoryFileResource } from "gitdot-api-ts";
+import type { RepositoryFileResource } from "gitdot-api";
 import { toJsxRuntime } from "hast-util-to-jsx-runtime";
 import type { JSX } from "react";
 import { Fragment } from "react";

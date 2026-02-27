@@ -1,6 +1,6 @@
 "use client";
 
-import type { CommentResource } from "gitdot-api-ts";
+import type { CommentResource } from "gitdot-api";
 import { useOptimistic } from "react";
 import { useUser } from "@/(main)/providers/user-provider";
 import { createCommentAction } from "@/actions";

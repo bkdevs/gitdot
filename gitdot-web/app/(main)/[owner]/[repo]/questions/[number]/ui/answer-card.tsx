@@ -1,6 +1,6 @@
 "use client";
 
-import type { AnswerResource } from "gitdot-api-ts";
+import type { AnswerResource } from "gitdot-api";
 import { MarkdownBody } from "@/(main)/[owner]/[repo]/ui/markdown/markdown-body";
 import { useUser } from "@/(main)/providers/user-provider";
 import { formatDate, timeAgoFull } from "@/util";

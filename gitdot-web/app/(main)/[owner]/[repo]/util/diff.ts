@@ -2,7 +2,7 @@ import type {
   DiffChangeResource,
   DiffHunkResource,
   DiffPairResource,
-} from "gitdot-api-ts";
+} from "gitdot-api";
 
 export type LinePair = [number | null, number | null];
 export const CONTEXT_LINES = 4;

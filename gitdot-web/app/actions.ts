@@ -8,7 +8,7 @@ import type {
   RepositoryResource,
   UserResource,
   VoteResource,
-} from "gitdot-api-ts";
+} from "gitdot-api";
 import { refresh } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";

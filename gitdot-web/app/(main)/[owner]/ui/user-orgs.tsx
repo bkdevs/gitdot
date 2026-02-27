@@ -1,4 +1,4 @@
-import type { OrganizationResource } from "gitdot-api-ts";
+import type { OrganizationResource } from "gitdot-api";
 import Link from "@/ui/link";
 import { formatDate } from "@/util";
 

@@ -61,7 +61,7 @@ export type RepositoryCommitDiffResource = z.infer<
 >;
 
 export const CommitAuthorResource = z.object({
-  id: z.string().uuid().optional(),
+  id: z.uuid().optional(),
   name: z.string(),
   email: z.string(),
 });
@@ -71,7 +71,7 @@ export const RepositoryCommitResource = z.object({
   sha: z.string(),
   parent_sha: z.string().optional(),
   message: z.string(),
-  date: z.string().datetime(),
+  date: z.iso.datetime(),
   author: CommitAuthorResource,
 });
 export type RepositoryCommitResource = z.infer<typeof RepositoryCommitResource>;
@@ -147,10 +147,10 @@ export type RepositoryPermissionResource = z.infer<
 >;
 
 export const RepositoryResource = z.object({
-  id: z.string().uuid(),
+  id: z.uuid(),
   name: z.string(),
   owner: z.string(),
   visibility: z.string(),
-  created_at: z.string().datetime(),
+  created_at: z.iso.datetime(),
 });
 export type RepositoryResource = z.infer<typeof RepositoryResource>;

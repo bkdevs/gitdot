@@ -1,4 +1,4 @@
-import type { RepositoryCommitResource } from "gitdot-api-ts";
+import type { RepositoryCommitResource } from "gitdot-api";
 
 /**
  * Group commits by date (most recent first)

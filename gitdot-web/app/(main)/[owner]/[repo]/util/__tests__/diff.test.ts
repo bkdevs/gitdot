@@ -1,4 +1,4 @@
-import type { DiffHunkResource } from "gitdot-api-ts";
+import type { DiffHunkResource } from "gitdot-api";
 import {
   CONTEXT_LINES,
   expandLines,

@@ -1,4 +1,4 @@
-import type { TaskResource } from "gitdot-api-ts";
+import type { TaskResource } from "gitdot-api";
 import { cn } from "@/util";
 
 const STATUS_STYLES: Record<string, string> = {

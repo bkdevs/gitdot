@@ -5,7 +5,7 @@ import {
   CommentResource,
   QuestionResource,
   VoteResource,
-} from "gitdot-api-ts";
+} from "gitdot-api";
 import { z } from "zod";
 import {
   authFetch,

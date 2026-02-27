@@ -4,7 +4,7 @@ import {
   OrganizationResource,
   RepositoryResource,
   UserResource,
-} from "gitdot-api-ts";
+} from "gitdot-api";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { getSession } from "../supabase";

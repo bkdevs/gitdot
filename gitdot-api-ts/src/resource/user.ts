@@ -1,9 +1,9 @@
 import { z } from "zod";
 
 export const UserResource = z.object({
-  id: z.string().uuid(),
+  id: z.uuid(),
   name: z.string(),
   email: z.string(),
-  created_at: z.string().datetime(),
+  created_at: z.iso.datetime(),
 });
 export type UserResource = z.infer<typeof UserResource>;

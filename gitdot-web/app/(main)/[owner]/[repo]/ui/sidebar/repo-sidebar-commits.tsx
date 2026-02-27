@@ -1,6 +1,6 @@
 "use client";
 
-import type { RepositoryCommitResource } from "gitdot-api-ts";
+import type { RepositoryCommitResource } from "gitdot-api";
 import { usePathname } from "next/navigation";
 import { Fragment } from "react";
 import Link from "@/ui/link";

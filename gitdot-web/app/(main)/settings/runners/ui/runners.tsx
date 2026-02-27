@@ -1,4 +1,4 @@
-import type { RunnerResource } from "gitdot-api-ts";
+import type { RunnerResource } from "gitdot-api";
 import { Plus } from "lucide-react";
 import Link from "@/ui/link";
 import { formatDate } from "@/util";

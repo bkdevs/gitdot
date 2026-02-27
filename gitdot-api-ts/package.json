@@ -1,5 +1,5 @@
 {
-  "name": "gitdot-api-ts",
+  "name": "gitdot-api",
   "version": "0.1.0",
   "private": true,
   "exports": {

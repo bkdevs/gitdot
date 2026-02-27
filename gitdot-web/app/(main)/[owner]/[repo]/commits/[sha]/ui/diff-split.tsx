@@ -1,4 +1,4 @@
-import type { DiffHunkResource, RepositoryFileResource } from "gitdot-api-ts";
+import type { DiffHunkResource, RepositoryFileResource } from "gitdot-api";
 import type { Element } from "hast";
 import { toJsxRuntime } from "hast-util-to-jsx-runtime";
 import type { JSX } from "react";

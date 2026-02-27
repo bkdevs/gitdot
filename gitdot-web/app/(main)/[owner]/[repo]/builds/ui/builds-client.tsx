@@ -1,6 +1,6 @@
 "use client";
 
-import type { BuildResource } from "gitdot-api-ts";
+import type { BuildResource } from "gitdot-api";
 import { BuildRow } from "./build-row";
 import { BuildsHeader } from "./builds-header";
 

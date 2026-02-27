@@ -39,7 +39,7 @@
     "shiki": "^3.21.0",
     "tailwind-merge": "^3.4.0",
     "tw-animate-css": "catalog:",
-    "gitdot-api-ts": "workspace:*",
+    "gitdot-api": "workspace:*",
     "zod": "catalog:"
   },
   "devDependencies": {

@@ -2,7 +2,7 @@ import type {
   DiffChangeResource,
   RepositoryFileResource,
   RepositoryPreviewEntryResource,
-} from "gitdot-api-ts";
+} from "gitdot-api";
 import type { Element, ElementContent, Root } from "hast";
 import {
   addClassToHast,

@@ -1,7 +1,7 @@
 import type {
   RepositoryTreeEntryResource,
   RepositoryTreeResource,
-} from "gitdot-api-ts";
+} from "gitdot-api";
 
 export function parseRepositoryTree(tree: RepositoryTreeResource): {
   entries: Map<string, RepositoryTreeEntryResource>;

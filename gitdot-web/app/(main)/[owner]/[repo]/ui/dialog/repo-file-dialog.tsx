@@ -1,6 +1,6 @@
 "use client";
 
-import type { RepositoryTreeEntryResource } from "gitdot-api-ts";
+import type { RepositoryTreeEntryResource } from "gitdot-api";
 import { useRouter } from "next/navigation";
 import { use, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";

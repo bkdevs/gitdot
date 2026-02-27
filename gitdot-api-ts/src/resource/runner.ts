@@ -1,13 +1,13 @@
 import { z } from "zod";
 
 export const RunnerResource = z.object({
-  id: z.string().uuid(),
+  id: z.uuid(),
   name: z.string(),
-  owner_id: z.string().uuid(),
+  owner_id: z.uuid(),
   owner_name: z.string(),
   owner_type: z.string(),
-  last_verified: z.string().datetime().nullable(),
-  created_at: z.string().datetime(),
+  last_verified: z.iso.datetime().nullable(),
+  created_at: z.iso.datetime(),
 });
 export type RunnerResource = z.infer<typeof RunnerResource>;
 

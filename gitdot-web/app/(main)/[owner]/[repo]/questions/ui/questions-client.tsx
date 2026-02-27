@@ -1,6 +1,6 @@
 "use client";
 
-import type { QuestionResource } from "gitdot-api-ts";
+import type { QuestionResource } from "gitdot-api";
 import { useMemo, useState } from "react";
 import { processQuestions } from "../util";
 import { QuestionRow } from "./question-row";

@@ -1,4 +1,4 @@
-import type { BuildResource } from "gitdot-api-ts";
+import type { BuildResource } from "gitdot-api";
 import Link from "@/ui/link";
 import { timeAgo } from "@/util";
 

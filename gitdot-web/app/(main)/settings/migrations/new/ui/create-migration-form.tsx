@@ -5,7 +5,7 @@ import type {
   GitHubRepositoryResource,
   OrganizationResource,
   UserResource,
-} from "gitdot-api-ts";
+} from "gitdot-api";
 import Image from "next/image";
 import { useState, useTransition } from "react";
 import { migrateGitHubRepositoriesAction } from "@/actions";

@@ -1,4 +1,4 @@
-import type { RepositoryTreeEntryResource } from "gitdot-api-ts";
+import type { RepositoryTreeEntryResource } from "gitdot-api";
 import { File, Folder, FolderOpen } from "lucide-react";
 import { useMemo } from "react";
 import Link from "@/ui/link";

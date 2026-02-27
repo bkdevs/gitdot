@@ -1,6 +1,6 @@
 "use client";
 
-import type { RepositoryCommitsResource } from "gitdot-api-ts";
+import type { RepositoryCommitsResource } from "gitdot-api";
 import { usePathname, useSearchParams } from "next/navigation";
 import Link from "@/ui/link";
 import { timeAgo } from "@/util";

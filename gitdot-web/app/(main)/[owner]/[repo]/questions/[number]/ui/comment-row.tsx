@@ -1,6 +1,6 @@
 "use client";
 
-import type { CommentResource } from "gitdot-api-ts";
+import type { CommentResource } from "gitdot-api";
 import { Check, Edit3 } from "lucide-react";
 import { useActionState, useOptimistic, useRef, useState } from "react";
 import { useAuthBlocker } from "@/(main)/providers/auth-blocker-provider";

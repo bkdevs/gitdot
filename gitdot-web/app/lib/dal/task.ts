@@ -1,6 +1,6 @@
 import "server-only";
 
-import { TaskResource } from "gitdot-api-ts";
+import { TaskResource } from "gitdot-api";
 import { z } from "zod";
 import { authFetch, GITDOT_SERVER_URL, handleResponse } from "./util";
 

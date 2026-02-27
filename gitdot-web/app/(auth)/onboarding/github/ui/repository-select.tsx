@@ -1,6 +1,6 @@
 "use client";
 
-import type { GitHubRepositoryResource } from "gitdot-api-ts";
+import type { GitHubRepositoryResource } from "gitdot-api";
 import { useState } from "react";
 import Link from "@/ui/link";
 

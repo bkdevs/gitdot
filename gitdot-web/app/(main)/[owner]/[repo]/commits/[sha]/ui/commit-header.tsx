@@ -1,7 +1,7 @@
 import type {
   RepositoryCommitResource,
   RepositoryCommitStatResource,
-} from "gitdot-api-ts";
+} from "gitdot-api";
 import { formatDateTime } from "@/util";
 import { DiffStatBar } from "./diff-stat-bar";
 

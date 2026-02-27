@@ -1,6 +1,6 @@
 "use client";
 
-import type { UserResource } from "gitdot-api-ts";
+import type { UserResource } from "gitdot-api";
 import { useActionState, useState } from "react";
 import { createRunnerAction } from "@/actions";
 

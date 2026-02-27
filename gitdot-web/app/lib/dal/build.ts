@@ -1,6 +1,6 @@
 import "server-only";
 
-import { BuildResource, GetBuildResource } from "gitdot-api-ts";
+import { BuildResource, GetBuildResource } from "gitdot-api";
 import { z } from "zod";
 import { authFetch, authPost, GITDOT_SERVER_URL, handleResponse } from "./util";
 

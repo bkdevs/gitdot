@@ -1,6 +1,6 @@
 "use client";
 
-import type { QuestionResource } from "gitdot-api-ts";
+import type { QuestionResource } from "gitdot-api";
 import { MoreHorizontal } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/ui/button";

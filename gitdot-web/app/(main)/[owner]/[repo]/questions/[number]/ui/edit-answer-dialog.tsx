@@ -1,7 +1,7 @@
 "use client";
 
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
-import type { AnswerResource } from "gitdot-api-ts";
+import type { AnswerResource } from "gitdot-api";
 import { useActionState, useState } from "react";
 import { type UpdateAnswerActionResult, updateAnswerAction } from "@/actions";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
