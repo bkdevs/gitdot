@@ -8,6 +8,7 @@ export const BuildResource = z.object({
   repository_id: z.uuid(),
   trigger: z.string(),
   commit_sha: z.string(),
+  status: z.enum(["running", "success", "failure"]),
   created_at: z.iso.datetime(),
   updated_at: z.iso.datetime(),
 });

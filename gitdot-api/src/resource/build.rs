@@ -11,6 +11,7 @@ pub struct BuildResource {
     pub repository_id: Uuid,
     pub trigger: String,
     pub commit_sha: String,
+    pub status: String,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }

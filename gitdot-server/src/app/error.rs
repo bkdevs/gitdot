@@ -254,6 +254,7 @@ impl IntoResponse for AppError {
                     BuildError::JoinError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                     BuildError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                     BuildError::S2Error(_) => StatusCode::INTERNAL_SERVER_ERROR,
+                    BuildError::InvalidStatus(_) => StatusCode::BAD_REQUEST,
                 };
                 let response = AppResponse::new(
                     status_code,

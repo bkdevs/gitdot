@@ -19,6 +19,9 @@ pub enum BuildError {
     #[error("Build not found: {0}")]
     NotFound(String),
 
+    #[error("Invalid build status: {0}")]
+    InvalidStatus(String),
+
     #[error(".gitdot-ci.toml not found at ref '{0}'")]
     ConfigNotFound(String),
 

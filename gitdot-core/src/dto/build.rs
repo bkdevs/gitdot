@@ -9,7 +9,7 @@ pub use config::{BuildConfig, BuildTrigger, CiConfig, TaskConfig};
 pub use create_build::CreateBuildRequest;
 pub use list_builds::ListBuildsRequest;
 
-use crate::model::Build;
+use crate::model::{Build, BuildStatus};
 
 #[derive(Debug, Clone)]
 pub struct BuildResponse {
@@ -18,6 +18,7 @@ pub struct BuildResponse {
     pub repository_id: Uuid,
     pub trigger: String,
     pub commit_sha: String,
+    pub status: BuildStatus,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
@@ -30,6 +31,7 @@ impl From<Build> for BuildResponse {
             repository_id: build.repository_id,
             trigger: build.trigger,
             commit_sha: build.commit_sha,
+            status: build.status,
             created_at: build.created_at,
             updated_at: build.updated_at,
         }

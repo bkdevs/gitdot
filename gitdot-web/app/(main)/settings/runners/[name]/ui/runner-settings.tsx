@@ -1,5 +1,8 @@
 "use client";
 
+import type { RunnerResource } from "gitdot-api";
+import { Settings } from "lucide-react";
+import { useState } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -7,9 +10,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/ui/dropdown-menu";
-import type { RunnerResource } from "gitdot-api";
-import { Settings } from "lucide-react";
-import { useState } from "react";
 import { DeleteRunnerDialog } from "./delete-runner-dialog";
 import { RefreshRunnerTokenDialog } from "./refresh-runner-token-dialog";
 
@@ -30,15 +30,13 @@ export function RunnerSettings({ runner }: { runner: RunnerResource }) {
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent side="bottom" align="end">
-          <DropdownMenuItem
-            onSelect={() => setRefreshOpen(true) }
-          >
+          <DropdownMenuItem onSelect={() => setRefreshOpen(true)}>
             Refresh token
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
             variant="destructive"
-            onSelect={() =>  setDeleteOpen(true) }
+            onSelect={() => setDeleteOpen(true)}
           >
             Delete
           </DropdownMenuItem>

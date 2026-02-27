@@ -41,7 +41,7 @@ impl BuildRepository for BuildRepositoryImpl {
             r#"
             INSERT INTO builds (repository_id, trigger, commit_sha, number)
             VALUES ($1, $2, $3, COALESCE((SELECT MAX(number) FROM builds WHERE repository_id = $1), 0) + 1)
-            RETURNING id, number, repository_id, trigger, commit_sha, created_at, updated_at
+            RETURNING id, number, repository_id, trigger, commit_sha, status, created_at, updated_at
             "#,
         )
         .bind(repository_id)
@@ -56,7 +56,7 @@ impl BuildRepository for BuildRepositoryImpl {
     async fn get(&self, repository_id: Uuid, number: i32) -> Result<Option<Build>, Error> {
         let build = sqlx::query_as::<_, Build>(
             r#"
-            SELECT id, number, repository_id, trigger, commit_sha, created_at, updated_at
+            SELECT id, number, repository_id, trigger, commit_sha, status, created_at, updated_at
             FROM builds WHERE repository_id = $1 AND number = $2
             "#,
         )
@@ -71,7 +71,7 @@ impl BuildRepository for BuildRepositoryImpl {
     async fn list_by_repo(&self, repository_id: Uuid) -> Result<Vec<Build>, Error> {
         let builds = sqlx::query_as::<_, Build>(
             r#"
-            SELECT id, number, repository_id, trigger, commit_sha, created_at, updated_at
+            SELECT id, number, repository_id, trigger, commit_sha, status, created_at, updated_at
             FROM builds WHERE repository_id = $1
             ORDER BY created_at ASC
             "#,
