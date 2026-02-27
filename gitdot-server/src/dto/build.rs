@@ -13,6 +13,8 @@ impl IntoApi for BuildResponse {
             trigger: self.trigger.into(),
             commit_sha: self.commit_sha,
             status: self.status.into(),
+            total_tasks: self.total_tasks,
+            completed_tasks: self.completed_tasks,
             created_at: self.created_at,
             updated_at: self.updated_at,
         }

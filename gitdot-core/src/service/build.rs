@@ -8,7 +8,7 @@ use crate::{
     client::{Git2Client, GitClient, S2Client, S2ClientImpl},
     dto::{BuildResponse, CiConfig, CreateBuildRequest, ListBuildsRequest, TaskResponse},
     error::{BuildError, GitError},
-    model::TaskStatus,
+    model::{BuildStatus, TaskStatus},
     repository::{
         BuildRepository, BuildRepositoryImpl, RepositoryRepository, RepositoryRepositoryImpl,
         TaskRepository, TaskRepositoryImpl,
@@ -178,7 +178,19 @@ where
 
         try_join_all(task_futures).await?;
 
-        Ok(build.into())
+        let total_tasks = task_configs.len() as i32;
+        Ok(BuildResponse {
+            id: build.id,
+            number: build.number,
+            repository_id: build.repository_id,
+            trigger: build.trigger,
+            commit_sha: build.commit_sha,
+            status: BuildStatus::Running,
+            total_tasks,
+            completed_tasks: 0,
+            created_at: build.created_at,
+            updated_at: build.updated_at,
+        })
     }
 
     async fn list_builds(
@@ -240,6 +252,34 @@ where
             .await
             .map_err(BuildError::DatabaseError)?;
 
-        Ok((build.into(), tasks.into_iter().map(Into::into).collect()))
+        let total_tasks = tasks.len() as i32;
+        let completed_tasks = tasks
+            .iter()
+            .filter(|t| matches!(t.status, TaskStatus::Success))
+            .count() as i32;
+        let status = if tasks.is_empty() {
+            BuildStatus::Running
+        } else if tasks.iter().any(|t| t.status == TaskStatus::Failure) {
+            BuildStatus::Failure
+        } else if tasks.iter().all(|t| t.status == TaskStatus::Success) {
+            BuildStatus::Success
+        } else {
+            BuildStatus::Running
+        };
+
+        let build_response = BuildResponse {
+            id: build.id,
+            number: build.number,
+            repository_id: build.repository_id,
+            trigger: build.trigger,
+            commit_sha: build.commit_sha,
+            status,
+            total_tasks,
+            completed_tasks,
+            created_at: build.created_at,
+            updated_at: build.updated_at,
+        };
+        let task_responses = tasks.into_iter().map(Into::into).collect();
+        Ok((build_response, task_responses))
     }
 }

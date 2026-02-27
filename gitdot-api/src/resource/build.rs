@@ -12,6 +12,8 @@ pub struct BuildResource {
     pub trigger: String,
     pub commit_sha: String,
     pub status: String,
+    pub total_tasks: i32,
+    pub completed_tasks: i32,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }

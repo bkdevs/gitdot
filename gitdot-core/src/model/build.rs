@@ -16,6 +16,20 @@ pub struct Build {
     pub updated_at: DateTime<Utc>,
 }
 
+#[derive(Debug, Clone, FromRow)]
+pub struct BuildWithStats {
+    pub id: Uuid,
+    pub number: i32,
+    pub repository_id: Uuid,
+    pub trigger: BuildTrigger,
+    pub commit_sha: String,
+    pub status: BuildStatus,
+    pub total_tasks: i32,
+    pub completed_tasks: i32,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Type)]
 #[sqlx(type_name = "build_trigger", rename_all = "snake_case")]
 pub enum BuildTrigger {

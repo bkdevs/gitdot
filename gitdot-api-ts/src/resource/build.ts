@@ -9,6 +9,8 @@ export const BuildResource = z.object({
   trigger: z.enum(["pull_request", "push_to_main"]),
   commit_sha: z.string(),
   status: z.enum(["running", "success", "failure"]),
+  total_tasks: z.number().int(),
+  completed_tasks: z.number().int(),
   created_at: z.iso.datetime(),
   updated_at: z.iso.datetime(),
 });
