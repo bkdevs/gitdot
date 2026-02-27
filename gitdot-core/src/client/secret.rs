@@ -3,11 +3,14 @@ use google_cloud_secretmanager_v1::client::SecretManagerService;
 
 use crate::error::SecretError;
 
+const DATABASE_URL_SECRET_NAME: &str = "database-url";
 const GITHUB_APP_ID_SECRET_NAME: &str = "github-app-id";
 const GITHUB_APP_PRIVATE_KEY_SECRET_NAME: &str = "github-app-private-key";
 
 #[async_trait]
 pub trait SecretClient: Send + Sync + Clone + 'static {
+    async fn get_database_url(&self) -> Result<String, SecretError>;
+
     async fn get_github_app_id(&self) -> Result<u64, SecretError>;
 
     async fn get_github_app_private_key(&self) -> Result<String, SecretError>;
@@ -52,6 +55,10 @@ impl GoogleSecretClient {
 
 #[async_trait]
 impl SecretClient for GoogleSecretClient {
+    async fn get_database_url(&self) -> Result<String, SecretError> {
+        self.access_secret(DATABASE_URL_SECRET_NAME).await
+    }
+
     async fn get_github_app_id(&self) -> Result<u64, SecretError> {
         let value = self.access_secret(GITHUB_APP_ID_SECRET_NAME).await?;
         value.trim().parse::<u64>().map_err(|e| {
