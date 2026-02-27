@@ -96,9 +96,16 @@ where
             .map_err(BuildError::DatabaseError)?
             .ok_or_else(|| BuildError::RepositoryNotFound(format!("{owner}/{repo}")))?;
 
+        let commit = self
+            .git_client
+            .get_repo_commit(owner, repo, &request.commit_sha)
+            .await
+            .map_err(BuildError::GitError)?;
+        let resolved_sha = commit.sha.clone();
+
         let file = self
             .git_client
-            .get_repo_file(owner, repo, &request.commit_sha, ".gitdot-ci.toml")
+            .get_repo_file(owner, repo, &resolved_sha, ".gitdot-ci.toml")
             .await
             .map_err(|e: GitError| match e {
                 GitError::Git2Error(ref git2_err)
@@ -119,7 +126,7 @@ where
         let trigger = crate::model::BuildTrigger::from(request.trigger);
         let build = self
             .build_repo
-            .create(repository.id, trigger, &request.commit_sha)
+            .create(repository.id, trigger, &resolved_sha)
             .await?;
 
         // Pre-generate UUIDs for all tasks so dependencies can reference each other by ID
