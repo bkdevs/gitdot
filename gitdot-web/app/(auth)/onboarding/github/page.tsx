@@ -1,4 +1,9 @@
-import { listInstallationRepositories } from "@/dal";
+import { notFound } from "next/navigation";
+import {
+  getCurrentUser,
+  listInstallationRepositories,
+  listInstallations,
+} from "@/dal";
 import { GitHubImport } from "./ui/github-import";
 import { RepositorySelect } from "./ui/repository-select";
 
@@ -14,10 +19,25 @@ export default async function Page({
       : undefined;
 
   if (installation_id) {
-    const repositories = await listInstallationRepositories(
-      Number(installation_id),
+    const [user, installations, repositories] = await Promise.all([
+      getCurrentUser(),
+      listInstallations(),
+      listInstallationRepositories(Number(installation_id)),
+    ]);
+    if (!user) notFound();
+
+    const installation = (installations ?? []).find(
+      (i) => i.installation_id === Number(installation_id),
     );
-    return <RepositorySelect repositories={repositories} />;
+    if (!installation) notFound();
+
+    return (
+      <RepositorySelect
+        user={user}
+        installation={installation}
+        repositories={repositories}
+      />
+    );
   }
 
   return <GitHubImport />;

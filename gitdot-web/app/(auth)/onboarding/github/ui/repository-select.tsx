@@ -1,15 +1,26 @@
 "use client";
 
-import type { GitHubRepositoryResource } from "gitdot-api";
-import { useState } from "react";
+import type {
+  GitHubInstallationResource,
+  GitHubRepositoryResource,
+  UserResource,
+} from "gitdot-api";
+import { useState, useTransition } from "react";
+import { migrateGitHubRepositoriesAction } from "@/actions";
 import Link from "@/ui/link";
 
 export function RepositorySelect({
+  user,
+  installation,
   repositories,
 }: {
+  user: UserResource;
+  installation: GitHubInstallationResource;
   repositories: GitHubRepositoryResource[] | null;
 }) {
   const [selectedRepos, setSelectedRepos] = useState<Set<string>>(new Set());
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
 
   function toggleRepo(name: string) {
     setSelectedRepos((prev) => {
@@ -20,6 +31,23 @@ export function RepositorySelect({
         next.add(name);
       }
       return next;
+    });
+  }
+
+  function handleSubmit() {
+    setError(null);
+    startTransition(async () => {
+      const result = await migrateGitHubRepositoriesAction(
+        installation.installation_id,
+        installation.github_login,
+        installation.installation_type,
+        user.name,
+        "user",
+        [...selectedRepos],
+      );
+      if ("error" in result) {
+        setError(result.error);
+      }
     });
   }
 
@@ -39,9 +67,9 @@ export function RepositorySelect({
                   <input
                     type="checkbox"
                     name="repositories"
-                    value={repo.full_name}
-                    checked={selectedRepos.has(repo.full_name)}
-                    onChange={() => toggleRepo(repo.full_name)}
+                    value={repo.name}
+                    checked={selectedRepos.has(repo.name)}
+                    onChange={() => toggleRepo(repo.name)}
                   />
                   <span className="flex-1 truncate">{repo.full_name}</span>
                   {repo.private && (
@@ -55,10 +83,17 @@ export function RepositorySelect({
           <p className="text-primary/60">No repositories found.</p>
         )}
 
-        <div className="flex justify-end mt-4">
-          <Link href="/home" className="decoration-primary/40">
-            Continue.
-          </Link>
+        {error && <p className="text-sm text-destructive mt-2">{error}</p>}
+
+        <div className="flex justify-end gap-3 mt-4">
+          <button
+            type="button"
+            disabled={selectedRepos.size === 0 || isPending}
+            onClick={handleSubmit}
+            className="px-3 py-1 text-sm bg-primary text-primary-foreground rounded disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isPending ? "Starting migration..." : "Start migration"}
+          </button>
         </div>
       </div>
     </div>
