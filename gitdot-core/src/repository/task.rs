@@ -26,7 +26,7 @@ pub trait TaskRepository: Send + Sync + Clone + 'static {
 
     async fn update_task(&self, id: Uuid, status: TaskStatus) -> Result<Task, Error>;
 
-    async fn claim_task(&self) -> Result<Option<Task>, Error>;
+    async fn claim_task(&self, runner_id: Uuid) -> Result<Option<Task>, Error>;
 
     async fn unblock_tasks(&self, build_id: Uuid) -> Result<Vec<Task>, Error>;
 }
@@ -47,7 +47,7 @@ impl TaskRepository for TaskRepositoryImpl {
     async fn get_by_id(&self, id: Uuid) -> Result<Task, Error> {
         let task = sqlx::query_as::<_, Task>(
             r#"
-            SELECT id, repository_id, build_id, s2_uri, name, command, status, waits_for, created_at, updated_at
+            SELECT id, repository_id, build_id, s2_uri, name, command, status, waits_for, runner_id, created_at, updated_at
             FROM tasks WHERE id = $1
             "#,
         )
@@ -61,7 +61,7 @@ impl TaskRepository for TaskRepositoryImpl {
     async fn list_by_repo(&self, repository_id: Uuid) -> Result<Vec<Task>, Error> {
         let tasks = sqlx::query_as::<_, Task>(
             r#"
-            SELECT id, repository_id, build_id, s2_uri, name, command, status, waits_for, created_at, updated_at
+            SELECT id, repository_id, build_id, s2_uri, name, command, status, waits_for, runner_id, created_at, updated_at
             FROM tasks WHERE repository_id = $1
             ORDER BY created_at ASC
             "#,
@@ -76,7 +76,7 @@ impl TaskRepository for TaskRepositoryImpl {
     async fn list_by_build_id(&self, build_id: Uuid) -> Result<Vec<Task>, Error> {
         let tasks = sqlx::query_as::<_, Task>(
             r#"
-            SELECT id, repository_id, build_id, s2_uri, name, command, status, waits_for, created_at, updated_at
+            SELECT id, repository_id, build_id, s2_uri, name, command, status, waits_for, runner_id, created_at, updated_at
             FROM tasks WHERE build_id = $1
             ORDER BY created_at ASC
             "#,
@@ -103,7 +103,7 @@ impl TaskRepository for TaskRepositoryImpl {
             r#"
             INSERT INTO tasks (id, repository_id, name, command, build_id, s2_uri, status, waits_for)
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-            RETURNING id, repository_id, build_id, s2_uri, name, command, status, waits_for, created_at, updated_at
+            RETURNING id, repository_id, build_id, s2_uri, name, command, status, waits_for, runner_id, created_at, updated_at
             "#,
         )
         .bind(id)
@@ -125,7 +125,7 @@ impl TaskRepository for TaskRepositoryImpl {
             r#"
             UPDATE tasks SET status = $1, updated_at = NOW()
             WHERE id = $2
-            RETURNING id, repository_id, build_id, s2_uri, name, command, status, waits_for, created_at, updated_at
+            RETURNING id, repository_id, build_id, s2_uri, name, command, status, waits_for, runner_id, created_at, updated_at
             "#,
         )
         .bind(status)
@@ -136,19 +136,20 @@ impl TaskRepository for TaskRepositoryImpl {
         Ok(task)
     }
 
-    async fn claim_task(&self) -> Result<Option<Task>, Error> {
+    async fn claim_task(&self, runner_id: Uuid) -> Result<Option<Task>, Error> {
         let task = sqlx::query_as::<_, Task>(
             r#"
-            UPDATE tasks SET status = 'assigned', updated_at = NOW()
+            UPDATE tasks SET status = 'assigned', runner_id = $1, updated_at = NOW()
             WHERE id = (
                 SELECT id FROM tasks WHERE status = 'pending'
                 ORDER BY created_at ASC
                 LIMIT 1
                 FOR UPDATE SKIP LOCKED
             )
-            RETURNING id, repository_id, build_id, s2_uri, name, command, status, waits_for, created_at, updated_at
+            RETURNING id, repository_id, build_id, s2_uri, name, command, status, waits_for, runner_id, created_at, updated_at
             "#,
         )
+        .bind(runner_id)
         .fetch_optional(&self.pool)
         .await?;
 
@@ -167,7 +168,7 @@ impl TaskRepository for TaskRepositoryImpl {
                 JOIN tasks t2 ON t2.id = dep_id
                 WHERE t2.status != 'success'
               )
-            RETURNING id, repository_id, build_id, s2_uri, name, command, status, waits_for, created_at, updated_at
+            RETURNING id, repository_id, build_id, s2_uri, name, command, status, waits_for, runner_id, created_at, updated_at
             "#,
         )
         .bind(build_id)

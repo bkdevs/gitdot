@@ -17,6 +17,8 @@ pub struct Task {
     pub name: String,
     pub command: String,
 
+    pub runner_id: Option<Uuid>,
+
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }

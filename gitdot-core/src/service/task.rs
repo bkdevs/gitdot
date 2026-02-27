@@ -85,7 +85,7 @@ where
         loop {
             let task = self
                 .task_repo
-                .claim_task()
+                .claim_task(runner_id)
                 .await
                 .map_err(TaskError::DatabaseError)?;
 
