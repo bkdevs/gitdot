@@ -1,4 +1,4 @@
-import { getRepositoryCommit, getRepositoryCommitStat } from "@/lib/dal";
+import { getRepositoryCommit, getRepositoryCommitStat } from "@/dal";
 import { CommitBody } from "./ui/commit-body";
 import { CommitHeader } from "./ui/commit-header";
 

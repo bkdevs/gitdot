@@ -1,5 +1,5 @@
 import { Fragment } from "react";
-import { getRepositoryCommits, NotFound } from "@/lib/dal";
+import { getRepositoryCommits, NotFound } from "@/dal";
 import Link from "@/ui/link";
 import { formatDateKey, formatTime } from "@/util";
 import { groupCommitsByDate } from "../util/commit";

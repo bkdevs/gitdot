@@ -1,4 +1,4 @@
-import { getCurrentUser, getQuestion } from "@/lib/dal";
+import { getCurrentUser, getQuestion } from "@/dal";
 import { cn } from "@/util";
 import { AnswerCard } from "./ui/answer-card";
 import { AnswerForm } from "./ui/answer-form";

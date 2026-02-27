@@ -1,4 +1,4 @@
-import { getCurrentUser } from "@/lib/dal";
+import { getCurrentUser } from "@/dal";
 import { SettingsSidebar } from "./ui/settings-sidebar";
 
 export default async function Layout({

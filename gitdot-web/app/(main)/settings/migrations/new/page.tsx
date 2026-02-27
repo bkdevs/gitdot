@@ -5,7 +5,7 @@ import {
   listInstallations,
   listUserOrganizations,
   NotFound,
-} from "@/lib/dal";
+} from "@/dal";
 import { CreateMigrationForm } from "./ui/create-migration-form";
 import { CreateMigrationInstructions } from "./ui/create-migration-instructions";
 

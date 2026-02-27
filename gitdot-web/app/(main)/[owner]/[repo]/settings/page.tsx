@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 
-import { isRepositoryAdmin } from "@/lib/dal";
+import { isRepositoryAdmin } from "@/dal";
 import { DeleteRepositoryButton } from "./ui/delete-repository-button";
 
 export default async function Page({

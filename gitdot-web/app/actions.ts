@@ -34,7 +34,7 @@ import {
   voteAnswer,
   voteComment,
   voteQuestion,
-} from "@/lib/dal";
+} from "@/dal";
 import { createSupabaseClient } from "@/lib/supabase";
 import { delay, validateEmail } from "./util";
 

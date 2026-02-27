@@ -1,4 +1,4 @@
-import { getCurrentUser, listMigrations } from "@/lib/dal";
+import { getCurrentUser, listMigrations } from "@/dal";
 import { Migrations } from "./ui/migrations";
 
 export default async function Page() {

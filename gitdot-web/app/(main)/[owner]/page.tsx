@@ -2,7 +2,7 @@ import {
   listUserOrganizations,
   listUserRepositories,
   NotFound,
-} from "@/lib/dal";
+} from "@/dal";
 import { UserOrgs } from "./ui/user-orgs";
 import { UserRepos } from "./ui/user-repos";
 

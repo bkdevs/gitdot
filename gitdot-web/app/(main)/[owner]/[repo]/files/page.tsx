@@ -1,4 +1,4 @@
-import { getRepositoryTree, NotFound } from "@/lib/dal";
+import { getRepositoryTree, NotFound } from "@/dal";
 import { FolderViewer } from "../[...filePath]/ui/folder-viewer";
 import { getFolderEntries, parseRepositoryTree } from "../util";
 

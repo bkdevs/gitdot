@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 
-import { getCurrentUser, getMigration } from "@/lib/dal";
+import { getCurrentUser, getMigration } from "@/dal";
 import { formatDate } from "@/util";
 
 export default async function Page({

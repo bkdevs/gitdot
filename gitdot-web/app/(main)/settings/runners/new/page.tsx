@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getCurrentUser } from "@/lib/dal";
+import { getCurrentUser } from "@/dal";
 import { CreateRunnerForm } from "../ui/create-runner-form";
 import { CreateRunnerInstructions } from "../ui/create-runner-instructions";
 

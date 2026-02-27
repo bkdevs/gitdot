@@ -2,7 +2,7 @@ import {
   getFolderEntries,
   parseRepositoryTree,
 } from "@/(main)/[owner]/[repo]/util";
-import { getRepositoryTree, NotFound } from "@/lib/dal";
+import { getRepositoryTree, NotFound } from "@/dal";
 import { FileViewer } from "./ui/file-viewer";
 import { FolderViewer } from "./ui/folder-viewer";
 import { parseLineSelection } from "./util";

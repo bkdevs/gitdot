@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import type { NextRequest } from "next/server";
-import { createInstallation } from "@/lib/dal";
+import { createInstallation } from "@/dal";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);

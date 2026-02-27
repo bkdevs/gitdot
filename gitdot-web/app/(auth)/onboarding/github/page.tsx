@@ -1,4 +1,4 @@
-import { listInstallationRepositories } from "@/lib/dal";
+import { listInstallationRepositories } from "@/dal";
 import { GitHubImport } from "./ui/github-import";
 import { RepositorySelect } from "./ui/repository-select";
 

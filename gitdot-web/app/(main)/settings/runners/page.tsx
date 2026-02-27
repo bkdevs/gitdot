@@ -1,4 +1,4 @@
-import { getCurrentUser, listRunners } from "@/lib/dal";
+import { getCurrentUser, listRunners } from "@/dal";
 import { Runners } from "./ui/runners";
 
 export default async function Page() {

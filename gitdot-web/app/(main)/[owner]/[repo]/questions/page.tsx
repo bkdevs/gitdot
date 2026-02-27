@@ -1,4 +1,4 @@
-import { getQuestions } from "@/lib/dal";
+import { getQuestions } from "@/dal";
 import { QuestionsClient } from "./ui/questions-client";
 
 export default async function Page({

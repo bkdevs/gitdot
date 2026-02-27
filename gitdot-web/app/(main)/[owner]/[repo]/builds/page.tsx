@@ -1,4 +1,4 @@
-import { getBuilds } from "@/lib/dal";
+import { getBuilds } from "@/dal";
 import { BuildsClient } from "./ui/builds-client";
 
 export default async function Page({

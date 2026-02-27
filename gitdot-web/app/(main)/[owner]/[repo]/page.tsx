@@ -1,5 +1,5 @@
 import { CACHED_REPOS } from "@/config";
-import { getRepositoryFile, NotFound } from "@/lib/dal";
+import { getRepositoryFile, NotFound } from "@/dal";
 import { MarkdownBody } from "./ui/markdown/markdown-body";
 
 export async function generateStaticParams() {

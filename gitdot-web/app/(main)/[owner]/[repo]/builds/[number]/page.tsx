@@ -1,4 +1,4 @@
-import { getBuild } from "@/lib/dal";
+import { getBuild } from "@/dal";
 import { TaskRow } from "./ui/task-row";
 
 export default async function Page({

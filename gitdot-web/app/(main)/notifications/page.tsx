@@ -1,4 +1,4 @@
-import { getCurrentUser } from "@/lib/dal";
+import { getCurrentUser } from "@/dal";
 
 export default async function Page() {
   await getCurrentUser();

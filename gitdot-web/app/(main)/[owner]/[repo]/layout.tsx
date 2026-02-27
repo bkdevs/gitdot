@@ -4,7 +4,7 @@ import {
   getRepositoryTree,
   isRepositoryAdmin,
   NotFound,
-} from "@/lib/dal";
+} from "@/dal";
 import { RepoDialogs } from "./ui/dialog/repo-dialogs";
 import { RepoSidebar } from "./ui/repo-sidebar";
 import { parseRepositoryTree, renderFilePreviews } from "./util";

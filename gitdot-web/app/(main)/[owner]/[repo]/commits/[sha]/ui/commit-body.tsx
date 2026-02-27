@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { getRepositoryCommitDiff } from "@/lib/dal";
+import { getRepositoryCommitDiff } from "@/dal";
 import { DiffBody } from "./diff-body";
 import { DiffFileClient } from "./diff-file-client";
 

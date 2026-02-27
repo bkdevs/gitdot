@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 
-import { getCurrentUser, getRunner } from "@/lib/dal";
+import { getCurrentUser, getRunner } from "@/dal";
 import { VerifyRunnerForm } from "./ui/verify-runner-form";
 import { VerifyRunnerInstructions } from "./ui/verify-runner-instructions";
 
