@@ -8,17 +8,12 @@ use crate::{
 };
 
 pub async fn run(config: RunnerConfig) -> anyhow::Result<()> {
-    let token = match config.runner_token {
-        Some(t) => t,
-        None => {
-            eprintln!("Error: runner is not installed. Please run `gitdot-runner install` first.");
-            return Ok(());
-        }
-    };
+    if config.runner_token.is_none() {
+        eprintln!("Error: runner is not installed. Please run `gitdot-runner install` first.");
+        return Ok(());
+    }
 
-    let client = GitdotClient::new("gitdot-runner")
-        .with_token(token)
-        .with_server_url(&config.gitdot_server_url);
+    let client = GitdotClient::from_runner_config(&config);
 
     let s2 = S2::from_url(&config.s2_server_url).context("failed to init S2 client")?;
 

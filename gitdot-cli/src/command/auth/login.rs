@@ -7,9 +7,7 @@ use crate::client::GitdotClient;
 use crate::{config::UserConfig, store::GitCredentialStore};
 
 pub async fn login(mut config: UserConfig) -> anyhow::Result<()> {
-    let api_client = GitdotClient::new("gitdot-cli")
-        .with_server_url(&config.gitdot_server_url)
-        .with_web_url(&config.gitdot_web_url);
+    let api_client = GitdotClient::from_user_config(&config);
 
     let device_code_response = api_client.create_device_code().await?;
 
