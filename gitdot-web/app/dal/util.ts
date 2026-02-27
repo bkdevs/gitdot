@@ -1,7 +1,7 @@
 import "server-only";
 
 import type { ZodType } from "zod";
-import { getSession } from "../supabase";
+import { getSession } from "@/lib/supabase";
 
 export const GITDOT_SERVER_URL =
   process.env.GITDOT_SERVER_URL || "http://localhost:8080";
