@@ -105,12 +105,12 @@ function SortDropdown({
           <ChevronDown className="size-3 ml-auto" />
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="rounded-none min-w-32 p-0">
+      <DropdownMenuContent align="start">
         {Object.entries(SORT_LABELS).map(([value, label]) => (
           <DropdownMenuItem
             key={value}
             onClick={() => setSort(value as QuestionsSort)}
-            className="rounded-none px-2 py-1.5 text-xs cursor-pointer"
+            className="text-xs"
           >
             {label}
           </DropdownMenuItem>

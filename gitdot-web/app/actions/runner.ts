@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { authorizeDevice, createRunner, refreshRunnerToken } from "@/dal";
+import { authorizeDevice, createRunner, deleteRunner, refreshRunnerToken } from "@/dal";
 
 export type CreateRunnerActionResult = { error: string };
 
@@ -66,4 +66,12 @@ export async function authorizeDeviceAction(
   }
 
   return { success: true };
+}
+
+export async function deleteRunnerAction(
+  ownerName: string,
+  runnerName: string,
+): Promise<never> {
+  await deleteRunner(ownerName, runnerName);
+  redirect("/settings/runners");
 }

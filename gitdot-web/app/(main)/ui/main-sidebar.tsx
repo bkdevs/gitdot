@@ -78,7 +78,6 @@ export function MainSidebar() {
                       if (requireAuth()) return null;
                       setCreateRepoOpen(true);
                     }}
-                    className="rounded-none px-2 py-1.5 text-sm cursor-pointer"
                   >
                     New repo
                   </DropdownMenuItem>
@@ -157,7 +156,7 @@ function DropdownNavItem({
             <span className="sr-only">{label}</span>
           </SidebarMenuButton>
         </DropdownMenuTrigger>
-        <DropdownMenuContent side="right" className="rounded-none min-w-32 p-0">
+        <DropdownMenuContent side="right">
           {children}
         </DropdownMenuContent>
       </DropdownMenu>

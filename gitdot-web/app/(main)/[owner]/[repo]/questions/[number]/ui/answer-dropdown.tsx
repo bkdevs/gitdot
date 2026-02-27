@@ -37,10 +37,10 @@ export const AnswerDropdown = ({
             <MoreHorizontal className="size-4" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="rounded-none min-w-32 p-0">
+        <DropdownMenuContent align="end">
           <DropdownMenuItem
             onClick={() => setEditing(true)}
-            className="rounded-none px-2 py-1.5 text-xs cursor-pointer"
+            className="text-xs"
           >
             Edit
           </DropdownMenuItem>

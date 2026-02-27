@@ -1,22 +1,14 @@
-import { formatDateTime } from "@/util";
 import type { RunnerResource } from "gitdot-api";
-import { Settings } from "lucide-react";
+import { formatDateTime } from "@/util";
+import { RunnerSettings } from "./runner-settings";
 
-export function RunnerDetails({
-  runner,
-}: {
-  runner: RunnerResource;
-}) {
+export function RunnerDetails({ runner }: { runner: RunnerResource }) {
   const createdAt = new Date(runner.created_at);
-  const lastActive = runner.last_active
-    ? new Date(runner.last_active)
-    : null;
-  const isActive =
-    lastActive &&
-    Date.now() - lastActive.getTime() <= 90 * 1000;
+  const lastActive = runner.last_active ? new Date(runner.last_active) : null;
+  const isActive = lastActive && Date.now() - lastActive.getTime() <= 90 * 1000;
 
   return (
-    <aside className="flex w-72 shrink-0 flex-col border-l border-border">
+    <div className="flex w-72 shrink-0 flex-col border-l border-border">
       <div className="p-2">
         <dl className="space-y-3 text-sm text-muted-foreground">
           <div className="space-y-0.5">
@@ -33,21 +25,15 @@ export function RunnerDetails({
               {isActive && lastActive
                 ? "Now"
                 : lastActive
-                  ? formatDateTime(lastActive)
-                  : "Never"}
+                ? formatDateTime(lastActive)
+                : "Never"}
             </dd>
           </div>
         </dl>
       </div>
       <div className="mt-auto flex w-full items-center justify-end border-t border-border px-2">
-        <button
-          type="button"
-          className="flex h-8 items-center justify-center bg-background px-2 text-xs text-foreground hover:bg-accent/50 rounded-none border-l border-border gap-1.5"
-        >
-          <Settings className="size-3" />
-          Settings
-        </button>
+        <RunnerSettings runner={runner} />
       </div>
-    </aside>
+    </div>
   );
 }

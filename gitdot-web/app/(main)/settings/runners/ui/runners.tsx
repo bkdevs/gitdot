@@ -1,7 +1,7 @@
-import Link from "@/ui/link";
-import { timeAgoFull } from "@/util";
 import type { RunnerResource } from "gitdot-api";
 import { Plus } from "lucide-react";
+import Link from "@/ui/link";
+import { timeAgoFull } from "@/util";
 
 export function Runners({ runners }: { runners: RunnerResource[] }) {
   return (
@@ -37,8 +37,7 @@ function RunnerStatus({ runner }: { runner: RunnerResource }) {
   const lastActiveDate = new Date(runner.last_active);
 
   // heuristic to account for the touch in /task/poll
-  const isActive =
-    Date.now() - lastActiveDate.getTime() <= 90 * 1000;
+  const isActive = Date.now() - lastActiveDate.getTime() <= 90 * 1000;
   if (isActive) {
     return <span className="text-green-600">Active</span>;
   }

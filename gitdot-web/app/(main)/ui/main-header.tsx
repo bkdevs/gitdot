@@ -89,7 +89,6 @@ function UserDropdown() {
       <DropdownMenuContent
         side="bottom"
         align="end"
-        className="rounded-none min-w-32 p-0"
       >
         {user ? <AuthenticatedMenuItems /> : <UnauthenticatedMenuItems />}
       </DropdownMenuContent>
@@ -104,7 +103,6 @@ function AuthenticatedMenuItems() {
     <>
       <DropdownMenuItem
         onClick={() => router.push("/settings")}
-        className="rounded-none px-2 py-1.5 text-sm cursor-pointer"
       >
         Profile
       </DropdownMenuItem>
@@ -113,7 +111,6 @@ function AuthenticatedMenuItems() {
           await signout();
           router.push("/login");
         }}
-        className="rounded-none px-2 py-1.5 text-sm cursor-pointer"
       >
         Sign out
       </DropdownMenuItem>
@@ -128,13 +125,11 @@ function UnauthenticatedMenuItems() {
     <>
       <DropdownMenuItem
         onClick={() => router.push("/login")}
-        className="rounded-none px-2 py-1.5 text-sm cursor-pointer"
       >
         Log in
       </DropdownMenuItem>
       <DropdownMenuItem
         onClick={() => router.push("/signup")}
-        className="rounded-none px-2 py-1.5 text-sm cursor-pointer"
       >
         Sign up
       </DropdownMenuItem>
