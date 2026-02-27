@@ -34,7 +34,11 @@ export function DeleteRunnerDialog({
 
     setError(null);
     startTransition(async () => {
-      await deleteRunnerAction(runner.owner_name, runner.name);
+      await deleteRunnerAction(
+        runner.owner_name,
+        runner.name,
+        runner.owner_type,
+      );
     });
   }
 

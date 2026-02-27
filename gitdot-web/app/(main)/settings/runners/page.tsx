@@ -10,7 +10,7 @@ export default async function Page() {
 
   return (
     <div className="flex flex-col w-full">
-      <Runners runners={runners} />
+      <Runners runners={runners} basePath="/settings/runners" />
     </div>
   );
 }

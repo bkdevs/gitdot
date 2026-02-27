@@ -1,18 +1,20 @@
 "use client";
 
-import type { UserResource } from "gitdot-api";
 import { useActionState, useState } from "react";
 import { createRunnerAction } from "@/actions";
 
-export function CreateRunnerForm({ user }: { user: UserResource }) {
+export function CreateRunnerForm({
+  ownerName,
+  ownerType,
+}: {
+  ownerName: string;
+  ownerType: string;
+}) {
   const [name, setName] = useState("");
   const [state, formAction, isPending] = useActionState(
     createRunnerAction,
     null,
   );
-
-  const ownerName = user.name;
-  const ownerType = "user";
 
   return (
     <>
@@ -62,6 +64,7 @@ export function CreateRunnerForm({ user }: { user: UserResource }) {
             disabled={true}
           >
             <option value="user">User</option>
+            <option value="organization">Organization</option>
           </select>
         </div>
         {state && "error" in state && (

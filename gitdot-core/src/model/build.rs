@@ -13,7 +13,6 @@ pub struct Build {
     pub commit_sha: String,
     pub status: BuildStatus,
     pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
 }
 
 #[derive(Debug, Clone, FromRow)]

@@ -31,6 +31,9 @@ export async function createRunnerAction(
     return { error: "Failed to create runner" };
   }
 
+  if (ownerType === "organization") {
+    redirect(`/${ownerName}/settings/runners/${result.name}`);
+  }
   redirect(`/settings/runners/${result.name}`);
 }
 
@@ -76,7 +79,11 @@ export async function authorizeDeviceAction(
 export async function deleteRunnerAction(
   ownerName: string,
   runnerName: string,
+  ownerType = "user",
 ): Promise<never> {
   await deleteRunner(ownerName, runnerName);
+  if (ownerType === "organization") {
+    redirect(`/${ownerName}/settings/runners`);
+  }
   redirect("/settings/runners");
 }

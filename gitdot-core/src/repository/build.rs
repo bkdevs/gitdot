@@ -41,7 +41,7 @@ impl BuildRepository for BuildRepositoryImpl {
             r#"
             INSERT INTO builds (repository_id, trigger, commit_sha, number)
             VALUES ($1, $2, $3, COALESCE((SELECT MAX(number) FROM builds WHERE repository_id = $1), 0) + 1)
-            RETURNING id, number, repository_id, trigger, commit_sha, status, created_at, updated_at
+            RETURNING id, number, repository_id, trigger, commit_sha, status, created_at
             "#,
         )
         .bind(repository_id)
@@ -56,7 +56,7 @@ impl BuildRepository for BuildRepositoryImpl {
     async fn get(&self, repository_id: Uuid, number: i32) -> Result<Option<Build>, Error> {
         let build = sqlx::query_as::<_, Build>(
             r#"
-            SELECT id, number, repository_id, trigger, commit_sha, status, created_at, updated_at
+            SELECT id, number, repository_id, trigger, commit_sha, status, created_at
             FROM builds WHERE repository_id = $1 AND number = $2
             "#,
         )
@@ -81,11 +81,12 @@ impl BuildRepository for BuildRepositoryImpl {
                 END AS status,
                 CAST(COUNT(t.id) AS INT) AS total_tasks,
                 CAST(COUNT(t.id) FILTER (WHERE t.status = 'success') AS INT) AS completed_tasks,
-                b.created_at, b.updated_at
+                b.created_at,
+                COALESCE(MAX(t.updated_at), b.created_at) AS updated_at
             FROM builds b
             LEFT JOIN tasks t ON t.build_id = b.id
             WHERE b.repository_id = $1
-            GROUP BY b.id, b.number, b.repository_id, b.trigger, b.commit_sha, b.created_at, b.updated_at
+            GROUP BY b.id, b.number, b.repository_id, b.trigger, b.commit_sha, b.created_at
             ORDER BY b.created_at ASC
             "#,
         )

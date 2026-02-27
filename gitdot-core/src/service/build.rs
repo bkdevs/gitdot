@@ -189,7 +189,7 @@ where
             total_tasks,
             completed_tasks: 0,
             created_at: build.created_at,
-            updated_at: build.updated_at,
+            updated_at: build.created_at,
         })
     }
 
@@ -267,6 +267,12 @@ where
             BuildStatus::Running
         };
 
+        let effective_updated_at = tasks
+            .iter()
+            .map(|t| t.updated_at)
+            .max()
+            .unwrap_or(build.created_at);
+
         let build_response = BuildResponse {
             id: build.id,
             number: build.number,
@@ -277,7 +283,7 @@ where
             total_tasks,
             completed_tasks,
             created_at: build.created_at,
-            updated_at: build.updated_at,
+            updated_at: effective_updated_at,
         };
         let task_responses = tasks.into_iter().map(Into::into).collect();
         Ok((build_response, task_responses))
