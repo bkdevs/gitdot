@@ -1,12 +1,15 @@
 import "server-only";
 
-import { DeviceCodeResource, TokenResource } from "gitdot-api";
+import {
+  type AuthorizeDeviceRequest,
+  DeviceCodeResource,
+  type PollTokenRequest,
+  TokenResource,
+} from "gitdot-api";
 import { toQueryString } from "@/util";
 import { authFetch, authPost, GITDOT_SERVER_URL, handleResponse } from "./util";
 
 type GetDeviceCodeQuery = { client_id: string };
-type PollTokenRequest = { device_code: string; client_id: string };
-type AuthorizeDeviceRequest = { user_code: string };
 
 export async function getDeviceCode(
   query: GetDeviceCodeQuery,

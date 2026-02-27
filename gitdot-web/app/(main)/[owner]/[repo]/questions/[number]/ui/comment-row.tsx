@@ -11,7 +11,7 @@ import {
   type VoteActionResult,
   voteAction,
 } from "@/actions";
-import { TriangleUp } from "@/lib/icons";
+import { TriangleUp } from "@/icons";
 import { cn, timeAgoFull } from "@/util";
 
 export function CommentRow({

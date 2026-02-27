@@ -3,7 +3,17 @@ import "server-only";
 import {
   AnswerResource,
   CommentResource,
+  type CreateAnswerCommentRequest,
+  type CreateAnswerRequest,
+  type CreateQuestionCommentRequest,
+  type CreateQuestionRequest,
   QuestionResource,
+  type UpdateAnswerRequest,
+  type UpdateCommentRequest,
+  type UpdateQuestionRequest,
+  type VoteAnswerRequest,
+  type VoteCommentRequest,
+  type VoteQuestionRequest,
   VoteResource,
 } from "gitdot-api";
 import { z } from "zod";
@@ -14,14 +24,6 @@ import {
   GITDOT_SERVER_URL,
   handleResponse,
 } from "./util";
-
-type CreateQuestionRequest = { title: string; body: string };
-type UpdateQuestionRequest = { title: string; body: string };
-type CreateAnswerRequest = { body: string };
-type UpdateAnswerRequest = { body: string };
-type CreateCommentRequest = { body: string };
-type UpdateCommentRequest = { body: string };
-type VoteRequest = { value: number };
 
 export async function createQuestion(
   owner: string,
@@ -106,7 +108,7 @@ export async function createQuestionComment(
   owner: string,
   repo: string,
   number: number,
-  request: CreateCommentRequest,
+  request: CreateQuestionCommentRequest,
 ): Promise<CommentResource | null> {
   const response = await authPost(
     `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/question/${number}/comment`,
@@ -121,7 +123,7 @@ export async function createAnswerComment(
   repo: string,
   number: number,
   answerId: string,
-  request: CreateCommentRequest,
+  request: CreateAnswerCommentRequest,
 ): Promise<CommentResource | null> {
   const response = await authPost(
     `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/question/${number}/answer/${answerId}/comment`,
@@ -150,7 +152,7 @@ export async function voteQuestion(
   owner: string,
   repo: string,
   number: number,
-  request: VoteRequest,
+  request: VoteQuestionRequest,
 ): Promise<VoteResource | null> {
   const response = await authPost(
     `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/question/${number}/vote`,
@@ -165,7 +167,7 @@ export async function voteAnswer(
   repo: string,
   number: number,
   answerId: string,
-  request: VoteRequest,
+  request: VoteAnswerRequest,
 ): Promise<VoteResource | null> {
   const response = await authPost(
     `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/question/${number}/answer/${answerId}/vote`,
@@ -180,7 +182,7 @@ export async function voteComment(
   repo: string,
   number: number,
   commentId: string,
-  request: VoteRequest,
+  request: VoteCommentRequest,
 ): Promise<VoteResource | null> {
   const response = await authPost(
     `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/question/${number}/comment/${commentId}/vote`,

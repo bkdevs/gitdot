@@ -7,7 +7,6 @@ import type {
 } from "gitdot-api";
 import { useState, useTransition } from "react";
 import { migrateGitHubRepositoriesAction } from "@/actions";
-import Link from "@/ui/link";
 
 export function RepositorySelect({
   user,

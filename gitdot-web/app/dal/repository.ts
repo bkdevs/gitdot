@@ -1,6 +1,12 @@
 import "server-only";
 
 import {
+  type CreateRepositoryRequest,
+  type GetRepositoryCommitsRequest,
+  type GetRepositoryFileCommitsRequest,
+  type GetRepositoryFileRequest,
+  type GetRepositoryPreviewRequest,
+  type GetRepositoryTreeRequest,
   RepositoryCommitDiffResource,
   RepositoryCommitResource,
   RepositoryCommitStatResource,
@@ -22,22 +28,6 @@ import {
   NotFound,
 } from "./util";
 
-type CreateRepositoryRequest = { owner_type: string; visibility: string };
-type RepositoryCommitsQuery = {
-  ref_name?: string;
-  page?: number;
-  per_page?: number;
-};
-type RepositoryTreeQuery = { ref_name?: string };
-type RepositoryFileQuery = { ref_name?: string; path: string };
-type RepositoryFileCommitsQuery = {
-  path: string;
-  ref_name?: string;
-  page?: number;
-  per_page?: number;
-};
-type RepositoryPreviewQuery = { ref_name?: string; preview_lines?: number };
-
 export async function createRepository(
   owner: string,
   repo: string,
@@ -54,7 +44,7 @@ export async function createRepository(
 export async function getRepositoryFile(
   owner: string,
   repo: string,
-  query: RepositoryFileQuery,
+  query: GetRepositoryFileRequest,
 ): Promise<RepositoryFileResource | NotFound | null> {
   const queryString = toQueryString(query);
   const response = await authFetch(
@@ -68,7 +58,7 @@ export async function getRepositoryFile(
 export async function getRepositoryTree(
   owner: string,
   repo: string,
-  query?: RepositoryTreeQuery,
+  query?: GetRepositoryTreeRequest,
 ): Promise<RepositoryTreeResource | NotFound | null> {
   const queryString = toQueryString(query);
   const response = await authFetch(
@@ -82,7 +72,7 @@ export async function getRepositoryTree(
 export async function getRepositoryCommits(
   owner: string,
   repo: string,
-  query?: RepositoryCommitsQuery,
+  query?: GetRepositoryCommitsRequest,
 ): Promise<RepositoryCommitsResource | NotFound | null> {
   const queryString = toQueryString(query);
   const response = await authFetch(
@@ -96,7 +86,7 @@ export async function getRepositoryCommits(
 export async function getRepositoryFileCommits(
   owner: string,
   repo: string,
-  query: RepositoryFileCommitsQuery,
+  query: GetRepositoryFileCommitsRequest,
 ): Promise<RepositoryCommitsResource | null> {
   const queryString = toQueryString(query);
   const response = await authFetch(
@@ -145,7 +135,7 @@ export async function getRepositoryCommitDiff(
 export async function getRepositoryPreview(
   owner: string,
   repo: string,
-  query?: RepositoryPreviewQuery,
+  query?: GetRepositoryPreviewRequest,
 ): Promise<RepositoryPreviewResource | NotFound | null> {
   const queryString = toQueryString(query);
   const response = await authFetch(

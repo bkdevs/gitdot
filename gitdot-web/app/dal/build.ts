@@ -1,13 +1,12 @@
 import "server-only";
 
-import { BuildResource, GetBuildResource } from "gitdot-api";
+import {
+  BuildResource,
+  type CreateBuildRequest,
+  GetBuildResource,
+} from "gitdot-api";
 import { z } from "zod";
 import { authFetch, authPost, GITDOT_SERVER_URL, handleResponse } from "./util";
-
-type CreateBuildRequest = {
-  trigger: "pull_request" | "push_to_main";
-  commit_sha: string;
-};
 
 export async function getBuilds(
   owner: string,
