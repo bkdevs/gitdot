@@ -1,4 +1,5 @@
-import { getBuilds } from "@/dal";
+import type { RepositoryCommitResource } from "gitdot-api";
+import { getBuilds, getRepositoryCommit } from "@/dal";
 import { BuildsClient } from "./ui/builds-client";
 
 export default async function Page({
@@ -10,5 +11,12 @@ export default async function Page({
   const builds = await getBuilds(owner, repo);
   if (!builds) return null;
 
-  return <BuildsClient owner={owner} repo={repo} builds={builds} />;
+  const commits = (await Promise.all(
+    builds.map((build) => getRepositoryCommit(owner, repo, build.commit_sha)),
+  )) as RepositoryCommitResource[];
+  if (commits.some((c) => c === null)) return null;
+
+  return (
+    <BuildsClient owner={owner} repo={repo} builds={builds} commits={commits} />
+  );
 }

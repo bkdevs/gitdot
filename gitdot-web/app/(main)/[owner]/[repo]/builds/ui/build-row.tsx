@@ -1,4 +1,4 @@
-import type { BuildResource } from "gitdot-api";
+import type { BuildResource, RepositoryCommitResource } from "gitdot-api";
 import Link from "@/ui/link";
 import { timeAgo } from "@/util";
 
@@ -6,12 +6,15 @@ export function BuildRow({
   owner,
   repo,
   build,
+  commit,
 }: {
   owner: string;
   repo: string;
   build: BuildResource;
+  commit: RepositoryCommitResource;
 }) {
   const shortSha = build.commit_sha.slice(0, 7);
+  const message = commit.message.split("\n")[0];
 
   return (
     <Link
@@ -29,7 +32,7 @@ export function BuildRow({
           </span>
         </div>
         <div className="flex flex-row items-center gap-2 mt-0.5">
-          <span className="text-sm">{build.trigger}</span>
+          <span className="text-sm">{message}</span>
         </div>
       </div>
     </Link>
