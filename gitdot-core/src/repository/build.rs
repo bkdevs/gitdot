@@ -87,7 +87,7 @@ impl BuildRepository for BuildRepositoryImpl {
             LEFT JOIN tasks t ON t.build_id = b.id
             WHERE b.repository_id = $1
             GROUP BY b.id, b.number, b.repository_id, b.trigger, b.commit_sha, b.created_at
-            ORDER BY b.created_at ASC
+            ORDER BY b.created_at DESC
             "#,
         )
         .bind(repository_id)
