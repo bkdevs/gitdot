@@ -1,5 +1,5 @@
-import { getBuild } from "@/dal";
-import { TaskRow } from "./ui/task-row";
+import { getBuild, getRepositoryCommit } from "@/dal";
+import { BuildHeader } from "./ui/build-header";
 
 export default async function Page({
   params,
@@ -15,15 +15,7 @@ export default async function Page({
 
   const { build, tasks } = data;
 
-  return (
-    <div className="flex flex-col">
-      <div className="border-b py-2 px-3 text-sm text-muted-foreground">
-        <span className="font-mono">{build.commit_sha.slice(0, 7)}</span>
-        <span className="ml-2">{build.trigger}</span>
-      </div>
-      {tasks.map((task) => (
-        <TaskRow key={task.id} task={task} />
-      ))}
-    </div>
-  );
+  const commit = await getRepositoryCommit(owner, repo, build.commit_sha);
+
+  return <BuildHeader build={build} commit={commit} tasks={tasks} />;
 }
