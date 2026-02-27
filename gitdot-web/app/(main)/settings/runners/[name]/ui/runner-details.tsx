@@ -1,5 +1,6 @@
 import { formatDateTime } from "@/util";
 import type { RunnerResource } from "gitdot-api";
+import { Settings } from "lucide-react";
 
 export function RunnerDetails({
   runner,
@@ -15,27 +16,38 @@ export function RunnerDetails({
     Date.now() - lastActive.getTime() <= 90 * 1000;
 
   return (
-    <aside className="w-72 shrink-0 border-l border-border p-2">
-      <dl className="space-y-3 text-sm text-muted-foreground">
-        <div className="space-y-0.5">
-          <dt className="font-medium text-foreground">Owner</dt>
-          <dd>{runner.owner_name}</dd>
-        </div>
-        <div className="space-y-0.5">
-          <dt className="font-medium text-foreground">Created</dt>
-          <dd>{formatDateTime(createdAt)}</dd>
-        </div>
-        <div className="space-y-0.5">
-          <dt className="font-medium text-foreground">Last active</dt>
-          <dd className={isActive ? "text-green-600" : undefined}>
-            {isActive && lastActive
-              ? "Now"
-              : lastActive
-                ? formatDateTime(lastActive)
-                : "Never"}
-          </dd>
-        </div>
-      </dl>
+    <aside className="flex w-72 shrink-0 flex-col border-l border-border">
+      <div className="p-2">
+        <dl className="space-y-3 text-sm text-muted-foreground">
+          <div className="space-y-0.5">
+            <dt className="font-medium text-foreground">Owner</dt>
+            <dd>{runner.owner_name}</dd>
+          </div>
+          <div className="space-y-0.5">
+            <dt className="font-medium text-foreground">Created</dt>
+            <dd>{formatDateTime(createdAt)}</dd>
+          </div>
+          <div className="space-y-0.5">
+            <dt className="font-medium text-foreground">Last active</dt>
+            <dd className={isActive ? "text-green-600" : undefined}>
+              {isActive && lastActive
+                ? "Now"
+                : lastActive
+                  ? formatDateTime(lastActive)
+                  : "Never"}
+            </dd>
+          </div>
+        </dl>
+      </div>
+      <div className="mt-auto flex w-full items-center justify-end border-t border-border px-2">
+        <button
+          type="button"
+          className="flex h-8 items-center justify-center bg-background px-2 text-xs text-foreground hover:bg-accent/50 rounded-none border-l border-border gap-1.5"
+        >
+          <Settings className="size-3" />
+          Settings
+        </button>
+      </div>
     </aside>
   );
 }

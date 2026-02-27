@@ -22,16 +22,19 @@ export default async function Page({
   }
 
   return (
-    <div className="flex flex-col w-full">
-      <h1 className="flex items-center border-b border-border pl-2 h-9">
-        {runner.name}
-      </h1>
+    <div className="flex w-full flex-col">
       <div className="flex w-full">
-        <RunnerMain />
+        <div className="flex flex-1 flex-col">
+          <h1 className="flex h-9 items-center border-b border-border pl-2">
+            {runner.name}
+          </h1>
+          <div className="flex w-full">
+            <RunnerMain />
+          </div>
+        </div>
         <RunnerDetails runner={runner} />
       </div>
       <div className="flex border-t border-border" />
-
     </div>
   );
 }
