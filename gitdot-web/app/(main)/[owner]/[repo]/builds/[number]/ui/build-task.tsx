@@ -1,8 +1,8 @@
 "use client";
 
 import type { TaskResource } from "gitdot-api";
+import type { S2Record } from "@/lib/s2";
 import {
-	Ban,
 	Check,
 	ChevronDown,
 	ChevronRight,
@@ -12,23 +12,6 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/util";
-
-const LOG_LINES = [
-	"[00:00:01] Setting up environment...",
-	"[00:00:02] Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-	"[00:00:03] Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-	"[00:00:04] Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.",
-	"[00:00:05] Duis aute irure dolor in reprehenderit in voluptate velit esse cillum.",
-	"[00:00:06] Excepteur sint occaecat cupidatat non proident, sunt in culpa.",
-	"[00:00:07] Qui officia deserunt mollit anim id est laborum.",
-	"[00:00:08] Cloning repository...",
-	"[00:00:09] Running pre-flight checks...",
-	"[00:00:10] Installing dependencies...",
-	"[00:00:11] Compiling source files...",
-	"[00:00:12] Running tests...",
-	"[00:00:13] All checks passed.",
-	"[00:00:14] Done.",
-];
 
 function StatusIcon({ status }: { status: string }) {
 	if (status === "running" || status === "assigned") {
@@ -43,8 +26,9 @@ function StatusIcon({ status }: { status: string }) {
 	return <CircleSlash className="size-3 text-muted-foreground" />;
 }
 
-export function BuildTask({ task }: { task: TaskResource }) {
-	const [open, setOpen] = useState(false);
+export function BuildTask({ task, logs }: { task: TaskResource; logs: S2Record[] }) {
+  const [open, setOpen] = useState(false);
+  console.log(logs);
 
 	return (
 		<div className="flex flex-col">
@@ -69,9 +53,9 @@ export function BuildTask({ task }: { task: TaskResource }) {
 			</button>
 			{open && (
 				<div className="bg-background p-2 font-mono text-xs border-border border-b">
-					{LOG_LINES.map((line) => (
-						<div key={line} className="text-muted-foreground">
-							{line}
+					{logs.map((log) => (
+						<div key={log.seq_num} className="text-muted-foreground">
+							{log.body}
 						</div>
 					))}
 				</div>
