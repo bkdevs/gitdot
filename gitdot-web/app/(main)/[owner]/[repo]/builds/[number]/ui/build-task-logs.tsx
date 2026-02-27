@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { type S2Record, tailTaskLogs } from "@/lib/s2-client";
+import { tailTaskLogs } from "@/lib/s2/client";
+import type { S2Record } from "@/lib/s2/shared";
 
 interface BuildTaskLogsProps {
 	owner: string;
@@ -24,8 +25,6 @@ export function BuildTaskLogs({
 	useEffect(() => {
 		if (!running) return;
 		const controller = tailTaskLogs(owner, repo, taskId, (batch) => {
-			console.log(batch);
-
 			setLogs((prev) => {
 				const maxSeq = prev.length > 0 ? prev[prev.length - 1].seq_num : -1;
 				const newRecords = batch.filter((r) => r.seq_num > maxSeq);

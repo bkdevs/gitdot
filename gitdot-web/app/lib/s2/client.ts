@@ -1,12 +1,6 @@
 "use client";
 
-const S2_SERVER_URL =
-	process.env.NEXT_PUBLIC_S2_SERVER_URL ?? "http://localhost:8081";
-
-export interface S2Record {
-	seq_num: number;
-	body: string;
-}
+import { S2_SERVER_URL, type S2Record } from "./shared";
 
 export interface TailTaskLogsOptions {
 	lastEventId?: string; // for resumption: "{seq_num},{count},{bytes}"
