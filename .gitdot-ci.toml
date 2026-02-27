@@ -10,8 +10,8 @@ command = "cargo clean && just build"
 
 [[tasks]]
 name = "lint"
-command = "just lint"
+command = "scripts/log-every-second.sh"
 
 [[tasks]]
 name = "check"
-command = "just check"
+command = "scripts/log-every-second.sh"
