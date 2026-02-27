@@ -6,7 +6,7 @@ export const BuildResource = z.object({
   id: z.uuid(),
   number: z.number().int(),
   repository_id: z.uuid(),
-  trigger: z.string(),
+  trigger: z.enum(["pull_request", "push_to_main"]),
   commit_sha: z.string(),
   status: z.enum(["running", "success", "failure"]),
   created_at: z.iso.datetime(),

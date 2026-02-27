@@ -1,1 +1,1 @@
-pub use gitdot_config::ci::{BuildConfig, BuildTrigger, CiConfig, TaskConfig};
+pub use gitdot_config::ci::CiConfig;

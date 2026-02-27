@@ -127,11 +127,11 @@ impl AppState {
                 github_repo.clone(),
             )),
             build_service: Arc::new(BuildServiceImpl::new(
+                git_client.clone(),
+                s2_client.clone(),
                 build_repo.clone(),
                 task_repo.clone(),
                 repo_repo.clone(),
-                git_client.clone(),
-                s2_client,
             )),
 
             runner_service: Arc::new(RunnerServiceImpl::new(

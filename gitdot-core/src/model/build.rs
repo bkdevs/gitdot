@@ -9,11 +9,36 @@ pub struct Build {
     pub id: Uuid,
     pub number: i32,
     pub repository_id: Uuid,
-    pub trigger: String,
+    pub trigger: BuildTrigger,
     pub commit_sha: String,
     pub status: BuildStatus,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Type)]
+#[sqlx(type_name = "build_trigger", rename_all = "snake_case")]
+pub enum BuildTrigger {
+    PullRequest,
+    PushToMain,
+}
+
+impl Into<String> for BuildTrigger {
+    fn into(self) -> String {
+        match self {
+            BuildTrigger::PullRequest => "pull_request".to_string(),
+            BuildTrigger::PushToMain => "push_to_main".to_string(),
+        }
+    }
+}
+
+impl From<gitdot_config::ci::BuildTrigger> for BuildTrigger {
+    fn from(trigger: gitdot_config::ci::BuildTrigger) -> Self {
+        match trigger {
+            gitdot_config::ci::BuildTrigger::PullRequest => BuildTrigger::PullRequest,
+            gitdot_config::ci::BuildTrigger::PushToMain => BuildTrigger::PushToMain,
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Type)]

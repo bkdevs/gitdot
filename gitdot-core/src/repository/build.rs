@@ -2,14 +2,14 @@ use async_trait::async_trait;
 use sqlx::{Error, PgPool};
 use uuid::Uuid;
 
-use crate::model::Build;
+use crate::model::{Build, BuildTrigger};
 
 #[async_trait]
 pub trait BuildRepository: Send + Sync + Clone + 'static {
     async fn create(
         &self,
         repository_id: Uuid,
-        trigger: &str,
+        trigger: BuildTrigger,
         commit_sha: &str,
     ) -> Result<Build, Error>;
 
@@ -34,7 +34,7 @@ impl BuildRepository for BuildRepositoryImpl {
     async fn create(
         &self,
         repository_id: Uuid,
-        trigger: &str,
+        trigger: BuildTrigger,
         commit_sha: &str,
     ) -> Result<Build, Error> {
         let build = sqlx::query_as::<_, Build>(

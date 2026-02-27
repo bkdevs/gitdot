@@ -10,7 +10,7 @@ impl IntoApi for BuildResponse {
             id: self.id,
             number: self.number,
             repository_id: self.repository_id,
-            trigger: self.trigger,
+            trigger: self.trigger.into(),
             commit_sha: self.commit_sha,
             status: self.status.into(),
             created_at: self.created_at,

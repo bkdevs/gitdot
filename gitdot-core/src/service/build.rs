@@ -35,40 +35,52 @@ pub trait BuildService: Send + Sync + 'static {
 }
 
 #[derive(Debug, Clone)]
-pub struct BuildServiceImpl<B, T, R>
+pub struct BuildServiceImpl<G, S, B, T, R>
 where
+    G: GitClient,
+    S: S2Client,
     B: BuildRepository,
     T: TaskRepository,
     R: RepositoryRepository,
 {
+    git_client: G,
+    s2_client: S,
     build_repo: B,
     task_repo: T,
     repo_repo: R,
-    git_client: Git2Client,
-    s2_client: S2ClientImpl,
 }
 
-impl BuildServiceImpl<BuildRepositoryImpl, TaskRepositoryImpl, RepositoryRepositoryImpl> {
+impl
+    BuildServiceImpl<
+        Git2Client,
+        S2ClientImpl,
+        BuildRepositoryImpl,
+        TaskRepositoryImpl,
+        RepositoryRepositoryImpl,
+    >
+{
     pub fn new(
+        git_client: Git2Client,
+        s2_client: S2ClientImpl,
         build_repo: BuildRepositoryImpl,
         task_repo: TaskRepositoryImpl,
         repo_repo: RepositoryRepositoryImpl,
-        git_client: Git2Client,
-        s2_client: S2ClientImpl,
     ) -> Self {
         Self {
+            git_client,
+            s2_client,
             build_repo,
             task_repo,
             repo_repo,
-            git_client,
-            s2_client,
         }
     }
 }
 
 #[async_trait]
-impl<B, T, R> BuildService for BuildServiceImpl<B, T, R>
+impl<G, S, B, T, R> BuildService for BuildServiceImpl<G, S, B, T, R>
 where
+    G: GitClient,
+    S: S2Client,
     B: BuildRepository,
     T: TaskRepository,
     R: RepositoryRepository,
@@ -104,10 +116,10 @@ where
             .map_err(|e| BuildError::InvalidConfig(e.to_string()))?;
         let task_configs = ci_config.get_task_configs(build_config);
 
-        let trigger: String = request.trigger.into();
+        let trigger = crate::model::BuildTrigger::from(request.trigger);
         let build = self
             .build_repo
-            .create(repository.id, &trigger, &request.commit_sha)
+            .create(repository.id, trigger, &request.commit_sha)
             .await?;
 
         // Pre-generate UUIDs for all tasks so dependencies can reference each other by ID

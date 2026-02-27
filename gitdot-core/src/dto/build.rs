@@ -5,18 +5,18 @@ mod list_builds;
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
-pub use config::{BuildConfig, BuildTrigger, CiConfig, TaskConfig};
+pub use config::CiConfig;
 pub use create_build::CreateBuildRequest;
 pub use list_builds::ListBuildsRequest;
 
-use crate::model::{Build, BuildStatus};
+use crate::model::{Build, BuildStatus, BuildTrigger};
 
 #[derive(Debug, Clone)]
 pub struct BuildResponse {
     pub id: Uuid,
     pub number: i32,
     pub repository_id: Uuid,
-    pub trigger: String,
+    pub trigger: BuildTrigger,
     pub commit_sha: String,
     pub status: BuildStatus,
     pub created_at: DateTime<Utc>,

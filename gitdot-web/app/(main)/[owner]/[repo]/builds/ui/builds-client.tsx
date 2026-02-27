@@ -1,8 +1,11 @@
 "use client";
 
 import type { BuildResource } from "gitdot-api";
+import { useState } from "react";
 import { BuildRow } from "./build-row";
 import { BuildsHeader } from "./builds-header";
+
+export type BuildsFilter = "main" | "pull-request";
 
 export function BuildsClient({
   owner,
@@ -13,10 +16,22 @@ export function BuildsClient({
   repo: string;
   builds: BuildResource[];
 }) {
+  const [filter, setFilter] = useState<BuildsFilter>("main");
+
+  const filteredBuilds = builds.filter((build) => {
+    if (filter === "main") return build.trigger === "push_to_main";
+    return build.trigger === "pull_request";
+  });
+
   return (
     <div className="flex flex-col">
-      <BuildsHeader owner={owner} repo={repo} />
-      {builds.map((build) => (
+      <BuildsHeader
+        owner={owner}
+        repo={repo}
+        filter={filter}
+        setFilter={setFilter}
+      />
+      {filteredBuilds.map((build) => (
         <BuildRow key={build.id} owner={owner} repo={repo} build={build} />
       ))}
     </div>
