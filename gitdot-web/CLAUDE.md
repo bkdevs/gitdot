@@ -30,22 +30,22 @@ Middleware is in `proxy.ts` (not `middleware.ts`). It calls `updateSession()` to
 ## Data Fetching Architecture
 
 ```
-Server Action (app/actions.ts) → DAL (app/lib/dal/) → Backend API (via authFetch/authPost)
-                                                     ↗
-Server Component                → DAL directly
+Server Action (app/actions/) → DAL (app/dal/) → Backend API (via authFetch/authPost)
+                                               ↗
+Server Component              → DAL directly
 ```
 
-**DAL (`app/lib/dal/`)** — Server-only modules. Import `"server-only"` at the top. Use `authFetch`/`authPost`/`authPatch` from `dal/util.ts`, which attach the Supabase JWT automatically and validate responses against Zod schemas via `handleResponse`.
+**DAL (`app/dal/`)** — Server-only modules. Import `"server-only"` at the top. Use `authFetch`/`authPost`/`authPatch` from `app/dal/util.ts`, which attach the Supabase JWT automatically and validate responses against Zod schemas via `handleResponse`.
 
-**Server Actions (`app/actions.ts`)** — Mutations use `"use server"`. Return shape is always `{ success: true } | { error: string }` or `{ data: T } | { error: string }`. Call `refresh()` (from `next/dist/server/app-render/dynamic-rendering`) after mutations to revalidate the current request.
+**Server Actions (`app/actions/`)** — Mutations use `"use server"`. Return shape is always `{ success: true } | { error: string }` or `{ data: T } | { error: string }`. Call `refresh()` (from `next/dist/server/app-render/dynamic-rendering`) after mutations to revalidate the current request.
 
-**DTOs (`app/lib/dto/`)** — Zod schemas for all API response types. Use these in `handleResponse` calls in the DAL.
+**API Types** — Zod schemas live in the `gitdot-api-ts` workspace package. Import from `gitdot-api` in the DAL for response validation.
 
 ## Auth Flow
 
 1. Supabase manages sessions via httpOnly cookies
 2. `proxy.ts` middleware refreshes session on every request
-3. `createSupabaseClient()` in `app/lib/supabase.ts` — server-side client with cookie access
+3. `createSupabaseClient()` in `app/lib/supabase.ts` — server-side Supabase client with cookie access
 4. `getClaims()` / `getSession()` — get identity and access token for API calls
 5. Client-side: `UserProvider` context with `useUser()` hook; `useAuthBlocker()` to gate unauthenticated actions
 

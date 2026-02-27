@@ -12,14 +12,14 @@ Gitdot is a GitHub alternative for open-source maintainers. It's a full-stack ap
 ```bash
 cargo check                          # Type check all crates
 cargo build -p gitdot-server         # Build backend server
-cargo run -p gitdot-server           # Run backend (reads backend/.env)
+cargo run -p gitdot-server           # Run backend (reads gitdot-server/.env)
 cargo test -p gitdot-core            # Run core tests
 cargo +nightly fmt                   # Format code with rustfmt
 ```
 
 ### Frontend (TypeScript)
 ```bash
-cd frontend
+cd gitdot-web
 pnpm dev                             # Dev server
 pnpm build                           # Production build
 pnpm test                            # Jest tests
@@ -29,21 +29,27 @@ pnpm biome check . --write           # Auto-fix lint & format
 
 ### Full Dev Environment
 ```bash
-./scripts/dev.sh                     # Starts tmux with frontend + backend
+just dev                             # Starts tmux with frontend + backend + s2-lite
+just web                             # Frontend only
+just server                          # Backend only
 ```
 
 ## Workspace Structure
 
-Six Rust crates in the workspace:
+Rust crates in the workspace:
 
-- **`core`** (`gitdot-core`) — Business logic, services, repositories, models, DB migrations. The bulk of backend logic lives here.
-- **`backend`** (`gitdot-server`) — Axum HTTP handlers, routing, auth middleware. Thin layer that delegates to core services.
-- **`api`** (`gitdot-api`) — Shared API resource types and endpoint request/response definitions.
-- **`api_derive`** — Proc macro crate providing `#[derive(ApiResource)]`.
-- **`cli`** (`gitdot-cli`) — CLI tool (clap-based).
-- **`runner`** (`gitdot-runner`) — CI/CD task runner.
+- **`gitdot-api`** — Shared API resource types and endpoint request/response definitions.
+- **`gitdot-api/derive`** (`api_derive`) — Proc macro crate providing `#[derive(ApiResource)]`.
+- **`gitdot-core`** — Business logic, services, repositories, models, DB migrations. The bulk of backend logic lives here.
+- **`gitdot-server`** — Axum HTTP handlers, routing, auth middleware. Thin layer that delegates to core services.
+- **`gitdot-cli`** — CLI tool (clap-based).
+- **`gitdot-config`** — Shared configuration types.
+- **`s2-api`**, **`s2-common`**, **`s2-lite`**, **`s2-sdk`** — S2 durable streams library crates.
 
-Plus `frontend/` — Next.js 16, React 19, App Router.
+TypeScript packages (pnpm workspace):
+
+- **`gitdot-web`** — Next.js 16, React 19, App Router.
+- **`gitdot-api-ts`** — TypeScript/Zod mirror of `gitdot-api` for frontend type safety.
 
 ## Architecture
 
@@ -61,10 +67,11 @@ Handler (backend) → Service (core) → Repository (core) → PostgreSQL (sqlx)
 The backend implements smart HTTP git protocol by shelling out to `git http-backend` CGI. Repos are stored as bare git repos under `GIT_PROJECT_ROOT`.
 
 ### Frontend Patterns
-- Server components and server actions for data fetching (`app/actions.ts`, `app/lib/dal/`)
+- Server components and server actions for data fetching (`app/actions/`, `app/dal/`)
 - Supabase for auth, custom backend API for application data
 - `@/ui/link.tsx` wraps Next.js Link — use it instead of `next/link` directly (enforced by Biome)
 - Radix UI primitives + Tailwind for components
+- `gitdot-api-ts` package provides Zod schemas matching the Rust API types
 
 ## Code Conventions
 
@@ -82,7 +89,7 @@ The backend implements smart HTTP git protocol by shelling out to `git http-back
 Use `imports_granularity = "Crate"` — merge imports from the same crate.
 
 ### Database
-PostgreSQL via sqlx with compile-time checked queries. Migrations in `core/migrations/`.
+PostgreSQL via sqlx with compile-time checked queries. Migrations in `gitdot-core/migrations/`.
 
 ### Environment
-Backend config via `backend/.env` — key vars: `GIT_PROJECT_ROOT`, `DATABASE_URL`, `SUPABASE_JWT_PUBLIC_KEY`.
+Backend config via `gitdot-server/.env` — key vars: `GIT_PROJECT_ROOT`, `DATABASE_URL`, `SUPABASE_JWT_PUBLIC_KEY`.

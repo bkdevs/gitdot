@@ -67,8 +67,8 @@ s2:
 # Build everything
 build: build-all
 
-# Build all (server + cli + web)
-build-all: build-server build-cli build-web
+# Build all Rust crates and TS packages
+build-all: build-api build-api-derive build-cli build-config build-core build-server build-s2-api build-s2-common build-s2-lite build-s2-sdk build-web build-api-ts
 
 # Build the backend server
 build-server:
@@ -78,9 +78,45 @@ build-server:
 build-cli:
     cargo build -p gitdot-cli
 
+# Build the config crate
+build-config:
+    cargo build -p gitdot-config
+
+# Build the core crate
+build-core:
+    cargo build -p gitdot-core
+
+# Build the API crate
+build-api:
+    cargo build -p gitdot-api
+
+# Build the API derive crate
+build-api-derive:
+    cargo build -p gitdot-api-derive
+
+# Build the s2-api crate
+build-s2-api:
+    cargo build -p s2-api
+
+# Build the s2-common crate
+build-s2-common:
+    cargo build -p s2-common
+
+# Build the s2-lite crate
+build-s2-lite:
+    cargo build -p s2-lite
+
+# Build the s2-sdk crate
+build-s2-sdk:
+    cargo build -p s2-sdk
+
 # Build web for production
 build-web:
     cd gitdot-web && pnpm build
+
+# Build gitdot-api-ts (typecheck only)
+build-api-ts:
+    cd gitdot-api-ts && pnpm typecheck
 
 # ── Test ────────────────────────────────────────────────────────────────────
 
@@ -103,16 +139,56 @@ test-web:
 # Lint and format everything
 lint: lint-all
 
-# Lint and format all (server + web)
-lint-all: lint-server lint-web
+# Lint and format all Rust crates and TS packages
+lint-all: lint-api lint-api-derive lint-cli lint-config lint-core lint-server lint-s2-api lint-s2-common lint-s2-lite lint-s2-sdk lint-web lint-api-ts
 
-# Lint and format Rust code
+# Lint and format gitdot-api
+lint-api: _ensure-nightly
+    cargo +nightly fmt -p gitdot-api
+
+# Lint and format gitdot-api-derive
+lint-api-derive: _ensure-nightly
+    cargo +nightly fmt -p gitdot-api-derive
+
+# Lint and format gitdot-cli
+lint-cli: _ensure-nightly
+    cargo +nightly fmt -p gitdot-cli
+
+# Lint and format gitdot-config
+lint-config: _ensure-nightly
+    cargo +nightly fmt -p gitdot-config
+
+# Lint and format gitdot-core
+lint-core: _ensure-nightly
+    cargo +nightly fmt -p gitdot-core
+
+# Lint and format gitdot-server
 lint-server: _ensure-nightly
-    cargo +nightly fmt
+    cargo +nightly fmt -p gitdot-server
+
+# Lint and format s2-api
+lint-s2-api: _ensure-nightly
+    cargo +nightly fmt -p s2-api
+
+# Lint and format s2-common
+lint-s2-common: _ensure-nightly
+    cargo +nightly fmt -p s2-common
+
+# Lint and format s2-lite
+lint-s2-lite: _ensure-nightly
+    cargo +nightly fmt -p s2-lite
+
+# Lint and format s2-sdk
+lint-s2-sdk: _ensure-nightly
+    cargo +nightly fmt -p s2-sdk
 
 # Lint and format web
 lint-web:
     cd gitdot-web && pnpm biome check . --write
+
+# Lint and format gitdot-api-ts
+lint-api-ts:
+    cd gitdot-api-ts && pnpm lint
 
 # Type check all Rust crates
 check:
