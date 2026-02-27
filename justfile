@@ -188,7 +188,7 @@ lint-web:
 
 # Lint and format gitdot-api-ts
 lint-api-ts:
-    cd gitdot-api-ts && pnpm lint
+    cd gitdot-api-ts && pnpm biome check . --write
 
 # Type check all Rust crates
 check:

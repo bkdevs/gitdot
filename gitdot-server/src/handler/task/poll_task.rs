@@ -11,11 +11,11 @@ use crate::{
 #[axum::debug_handler]
 pub async fn poll_task(
     State(state): State<AppState>,
-    _auth_runner: Principal<Runner>,
+    auth_runner: Principal<Runner>,
 ) -> Result<AppResponse<api::PollTaskResponse>, AppError> {
     state
         .task_service
-        .poll_task()
+        .poll_task(auth_runner.id)
         .await
         .map_err(AppError::from)
         .map(|task| AppResponse::new(StatusCode::OK, task.map(into_poll_api)))

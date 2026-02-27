@@ -1,8 +1,4 @@
-import {
-  getRepositoryFile,
-  getRepositoryFileCommits,
-  NotFound,
-} from "@/dal";
+import { getRepositoryFile, getRepositoryFileCommits, NotFound } from "@/dal";
 import type { LineSelection } from "../util";
 import { FileBody } from "./file-body";
 import { FileCommits } from "./file-commits";

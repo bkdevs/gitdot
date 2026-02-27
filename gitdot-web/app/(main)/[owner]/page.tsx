@@ -1,8 +1,4 @@
-import {
-  listUserOrganizations,
-  listUserRepositories,
-  NotFound,
-} from "@/dal";
+import { listUserOrganizations, listUserRepositories, NotFound } from "@/dal";
 import { UserOrgs } from "./ui/user-orgs";
 import { UserRepos } from "./ui/user-repos";
 

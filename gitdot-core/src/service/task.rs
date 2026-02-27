@@ -8,7 +8,7 @@ use crate::{
     dto::{TaskResponse, UpdateTaskRequest},
     error::TaskError,
     model::TaskStatus,
-    repository::{TaskRepository, TaskRepositoryImpl},
+    repository::{RunnerRepository, RunnerRepositoryImpl, TaskRepository, TaskRepositoryImpl},
 };
 
 #[async_trait]
@@ -17,27 +17,33 @@ pub trait TaskService: Send + Sync + 'static {
 
     async fn update_task(&self, req: UpdateTaskRequest) -> Result<TaskResponse, TaskError>;
 
-    async fn poll_task(&self) -> Result<Option<TaskResponse>, TaskError>;
+    async fn poll_task(&self, runner_id: Uuid) -> Result<Option<TaskResponse>, TaskError>;
 }
 
 #[derive(Debug, Clone)]
-pub struct TaskServiceImpl<R>
+pub struct TaskServiceImpl<T, R>
 where
-    R: TaskRepository,
+    T: TaskRepository,
+    R: RunnerRepository,
 {
-    task_repo: R,
+    task_repo: T,
+    runner_repo: R,
 }
 
-impl TaskServiceImpl<TaskRepositoryImpl> {
-    pub fn new(task_repo: TaskRepositoryImpl) -> Self {
-        Self { task_repo }
+impl TaskServiceImpl<TaskRepositoryImpl, RunnerRepositoryImpl> {
+    pub fn new(task_repo: TaskRepositoryImpl, runner_repo: RunnerRepositoryImpl) -> Self {
+        Self {
+            task_repo,
+            runner_repo,
+        }
     }
 }
 
 #[async_trait]
-impl<R> TaskService for TaskServiceImpl<R>
+impl<T, R> TaskService for TaskServiceImpl<T, R>
 where
-    R: TaskRepository,
+    T: TaskRepository,
+    R: RunnerRepository,
 {
     async fn get_task(&self, id: Uuid) -> Result<TaskResponse, TaskError> {
         let task = self.task_repo.get_by_id(id).await.map_err(|e| match e {
@@ -68,7 +74,12 @@ where
         Ok(task.into())
     }
 
-    async fn poll_task(&self) -> Result<Option<TaskResponse>, TaskError> {
+    async fn poll_task(&self, runner_id: Uuid) -> Result<Option<TaskResponse>, TaskError> {
+        self.runner_repo
+            .touch(runner_id)
+            .await
+            .map_err(TaskError::DatabaseError)?;
+
         let deadline = Instant::now() + Duration::from_secs(60);
 
         loop {
