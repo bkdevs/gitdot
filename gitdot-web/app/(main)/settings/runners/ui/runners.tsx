@@ -16,7 +16,7 @@ export function Runners({ runners }: { runners: RunnerResource[] }) {
           <div className="flex flex-col">
             <div className="flex flex-row text-sm">{runner.name}</div>
             <div className="flex flex-row text-xs text-muted-foreground pt-0.5">
-              {runner.last_verified ? "Active" : "Pending verification"} •{" "}
+              {runner.last_active ? "Active" : "Pending verification"} •{" "}
               {formatDate(new Date(runner.created_at))}
             </div>
           </div>

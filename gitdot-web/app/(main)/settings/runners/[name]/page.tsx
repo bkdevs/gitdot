@@ -16,7 +16,7 @@ export default async function Page({
   const runner = await getRunner(user.name, name);
   if (!runner) notFound();
 
-  if (runner.last_verified) {
+  if (runner.last_active) {
     return (
       <div className="p-4">
         <h1 className="text-lg font-medium border-b border-border pb-2 mb-4">

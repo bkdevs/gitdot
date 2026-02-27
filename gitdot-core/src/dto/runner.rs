@@ -24,7 +24,7 @@ pub struct RunnerResponse {
     pub owner_id: Uuid,
     pub owner_name: String,
     pub owner_type: RunnerOwnerType,
-    pub last_verified: Option<DateTime<Utc>>,
+    pub last_active: Option<DateTime<Utc>>,
     pub created_at: DateTime<Utc>,
 }
 
@@ -36,7 +36,7 @@ impl From<Runner> for RunnerResponse {
             owner_id: runner.owner_id,
             owner_name: runner.owner_name,
             owner_type: runner.owner_type,
-            last_verified: runner.last_verified,
+            last_active: runner.last_active,
             created_at: runner.created_at,
         }
     }

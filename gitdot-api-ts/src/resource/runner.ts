@@ -6,7 +6,7 @@ export const RunnerResource = z.object({
   owner_id: z.uuid(),
   owner_name: z.string(),
   owner_type: z.string(),
-  last_verified: z.iso.datetime().nullable(),
+  last_active: z.iso.datetime().nullable(),
   created_at: z.iso.datetime(),
 });
 export type RunnerResource = z.infer<typeof RunnerResource>;

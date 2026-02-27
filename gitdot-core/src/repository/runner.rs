@@ -47,7 +47,7 @@ impl RunnerRepository for RunnerRepositoryImpl {
             r#"
             INSERT INTO runners (name, owner_id, owner_name, owner_type)
             VALUES ($1, $2, $3, $4)
-            RETURNING id, name, owner_id, owner_name, owner_type, last_verified, created_at
+            RETURNING id, name, owner_id, owner_name, owner_type, last_active, created_at
             "#,
         )
         .bind(name)
@@ -63,7 +63,7 @@ impl RunnerRepository for RunnerRepositoryImpl {
     async fn get(&self, owner_name: &str, runner_name: &str) -> Result<Option<Runner>, Error> {
         let runner = sqlx::query_as::<_, Runner>(
             r#"
-            SELECT r.id, r.name, r.owner_id, r.owner_name, r.owner_type, r.last_verified, r.created_at
+            SELECT r.id, r.name, r.owner_id, r.owner_name, r.owner_type, r.last_active, r.created_at
             FROM runners r
             WHERE r.name = $2
               AND r.owner_name = $1
@@ -91,7 +91,7 @@ impl RunnerRepository for RunnerRepositoryImpl {
     }
 
     async fn touch(&self, id: Uuid) -> Result<(), Error> {
-        let result = sqlx::query("UPDATE runners SET last_verified = NOW() WHERE id = $1")
+        let result = sqlx::query("UPDATE runners SET last_active = NOW() WHERE id = $1")
             .bind(id)
             .execute(&self.pool)
             .await?;
@@ -106,7 +106,7 @@ impl RunnerRepository for RunnerRepositoryImpl {
     async fn list_by_owner(&self, owner_name: &str) -> Result<Vec<Runner>, Error> {
         let runners = sqlx::query_as::<_, Runner>(
             r#"
-            SELECT id, name, owner_id, owner_name, owner_type, last_verified, created_at
+            SELECT id, name, owner_id, owner_name, owner_type, last_active, created_at
             FROM runners
             WHERE owner_name = $1
             ORDER BY created_at DESC

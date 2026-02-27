@@ -118,6 +118,12 @@ lint-web:
 check:
     cargo check
 
+# ── Lint & Format ──────────────────────────────────────────────────────────
+
+# Run migrations
+migrate:
+    cd gitdot-server && sqlx migrate run --source ../gitdot-core/migrations
+
 # ── Helpers (private) ──────────────────────────────────────────────────────
 
 _ensure-nightly:

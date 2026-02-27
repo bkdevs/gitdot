@@ -12,7 +12,7 @@ impl IntoApi for RunnerResponse {
             owner_id: self.owner_id,
             owner_name: self.owner_name,
             owner_type: self.owner_type.into(),
-            last_verified: self.last_verified,
+            last_active: self.last_active,
             created_at: self.created_at,
         }
     }
