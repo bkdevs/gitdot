@@ -2,7 +2,11 @@ use std::sync::Arc;
 
 use anyhow::Context;
 
-use crate::{client::GitdotClient, config::RunnerConfig, executor::state::ExecutorState};
+use crate::{
+    client::GitdotClient,
+    config::RunnerConfig,
+    executor::{Executor, local::LocalExecutor},
+};
 
 pub async fn run(config: RunnerConfig) -> anyhow::Result<()> {
     if config.runner_token.is_none() {
@@ -43,16 +47,16 @@ pub async fn run(config: RunnerConfig) -> anyhow::Result<()> {
                 return;
             }
 
-            let state = match ExecutorState::initialize(&config, task).await {
-                Ok(s) => s,
+            let executor = match LocalExecutor::initialize(&config, &task).await {
+                Ok(e) => e,
                 Err(e) => {
-                    eprintln!("Failed to initialize executor state: {}", e);
+                    eprintln!("Failed to initialize executor: {}", e);
                     return;
                 }
             };
 
-            let task_id = state.task.id;
-            let result = config.executor.execute(state).await;
+            let task_id = executor.task.id;
+            let result = executor.execute().await;
 
             let final_status = match result {
                 Ok(()) => "success",
@@ -64,6 +68,10 @@ pub async fn run(config: RunnerConfig) -> anyhow::Result<()> {
 
             if let Err(e) = client.update_task(task_id, final_status).await {
                 eprintln!("Failed to mark task {} as {}: {}", task_id, final_status, e);
+            }
+
+            if let Err(e) = executor.cleanup().await {
+                eprintln!("Failed to clean up task {}: {}", task_id, e);
             }
         });
     }

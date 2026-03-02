@@ -1,6 +1,4 @@
-use crate::{
-    client::GitdotClient, config::RunnerConfig, executor::ExecutorType, os::install_service,
-};
+use crate::{client::GitdotClient, config::RunnerConfig, os::install_service};
 use std::io::{self, Write};
 
 pub async fn install(mut config: RunnerConfig) -> anyhow::Result<()> {
@@ -31,18 +29,6 @@ pub async fn install(mut config: RunnerConfig) -> anyhow::Result<()> {
         config.runner_token = Some(token);
         config.save()?;
     }
-
-    print!("Select executor [local/docker] [local]: ");
-    io::stdout().flush()?;
-    let mut executor_input = String::new();
-    io::stdin().read_line(&mut executor_input)?;
-    let executor = match executor_input.trim().to_lowercase().as_str() {
-        "docker" => ExecutorType::Docker,
-        "local" | "" => ExecutorType::Local,
-        other => anyhow::bail!("Unknown executor '{}'. Must be 'local' or 'docker'.", other),
-    };
-    config.executor = executor;
-    config.save()?;
 
     install_service()?;
 

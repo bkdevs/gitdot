@@ -2,10 +2,8 @@ use anyhow::Context;
 use serde::{Deserialize, Serialize};
 
 use super::default::{
-    default_executor_type, default_gitdot_server_url, default_gitdot_web_url,
-    default_num_executors, default_s2_server_url,
+    default_gitdot_server_url, default_gitdot_web_url, default_num_executors, default_s2_server_url,
 };
-use crate::executor::ExecutorType;
 
 pub const SYSTEM_USER: &str = "gitdot";
 
@@ -24,9 +22,6 @@ pub struct RunnerConfig {
 
     pub runner_token: Option<String>,
 
-    #[serde(default = "default_executor_type")]
-    pub executor: ExecutorType,
-
     #[serde(default = "default_num_executors")]
     pub num_executors: i8,
 }
@@ -38,7 +33,6 @@ impl Default for RunnerConfig {
             gitdot_web_url: default_gitdot_web_url(),
             s2_server_url: default_s2_server_url(),
             runner_token: None,
-            executor: default_executor_type(),
             num_executors: default_num_executors(),
         }
     }
