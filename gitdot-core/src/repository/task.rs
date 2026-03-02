@@ -22,7 +22,11 @@ pub trait TaskRepository: Send + Sync + Clone + 'static {
 
     async fn update_task(&self, id: Uuid, status: TaskStatus) -> Result<Task, Error>;
 
-    async fn claim_task(&self, runner_id: Uuid) -> Result<Option<Task>, Error>;
+    async fn claim_task(
+        &self,
+        runner_id: Uuid,
+        repository_ids: &[Uuid],
+    ) -> Result<Option<Task>, Error>;
 
     async fn unblock_tasks(&self, build_id: Uuid) -> Result<Vec<Task>, Error>;
 }
@@ -103,12 +107,18 @@ impl TaskRepository for TaskRepositoryImpl {
         Ok(task)
     }
 
-    async fn claim_task(&self, runner_id: Uuid) -> Result<Option<Task>, Error> {
+    async fn claim_task(
+        &self,
+        runner_id: Uuid,
+        repository_ids: &[Uuid],
+    ) -> Result<Option<Task>, Error> {
         let task = sqlx::query_as::<_, Task>(
             r#"
             UPDATE tasks SET status = 'assigned', runner_id = $1, updated_at = NOW()
             WHERE id = (
-                SELECT id FROM tasks WHERE status = 'pending'
+                SELECT id FROM tasks
+                WHERE status = 'pending'
+                  AND repository_id = ANY($2)
                 ORDER BY created_at ASC
                 LIMIT 1
                 FOR UPDATE SKIP LOCKED
@@ -117,6 +127,7 @@ impl TaskRepository for TaskRepositoryImpl {
             "#,
         )
         .bind(runner_id)
+        .bind(repository_ids)
         .fetch_optional(&self.pool)
         .await?;
 
