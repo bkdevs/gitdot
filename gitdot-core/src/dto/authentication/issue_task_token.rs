@@ -2,12 +2,12 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 #[derive(Debug, Clone)]
-pub struct IssueTaskJwtRequest {
+pub struct IssueTaskTokenRequest {
     pub task_id: Uuid,
 }
 
 #[derive(Debug, Clone)]
-pub struct IssueTaskJwtResponse {
+pub struct IssueTaskTokenResponse {
     pub token: String,
 }
 

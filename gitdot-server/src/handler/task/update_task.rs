@@ -10,11 +10,13 @@ use gitdot_core::dto::UpdateTaskRequest;
 use crate::{
     app::{AppError, AppResponse, AppState},
     dto::IntoApi,
+    extract::{Principal, TaskJwt},
 };
 
 #[axum::debug_handler]
 pub async fn update_task(
     State(state): State<AppState>,
+    _auth_task: Principal<TaskJwt>,
     Path(id): Path<Uuid>,
     Json(request): Json<api::UpdateTaskRequest>,
 ) -> Result<AppResponse<api::UpdateTaskResponse>, AppError> {

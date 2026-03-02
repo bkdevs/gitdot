@@ -4,7 +4,7 @@ use jsonwebtoken::{Algorithm, EncodingKey, Header, encode};
 
 use crate::{
     dto::{
-        IssueTaskJwtRequest, IssueTaskJwtResponse, TaskClaims, ValidateTokenRequest,
+        IssueTaskTokenRequest, IssueTaskTokenResponse, TaskClaims, ValidateTokenRequest,
         ValidateTokenResponse,
     },
     error::AuthorizationError,
@@ -19,10 +19,10 @@ pub trait AuthenticationService: Send + Sync + 'static {
         request: ValidateTokenRequest,
     ) -> Result<ValidateTokenResponse, AuthorizationError>;
 
-    async fn issue_task_jwt(
+    async fn issue_task_token(
         &self,
-        request: IssueTaskJwtRequest,
-    ) -> Result<IssueTaskJwtResponse, AuthorizationError>;
+        request: IssueTaskTokenRequest,
+    ) -> Result<IssueTaskTokenResponse, AuthorizationError>;
 }
 
 #[derive(Debug, Clone)]
@@ -73,10 +73,10 @@ where
         })
     }
 
-    async fn issue_task_jwt(
+    async fn issue_task_token(
         &self,
-        request: IssueTaskJwtRequest,
-    ) -> Result<IssueTaskJwtResponse, AuthorizationError> {
+        request: IssueTaskTokenRequest,
+    ) -> Result<IssueTaskTokenResponse, AuthorizationError> {
         let now = Utc::now().timestamp() as usize;
         let claims = TaskClaims {
             sub: request.task_id.to_string(),
@@ -91,6 +91,6 @@ where
         let token = encode(&Header::new(Algorithm::EdDSA), &claims, &encoding_key)
             .map_err(|e| AuthorizationError::InvalidToken(e.to_string()))?;
 
-        Ok(IssueTaskJwtResponse { token })
+        Ok(IssueTaskTokenResponse { token })
     }
 }

@@ -1,3 +1,3 @@
-mod issue_task_jwt;
+mod issue_task_token;
 
-pub use issue_task_jwt::{IssueTaskJwtRequest, IssueTaskJwtResponse, TaskClaims};
+pub use issue_task_token::{IssueTaskTokenRequest, IssueTaskTokenResponse, TaskClaims};

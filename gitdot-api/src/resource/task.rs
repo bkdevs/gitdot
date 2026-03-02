@@ -19,10 +19,12 @@ pub struct TaskResource {
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct PollTaskResource {
     pub id: Uuid,
-    pub repository_id: Uuid,
+    pub token: String,
+
     pub owner_name: String,
     pub repository_name: String,
     pub s2_uri: String,
+
     pub name: String,
     pub command: String,
     pub status: String,
