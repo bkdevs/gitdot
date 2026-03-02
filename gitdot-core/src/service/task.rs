@@ -13,8 +13,6 @@ use crate::{
 
 #[async_trait]
 pub trait TaskService: Send + Sync + 'static {
-    async fn get_task(&self, id: Uuid) -> Result<TaskResponse, TaskError>;
-
     async fn update_task(&self, req: UpdateTaskRequest) -> Result<TaskResponse, TaskError>;
 
     async fn poll_task(&self, runner_id: Uuid) -> Result<Option<TaskResponse>, TaskError>;
@@ -45,15 +43,6 @@ where
     T: TaskRepository,
     R: RunnerRepository,
 {
-    async fn get_task(&self, id: Uuid) -> Result<TaskResponse, TaskError> {
-        let task = self.task_repo.get_by_id(id).await.map_err(|e| match e {
-            sqlx::Error::RowNotFound => TaskError::NotFound(id.to_string()),
-            e => TaskError::DatabaseError(e),
-        })?;
-
-        Ok(task.into())
-    }
-
     async fn update_task(&self, req: UpdateTaskRequest) -> Result<TaskResponse, TaskError> {
         let task = self
             .task_repo
