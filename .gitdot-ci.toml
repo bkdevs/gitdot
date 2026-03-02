@@ -2,16 +2,8 @@
 
 [[builds]]
 trigger = "push_to_main"
-tasks = ["build", "lint", "check"]
+tasks = ["build"]
 
 [[tasks]]
 name = "build"
 command = "cargo clean && just build"
-
-[[tasks]]
-name = "lint"
-command = "scripts/log-every-second.sh"
-
-[[tasks]]
-name = "check"
-command = "scripts/log-every-second.sh"

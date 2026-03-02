@@ -4,7 +4,7 @@ pub const EMPTY_TREE_REF: &str = "EMPTY_TREE_REF";
 pub const DEFAULT_PREVIEW_LINES: u32 = 100;
 
 /// include git hook scripts in the binary during compilation
-pub const POST_RECEIVE_SCRIPT: &str = include_str!("../../../scripts/post-receive");
+pub const POST_RECEIVE_SCRIPT: &str = include_str!("../../hooks/post-receive");
 
 /// server-side git hook types
 pub enum GitHookType {
