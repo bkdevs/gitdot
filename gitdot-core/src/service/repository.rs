@@ -70,10 +70,7 @@ pub trait RepositoryService: Send + Sync + 'static {
         request: GetRepositoryCommitStatRequest,
     ) -> Result<Vec<RepositoryCommitStatResponse>, RepositoryError>;
 
-    async fn get_repository_by_id(
-        &self,
-        id: Uuid,
-    ) -> Result<RepositoryResponse, RepositoryError>;
+    async fn get_repository_by_id(&self, id: Uuid) -> Result<RepositoryResponse, RepositoryError>;
 
     async fn delete_repository(
         &self,
@@ -423,10 +420,7 @@ where
         Ok(stats)
     }
 
-    async fn get_repository_by_id(
-        &self,
-        id: Uuid,
-    ) -> Result<RepositoryResponse, RepositoryError> {
+    async fn get_repository_by_id(&self, id: Uuid) -> Result<RepositoryResponse, RepositoryError> {
         let repository = self
             .repo_repo
             .get_by_id(id)

@@ -32,5 +32,5 @@ pub async fn delete_repository(
     let request = DeleteRepositoryRequest::new(&owner, &repo)?;
     state.repo_service.delete_repository(request).await?;
 
-    Ok(AppResponse::new(StatusCode::NO_CONTENT, ()))
+    Ok(AppResponse::new(StatusCode::OK, ()))
 }

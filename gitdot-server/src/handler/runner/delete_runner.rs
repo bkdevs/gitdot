@@ -20,5 +20,5 @@ pub async fn delete_runner(
         .delete_runner(request)
         .await
         .map_err(AppError::from)
-        .map(|_| AppResponse::new(StatusCode::NO_CONTENT, ()))
+        .map(|_| AppResponse::new(StatusCode::OK, ()))
 }
