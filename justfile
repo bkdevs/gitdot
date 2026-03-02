@@ -60,7 +60,11 @@ server:
 
 # Run s2-lite server
 s2:
-    cargo run -p s2-lite -- --port 8081
+    cd s2-lite && cargo run -- --port 8081
+
+# Generate Ed25519 key pair and write to gitdot-server/.env and s2-lite/.env
+keygen:
+    cargo run -p gitdot-server --bin gitdot-keygen
 
 # ── Build ───────────────────────────────────────────────────────────────────
 

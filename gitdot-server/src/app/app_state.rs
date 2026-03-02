@@ -72,8 +72,8 @@ impl AppState {
             secret_client.get_github_app_id().await?,
             secret_client.get_github_app_private_key().await?,
         );
-
         let s2_client = S2ClientImpl::new(&settings.s2_server_url);
+        secret_client.get_gitdot_private_key().await?;
 
         Ok(Self {
             settings,

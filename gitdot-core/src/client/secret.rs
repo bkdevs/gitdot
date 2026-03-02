@@ -6,6 +6,7 @@ use crate::error::SecretError;
 const DATABASE_URL_SECRET_NAME: &str = "database-url";
 const GITHUB_APP_ID_SECRET_NAME: &str = "github-app-id";
 const GITHUB_APP_PRIVATE_KEY_SECRET_NAME: &str = "github-app-private-key";
+const GITDOT_PRIVATE_KEY_SECRET_NAME: &str = "gitdot-private-key";
 
 #[async_trait]
 pub trait SecretClient: Send + Sync + Clone + 'static {
@@ -14,6 +15,8 @@ pub trait SecretClient: Send + Sync + Clone + 'static {
     async fn get_github_app_id(&self) -> Result<u64, SecretError>;
 
     async fn get_github_app_private_key(&self) -> Result<String, SecretError>;
+
+    async fn get_gitdot_private_key(&self) -> Result<String, SecretError>;
 }
 
 #[derive(Clone)]
@@ -71,5 +74,9 @@ impl SecretClient for GoogleSecretClient {
 
     async fn get_github_app_private_key(&self) -> Result<String, SecretError> {
         self.access_secret(GITHUB_APP_PRIVATE_KEY_SECRET_NAME).await
+    }
+
+    async fn get_gitdot_private_key(&self) -> Result<String, SecretError> {
+        self.access_secret(GITDOT_PRIVATE_KEY_SECRET_NAME).await
     }
 }

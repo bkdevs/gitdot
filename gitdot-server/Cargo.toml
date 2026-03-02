@@ -2,25 +2,33 @@
 name = "gitdot-server"
 version = "0.1.0"
 edition = "2024"
+default-run = "gitdot-server"
 
 [[bin]]
 name = "gitdot-server"
 path = "src/bin/main.rs"
+
+[[bin]]
+name = "gitdot-keygen"
+path = "src/bin/keygen.rs"
 
 [dependencies]
 anyhow = { workspace = true }
 async-trait = { workspace = true }
 axum = { version = "0.8.8", features = ["macros"] }
 base64 = { workspace = true }
-reqwest = { workspace = true }
+base64ct = { workspace = true }
 chrono = { workspace = true }
 dotenvy = "0.15.7"
+ed25519-dalek = { workspace = true }
 futures = { workspace = true }
 git2 = { workspace = true }
 gitdot-api = { workspace = true }
 gitdot-core = { workspace = true }
 http = { workspace = true }
 jsonwebtoken = { workspace = true }
+rand = { workspace = true }
+reqwest = { workspace = true }
 rustls = { workspace = true, features = ["aws-lc-rs"] }
 serde = { workspace = true }
 serde_json = { workspace = true }

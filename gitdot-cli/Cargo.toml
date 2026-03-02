@@ -11,10 +11,10 @@ path = "src/bin/main.rs"
 [dependencies]
 anyhow = { workspace = true }
 base64 = { workspace = true }
-git2 = { workspace = true }
 clap = { version = "4.5.54", features = ["derive"] }
 dirs-next = "2.0.0"
 futures = { workspace = true }
+git2 = { workspace = true }
 gitdot-api = { workspace = true }
 gitdot-config = { workspace = true }
 itertools = "0.14.0"
@@ -24,7 +24,6 @@ s2-sdk = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 tokio = { workspace = true }
-uuid = { workspace = true }
 tombi-config = { git = "https://github.com/tombi-toml/tombi", rev = "1517a938d105bfffd7515011b0844df5305121ea" }
 tombi-diagnostic = { git = "https://github.com/tombi-toml/tombi", rev = "1517a938d105bfffd7515011b0844df5305121ea" }
 tombi-formatter = { git = "https://github.com/tombi-toml/tombi", rev = "1517a938d105bfffd7515011b0844df5305121ea" }
@@ -32,6 +31,7 @@ tombi-linter = { git = "https://github.com/tombi-toml/tombi", rev = "1517a938d10
 tombi-schema-store = { git = "https://github.com/tombi-toml/tombi", rev = "1517a938d105bfffd7515011b0844df5305121ea" }
 toml = "0.9.11"
 url = "2.5.8"
+uuid = { workspace = true }
 
 [features]
 default = ["main", "runner"]

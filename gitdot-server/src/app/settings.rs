@@ -7,6 +7,7 @@ pub struct Settings {
 
     pub database_url: Option<String>,
     pub gcp_project_id: Option<String>,
+    pub gitdot_private_key: Option<String>,
 
     pub supabase_jwt_public_key: String,
     pub oauth_device_verification_uri: String,
@@ -22,6 +23,7 @@ impl Settings {
 
             database_url: env::var("DATABASE_URL").ok(),
             gcp_project_id: env::var("GCP_PROJECT_ID").ok(),
+            gitdot_private_key: env::var("GITDOT_PRIVATE_KEY").ok(),
 
             supabase_jwt_public_key: env::var("SUPABASE_JWT_PUBLIC_KEY")
                 .expect("SUPABASE_JWT_PUBLIC_KEY must be set"),

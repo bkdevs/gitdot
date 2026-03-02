@@ -19,6 +19,7 @@ struct Args {
 
 #[tokio::main]
 async fn main() -> eyre::Result<()> {
+    dotenvy::dotenv().ok();
     install_rustls_crypto_provider();
     tracing_subscriber::registry()
         .with(
@@ -26,6 +27,8 @@ async fn main() -> eyre::Result<()> {
         )
         .with(tracing_subscriber::fmt::layer())
         .init();
+
+    std::env::var("GITDOT_PUBLIC_KEY").expect("GITDOT_PUBLIC_KEY must be set");
 
     let args = Args::parse();
     s2_lite::server::run(args.lite).await

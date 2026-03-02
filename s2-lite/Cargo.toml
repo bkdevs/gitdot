@@ -26,6 +26,7 @@ bytesize = { workspace = true }
 clap = { workspace = true, features = ["derive", "env"] }
 compact_str = { workspace = true }
 dashmap = { workspace = true }
+dotenvy = "0.15.7"
 enum-ordinalize = { workspace = true }
 eyre = { workspace = true }
 futures = { workspace = true }
