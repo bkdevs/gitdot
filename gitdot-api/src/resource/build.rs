@@ -2,8 +2,6 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::resource::task::TaskResource;
-
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct BuildResource {
     pub id: Uuid,
@@ -17,10 +15,4 @@ pub struct BuildResource {
     pub completed_tasks: i32,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
-}
-
-#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct GetBuildResource {
-    pub build: BuildResource,
-    pub tasks: Vec<TaskResource>,
 }

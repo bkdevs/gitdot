@@ -1,11 +1,11 @@
 import { z } from "zod";
-import { GetBuildResource } from "../../resource";
+import { BuildResource } from "../../resource";
 import type { Endpoint } from "../endpoint";
 
 export const GetBuildRequest = z.object({});
 export type GetBuildRequest = z.infer<typeof GetBuildRequest>;
 
-export const GetBuildResponse = GetBuildResource;
+export const GetBuildResponse = BuildResource;
 export type GetBuildResponse = z.infer<typeof GetBuildResponse>;
 
 export const GetBuild = {

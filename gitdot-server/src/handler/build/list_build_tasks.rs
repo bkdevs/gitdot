@@ -17,9 +17,9 @@ pub async fn list_build_tasks(
     State(state): State<AppState>,
     Path((owner, repo, number)): Path<(String, String, i32)>,
 ) -> Result<AppResponse<api::ListBuildTasksResponse>, AppError> {
-    let (_, tasks) = state
+    let tasks = state
         .build_service
-        .get_build_with_tasks(&owner, &repo, number)
+        .list_build_tasks(&owner, &repo, number)
         .await
         .map_err(AppError::from)?;
 

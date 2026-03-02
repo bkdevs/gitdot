@@ -1,10 +1,6 @@
 import "server-only";
 
-import {
-  BuildResource,
-  type CreateBuildRequest,
-  GetBuildResource,
-} from "gitdot-api";
+import { BuildResource, type CreateBuildRequest } from "gitdot-api";
 import { z } from "zod";
 import { authFetch, authPost, GITDOT_SERVER_URL, handleResponse } from "./util";
 
@@ -36,10 +32,10 @@ export async function getBuild(
   owner: string,
   repo: string,
   number: number,
-): Promise<GetBuildResource | null> {
+): Promise<BuildResource | null> {
   const response = await authFetch(
     `${GITDOT_SERVER_URL}/repository/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/build/${number}`,
   );
 
-  return await handleResponse(response, GetBuildResource);
+  return await handleResponse(response, BuildResource);
 }

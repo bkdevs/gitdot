@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{endpoint::Endpoint, resource::GetBuildResource};
+use crate::{endpoint::Endpoint, resource::BuildResource};
 
 pub struct GetBuild;
 
@@ -9,10 +9,10 @@ impl Endpoint for GetBuild {
     const METHOD: http::Method = http::Method::GET;
 
     type Request = GetBuildRequest;
-    type Response = GetBuildResource;
+    type Response = BuildResource;
 }
 
 #[derive(ApiRequest, Debug, Serialize, Deserialize)]
 pub struct GetBuildRequest;
 
-pub type GetBuildResponse = GetBuildResource;
+pub type GetBuildResponse = BuildResource;

@@ -1,5 +1,6 @@
 import {
   getBuild,
+  getBuildTasks,
   getRepositoryCommit,
   getRepositoryFile,
   NotFound,
@@ -18,10 +19,11 @@ export default async function Page({
   const number = Number(numberStr);
   if (Number.isNaN(number)) return null;
 
-  const data = await getBuild(owner, repo, number);
-  if (!data) return null;
-
-  const { build, tasks } = data;
+  const [build, tasks] = await Promise.all([
+    getBuild(owner, repo, number),
+    getBuildTasks(owner, repo, number),
+  ]);
+  if (!build || !tasks) return null;
 
   const [commit, configFile, taskLogs] = await Promise.all([
     getRepositoryCommit(owner, repo, build.commit_sha),

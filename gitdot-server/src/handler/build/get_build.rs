@@ -17,16 +17,11 @@ pub async fn get_build(
     State(state): State<AppState>,
     Path((owner, repo, number)): Path<(String, String, i32)>,
 ) -> Result<AppResponse<api::GetBuildResponse>, AppError> {
-    let (build, tasks) = state
+    let build = state
         .build_service
-        .get_build_with_tasks(&owner, &repo, number)
+        .get_build(&owner, &repo, number)
         .await
         .map_err(AppError::from)?;
 
-    let response = api::GetBuildResponse {
-        build: build.into_api(),
-        tasks: tasks.into_api(),
-    };
-
-    Ok(AppResponse::new(StatusCode::OK, response))
+    Ok(AppResponse::new(StatusCode::OK, build.into_api()))
 }

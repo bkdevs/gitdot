@@ -25,14 +25,19 @@ pub trait BuildService: Send + Sync + 'static {
         request: ListBuildsRequest,
     ) -> Result<Vec<BuildResponse>, BuildError>;
 
-    async fn list_build_tasks(&self, build_id: Uuid) -> Result<Vec<TaskResponse>, BuildError>;
-
-    async fn get_build_with_tasks(
+    async fn get_build(
         &self,
         owner: &str,
         repo: &str,
         number: i32,
-    ) -> Result<(BuildResponse, Vec<TaskResponse>), BuildError>;
+    ) -> Result<BuildResponse, BuildError>;
+
+    async fn list_build_tasks(
+        &self,
+        owner: &str,
+        repo: &str,
+        number: i32,
+    ) -> Result<Vec<TaskResponse>, BuildError>;
 }
 
 #[derive(Debug, Clone)]
@@ -233,22 +238,12 @@ where
         Ok(builds.into_iter().map(Into::into).collect())
     }
 
-    async fn list_build_tasks(&self, build_id: Uuid) -> Result<Vec<TaskResponse>, BuildError> {
-        let tasks = self
-            .task_repo
-            .list_by_build_id(build_id)
-            .await
-            .map_err(BuildError::DatabaseError)?;
-
-        Ok(tasks.into_iter().map(Into::into).collect())
-    }
-
-    async fn get_build_with_tasks(
+    async fn get_build(
         &self,
         owner: &str,
         repo: &str,
         number: i32,
-    ) -> Result<(BuildResponse, Vec<TaskResponse>), BuildError> {
+    ) -> Result<BuildResponse, BuildError> {
         let repository = self
             .repo_repo
             .get(owner, repo)
@@ -290,7 +285,7 @@ where
             .max()
             .unwrap_or(build.created_at);
 
-        let build_response = BuildResponse {
+        Ok(BuildResponse {
             id: build.id,
             number: build.number,
             repository_id: build.repository_id,
@@ -302,8 +297,35 @@ where
             completed_tasks,
             created_at: build.created_at,
             updated_at: effective_updated_at,
-        };
-        let task_responses = tasks.into_iter().map(Into::into).collect();
-        Ok((build_response, task_responses))
+        })
+    }
+
+    async fn list_build_tasks(
+        &self,
+        owner: &str,
+        repo: &str,
+        number: i32,
+    ) -> Result<Vec<TaskResponse>, BuildError> {
+        let repository = self
+            .repo_repo
+            .get(owner, repo)
+            .await
+            .map_err(BuildError::DatabaseError)?
+            .ok_or_else(|| BuildError::RepositoryNotFound(format!("{owner}/{repo}")))?;
+
+        let build = self
+            .build_repo
+            .get(repository.id, number)
+            .await
+            .map_err(BuildError::DatabaseError)?
+            .ok_or_else(|| BuildError::NotFound(format!("{owner}/{repo}#{number}")))?;
+
+        let tasks = self
+            .task_repo
+            .list_by_build_id(build.id)
+            .await
+            .map_err(BuildError::DatabaseError)?;
+
+        Ok(tasks.into_iter().map(Into::into).collect())
     }
 }

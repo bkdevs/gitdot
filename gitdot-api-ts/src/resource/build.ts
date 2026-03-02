@@ -1,7 +1,5 @@
 import { z } from "zod";
 
-import { TaskResource } from "./task";
-
 export const BuildResource = z.object({
 	id: z.uuid(),
 	number: z.number().int(),
@@ -16,9 +14,3 @@ export const BuildResource = z.object({
 	updated_at: z.iso.datetime(),
 });
 export type BuildResource = z.infer<typeof BuildResource>;
-
-export const GetBuildResource = z.object({
-	build: BuildResource,
-	tasks: z.array(TaskResource),
-});
-export type GetBuildResource = z.infer<typeof GetBuildResource>;

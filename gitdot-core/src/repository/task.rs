@@ -6,10 +6,6 @@ use crate::model::{Task, TaskStatus};
 
 #[async_trait]
 pub trait TaskRepository: Send + Sync + Clone + 'static {
-    async fn list_by_repo(&self, repository_id: Uuid) -> Result<Vec<Task>, Error>;
-
-    async fn list_by_build_id(&self, build_id: Uuid) -> Result<Vec<Task>, Error>;
-
     async fn create(
         &self,
         id: Uuid,
@@ -21,6 +17,8 @@ pub trait TaskRepository: Send + Sync + Clone + 'static {
         status: TaskStatus,
         waits_for: &[Uuid],
     ) -> Result<Task, Error>;
+
+    async fn list_by_build_id(&self, build_id: Uuid) -> Result<Vec<Task>, Error>;
 
     async fn update_task(&self, id: Uuid, status: TaskStatus) -> Result<Task, Error>;
 
@@ -42,36 +40,6 @@ impl TaskRepositoryImpl {
 
 #[async_trait]
 impl TaskRepository for TaskRepositoryImpl {
-    async fn list_by_repo(&self, repository_id: Uuid) -> Result<Vec<Task>, Error> {
-        let tasks = sqlx::query_as::<_, Task>(
-            r#"
-            SELECT id, repository_id, build_id, s2_uri, name, command, status, waits_for, runner_id, created_at, updated_at
-            FROM tasks WHERE repository_id = $1
-            ORDER BY created_at ASC
-            "#,
-        )
-        .bind(repository_id)
-        .fetch_all(&self.pool)
-        .await?;
-
-        Ok(tasks)
-    }
-
-    async fn list_by_build_id(&self, build_id: Uuid) -> Result<Vec<Task>, Error> {
-        let tasks = sqlx::query_as::<_, Task>(
-            r#"
-            SELECT id, repository_id, build_id, s2_uri, name, command, status, waits_for, runner_id, created_at, updated_at
-            FROM tasks WHERE build_id = $1
-            ORDER BY created_at ASC
-            "#,
-        )
-        .bind(build_id)
-        .fetch_all(&self.pool)
-        .await?;
-
-        Ok(tasks)
-    }
-
     async fn create(
         &self,
         id: Uuid,
@@ -102,6 +70,21 @@ impl TaskRepository for TaskRepositoryImpl {
         .await?;
 
         Ok(task)
+    }
+
+    async fn list_by_build_id(&self, build_id: Uuid) -> Result<Vec<Task>, Error> {
+        let tasks = sqlx::query_as::<_, Task>(
+            r#"
+            SELECT id, repository_id, build_id, s2_uri, name, command, status, waits_for, runner_id, created_at, updated_at
+            FROM tasks WHERE build_id = $1
+            ORDER BY created_at ASC
+            "#,
+        )
+        .bind(build_id)
+        .fetch_all(&self.pool)
+        .await?;
+
+        Ok(tasks)
     }
 
     async fn update_task(&self, id: Uuid, status: TaskStatus) -> Result<Task, Error> {
