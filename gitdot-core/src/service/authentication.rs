@@ -1,7 +1,12 @@
 use async_trait::async_trait;
+use chrono::Utc;
+use jsonwebtoken::{Algorithm, EncodingKey, Header, encode};
 
 use crate::{
-    dto::{ValidateTokenRequest, ValidateTokenResponse},
+    dto::{
+        IssueTaskJwtRequest, IssueTaskJwtResponse, TaskClaims, ValidateTokenRequest,
+        ValidateTokenResponse,
+    },
     error::AuthorizationError,
     repository::{TokenRepository, TokenRepositoryImpl},
     util::token::{hash_token, validate_token_format},
@@ -13,6 +18,11 @@ pub trait AuthenticationService: Send + Sync + 'static {
         &self,
         request: ValidateTokenRequest,
     ) -> Result<ValidateTokenResponse, AuthorizationError>;
+
+    async fn issue_task_jwt(
+        &self,
+        request: IssueTaskJwtRequest,
+    ) -> Result<IssueTaskJwtResponse, AuthorizationError>;
 }
 
 #[derive(Debug, Clone)]
@@ -21,11 +31,15 @@ where
     T: TokenRepository,
 {
     token_repo: T,
+    gitdot_private_key: String,
 }
 
 impl AuthenticationServiceImpl<TokenRepositoryImpl> {
-    pub fn new(token_repo: TokenRepositoryImpl) -> Self {
-        Self { token_repo }
+    pub fn new(token_repo: TokenRepositoryImpl, gitdot_private_key: String) -> Self {
+        Self {
+            token_repo,
+            gitdot_private_key,
+        }
     }
 }
 
@@ -57,5 +71,26 @@ where
         Ok(ValidateTokenResponse {
             principal_id: access_token.principal_id,
         })
+    }
+
+    async fn issue_task_jwt(
+        &self,
+        request: IssueTaskJwtRequest,
+    ) -> Result<IssueTaskJwtResponse, AuthorizationError> {
+        let now = Utc::now().timestamp() as usize;
+        let claims = TaskClaims {
+            sub: request.task_id.to_string(),
+            iat: now,
+            exp: now + 3600,
+            aud: format!("runner/{}", request.runner_id),
+        };
+
+        let encoding_key = EncodingKey::from_ed_pem(self.gitdot_private_key.as_bytes())
+            .map_err(|e| AuthorizationError::InvalidPublicKey(e.to_string()))?;
+
+        let token = encode(&Header::new(Algorithm::EdDSA), &claims, &encoding_key)
+            .map_err(|e| AuthorizationError::InvalidToken(e.to_string()))?;
+
+        Ok(IssueTaskJwtResponse { token })
     }
 }

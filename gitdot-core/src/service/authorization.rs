@@ -354,32 +354,15 @@ mod tests {
         dto::{RepositoryAuthorizationRequest, RepositoryPermission},
         error::AuthorizationError,
         model::{
-            AccessToken, Answer, Comment, Organization, OrganizationMember, OrganizationRole,
-            Question, Repository, RepositoryOwnerType, RepositoryVisibility, TokenType, User,
-            VoteResult, VoteTarget,
+            Answer, Comment, Organization, OrganizationMember, OrganizationRole, Question,
+            Repository, RepositoryOwnerType, RepositoryVisibility, User, VoteResult, VoteTarget,
         },
         repository::{
-            OrganizationRepository, QuestionRepository, RepositoryRepository, TokenRepository,
-            UserRepository,
+            OrganizationRepository, QuestionRepository, RepositoryRepository, UserRepository,
         },
     };
 
     use super::{AuthorizationService, AuthorizationServiceImpl};
-
-    mock! {
-        pub TokenRepo {}
-        impl Clone for TokenRepo {
-            fn clone(&self) -> Self;
-        }
-        #[async_trait]
-        impl TokenRepository for TokenRepo {
-            async fn create_token(&self, principal_id: Uuid, client_id: &str, token_hash: &str, token_type: TokenType) -> Result<AccessToken, sqlx::Error>;
-            async fn get_token_by_hash(&self, token_hash: &str) -> Result<Option<AccessToken>, sqlx::Error>;
-            async fn touch_token(&self, id: Uuid) -> Result<(), sqlx::Error>;
-            async fn delete_token(&self, id: Uuid) -> Result<(), sqlx::Error>;
-            async fn delete_token_by_principal(&self, runner_id: Uuid) -> Result<(), sqlx::Error>;
-        }
-    }
 
     mock! {
         pub OrganizationRepo {}
@@ -473,14 +456,12 @@ mod tests {
         org_repo: MockOrganizationRepo,
         repo_repo: MockRepositoryRepo,
     ) -> AuthorizationServiceImpl<
-        MockTokenRepo,
         MockOrganizationRepo,
         MockRepositoryRepo,
         MockQuestionRepo,
         MockUserRepo,
     > {
         AuthorizationServiceImpl {
-            token_repo: MockTokenRepo::new(),
             org_repo,
             repo_repo,
             question_repo: MockQuestionRepo::new(),

@@ -1,3 +1,4 @@
+mod authentication;
 mod authorization;
 mod build;
 mod commit;
@@ -17,6 +18,7 @@ pub(crate) mod common;
 use common::*;
 
 /// Re-export to expose flattened namespace to public
+pub use authentication::*;
 pub use authorization::*;
 pub use build::*;
 pub use commit::*;
