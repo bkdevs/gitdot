@@ -1,20 +1,24 @@
 pub mod docker;
 pub mod local;
+pub mod state;
 
 use anyhow::Result;
-use gitdot_api::resource::PollTaskResource;
 use serde::{Deserialize, Serialize};
 
-#[allow(dead_code)]
-pub trait Executor {
-    const TYPE: ExecutorType;
-
-    async fn execute(&self, task: &PollTaskResource) -> Result<()>;
-}
+use crate::executor::state::ExecutorState;
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum ExecutorType {
     Local,
     Docker,
+}
+
+impl ExecutorType {
+    pub async fn execute(&self, state: ExecutorState) -> Result<()> {
+        match self {
+            ExecutorType::Local => local::execute(state).await,
+            ExecutorType::Docker => docker::execute(state).await,
+        }
+    }
 }

@@ -1,15 +1,8 @@
 use anyhow::Result;
-use gitdot_api::resource::PollTaskResource;
 
-use crate::executor::{Executor, ExecutorType};
+use crate::executor::state::ExecutorState;
 
-pub struct DockerExecutor;
-
-impl Executor for DockerExecutor {
-    const TYPE: ExecutorType = ExecutorType::Docker;
-
-    async fn execute(&self, task: &PollTaskResource) -> Result<()> {
-        println!("DockerExecutor: executing task {}", task.id);
-        Ok(())
-    }
+pub async fn execute(state: ExecutorState) -> Result<()> {
+    println!("DockerExecutor: executing task {}", state.task.id);
+    Ok(())
 }
