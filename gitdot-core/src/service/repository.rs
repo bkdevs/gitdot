@@ -1,6 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
 use async_trait::async_trait;
+use uuid::Uuid;
 
 use crate::{
     client::{DiffClient, DifftClient, Git2Client, GitClient},
@@ -68,6 +69,11 @@ pub trait RepositoryService: Send + Sync + 'static {
         &self,
         request: GetRepositoryCommitStatRequest,
     ) -> Result<Vec<RepositoryCommitStatResponse>, RepositoryError>;
+
+    async fn get_repository_by_id(
+        &self,
+        id: Uuid,
+    ) -> Result<RepositoryResponse, RepositoryError>;
 
     async fn delete_repository(
         &self,
@@ -415,6 +421,19 @@ where
             .await?;
 
         Ok(stats)
+    }
+
+    async fn get_repository_by_id(
+        &self,
+        id: Uuid,
+    ) -> Result<RepositoryResponse, RepositoryError> {
+        let repository = self
+            .repo_repo
+            .get_by_id(id)
+            .await?
+            .ok_or_else(|| RepositoryError::NotFound(id.to_string()))?;
+
+        Ok(repository.into())
     }
 
     async fn delete_repository(

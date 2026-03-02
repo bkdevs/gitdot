@@ -27,6 +27,8 @@ export type TaskResource = z.infer<typeof TaskResource>;
 export const PollTaskResource = z.object({
   id: z.uuid(),
   repository_id: z.uuid(),
+  owner_name: z.string(),
+  repository_name: z.string(),
   s2_uri: z.string(),
   name: z.string(),
   command: z.string(),

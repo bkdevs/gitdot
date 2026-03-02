@@ -20,14 +20,3 @@ impl IntoApi for TaskResponse {
         }
     }
 }
-
-pub fn into_poll_api(task: TaskResponse) -> api::PollTaskResource {
-    api::PollTaskResource {
-        id: task.id,
-        repository_id: task.repository_id,
-        s2_uri: task.s2_uri,
-        name: task.name,
-        command: task.command,
-        status: task.status.into(),
-    }
-}
