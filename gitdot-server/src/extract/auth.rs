@@ -10,7 +10,11 @@ use jsonwebtoken::{Algorithm, DecodingKey, Validation, decode};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use gitdot_core::{dto::ValidateTokenRequest, error::AuthorizationError, model::TokenType};
+use gitdot_core::{
+    dto::{TaskClaims, ValidateTokenRequest},
+    error::AuthorizationError,
+    model::TokenType,
+};
 
 use crate::app::{AppError, AppState};
 
@@ -178,6 +182,33 @@ impl Authenticator for RunnerToken {
             .map_err(|_| AuthorizationError::Unauthorized)?;
 
         Ok(Principal::new(response.principal_id))
+    }
+}
+
+pub struct TaskJwt;
+
+#[async_trait]
+impl Authenticator for TaskJwt {
+    async fn authenticate(
+        parts: &Parts,
+        app_state: &AppState,
+    ) -> Result<Principal<Self>, AuthorizationError> {
+        let header = extract_auth_header(parts)?;
+        let jwt = header
+            .strip_prefix("Bearer ")
+            .ok_or(AuthorizationError::InvalidHeaderFormat)?;
+
+        let mut validation = Validation::new(Algorithm::EdDSA);
+        validation.set_audience(&["task"]);
+
+        let key = DecodingKey::from_ed_pem(app_state.settings.gitdot_public_key.as_bytes())
+            .map_err(|e| AuthorizationError::InvalidPublicKey(e.to_string()))?;
+        let jwt_data = decode::<TaskClaims>(jwt, &key, &validation)
+            .map_err(|e| AuthorizationError::InvalidToken(e.to_string()))?;
+        let id = Uuid::parse_str(&jwt_data.claims.sub)
+            .map_err(|e| AuthorizationError::InvalidToken(e.to_string()))?;
+
+        Ok(Principal::new(id))
     }
 }
 

@@ -82,7 +82,7 @@ where
             sub: request.task_id.to_string(),
             iat: now,
             exp: now + 3600,
-            aud: format!("runner/{}", request.runner_id),
+            aud: "task".into(),
         };
 
         let encoding_key = EncodingKey::from_ed_pem(self.gitdot_private_key.as_bytes())
