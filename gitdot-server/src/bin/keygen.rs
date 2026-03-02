@@ -21,8 +21,10 @@ fn main() {
 
     if server_env.exists() {
         let contents = fs::read_to_string(server_env).expect("failed to read gitdot-server/.env");
-        if contents.contains("GITDOT_PRIVATE_KEY") {
-            eprintln!("Error: GITDOT_PRIVATE_KEY already exists in gitdot-server/.env");
+        if contents.contains("GITDOT_PRIVATE_KEY") || contents.contains("GITDOT_PUBLIC_KEY") {
+            eprintln!(
+                "Error: GITDOT_PRIVATE_KEY or GITDOT_PUBLIC_KEY already exists in gitdot-server/.env"
+            );
             std::process::exit(1);
         }
     }
@@ -50,8 +52,18 @@ fn main() {
         .append(true)
         .open(server_env)
         .expect("failed to open gitdot-server/.env");
-    writeln!(server_file, "GITDOT_PRIVATE_KEY=\"{}\"", private_pem.as_str().trim_end())
-        .expect("failed to write to gitdot-server/.env");
+    writeln!(
+        server_file,
+        "GITDOT_PRIVATE_KEY=\"{}\"",
+        private_pem.as_str().trim_end()
+    )
+    .expect("failed to write to gitdot-server/.env");
+    writeln!(
+        server_file,
+        "GITDOT_PUBLIC_KEY=\"{}\"",
+        public_pem.trim_end()
+    )
+    .expect("failed to write to gitdot-server/.env");
 
     let mut s2_file = OpenOptions::new()
         .create(true)
