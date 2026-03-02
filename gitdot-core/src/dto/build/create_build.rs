@@ -1,5 +1,3 @@
-use gitdot_config::ci::BuildTrigger;
-
 use crate::{
     dto::common::{OwnerName, RepositoryName},
     error::BuildError,
@@ -9,7 +7,7 @@ use crate::{
 pub struct CreateBuildRequest {
     pub repo_owner: OwnerName,
     pub repo_name: RepositoryName,
-    pub trigger: BuildTrigger,
+    pub ref_name: String,
     pub commit_sha: String,
 }
 
@@ -17,7 +15,7 @@ impl CreateBuildRequest {
     pub fn new(
         repo_owner: &str,
         repo_name: &str,
-        trigger: &str,
+        ref_name: String,
         commit_sha: String,
     ) -> Result<Self, BuildError> {
         Ok(Self {
@@ -25,8 +23,7 @@ impl CreateBuildRequest {
                 .map_err(|e| BuildError::InvalidOwnerName(e.to_string()))?,
             repo_name: RepositoryName::try_new(repo_name)
                 .map_err(|e| BuildError::InvalidRepositoryName(e.to_string()))?,
-            trigger: BuildTrigger::try_from(trigger)
-                .map_err(|e| BuildError::InvalidTrigger(e.to_string()))?,
+            ref_name,
             commit_sha,
         })
     }

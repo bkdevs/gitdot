@@ -24,10 +24,12 @@ export async function createBuildAction(
     return { error: "Trigger must be pull_request or push_to_main" };
   }
 
+  const ref_name = trigger === "push_to_main" ? "main" : commit_sha;
+
   let result: BuildResource | null;
   try {
     result = await createBuild(owner, repo, {
-      trigger,
+      ref_name,
       commit_sha,
     });
   } catch (e) {

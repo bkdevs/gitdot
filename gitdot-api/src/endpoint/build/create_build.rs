@@ -14,7 +14,7 @@ impl Endpoint for CreateBuild {
 
 #[derive(ApiRequest, Debug, Serialize, Deserialize)]
 pub struct CreateBuildRequest {
-    pub trigger: String,
+    pub ref_name: String,
     pub commit_sha: String,
 }
 

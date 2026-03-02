@@ -3,7 +3,7 @@ import { BuildResource } from "../../resource";
 import type { Endpoint } from "../endpoint";
 
 export const CreateBuildRequest = z.object({
-  trigger: z.string(),
+  ref_name: z.string(),
   commit_sha: z.string(),
 });
 export type CreateBuildRequest = z.infer<typeof CreateBuildRequest>;

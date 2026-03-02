@@ -15,7 +15,7 @@ pub async fn create_build(
     Path((owner, repo)): Path<(String, String)>,
     Json(request): Json<api::CreateBuildRequest>,
 ) -> Result<AppResponse<api::CreateBuildResponse>, AppError> {
-    let request = CreateBuildRequest::new(&owner, &repo, &request.trigger, request.commit_sha)?;
+    let request = CreateBuildRequest::new(&owner, &repo, request.ref_name, request.commit_sha)?;
 
     state
         .build_service

@@ -9,6 +9,7 @@ pub struct BuildResource {
     pub id: Uuid,
     pub number: i32,
     pub repository_id: Uuid,
+    pub ref_name: String,
     pub trigger: String,
     pub commit_sha: String,
     pub status: String,

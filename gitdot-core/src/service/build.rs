@@ -13,6 +13,7 @@ use crate::{
         BuildRepository, BuildRepositoryImpl, RepositoryRepository, RepositoryRepositoryImpl,
         TaskRepository, TaskRepositoryImpl,
     },
+    util::git::DEFAULT_BRANCH,
 };
 
 #[async_trait]
@@ -95,7 +96,6 @@ where
             .await
             .map_err(BuildError::DatabaseError)?
             .ok_or_else(|| BuildError::RepositoryNotFound(format!("{owner}/{repo}")))?;
-
         let commit = self
             .git_client
             .get_repo_commit(owner, repo, &request.commit_sha)
@@ -118,19 +118,35 @@ where
 
         let ci_config =
             CiConfig::new(&file.content).map_err(|e| BuildError::InvalidConfig(e.to_string()))?;
-        let build_config = ci_config
-            .get_build_config(&request.trigger)
-            .map_err(|e| BuildError::InvalidConfig(e.to_string()))?;
-        let task_configs = ci_config.get_task_configs(build_config);
+        let ci_trigger = if request.ref_name == DEFAULT_BRANCH
+            || request
+                .ref_name
+                .rsplit('/')
+                .next()
+                .map(|name| name == DEFAULT_BRANCH)
+                .unwrap_or(false)
+        {
+            gitdot_config::ci::BuildTrigger::PushToMain
+        } else {
+            gitdot_config::ci::BuildTrigger::PullRequest
+        };
 
-        let trigger = crate::model::BuildTrigger::from(request.trigger);
+        let build_config = ci_config
+            .get_build_config(&ci_trigger)
+            .map_err(|e| BuildError::InvalidConfig(e.to_string()))?;
         let build = self
             .build_repo
-            .create(repository.id, trigger, &resolved_sha)
+            .create(
+                repository.id,
+                crate::model::BuildTrigger::from(ci_trigger),
+                &resolved_sha,
+                &request.ref_name,
+            )
             .await?;
 
-        // Pre-generate UUIDs for all tasks so dependencies can reference each other by ID
+        // pre-generate UUIDs for all tasks so dependencies can reference each other by ID
         let mut name_to_id: HashMap<String, Uuid> = HashMap::new();
+        let task_configs = ci_config.get_task_configs(build_config);
         for task_config in &task_configs {
             name_to_id.insert(task_config.name.clone(), Uuid::new_v4());
         }
@@ -183,8 +199,9 @@ where
             id: build.id,
             number: build.number,
             repository_id: build.repository_id,
-            trigger: build.trigger,
+            ref_name: build.ref_name,
             commit_sha: build.commit_sha,
+            trigger: build.trigger,
             status: BuildStatus::Running,
             total_tasks,
             completed_tasks: 0,
@@ -277,8 +294,9 @@ where
             id: build.id,
             number: build.number,
             repository_id: build.repository_id,
-            trigger: build.trigger,
+            ref_name: build.ref_name,
             commit_sha: build.commit_sha,
+            trigger: build.trigger,
             status,
             total_tasks,
             completed_tasks,

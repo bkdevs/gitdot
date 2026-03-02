@@ -11,6 +11,7 @@ pub trait BuildRepository: Send + Sync + Clone + 'static {
         repository_id: Uuid,
         trigger: BuildTrigger,
         commit_sha: &str,
+        ref_name: &str,
     ) -> Result<Build, Error>;
 
     async fn get(&self, repository_id: Uuid, number: i32) -> Result<Option<Build>, Error>;
@@ -36,17 +37,19 @@ impl BuildRepository for BuildRepositoryImpl {
         repository_id: Uuid,
         trigger: BuildTrigger,
         commit_sha: &str,
+        ref_name: &str,
     ) -> Result<Build, Error> {
         let build = sqlx::query_as::<_, Build>(
             r#"
-            INSERT INTO builds (repository_id, trigger, commit_sha, number)
-            VALUES ($1, $2, $3, COALESCE((SELECT MAX(number) FROM builds WHERE repository_id = $1), 0) + 1)
-            RETURNING id, number, repository_id, trigger, commit_sha, status, created_at
+            INSERT INTO builds (repository_id, trigger, commit_sha, ref_name, number)
+            VALUES ($1, $2, $3, $4, COALESCE((SELECT MAX(number) FROM builds WHERE repository_id = $1), 0) + 1)
+            RETURNING id, number, repository_id, ref_name, trigger, commit_sha, status, created_at
             "#,
         )
         .bind(repository_id)
         .bind(trigger)
         .bind(commit_sha)
+        .bind(ref_name)
         .fetch_one(&self.pool)
         .await?;
 
@@ -56,7 +59,7 @@ impl BuildRepository for BuildRepositoryImpl {
     async fn get(&self, repository_id: Uuid, number: i32) -> Result<Option<Build>, Error> {
         let build = sqlx::query_as::<_, Build>(
             r#"
-            SELECT id, number, repository_id, trigger, commit_sha, status, created_at
+            SELECT id, number, repository_id, ref_name, trigger, commit_sha, status, created_at
             FROM builds WHERE repository_id = $1 AND number = $2
             "#,
         )
@@ -72,7 +75,7 @@ impl BuildRepository for BuildRepositoryImpl {
         let builds = sqlx::query_as::<_, BuildWithStats>(
             r#"
             SELECT
-                b.id, b.number, b.repository_id, b.trigger, b.commit_sha,
+                b.id, b.number, b.repository_id, b.ref_name, b.trigger, b.commit_sha,
                 CASE
                     WHEN COUNT(t.id) = 0 THEN 'running'::build_status
                     WHEN COUNT(t.id) FILTER (WHERE t.status = 'failure') > 0 THEN 'failure'::build_status
@@ -86,7 +89,7 @@ impl BuildRepository for BuildRepositoryImpl {
             FROM builds b
             LEFT JOIN tasks t ON t.build_id = b.id
             WHERE b.repository_id = $1
-            GROUP BY b.id, b.number, b.repository_id, b.trigger, b.commit_sha, b.created_at
+            GROUP BY b.id, b.number, b.repository_id, b.ref_name, b.trigger, b.commit_sha, b.created_at
             ORDER BY b.created_at DESC
             "#,
         )

@@ -17,7 +17,10 @@ export async function FileViewer({
   selectedCommit?: string;
 }) {
   const [commits, file] = await Promise.all([
-    getRepositoryFileCommits(owner, repo, { path: filePath }),
+    getRepositoryFileCommits(owner, repo, {
+      path: filePath,
+      ref_name: selectedCommit,
+    }),
     getRepositoryFile(owner, repo, {
       path: filePath,
       ref_name: selectedCommit,

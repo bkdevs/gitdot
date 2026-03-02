@@ -3,24 +3,24 @@ import { RepositoryCommitsResource } from "../../resource";
 import type { Endpoint } from "../endpoint";
 
 export const GetRepositoryFileCommitsRequest = z.object({
-  path: z.string(),
-  ref_name: z.string(),
-  page: z.number().int(),
-  per_page: z.number().int(),
+	path: z.string(),
+	ref_name: z.string().optional(),
+	page: z.number().int().optional(),
+	per_page: z.number().int().optional(),
 });
 export type GetRepositoryFileCommitsRequest = z.infer<
-  typeof GetRepositoryFileCommitsRequest
+	typeof GetRepositoryFileCommitsRequest
 >;
 
 export const GetRepositoryFileCommitsResponse = RepositoryCommitsResource;
 export type GetRepositoryFileCommitsResponse = z.infer<
-  typeof GetRepositoryFileCommitsResponse
+	typeof GetRepositoryFileCommitsResponse
 >;
 
 export const GetRepositoryFileCommits = {
-  path: "/repository/{owner}/{repo}/file/commits",
-  method: "GET",
-  request: GetRepositoryFileCommitsRequest,
-  response: GetRepositoryFileCommitsResponse,
+	path: "/repository/{owner}/{repo}/file/commits",
+	method: "GET",
+	request: GetRepositoryFileCommitsRequest,
+	response: GetRepositoryFileCommitsResponse,
 } as const satisfies Endpoint;
 export type GetRepositoryFileCommits = typeof GetRepositoryFileCommits;
