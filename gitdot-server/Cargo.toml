@@ -12,6 +12,7 @@ anyhow = { workspace = true }
 async-trait = { workspace = true }
 axum = { version = "0.8.8", features = ["macros"] }
 base64 = { workspace = true }
+reqwest = { workspace = true }
 chrono = { workspace = true }
 dotenvy = "0.15.7"
 futures = { workspace = true }

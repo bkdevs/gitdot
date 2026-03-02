@@ -17,7 +17,7 @@ futures = { workspace = true }
 gitdot-api = { workspace = true }
 gitdot-config = { workspace = true }
 itertools = "0.14.0"
-reqwest = { version = "0.13.1", features = ["json", "query"] }
+reqwest = { workspace = true }
 rustls = { workspace = true, features = ["aws-lc-rs"] }
 s2-sdk = { workspace = true }
 serde = { workspace = true }

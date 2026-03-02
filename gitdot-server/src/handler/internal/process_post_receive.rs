@@ -1,7 +1,11 @@
+use std::env;
+
 use axum::{
     extract::{Json, Path, State},
     http::StatusCode,
 };
+use reqwest::Client;
+use serde_json::json;
 
 use gitdot_core::{
     dto::{CreateBuildRequest, CreateCommitsRequest},
@@ -44,6 +48,33 @@ pub async fn process_post_receive(
             if !matches!(e, BuildError::ConfigNotFound(_)) {
                 tracing::error!("Failed to create build in post-receive: {e}");
             }
+        }
+    });
+
+    // TEMP: Slack debug payload for post-receive.
+    let slack_webhook_url = env::var("SLACK_WEBHOOK_URL").ok();
+    let text = format!(
+        "https://www.gitdot.io/{}/{}/commits/{}",
+        owner,
+        repo,
+        request.new_sha.chars().take(7).collect::<String>()
+    );
+
+    tokio::spawn(async move {
+        let Some(webhook_url) = slack_webhook_url else {
+            return;
+        };
+        let body = json!({ "text": text }).to_string();
+
+        let client = Client::new();
+        if let Err(e) = client
+            .post(webhook_url)
+            .header("Content-Type", "application/json")
+            .body(body)
+            .send()
+            .await
+        {
+            tracing::error!("Failed to send Slack debug message: {e}");
         }
     });
 

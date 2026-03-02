@@ -2311,6 +2311,7 @@ dependencies = [
  "gitdot-core",
  "http 1.4.0",
  "jsonwebtoken",
+ "reqwest 0.13.2",
  "rustls",
  "serde",
  "serde_json",
