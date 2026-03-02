@@ -22,6 +22,16 @@ impl Executor for LocalExecutor {
         let working_directory = PathBuf::from(format!("/tmp/gitdot/tasks/{}", task.id));
         tokio::fs::create_dir_all(&working_directory).await?;
 
+        let clone_url = format!(
+            "{}/{}/{}",
+            config.gitdot_server_url, task.owner_name, task.repository_name
+        );
+        let clone_dir = working_directory.clone();
+        tokio::task::spawn_blocking(move || {
+            git2::Repository::clone(&clone_url, &clone_dir).context("Failed to clone repository")
+        })
+        .await??;
+
         Ok(Self {
             working_directory,
             task: task.clone(),
@@ -82,6 +92,7 @@ impl Executor for LocalExecutor {
         } else {
             "failure"
         };
+
         let record =
             AppendRecord::new(vec![])?.with_headers([Header::new("task-finished", task_status)])?;
         producer.submit(record).await?;
