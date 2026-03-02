@@ -25,7 +25,7 @@ pub async fn git_upload_pack(
     let auth_request =
         RepositoryAuthorizationRequest::new(user_id, &owner, &repo, RepositoryPermission::Read)?;
     state
-        .auth_service
+        .authorization_service
         .verify_authorized_for_repository(auth_request)
         .await?;
 

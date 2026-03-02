@@ -1,3 +1,4 @@
+mod authentication;
 mod authorization;
 mod build;
 mod commit;
@@ -11,6 +12,7 @@ mod runner;
 mod task;
 mod user;
 
+pub use authentication::{AuthenticationService, AuthenticationServiceImpl};
 pub use authorization::{AuthorizationService, AuthorizationServiceImpl};
 pub use build::{BuildService, BuildServiceImpl};
 pub use commit::{CommitService, CommitServiceImpl};

@@ -22,7 +22,7 @@ pub async fn add_member(
 ) -> Result<AppResponse<api::AddMemberResponse>, AppError> {
     let auth_request = OrganizationAuthorizationRequest::new(auth_user.id, &org_name)?;
     state
-        .auth_service
+        .authorization_service
         .verify_authorized_for_organization(auth_request)
         .await?;
 

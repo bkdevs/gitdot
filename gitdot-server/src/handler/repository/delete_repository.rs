@@ -25,7 +25,7 @@ pub async fn delete_repository(
         RepositoryPermission::Admin,
     )?;
     state
-        .auth_service
+        .authorization_service
         .verify_authorized_for_repository(auth_request)
         .await?;
 

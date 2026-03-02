@@ -22,7 +22,7 @@ pub async fn get_question(
     let request =
         RepositoryAuthorizationRequest::new(user_id, &owner, &repo, RepositoryPermission::Read)?;
     state
-        .auth_service
+        .authorization_service
         .verify_authorized_for_repository(request)
         .await?;
 

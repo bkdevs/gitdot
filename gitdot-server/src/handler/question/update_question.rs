@@ -21,7 +21,7 @@ pub async fn update_question(
 ) -> Result<AppResponse<api::UpdateQuestionResponse>, AppError> {
     let auth_request = QuestionAuthorizationRequest::new(auth_user.id, &owner, &repo, number)?;
     state
-        .auth_service
+        .authorization_service
         .verify_authorized_for_question(auth_request)
         .await?;
 

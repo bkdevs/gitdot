@@ -14,12 +14,12 @@ use gitdot_core::{
         UserRepositoryImpl,
     },
     service::{
-        AuthorizationService, AuthorizationServiceImpl, BuildService, BuildServiceImpl,
-        CommitService, CommitServiceImpl, GitHttpService, GitHttpServiceImpl, MigrationService,
-        MigrationServiceImpl, OAuthService, OAuthServiceImpl, OrganizationService,
-        OrganizationServiceImpl, QuestionService, QuestionServiceImpl, RepositoryService,
-        RepositoryServiceImpl, RunnerService, RunnerServiceImpl, TaskService, TaskServiceImpl,
-        UserService, UserServiceImpl,
+        AuthenticationService, AuthenticationServiceImpl, AuthorizationService,
+        AuthorizationServiceImpl, BuildService, BuildServiceImpl, CommitService, CommitServiceImpl,
+        GitHttpService, GitHttpServiceImpl, MigrationService, MigrationServiceImpl, OAuthService,
+        OAuthServiceImpl, OrganizationService, OrganizationServiceImpl, QuestionService,
+        QuestionServiceImpl, RepositoryService, RepositoryServiceImpl, RunnerService,
+        RunnerServiceImpl, TaskService, TaskServiceImpl, UserService, UserServiceImpl,
     },
 };
 
@@ -30,7 +30,8 @@ pub struct AppState {
     pub settings: Arc<Settings>,
 
     pub oauth_service: Arc<dyn OAuthService>,
-    pub auth_service: Arc<dyn AuthorizationService>,
+    pub authentication_service: Arc<dyn AuthenticationService>,
+    pub authorization_service: Arc<dyn AuthorizationService>,
 
     pub user_service: Arc<dyn UserService>,
     pub org_service: Arc<dyn OrganizationService>,
@@ -82,8 +83,8 @@ impl AppState {
                 token_repo.clone(),
                 user_repo.clone(),
             )),
-            auth_service: Arc::new(AuthorizationServiceImpl::new(
-                token_repo.clone(),
+            authentication_service: Arc::new(AuthenticationServiceImpl::new(token_repo.clone())),
+            authorization_service: Arc::new(AuthorizationServiceImpl::new(
                 org_repo.clone(),
                 repo_repo.clone(),
                 question_repo.clone(),

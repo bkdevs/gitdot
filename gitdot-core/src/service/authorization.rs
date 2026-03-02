@@ -6,25 +6,19 @@ use crate::{
         GetRepositoryPermissionResponse, MigrationAuthorizationRequest,
         OrganizationAuthorizationRequest, QuestionAuthorizationRequest,
         RepositoryAuthorizationRequest, RepositoryCreationAuthorizationRequest,
-        RepositoryPermission, ValidateTokenRequest, ValidateTokenResponse,
+        RepositoryPermission,
     },
     error::AuthorizationError,
     model::{OrganizationRole, RepositoryOwnerType},
     repository::{
         OrganizationRepository, OrganizationRepositoryImpl, QuestionRepository,
-        QuestionRepositoryImpl, RepositoryRepository, RepositoryRepositoryImpl, TokenRepository,
-        TokenRepositoryImpl, UserRepository, UserRepositoryImpl,
+        QuestionRepositoryImpl, RepositoryRepository, RepositoryRepositoryImpl, UserRepository,
+        UserRepositoryImpl,
     },
-    util::token::{hash_token, validate_token_format},
 };
 
 #[async_trait]
 pub trait AuthorizationService: Send + Sync + 'static {
-    async fn validate_token(
-        &self,
-        request: ValidateTokenRequest,
-    ) -> Result<ValidateTokenResponse, AuthorizationError>;
-
     async fn get_repository_permission(
         &self,
         request: GetRepositoryPermissionRequest,
@@ -67,15 +61,13 @@ pub trait AuthorizationService: Send + Sync + 'static {
 }
 
 #[derive(Debug, Clone)]
-pub struct AuthorizationServiceImpl<T, O, R, Q, U>
+pub struct AuthorizationServiceImpl<O, R, Q, U>
 where
-    T: TokenRepository,
     O: OrganizationRepository,
     R: RepositoryRepository,
     Q: QuestionRepository,
     U: UserRepository,
 {
-    token_repo: T,
     org_repo: O,
     repo_repo: R,
     question_repo: Q,
@@ -84,7 +76,6 @@ where
 
 impl
     AuthorizationServiceImpl<
-        TokenRepositoryImpl,
         OrganizationRepositoryImpl,
         RepositoryRepositoryImpl,
         QuestionRepositoryImpl,
@@ -92,14 +83,12 @@ impl
     >
 {
     pub fn new(
-        token_repo: TokenRepositoryImpl,
         org_repo: OrganizationRepositoryImpl,
         repo_repo: RepositoryRepositoryImpl,
         question_repo: QuestionRepositoryImpl,
         user_repo: UserRepositoryImpl,
     ) -> Self {
         Self {
-            token_repo,
             org_repo,
             repo_repo,
             question_repo,
@@ -109,39 +98,13 @@ impl
 }
 
 #[async_trait]
-impl<T, O, R, Q, U> AuthorizationService for AuthorizationServiceImpl<T, O, R, Q, U>
+impl<O, R, Q, U> AuthorizationService for AuthorizationServiceImpl<O, R, Q, U>
 where
-    T: TokenRepository,
     O: OrganizationRepository,
     R: RepositoryRepository,
     Q: QuestionRepository,
     U: UserRepository,
 {
-    async fn validate_token(
-        &self,
-        request: ValidateTokenRequest,
-    ) -> Result<ValidateTokenResponse, AuthorizationError> {
-        if !validate_token_format(&request.token) {
-            return Err(AuthorizationError::Unauthorized);
-        }
-        if !&request.token.starts_with(request.token_type.prefix()) {
-            return Err(AuthorizationError::Unauthorized);
-        }
-
-        let token_hash = hash_token(&request.token);
-        let access_token = self
-            .token_repo
-            .get_token_by_hash(&token_hash)
-            .await?
-            .ok_or(AuthorizationError::Unauthorized)?;
-
-        self.token_repo.touch_token(access_token.id).await?;
-
-        Ok(ValidateTokenResponse {
-            principal_id: access_token.principal_id,
-        })
-    }
-
     async fn get_repository_permission(
         &self,
         request: GetRepositoryPermissionRequest,

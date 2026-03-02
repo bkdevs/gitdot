@@ -28,7 +28,7 @@ pub async fn create_question_comment(
         RepositoryPermission::Read,
     )?;
     state
-        .auth_service
+        .authorization_service
         .verify_authorized_for_repository(auth_request)
         .await?;
 

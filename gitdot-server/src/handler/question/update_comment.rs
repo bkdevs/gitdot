@@ -22,7 +22,7 @@ pub async fn update_comment(
 ) -> Result<AppResponse<api::UpdateCommentResponse>, AppError> {
     let auth_request = CommentAuthorizationRequest::new(auth_user.id, comment_id);
     state
-        .auth_service
+        .authorization_service
         .verify_authorized_for_comment(auth_request)
         .await?;
 

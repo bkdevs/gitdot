@@ -19,7 +19,7 @@ pub async fn get_permission(
 ) -> Result<AppResponse<RepositoryPermissionResource>, AppError> {
     let request = GetRepositoryPermissionRequest::new(auth_user.id, &owner, &repo)?;
     let response = state
-        .auth_service
+        .authorization_service
         .get_repository_permission(request)
         .await?;
 

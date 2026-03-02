@@ -147,7 +147,7 @@ impl Authenticator for UserToken {
             token_type: TokenType::Personal,
         };
         let response = app_state
-            .auth_service
+            .authentication_service
             .validate_token(request)
             .await
             .map_err(|_| AuthorizationError::Unauthorized)?;
@@ -172,7 +172,7 @@ impl Authenticator for RunnerToken {
             token_type: TokenType::Runner,
         };
         let response = app_state
-            .auth_service
+            .authentication_service
             .validate_token(request)
             .await
             .map_err(|_| AuthorizationError::Unauthorized)?;

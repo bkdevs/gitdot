@@ -22,7 +22,7 @@ pub async fn create_repository(
     let auth_request =
         RepositoryCreationAuthorizationRequest::new(auth_user.id, &owner, &request.owner_type)?;
     state
-        .auth_service
+        .authorization_service
         .verify_authorized_for_repository_creation(auth_request)
         .await?;
 

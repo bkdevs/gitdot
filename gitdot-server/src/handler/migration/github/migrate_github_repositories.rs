@@ -28,7 +28,7 @@ pub async fn migrate_github_repositories(
         &request.destination_type,
     )?;
     state
-        .auth_service
+        .authorization_service
         .verify_authorized_for_migration(auth_request)
         .await?;
 

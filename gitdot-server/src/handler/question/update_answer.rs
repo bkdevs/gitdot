@@ -22,7 +22,7 @@ pub async fn update_answer(
 ) -> Result<AppResponse<api::UpdateAnswerResponse>, AppError> {
     let auth_request = AnswerAuthorizationRequest::new(auth_user.id, answer_id);
     state
-        .auth_service
+        .authorization_service
         .verify_authorized_for_answer(auth_request)
         .await?;
 

@@ -22,7 +22,7 @@ pub async fn git_info_refs(
     };
     let auth_request = RepositoryAuthorizationRequest::new(user_id, &owner, &repo, permission)?;
     state
-        .auth_service
+        .authorization_service
         .verify_authorized_for_repository(auth_request)
         .await?;
 

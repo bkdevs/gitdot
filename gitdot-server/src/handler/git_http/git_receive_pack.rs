@@ -28,7 +28,7 @@ pub async fn git_receive_pack(
         RepositoryPermission::Write,
     )?;
     state
-        .auth_service
+        .authorization_service
         .verify_authorized_for_repository(auth_request)
         .await?;
 

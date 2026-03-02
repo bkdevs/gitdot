@@ -27,7 +27,7 @@ pub async fn vote_answer(
         RepositoryPermission::Read,
     )?;
     state
-        .auth_service
+        .authorization_service
         .verify_authorized_for_repository(auth_request)
         .await?;
 
