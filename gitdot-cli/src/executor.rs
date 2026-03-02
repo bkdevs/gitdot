@@ -12,10 +12,9 @@ pub trait Executor {
     async fn execute(&self, task: &PollTaskResource) -> Result<()>;
 }
 
-#[derive(Debug, Clone, Copy, Default, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum ExecutorType {
-    #[default]
     Local,
     Docker,
 }

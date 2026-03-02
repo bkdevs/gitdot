@@ -11,6 +11,7 @@ path = "src/bin/main.rs"
 [dependencies]
 anyhow = { workspace = true }
 base64 = { workspace = true }
+git2 = { workspace = true }
 clap = { version = "4.5.54", features = ["derive"] }
 dirs-next = "2.0.0"
 futures = { workspace = true }

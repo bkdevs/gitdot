@@ -17,15 +17,25 @@ pub async fn run(config: RunnerConfig) -> anyhow::Result<()> {
 
     let client = Arc::new(GitdotClient::from_runner_config(&config));
     let s2 = S2::from_url(&config.s2_server_url).context("failed to init S2 client")?;
-    let executor_type = config.executor;
 
-    // TODO(temp): naive multi-task runner — revisit concurrency model
+    let executor_type = config.executor;
+    let semaphore = Arc::new(tokio::sync::Semaphore::new(config.num_executors as usize));
+
     loop {
+        let permit = Arc::clone(&semaphore)
+            .acquire_owned()
+            .await
+            .context("semaphore closed")?;
+
         let task = match client.poll_task(()).await {
             Ok(Some(task)) => task,
-            Ok(None) => continue,
+            Ok(None) => {
+                drop(permit);
+                continue;
+            }
             Err(e) => {
                 eprintln!("Error polling task: {:#?}", e);
+                drop(permit);
                 continue;
             }
         };
@@ -34,6 +44,7 @@ pub async fn run(config: RunnerConfig) -> anyhow::Result<()> {
         let s2 = s2.clone();
 
         tokio::spawn(async move {
+            let _permit = permit;
             if let Err(e) = client.update_task(task.id, "running").await {
                 eprintln!("Failed to mark task {} as running: {}", task.id, e);
                 return;
