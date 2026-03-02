@@ -4,13 +4,13 @@ use gitdot_api::{endpoint::task::poll_task as api, resource::task as resource};
 
 use crate::{
     app::{AppError, AppResponse, AppState},
-    extract::{Principal, Runner},
+    extract::{Principal, RunnerToken},
 };
 
 #[axum::debug_handler]
 pub async fn poll_task(
     State(state): State<AppState>,
-    auth_runner: Principal<Runner>,
+    auth_runner: Principal<RunnerToken>,
 ) -> Result<AppResponse<api::PollTaskResponse>, AppError> {
     let Some(task) = state
         .task_service

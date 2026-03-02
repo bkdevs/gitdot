@@ -6,9 +6,9 @@ impl Endpoint for CreateRunnerToken {
     const PATH: &'static str = "/ci/runner/{owner}/{name}/token";
     const METHOD: http::Method = http::Method::POST;
 
-    type Request = CreateRunnerTokenRequest;
-    type Response = CreateRunnerTokenResponse;
+    type Request = RefreshRunnerTokenRequest;
+    type Response = RefreshRunnerTokenResponse;
 }
 
-pub type CreateRunnerTokenRequest = ();
-pub type CreateRunnerTokenResponse = RunnerTokenResource;
+pub type RefreshRunnerTokenRequest = ();
+pub type RefreshRunnerTokenResponse = RunnerTokenResource;

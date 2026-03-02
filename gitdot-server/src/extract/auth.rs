@@ -156,10 +156,10 @@ impl Authenticator for UserToken {
     }
 }
 
-pub struct Runner;
+pub struct RunnerToken;
 
 #[async_trait]
-impl Authenticator for Runner {
+impl Authenticator for RunnerToken {
     async fn authenticate(
         parts: &Parts,
         app_state: &AppState,

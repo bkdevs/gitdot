@@ -5,13 +5,13 @@ use gitdot_core::dto::VerifyRunnerRequest;
 
 use crate::{
     app::{AppError, AppResponse, AppState},
-    extract::{Principal, Runner},
+    extract::{Principal, RunnerToken},
 };
 
 #[axum::debug_handler]
 pub async fn verify_runner(
     State(state): State<AppState>,
-    auth_runner: Principal<Runner>,
+    auth_runner: Principal<RunnerToken>,
 ) -> Result<AppResponse<api::VerifyRunnerResponse>, AppError> {
     let request = VerifyRunnerRequest {
         runner_id: auth_runner.id,

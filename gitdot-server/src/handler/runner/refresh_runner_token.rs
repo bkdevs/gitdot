@@ -3,21 +3,21 @@ use axum::{
     http::StatusCode,
 };
 
-use gitdot_api::endpoint::runner::create_runner_token as api;
+use gitdot_api::endpoint::runner::refresh_runner_token as api;
 use gitdot_core::dto::CreateRunnerTokenRequest;
 
 use crate::{
     app::{AppError, AppResponse, AppState},
     dto::IntoApi,
-    extract::{Principal, User},
+    extract::{Principal, UserJwt},
 };
 
 #[axum::debug_handler]
 pub async fn refresh_runner_token(
     State(state): State<AppState>,
-    _auth_user: Principal<User>,
+    _auth_user: Principal<UserJwt>,
     Path((owner, name)): Path<(String, String)>,
-) -> Result<AppResponse<api::CreateRunnerTokenResponse>, AppError> {
+) -> Result<AppResponse<api::RefreshRunnerTokenResponse>, AppError> {
     let request = CreateRunnerTokenRequest::new(&owner, &name)?;
 
     state
