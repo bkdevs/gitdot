@@ -33,7 +33,7 @@ export function BuildTask({
 
     (async () => {
       try {
-        const response = await fetch(`/actions/tasks/${task.id}/logs`, {
+        const response = await fetch(`/api/tasks/${task.id}/logs`, {
           headers: { Accept: "text/event-stream" },
           signal: controller.signal,
         });
