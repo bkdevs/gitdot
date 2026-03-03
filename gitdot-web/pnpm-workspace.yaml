@@ -1,6 +1,6 @@
 packages:
-  - gitdot-web
-  - gitdot-api-ts
+  - .
+  - packages/*
 
 catalog:
   "@biomejs/biome": "2.3.11"
