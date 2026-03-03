@@ -28,8 +28,6 @@ async fn main() -> eyre::Result<()> {
         .with(tracing_subscriber::fmt::layer())
         .init();
 
-    std::env::var("GITDOT_PUBLIC_KEY").expect("GITDOT_PUBLIC_KEY must be set");
-
     let args = Args::parse();
     s2_server::server::run(args.lite).await
 }

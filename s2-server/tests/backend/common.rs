@@ -35,7 +35,7 @@ pub async fn create_in_memory_db() -> Db {
 
 pub async fn create_backend() -> Backend {
     let db = create_in_memory_db().await;
-    Backend::new(db, ByteSize::mib(10))
+    Backend::new(db, ByteSize::mib(10), String::new())
 }
 
 pub fn test_basin_name(suffix: &str) -> BasinName {

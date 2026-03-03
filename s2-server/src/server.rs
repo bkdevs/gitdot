@@ -149,7 +149,9 @@ pub async fn run(args: LiteArgs) -> eyre::Result<()> {
 
     tokio::time::sleep(manifest_poll_interval).await;
 
-    let backend = Backend::new(db, append_inflight_max);
+    let gitdot_public_key =
+        std::env::var("GITDOT_PUBLIC_KEY").expect("GITDOT_PUBLIC_KEY must be set");
+    let backend = Backend::new(db, append_inflight_max, gitdot_public_key);
     crate::backend::bgtasks::spawn(&backend);
 
     if let Some(init_file) = &args.init_file {

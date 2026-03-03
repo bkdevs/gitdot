@@ -60,19 +60,22 @@ enum StreamerClientSlot {
 #[derive(Clone)]
 pub struct Backend {
     pub(super) db: slatedb::Db,
+    pub gitdot_public_key: String,
+
     streamer_slots: Arc<DashMap<StreamId, StreamerClientSlot>>,
     append_inflight_max: ByteSize,
     bgtask_trigger_tx: broadcast::Sender<BgtaskTrigger>,
 }
 
 impl Backend {
-    pub fn new(db: slatedb::Db, append_inflight_max: ByteSize) -> Self {
+    pub fn new(db: slatedb::Db, append_inflight_max: ByteSize, gitdot_public_key: String) -> Self {
         let (bgtask_trigger_tx, _) = broadcast::channel(16);
         Self {
             db,
             streamer_slots: Arc::new(DashMap::new()),
             append_inflight_max,
             bgtask_trigger_tx,
+            gitdot_public_key,
         }
     }
 
@@ -330,7 +333,7 @@ mod tests {
             .build()
             .await
             .unwrap();
-        Backend::new(db, ByteSize::b(1))
+        Backend::new(db, ByteSize::b(1), String::new())
     }
 
     #[tokio::test]

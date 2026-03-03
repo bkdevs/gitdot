@@ -141,7 +141,7 @@ mod tests {
             .build()
             .await
             .unwrap();
-        Backend::new(db, ByteSize::mib(10))
+        Backend::new(db, ByteSize::mib(10), String::new())
     }
 
     #[tokio::test]

@@ -34,7 +34,9 @@ http = { workspace = true }
 humantime = { workspace = true }
 indexmap = { workspace = true }
 itertools = { workspace = true }
+jsonwebtoken = { workspace = true, features = ["rust_crypto"] }
 mimalloc = { workspace = true }
+object_store = { workspace = true, features = ["gcp"] }
 parking_lot = { workspace = true, features = ["arc_lock"] }
 prost = { workspace = true }
 rand = { workspace = true }
@@ -60,6 +62,8 @@ tower-http = { workspace = true, features = [
 ] }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true, features = ["env-filter"] }
+
+uuid = { workspace = true }
 
 [dev-dependencies]
 proptest = { workspace = true }

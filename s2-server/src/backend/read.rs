@@ -365,7 +365,7 @@ mod tests {
     async fn resolve_timestamp_bounded_to_stream() {
         let object_store = Arc::new(InMemory::new());
         let db = Db::builder("/test", object_store).build().await.unwrap();
-        let backend = Backend::new(db, ByteSize::mib(10));
+        let backend = Backend::new(db, ByteSize::mib(10), String::new());
 
         let stream_a: StreamId = [0u8; 32].into();
         let stream_b: StreamId = [1u8; 32].into();
@@ -418,7 +418,7 @@ mod tests {
     async fn read_completes_when_all_records_deleted() {
         let object_store = Arc::new(InMemory::new());
         let db = Db::builder("/test", object_store).build().await.unwrap();
-        let backend = Backend::new(db, ByteSize::mib(10));
+        let backend = Backend::new(db, ByteSize::mib(10), String::new());
 
         let basin: BasinName = "test-basin".parse().unwrap();
         backend
