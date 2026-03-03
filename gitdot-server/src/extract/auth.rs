@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use gitdot_core::{
-    dto::{JwtClaims, ValidateTokenRequest, GITDOT_SERVER_ID},
+    dto::{GITDOT_SERVER_ID, JwtClaims, ValidateTokenRequest},
     error::AuthorizationError,
     model::TokenType,
 };

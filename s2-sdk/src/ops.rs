@@ -35,18 +35,6 @@ impl S2 {
         Self::new(config)
     }
 
-    #[doc(hidden)]
-    #[cfg(feature = "_hidden")]
-    pub fn new_with_connector<C>(config: S2Config, connector: C) -> Result<Self, S2Error>
-    where
-        C: Connect + Clone + Send + Sync + 'static,
-    {
-        let base_client = BaseClient::init_with_connector(&config, connector)?;
-        Ok(Self {
-            client: AccountClient::init(config, base_client),
-        })
-    }
-
     /// Get an [`S2Basin`].
     pub fn basin(&self, name: BasinName) -> S2Basin {
         S2Basin {
@@ -149,7 +137,6 @@ impl S2Basin {
             .delete_stream(input.name, input.ignore_not_found)
             .await?)
     }
-
 }
 
 #[derive(Debug, Clone)]
