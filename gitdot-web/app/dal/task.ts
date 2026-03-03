@@ -1,8 +1,8 @@
 import "server-only";
 
-import { TaskResource } from "gitdot-api";
+import { TaskResource, TaskTokenResource } from "gitdot-api";
 import { z } from "zod";
-import { authFetch, GITDOT_SERVER_URL, handleResponse } from "./util";
+import { authFetch, authPost, GITDOT_SERVER_URL, handleResponse } from "./util";
 
 export async function getBuildTasks(
   owner: string,
@@ -14,4 +14,13 @@ export async function getBuildTasks(
   );
 
   return await handleResponse(response, z.array(TaskResource));
+}
+
+export async function issueTaskToken(taskId: string): Promise<string | null> {
+  const response = await authPost(
+    `${GITDOT_SERVER_URL}/ci/task/${encodeURIComponent(taskId)}/token`,
+    {},
+  );
+  const result = await handleResponse(response, TaskTokenResource);
+  return result?.token ?? null;
 }

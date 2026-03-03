@@ -7,6 +7,7 @@ export interface TailTaskLogsOptions {
 }
 
 export function tailTaskLogs(
+  token: string,
   owner: string,
   repo: string,
   taskId: string,
@@ -24,6 +25,7 @@ export function tailTaskLogs(
   const headers: Record<string, string> = {
     "s2-basin": `${owner}-${repo}`,
     Accept: "text/event-stream",
+    Authorization: `Bearer ${token}`,
   };
   if (options.lastEventId) {
     headers["Last-Event-Id"] = options.lastEventId;

@@ -3,6 +3,7 @@ import {
   getBuildTasks,
   getRepositoryCommit,
   getRepositoryFile,
+  issueTaskToken,
   NotFound,
 } from "@/dal";
 import { getTaskLogs } from "@/lib/s2/server";
@@ -25,6 +26,10 @@ export default async function Page({
   ]);
   if (!build || !tasks) return null;
 
+  const taskTokens = await Promise.all(
+    tasks.map((task) => issueTaskToken(task.id)),
+  );
+
   const [commit, configFile, taskLogs] = await Promise.all([
     getRepositoryCommit(owner, repo, build.commit_sha),
     getRepositoryFile(owner, repo, {
@@ -32,7 +37,12 @@ export default async function Page({
       path: ".gitdot-ci.toml",
     }),
     Promise.all(
-      tasks.map((task) => getTaskLogs(owner, repo, task.id).catch(() => [])),
+      tasks.map((task, i) => {
+        const token = taskTokens[i];
+        return token
+          ? getTaskLogs(token, owner, repo, task.id).catch(() => [])
+          : Promise.resolve([]);
+      }),
     ),
   ]);
 
@@ -56,6 +66,7 @@ export default async function Page({
           logs={taskLogs[i]}
           owner={owner}
           repo={repo}
+          token={taskTokens[i] ?? ""}
         />
       ))}
     </div>

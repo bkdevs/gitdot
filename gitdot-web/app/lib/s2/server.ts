@@ -8,6 +8,7 @@ export interface GetTaskLogsOptions {
 }
 
 export async function getTaskLogs(
+  token: string,
   owner: string,
   repo: string,
   taskId: string,
@@ -25,6 +26,7 @@ export async function getTaskLogs(
   const response = await fetch(url.toString(), {
     headers: {
       "s2-basin": `${owner}-${repo}`,
+      Authorization: `Bearer ${token}`,
     },
   });
 

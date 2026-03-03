@@ -20,11 +20,13 @@ export function BuildTask({
   logs: initialLogs,
   owner,
   repo,
+  token,
 }: {
   task: TaskResource;
   logs: S2Record[];
   owner: string;
   repo: string;
+  token: string;
 }) {
   const [status, setStatus] = useState<TaskStatus>(task.status);
   const [logs, setLogs] = useState<S2Record[]>(initialLogs);
@@ -35,7 +37,7 @@ export function BuildTask({
   useEffect(() => {
     if (!running) return;
 
-    const controller = tailTaskLogs(owner, repo, task.id, (batch) => {
+    const controller = tailTaskLogs(token, owner, repo, task.id, (batch) => {
       const sentinel = batch.find((r) =>
         r.headers.some(([k]) => k === "task-finished"),
       );
@@ -55,7 +57,7 @@ export function BuildTask({
       });
     });
     return () => controller.abort();
-  }, [owner, repo, task.id, running]);
+  }, [token, owner, repo, task.id, running]);
 
   return (
     <div className="flex flex-col">

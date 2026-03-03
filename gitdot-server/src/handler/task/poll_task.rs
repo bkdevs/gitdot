@@ -30,7 +30,10 @@ pub async fn poll_task(
 
     let jwt = state
         .authentication_service
-        .issue_task_token(IssueTaskJwtRequest { task_id: task.id })
+        .issue_task_token(IssueTaskJwtRequest {
+            task_id: task.id,
+            duration: std::time::Duration::from_secs(3600),
+        })
         .await
         .map_err(AppError::from)?;
 

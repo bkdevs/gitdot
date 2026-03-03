@@ -1,3 +1,3 @@
-pub mod get_task_logs;
+pub mod issue_task_token;
 pub mod poll_task;
 pub mod update_task;

@@ -1,20 +1,13 @@
 use async_trait::async_trait;
 use chrono::Utc;
-use futures::{Stream, StreamExt};
 use jsonwebtoken::{Algorithm, EncodingKey, Header, encode};
 use s2_sdk::{
     S2,
-    types::{
-        BasinName, CreateBasinInput, CreateStreamInput, ErrorResponse, ReadFrom, ReadInput,
-        ReadLimits, ReadStart, ReadStop, S2Error, StreamName,
-    },
+    types::{BasinName, CreateBasinInput, CreateStreamInput, ErrorResponse, S2Error, StreamName},
 };
 use uuid::Uuid;
 
-use crate::{
-    dto::{GITDOT_SERVER_ID, JwtClaims, S2_SERVER_ID, TaskLogResponse},
-    util::s2::parse_s2_uri,
-};
+use crate::dto::{GITDOT_SERVER_ID, JwtClaims, S2_SERVER_ID};
 
 #[async_trait]
 pub trait S2Client: Send + Sync + Clone + 'static {
@@ -51,99 +44,6 @@ impl S2ClientImpl {
             .map_err(|e| e.to_string())?;
 
         encode(&Header::new(Algorithm::EdDSA), &claims, &encoding_key).map_err(|e| e.to_string())
-    }
-
-    pub async fn get_task_logs(
-        &self,
-        s2_uri: &str,
-        tail_offset: u64,
-        count: usize,
-    ) -> Result<Vec<TaskLogResponse>, String> {
-        let jwt = self.issue_internal_jwt()?;
-        let s2 = self.s2.with_auth(&jwt);
-        let (basin, stream_name) = parse_s2_uri(s2_uri)?;
-        let stream = s2.basin(basin).stream(stream_name);
-        let read_input = ReadInput::new()
-            .with_start(ReadStart::new().with_from(ReadFrom::TailOffset(tail_offset)))
-            .with_stop(ReadStop::new().with_limits(ReadLimits::new().with_count(count)));
-
-        let batch = stream.read(read_input).await.map_err(|e| e.to_string())?;
-
-        Ok(batch
-            .records
-            .into_iter()
-            .map(|record| {
-                let mut stream_header = None;
-                let mut finished = None;
-                for h in &record.headers {
-                    if h.name.as_ref() == b"stream".as_ref() {
-                        stream_header =
-                            Some(String::from_utf8_lossy(&h.value).to_string());
-                    }
-                    if h.name.as_ref() == b"task-finished".as_ref() {
-                        finished = Some(String::from_utf8_lossy(&h.value).to_string());
-                    }
-                }
-                TaskLogResponse {
-                    seq_num: record.seq_num,
-                    timestamp: record.timestamp,
-                    body: String::from_utf8_lossy(&record.body).to_string(),
-                    stream: stream_header,
-                    finished,
-                }
-            })
-            .collect())
-    }
-
-    pub async fn tail_task_logs(
-        &self,
-        s2_uri: &str,
-        start_seq_num: Option<u64>,
-    ) -> Result<impl Stream<Item = Result<Vec<TaskLogResponse>, String>> + Send + use<>, String>
-    {
-        let jwt = self.issue_internal_jwt()?;
-        let s2 = self.s2.with_auth(&jwt);
-        let (basin, stream_name) = parse_s2_uri(s2_uri)?;
-        let stream = s2.basin(basin).stream(stream_name);
-        let read_from = match start_seq_num {
-            Some(seq) => ReadFrom::SeqNum(seq),
-            None => ReadFrom::TailOffset(0),
-        };
-        let read_input = ReadInput::new().with_start(ReadStart::new().with_from(read_from));
-
-        let batches = stream
-            .read_session(read_input)
-            .await
-            .map_err(|e| e.to_string())?;
-
-        Ok(batches.map(|result| match result {
-            Ok(batch) => Ok(batch
-                .records
-                .into_iter()
-                .map(|record| {
-                    let mut stream_header = None;
-                    let mut finished = None;
-                    for h in &record.headers {
-                        if h.name.as_ref() == b"stream".as_ref() {
-                            stream_header =
-                                Some(String::from_utf8_lossy(&h.value).to_string());
-                        }
-                        if h.name.as_ref() == b"task-finished".as_ref() {
-                            finished =
-                                Some(String::from_utf8_lossy(&h.value).to_string());
-                        }
-                    }
-                    TaskLogResponse {
-                        seq_num: record.seq_num,
-                        timestamp: record.timestamp,
-                        body: String::from_utf8_lossy(&record.body).to_string(),
-                        stream: stream_header,
-                        finished,
-                    }
-                })
-                .collect()),
-            Err(e) => Err(e.to_string()),
-        }))
     }
 }
 

@@ -2,5 +2,4 @@ pub mod auth;
 pub mod code;
 pub mod git;
 pub mod github;
-pub mod s2;
 pub mod token;

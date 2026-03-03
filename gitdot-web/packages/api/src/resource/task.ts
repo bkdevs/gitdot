@@ -35,3 +35,6 @@ export const PollTaskResource = z.object({
   status: TaskStatus,
 });
 export type PollTaskResource = z.infer<typeof PollTaskResource>;
+
+export const TaskTokenResource = z.object({ token: z.string() });
+export type TaskTokenResource = z.infer<typeof TaskTokenResource>;

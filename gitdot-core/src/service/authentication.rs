@@ -80,7 +80,7 @@ where
             aud: vec![GITDOT_SERVER_ID.to_string(), S2_SERVER_ID.to_string()],
             sub: request.task_id.to_string(),
             iat: now,
-            exp: now + 3600,
+            exp: now + request.duration.as_secs() as usize,
         };
 
         let encoding_key = EncodingKey::from_ed_pem(self.gitdot_private_key.as_bytes())
