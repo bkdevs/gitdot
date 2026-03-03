@@ -12,7 +12,7 @@ use s2_common::{
 };
 
 use crate::{
-    auth::{Gitdot, Principal},
+    auth::{Internal, Principal},
     backend::Backend,
     handlers::v1::error::ServiceError,
 };
@@ -36,7 +36,7 @@ pub struct ListArgs {
 
 /// List streams.
 pub async fn list_streams(
-    _auth: Principal<Gitdot>,
+    _auth: Principal<Internal>,
     State(backend): State<Backend>,
     ListArgs { basin, request }: ListArgs,
 ) -> Result<Json<v1t::stream::ListStreamsResponse>, ServiceError> {
@@ -60,7 +60,7 @@ pub struct CreateArgs {
 
 /// Create a stream.
 pub async fn create_stream(
-    _auth: Principal<Gitdot>,
+    _auth: Principal<Internal>,
     State(backend): State<Backend>,
     CreateArgs {
         request_token: HeaderOpt(request_token),
@@ -95,7 +95,7 @@ pub struct DeleteArgs {
 
 /// Delete a stream.
 pub async fn delete_stream(
-    _auth: Principal<Gitdot>,
+    _auth: Principal<Internal>,
     State(backend): State<Backend>,
     DeleteArgs { basin, stream }: DeleteArgs,
 ) -> Result<StatusCode, ServiceError> {

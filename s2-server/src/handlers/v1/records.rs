@@ -86,6 +86,14 @@ fn prepare_read(
     Ok((start, end))
 }
 
+fn ensure_auth(auth: &Principal<TaskJwt>, stream: &StreamName) -> Result<(), ServiceError> {
+    let expected = format!("task/{}", auth.id);
+    if stream.as_ref() != expected {
+        return Err(ServiceError::Unauthorized);
+    }
+    Ok(())
+}
+
 #[derive(FromRequest)]
 #[from_request(rejection(ServiceError))]
 pub struct CheckTailArgs {
@@ -97,10 +105,11 @@ pub struct CheckTailArgs {
 
 /// Check the tail.
 pub async fn check_tail(
-    _auth: Principal<TaskJwt>,
+    auth: Principal<TaskJwt>,
     State(backend): State<Backend>,
     CheckTailArgs { basin, stream }: CheckTailArgs,
 ) -> Result<Json<v1t::stream::TailResponse>, ServiceError> {
+    ensure_auth(&auth, &stream)?;
     let tail = backend.check_tail(basin, stream).await?;
     Ok(Json(v1t::stream::TailResponse { tail: tail.into() }))
 }
@@ -119,9 +128,11 @@ pub struct ReadArgs {
     request: v1t::stream::ReadRequest,
 }
 
+// TODO: consider removing basin + stream as embedding it as claims in the token
+// worse observability, but cleaner API / obfuscation for security.
 /// Read records.
 pub async fn read(
-    _auth: Principal<TaskJwt>,
+    auth: Principal<TaskJwt>,
     State(backend): State<Backend>,
     ReadArgs {
         basin,
@@ -131,6 +142,7 @@ pub async fn read(
         request,
     }: ReadArgs,
 ) -> Result<Response, ServiceError> {
+    ensure_auth(&auth, &stream)?;
     let start: ReadStart = start.try_into()?;
     match request {
         v1t::stream::ReadRequest::Unary {
@@ -278,7 +290,7 @@ pub struct AppendArgs {
 
 /// Append records.
 pub async fn append(
-    _auth: Principal<TaskJwt>,
+    auth: Principal<TaskJwt>,
     State(backend): State<Backend>,
     AppendArgs {
         basin,
@@ -286,6 +298,7 @@ pub async fn append(
         request,
     }: AppendArgs,
 ) -> Result<Response, ServiceError> {
+    ensure_auth(&auth, &stream)?;
     match request {
         v1t::stream::AppendRequest::Unary {
             input,

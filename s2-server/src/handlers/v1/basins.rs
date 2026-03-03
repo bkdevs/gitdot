@@ -11,7 +11,7 @@ use s2_common::{
 };
 
 use crate::{
-    auth::{Gitdot, Principal},
+    auth::{Internal, Principal},
     backend::Backend,
     handlers::v1::error::ServiceError,
 };
@@ -33,7 +33,7 @@ pub struct ListArgs {
 
 /// List basins.
 pub async fn list_basins(
-    _auth: Principal<Gitdot>,
+    _auth: Principal<Internal>,
     State(backend): State<Backend>,
     ListArgs { request }: ListArgs,
 ) -> Result<Json<v1t::basin::ListBasinsResponse>, ServiceError> {
@@ -55,7 +55,7 @@ pub struct CreateArgs {
 
 /// Create a basin.
 pub async fn create_basin(
-    _auth: Principal<Gitdot>,
+    _auth: Principal<Internal>,
     State(backend): State<Backend>,
     CreateArgs {
         request_token: HeaderOpt(request_token),
@@ -82,7 +82,7 @@ pub struct DeleteArgs {
 
 /// Delete a basin.
 pub async fn delete_basin(
-    _auth: Principal<Gitdot>,
+    _auth: Principal<Internal>,
     State(backend): State<Backend>,
     DeleteArgs { basin }: DeleteArgs,
 ) -> Result<StatusCode, ServiceError> {

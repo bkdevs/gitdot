@@ -60,6 +60,8 @@ pub enum ServiceError {
     Append(#[from] AppendError),
     #[error(transparent)]
     Read(#[from] ReadError),
+    #[error("unauthorized")]
+    Unauthorized,
     #[error("Not implemented")]
     NotImplemented,
 }
@@ -258,6 +260,9 @@ impl ServiceError {
                     tail: tail.0.into(),
                 }),
             },
+            ServiceError::Unauthorized => {
+                standard(ErrorCode::PermissionDenied, "Unauthorized".to_string())
+            }
             ServiceError::NotImplemented => {
                 standard(ErrorCode::PermissionDenied, "Not implemented".to_string())
             }

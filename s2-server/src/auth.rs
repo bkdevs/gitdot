@@ -16,12 +16,14 @@ const GITDOT_SERVER_ID: &str = "gitdot-server";
 
 #[derive(Debug, Clone)]
 pub struct Principal<A: Authenticator> {
+    pub id: Uuid,
     _marker: PhantomData<A>,
 }
 
 impl<A: Authenticator> Principal<A> {
-    fn new() -> Self {
+    fn new(id: Uuid) -> Self {
         Self {
+            id,
             _marker: PhantomData,
         }
     }
@@ -46,7 +48,7 @@ impl IntoResponse for AuthError {
 
 #[async_trait]
 pub trait Authenticator: Send + Sync + 'static {
-    async fn authenticate(parts: &Parts, backend: &Backend) -> Result<(), AuthError>
+    async fn authenticate(parts: &Parts, backend: &Backend) -> Result<Principal<Self>, AuthError>
     where
         Self: Sized;
 }
@@ -61,8 +63,7 @@ where
 
     async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
         let backend = Backend::from_ref(state);
-        A::authenticate(parts, &backend).await?;
-        Ok(Principal::new())
+        A::authenticate(parts, &backend).await
     }
 }
 
@@ -86,25 +87,11 @@ fn extract_jwt(parts: &Parts) -> Result<&str, AuthError> {
         .ok_or(AuthError::InvalidHeaderFormat)
 }
 
-pub struct Any;
+pub struct Internal;
 
 #[async_trait]
-impl Authenticator for Any {
-    async fn authenticate(parts: &Parts, backend: &Backend) -> Result<(), AuthError> {
-        let jwt = extract_jwt(parts)?;
-        let claims = decode_jwt(jwt, &backend.gitdot_public_key)?;
-        if claims.iss != GITDOT_SERVER_ID {
-            return Err(AuthError::InvalidToken("invalid issuer".to_string()));
-        }
-        Ok(())
-    }
-}
-
-pub struct Gitdot;
-
-#[async_trait]
-impl Authenticator for Gitdot {
-    async fn authenticate(parts: &Parts, backend: &Backend) -> Result<(), AuthError> {
+impl Authenticator for Internal {
+    async fn authenticate(parts: &Parts, backend: &Backend) -> Result<Principal<Self>, AuthError> {
         let jwt = extract_jwt(parts)?;
         let claims = decode_jwt(jwt, &backend.gitdot_public_key)?;
         if claims.sub != GITDOT_SERVER_ID {
@@ -112,7 +99,7 @@ impl Authenticator for Gitdot {
                 "expected internal server identity".to_string(),
             ));
         }
-        Ok(())
+        Ok(Principal::new(Uuid::nil()))
     }
 }
 
@@ -120,12 +107,12 @@ pub struct TaskJwt;
 
 #[async_trait]
 impl Authenticator for TaskJwt {
-    async fn authenticate(parts: &Parts, backend: &Backend) -> Result<(), AuthError> {
+    async fn authenticate(parts: &Parts, backend: &Backend) -> Result<Principal<Self>, AuthError> {
         let jwt = extract_jwt(parts)?;
         let claims = decode_jwt(jwt, &backend.gitdot_public_key)?;
-        Uuid::parse_str(&claims.sub)
-            .map(|_| ())
-            .map_err(|e| AuthError::InvalidToken(e.to_string()))
+        let id =
+            Uuid::parse_str(&claims.sub).map_err(|e| AuthError::InvalidToken(e.to_string()))?;
+        Ok(Principal::new(id))
     }
 }
 
