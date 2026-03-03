@@ -1,6 +1,6 @@
 "use client";
 
-import type { TaskLogResource, TaskResource, TaskStatus } from "gitdot-api";
+import type { TaskResource, TaskStatus } from "gitdot-api";
 import {
   Check,
   ChevronDown,
@@ -10,18 +10,24 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { tailTaskLogs } from "@/lib/s2/client";
+import type { S2Record } from "@/lib/s2/shared";
 import { cn } from "@/util";
 import { BuildTaskLogs } from "./build-task-logs";
 
 export function BuildTask({
   task,
   logs: initialLogs,
+  owner,
+  repo,
 }: {
   task: TaskResource;
-  logs: TaskLogResource[];
+  logs: S2Record[];
+  owner: string;
+  repo: string;
 }) {
   const [status, setStatus] = useState<TaskStatus>(task.status);
-  const [logs, setLogs] = useState<TaskLogResource[]>(initialLogs);
+  const [logs, setLogs] = useState<S2Record[]>(initialLogs);
 
   const running = status === "running" || status === "assigned";
   const [open, setOpen] = useState(running);
@@ -29,83 +35,27 @@ export function BuildTask({
   useEffect(() => {
     if (!running) return;
 
-    const controller = new AbortController();
-
-    (async () => {
-      try {
-        const response = await fetch(`/api/tasks/${task.id}/logs`, {
-          headers: { Accept: "text/event-stream" },
-          signal: controller.signal,
-        });
-
-        if (!response.ok || !response.body) {
-          console.error(
-            `Log stream failed: ${response.status} ${response.statusText}`,
-          );
-          return;
-        }
-
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = "";
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          buffer += decoder.decode(value, { stream: true });
-
-          const events = buffer.split("\n\n");
-          buffer = events.pop() ?? "";
-
-          for (const event of events) {
-            if (!event.trim()) continue;
-
-            let eventType = "message";
-            let data = "";
-
-            for (const line of event.split("\n")) {
-              if (line.startsWith("event:")) {
-                eventType = line.slice("event:".length).trim();
-              } else if (line.startsWith("data:")) {
-                data = line.slice("data:".length).trim();
-              }
-            }
-
-            if (eventType === "batch") {
-              try {
-                const batch = JSON.parse(data) as TaskLogResource[];
-                const sentinel = batch.find((r) => r.finished != null);
-                if (sentinel) {
-                  setStatus(sentinel.finished as TaskStatus);
-                }
-                const normalRecords = batch.filter((r) => r.finished == null);
-                setLogs((prev) => {
-                  const maxSeq =
-                    prev.length > 0 ? prev[prev.length - 1].seq_num : -1;
-                  const newRecords = normalRecords.filter(
-                    (r) => r.seq_num > maxSeq,
-                  );
-                  return newRecords.length === 0
-                    ? prev
-                    : [...prev, ...newRecords];
-                });
-              } catch (err) {
-                console.error("Failed to parse log batch:", err);
-              }
-            } else if (eventType === "error") {
-              console.error("Log stream error event:", data);
-            }
-          }
-        }
-      } catch (err) {
-        if (err instanceof Error && err.name === "AbortError") return;
-        console.error("Log stream error:", err);
+    const controller = tailTaskLogs(owner, repo, task.id, (batch) => {
+      const sentinel = batch.find((r) =>
+        r.headers.some(([k]) => k === "task-finished"),
+      );
+      if (sentinel) {
+        const header = sentinel.headers.find(([k]) => k === "task-finished");
+        if (header) setStatus(header[1] as TaskStatus);
       }
-    })();
 
+      const normalRecords = batch.filter((r) =>
+        r.headers.every(([k]) => k !== "task-finished"),
+      );
+
+      setLogs((prev) => {
+        const maxSeq = prev.length > 0 ? prev[prev.length - 1].seq_num : -1;
+        const newRecords = normalRecords.filter((r) => r.seq_num > maxSeq);
+        return newRecords.length === 0 ? prev : [...prev, ...newRecords];
+      });
+    });
     return () => controller.abort();
-  }, [task.id, running]);
+  }, [owner, repo, task.id, running]);
 
   return (
     <div className="flex flex-col">

@@ -1,10 +1,10 @@
 "use client";
 
-import type { TaskLogResource } from "gitdot-api";
 import { useEffect, useRef } from "react";
+import type { S2Record } from "@/lib/s2/shared";
 
 interface BuildTaskLogsProps {
-  logs: TaskLogResource[];
+  logs: S2Record[];
   running: boolean;
 }
 
