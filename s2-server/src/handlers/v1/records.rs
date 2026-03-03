@@ -25,7 +25,7 @@ use s2_common::{
 };
 
 use crate::{
-    auth::Principal,
+    auth::{Any, Principal},
     backend::{Backend, error::ReadError},
     handlers::v1::error::ServiceError,
 };
@@ -97,7 +97,7 @@ pub struct CheckTailArgs {
 
 /// Check the tail.
 pub async fn check_tail(
-    _auth: Principal,
+    _auth: Principal<Any>,
     State(backend): State<Backend>,
     CheckTailArgs { basin, stream }: CheckTailArgs,
 ) -> Result<Json<v1t::stream::TailResponse>, ServiceError> {
@@ -121,7 +121,7 @@ pub struct ReadArgs {
 
 /// Read records.
 pub async fn read(
-    _auth: Principal,
+    _auth: Principal<Any>,
     State(backend): State<Backend>,
     ReadArgs {
         basin,
@@ -278,7 +278,7 @@ pub struct AppendArgs {
 
 /// Append records.
 pub async fn append(
-    _auth: Principal,
+    _auth: Principal<Any>,
     State(backend): State<Backend>,
     AppendArgs {
         basin,

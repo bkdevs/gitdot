@@ -10,7 +10,11 @@ use s2_common::{
     },
 };
 
-use crate::{auth::Principal, backend::Backend, handlers::v1::error::ServiceError};
+use crate::{
+    auth::{Gitdot, Principal},
+    backend::Backend,
+    handlers::v1::error::ServiceError,
+};
 
 pub fn router() -> axum::Router<Backend> {
     use axum::routing::{delete, get, post};
@@ -29,7 +33,7 @@ pub struct ListArgs {
 
 /// List basins.
 pub async fn list_basins(
-    _auth: Principal,
+    _auth: Principal<Gitdot>,
     State(backend): State<Backend>,
     ListArgs { request }: ListArgs,
 ) -> Result<Json<v1t::basin::ListBasinsResponse>, ServiceError> {
@@ -51,7 +55,7 @@ pub struct CreateArgs {
 
 /// Create a basin.
 pub async fn create_basin(
-    _auth: Principal,
+    _auth: Principal<Gitdot>,
     State(backend): State<Backend>,
     CreateArgs {
         request_token: HeaderOpt(request_token),
@@ -78,7 +82,7 @@ pub struct DeleteArgs {
 
 /// Delete a basin.
 pub async fn delete_basin(
-    _auth: Principal,
+    _auth: Principal<Gitdot>,
     State(backend): State<Backend>,
     DeleteArgs { basin }: DeleteArgs,
 ) -> Result<StatusCode, ServiceError> {
