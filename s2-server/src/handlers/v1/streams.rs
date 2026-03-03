@@ -1,14 +1,11 @@
 use axum::extract::{FromRequest, Path, Query, State};
 use http::StatusCode;
-use s2_api::{
-    data::{Json, extract::JsonOpt},
-    v1 as v1t,
-};
+use s2_api::{data::Json, v1 as v1t};
 use s2_common::{
     http::extract::{Header, HeaderOpt},
     types::{
         basin::BasinName,
-        config::{OptionalStreamConfig, StreamReconfiguration},
+        config::OptionalStreamConfig,
         resources::{CreateMode, Page, RequestToken},
         stream::{ListStreamsRequest, StreamName},
     },
@@ -17,20 +14,11 @@ use s2_common::{
 use crate::{backend::Backend, handlers::v1::error::ServiceError};
 
 pub fn router() -> axum::Router<Backend> {
-    use axum::routing::{delete, get, patch, post, put};
+    use axum::routing::{delete, get, post};
     axum::Router::new()
         .route(super::paths::streams::LIST, get(list_streams))
         .route(super::paths::streams::CREATE, post(create_stream))
-        .route(super::paths::streams::GET_CONFIG, get(get_stream_config))
-        .route(
-            super::paths::streams::CREATE_OR_RECONFIGURE,
-            put(create_or_reconfigure_stream),
-        )
         .route(super::paths::streams::DELETE, delete(delete_stream))
-        .route(
-            super::paths::streams::RECONFIGURE,
-            patch(reconfigure_stream),
-        )
 }
 
 #[derive(FromRequest)]
@@ -92,60 +80,6 @@ pub async fn create_stream(
 
 #[derive(FromRequest)]
 #[from_request(rejection(ServiceError))]
-pub struct GetConfigArgs {
-    #[from_request(via(Header))]
-    basin: BasinName,
-    #[from_request(via(Path))]
-    stream: StreamName,
-}
-
-/// Get stream configuration.
-pub async fn get_stream_config(
-    State(backend): State<Backend>,
-    GetConfigArgs { basin, stream }: GetConfigArgs,
-) -> Result<Json<v1t::config::StreamConfig>, ServiceError> {
-    let config = backend.get_stream_config(basin, stream).await?;
-    Ok(Json(
-        v1t::config::StreamConfig::to_opt(config).unwrap_or_default(),
-    ))
-}
-
-#[derive(FromRequest)]
-#[from_request(rejection(ServiceError))]
-pub struct CreateOrReconfigureArgs {
-    #[from_request(via(Header))]
-    basin: BasinName,
-    #[from_request(via(Path))]
-    stream: StreamName,
-    config: JsonOpt<v1t::config::StreamReconfiguration>,
-}
-
-/// Create or reconfigure a stream.
-pub async fn create_or_reconfigure_stream(
-    State(backend): State<Backend>,
-    CreateOrReconfigureArgs {
-        basin,
-        stream,
-        config: JsonOpt(config),
-    }: CreateOrReconfigureArgs,
-) -> Result<(StatusCode, Json<v1t::stream::StreamInfo>), ServiceError> {
-    let config: StreamReconfiguration = config
-        .map(TryInto::try_into)
-        .transpose()?
-        .unwrap_or_default();
-    let info = backend
-        .create_stream(basin, stream, config, CreateMode::CreateOrReconfigure)
-        .await?;
-    let status = if info.is_created() {
-        StatusCode::CREATED
-    } else {
-        StatusCode::OK
-    };
-    Ok((status, Json(info.into_inner().into())))
-}
-
-#[derive(FromRequest)]
-#[from_request(rejection(ServiceError))]
 pub struct DeleteArgs {
     #[from_request(via(Header))]
     basin: BasinName,
@@ -160,33 +94,4 @@ pub async fn delete_stream(
 ) -> Result<StatusCode, ServiceError> {
     backend.delete_stream(basin, stream).await?;
     Ok(StatusCode::ACCEPTED)
-}
-
-#[derive(FromRequest)]
-#[from_request(rejection(ServiceError))]
-pub struct ReconfigureArgs {
-    #[from_request(via(Header))]
-    basin: BasinName,
-    #[from_request(via(Path))]
-    stream: StreamName,
-    #[from_request(via(Json))]
-    reconfiguration: v1t::config::StreamReconfiguration,
-}
-
-/// Reconfigure a stream.
-pub async fn reconfigure_stream(
-    State(backend): State<Backend>,
-    ReconfigureArgs {
-        basin,
-        stream,
-        reconfiguration,
-    }: ReconfigureArgs,
-) -> Result<Json<v1t::config::StreamConfig>, ServiceError> {
-    let reconfiguration: StreamReconfiguration = reconfiguration.try_into()?;
-    let config = backend
-        .reconfigure_stream(basin, stream, reconfiguration)
-        .await?;
-    Ok(Json(
-        v1t::config::StreamConfig::to_opt(config).unwrap_or_default(),
-    ))
 }

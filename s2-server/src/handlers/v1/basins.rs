@@ -1,14 +1,11 @@
 use axum::extract::{FromRequest, Path, Query, State};
 use http::StatusCode;
-use s2_api::{
-    data::{Json, extract::JsonOpt},
-    v1 as v1t,
-};
+use s2_api::{data::Json, v1 as v1t};
 use s2_common::{
     http::extract::HeaderOpt,
     types::{
         basin::{BasinName, ListBasinsRequest},
-        config::{BasinConfig, BasinReconfiguration},
+        config::BasinConfig,
         resources::{CreateMode, Page, RequestToken},
     },
 };
@@ -16,17 +13,11 @@ use s2_common::{
 use crate::{backend::Backend, handlers::v1::error::ServiceError};
 
 pub fn router() -> axum::Router<Backend> {
-    use axum::routing::{delete, get, patch, post, put};
+    use axum::routing::{delete, get, post};
     axum::Router::new()
         .route(super::paths::basins::LIST, get(list_basins))
         .route(super::paths::basins::CREATE, post(create_basin))
-        .route(super::paths::basins::GET_CONFIG, get(get_basin_config))
-        .route(
-            super::paths::basins::CREATE_OR_RECONFIGURE,
-            put(create_or_reconfigure_basin),
-        )
         .route(super::paths::basins::DELETE, delete(delete_basin))
-        .route(super::paths::basins::RECONFIGURE, patch(reconfigure_basin))
 }
 
 #[derive(FromRequest)]
@@ -78,54 +69,6 @@ pub async fn create_basin(
 
 #[derive(FromRequest)]
 #[from_request(rejection(ServiceError))]
-pub struct GetConfigArgs {
-    #[from_request(via(Path))]
-    basin: BasinName,
-}
-
-/// Get basin configuration.
-pub async fn get_basin_config(
-    State(backend): State<Backend>,
-    GetConfigArgs { basin }: GetConfigArgs,
-) -> Result<Json<v1t::config::BasinConfig>, ServiceError> {
-    let config = backend.get_basin_config(basin).await?;
-    Ok(Json(config.into()))
-}
-
-#[derive(FromRequest)]
-#[from_request(rejection(ServiceError))]
-pub struct CreateOrReconfigureArgs {
-    #[from_request(via(Path))]
-    basin: BasinName,
-    request: JsonOpt<v1t::basin::CreateOrReconfigureBasinRequest>,
-}
-
-/// Create or reconfigure a basin.
-pub async fn create_or_reconfigure_basin(
-    State(backend): State<Backend>,
-    CreateOrReconfigureArgs {
-        basin,
-        request: JsonOpt(request),
-    }: CreateOrReconfigureArgs,
-) -> Result<(StatusCode, Json<v1t::basin::BasinInfo>), ServiceError> {
-    let config: BasinReconfiguration = request
-        .and_then(|req| req.config)
-        .map(TryInto::try_into)
-        .transpose()?
-        .unwrap_or_default();
-    let info = backend
-        .create_basin(basin, config, CreateMode::CreateOrReconfigure)
-        .await?;
-    let status = if info.is_created() {
-        StatusCode::CREATED
-    } else {
-        StatusCode::OK
-    };
-    Ok((status, Json(info.into_inner().into())))
-}
-
-#[derive(FromRequest)]
-#[from_request(rejection(ServiceError))]
 pub struct DeleteArgs {
     #[from_request(via(Path))]
     basin: BasinName,
@@ -138,26 +81,4 @@ pub async fn delete_basin(
 ) -> Result<StatusCode, ServiceError> {
     backend.delete_basin(basin).await?;
     Ok(StatusCode::ACCEPTED)
-}
-
-#[derive(FromRequest)]
-#[from_request(rejection(ServiceError))]
-pub struct ReconfigureArgs {
-    #[from_request(via(Path))]
-    basin: BasinName,
-    #[from_request(via(Json))]
-    reconfiguration: v1t::config::BasinReconfiguration,
-}
-
-/// Reconfigure a basin.
-pub async fn reconfigure_basin(
-    State(backend): State<Backend>,
-    ReconfigureArgs {
-        basin,
-        reconfiguration,
-    }: ReconfigureArgs,
-) -> Result<Json<v1t::config::BasinConfig>, ServiceError> {
-    let reconfiguration: BasinReconfiguration = reconfiguration.try_into()?;
-    let config = backend.reconfigure_basin(basin, reconfiguration).await?;
-    Ok(Json(config.into()))
 }

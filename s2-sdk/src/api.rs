@@ -11,7 +11,6 @@ use http::{
 use prost::{self, Message};
 use s2_api::v1::{
     basin::{BasinInfo, CreateBasinRequest},
-    config::{StreamConfig, StreamReconfiguration},
     stream::{
         AppendConditionFailed, CreateStreamRequest, ListStreamsRequest, ListStreamsResponse,
         ReadEnd, ReadStart, StreamInfo, TailResponse,
@@ -153,46 +152,6 @@ impl BasinClient {
             .build()?;
         let response = self.request(request).send().await?;
         Ok(response.json::<StreamInfo>()?)
-    }
-
-    pub async fn get_stream_config(&self, name: StreamName) -> Result<StreamConfig, ApiError> {
-        let url = self
-            .base_url
-            .join(&format!("v1/streams/{}", urlencoding::encode(&name)))?;
-        let request = self.get(url).build()?;
-        let response = self.request(request).send().await?;
-        Ok(response.json::<StreamConfig>()?)
-    }
-
-    pub async fn reconfigure_stream(
-        &self,
-        name: StreamName,
-        config: StreamReconfiguration,
-    ) -> Result<StreamConfig, ApiError> {
-        let url = self
-            .base_url
-            .join(&format!("v1/streams/{}", urlencoding::encode(&name)))?;
-        let request = self.patch(url).json(&config).build()?;
-        let response = self.request(request).send().await?;
-        Ok(response.json::<StreamConfig>()?)
-    }
-
-    #[cfg(feature = "_hidden")]
-    pub async fn create_or_reconfigure_stream(
-        &self,
-        name: StreamName,
-        config: Option<StreamReconfiguration>,
-    ) -> Result<(bool, StreamInfo), ApiError> {
-        let url = self
-            .base_url
-            .join(&format!("v1/streams/{}", urlencoding::encode(&name)))?;
-        let request = match config {
-            Some(body) => self.put(url).json(&body).build()?,
-            None => self.put(url).build()?,
-        };
-        let response = self.request(request).send().await?;
-        let was_created = response.status() == StatusCode::CREATED;
-        Ok((was_created, response.json::<StreamInfo>()?))
     }
 
     pub async fn delete_stream(
@@ -659,21 +618,6 @@ impl BaseClient {
 
     pub fn post(&self, url: Url) -> client::RequestBuilder {
         client::RequestBuilder::post(url)
-            .timeout(self.request_timeout)
-            .headers(&self.default_headers)
-            .compression(self.compression)
-    }
-
-    pub fn patch(&self, url: Url) -> client::RequestBuilder {
-        client::RequestBuilder::patch(url)
-            .timeout(self.request_timeout)
-            .headers(&self.default_headers)
-            .compression(self.compression)
-    }
-
-    #[cfg(feature = "_hidden")]
-    pub fn put(&self, url: Url) -> client::RequestBuilder {
-        client::RequestBuilder::put(url)
             .timeout(self.request_timeout)
             .headers(&self.default_headers)
             .compression(self.compression)

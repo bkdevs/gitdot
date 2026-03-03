@@ -2,8 +2,6 @@ use futures::StreamExt;
 
 #[cfg(feature = "_hidden")]
 use crate::client::Connect;
-#[cfg(feature = "_hidden")]
-use crate::types::{CreateOrReconfigureStreamInput, CreateOrReconfigured};
 use crate::{
     api::{AccountClient, BaseClient, BasinClient},
     producer::{Producer, ProducerConfig},
@@ -11,8 +9,7 @@ use crate::{
     types::{
         AppendAck, AppendInput, BasinInfo, BasinName, CreateBasinInput, CreateStreamInput,
         DeleteBasinInput, DeleteStreamInput, ListAllStreamsInput, ListStreamsInput, Page,
-        ReadBatch, ReadInput, ReconfigureStreamInput, S2Config, S2Error, StreamConfig, StreamInfo,
-        StreamName, StreamPosition, Streaming,
+        ReadBatch, ReadInput, S2Config, S2Error, StreamInfo, StreamName, StreamPosition, Streaming,
     },
 };
 
@@ -145,38 +142,6 @@ impl S2Basin {
         Ok(info.try_into()?)
     }
 
-    /// Create or reconfigure a stream.
-    ///
-    /// Creates the stream if it doesn't exist, or reconfigures it to match the provided
-    /// configuration if it does. Uses HTTP PUT semantics — always idempotent.
-    ///
-    /// Returns [`CreateOrReconfigured::Created`] with the stream info if the stream was newly
-    /// created, or [`CreateOrReconfigured::Reconfigured`] if it already existed.
-    #[doc(hidden)]
-    #[cfg(feature = "_hidden")]
-    pub async fn create_or_reconfigure_stream(
-        &self,
-        input: CreateOrReconfigureStreamInput,
-    ) -> Result<CreateOrReconfigured<StreamInfo>, S2Error> {
-        let (name, config) = input.into();
-        let (was_created, info) = self
-            .client
-            .create_or_reconfigure_stream(name, config)
-            .await?;
-        let info = info.try_into()?;
-        Ok(if was_created {
-            CreateOrReconfigured::Created(info)
-        } else {
-            CreateOrReconfigured::Reconfigured(info)
-        })
-    }
-
-    /// Get stream configuration.
-    pub async fn get_stream_config(&self, name: StreamName) -> Result<StreamConfig, S2Error> {
-        let config = self.client.get_stream_config(name).await?;
-        Ok(config.into())
-    }
-
     /// Delete a stream.
     pub async fn delete_stream(&self, input: DeleteStreamInput) -> Result<(), S2Error> {
         Ok(self
@@ -185,17 +150,6 @@ impl S2Basin {
             .await?)
     }
 
-    /// Reconfigure a stream.
-    pub async fn reconfigure_stream(
-        &self,
-        input: ReconfigureStreamInput,
-    ) -> Result<StreamConfig, S2Error> {
-        let config = self
-            .client
-            .reconfigure_stream(input.name, input.config.into())
-            .await?;
-        Ok(config.into())
-    }
 }
 
 #[derive(Debug, Clone)]

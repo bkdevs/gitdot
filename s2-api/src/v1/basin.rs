@@ -4,7 +4,7 @@ use s2_common::types::{
 };
 use serde::{Deserialize, Serialize};
 
-use super::config::{BasinConfig, BasinReconfiguration};
+use super::config::BasinConfig;
 
 #[rustfmt::skip]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -100,16 +100,6 @@ impl From<types::basin::BasinState> for BasinState {
             types::basin::BasinState::Deleting => Self::Deleting,
         }
     }
-}
-
-#[rustfmt::skip]
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CreateOrReconfigureBasinRequest {
-    /// Basin reconfiguration.
-    pub config: Option<BasinReconfiguration>,
-    /// Basin scope.
-    /// This cannot be reconfigured.
-    pub scope: Option<BasinScope>,
 }
 
 #[rustfmt::skip]

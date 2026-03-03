@@ -36,7 +36,7 @@ pub use s2_common::types::stream::StreamNameStartAfter;
 
 pub(crate) const ONE_MIB: u32 = 1024 * 1024;
 
-use s2_common::{maybe::Maybe, record::MAX_FENCING_TOKEN_LENGTH};
+use s2_common::record::MAX_FENCING_TOKEN_LENGTH;
 
 use crate::api::{ApiError, ApiErrorResponse};
 
@@ -933,142 +933,6 @@ impl DeleteBasinInput {
 
 #[derive(Debug, Clone, Default)]
 #[non_exhaustive]
-/// Reconfiguration for [`TimestampingConfig`].
-pub struct TimestampingReconfiguration {
-    /// Override for the existing [`mode`](TimestampingConfig::mode).
-    pub mode: Maybe<Option<TimestampingMode>>,
-    /// Override for the existing [`uncapped`](TimestampingConfig::uncapped) setting.
-    pub uncapped: Maybe<Option<bool>>,
-}
-
-impl TimestampingReconfiguration {
-    /// Create a new [`TimestampingReconfiguration`].
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    /// Set the override for the existing [`mode`](TimestampingConfig::mode).
-    pub fn with_mode(self, mode: TimestampingMode) -> Self {
-        Self {
-            mode: Maybe::Specified(Some(mode)),
-            ..self
-        }
-    }
-
-    /// Set the override for the existing [`uncapped`](TimestampingConfig::uncapped).
-    pub fn with_uncapped(self, uncapped: bool) -> Self {
-        Self {
-            uncapped: Maybe::Specified(Some(uncapped)),
-            ..self
-        }
-    }
-}
-
-impl From<TimestampingReconfiguration> for api::config::TimestampingReconfiguration {
-    fn from(value: TimestampingReconfiguration) -> Self {
-        Self {
-            mode: value.mode.map(|m| m.map(Into::into)),
-            uncapped: value.uncapped,
-        }
-    }
-}
-
-#[derive(Debug, Clone, Default)]
-#[non_exhaustive]
-/// Reconfiguration for [`DeleteOnEmptyConfig`].
-pub struct DeleteOnEmptyReconfiguration {
-    /// Override for the existing [`min_age_secs`](DeleteOnEmptyConfig::min_age_secs).
-    pub min_age_secs: Maybe<Option<u64>>,
-}
-
-impl DeleteOnEmptyReconfiguration {
-    /// Create a new [`DeleteOnEmptyReconfiguration`].
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    /// Set the override for the existing [`min_age_secs`](DeleteOnEmptyConfig::min_age_secs).
-    pub fn with_min_age(self, min_age: Duration) -> Self {
-        Self {
-            min_age_secs: Maybe::Specified(Some(min_age.as_secs())),
-        }
-    }
-}
-
-impl From<DeleteOnEmptyReconfiguration> for api::config::DeleteOnEmptyReconfiguration {
-    fn from(value: DeleteOnEmptyReconfiguration) -> Self {
-        Self {
-            min_age_secs: value.min_age_secs,
-        }
-    }
-}
-
-#[derive(Debug, Clone, Default)]
-#[non_exhaustive]
-/// Reconfiguration for [`StreamConfig`].
-pub struct StreamReconfiguration {
-    /// Override for the existing [`storage_class`](StreamConfig::storage_class).
-    pub storage_class: Maybe<Option<StorageClass>>,
-    /// Override for the existing [`retention_policy`](StreamConfig::retention_policy).
-    pub retention_policy: Maybe<Option<RetentionPolicy>>,
-    /// Override for the existing [`timestamping`](StreamConfig::timestamping).
-    pub timestamping: Maybe<Option<TimestampingReconfiguration>>,
-    /// Override for the existing [`delete_on_empty`](StreamConfig::delete_on_empty).
-    pub delete_on_empty: Maybe<Option<DeleteOnEmptyReconfiguration>>,
-}
-
-impl StreamReconfiguration {
-    /// Create a new [`StreamReconfiguration`].
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    /// Set the override for the existing [`storage_class`](StreamConfig::storage_class).
-    pub fn with_storage_class(self, storage_class: StorageClass) -> Self {
-        Self {
-            storage_class: Maybe::Specified(Some(storage_class)),
-            ..self
-        }
-    }
-
-    /// Set the override for the existing [`retention_policy`](StreamConfig::retention_policy).
-    pub fn with_retention_policy(self, retention_policy: RetentionPolicy) -> Self {
-        Self {
-            retention_policy: Maybe::Specified(Some(retention_policy)),
-            ..self
-        }
-    }
-
-    /// Set the override for the existing [`timestamping`](StreamConfig::timestamping).
-    pub fn with_timestamping(self, timestamping: TimestampingReconfiguration) -> Self {
-        Self {
-            timestamping: Maybe::Specified(Some(timestamping)),
-            ..self
-        }
-    }
-
-    /// Set the override for the existing [`delete_on_empty`](StreamConfig::delete_on_empty).
-    pub fn with_delete_on_empty(self, delete_on_empty: DeleteOnEmptyReconfiguration) -> Self {
-        Self {
-            delete_on_empty: Maybe::Specified(Some(delete_on_empty)),
-            ..self
-        }
-    }
-}
-
-impl From<StreamReconfiguration> for api::config::StreamReconfiguration {
-    fn from(value: StreamReconfiguration) -> Self {
-        Self {
-            storage_class: value.storage_class.map(|m| m.map(Into::into)),
-            retention_policy: value.retention_policy.map(|m| m.map(Into::into)),
-            timestamping: value.timestamping.map(|m| m.map(Into::into)),
-            delete_on_empty: value.delete_on_empty.map(|m| m.map(Into::into)),
-        }
-    }
-}
-
-#[derive(Debug, Clone, Default)]
-#[non_exhaustive]
 /// Input for [`list_streams`](crate::S2Basin::list_streams) operation.
 pub struct ListStreamsInput {
     /// Filter streams whose names begin with this value.
@@ -1244,46 +1108,6 @@ impl From<CreateStreamInput> for (api::stream::CreateStreamRequest, String) {
 
 #[derive(Debug, Clone)]
 #[non_exhaustive]
-/// Input for [`create_or_reconfigure_stream`](crate::S2Basin::create_or_reconfigure_stream)
-/// operation.
-#[doc(hidden)]
-#[cfg(feature = "_hidden")]
-pub struct CreateOrReconfigureStreamInput {
-    /// Stream name.
-    pub name: StreamName,
-    /// Reconfiguration for the stream.
-    ///
-    /// If `None`, the stream is created with default configuration or left unchanged if it exists.
-    pub config: Option<StreamReconfiguration>,
-}
-
-#[cfg(feature = "_hidden")]
-impl CreateOrReconfigureStreamInput {
-    /// Create a new [`CreateOrReconfigureStreamInput`] with the given stream name.
-    pub fn new(name: StreamName) -> Self {
-        Self { name, config: None }
-    }
-
-    /// Set the reconfiguration for the stream.
-    pub fn with_config(self, config: StreamReconfiguration) -> Self {
-        Self {
-            config: Some(config),
-            ..self
-        }
-    }
-}
-
-#[cfg(feature = "_hidden")]
-impl From<CreateOrReconfigureStreamInput>
-    for (StreamName, Option<api::config::StreamReconfiguration>)
-{
-    fn from(value: CreateOrReconfigureStreamInput) -> Self {
-        (value.name, value.config.map(Into::into))
-    }
-}
-
-#[derive(Debug, Clone)]
-#[non_exhaustive]
 /// Input of [`delete_stream`](crate::S2Basin::delete_stream) operation.
 pub struct DeleteStreamInput {
     /// Stream name.
@@ -1307,23 +1131,6 @@ impl DeleteStreamInput {
             ignore_not_found,
             ..self
         }
-    }
-}
-
-#[derive(Debug, Clone)]
-#[non_exhaustive]
-/// Input for [`reconfigure_stream`](crate::S2Basin::reconfigure_stream) operation.
-pub struct ReconfigureStreamInput {
-    /// Stream name.
-    pub name: StreamName,
-    /// Reconfiguration for [`StreamConfig`].
-    pub config: StreamReconfiguration,
-}
-
-impl ReconfigureStreamInput {
-    /// Create a new [`ReconfigureStreamInput`] with the given stream name and reconfiguration.
-    pub fn new(name: StreamName, config: StreamReconfiguration) -> Self {
-        Self { name, config }
     }
 }
 
