@@ -1,3 +1,5 @@
+"use server";
+
 import { GITDOT_SERVER_URL } from "@/dal/util";
 import { getSession } from "@/lib/supabase";
 
