@@ -15,7 +15,7 @@ pub async fn run(config: RunnerConfig) -> anyhow::Result<()> {
     }
 
     let config = Arc::new(config);
-    let client = Arc::new(GitdotClient::from_runner_config(&config));
+    let runner_client = Arc::new(GitdotClient::from_runner_config(&config));
     let semaphore = Arc::new(tokio::sync::Semaphore::new(config.num_executors as usize));
 
     loop {
@@ -24,7 +24,7 @@ pub async fn run(config: RunnerConfig) -> anyhow::Result<()> {
             .await
             .context("semaphore closed")?;
 
-        let task = match client.poll_task(()).await {
+        let task = match runner_client.poll_task(()).await {
             Ok(Some(task)) => task,
             Ok(None) => {
                 drop(permit);
@@ -37,12 +37,13 @@ pub async fn run(config: RunnerConfig) -> anyhow::Result<()> {
             }
         };
 
-        let client = Arc::clone(&client);
+        let task_client =
+            Arc::new(GitdotClient::from_runner_config(&config).with_jwt(task.token.clone()));
         let config = Arc::clone(&config);
 
         tokio::spawn(async move {
             let _permit = permit;
-            if let Err(e) = client.update_task(task.id, "running").await {
+            if let Err(e) = task_client.update_task(task.id, "running").await {
                 eprintln!("Failed to mark task {} as running: {}", task.id, e);
                 return;
             }
@@ -66,7 +67,7 @@ pub async fn run(config: RunnerConfig) -> anyhow::Result<()> {
                 }
             };
 
-            if let Err(e) = client.update_task(task_id, final_status).await {
+            if let Err(e) = task_client.update_task(task_id, final_status).await {
                 eprintln!("Failed to mark task {} as {}: {}", task_id, final_status, e);
             }
 

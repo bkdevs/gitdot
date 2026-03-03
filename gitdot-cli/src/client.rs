@@ -7,10 +7,15 @@ use gitdot_api::{ApiRequest, ApiResource};
 const WEB_URL: &str = "https://www.gitdot.io";
 const SERVER_URL: &str = "https://api.gitdot.io";
 
+pub enum Credentials {
+    Token(String),
+    Jwt(String),
+}
+
 pub struct GitdotClient {
     client: reqwest::Client,
     client_id: String,
-    token: Option<String>,
+    credentials: Option<Credentials>,
     web_url: String,
     server_url: String,
 }
@@ -20,7 +25,7 @@ impl GitdotClient {
         Self {
             client: reqwest::Client::new(),
             client_id: String::from(client_id),
-            token: None,
+            credentials: None,
             web_url: WEB_URL.to_string(),
             server_url: SERVER_URL.to_string(),
         }
@@ -37,7 +42,12 @@ impl GitdotClient {
     }
 
     pub fn with_token(mut self, token: String) -> Self {
-        self.token = Some(token);
+        self.credentials = Some(Credentials::Token(token));
+        self
+    }
+
+    pub fn with_jwt(mut self, token: String) -> Self {
+        self.credentials = Some(Credentials::Jwt(token));
         self
     }
 
@@ -81,7 +91,7 @@ impl GitdotClient {
         let response = self
             .client
             .get(&url)
-            .auth(&self.token)
+            .auth(&self.credentials)
             .query(&request)
             .send()
             .await?
@@ -100,7 +110,7 @@ impl GitdotClient {
         let url = format!("{}/{}", self.server_url, path);
         self.client
             .head(&url)
-            .auth(&self.token)
+            .auth(&self.credentials)
             .query(&request)
             .send()
             .await?
@@ -118,7 +128,7 @@ impl GitdotClient {
         let response = self
             .client
             .post(&url)
-            .auth(&self.token)
+            .auth(&self.credentials)
             .json(&request)
             .send()
             .await?
@@ -138,7 +148,7 @@ impl GitdotClient {
         let response = self
             .client
             .patch(&url)
-            .auth(&self.token)
+            .auth(&self.credentials)
             .json(&request)
             .send()
             .await?
@@ -159,7 +169,7 @@ impl GitdotClient {
         let response = self
             .client
             .delete(&url)
-            .auth(&self.token)
+            .auth(&self.credentials)
             .json(&request)
             .send()
             .await?
@@ -172,16 +182,17 @@ impl GitdotClient {
 }
 
 trait Auth {
-    fn auth(self, token: &Option<String>) -> Self;
+    fn auth(self, auth: &Option<Credentials>) -> Self;
 }
 
 impl Auth for RequestBuilder {
-    fn auth(self, token: &Option<String>) -> Self {
-        match token {
-            Some(t) => {
+    fn auth(self, credentials: &Option<Credentials>) -> Self {
+        match credentials {
+            Some(Credentials::Token(t)) => {
                 let encoded = STANDARD.encode(format!("runner:{}", t));
                 self.header("Authorization", format!("Basic {}", encoded))
             }
+            Some(Credentials::Jwt(t)) => self.header("Authorization", format!("Bearer {}", t)),
             None => self,
         }
     }
