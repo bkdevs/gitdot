@@ -17,7 +17,7 @@ fn main() {
     }
 
     let server_env = Path::new("gitdot-server/.env");
-    let s2_env = Path::new("s2-lite/.env");
+    let s2_env = Path::new("s2-server/.env");
 
     if server_env.exists() {
         let contents = fs::read_to_string(server_env).expect("failed to read gitdot-server/.env");
@@ -29,9 +29,9 @@ fn main() {
         }
     }
     if s2_env.exists() {
-        let contents = fs::read_to_string(s2_env).expect("failed to read s2-lite/.env");
+        let contents = fs::read_to_string(s2_env).expect("failed to read s2-server/.env");
         if contents.contains("GITDOT_PUBLIC_KEY") {
-            eprintln!("Error: GITDOT_PUBLIC_KEY already exists in s2-lite/.env");
+            eprintln!("Error: GITDOT_PUBLIC_KEY already exists in s2-server/.env");
             std::process::exit(1);
         }
     }
@@ -69,10 +69,10 @@ fn main() {
         .create(true)
         .append(true)
         .open(s2_env)
-        .expect("failed to open s2-lite/.env");
+        .expect("failed to open s2-server/.env");
     writeln!(s2_file, "GITDOT_PUBLIC_KEY=\"{}\"", public_pem.trim_end())
-        .expect("failed to write to s2-lite/.env");
+        .expect("failed to write to s2-server/.env");
 
-    println!("Public key written to s2-lite/.env:");
+    println!("Public key written to s2-server/.env:");
     println!("Private key written to gitdot-server/.env");
 }

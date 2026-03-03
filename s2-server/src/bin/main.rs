@@ -14,7 +14,7 @@ fn install_rustls_crypto_provider() {
 #[command(author, version, about = "S2 Lite")]
 struct Args {
     #[command(flatten)]
-    lite: s2_lite::server::LiteArgs,
+    lite: s2_server::server::LiteArgs,
 }
 
 #[tokio::main]
@@ -31,5 +31,5 @@ async fn main() -> eyre::Result<()> {
     std::env::var("GITDOT_PUBLIC_KEY").expect("GITDOT_PUBLIC_KEY must be set");
 
     let args = Args::parse();
-    s2_lite::server::run(args.lite).await
+    s2_server::server::run(args.lite).await
 }

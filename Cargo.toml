@@ -9,8 +9,8 @@ members = [
   "gitdot-server",
   "s2-api",
   "s2-common",
-  "s2-lite",
   "s2-sdk",
+  "s2-server",
 ]
 
 [workspace.dependencies]
@@ -79,8 +79,8 @@ rstest = "0.26"
 rustls = "0.23"
 s2-api = { path = "s2-api", version = "0.27" }
 s2-common = { path = "s2-common", version = "0.28" }
-s2-lite = { path = "s2-lite", version = "0.29" }
 s2-sdk = { path = "s2-sdk", version = "0.24" }
+s2-server = { path = "s2-server", version = "0.29" }
 schemars = "0.8"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0.149"

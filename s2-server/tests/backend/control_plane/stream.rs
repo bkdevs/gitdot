@@ -15,7 +15,7 @@ use s2_common::{
         },
     },
 };
-use s2_lite::backend::error::{
+use s2_server::backend::error::{
     AppendError, CheckTailError, CreateStreamError, DeleteStreamError, GetStreamConfigError,
     ReadError, ReconfigureStreamError, StreamDeletionPendingError,
 };

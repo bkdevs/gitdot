@@ -13,7 +13,7 @@ use s2_common::{
         },
     },
 };
-use s2_lite::backend::error::{AppendConditionFailedError, AppendError};
+use s2_server::backend::error::{AppendConditionFailedError, AppendError};
 
 use super::common::*;
 

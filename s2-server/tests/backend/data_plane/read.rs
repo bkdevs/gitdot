@@ -10,7 +10,7 @@ use s2_common::{
         stream::{AppendInput, ReadEnd, ReadFrom, ReadSessionOutput, ReadStart},
     },
 };
-use s2_lite::backend::error::{CheckTailError, ReadError, UnwrittenError};
+use s2_server::backend::error::{CheckTailError, ReadError, UnwrittenError};
 
 use super::common::*;
 

@@ -9,7 +9,7 @@ use s2_common::{
         stream::{AppendInput, ReadEnd, ReadFrom, ReadSessionOutput, ReadStart},
     },
 };
-use s2_lite::backend::FOLLOWER_MAX_LAG;
+use s2_server::backend::FOLLOWER_MAX_LAG;
 
 use super::common::*;
 

@@ -31,7 +31,7 @@ setup:
 
 # ── Dev (run services) ──────────────────────────────────────────────────────
 
-# Start frontend, backend, and s2-lite in a tmux session
+# Start frontend, backend, and s2-server in a tmux session
 dev:
     #!/usr/bin/env bash
     SESSION_NAME="gitdot"
@@ -46,7 +46,7 @@ dev:
 
     tmux new-session -d -s "$SESSION_NAME" -c "$PROJECT_ROOT/gitdot-web" -n "frontend" "pnpm run dev"
     tmux new-window -d -t "${SESSION_NAME}:" -c "$PROJECT_ROOT/gitdot-server" -n "gitdot-server" "cargo run"
-    tmux new-window -d -t "${SESSION_NAME}:" -c "$PROJECT_ROOT/s2-lite" -n "s2" "cargo run -- --port 8081"
+    tmux new-window -d -t "${SESSION_NAME}:" -c "$PROJECT_ROOT/s2-server" -n "s2" "cargo run -- --port 8081"
 
     tmux attach-session -t "$SESSION_NAME"
 
@@ -58,11 +58,11 @@ web:
 server:
     cd gitdot-server && cargo run
 
-# Run s2-lite server
+# Run s2-server
 s2:
-    cd s2-lite && cargo run -- --port 8081
+    cd s2-server && cargo run -- --port 8081
 
-# Generate Ed25519 key pair and write to gitdot-server/.env and s2-lite/.env
+# Generate Ed25519 key pair and write to gitdot-server/.env and s2-server/.env
 keygen:
     cargo run -p gitdot-server --bin gitdot-keygen
 
@@ -72,7 +72,7 @@ keygen:
 build: build-all
 
 # Build all Rust crates and TS packages
-build-all: build-api build-api-derive build-cli build-config build-core build-server build-s2-api build-s2-common build-s2-lite build-s2-sdk build-web build-api-ts
+build-all: build-api build-api-derive build-cli build-config build-core build-server build-s2-api build-s2-common build-s2-server build-s2-sdk build-web build-api-ts
 
 # Build the backend server
 build-server:
@@ -106,9 +106,9 @@ build-s2-api:
 build-s2-common:
     cargo build -p s2-common
 
-# Build the s2-lite crate
-build-s2-lite:
-    cargo build -p s2-lite
+# Build the s2-server crate
+build-s2-server:
+    cargo build -p s2-server
 
 # Build the s2-sdk crate
 build-s2-sdk:
@@ -144,7 +144,7 @@ test-web:
 lint: lint-all
 
 # Lint and format all Rust crates and TS packages
-lint-all: lint-api lint-api-derive lint-cli lint-config lint-core lint-server lint-s2-api lint-s2-common lint-s2-lite lint-s2-sdk lint-web lint-api-ts
+lint-all: lint-api lint-api-derive lint-cli lint-config lint-core lint-server lint-s2-api lint-s2-common lint-s2-server lint-s2-sdk lint-web lint-api-ts
 
 # Lint and format gitdot-api
 lint-api: _ensure-nightly
@@ -178,9 +178,9 @@ lint-s2-api: _ensure-nightly
 lint-s2-common: _ensure-nightly
     cargo +nightly fmt -p s2-common
 
-# Lint and format s2-lite
-lint-s2-lite: _ensure-nightly
-    cargo +nightly fmt -p s2-lite
+# Lint and format s2-server
+lint-s2-server: _ensure-nightly
+    cargo +nightly fmt -p s2-server
 
 # Lint and format s2-sdk
 lint-s2-sdk: _ensure-nightly

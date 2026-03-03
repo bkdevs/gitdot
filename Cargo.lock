@@ -4878,7 +4878,46 @@ dependencies = [
 ]
 
 [[package]]
-name = "s2-lite"
+name = "s2-sdk"
+version = "0.24.3"
+dependencies = [
+ "assert_matches",
+ "async-compression",
+ "async-stream",
+ "async-trait",
+ "bytes",
+ "futures",
+ "http 1.4.0",
+ "http-body-util",
+ "hyper",
+ "hyper-rustls",
+ "hyper-util",
+ "prost",
+ "rand 0.10.0",
+ "rstest",
+ "rustls",
+ "s2-api",
+ "s2-common",
+ "secrecy",
+ "serde",
+ "serde_json",
+ "serde_urlencoded",
+ "test-context",
+ "thiserror 2.0.17",
+ "time",
+ "tokio",
+ "tokio-muxt",
+ "tokio-shared-rt",
+ "tokio-stream",
+ "tokio-util",
+ "tracing",
+ "url",
+ "urlencoding",
+ "uuid",
+]
+
+[[package]]
+name = "s2-server"
 version = "0.29.12"
 dependencies = [
  "async-stream",
@@ -4921,45 +4960,6 @@ dependencies = [
  "tower-http",
  "tracing",
  "tracing-subscriber",
- "uuid",
-]
-
-[[package]]
-name = "s2-sdk"
-version = "0.24.3"
-dependencies = [
- "assert_matches",
- "async-compression",
- "async-stream",
- "async-trait",
- "bytes",
- "futures",
- "http 1.4.0",
- "http-body-util",
- "hyper",
- "hyper-rustls",
- "hyper-util",
- "prost",
- "rand 0.10.0",
- "rstest",
- "rustls",
- "s2-api",
- "s2-common",
- "secrecy",
- "serde",
- "serde_json",
- "serde_urlencoded",
- "test-context",
- "thiserror 2.0.17",
- "time",
- "tokio",
- "tokio-muxt",
- "tokio-shared-rt",
- "tokio-stream",
- "tokio-util",
- "tracing",
- "url",
- "urlencoding",
  "uuid",
 ]
 

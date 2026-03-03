@@ -9,7 +9,7 @@ use s2_common::{
         stream::{AppendInput, ListStreamsRequest, ReadEnd, ReadFrom, ReadStart},
     },
 };
-use s2_lite::backend::error::{AppendError, ReadError};
+use s2_server::backend::error::{AppendError, ReadError};
 
 use super::common::*;
 

@@ -15,7 +15,7 @@ use s2_common::{
         },
     },
 };
-use s2_lite::backend::{Backend, error::ReadError};
+use s2_server::backend::{Backend, error::ReadError};
 use slatedb::{Db, config::Settings, object_store::memory::InMemory};
 use uuid::Uuid;
 

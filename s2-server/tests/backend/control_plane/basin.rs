@@ -9,7 +9,7 @@ use s2_common::{
         resources::{CreateMode, ListItemsRequestParts, RequestToken},
     },
 };
-use s2_lite::backend::error::{
+use s2_server::backend::error::{
     CreateBasinError, DeleteBasinError, GetBasinConfigError, ReconfigureBasinError,
 };
 

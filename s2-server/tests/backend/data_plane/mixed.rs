@@ -8,7 +8,7 @@ use s2_common::{
         stream::{AppendInput, ReadEnd, ReadFrom, ReadStart},
     },
 };
-use s2_lite::backend::error::{AppendError, CheckTailError, ReadError};
+use s2_server::backend::error::{AppendError, CheckTailError, ReadError};
 
 use super::common::*;
 
