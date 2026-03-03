@@ -4,8 +4,8 @@ use jsonwebtoken::{Algorithm, EncodingKey, Header, encode};
 
 use crate::{
     dto::{
-        IssueTaskTokenRequest, IssueTaskTokenResponse, TaskClaims, ValidateTokenRequest,
-        ValidateTokenResponse,
+        IssueTaskTokenRequest, IssueTaskTokenResponse, JwtClaims, ValidateTokenRequest,
+        ValidateTokenResponse, GITDOT_SERVER_ID, S2_SERVER_ID,
     },
     error::AuthorizationError,
     repository::{TokenRepository, TokenRepositoryImpl},
@@ -78,11 +78,15 @@ where
         request: IssueTaskTokenRequest,
     ) -> Result<IssueTaskTokenResponse, AuthorizationError> {
         let now = Utc::now().timestamp() as usize;
-        let claims = TaskClaims {
+        let claims = JwtClaims {
             sub: request.task_id.to_string(),
             iat: now,
             exp: now + 3600,
-            aud: "task".into(),
+            aud: vec![
+                GITDOT_SERVER_ID.to_string(),
+                S2_SERVER_ID.to_string(),
+            ],
+            iss: GITDOT_SERVER_ID.to_string(),
         };
 
         let encoding_key = EncodingKey::from_ed_pem(self.gitdot_private_key.as_bytes())

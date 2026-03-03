@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use gitdot_core::{
-    dto::{TaskClaims, ValidateTokenRequest},
+    dto::{JwtClaims, ValidateTokenRequest, GITDOT_SERVER_ID},
     error::AuthorizationError,
     model::TokenType,
 };
@@ -199,11 +199,11 @@ impl Authenticator for TaskJwt {
             .ok_or(AuthorizationError::InvalidHeaderFormat)?;
 
         let mut validation = Validation::new(Algorithm::EdDSA);
-        validation.set_audience(&["task"]);
+        validation.set_audience(&[GITDOT_SERVER_ID]);
 
         let key = DecodingKey::from_ed_pem(app_state.settings.gitdot_public_key.as_bytes())
             .map_err(|e| AuthorizationError::InvalidPublicKey(e.to_string()))?;
-        let jwt_data = decode::<TaskClaims>(jwt, &key, &validation)
+        let jwt_data = decode::<JwtClaims>(jwt, &key, &validation)
             .map_err(|e| AuthorizationError::InvalidToken(e.to_string()))?;
         let id = Uuid::parse_str(&jwt_data.claims.sub)
             .map_err(|e| AuthorizationError::InvalidToken(e.to_string()))?;
