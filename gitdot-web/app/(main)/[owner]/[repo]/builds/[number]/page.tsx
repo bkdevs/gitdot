@@ -3,9 +3,9 @@ import {
   getBuildTasks,
   getRepositoryCommit,
   getRepositoryFile,
+  getTaskLogs,
   NotFound,
 } from "@/dal";
-import { getTaskLogs } from "@/lib/s2/server";
 import { renderFileToHtml } from "../../util/hast";
 import { BuildHeader } from "./ui/build-header";
 import { BuildTask } from "./ui/build-task";
@@ -32,7 +32,11 @@ export default async function Page({
       path: ".gitdot-ci.toml",
     }),
     Promise.all(
-      tasks.map((task) => getTaskLogs(owner, repo, task.id).catch(() => [])),
+      tasks.map((task) =>
+        getTaskLogs(task.id)
+          .then((logs) => logs ?? [])
+          .catch(() => []),
+      ),
     ),
   ]);
 
@@ -50,13 +54,7 @@ export default async function Page({
         configHtml={configHtml}
       />
       {tasks.map((task, i) => (
-        <BuildTask
-          key={task.id}
-          task={task}
-          logs={taskLogs[i]}
-          owner={owner}
-          repo={repo}
-        />
+        <BuildTask key={task.id} task={task} logs={taskLogs[i]} />
       ))}
     </div>
   );

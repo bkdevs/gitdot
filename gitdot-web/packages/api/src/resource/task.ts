@@ -35,3 +35,12 @@ export const PollTaskResource = z.object({
   status: TaskStatus,
 });
 export type PollTaskResource = z.infer<typeof PollTaskResource>;
+
+export const TaskLogResource = z.object({
+  seq_num: z.number(),
+  timestamp: z.number(),
+  body: z.string(),
+  stream: z.string().optional(),
+  finished: z.string().optional(),
+});
+export type TaskLogResource = z.infer<typeof TaskLogResource>;
