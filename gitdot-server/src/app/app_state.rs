@@ -45,6 +45,8 @@ pub struct AppState {
 
     pub runner_service: Arc<dyn RunnerService>,
     pub task_service: Arc<dyn TaskService>,
+
+    pub s2_client: S2ClientImpl,
 }
 
 impl AppState {
@@ -148,6 +150,8 @@ impl AppState {
                 runner_repo.clone(),
                 repo_repo.clone(),
             )),
+
+            s2_client: s2_client.clone(),
         })
     }
 }

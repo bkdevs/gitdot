@@ -18,6 +18,8 @@ pub trait TaskRepository: Send + Sync + Clone + 'static {
         waits_for: &[Uuid],
     ) -> Result<Task, Error>;
 
+    async fn get_by_id(&self, id: Uuid) -> Result<Option<Task>, Error>;
+
     async fn list_by_build_id(&self, build_id: Uuid) -> Result<Vec<Task>, Error>;
 
     async fn update_task(&self, id: Uuid, status: TaskStatus) -> Result<Task, Error>;
@@ -71,6 +73,20 @@ impl TaskRepository for TaskRepositoryImpl {
         .bind(status)
         .bind(waits_for)
         .fetch_one(&self.pool)
+        .await?;
+
+        Ok(task)
+    }
+
+    async fn get_by_id(&self, id: Uuid) -> Result<Option<Task>, Error> {
+        let task = sqlx::query_as::<_, Task>(
+            r#"
+            SELECT id, repository_id, build_id, s2_uri, name, command, status, waits_for, runner_id, created_at, updated_at
+            FROM tasks WHERE id = $1
+            "#,
+        )
+        .bind(id)
+        .fetch_optional(&self.pool)
         .await?;
 
         Ok(task)

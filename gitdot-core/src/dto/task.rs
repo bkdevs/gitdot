@@ -8,6 +8,15 @@ use crate::model::{Task, TaskStatus};
 pub use update_task::UpdateTaskRequest;
 
 #[derive(Debug, Clone)]
+pub struct TaskLogResponse {
+    pub seq_num: u64,
+    pub timestamp: u64,
+    pub body: String,
+    pub stream: Option<String>,
+    pub finished: Option<String>,
+}
+
+#[derive(Debug, Clone)]
 pub struct TaskResponse {
     pub id: Uuid,
     pub repository_id: Uuid,

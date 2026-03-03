@@ -26,16 +26,6 @@ impl<A: Authenticator> Principal<A> {
         }
     }
 }
-
-#[derive(Debug, Serialize, Deserialize)]
-struct JwtClaims {
-    sub: String,
-    exp: usize,
-    iat: usize,
-    aud: Vec<String>,
-    iss: String,
-}
-
 #[derive(Debug, thiserror::Error)]
 pub enum AuthError {
     #[error("missing authorization header")]
@@ -76,6 +66,15 @@ where
     }
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+struct JwtClaims {
+    sub: String,
+    exp: usize,
+    iat: usize,
+    aud: Vec<String>,
+    iss: String,
+}
+
 fn extract_jwt(parts: &Parts) -> Result<&str, AuthError> {
     let header = parts
         .headers
@@ -94,12 +93,10 @@ impl Authenticator for Any {
     async fn authenticate(parts: &Parts, backend: &Backend) -> Result<(), AuthError> {
         let jwt = extract_jwt(parts)?;
         let claims = decode_jwt(jwt, &backend.gitdot_public_key)?;
-        if claims.sub == GITDOT_SERVER_ID {
-            return Ok(());
+        if claims.iss != GITDOT_SERVER_ID {
+            return Err(AuthError::InvalidToken("invalid issuer".to_string()));
         }
-        Uuid::parse_str(&claims.sub)
-            .map(|_| ())
-            .map_err(|e| AuthError::InvalidToken(e.to_string()))
+        Ok(())
     }
 }
 

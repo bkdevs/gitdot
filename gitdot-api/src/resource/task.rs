@@ -3,6 +3,15 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TaskLogResource {
+    pub seq_num: u64,
+    pub timestamp: u64,
+    pub body: String,
+    pub stream: Option<String>,
+    pub finished: Option<String>,
+}
+
+#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TaskResource {
     pub id: Uuid,
     pub repository_id: Uuid,

@@ -3,10 +3,7 @@ use chrono::Utc;
 use jsonwebtoken::{Algorithm, EncodingKey, Header, encode};
 
 use crate::{
-    dto::{
-        GITDOT_SERVER_ID, IssueTaskJwtRequest, IssueTaskJwtResponse, JwtClaims, S2_SERVER_ID,
-        ValidateTokenRequest, ValidateTokenResponse,
-    },
+    dto::{GITDOT_SERVER_ID, IssueTaskJwtRequest, IssueTaskJwtResponse, JwtClaims, S2_SERVER_ID, ValidateTokenRequest, ValidateTokenResponse},
     error::AuthorizationError,
     repository::{TokenRepository, TokenRepositoryImpl},
     util::token::{hash_token, validate_token_format},

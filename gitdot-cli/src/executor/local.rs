@@ -35,7 +35,7 @@ impl Executor for LocalExecutor {
         Ok(Self {
             working_directory,
             task: task.clone(),
-            s2: S2::from_url(&config.s2_server_url)?,
+            s2: S2::from_url(&config.s2_server_url)?.with_auth(task.token.clone()),
         })
     }
 
