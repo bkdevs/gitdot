@@ -12,8 +12,5 @@ pub struct JwtClaims {
     pub iat: usize,
 }
 
-mod issue_internal_token;
-pub use issue_internal_token::IssueInternalTokenResponse;
-
-mod issue_task_token;
-pub use issue_task_token::{IssueTaskTokenRequest, IssueTaskTokenResponse};
+mod issue_task_jwt;
+pub use issue_task_jwt::{IssueTaskJwtRequest, IssueTaskJwtResponse};

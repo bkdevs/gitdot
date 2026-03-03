@@ -86,7 +86,6 @@ impl AccountClient {
             .ignore_not_found(ignore_not_found)?;
         Ok(())
     }
-
 }
 
 impl Deref for AccountClient {
@@ -608,6 +607,16 @@ impl BaseClient {
             retry_builder: retry_builder(&config.retry),
             compression: config.compression,
         })
+    }
+
+    pub fn with_auth(&self, token: impl AsRef<str>) -> Self {
+        let mut cloned = self.clone();
+        if let Ok(value) = HeaderValue::from_str(&format!("Bearer {}", token.as_ref())) {
+            cloned
+                .default_headers
+                .insert(http::header::AUTHORIZATION, value);
+        }
+        cloned
     }
 
     pub fn get(&self, url: Url) -> client::RequestBuilder {

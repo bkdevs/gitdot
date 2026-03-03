@@ -1,7 +1,7 @@
 use axum::{extract::State, http::StatusCode};
 
 use gitdot_api::{endpoint::task::poll_task as api, resource::task as resource};
-use gitdot_core::dto::IssueTaskTokenRequest;
+use gitdot_core::dto::IssueTaskJwtRequest;
 
 use crate::{
     app::{AppError, AppResponse, AppState},
@@ -30,7 +30,7 @@ pub async fn poll_task(
 
     let jwt = state
         .authentication_service
-        .issue_task_token(IssueTaskTokenRequest { task_id: task.id })
+        .issue_task_token(IssueTaskJwtRequest { task_id: task.id })
         .await
         .map_err(AppError::from)?;
 

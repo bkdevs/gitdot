@@ -4,9 +4,8 @@ use jsonwebtoken::{Algorithm, EncodingKey, Header, encode};
 
 use crate::{
     dto::{
-        GITDOT_SERVER_ID, IssueInternalTokenResponse, IssueTaskTokenRequest,
-        IssueTaskTokenResponse, JwtClaims, S2_SERVER_ID, ValidateTokenRequest,
-        ValidateTokenResponse,
+        GITDOT_SERVER_ID, IssueTaskJwtRequest, IssueTaskJwtResponse, JwtClaims, S2_SERVER_ID,
+        ValidateTokenRequest, ValidateTokenResponse,
     },
     error::AuthorizationError,
     repository::{TokenRepository, TokenRepositoryImpl},
@@ -22,10 +21,8 @@ pub trait AuthenticationService: Send + Sync + 'static {
 
     async fn issue_task_token(
         &self,
-        request: IssueTaskTokenRequest,
-    ) -> Result<IssueTaskTokenResponse, AuthorizationError>;
-
-    async fn issue_internal_token(&self) -> Result<IssueInternalTokenResponse, AuthorizationError>;
+        request: IssueTaskJwtRequest,
+    ) -> Result<IssueTaskJwtResponse, AuthorizationError>;
 }
 
 #[derive(Debug, Clone)]
@@ -78,8 +75,8 @@ where
 
     async fn issue_task_token(
         &self,
-        request: IssueTaskTokenRequest,
-    ) -> Result<IssueTaskTokenResponse, AuthorizationError> {
+        request: IssueTaskJwtRequest,
+    ) -> Result<IssueTaskJwtResponse, AuthorizationError> {
         let now = Utc::now().timestamp() as usize;
         let claims = JwtClaims {
             iss: GITDOT_SERVER_ID.to_string(),
@@ -95,25 +92,6 @@ where
         let token = encode(&Header::new(Algorithm::EdDSA), &claims, &encoding_key)
             .map_err(|e| AuthorizationError::InvalidToken(e.to_string()))?;
 
-        Ok(IssueTaskTokenResponse { token })
-    }
-
-    async fn issue_internal_token(&self) -> Result<IssueInternalTokenResponse, AuthorizationError> {
-        let now = Utc::now().timestamp() as usize;
-        let claims = JwtClaims {
-            iss: GITDOT_SERVER_ID.to_string(),
-            aud: vec![S2_SERVER_ID.to_string()],
-            sub: GITDOT_SERVER_ID.to_string(),
-            iat: now,
-            exp: now + 15,
-        };
-
-        let encoding_key = EncodingKey::from_ed_pem(self.gitdot_private_key.as_bytes())
-            .map_err(|e| AuthorizationError::InvalidPublicKey(e.to_string()))?;
-
-        let token = encode(&Header::new(Algorithm::EdDSA), &claims, &encoding_key)
-            .map_err(|e| AuthorizationError::InvalidToken(e.to_string()))?;
-
-        Ok(IssueInternalTokenResponse { token })
+        Ok(IssueTaskJwtResponse { token })
     }
 }

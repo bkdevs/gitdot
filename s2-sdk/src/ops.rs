@@ -35,6 +35,14 @@ impl S2 {
         Self::new(config)
     }
 
+    /// Return a clone of this [`S2`] with a Bearer token injected into all requests.
+    /// The underlying connection pool is shared; only headers are duplicated.
+    pub fn with_auth(&self, token: impl AsRef<str>) -> Self {
+        let mut cloned = self.clone();
+        cloned.client.client = cloned.client.client.with_auth(token);
+        cloned
+    }
+
     /// Get an [`S2Basin`].
     pub fn basin(&self, name: BasinName) -> S2Basin {
         S2Basin {

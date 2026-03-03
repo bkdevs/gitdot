@@ -1,11 +1,11 @@
 use uuid::Uuid;
 
 #[derive(Debug, Clone)]
-pub struct IssueTaskTokenRequest {
+pub struct IssueTaskJwtRequest {
     pub task_id: Uuid,
 }
 
 #[derive(Debug, Clone)]
-pub struct IssueTaskTokenResponse {
+pub struct IssueTaskJwtResponse {
     pub token: String,
 }

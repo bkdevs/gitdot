@@ -36,16 +36,11 @@ pub struct TlsConfig {
 
 #[derive(clap::Args, Debug, Clone)]
 pub struct LiteArgs {
-    /// Name of the S3 bucket to back the database.
-    ///
-    /// If not specified, in-memory storage is used unless --local-root is set.
-    #[arg(long)]
-    pub bucket: Option<String>,
-
     /// Root directory to back the database on the local filesystem.
     ///
-    /// Conflicts with --bucket.
-    #[arg(long, value_name = "DIR", conflicts_with = "bucket")]
+    /// If neither `S3_BUCKET` nor `GCP_BUCKET` are set, this is used.
+    /// Otherwise, object storage is selected via those env vars.
+    #[arg(long, value_name = "DIR")]
     pub local_root: Option<PathBuf>,
 
     /// Base path on object storage.
@@ -80,6 +75,7 @@ pub struct LiteArgs {
 #[derive(Debug, Clone)]
 enum StoreType {
     S3Bucket(String),
+    GcpBucket(String),
     LocalFileSystem(PathBuf),
     InMemory,
 }
@@ -87,7 +83,7 @@ enum StoreType {
 impl StoreType {
     fn default_flush_interval(&self) -> Duration {
         Duration::from_millis(match self {
-            StoreType::S3Bucket(_) => 50,
+            StoreType::S3Bucket(_) | StoreType::GcpBucket(_) => 50,
             StoreType::LocalFileSystem(_) | StoreType::InMemory => 5,
         })
     }
@@ -107,9 +103,20 @@ pub async fn run(args: LiteArgs) -> eyre::Result<()> {
         format!("0.0.0.0:{port}")
     };
 
-    let store_type = if let Some(bucket) = args.bucket {
+    let s3_bucket = std::env::var("S3_BUCKET").ok().filter(|s| !s.is_empty());
+    let gcp_bucket = std::env::var("GCP_BUCKET").ok().filter(|s| !s.is_empty());
+
+    if s3_bucket.is_some() && gcp_bucket.is_some() {
+        return Err(eyre::eyre!(
+            "Both S3_BUCKET and GCP_BUCKET are set; please set at most one."
+        ));
+    }
+
+    let store_type = if let Some(bucket) = s3_bucket {
         StoreType::S3Bucket(bucket)
-    } else if let Some(local_root) = args.local_root {
+    } else if let Some(bucket) = gcp_bucket {
+        StoreType::GcpBucket(bucket)
+    } else if let Some(local_root) = args.local_root.clone() {
         StoreType::LocalFileSystem(local_root)
     } else {
         StoreType::InMemory
@@ -269,6 +276,17 @@ async fn init_object_store(
                     }
                 }
             }
+            Arc::new(builder.build()?) as Arc<dyn object_store::ObjectStore>
+        }
+        StoreType::GcpBucket(bucket) => {
+            info!(bucket, "using gcs object store");
+            let mut builder =
+                object_store::gcp::GoogleCloudStorageBuilder::new().with_bucket_name(bucket);
+
+            if let Ok(app_creds) = std::env::var("GOOGLE_APPLICATION_CREDENTIALS") {
+                builder = builder.with_application_credentials(app_creds);
+            }
+
             Arc::new(builder.build()?) as Arc<dyn object_store::ObjectStore>
         }
         StoreType::LocalFileSystem(local_root) => {
