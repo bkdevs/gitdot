@@ -1,0 +1,102 @@
+use chrono::{DateTime, Utc};
+use sqlx::{FromRow, Type};
+use uuid::Uuid;
+
+#[derive(Debug, Clone, FromRow)]
+pub struct Review {
+    pub id: Uuid,
+    pub repository_id: Uuid,
+    pub number: i32,
+    pub author_id: Uuid,
+    pub title: String,
+    pub description: String,
+    pub target_branch: String,
+    pub status: ReviewStatus,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Type)]
+#[sqlx(type_name = "review_status", rename_all = "lowercase")]
+pub enum ReviewStatus {
+    Draft,
+    Open,
+    ChangesRequested,
+    Approved,
+    Merged,
+}
+
+#[derive(Debug, Clone, FromRow)]
+pub struct Diff {
+    pub id: Uuid,
+    pub review_id: Uuid,
+    pub position: i32,
+    pub title: String,
+    pub description: String,
+    pub status: DiffStatus,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Type)]
+#[sqlx(type_name = "diff_status", rename_all = "lowercase")]
+pub enum DiffStatus {
+    Open,
+    ChangesRequested,
+    Approved,
+    Merged,
+}
+
+#[derive(Debug, Clone, FromRow)]
+pub struct Revision {
+    pub id: Uuid,
+    pub diff_id: Uuid,
+    pub number: i32,
+    pub commit_hash: String,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, FromRow)]
+pub struct Reviewer {
+    pub id: Uuid,
+    pub review_id: Uuid,
+    pub reviewer_id: Uuid,
+    pub status: ReviewerStatus,
+    pub created_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Type)]
+#[sqlx(type_name = "reviewer_status", rename_all = "lowercase")]
+pub enum ReviewerStatus {
+    Pending,
+    ChangesRequested,
+    Approved,
+}
+
+#[derive(Debug, Clone, FromRow)]
+pub struct ReviewComment {
+    pub id: Uuid,
+    pub review_id: Uuid,
+    pub diff_id: Option<Uuid>,
+    pub revision_id: Option<Uuid>,
+    pub author_id: Uuid,
+
+    // for threaded comments
+    pub parent_id: Option<Uuid>,
+
+    pub body: String,
+    pub file_path: Option<String>,
+    pub line_number: Option<i32>,
+    pub side: Option<CommentSide>,
+    pub resolved: bool,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Type)]
+#[sqlx(type_name = "comment_side", rename_all = "lowercase")]
+pub enum CommentSide {
+    Old,
+    New,
+}
