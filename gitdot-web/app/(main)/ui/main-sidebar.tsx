@@ -17,12 +17,9 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/ui/sidebar";
-import { cn } from "@/util";
-import { Circle, Files, History, Plus, Search } from "lucide-react";
+import { Files, History, Plus, Search } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-
-const SIDEBAR_ICON_WIDTH = "2.5rem";
 
 export function MainSidebar() {
   const pathname = usePathname();
@@ -35,19 +32,12 @@ export function MainSidebar() {
   return (
     <>
       <Sidebar
-        className="bg-sidebar h-full! border-r"
-        style={{ width: SIDEBAR_ICON_WIDTH }}
+        className="bg-sidebar h-full! border-r w-9!"
       >
         <SidebarContent>
           <SidebarGroup className="p-0!">
             <SidebarGroupContent>
               <SidebarMenu className="gap-0">
-                <NavItem
-                icon={Circle}
-                label="Home"
-                iconClassName="!size-2 fill-current"
-                onClick={() => { }}
-                />
                 <NavItem
                 icon={Search}
                 label="Search"
@@ -96,18 +86,13 @@ function NavItem({
 }) {
   return (
     <SidebarMenuItem
-      className={"w-10 h-9 border-b p-0! border-l-4 bg-sidebar"}
+      className={"size-9 border-b p-0! bg-sidebar"}
     >
       <SidebarMenuButton
         onClick={onClick}
-        className="group w-full h-full flex items-center justify-center p-0! rounded-none hover:bg-sidebar-accent! hover:text-current!"
+        className="w-full h-full flex items-center justify-center p-0! rounded-none hover:bg-sidebar-accent! hover:text-current!"
       >
-        <Icon
-        className={cn(
-          iconClassName ?? "size-4",
-          "mr-1 group-hover:stroke-[2.5]",
-        )}
-        />
+        <Icon className={"size-4"} />
         <span className="sr-only">{label}</span>
       </SidebarMenuButton>
     </SidebarMenuItem>
@@ -125,12 +110,12 @@ function DropdownNavItem({
 }) {
   return (
     <SidebarMenuItem
-      className={`w-10 h-9 border-b p-0! border-l-4 bg-sidebar border-l-transparent`}
+      className="size-9 border-b p-0! bg-sidebar"
     >
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <SidebarMenuButton className="group w-full h-full flex items-center justify-center p-0! rounded-none hover:bg-sidebar-accent! data-[state=open]:bg-sidebar-accent! hover:text-current! ring-0! outline-0!">
-            <Icon className={"h-4 w-4 mr-1 group-hover:stroke-[2.5]"} />
+          <SidebarMenuButton className="w-full h-full flex items-center justify-center p-0! rounded-none hover:bg-sidebar-accent! data-[state=open]:bg-sidebar-accent! hover:text-current! ring-0! outline-0!">
+            <Icon className={"h-4 w-4"} />
             <span className="sr-only">{label}</span>
           </SidebarMenuButton>
         </DropdownMenuTrigger>

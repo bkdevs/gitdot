@@ -10,7 +10,7 @@ import {
 } from "@/ui/dropdown-menu";
 import Link from "@/ui/link";
 import { cn } from "@/util";
-import { User } from "lucide-react";
+import { Circle, User } from "lucide-react";
 import { useParams, usePathname, useRouter } from "next/navigation";
 
 export function MainHeader() {
@@ -44,7 +44,9 @@ export function MainHeader() {
 
   return (
     <div className="shrink-0 flex flex-row w-full h-9 items-center justify-between border-b bg-sidebar">
-      <div className="flex-1 pl-2 text-sm font-mono flex items-center">
+
+      <div className="flex-1 text-sm font-mono flex items-center">
+        <Circle className="size-2 fill-current mx-3.5" />
         {pathLinks}
       </div>
       <div className="flex items-center gap-1">
