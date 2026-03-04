@@ -1,6 +1,9 @@
 use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, Type};
 use uuid::Uuid;
+
+use super::User;
 
 #[derive(Debug, Clone, FromRow)]
 pub struct Review {
@@ -14,9 +17,21 @@ pub struct Review {
     pub status: ReviewStatus,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+
+    #[sqlx(json(nullable))]
+    pub author: Option<User>,
+
+    #[sqlx(json(nullable))]
+    pub diffs: Option<Vec<Diff>>,
+
+    #[sqlx(json(nullable))]
+    pub reviewers: Option<Vec<Reviewer>>,
+
+    #[sqlx(json(nullable))]
+    pub comments: Option<Vec<ReviewComment>>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Type)]
+#[derive(Debug, Clone, PartialEq, Eq, Type, Serialize, Deserialize)]
 #[sqlx(type_name = "review_status", rename_all = "lowercase")]
 pub enum ReviewStatus {
     Draft,
@@ -26,7 +41,7 @@ pub enum ReviewStatus {
     Merged,
 }
 
-#[derive(Debug, Clone, FromRow)]
+#[derive(Debug, Clone, FromRow, Serialize, Deserialize)]
 pub struct Diff {
     pub id: Uuid,
     pub review_id: Uuid,
@@ -36,9 +51,12 @@ pub struct Diff {
     pub status: DiffStatus,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+
+    #[sqlx(json(nullable))]
+    pub revisions: Option<Vec<Revision>>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Type)]
+#[derive(Debug, Clone, PartialEq, Eq, Type, Serialize, Deserialize)]
 #[sqlx(type_name = "diff_status", rename_all = "lowercase")]
 pub enum DiffStatus {
     Open,
@@ -47,7 +65,7 @@ pub enum DiffStatus {
     Merged,
 }
 
-#[derive(Debug, Clone, FromRow)]
+#[derive(Debug, Clone, FromRow, Serialize, Deserialize)]
 pub struct Revision {
     pub id: Uuid,
     pub diff_id: Uuid,
@@ -57,16 +75,19 @@ pub struct Revision {
     pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, FromRow)]
+#[derive(Debug, Clone, FromRow, Serialize, Deserialize)]
 pub struct Reviewer {
     pub id: Uuid,
     pub review_id: Uuid,
     pub reviewer_id: Uuid,
     pub status: ReviewerStatus,
     pub created_at: DateTime<Utc>,
+
+    #[sqlx(json(nullable))]
+    pub user: Option<User>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Type)]
+#[derive(Debug, Clone, PartialEq, Eq, Type, Serialize, Deserialize)]
 #[sqlx(type_name = "reviewer_status", rename_all = "lowercase")]
 pub enum ReviewerStatus {
     Pending,
@@ -74,7 +95,7 @@ pub enum ReviewerStatus {
     Approved,
 }
 
-#[derive(Debug, Clone, FromRow)]
+#[derive(Debug, Clone, FromRow, Serialize, Deserialize)]
 pub struct ReviewComment {
     pub id: Uuid,
     pub review_id: Uuid,
@@ -92,9 +113,12 @@ pub struct ReviewComment {
     pub resolved: bool,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+
+    #[sqlx(json(nullable))]
+    pub author: Option<User>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Type)]
+#[derive(Debug, Clone, PartialEq, Eq, Type, Serialize, Deserialize)]
 #[sqlx(type_name = "comment_side", rename_all = "lowercase")]
 pub enum CommentSide {
     Old,
