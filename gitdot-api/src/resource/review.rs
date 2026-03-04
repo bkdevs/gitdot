@@ -46,7 +46,6 @@ pub struct RevisionResource {
     pub number: i32,
     pub commit_hash: String,
     pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
 }
 
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

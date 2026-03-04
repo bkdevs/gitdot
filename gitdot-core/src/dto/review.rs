@@ -122,7 +122,6 @@ pub struct RevisionResponse {
     pub number: i32,
     pub commit_hash: String,
     pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
 }
 
 impl From<Revision> for RevisionResponse {
@@ -133,7 +132,6 @@ impl From<Revision> for RevisionResponse {
             number: revision.number,
             commit_hash: revision.commit_hash,
             created_at: revision.created_at,
-            updated_at: revision.updated_at,
         }
     }
 }

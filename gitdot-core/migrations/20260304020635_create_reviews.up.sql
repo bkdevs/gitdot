@@ -45,7 +45,6 @@ CREATE TABLE IF NOT EXISTS revisions (
     number INT NOT NULL,
     commit_hash VARCHAR(40) NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     UNIQUE(diff_id, number)
 );
 

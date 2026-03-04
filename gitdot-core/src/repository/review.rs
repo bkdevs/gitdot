@@ -42,8 +42,7 @@ SELECT
                                     'diff_id', rev.diff_id,
                                     'number', rev.number,
                                     'commit_hash', rev.commit_hash,
-                                    'created_at', rev.created_at,
-                                    'updated_at', rev.updated_at
+                                    'created_at', rev.created_at
                                 ) ORDER BY rev.number DESC
                             )
                             FROM revisions rev

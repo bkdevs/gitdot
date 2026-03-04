@@ -72,7 +72,6 @@ pub struct Revision {
     pub number: i32,
     pub commit_hash: String,
     pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
 }
 
 #[derive(Debug, Clone, FromRow, Serialize, Deserialize)]
