@@ -18,7 +18,7 @@ function FileRow({
   return (
     <Link
       href={href}
-      className={`flex flex-row w-full px-3 h-9 items-center border-b select-none cursor-default text-sm font-mono hover:bg-accent/50 ${
+      className={`flex flex-row w-full px-2 h-9 items-center border-b select-none cursor-default text-sm font-mono hover:bg-accent/50 ${
         isActive && "bg-sidebar"
       }`}
       prefetch={true}

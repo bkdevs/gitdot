@@ -8,10 +8,7 @@ use crate::{
 
 #[async_trait]
 pub trait ReviewService: Send + Sync + 'static {
-    async fn get_review(
-        &self,
-        request: GetReviewRequest,
-    ) -> Result<ReviewResponse, ReviewError>;
+    async fn get_review(&self, request: GetReviewRequest) -> Result<ReviewResponse, ReviewError>;
 
     async fn list_reviews(
         &self,
@@ -38,13 +35,14 @@ impl<V> ReviewService for ReviewServiceImpl<V>
 where
     V: ReviewRepository,
 {
-    async fn get_review(
-        &self,
-        request: GetReviewRequest,
-    ) -> Result<ReviewResponse, ReviewError> {
+    async fn get_review(&self, request: GetReviewRequest) -> Result<ReviewResponse, ReviewError> {
         let review = self
             .review_repo
-            .get_review(request.owner.as_ref(), request.repo.as_ref(), request.number)
+            .get_review(
+                request.owner.as_ref(),
+                request.repo.as_ref(),
+                request.number,
+            )
             .await?
             .ok_or_else(|| ReviewError::ReviewNotFound(request.get_review_path()))?;
 

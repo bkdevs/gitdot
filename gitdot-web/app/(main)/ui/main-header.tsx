@@ -1,20 +1,20 @@
 "use client";
 
+import { Files, Plus, Search, User } from "lucide-react";
+import { useParams, usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
 import CreateRepoDialog from "@/(main)/[owner]/ui/create-repo-dialog";
 import { useAuthBlocker } from "@/(main)/providers/auth-blocker-provider";
 import { useUser } from "@/(main)/providers/user-provider";
 import { signout } from "@/actions";
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
 } from "@/ui/dropdown-menu";
 import Link from "@/ui/link";
 import { cn } from "@/util";
-import { Files, History, Plus, Search, User } from "lucide-react";
-import { useParams, usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
 
 export function MainHeader() {
   const pathname = usePathname();
@@ -47,18 +47,20 @@ export function MainHeader() {
 
   return (
     <>
-      <div className="shrink-0 flex flex-row w-full h-9 items-center justify-between border-b bg-sidebar">
-        <div className="flex-1 text-sm font-mono flex items-center pl-3">
+      <div className="shrink-0 grid grid-cols-[1fr_auto_1fr] w-full h-9 items-center border-b bg-sidebar">
+        <div />
+        <div className="text-sm font-mono flex items-center gap-0.5">
           {pathLinks}
         </div>
-        <div className="flex items-center">
+        <div className="flex items-center justify-end">
           <NavButton icon={Search} label="Search" onClick={() => {}} />
           <NavButton
             icon={Files}
             label="File"
-            onClick={() => window.dispatchEvent(new CustomEvent("openFileSearch"))}
+            onClick={() =>
+              window.dispatchEvent(new CustomEvent("openFileSearch"))
+            }
           />
-          <NavButton icon={History} label="History" onClick={() => {}} />
           <DropdownNavButton icon={Plus} label="Create">
             <DropdownMenuItem
               onClick={() => {
@@ -79,10 +81,12 @@ export function MainHeader() {
 
 function NavButton({
   icon: Icon,
+  iconClassName,
   label,
   onClick,
 }: {
   icon: React.ComponentType<{ className?: string }>;
+  iconClassName?: string;
   label: string;
   onClick: () => void;
 }) {
@@ -92,7 +96,7 @@ function NavButton({
       onClick={onClick}
       className="size-9 border-l border-border flex items-center justify-center hover:bg-sidebar-accent transition-colors shrink-0"
     >
-      <Icon className="size-4" />
+      <Icon className={cn("size-4", iconClassName)} />
       <span className="sr-only">{label}</span>
     </button>
   );
@@ -118,7 +122,9 @@ function DropdownNavButton({
           <span className="sr-only">{label}</span>
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent side="bottom" align="end">{children}</DropdownMenuContent>
+      <DropdownMenuContent side="bottom" align="end">
+        {children}
+      </DropdownMenuContent>
     </DropdownMenu>
   );
 }
