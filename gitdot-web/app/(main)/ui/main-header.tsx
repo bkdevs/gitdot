@@ -1,17 +1,17 @@
 "use client";
 
-import { Search, User } from "lucide-react";
-import { useParams, usePathname, useRouter } from "next/navigation";
 import { useUser } from "@/(main)/providers/user-provider";
 import { signout } from "@/actions";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
 } from "@/ui/dropdown-menu";
 import Link from "@/ui/link";
 import { cn } from "@/util";
+import { User } from "lucide-react";
+import { useParams, usePathname, useRouter } from "next/navigation";
 
 export function MainHeader() {
   const pathname = usePathname();
@@ -48,18 +48,6 @@ export function MainHeader() {
         {pathLinks}
       </div>
       <div className="flex items-center gap-1">
-        {inRepo && (
-          <button
-            type="button"
-            aria-label="Open repo files"
-            onClick={() =>
-              window.dispatchEvent(new CustomEvent("openFileSearch"))
-            }
-            className="w-5.5 h-5.5 mr-1 rounded-full flex items-center justify-center hover:bg-sidebar-accent outline-none transition-colors"
-          >
-            <Search className="size-4" />
-          </button>
-        )}
         <UserDropdown />
       </div>
     </div>
