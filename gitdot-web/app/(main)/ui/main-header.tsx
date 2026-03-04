@@ -1,6 +1,6 @@
 "use client";
 
-import { Files, Plus, Search, User } from "lucide-react";
+import { Circle, Files, Plus, Search } from "lucide-react";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import CreateRepoDialog from "@/(main)/[owner]/ui/create-repo-dialog";
@@ -47,7 +47,7 @@ export function MainHeader() {
 
   return (
     <>
-      <div className="shrink-0 grid grid-cols-[1fr_auto_1fr] w-full h-9 items-center border-b bg-sidebar">
+      <div className="shrink-0 grid grid-cols-[1fr_auto_1fr] w-full h-8 items-center border-b bg-sidebar">
         <div />
         <div className="text-sm font-mono flex items-center gap-0.5">
           {pathLinks}
@@ -94,7 +94,7 @@ function NavButton({
     <button
       type="button"
       onClick={onClick}
-      className="size-9 border-l border-border flex items-center justify-center hover:bg-sidebar-accent transition-colors shrink-0"
+      className="size-8 border-l border-border flex items-center justify-center hover:bg-sidebar-accent transition-colors shrink-0"
     >
       <Icon className={cn("size-4", iconClassName)} />
       <span className="sr-only">{label}</span>
@@ -116,7 +116,7 @@ function DropdownNavButton({
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className="size-9 border-l border-border flex items-center justify-center hover:bg-sidebar-accent data-[state=open]:bg-sidebar-accent transition-colors shrink-0 outline-none"
+          className="size-8 border-l border-border flex items-center justify-center hover:bg-sidebar-accent data-[state=open]:bg-sidebar-accent transition-colors shrink-0 outline-none"
         >
           <Icon className="size-4" />
           <span className="sr-only">{label}</span>
@@ -137,12 +137,12 @@ function UserDropdown() {
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className="size-9 border-l border-border flex items-center justify-center hover:bg-sidebar-accent data-[state=open]:bg-sidebar-accent transition-colors shrink-0 outline-none"
+          className="size-8 border-l border-border flex items-center justify-center hover:bg-sidebar-accent data-[state=open]:bg-sidebar-accent transition-colors shrink-0 outline-none"
         >
-          <User
+          <Circle
             className={cn(
-              "size-4 transition-all duration-300",
-              user ? "stroke-[2.5]" : "opacity-60",
+              "size-2 transition-all duration-300",
+              user ? "fill-current stroke-current" : "fill-transparent",
             )}
           />
         </button>
