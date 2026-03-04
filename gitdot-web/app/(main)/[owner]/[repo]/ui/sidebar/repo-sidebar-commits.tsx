@@ -39,7 +39,7 @@ export function RepoSidebarCommits({
               <Link
                 key={commit.sha}
                 href={`/${owner}/${repo}/commits/${commit.sha.substring(0, 7)}`}
-                className={`flex w-full border-b hover:bg-accent/50 select-none cursor-default py-2 px-2 ${
+                className={`flex w-full border-b hover:bg-accent/50 select-none cursor-default py-2 px-3 ${
                   isActive && "bg-sidebar"
                 }`}
                 prefetch={true}
