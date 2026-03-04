@@ -1,8 +1,7 @@
 use anyhow::Context;
 
-use crate::{config::runner::SYSTEM_USER, util::run_command};
-
 use super::{Service, ServiceManager};
+use crate::{config::runner::SYSTEM_USER, util::run_command};
 
 const LABEL: &str = "io.gitdot.runner";
 const PLIST_PATH: &str = "/Library/LaunchDaemons/io.gitdot.runner.plist";

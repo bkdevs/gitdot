@@ -12,8 +12,9 @@ use start::start;
 use stop::stop;
 use verify::verify;
 
-use crate::config::RunnerConfig;
 use clap::{Parser, Subcommand};
+
+use crate::config::RunnerConfig;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]

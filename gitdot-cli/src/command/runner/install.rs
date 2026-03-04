@@ -1,5 +1,6 @@
-use crate::{client::GitdotClient, config::RunnerConfig, os::install_service};
 use std::io::{self, Write};
+
+use crate::{client::GitdotClient, config::RunnerConfig, os::install_service};
 
 pub async fn install(mut config: RunnerConfig) -> anyhow::Result<()> {
     if config.runner_token.is_none() {

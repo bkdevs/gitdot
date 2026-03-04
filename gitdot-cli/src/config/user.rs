@@ -1,7 +1,7 @@
+use std::path::PathBuf;
+
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
-
-use std::path::PathBuf;
 
 use super::default::{default_gitdot_server_url, default_gitdot_web_url};
 

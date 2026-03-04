@@ -1,13 +1,14 @@
 use std::{path::PathBuf, process::Stdio};
 
 use anyhow::{Context, Result};
-use gitdot_api::resource::PollTaskResource;
 use s2_sdk::{
     S2,
     producer::ProducerConfig,
     types::{AppendRecord, Header},
 };
 use tokio::{io::AsyncReadExt, process::Command};
+
+use gitdot_api::resource::PollTaskResource;
 
 use crate::{config::RunnerConfig, executor::Executor};
 

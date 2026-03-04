@@ -1,8 +1,9 @@
 mod login;
 mod status;
 
-use crate::config::UserConfig;
 use clap::{Args, Subcommand};
+
+use crate::config::UserConfig;
 
 pub use login::login;
 pub use status::get_status;

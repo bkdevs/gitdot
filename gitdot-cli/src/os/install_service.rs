@@ -1,8 +1,7 @@
 use std::process::Command;
 
-use crate::{config::runner::SYSTEM_USER, util::run_command};
-
 use super::service::{Service, ServiceManager};
+use crate::{config::runner::SYSTEM_USER, util::run_command};
 
 pub fn install_service() -> anyhow::Result<()> {
     ensure_gitdot_user()?;

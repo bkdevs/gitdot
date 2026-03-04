@@ -1,9 +1,10 @@
-use gitdot_config::ci::CiConfig;
 use itertools::Either;
 use tombi_config::TomlVersion;
 use tombi_diagnostic::printer::{Pretty, Print};
 use tombi_linter::{LintOptions, Linter};
 use tombi_schema_store::SchemaStore;
+
+use gitdot_config::ci::CiConfig;
 
 pub async fn lint() -> anyhow::Result<()> {
     let config_path = crate::util::ci::find_config().await?;

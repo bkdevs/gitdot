@@ -1,6 +1,7 @@
 pub mod local;
 
 use anyhow::Result;
+
 use gitdot_api::resource::PollTaskResource;
 
 use crate::config::RunnerConfig;

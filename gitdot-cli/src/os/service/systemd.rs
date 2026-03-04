@@ -1,8 +1,7 @@
 use anyhow::Context;
 
-use crate::{config::runner::SYSTEM_USER, util::run_command};
-
 use super::{Service, ServiceManager};
+use crate::{config::runner::SYSTEM_USER, util::run_command};
 
 const SERVICE_NAME: &str = "gitdot-runner";
 const UNIT_PATH: &str = "/etc/systemd/system/gitdot-runner.service";
