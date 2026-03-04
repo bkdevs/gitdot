@@ -1,6 +1,6 @@
 "use client";
 
-import { Circle, Files, Plus, Search } from "lucide-react";
+import { Files, Plus, Search, User } from "lucide-react";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import CreateRepoDialog from "@/(main)/[owner]/ui/create-repo-dialog";
@@ -139,10 +139,10 @@ function UserDropdown() {
           type="button"
           className="size-8 border-l border-border flex items-center justify-center hover:bg-sidebar-accent data-[state=open]:bg-sidebar-accent transition-colors shrink-0 outline-none"
         >
-          <Circle
+          <User
             className={cn(
-              "size-2 transition-all duration-300",
-              user ? "fill-current stroke-current" : "fill-transparent",
+              "size-4 transition-all duration-300",
+              user ? "" : "opacity-60",
             )}
           />
         </button>
