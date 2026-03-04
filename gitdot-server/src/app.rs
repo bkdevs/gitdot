@@ -24,7 +24,8 @@ use gitdot_core::client::{GoogleSecretClient, SecretClient};
 use crate::handler::{
     create_build_router, create_git_http_router, create_internal_router, create_migration_router,
     create_oauth_router, create_organization_router, create_question_router,
-    create_repository_router, create_runner_router, create_task_router, create_user_router,
+    create_repository_router, create_review_router, create_runner_router, create_task_router,
+    create_user_router,
 };
 
 pub use app_state::AppState;
@@ -88,6 +89,7 @@ fn create_router(app_state: AppState) -> Router {
         .merge(create_organization_router())
         .merge(create_repository_router())
         .merge(create_question_router())
+        .merge(create_review_router())
         .merge(create_build_router())
         .merge(create_oauth_router())
         .merge(create_migration_router())

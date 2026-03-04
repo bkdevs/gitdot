@@ -8,7 +8,7 @@ use thiserror::Error;
 use gitdot_api::ApiResource;
 use gitdot_core::error::{
     AuthorizationError, BuildError, CommitError, GitHttpError, MigrationError, OrganizationError,
-    QuestionError, RepositoryError, RunnerError, TaskError, TokenError, UserError,
+    QuestionError, RepositoryError, ReviewError, RunnerError, TaskError, TokenError, UserError,
 };
 
 use super::AppResponse;
@@ -35,6 +35,9 @@ pub enum AppError {
 
     #[error(transparent)]
     Question(#[from] QuestionError),
+
+    #[error(transparent)]
+    Review(#[from] ReviewError),
 
     #[error(transparent)]
     Migration(#[from] MigrationError),
@@ -181,6 +184,22 @@ impl IntoResponse for AppError {
                     QuestionError::RepositoryNotFound(_) => StatusCode::NOT_FOUND,
                     QuestionError::VoteTargetNotFound(_) => StatusCode::NOT_FOUND,
                     QuestionError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+                };
+                let response = AppResponse::new(
+                    status_code,
+                    AppErrorMessage {
+                        message: e.to_string(),
+                    },
+                );
+                response.into_response()
+            }
+            AppError::Review(e) => {
+                let status_code = match e {
+                    ReviewError::InvalidOwnerName(_) => StatusCode::BAD_REQUEST,
+                    ReviewError::InvalidRepositoryName(_) => StatusCode::BAD_REQUEST,
+                    ReviewError::ReviewNotFound(_) => StatusCode::NOT_FOUND,
+                    ReviewError::RepositoryNotFound(_) => StatusCode::NOT_FOUND,
+                    ReviewError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                 };
                 let response = AppResponse::new(
                     status_code,

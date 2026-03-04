@@ -6,6 +6,7 @@ mod oauth;
 mod organization;
 mod question;
 mod repository;
+mod review;
 mod runner;
 mod task;
 mod user;

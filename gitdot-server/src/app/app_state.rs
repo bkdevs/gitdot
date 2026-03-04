@@ -10,16 +10,17 @@ use gitdot_core::{
     repository::{
         BuildRepositoryImpl, CodeRepositoryImpl, CommitRepositoryImpl, GitHubRepositoryImpl,
         MigrationRepositoryImpl, OrganizationRepositoryImpl, QuestionRepositoryImpl,
-        RepositoryRepositoryImpl, RunnerRepositoryImpl, TaskRepositoryImpl, TokenRepositoryImpl,
-        UserRepositoryImpl,
+        RepositoryRepositoryImpl, ReviewRepositoryImpl, RunnerRepositoryImpl, TaskRepositoryImpl,
+        TokenRepositoryImpl, UserRepositoryImpl,
     },
     service::{
         AuthenticationService, AuthenticationServiceImpl, AuthorizationService,
         AuthorizationServiceImpl, BuildService, BuildServiceImpl, CommitService, CommitServiceImpl,
         GitHttpService, GitHttpServiceImpl, MigrationService, MigrationServiceImpl, OAuthService,
         OAuthServiceImpl, OrganizationService, OrganizationServiceImpl, QuestionService,
-        QuestionServiceImpl, RepositoryService, RepositoryServiceImpl, RunnerService,
-        RunnerServiceImpl, TaskService, TaskServiceImpl, UserService, UserServiceImpl,
+        QuestionServiceImpl, RepositoryService, RepositoryServiceImpl, ReviewService,
+        ReviewServiceImpl, RunnerService, RunnerServiceImpl, TaskService, TaskServiceImpl,
+        UserService, UserServiceImpl,
     },
 };
 
@@ -39,10 +40,11 @@ pub struct AppState {
     pub git_http_service: Arc<dyn GitHttpService>,
     pub repo_service: Arc<dyn RepositoryService>,
     pub question_service: Arc<dyn QuestionService>,
+    pub review_service: Arc<dyn ReviewService>,
     pub commit_service: Arc<dyn CommitService>,
     pub migration_service: Arc<dyn MigrationService>,
-    pub build_service: Arc<dyn BuildService>,
 
+    pub build_service: Arc<dyn BuildService>,
     pub runner_service: Arc<dyn RunnerService>,
     pub task_service: Arc<dyn TaskService>,
 
@@ -61,6 +63,7 @@ impl AppState {
         let org_repo = OrganizationRepositoryImpl::new(pool.clone());
         let repo_repo = RepositoryRepositoryImpl::new(pool.clone());
         let question_repo = QuestionRepositoryImpl::new(pool.clone());
+        let review_repo = ReviewRepositoryImpl::new(pool.clone());
         let commit_repo = CommitRepositoryImpl::new(pool.clone());
         let github_repo = GitHubRepositoryImpl::new(pool.clone());
         let migration_repo = MigrationRepositoryImpl::new(pool.clone());
@@ -118,6 +121,7 @@ impl AppState {
                 question_repo.clone(),
                 repo_repo.clone(),
             )),
+            review_service: Arc::new(ReviewServiceImpl::new(review_repo.clone())),
             commit_service: Arc::new(CommitServiceImpl::new(
                 commit_repo.clone(),
                 repo_repo.clone(),
