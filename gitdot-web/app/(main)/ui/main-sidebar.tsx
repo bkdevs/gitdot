@@ -32,7 +32,7 @@ export function MainSidebar() {
   return (
     <>
       <Sidebar
-        className="bg-sidebar h-full! border-r w-9!"
+        className="bg-background! h-full! border-r w-9!"
       >
         <SidebarContent>
           <SidebarGroup className="p-0!">
@@ -86,7 +86,7 @@ function NavItem({
 }) {
   return (
     <SidebarMenuItem
-      className={"size-9 border-b p-0! bg-sidebar"}
+      className={"size-9 border-b p-0!"}
     >
       <SidebarMenuButton
         onClick={onClick}
@@ -109,9 +109,7 @@ function DropdownNavItem({
   children: React.ReactNode;
 }) {
   return (
-    <SidebarMenuItem
-      className="size-9 border-b p-0! bg-sidebar"
-    >
+    <SidebarMenuItem className="size-9 border-b p-0!" >
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <SidebarMenuButton className="w-full h-full flex items-center justify-center p-0! rounded-none hover:bg-sidebar-accent! data-[state=open]:bg-sidebar-accent! hover:text-current! ring-0! outline-0!">

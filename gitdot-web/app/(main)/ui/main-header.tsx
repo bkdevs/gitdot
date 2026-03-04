@@ -1,5 +1,7 @@
 "use client";
 
+import CreateRepoDialog from "@/(main)/[owner]/ui/create-repo-dialog";
+import { useAuthBlocker } from "@/(main)/providers/auth-blocker-provider";
 import { useUser } from "@/(main)/providers/user-provider";
 import { signout } from "@/actions";
 import {
@@ -10,14 +12,17 @@ import {
 } from "@/ui/dropdown-menu";
 import Link from "@/ui/link";
 import { cn } from "@/util";
-import { Circle, User } from "lucide-react";
+import { Files, History, Plus, Search, User } from "lucide-react";
 import { useParams, usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
 
 export function MainHeader() {
   const pathname = usePathname();
   const params = useParams();
   const segments = pathname.split("/").filter(Boolean);
   const pathLinks: React.ReactNode[] = [];
+  const [createRepoOpen, setCreateRepoOpen] = useState(false);
+  const { requireAuth } = useAuthBlocker();
 
   segments.forEach((segment, index) => {
     let path = `/${segments.slice(0, index + 1).join("/")}`;
@@ -40,19 +45,81 @@ export function MainHeader() {
     );
   });
 
-  const inRepo = "owner" in params && "repo" in params;
-
   return (
-    <div className="shrink-0 flex flex-row w-full h-9 items-center justify-between border-b bg-sidebar">
+    <>
+      <div className="shrink-0 flex flex-row w-full h-9 items-center justify-between border-b bg-sidebar">
+        <div className="flex-1 text-sm font-mono flex items-center pl-3">
+          {pathLinks}
+        </div>
+        <div className="flex items-center">
+          <NavButton icon={Search} label="Search" onClick={() => {}} />
+          <NavButton
+            icon={Files}
+            label="File"
+            onClick={() => window.dispatchEvent(new CustomEvent("openFileSearch"))}
+          />
+          <NavButton icon={History} label="History" onClick={() => {}} />
+          <DropdownNavButton icon={Plus} label="Create">
+            <DropdownMenuItem
+              onClick={() => {
+                if (requireAuth()) return null;
+                setCreateRepoOpen(true);
+              }}
+            >
+              New repo
+            </DropdownMenuItem>
+          </DropdownNavButton>
+          <UserDropdown />
+        </div>
+      </div>
+      <CreateRepoDialog open={createRepoOpen} setOpen={setCreateRepoOpen} />
+    </>
+  );
+}
 
-      <div className="flex-1 text-sm font-mono flex items-center">
-        <Circle className="size-2 fill-current mx-3.5" />
-        {pathLinks}
-      </div>
-      <div className="flex items-center gap-1">
-        <UserDropdown />
-      </div>
-    </div>
+function NavButton({
+  icon: Icon,
+  label,
+  onClick,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="size-9 border-l border-border flex items-center justify-center hover:bg-sidebar-accent transition-colors shrink-0"
+    >
+      <Icon className="size-4" />
+      <span className="sr-only">{label}</span>
+    </button>
+  );
+}
+
+function DropdownNavButton({
+  icon: Icon,
+  label,
+  children,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          className="size-9 border-l border-border flex items-center justify-center hover:bg-sidebar-accent data-[state=open]:bg-sidebar-accent transition-colors shrink-0 outline-none"
+        >
+          <Icon className="size-4" />
+          <span className="sr-only">{label}</span>
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent side="bottom" align="end">{children}</DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 
@@ -63,15 +130,13 @@ function UserDropdown() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
-          type="submit"
-          className="w-5.5 h-5.5 mr-2 rounded-full bg-primary flex items-center justify-center hover:bg-primary/70 data-[state=open]:bg-primary/70 outline-none transition-colors"
+          type="button"
+          className="size-9 border-l border-border flex items-center justify-center hover:bg-sidebar-accent data-[state=open]:bg-sidebar-accent transition-colors shrink-0 outline-none"
         >
           <User
             className={cn(
               "size-4 transition-all duration-300",
-              user
-                ? "text-primary-foreground stroke-[2.5]"
-                : "text-primary-foreground/60",
+              user ? "stroke-[2.5]" : "opacity-60",
             )}
           />
         </button>

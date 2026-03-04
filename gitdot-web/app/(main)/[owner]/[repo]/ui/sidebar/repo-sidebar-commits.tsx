@@ -27,7 +27,7 @@ export function RepoSidebarCommits({
     <div className="flex flex-col w-full">
       {commitsByDate.map(([date, dateCommits]) => (
         <Fragment key={date}>
-          <div className="sticky top-0 bg-background flex items-center border-b px-2 h-9 z-10">
+          <div className="sticky top-0 bg-background flex items-center border-b px-3 h-9 z-10">
             <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
               {formatDateKey(date)}
             </h3>

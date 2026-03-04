@@ -46,7 +46,7 @@ export function RepoSidebarNav({
             }`}
             prefetch={true}
           >
-            <span className="ml-2">{item.label}</span>
+            <span className="ml-3">{item.label}</span>
           </Link>
         );
       })}
