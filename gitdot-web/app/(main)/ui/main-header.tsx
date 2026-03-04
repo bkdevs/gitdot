@@ -47,9 +47,8 @@ export function MainHeader() {
 
   return (
     <>
-      <div className="shrink-0 grid grid-cols-[1fr_auto_1fr] w-full h-8 items-center border-b bg-sidebar">
-        <div />
-        <div className="text-sm font-mono flex items-center gap-0.5">
+      <div className="shrink-0 flex w-full h-8 items-center border-t bg-sidebar">
+        <div className="text-sm font-mono flex items-center flex-1 px-2">
           {pathLinks}
         </div>
         <div className="flex items-center justify-end">
