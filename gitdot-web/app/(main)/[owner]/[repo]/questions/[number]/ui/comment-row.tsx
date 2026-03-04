@@ -3,8 +3,8 @@
 import type { CommentResource } from "gitdot-api";
 import { Check, Edit3 } from "lucide-react";
 import { useActionState, useOptimistic, useRef, useState } from "react";
-import { useAuthBlocker } from "@/(main)/providers/auth-blocker-provider";
-import { useUser } from "@/(main)/providers/user-provider";
+import { useAuthBlocker } from "@/(main)/provider/auth-blocker-provider";
+import { useUser } from "@/(main)/provider/user-provider";
 import {
   type UpdateCommentActionResult,
   updateCommentAction,

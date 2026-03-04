@@ -4,8 +4,8 @@ import { Files, Plus, Search, User } from "lucide-react";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import CreateRepoDialog from "@/(main)/[owner]/ui/create-repo-dialog";
-import { useAuthBlocker } from "@/(main)/providers/auth-blocker-provider";
-import { useUser } from "@/(main)/providers/user-provider";
+import { useAuthBlocker } from "@/(main)/provider/auth-blocker-provider";
+import { useUser } from "@/(main)/provider/user-provider";
 import { signout } from "@/actions";
 import {
   DropdownMenu,

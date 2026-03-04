@@ -2,7 +2,7 @@
 
 import { Plus } from "lucide-react";
 import { useState } from "react";
-import { useAuthBlocker } from "@/(main)/providers/auth-blocker-provider";
+import { useAuthBlocker } from "@/(main)/provider/auth-blocker-provider";
 import { CreateQuestionDialog } from "./create-question-dialog";
 
 export function CreateQuestionButton({

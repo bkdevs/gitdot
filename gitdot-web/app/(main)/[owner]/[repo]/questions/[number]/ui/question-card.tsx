@@ -2,7 +2,7 @@
 
 import type { QuestionResource } from "gitdot-api";
 import { MarkdownBody } from "@/(main)/[owner]/[repo]/ui/markdown/markdown-body";
-import { useUser } from "@/(main)/providers/user-provider";
+import { useUser } from "@/(main)/provider/user-provider";
 import { formatDate, timeAgoFull } from "@/util";
 import { CommentThread } from "./comment-thread";
 import { QuestionDropdown } from "./question-dropdown";

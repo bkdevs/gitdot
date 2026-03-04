@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Providers } from "./providers";
+import { MainProvider } from "./provider";
 import { MainHeader } from "./ui/main-header";
 
 export const metadata: Metadata = {
@@ -13,11 +13,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <Providers>
+    <MainProvider>
       <div className="flex flex-col h-screen w-full max-w-screen overflow-hidden">
         <main className="flex-1 min-h-0 overflow-auto">{children}</main>
         <MainHeader />
       </div>
-    </Providers>
+    </MainProvider>
   );
 }

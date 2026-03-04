@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { useAuthBlocker } from "@/(main)/providers/auth-blocker-provider";
+import { useAuthBlocker } from "@/(main)/provider/auth-blocker-provider";
 import { type CreateAnswerActionResult, createAnswerAction } from "@/actions";
 import { Button } from "@/ui/button";
 

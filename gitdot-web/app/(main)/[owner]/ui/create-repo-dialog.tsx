@@ -2,7 +2,7 @@
 
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { useActionState, useState } from "react";
-import { useUser } from "@/(main)/providers/user-provider";
+import { useUser } from "@/(main)/provider/user-provider";
 import {
   type CreateRepositoryActionResult,
   createRepositoryAction,

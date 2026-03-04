@@ -2,7 +2,7 @@
 
 import { Check } from "lucide-react";
 import { useActionState, useRef, useState } from "react";
-import { useAuthBlocker } from "@/(main)/providers/auth-blocker-provider";
+import { useAuthBlocker } from "@/(main)/provider/auth-blocker-provider";
 import type { CreateCommentActionResult } from "@/actions";
 import { cn } from "@/util";
 
