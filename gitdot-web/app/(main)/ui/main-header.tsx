@@ -5,7 +5,7 @@ import { useParams, usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import CreateRepoDialog from "@/(main)/[owner]/ui/create-repo-dialog";
 import { useAuthBlocker } from "@/(main)/provider/auth-blocker-provider";
-import { useUser } from "@/(main)/provider/user-provider";
+import { useUserContext } from "@/(main)/provider/user-provider";
 import { signout } from "@/actions";
 import {
   DropdownMenu,
@@ -129,7 +129,7 @@ function DropdownNavButton({
 }
 
 function UserDropdown() {
-  const { user } = useUser();
+  const { user } = useUserContext();
 
   return (
     <DropdownMenu>

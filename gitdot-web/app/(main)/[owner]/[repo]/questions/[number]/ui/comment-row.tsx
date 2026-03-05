@@ -4,7 +4,7 @@ import type { CommentResource } from "gitdot-api";
 import { Check, Edit3 } from "lucide-react";
 import { useActionState, useOptimistic, useRef, useState } from "react";
 import { useAuthBlocker } from "@/(main)/provider/auth-blocker-provider";
-import { useUser } from "@/(main)/provider/user-provider";
+import { useUserContext } from "@/(main)/provider/user-provider";
 import {
   type UpdateCommentActionResult,
   updateCommentAction,
@@ -28,7 +28,7 @@ export function CommentRow({
   const { body, author, created_at } = comment;
   const [editing, setEditing] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
-  const { user } = useUser();
+  const { user } = useUserContext();
   const isOwner = user?.id === comment.author_id;
 
   const updateComment = updateCommentAction.bind(

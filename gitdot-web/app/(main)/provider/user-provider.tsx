@@ -37,7 +37,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   return <UserContext value={{ user, refreshUser }}>{children}</UserContext>;
 }
 
-export function useUser(): UserContext {
+export function useUserContext(): UserContext {
   const context = useContext(UserContext);
   if (!context) {
     throw new Error("useUser must be used within an UserProvider");

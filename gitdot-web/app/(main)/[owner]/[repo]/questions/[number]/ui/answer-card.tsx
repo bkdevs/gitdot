@@ -2,7 +2,7 @@
 
 import type { AnswerResource } from "gitdot-api";
 import { MarkdownBody } from "@/(main)/[owner]/[repo]/ui/markdown/markdown-body";
-import { useUser } from "@/(main)/provider/user-provider";
+import { useUserContext } from "@/(main)/provider/user-provider";
 import { formatDate, timeAgoFull } from "@/util";
 import { AnswerDropdown } from "./answer-dropdown";
 import { CommentThread } from "./comment-thread";
@@ -17,7 +17,7 @@ type AnswerCardProps = {
 
 export function AnswerCard({ answer, owner, repo, number }: AnswerCardProps) {
   const wasUpdated = answer.created_at !== answer.updated_at;
-  const { user } = useUser();
+  const { user } = useUserContext();
 
   return (
     <div className="flex pb-4">

@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState } from "react";
 import { AuthBlockerDialog } from "../ui/auth-blocker-dialog";
-import { useUser } from "./user-provider";
+import { useUserContext } from "./user-provider";
 
 type AuthBlockerContextType = {
   requireAuth: () => boolean;
@@ -21,7 +21,7 @@ export function AuthBlockerProvider({
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
-  const { user } = useUser();
+  const { user } = useUserContext();
 
   function requireAuth() {
     if (!user) setOpen(true);

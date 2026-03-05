@@ -2,7 +2,7 @@
 
 import type { QuestionResource } from "gitdot-api";
 import { MarkdownBody } from "@/(main)/[owner]/[repo]/ui/markdown/markdown-body";
-import { useUser } from "@/(main)/provider/user-provider";
+import { useUserContext } from "@/(main)/provider/user-provider";
 import { formatDate, timeAgoFull } from "@/util";
 import { CommentThread } from "./comment-thread";
 import { QuestionDropdown } from "./question-dropdown";
@@ -15,7 +15,7 @@ type QuestionCardProps = {
 };
 
 export function QuestionCard({ question, owner, repo }: QuestionCardProps) {
-  const { user } = useUser();
+  const { user } = useUserContext();
   const wasUpdated = question.created_at !== question.updated_at;
   const isOwner = user?.id === question.author_id;
 

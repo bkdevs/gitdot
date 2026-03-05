@@ -2,7 +2,7 @@
 
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { useActionState, useState } from "react";
-import { useUser } from "@/(main)/provider/user-provider";
+import { useUserContext } from "@/(main)/provider/user-provider";
 import {
   type CreateRepositoryActionResult,
   createRepositoryAction,
@@ -16,7 +16,7 @@ export default function CreateRepoDialog({
   open: boolean;
   setOpen: (open: boolean) => void;
 }) {
-  const { user } = useUser();
+  const { user } = useUserContext();
   const [repoName, setRepoName] = useState("");
   const [state, formAction, isPending] = useActionState(
     async (_prev: CreateRepositoryActionResult | null, formData: FormData) => {

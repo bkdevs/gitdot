@@ -2,7 +2,7 @@
 
 import type { CommentResource } from "gitdot-api";
 import { useOptimistic } from "react";
-import { useUser } from "@/(main)/provider/user-provider";
+import { useUserContext } from "@/(main)/provider/user-provider";
 import { createCommentAction } from "@/actions";
 import { CommentInput } from "./comment-input";
 import { CommentRow } from "./comment-row";
@@ -22,7 +22,7 @@ export function CommentThread({
   number: number;
   comments: CommentResource[];
 }) {
-  const { user } = useUser();
+  const { user } = useUserContext();
   const createComment = createCommentAction.bind(
     null,
     owner,
