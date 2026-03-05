@@ -76,7 +76,7 @@ keygen:
 build: build-all
 
 # Build all Rust crates and TS packages
-build-all: build-api build-api-derive build-cli build-config build-core build-server build-s2-api build-s2-common build-s2-server build-s2-sdk build-web build-api-ts
+build-all: build-api build-api-derive build-cli build-config build-core build-server build-s2-api build-s2-common build-s2-server build-s2-sdk build-web
 
 # Build the backend server
 build-server:
@@ -122,10 +122,6 @@ build-s2-sdk:
 build-web:
     cd gitdot-web && pnpm build
 
-# Build gitdot-api-ts (typecheck only)
-build-api-ts:
-    cd gitdot-api-ts && pnpm typecheck
-
 # ── Test ────────────────────────────────────────────────────────────────────
 
 # Run all tests
@@ -148,7 +144,7 @@ test-web:
 lint: lint-all
 
 # Lint and format all Rust crates and TS packages
-lint-all: lint-api lint-api-derive lint-cli lint-config lint-core lint-server lint-s2-api lint-s2-common lint-s2-server lint-s2-sdk lint-web lint-api-ts
+lint-all: lint-api lint-api-derive lint-cli lint-config lint-core lint-server lint-s2-api lint-s2-common lint-s2-server lint-s2-sdk lint-web
 
 # Lint and format gitdot-api
 lint-api: _ensure-nightly
@@ -194,10 +190,6 @@ lint-s2-sdk: _ensure-nightly
 lint-web:
     cd gitdot-web && pnpm biome check . --write
 
-# Lint and format gitdot-api-ts
-lint-api-ts:
-    cd gitdot-api-ts && pnpm biome check . --write
-
 # Type check all Rust crates
 check:
     cargo check
@@ -207,6 +199,17 @@ check:
 # Run migrations
 migrate:
     cd gitdot-server && sqlx migrate run --source ../gitdot-core/migrations
+
+# ── Clean ──────────────────────────────────────────────────────────────────
+
+clean:
+    #!/usr/bin/env bash
+    set -e
+    echo "Running cargo clean..."
+    cargo clean
+    echo "Removing node_modules directory..."
+    rm -rf gitdot-web/node_modules
+    echo "Clean complete."
 
 # ── Helpers (private) ──────────────────────────────────────────────────────
 
