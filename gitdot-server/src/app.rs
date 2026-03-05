@@ -27,6 +27,7 @@ use crate::handler::{
     create_repository_router, create_review_router, create_runner_router, create_task_router,
     create_user_router,
 };
+use crate::layer::GitdotLayer;
 
 pub use app_state::AppState;
 pub use error::AppError;
@@ -77,6 +78,7 @@ fn create_router(app_state: AppState) -> Router {
     let api_middleware = ServiceBuilder::new()
         .layer(SetRequestIdLayer::x_request_id(MakeRequestUuid))
         .layer(TraceLayer::new_for_http())
+        .layer(GitdotLayer::api_metrics())
         .layer(CorsLayer::permissive()) // TODO: update CORS policy
         .layer(TimeoutLayer::with_status_code(
             StatusCode::REQUEST_TIMEOUT,

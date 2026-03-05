@@ -7,10 +7,10 @@ alias l:= lint-all
 alias t:= test-all
 
 
-# ── Setup ───────────────────────────────────────────────────────────────────
+# ── Install ───────────────────────────────────────────────────────────────────
 
 # Install dependencies and build (requires pnpm and cargo)
-setup:
+install:
     #!/usr/bin/env bash
     set -e
     if ! command -v pnpm &> /dev/null; then
@@ -27,7 +27,7 @@ setup:
     cd gitdot-web && pnpm install
     echo "Running cargo build"
     cd .. && cargo build
-    echo "Setup complete!"
+    echo "Install complete!"
 
 # ── Dev (run services) ──────────────────────────────────────────────────────
 
@@ -209,6 +209,8 @@ clean:
     cargo clean
     echo "Removing node_modules directory..."
     rm -rf gitdot-web/node_modules
+    echo "Removing .next directory"
+    rm -rf gitdot-web/.next
     echo "Clean complete."
 
 # ── Helpers (private) ──────────────────────────────────────────────────────
