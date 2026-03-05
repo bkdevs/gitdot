@@ -12,6 +12,7 @@ crc32fast = { workspace = true }
 futures = { workspace = true }
 git2 = { workspace = true }
 gitdot-config = { workspace = true }
+gitdot-core-derive = { workspace = true }
 google-cloud-gax = "1.7.0"
 google-cloud-metadata = "0.5.1"
 google-cloud-secretmanager-v1 = "1.5.0"

@@ -59,6 +59,7 @@ impl OAuthServiceImpl<CodeRepositoryImpl, TokenRepositoryImpl, UserRepositoryImp
     }
 }
 
+#[crate::instrument_all]
 #[async_trait]
 impl<D, T, U> OAuthService for OAuthServiceImpl<D, T, U>
 where

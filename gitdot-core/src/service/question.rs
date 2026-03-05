@@ -94,6 +94,7 @@ impl QuestionServiceImpl<QuestionRepositoryImpl, RepositoryRepositoryImpl> {
     }
 }
 
+#[crate::instrument_all]
 #[async_trait]
 impl<Q, R> QuestionService for QuestionServiceImpl<Q, R>
 where

@@ -43,6 +43,7 @@ impl AuthenticationServiceImpl<TokenRepositoryImpl> {
     }
 }
 
+#[crate::instrument_all]
 #[async_trait]
 impl<T> AuthenticationService for AuthenticationServiceImpl<T>
 where

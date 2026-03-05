@@ -35,6 +35,7 @@ impl RepositoryRepositoryImpl {
     }
 }
 
+#[crate::instrument_all]
 #[async_trait]
 impl RepositoryRepository for RepositoryRepositoryImpl {
     async fn create(

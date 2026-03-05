@@ -194,6 +194,7 @@ impl QuestionRepositoryImpl {
     }
 }
 
+#[crate::instrument_all]
 #[async_trait]
 impl QuestionRepository for QuestionRepositoryImpl {
     async fn create_question(

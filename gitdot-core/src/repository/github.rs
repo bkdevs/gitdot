@@ -28,6 +28,7 @@ impl GitHubRepositoryImpl {
     }
 }
 
+#[crate::instrument_all]
 #[async_trait]
 impl GitHubRepository for GitHubRepositoryImpl {
     async fn create(

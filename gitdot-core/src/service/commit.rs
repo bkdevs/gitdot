@@ -59,6 +59,7 @@ impl
     }
 }
 
+#[crate::instrument_all]
 #[async_trait]
 impl<C, R, U, G> CommitService for CommitServiceImpl<C, R, U, G>
 where

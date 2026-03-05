@@ -44,6 +44,7 @@ impl TaskRepositoryImpl {
     }
 }
 
+#[crate::instrument_all]
 #[async_trait]
 impl TaskRepository for TaskRepositoryImpl {
     async fn create(

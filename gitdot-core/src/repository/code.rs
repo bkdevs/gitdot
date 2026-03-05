@@ -51,6 +51,7 @@ impl CodeRepositoryImpl {
     }
 }
 
+#[crate::instrument_all]
 #[async_trait]
 impl CodeRepository for CodeRepositoryImpl {
     async fn create_device_authorization(

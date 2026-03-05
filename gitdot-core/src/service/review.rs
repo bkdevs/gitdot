@@ -30,6 +30,7 @@ impl ReviewServiceImpl<ReviewRepositoryImpl> {
     }
 }
 
+#[crate::instrument_all]
 #[async_trait]
 impl<V> ReviewService for ReviewServiceImpl<V>
 where

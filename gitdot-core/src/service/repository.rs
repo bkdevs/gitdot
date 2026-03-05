@@ -128,7 +128,6 @@ where
     R: RepositoryRepository,
     U: UserRepository,
 {
-    #[tracing::instrument(skip_all, err)]
     async fn enrich_commits_with_users(
         &self,
         commits: &mut [RepositoryCommitResponse],
@@ -161,6 +160,7 @@ where
     }
 }
 
+#[crate::instrument_all]
 #[async_trait]
 impl<G, D, O, R, U> RepositoryService for RepositoryServiceImpl<G, D, O, R, U>
 where
@@ -170,7 +170,6 @@ where
     R: RepositoryRepository,
     U: UserRepository,
 {
-    #[tracing::instrument(skip_all, err)]
     async fn create_repository(
         &self,
         request: CreateRepositoryRequest,
@@ -238,7 +237,6 @@ where
         Ok(repository.into())
     }
 
-    #[tracing::instrument(skip_all, err)]
     async fn get_repository_blob(
         &self,
         request: GetRepositoryBlobRequest,
@@ -271,7 +269,6 @@ where
         }
     }
 
-    #[tracing::instrument(skip_all, err)]
     async fn get_repository_tree(
         &self,
         request: GetRepositoryTreeRequest,
@@ -292,7 +289,6 @@ where
         Ok(response)
     }
 
-    #[tracing::instrument(skip_all, err)]
     async fn get_repository_commit(
         &self,
         request: GetRepositoryCommitRequest,
@@ -309,7 +305,6 @@ where
         Ok(commits.into_iter().next().unwrap())
     }
 
-    #[tracing::instrument(skip_all, err)]
     async fn get_repository_commits(
         &self,
         request: GetRepositoryCommitsRequest,
@@ -331,7 +326,6 @@ where
         Ok(response)
     }
 
-    #[tracing::instrument(skip_all, err)]
     async fn get_repository_file_commits(
         &self,
         request: GetRepositoryFileCommitsRequest,
@@ -354,7 +348,6 @@ where
         Ok(response)
     }
 
-    #[tracing::instrument(skip_all, err)]
     async fn get_repository_preview(
         &self,
         request: GetRepositoryPreviewRequest,
@@ -370,7 +363,6 @@ where
             .map_err(|e| e.into())
     }
 
-    #[tracing::instrument(skip_all, err)]
     async fn get_repository_commit_diff(
         &self,
         request: GetRepositoryCommitDiffRequest,
@@ -419,7 +411,6 @@ where
         Ok(diffs)
     }
 
-    #[tracing::instrument(skip_all, err)]
     async fn get_repository_commit_stat(
         &self,
         request: GetRepositoryCommitStatRequest,
@@ -447,7 +438,6 @@ where
         Ok(stats)
     }
 
-    #[tracing::instrument(skip_all, err)]
     async fn get_repository_by_id(&self, id: Uuid) -> Result<RepositoryResponse, RepositoryError> {
         let repository = self
             .repo_repo
@@ -458,7 +448,6 @@ where
         Ok(repository.into())
     }
 
-    #[tracing::instrument(skip_all, err)]
     async fn delete_repository(
         &self,
         request: DeleteRepositoryRequest,

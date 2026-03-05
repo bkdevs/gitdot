@@ -191,6 +191,7 @@ where
     }
 }
 
+#[crate::instrument_all]
 #[async_trait]
 impl<G, GH, RR, MR, OR, GHR> MigrationService for MigrationServiceImpl<G, GH, RR, MR, OR, GHR>
 where

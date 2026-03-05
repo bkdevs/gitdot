@@ -30,6 +30,7 @@ impl UserRepositoryImpl {
     }
 }
 
+#[crate::instrument_all]
 #[async_trait]
 impl UserRepository for UserRepositoryImpl {
     async fn get(&self, user_name: &str) -> Result<Option<User>, Error> {

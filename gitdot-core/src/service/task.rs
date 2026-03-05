@@ -49,6 +49,7 @@ impl TaskServiceImpl<TaskRepositoryImpl, RunnerRepositoryImpl, RepositoryReposit
     }
 }
 
+#[crate::instrument_all]
 #[async_trait]
 impl<T, R, S> TaskService for TaskServiceImpl<T, R, S>
 where

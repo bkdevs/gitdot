@@ -6,3 +6,4 @@ pub mod repository;
 pub mod service;
 
 pub(crate) mod util;
+pub(crate) use gitdot_core_derive::instrument_all;

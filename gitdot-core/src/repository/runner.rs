@@ -36,6 +36,7 @@ impl RunnerRepositoryImpl {
     }
 }
 
+#[crate::instrument_all]
 #[async_trait]
 impl RunnerRepository for RunnerRepositoryImpl {
     async fn create(

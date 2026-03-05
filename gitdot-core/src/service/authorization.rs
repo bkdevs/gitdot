@@ -97,6 +97,7 @@ impl
     }
 }
 
+#[crate::instrument_all]
 #[async_trait]
 impl<O, R, Q, U> AuthorizationService for AuthorizationServiceImpl<O, R, Q, U>
 where
@@ -105,7 +106,6 @@ where
     Q: QuestionRepository,
     U: UserRepository,
 {
-    #[tracing::instrument(skip_all, err)]
     async fn get_repository_permission(
         &self,
         request: GetRepositoryPermissionRequest,
@@ -146,7 +146,6 @@ where
         Ok(GetRepositoryPermissionResponse { permission })
     }
 
-    #[tracing::instrument(skip_all, err)]
     async fn verify_authorized_for_repository_creation(
         &self,
         request: RepositoryCreationAuthorizationRequest,
@@ -184,7 +183,6 @@ where
         Ok(())
     }
 
-    #[tracing::instrument(skip_all, err)]
     async fn verify_authorized_for_repository(
         &self,
         request: RepositoryAuthorizationRequest,
@@ -230,7 +228,6 @@ where
         Ok(())
     }
 
-    #[tracing::instrument(skip_all, err)]
     async fn verify_authorized_for_organization(
         &self,
         request: OrganizationAuthorizationRequest,
@@ -246,7 +243,6 @@ where
         }
     }
 
-    #[tracing::instrument(skip_all, err)]
     async fn verify_authorized_for_question(
         &self,
         request: QuestionAuthorizationRequest,
@@ -273,7 +269,6 @@ where
         Ok(())
     }
 
-    #[tracing::instrument(skip_all, err)]
     async fn verify_authorized_for_answer(
         &self,
         request: AnswerAuthorizationRequest,
@@ -293,7 +288,6 @@ where
         Ok(())
     }
 
-    #[tracing::instrument(skip_all, err)]
     async fn verify_authorized_for_comment(
         &self,
         request: CommentAuthorizationRequest,
@@ -313,7 +307,6 @@ where
         Ok(())
     }
 
-    #[tracing::instrument(skip_all, err)]
     async fn verify_authorized_for_migration(
         &self,
         request: MigrationAuthorizationRequest,

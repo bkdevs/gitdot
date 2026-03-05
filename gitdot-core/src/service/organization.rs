@@ -70,6 +70,7 @@ impl
     }
 }
 
+#[crate::instrument_all]
 #[async_trait]
 impl<O, U, R> OrganizationService for OrganizationServiceImpl<O, U, R>
 where

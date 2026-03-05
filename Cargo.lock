@@ -2274,6 +2274,7 @@ dependencies = [
  "futures",
  "git2",
  "gitdot-config",
+ "gitdot-core-derive",
  "google-cloud-gax",
  "google-cloud-metadata",
  "google-cloud-secretmanager-v1",
@@ -2295,6 +2296,15 @@ dependencies = [
  "toml 1.0.3+spec-1.1.0",
  "tracing",
  "uuid",
+]
+
+[[package]]
+name = "gitdot-core-derive"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.114",
 ]
 
 [[package]]

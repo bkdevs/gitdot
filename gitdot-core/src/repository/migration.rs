@@ -52,6 +52,7 @@ impl MigrationRepositoryImpl {
     }
 }
 
+#[crate::instrument_all]
 #[async_trait]
 impl MigrationRepository for MigrationRepositoryImpl {
     async fn create(

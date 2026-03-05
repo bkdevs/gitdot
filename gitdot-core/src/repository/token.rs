@@ -34,6 +34,7 @@ impl TokenRepositoryImpl {
     }
 }
 
+#[crate::instrument_all]
 #[async_trait]
 impl TokenRepository for TokenRepositoryImpl {
     async fn create_token(

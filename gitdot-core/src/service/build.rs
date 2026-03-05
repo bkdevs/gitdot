@@ -85,6 +85,7 @@ impl
     }
 }
 
+#[crate::instrument_all]
 #[async_trait]
 impl<G, S, B, T, R> BuildService for BuildServiceImpl<G, S, B, T, R>
 where

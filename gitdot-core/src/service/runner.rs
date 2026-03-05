@@ -66,6 +66,7 @@ impl RunnerServiceImpl<RunnerRepositoryImpl, OrganizationRepositoryImpl, TokenRe
     }
 }
 
+#[crate::instrument_all]
 #[async_trait]
 impl<R, O, T> RunnerService for RunnerServiceImpl<R, O, T>
 where

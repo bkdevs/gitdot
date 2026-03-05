@@ -67,6 +67,7 @@ impl UserServiceImpl<UserRepositoryImpl, RepositoryRepositoryImpl, OrganizationR
     }
 }
 
+#[crate::instrument_all]
 #[async_trait]
 impl<U, R, O> UserService for UserServiceImpl<U, R, O>
 where
