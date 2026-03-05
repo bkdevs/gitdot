@@ -502,6 +502,7 @@ impl Git2Client {
 
 #[async_trait]
 impl GitClient for Git2Client {
+    #[tracing::instrument(skip_all)]
     async fn repo_exists(&self, owner: &str, repo: &str) -> bool {
         let repo_path = self.get_repo_path(owner, repo);
         match fs::metadata(&repo_path).await {
@@ -510,6 +511,7 @@ impl GitClient for Git2Client {
         }
     }
 
+    #[tracing::instrument(skip_all, err)]
     async fn create_repo(&self, owner: &str, repo: &str) -> Result<(), GitError> {
         let owner_path = self.get_owner_path(owner);
         fs::create_dir_all(&owner_path).await?;
@@ -535,12 +537,14 @@ impl GitClient for Git2Client {
         Ok(())
     }
 
+    #[tracing::instrument(skip_all, err)]
     async fn delete_repo(&self, owner: &str, repo: &str) -> Result<(), GitError> {
         let repo_path = self.get_repo_path(owner, repo);
         fs::remove_dir_all(&repo_path).await?;
         Ok(())
     }
 
+    #[tracing::instrument(skip_all, err)]
     async fn mirror_repo(&self, owner: &str, repo: &str, url: &str) -> Result<(), GitError> {
         let owner_path = self.get_owner_path(owner);
         fs::create_dir_all(&owner_path).await?;
@@ -578,6 +582,7 @@ impl GitClient for Git2Client {
         Ok(())
     }
 
+    #[tracing::instrument(skip_all, err)]
     async fn get_repo_blob(
         &self,
         owner: &str,
@@ -635,6 +640,7 @@ impl GitClient for Git2Client {
         .await?
     }
 
+    #[tracing::instrument(skip_all, err)]
     async fn get_repo_tree(
         &self,
         owner: &str,
@@ -674,6 +680,7 @@ impl GitClient for Git2Client {
         .await?
     }
 
+    #[tracing::instrument(skip_all, err)]
     async fn get_repo_commit(
         &self,
         owner: &str,
@@ -691,6 +698,7 @@ impl GitClient for Git2Client {
         .await?
     }
 
+    #[tracing::instrument(skip_all, err)]
     async fn get_repo_commits(
         &self,
         owner: &str,
@@ -734,6 +742,7 @@ impl GitClient for Git2Client {
         .await?
     }
 
+    #[tracing::instrument(skip_all, err)]
     async fn get_repo_file_commits(
         &self,
         owner: &str,
@@ -850,6 +859,7 @@ impl GitClient for Git2Client {
         .await?
     }
 
+    #[tracing::instrument(skip_all, err)]
     async fn get_repo_preview(
         &self,
         owner: &str,
@@ -877,6 +887,7 @@ impl GitClient for Git2Client {
         .await?
     }
 
+    #[tracing::instrument(skip_all, err)]
     async fn get_repo_diff_files(
         &self,
         owner: &str,
@@ -951,6 +962,7 @@ impl GitClient for Git2Client {
         .await?
     }
 
+    #[tracing::instrument(skip_all, err)]
     async fn get_repo_diff_stats(
         &self,
         owner: &str,
@@ -1006,6 +1018,7 @@ impl GitClient for Git2Client {
         .await?
     }
 
+    #[tracing::instrument(skip_all, err)]
     async fn rev_list(
         &self,
         owner: &str,
@@ -1043,6 +1056,7 @@ impl GitClient for Git2Client {
         .await?
     }
 
+    #[tracing::instrument(skip_all, err)]
     async fn install_hook(
         &self,
         owner: &str,
@@ -1064,6 +1078,7 @@ impl GitClient for Git2Client {
         Ok(())
     }
 
+    #[tracing::instrument(skip_all, err)]
     async fn empty_hooks(&self, owner: &str, repo: &str) -> Result<(), GitError> {
         let repo_path = self.get_repo_path(owner, repo);
         let hooks_dir = format!("{}/hooks", repo_path);

@@ -7,6 +7,7 @@ pub const DEFAULT_PREVIEW_LINES: u32 = 100;
 pub const POST_RECEIVE_SCRIPT: &str = include_str!("../../hooks/post-receive");
 
 /// server-side git hook types
+#[derive(Debug)]
 pub enum GitHookType {
     PreReceive,
     PostReceive,
