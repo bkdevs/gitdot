@@ -62,6 +62,10 @@ server:
 s2:
     cd s2-server && cargo run -- --port 8081
 
+# Run gitdot CLI with arguments
+cli *args:
+    cd gitdot-cli && cargo run -- {{args}}
+
 # Generate Ed25519 key pair and write to gitdot-server/.env and s2-server/.env
 keygen:
     cargo run -p gitdot-server --bin gitdot-keygen
