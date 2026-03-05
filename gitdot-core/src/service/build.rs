@@ -6,7 +6,10 @@ use uuid::Uuid;
 
 use crate::{
     client::{Git2Client, GitClient, S2Client, S2ClientImpl},
-    dto::{BuildResponse, CiConfig, CreateBuildRequest, ListBuildsRequest, TaskResponse},
+    dto::{
+        BuildResponse, CiConfig, CreateBuildRequest, ListBuildsRequest, RepositoryBlobResponse,
+        TaskResponse,
+    },
     error::{BuildError, GitError},
     model::{BuildStatus, TaskStatus},
     repository::{
@@ -108,21 +111,24 @@ where
             .map_err(BuildError::GitError)?;
         let resolved_sha = commit.sha.clone();
 
-        let file = self
+        let blob = self
             .git_client
-            .get_repo_file(owner, repo, &resolved_sha, ".gitdot-ci.toml")
+            .get_repo_blob(owner, repo, &resolved_sha, ".gitdot-ci.toml")
             .await
             .map_err(|e: GitError| match e {
-                GitError::Git2Error(ref git2_err)
-                    if git2_err.code() == git2::ErrorCode::NotFound =>
-                {
-                    BuildError::ConfigNotFound(request.commit_sha.clone())
-                }
+                GitError::NotFound(_) => BuildError::ConfigNotFound(request.commit_sha.clone()),
                 other => BuildError::GitError(other),
             })?;
 
+        let file_content = match blob {
+            RepositoryBlobResponse::File(f) => f.content,
+            RepositoryBlobResponse::Folder(_) => {
+                return Err(BuildError::ConfigNotFound(request.commit_sha.clone()));
+            }
+        };
+
         let ci_config =
-            CiConfig::new(&file.content).map_err(|e| BuildError::InvalidConfig(e.to_string()))?;
+            CiConfig::new(&file_content).map_err(|e| BuildError::InvalidConfig(e.to_string()))?;
         let ci_trigger = if request.ref_name == DEFAULT_BRANCH
             || request
                 .ref_name

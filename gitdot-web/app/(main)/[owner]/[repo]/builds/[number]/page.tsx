@@ -1,8 +1,8 @@
 import {
   getBuild,
   getBuildTasks,
+  getRepositoryBlob,
   getRepositoryCommit,
-  getRepositoryFile,
   issueTaskToken,
   NotFound,
 } from "@/dal";
@@ -32,7 +32,7 @@ export default async function Page({
 
   const [commit, configFile, taskLogs] = await Promise.all([
     getRepositoryCommit(owner, repo, build.commit_sha),
-    getRepositoryFile(owner, repo, {
+    getRepositoryBlob(owner, repo, {
       ref_name: build.commit_sha,
       path: ".gitdot-ci.toml",
     }),
@@ -47,7 +47,7 @@ export default async function Page({
   ]);
 
   const configHtml =
-    configFile && configFile !== NotFound
+    configFile && configFile !== NotFound && configFile.type === "file"
       ? await renderFileToHtml(configFile, "vitesse-light")
       : null;
 

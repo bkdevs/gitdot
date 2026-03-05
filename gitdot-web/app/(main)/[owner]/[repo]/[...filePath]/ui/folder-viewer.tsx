@@ -3,7 +3,7 @@ import { File, Folder } from "lucide-react";
 import Link from "@/ui/link";
 import { timeAgo } from "@/util";
 
-export async function FolderViewer({
+export function FolderViewer({
   owner,
   repo,
   folderEntries,

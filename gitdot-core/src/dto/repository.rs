@@ -1,5 +1,6 @@
 mod create_repository;
 mod delete_repository;
+mod get_repository_blob;
 mod get_repository_commit;
 mod get_repository_commit_diff;
 mod get_repository_commit_stat;
@@ -16,11 +17,14 @@ use crate::model::Repository;
 
 pub use create_repository::CreateRepositoryRequest;
 pub use delete_repository::DeleteRepositoryRequest;
+pub use get_repository_blob::{
+    GetRepositoryBlobRequest, RepositoryBlobResponse, RepositoryFolderResponse,
+};
 pub use get_repository_commit::GetRepositoryCommitRequest;
 pub use get_repository_commit_diff::GetRepositoryCommitDiffRequest;
 pub use get_repository_commit_stat::GetRepositoryCommitStatRequest;
 pub use get_repository_commits::GetRepositoryCommitsRequest;
-pub use get_repository_file::{GetRepositoryFileRequest, RepositoryFileResponse};
+pub use get_repository_file::RepositoryFileResponse;
 pub use get_repository_file_commits::GetRepositoryFileCommitsRequest;
 pub use get_repository_preview::{
     FilePreview, GetRepositoryPreviewRequest, RepositoryPreviewEntry, RepositoryPreviewResponse,

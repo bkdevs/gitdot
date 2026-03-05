@@ -1,8 +1,4 @@
-import {
-  getFolderEntries,
-  parseRepositoryTree,
-} from "@/(main)/[owner]/[repo]/util";
-import { getRepositoryTree, NotFound } from "@/dal";
+import { getRepositoryBlob, getRepositoryFileCommits, NotFound } from "@/dal";
 import { FileViewer } from "./ui/file-viewer";
 import { FolderViewer } from "./ui/folder-viewer";
 import { parseLineSelection } from "./util";
@@ -21,31 +17,29 @@ export default async function Page({
   }>;
 }) {
   const { owner, repo, filePath } = await params;
-
-  // TODO: only fetch once, this is redundant
-  const tree = await getRepositoryTree(owner, repo);
-  if (!tree || tree === NotFound) return null;
+  const { lines, ref } = await searchParams;
 
   const filePathString = decodeURIComponent(filePath.join("/"));
-  const { entries, folders } = parseRepositoryTree(tree);
+  const blob = await getRepositoryBlob(owner, repo, {
+    path: filePathString,
+    ref_name: ref,
+  });
 
-  if (!entries.has(filePathString)) {
-    return <div>File not found.</div>;
-  } else if (folders.has(filePathString)) {
+  if (!blob || blob === NotFound) return <div>File not found.</div>;
+
+  if (blob.type === "folder") {
     return (
-      <FolderViewer
-        owner={owner}
-        repo={repo}
-        folderEntries={getFolderEntries(filePathString, folders, entries)}
-      />
+      <FolderViewer owner={owner} repo={repo} folderEntries={blob.entries} />
     );
   } else {
-    const { lines, ref } = await searchParams;
+    const commits = await getRepositoryFileCommits(owner, repo, {
+      path: filePathString,
+      ref_name: ref,
+    });
     return (
       <FileViewer
-        owner={owner}
-        repo={repo}
-        filePath={filePathString}
+        file={blob}
+        commits={commits}
         selectedLines={parseLineSelection(lines)}
         selectedCommit={ref}
       />

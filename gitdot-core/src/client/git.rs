@@ -5,9 +5,10 @@ use tokio::{fs, task};
 
 use crate::{
     dto::{
-        FilePreview, RepositoryCommitResponse, RepositoryCommitStatResponse,
-        RepositoryCommitsResponse, RepositoryFileResponse, RepositoryPreviewEntry,
-        RepositoryPreviewResponse, RepositoryTreeEntry, RepositoryTreeResponse,
+        FilePreview, RepositoryBlobResponse, RepositoryCommitResponse,
+        RepositoryCommitStatResponse, RepositoryCommitsResponse, RepositoryFileResponse,
+        RepositoryFolderResponse, RepositoryPreviewEntry, RepositoryPreviewResponse,
+        RepositoryTreeEntry, RepositoryTreeResponse,
     },
     error::GitError,
     util::git::{DEFAULT_BRANCH, EMPTY_TREE_REF, GitHookType, REPO_SUFFIX},
@@ -23,20 +24,20 @@ pub trait GitClient: Send + Sync + Clone + 'static {
 
     async fn mirror_repo(&self, owner: &str, repo: &str, url: &str) -> Result<(), GitError>;
 
+    async fn get_repo_blob(
+        &self,
+        owner: &str,
+        repo: &str,
+        ref_name: &str,
+        path: &str,
+    ) -> Result<RepositoryBlobResponse, GitError>;
+
     async fn get_repo_tree(
         &self,
         owner: &str,
         repo: &str,
         ref_name: &str,
     ) -> Result<RepositoryTreeResponse, GitError>;
-
-    async fn get_repo_file(
-        &self,
-        owner: &str,
-        repo: &str,
-        ref_name: &str,
-        path: &str,
-    ) -> Result<RepositoryFileResponse, GitError>;
 
     async fn get_repo_commit(
         &self,
@@ -380,6 +381,47 @@ impl Git2Client {
         Ok(())
     }
 
+    fn walk_tree_one_level(
+        tree: &git2::Tree,
+        base_path: &str,
+        entries: &mut Vec<RepositoryTreeEntry>,
+        commit_map: &HashMap<String, RepositoryCommitResponse>,
+        fallback_commit: &RepositoryCommitResponse,
+    ) -> Result<(), git2::Error> {
+        for entry in tree.iter() {
+            let name = entry.name().unwrap_or("").to_string();
+            let entry_path = if base_path.is_empty() {
+                name.clone()
+            } else {
+                format!("{}/{}", base_path, name)
+            };
+
+            let entry_type = match entry.kind() {
+                Some(git2::ObjectType::Blob) => "blob",
+                Some(git2::ObjectType::Tree) => "tree",
+                Some(git2::ObjectType::Commit) => "commit",
+                _ => "unknown",
+            }
+            .to_string();
+
+            let sha = entry.id().to_string();
+
+            let commit = commit_map
+                .get(&entry_path)
+                .cloned()
+                .unwrap_or_else(|| fallback_commit.clone());
+
+            entries.push(RepositoryTreeEntry {
+                path: entry_path,
+                name,
+                entry_type,
+                sha,
+                commit,
+            });
+        }
+        Ok(())
+    }
+
     fn get_file_preview(
         repo: &git2::Repository,
         blob_id: git2::Oid,
@@ -536,6 +578,63 @@ impl GitClient for Git2Client {
         Ok(())
     }
 
+    async fn get_repo_blob(
+        &self,
+        owner: &str,
+        repo: &str,
+        ref_name: &str,
+        path: &str,
+    ) -> Result<RepositoryBlobResponse, GitError> {
+        let ref_name = ref_name.to_string();
+        let path = path.to_string();
+        let repository = self.open_repository(owner, repo)?;
+
+        task::spawn_blocking(move || {
+            let commit = Self::resolve_ref(&repository, &ref_name)?;
+            let commit_sha = commit.id().to_string();
+            let tree = commit.tree()?;
+            let fallback_commit = RepositoryCommitResponse::from(&commit);
+
+            let tree_entry = tree.get_path(std::path::Path::new(&path))?;
+
+            match tree_entry.kind() {
+                Some(git2::ObjectType::Blob) => {
+                    let blob = repository.find_blob(tree_entry.id())?;
+                    Ok(RepositoryBlobResponse::File(Self::blob_to_response(
+                        &blob,
+                        &ref_name,
+                        &path,
+                        &commit_sha,
+                    )))
+                }
+                Some(git2::ObjectType::Tree) => {
+                    let subtree = repository.find_tree(tree_entry.id())?;
+                    let needed_paths: HashSet<String> = subtree
+                        .iter()
+                        .filter_map(|e| e.name().map(|n| format!("{}/{}", path, n)))
+                        .collect();
+                    let commit_map =
+                        Self::build_path_commit_map(&repository, &commit, &needed_paths)?;
+                    let mut entries = Vec::new();
+                    Self::walk_tree_one_level(
+                        &subtree,
+                        &path,
+                        &mut entries,
+                        &commit_map,
+                        &fallback_commit,
+                    )?;
+                    Ok(RepositoryBlobResponse::Folder(RepositoryFolderResponse {
+                        ref_name,
+                        commit_sha,
+                        entries,
+                    }))
+                }
+                _ => Err(git2::Error::from_str("Path is not a blob or tree").into()),
+            }
+        })
+        .await?
+    }
+
     async fn get_repo_tree(
         &self,
         owner: &str,
@@ -571,30 +670,6 @@ impl GitClient for Git2Client {
                 commit_sha,
                 entries,
             })
-        })
-        .await?
-    }
-
-    async fn get_repo_file(
-        &self,
-        owner: &str,
-        repo: &str,
-        ref_name: &str,
-        path: &str,
-    ) -> Result<RepositoryFileResponse, GitError> {
-        let owner = owner.to_string();
-        let repo = repo.to_string();
-        let ref_name = ref_name.to_string();
-        let path = path.to_string();
-        let repository = self.open_repository(&owner, &repo)?;
-
-        task::spawn_blocking(move || {
-            let commit = Self::resolve_ref(&repository, &ref_name)?;
-            let commit_sha = commit.id().to_string();
-            let tree = commit.tree()?;
-            let blob = Self::get_blob(&repository, &tree, &path)?;
-
-            Ok(Self::blob_to_response(&blob, &ref_name, &path, &commit_sha))
         })
         .await?
     }

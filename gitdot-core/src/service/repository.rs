@@ -7,12 +7,12 @@ use crate::{
     client::{DiffClient, DifftClient, Git2Client, GitClient},
     dto::{
         CommitAuthorResponse, CreateRepositoryRequest, DeleteRepositoryRequest,
-        GetRepositoryCommitDiffRequest, GetRepositoryCommitRequest, GetRepositoryCommitStatRequest,
-        GetRepositoryCommitsRequest, GetRepositoryFileCommitsRequest, GetRepositoryFileRequest,
-        GetRepositoryPreviewRequest, GetRepositoryTreeRequest, RepositoryCommitDiffResponse,
-        RepositoryCommitResponse, RepositoryCommitStatResponse, RepositoryCommitsResponse,
-        RepositoryFileResponse, RepositoryPreviewResponse, RepositoryResponse,
-        RepositoryTreeResponse,
+        GetRepositoryBlobRequest, GetRepositoryCommitDiffRequest, GetRepositoryCommitRequest,
+        GetRepositoryCommitStatRequest, GetRepositoryCommitsRequest,
+        GetRepositoryFileCommitsRequest, GetRepositoryPreviewRequest, GetRepositoryTreeRequest,
+        RepositoryBlobResponse, RepositoryCommitDiffResponse, RepositoryCommitResponse,
+        RepositoryCommitStatResponse, RepositoryCommitsResponse, RepositoryFolderResponse,
+        RepositoryPreviewResponse, RepositoryResponse, RepositoryTreeResponse,
     },
     error::RepositoryError,
     model::RepositoryOwnerType,
@@ -30,15 +30,15 @@ pub trait RepositoryService: Send + Sync + 'static {
         request: CreateRepositoryRequest,
     ) -> Result<RepositoryResponse, RepositoryError>;
 
+    async fn get_repository_blob(
+        &self,
+        request: GetRepositoryBlobRequest,
+    ) -> Result<RepositoryBlobResponse, RepositoryError>;
+
     async fn get_repository_tree(
         &self,
         request: GetRepositoryTreeRequest,
     ) -> Result<RepositoryTreeResponse, RepositoryError>;
-
-    async fn get_repository_file(
-        &self,
-        request: GetRepositoryFileRequest,
-    ) -> Result<RepositoryFileResponse, RepositoryError>;
 
     async fn get_repository_commit(
         &self,
@@ -236,6 +236,38 @@ where
         Ok(repository.into())
     }
 
+    async fn get_repository_blob(
+        &self,
+        request: GetRepositoryBlobRequest,
+    ) -> Result<RepositoryBlobResponse, RepositoryError> {
+        let response = self
+            .git_client
+            .get_repo_blob(
+                &request.owner_name,
+                &request.name,
+                &request.ref_name,
+                &request.path,
+            )
+            .await?;
+
+        match response {
+            RepositoryBlobResponse::File(f) => Ok(RepositoryBlobResponse::File(f)),
+            RepositoryBlobResponse::Folder(mut folder) => {
+                let mut commits: Vec<RepositoryCommitResponse> =
+                    folder.entries.iter().map(|e| e.commit.clone()).collect();
+                self.enrich_commits_with_users(&mut commits).await?;
+                for (entry, enriched_commit) in folder.entries.iter_mut().zip(commits.into_iter()) {
+                    entry.commit = enriched_commit;
+                }
+                Ok(RepositoryBlobResponse::Folder(RepositoryFolderResponse {
+                    ref_name: folder.ref_name,
+                    commit_sha: folder.commit_sha,
+                    entries: folder.entries,
+                }))
+            }
+        }
+    }
+
     async fn get_repository_tree(
         &self,
         request: GetRepositoryTreeRequest,
@@ -254,21 +286,6 @@ where
         }
 
         Ok(response)
-    }
-
-    async fn get_repository_file(
-        &self,
-        request: GetRepositoryFileRequest,
-    ) -> Result<RepositoryFileResponse, RepositoryError> {
-        self.git_client
-            .get_repo_file(
-                &request.owner_name,
-                &request.name,
-                &request.ref_name,
-                &request.path,
-            )
-            .await
-            .map_err(|e| e.into())
     }
 
     async fn get_repository_commit(

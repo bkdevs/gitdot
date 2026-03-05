@@ -2,16 +2,16 @@ import "server-only";
 
 import {
   type CreateRepositoryRequest,
+  type GetRepositoryBlobRequest,
   type GetRepositoryCommitsRequest,
   type GetRepositoryFileCommitsRequest,
-  type GetRepositoryFileRequest,
   type GetRepositoryPreviewRequest,
   type GetRepositoryTreeRequest,
+  RepositoryBlobResource,
   RepositoryCommitDiffResource,
   RepositoryCommitResource,
   RepositoryCommitStatResource,
   RepositoryCommitsResource,
-  RepositoryFileResource,
   RepositoryPermissionResource,
   RepositoryPreviewResource,
   RepositoryResource,
@@ -41,18 +41,18 @@ export async function createRepository(
   return await handleResponse(response, RepositoryResource);
 }
 
-export async function getRepositoryFile(
+export async function getRepositoryBlob(
   owner: string,
   repo: string,
-  query: GetRepositoryFileRequest,
-): Promise<RepositoryFileResource | NotFound | null> {
+  query: GetRepositoryBlobRequest,
+): Promise<RepositoryBlobResource | NotFound | null> {
   const queryString = toQueryString(query);
   const response = await authFetch(
-    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/file?${queryString}`,
+    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/blob?${queryString}`,
   );
   if (response.status === 404) return NotFound;
 
-  return await handleResponse(response, RepositoryFileResource);
+  return await handleResponse(response, RepositoryBlobResource);
 }
 
 export async function getRepositoryTree(

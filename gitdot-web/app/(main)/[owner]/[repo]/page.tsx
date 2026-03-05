@@ -1,5 +1,5 @@
 import { CACHED_REPOS } from "@/config";
-import { getRepositoryFile, NotFound } from "@/dal";
+import { getRepositoryBlob, NotFound } from "@/dal";
 import { MarkdownBody } from "./ui/markdown/markdown-body";
 
 export async function generateStaticParams() {
@@ -12,13 +12,13 @@ export default async function Page({
   params: Promise<{ owner: string; repo: string }>;
 }) {
   const { owner, repo } = await params;
-  const readme = await getRepositoryFile(owner, repo, {
+  const readme = await getRepositoryBlob(owner, repo, {
     path: "README.md",
   });
 
   if (!readme) {
     return <div className="p-2 text-sm">Failed to fetch README.md</div>;
-  } else if (readme === NotFound) {
+  } else if (readme === NotFound || readme.type !== "file") {
     return <div className="p-2 text-sm">README.md not found</div>;
   }
   return (

@@ -1,33 +1,23 @@
-import { getRepositoryFile, getRepositoryFileCommits, NotFound } from "@/dal";
+import type {
+  RepositoryCommitsResource,
+  RepositoryFileResource,
+} from "gitdot-api";
 import type { LineSelection } from "../util";
 import { FileBody } from "./file-body";
 import { FileCommits } from "./file-commits";
 
-export async function FileViewer({
-  owner,
-  repo,
-  filePath,
+export function FileViewer({
+  file,
+  commits,
   selectedLines,
   selectedCommit,
 }: {
-  owner: string;
-  repo: string;
-  filePath: string;
+  file: RepositoryFileResource;
+  commits: RepositoryCommitsResource | null;
   selectedLines: LineSelection | null;
   selectedCommit?: string;
 }) {
-  const [commits, file] = await Promise.all([
-    getRepositoryFileCommits(owner, repo, {
-      path: filePath,
-      ref_name: selectedCommit,
-    }),
-    getRepositoryFile(owner, repo, {
-      path: filePath,
-      ref_name: selectedCommit,
-    }),
-  ]);
-
-  if (!commits || !file || file === NotFound) {
+  if (!commits) {
     return <div>Failed to fetch file.</div>;
   }
 

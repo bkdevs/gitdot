@@ -48,10 +48,10 @@ export function MainHeader() {
   return (
     <>
       <div className="shrink-0 flex w-full h-8 items-center border-t bg-sidebar">
-        <div className="text-sm font-mono flex items-center flex-1 px-2">
+        <div className="text-sm font-mono flex items-center px-2 ml-auto">
           {pathLinks}
         </div>
-        <div className="flex items-center justify-end">
+        <div className="flex items-center">
           <NavButton icon={Search} label="Search" onClick={() => {}} />
           <NavButton
             icon={Files}

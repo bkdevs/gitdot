@@ -4,7 +4,7 @@ import type {
   RepositoryCommitsResource,
   RepositoryTreeResource,
 } from "gitdot-api";
-import { createContext } from "react";
+import { createContext, useContext } from "react";
 
 interface RepoContext {
   tree: RepositoryTreeResource;
@@ -23,4 +23,12 @@ export function RepoProvider({
   children: React.ReactNode;
 }) {
   return <RepoContext value={{ tree, commits }}>{children}</RepoContext>;
+}
+
+export function useRepoContext(): RepoContext {
+  const context = useContext(RepoContext);
+  if (!context) {
+    throw new Error("useRepo must be used within an RepoProvider");
+  }
+  return context;
 }

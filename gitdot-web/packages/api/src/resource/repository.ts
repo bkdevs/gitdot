@@ -130,6 +130,20 @@ export const RepositoryTreeResource = z.object({
 });
 export type RepositoryTreeResource = z.infer<typeof RepositoryTreeResource>;
 
+export const RepositoryFolderResource = z.object({
+  type: z.literal("folder"),
+  ref_name: z.string(),
+  commit_sha: z.string(),
+  entries: z.array(RepositoryTreeEntryResource),
+});
+export type RepositoryFolderResource = z.infer<typeof RepositoryFolderResource>;
+
+export const RepositoryBlobResource = z.discriminatedUnion("type", [
+  RepositoryFileResource.extend({ type: z.literal("file") }),
+  RepositoryFolderResource,
+]);
+export type RepositoryBlobResource = z.infer<typeof RepositoryBlobResource>;
+
 export const RepositoryCommitStatResource = z.object({
   path: z.string(),
   lines_added: z.number().int(),

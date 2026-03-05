@@ -86,6 +86,20 @@ pub struct RepositoryTreeEntryResource {
 }
 
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RepositoryFolderResource {
+    pub ref_name: String,
+    pub commit_sha: String,
+    pub entries: Vec<RepositoryTreeEntryResource>,
+}
+
+#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "type", rename_all = "snake_case")]
+pub enum RepositoryBlobResource {
+    File(RepositoryFileResource),
+    Folder(RepositoryFolderResource),
+}
+
+#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RepositoryCommitStatResource {
     pub path: String,
     pub lines_added: u32,
