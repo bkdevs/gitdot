@@ -32,7 +32,7 @@ export default async function Page({
       <FolderViewer owner={owner} repo={repo} folderEntries={blob.entries} />
     );
   } else {
-    // TODO: parallel thing
+    // TODO: parallel thing, probably make this API generic yeah makes sense for a tree history too.
     const commits = await getRepositoryFileCommits(owner, repo, {
       path: filePathString,
       ref_name: ref,
