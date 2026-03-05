@@ -47,26 +47,33 @@ export async function fileToHast(
   theme: "vitesse-light" | "gitdot-light",
   transformers: ShikiTransformer[],
 ) {
+  const start = performance.now();
   const lang = inferLanguage(file.path);
   const highlighter = await getHighlighter(lang, theme);
 
-  return highlighter.codeToHast(file.content, {
+  const result = highlighter.codeToHast(file.content, {
     lang: lang ?? "plaintext",
     theme,
     transformers,
   });
+  console.log(`[shiki] fileToHast ${file.path} (${lang ?? "plaintext"}): ${(performance.now() - start).toFixed(1)}ms`);
+  return result;
 }
 
 export async function renderFileToHtml(
   file: RepositoryFileResource,
   theme: "vitesse-light" | "gitdot-light",
 ): Promise<string> {
+  const start = performance.now();
   const lang = inferLanguage(file.path);
   const highlighter = await getHighlighter(lang, theme);
-  return highlighter.codeToHtml(file.content, {
+
+  const result = highlighter.codeToHtml(file.content, {
     lang: lang ?? "plaintext",
     theme,
   });
+  console.log(`[shiki] renderFileToHtml ${file.path} (${lang ?? "plaintext"}): ${(performance.now() - start).toFixed(1)}ms`);
+  return result;
 }
 
 export async function renderFilePreviews(
@@ -78,8 +85,10 @@ export async function renderFilePreviews(
     const preview = file.preview;
     if (!preview) return null;
 
+    const start = performance.now();
     const lang = inferLanguage(file.path);
     const highlighter = await getHighlighter(lang, "vitesse-light");
+
     const html = highlighter.codeToHtml(preview.content, {
       lang: inferLanguage(file.path) ?? "plaintext",
       theme: "vitesse-light",
@@ -91,6 +100,7 @@ export async function renderFilePreviews(
         },
       ],
     });
+    console.log(`[shiki] renderFilePreviews ${file.path} (${lang ?? "plaintext"}): ${(performance.now() - start).toFixed(1)}ms`);
     return [file.path, html];
   };
 

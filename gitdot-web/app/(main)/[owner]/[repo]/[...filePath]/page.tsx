@@ -32,6 +32,7 @@ export default async function Page({
       <FolderViewer owner={owner} repo={repo} folderEntries={blob.entries} />
     );
   } else {
+    // TODO: parallel thing
     const commits = await getRepositoryFileCommits(owner, repo, {
       path: filePathString,
       ref_name: ref,
