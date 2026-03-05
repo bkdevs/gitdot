@@ -44,7 +44,7 @@ dev:
     PROJECT_ROOT="{{justfile_directory()}}"
     echo "Starting tmux session '$SESSION_NAME'..."
 
-    tmux new-session -d -s "$SESSION_NAME" -c "$PROJECT_ROOT/gitdot-web" -n "frontend" "pnpm run dev"
+    tmux new-session -d -s "$SESSION_NAME" -c "$PROJECT_ROOT/gitdot-web" -n "gitdot-web" "pnpm run dev"
     tmux new-window -d -t "${SESSION_NAME}:" -c "$PROJECT_ROOT/gitdot-server" -n "gitdot-server" "cargo run"
     tmux new-window -d -t "${SESSION_NAME}:" -c "$PROJECT_ROOT/s2-server" -n "s2" "cargo run -- --port 8081"
 
