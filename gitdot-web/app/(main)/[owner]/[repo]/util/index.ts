@@ -1,6 +1,6 @@
+export * from "./commit";
 export * from "./diff";
 export * from "./fuzzy";
 export * from "./hast";
 export * from "./language";
 export * from "./repo";
-export * from "./commit";
