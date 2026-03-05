@@ -66,6 +66,7 @@ impl DifftClient {
     }
 }
 
+#[crate::instrument_all]
 #[async_trait]
 impl DiffClient for DifftClient {
     async fn diff_files(

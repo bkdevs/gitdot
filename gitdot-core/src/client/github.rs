@@ -38,6 +38,7 @@ impl OctocrabClient {
     }
 }
 
+#[crate::instrument_all]
 #[async_trait]
 impl GitHubClient for OctocrabClient {
     async fn get_installation(&self, installation_id: u64) -> Result<Installation, GitHubError> {

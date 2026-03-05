@@ -130,6 +130,7 @@ impl GitHttpClientImpl {
     }
 }
 
+#[crate::instrument_all]
 #[async_trait]
 impl GitHttpClient for GitHttpClientImpl {
     async fn info_refs(
