@@ -5,8 +5,8 @@ import { Fragment } from "react";
 import { jsx, jsxs } from "react/jsx-runtime";
 import { fileToHast } from "@/(main)/[owner]/[repo]/util";
 import type { LineSelection } from "../util";
+import { FileBodyClient } from "./file-body-client";
 import { FileLine } from "./file-line";
-import { FileViewerClient } from "./file-viewer-client";
 
 export async function FileBody({
   file,
@@ -38,9 +38,7 @@ export async function FileBody({
 
   return (
     <div className="w-full text-sm">
-      <FileViewerClient selectedLines={selectedLines}>
-        {content}
-      </FileViewerClient>
+      <FileBodyClient selectedLines={selectedLines}>{content}</FileBodyClient>
     </div>
   );
 }

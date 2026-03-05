@@ -5,6 +5,7 @@ import {
   isRepositoryAdmin,
   NotFound,
 } from "@/dal";
+import { RepoProvider } from "./provider";
 import { RepoDialogs } from "./ui/dialog/repo-dialogs";
 import { RepoSidebar } from "./ui/repo-sidebar";
 import { parseRepositoryTree, renderFilePreviews } from "./util";
@@ -45,7 +46,7 @@ export default async function Layout({
   })();
 
   return (
-    <>
+    <RepoProvider tree={tree} commits={commits}>
       <div className="flex md:hidden h-full w-full p-2 text-sm">
         Mobile support to come.
       </div>
@@ -69,6 +70,6 @@ export default async function Layout({
         files={files}
         previewsPromise={previewsPromise}
       />
-    </>
+    </RepoProvider>
   );
 }

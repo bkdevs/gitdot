@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/util";
-import { useFileViewer } from "./file-viewer-client";
+import { useFileViewer } from "./file-body-client";
 
 export function FileLine({
   children,

@@ -26,7 +26,7 @@ export function useFileViewer() {
   return context;
 }
 
-export function FileViewerClient({
+export function FileBodyClient({
   children,
   selectedLines: initialSelectedLines,
 }: {
