@@ -7,6 +7,7 @@ import CreateRepoDialog from "@/(main)/[owner]/ui/create-repo-dialog";
 import { useAuthBlocker } from "@/(main)/provider/auth-blocker-provider";
 import { useUserContext } from "@/(main)/provider/user-provider";
 import { signout } from "@/actions";
+import { useMetricsContext } from "@/provider/metrics-provider";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,7 +16,6 @@ import {
 } from "@/ui/dropdown-menu";
 import Link from "@/ui/link";
 import { cn } from "@/util";
-import { useMetricsContext } from "../provider/metrics-provider";
 
 export function MainFooter() {
   const pathname = usePathname();
