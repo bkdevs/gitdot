@@ -1,5 +1,8 @@
+"use client";
+
 import NextLink from "next/link";
 import type { AnchorHTMLAttributes, ReactNode } from "react";
+import { useMetricsContext } from "@/(main)/provider/metrics-provider";
 
 interface SmartLinkProps
   extends Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "href"> {
@@ -29,6 +32,7 @@ export default function Link({
   children,
   ...props
 }: SmartLinkProps) {
+  const { startNavigation } = useMetricsContext();
   // whenever we see any path that looks like gitdot.io/org/org, we de-duplicate it
   // this relies on the fact that the middleware will rewrite org to org/org, so we retain pretty paths
   const canonicalHref = href.replace(/^(\/?)([^\/]+)\/\2(\/|$)/, "$1$2$3");
@@ -37,14 +41,23 @@ export default function Link({
   if (hasDynamicSegment) {
     // still causes hydration flicker as next.js will attempt to render [owner] as our own path
     return (
-      <a href={canonicalHref} {...props}>
+      <a
+        href={canonicalHref}
+        {...props}
+        onClick={() => startNavigation(canonicalHref)}
+      >
         {children}
       </a>
     );
   }
 
   return (
-    <NextLink href={canonicalHref} prefetch={prefetch} {...props}>
+    <NextLink
+      href={canonicalHref}
+      prefetch={prefetch}
+      {...props}
+      onNavigate={() => startNavigation(canonicalHref)}
+    >
       {children}
     </NextLink>
   );

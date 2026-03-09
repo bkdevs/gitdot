@@ -4,10 +4,10 @@ import { createContext, useContext, useState } from "react";
 import { AuthBlockerDialog } from "../ui/auth-blocker-dialog";
 import { useUserContext } from "./user-provider";
 
-type AuthBlockerContextType = {
+interface AuthBlockerContext {
   requireAuth: () => boolean;
-};
-const AuthBlockerContext = createContext<AuthBlockerContextType | null>(null);
+}
+const AuthBlockerContext = createContext<AuthBlockerContext | null>(null);
 
 /**
  * there are a number of buttons and interactive components that require authentication
@@ -36,7 +36,7 @@ export function AuthBlockerProvider({
   );
 }
 
-export function useAuthBlocker(): AuthBlockerContextType {
+export function useAuthBlocker(): AuthBlockerContext {
   const context = useContext(AuthBlockerContext);
   if (!context) {
     throw new Error(
