@@ -52,6 +52,7 @@ export function MainFooter() {
       <div className="shrink-0 flex w-full h-8 items-center border-t bg-sidebar">
         <div className="text-sm font-mono flex items-center px-2 ml-auto">
           {pathLinks}
+          {/* TODO: get rid of this flicker, i think we should have the server return latency so we don't have to poll on the async FCP */}
           <span className="text-xs text-muted-foreground font-mono ml-1.5 animate-in fade-in duration-500">
             {currentPageLoad && `${currentPageLoad.toFixed(0)}ms`}
           </span>
