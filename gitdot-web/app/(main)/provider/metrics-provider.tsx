@@ -1,8 +1,17 @@
 import { usePathname } from "next/navigation";
 import { useReportWebVitals } from "next/web-vitals";
-import { createContext, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
+// note: we have multiple navigations here as it's possible for a navigation to be cancelled
+// in which case we append both entries, but only report the latency to the one resolved
 interface MetricsContext {
+  currentPageLoad: number | null;
   navigations: NavigationEvent[];
   startNavigation: (path: string) => void;
 }
@@ -14,25 +23,28 @@ interface NavigationEvent {
   start: number;
 }
 
-// module scoped to keep a stable reference
-const logWebVitals = (metric: any) => {
-  console.log(metric);
-};
-
 export function MetricsProvider({ children }: { children: React.ReactNode }) {
   const [navigations, setNavigations] = useState<NavigationEvent[]>([]);
+  const [currentPageLoad, setCurrentPageLoad] = useState<number | null>(null);
+
   const pathname = usePathname();
 
-  useReportWebVitals(logWebVitals);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intended
+  const handleWebVitals = useCallback((metric: any) => {
+    if (metric.name === "FCP" && currentPageLoad === null) {
+      setCurrentPageLoad(metric.value);
+    } else {
+      console.log(metric);
+    }
+  }, []);
+  useReportWebVitals(handleWebVitals);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intended, only run on pathname updates
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intended
   useEffect(() => {
     if (!pathname) return;
     for (const navigation of navigations) {
       if (navigation.path === pathname) {
-        console.log(
-          `${pathname} took ${performance.now() - navigation.start}ms`,
-        );
+        setCurrentPageLoad(performance.now() - navigation.start);
         setNavigations([]);
       }
     }
@@ -41,6 +53,7 @@ export function MetricsProvider({ children }: { children: React.ReactNode }) {
   return (
     <MetricsContext
       value={{
+        currentPageLoad,
         navigations,
         startNavigation: (path: string) => {
           setNavigations([...navigations, { path, start: performance.now() }]);

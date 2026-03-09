@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { MainProvider } from "./provider";
-import { MainHeader } from "./ui/main-header";
+import { MainFooter } from "./ui/main-footer";
 
 export const metadata: Metadata = {
   title: "gitdot",
@@ -16,7 +16,7 @@ export default function RootLayout({
     <MainProvider>
       <div className="flex flex-col h-screen w-full max-w-screen overflow-hidden">
         <main className="flex-1 min-h-0 overflow-auto">{children}</main>
-        <MainHeader />
+        <MainFooter />
       </div>
     </MainProvider>
   );

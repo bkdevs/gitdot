@@ -15,14 +15,16 @@ import {
 } from "@/ui/dropdown-menu";
 import Link from "@/ui/link";
 import { cn } from "@/util";
+import { useMetricsContext } from "../provider/metrics-provider";
 
-export function MainHeader() {
+export function MainFooter() {
   const pathname = usePathname();
   const params = useParams();
   const segments = pathname.split("/").filter(Boolean);
   const pathLinks: React.ReactNode[] = [];
   const [createRepoOpen, setCreateRepoOpen] = useState(false);
   const { requireAuth } = useAuthBlocker();
+  const { currentPageLoad } = useMetricsContext();
 
   segments.forEach((segment, index) => {
     let path = `/${segments.slice(0, index + 1).join("/")}`;
@@ -50,6 +52,9 @@ export function MainHeader() {
       <div className="shrink-0 flex w-full h-8 items-center border-t bg-sidebar">
         <div className="text-sm font-mono flex items-center px-2 ml-auto">
           {pathLinks}
+          <span className="text-xs text-muted-foreground font-mono ml-1.5 animate-in fade-in duration-500">
+            {currentPageLoad && `${currentPageLoad.toFixed(0)}ms`}
+          </span>
         </div>
         <div className="flex items-center">
           <NavButton icon={Search} label="Search" onClick={() => {}} />
