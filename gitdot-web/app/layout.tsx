@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Sans, Inconsolata } from "next/font/google";
 import "./globals.css";
+import { WebVitals } from "./ui/web-vitals";
 
 export const metadata: Metadata = {
   title: "gitdot",
@@ -27,6 +28,7 @@ export default function RootLayout({
       lang="en"
       className={`${ibm_plex_sans.variable} ${inconsolata.variable} overscroll-none`}
     >
+      <WebVitals />
       <body>{children}</body>
     </html>
   );
