@@ -1,5 +1,6 @@
 "use client";
 
+import { ingestSpanAction } from "@/actions/otel";
 import { usePathname } from "next/navigation";
 import { createContext, useContext, useEffect, useState } from "react";
 import { onCLS, onFCP, onINP } from "web-vitals";
@@ -48,9 +49,18 @@ export function MetricsProvider({ children }: { children: React.ReactNode }) {
   // biome-ignore lint/correctness/useExhaustiveDependencies: intended
   useEffect(() => {
     if (!pathname) return;
+
     for (const navigation of navigations) {
       if (navigation.path === pathname) {
-        setFCP(Math.round(performance.now() - navigation.start));
+        const navigationEnd = performance.now();
+        const fcp = Math.round(navigationEnd - navigation.start);
+        setFCP(fcp);
+
+        ingestSpanAction(
+          navigation.path,
+          Math.round(performance.timeOrigin + navigation.start),
+          Math.round(performance.timeOrigin + navigationEnd),
+        );
         setNavigations([]);
       }
     }

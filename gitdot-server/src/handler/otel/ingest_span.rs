@@ -1,11 +1,12 @@
 use std::time::{Duration, SystemTime};
 
-use axum::{Json, http::StatusCode};
+use axum::{Json, extract::Extension, http::StatusCode};
 use opentelemetry::{
-    global,
+    KeyValue, global,
     trace::{SpanKind, Tracer as _},
 };
 use serde::Deserialize;
+use tower_http::request_id::RequestId;
 
 use crate::app::{AppError, AppResponse};
 
@@ -18,12 +19,20 @@ pub struct IngestSpanRequest {
 
 #[axum::debug_handler]
 pub async fn ingest_span(
+    Extension(request_id): Extension<RequestId>,
     Json(request): Json<IngestSpanRequest>,
 ) -> Result<AppResponse<()>, AppError> {
     let tracer = global::tracer("gitdot");
     let _span = tracer
         .span_builder(request.url)
         .with_kind(SpanKind::Client)
+        .with_attributes(
+            request_id
+                .header_value()
+                .to_str()
+                .map(|id| vec![KeyValue::new("request_id", id.to_string())])
+                .unwrap_or_default(),
+        )
         .with_start_time(SystemTime::UNIX_EPOCH + Duration::from_millis(request.start_time))
         .with_end_time(SystemTime::UNIX_EPOCH + Duration::from_millis(request.end_time))
         .start(&tracer);
