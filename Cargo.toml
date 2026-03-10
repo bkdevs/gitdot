@@ -46,10 +46,10 @@ flate2 = "1.1"
 futures = "0.3.32"
 git2 = "0.20.3"
 gitdot-api = { path = "gitdot-api" }
-gitdot-core-derive = { path = "gitdot-core/derive" }
 gitdot-cli = { path = "gitdot-cli" }
 gitdot-config = { path = "gitdot-config" }
 gitdot-core = { path = "gitdot-core" }
+gitdot-core-derive = { path = "gitdot-core/derive" }
 gitdot-server = { path = "gitdot-server" }
 hex = "0.4.3"
 http = "1.4.0"

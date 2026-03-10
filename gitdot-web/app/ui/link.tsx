@@ -1,7 +1,7 @@
 "use client";
 
 import NextLink from "next/link";
-import type { AnchorHTMLAttributes, ReactNode } from "react";
+import type { AnchorHTMLAttributes, ReactNode, Ref } from "react";
 import { useMetricsContext } from "@/provider/metrics-provider";
 
 interface SmartLinkProps
@@ -9,6 +9,7 @@ interface SmartLinkProps
   href: string;
   prefetch?: boolean;
   children: ReactNode;
+  ref?: Ref<HTMLAnchorElement>;
 }
 
 /**
@@ -30,9 +31,11 @@ export default function Link({
   href,
   prefetch = true,
   children,
+  ref,
   ...props
 }: SmartLinkProps) {
   const { startNavigation } = useMetricsContext();
+
   // whenever we see any path that looks like gitdot.io/org/org, we de-duplicate it
   // this relies on the fact that the middleware will rewrite org to org/org, so we retain pretty paths
   const canonicalHref = href.replace(/^(\/?)([^\/]+)\/\2(\/|$)/, "$1$2$3");
@@ -43,6 +46,7 @@ export default function Link({
     return (
       <a
         href={canonicalHref}
+        ref={ref}
         {...props}
         onClick={() => startNavigation(canonicalHref)}
       >
@@ -55,6 +59,7 @@ export default function Link({
     <NextLink
       href={canonicalHref}
       prefetch={prefetch}
+      ref={ref}
       {...props}
       onNavigate={() => startNavigation(canonicalHref)}
     >

@@ -1,9 +1,9 @@
 "use client";
 
 import type { RepositoryTreeEntryResource } from "gitdot-api";
-import { useRouter } from "next/navigation";
-import { use, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { use, useEffect, useMemo, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
+import Link from "@/ui/link";
 import { fuzzyMatch } from "../../util";
 
 export function RepoFileDialog({
@@ -21,13 +21,13 @@ export function RepoFileDialog({
   files: RepositoryTreeEntryResource[];
   previewsPromise: Promise<Map<string, string>>;
 }) {
-  const router = useRouter();
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [enableHover, setEnableHover] = useState(false);
   const [mouseMoved, setMouseMoved] = useState(false);
 
   const initialMousePos = useRef<{ x: number; y: number } | null>(null);
+  const selectedItemRef = useRef<HTMLAnchorElement | null>(null);
   const previews = use(previewsPromise);
 
   const filteredFiles = useMemo(() => {
@@ -45,15 +45,7 @@ export function RepoFileDialog({
         .map(({ file }) => file)
     );
   }, [files, query]);
-
   const selectedFile = filteredFiles[selectedIndex];
-  const handleSelect = useCallback(
-    (entry: RepositoryTreeEntryResource) => {
-      setOpen(false);
-      router.push(`/${owner}/${repo}/${entry.path}`);
-    },
-    [owner, repo, router, setOpen],
-  );
 
   useEffect(() => {
     if (!open || enableHover) return;
@@ -117,7 +109,7 @@ export function RepoFileDialog({
       } else if (e.key === "Enter") {
         e.preventDefault();
         if (selectedFile) {
-          handleSelect(selectedFile);
+          selectedItemRef.current?.click();
         }
       } else if (e.key === "Escape") {
         e.preventDefault();
@@ -127,13 +119,14 @@ export function RepoFileDialog({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [open, setOpen, filteredFiles.length, selectedFile, handleSelect]);
+  }, [open, setOpen, filteredFiles.length, selectedFile]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent
         // replicate fzf-lua's offset & positioning
         className="max-w-[80vw]! max-h-[85vh]! top-[47.75vh]! left-[51vw]! w-full h-full p-0 gap-0 flex flex-col"
+        aria-describedby={undefined}
         showOverlay={false}
       >
         <DialogTitle className="sr-only">File search</DialogTitle>
@@ -157,21 +150,23 @@ export function RepoFileDialog({
             </div>
             <div className="overflow-y-auto scrollbar-none flex-1">
               {filteredFiles.map((entry, index) => (
-                <button
-                  type="button"
+                <Link
                   key={entry.path}
+                  href={`/${owner}/${repo}/${entry.path}`}
+                  ref={index === selectedIndex ? selectedItemRef : null}
+                  prefetch={false}
+                  onClick={() => setOpen(false)}
+                  onMouseEnter={() =>
+                    enableHover && mouseMoved && setSelectedIndex(index)
+                  }
                   className={`flex flex-row w-full px-4 text-sm font-mono cursor-pointer truncate ${
                     index === selectedIndex
                       ? "bg-accent text-accent-foreground"
                       : ""
                   }`}
-                  onMouseEnter={() =>
-                    enableHover && mouseMoved && setSelectedIndex(index)
-                  }
-                  onClick={() => handleSelect(entry)}
                 >
                   {entry.path}
-                </button>
+                </Link>
               ))}
             </div>
           </div>
