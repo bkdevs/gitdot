@@ -164,9 +164,11 @@ function AuthenticatedMenuItems() {
 
   return (
     <>
-      <DropdownMenuItem onClick={() => router.push("/settings")}>
-        Profile
-      </DropdownMenuItem>
+      <Link href="/settings">
+        <DropdownMenuItem>
+          Profile
+        </DropdownMenuItem>
+      </Link>
       <DropdownMenuItem
         onClick={async () => {
           await signout();
@@ -184,12 +186,16 @@ function UnauthenticatedMenuItems() {
 
   return (
     <>
-      <DropdownMenuItem onClick={() => router.push("/login")}>
-        Log in
-      </DropdownMenuItem>
-      <DropdownMenuItem onClick={() => router.push("/signup")}>
-        Sign up
-      </DropdownMenuItem>
+      <Link href="/login">
+        <DropdownMenuItem>
+          Log in
+        </DropdownMenuItem>
+      </Link>
+      <Link href="/signup">
+        <DropdownMenuItem>
+          Sign up
+        </DropdownMenuItem>
+      </Link>
     </>
   );
 }
