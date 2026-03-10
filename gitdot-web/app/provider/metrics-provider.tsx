@@ -2,7 +2,7 @@
 
 import { ingestSpanAction } from "@/actions/otel";
 import { usePathname } from "next/navigation";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { onCLS, onFCP, onINP } from "web-vitals";
 
 // note: we have multiple navigations here as it's possible for a navigation to be cancelled
@@ -28,23 +28,32 @@ export function MetricsProvider({ children }: { children: React.ReactNode }) {
   const [CLS, setCLS] = useState<number | null>(null);
   const [INP, setINP] = useState<number | null>(null);
 
+  const fcpLoaded = useRef(false);
   const pathname = usePathname();
 
   useEffect(() => {
-    onFCP((metric) => setFCP((prev) => (prev === null ? metric.value : prev)));
+    onFCP((metric) => setFCP((prev) => prev === null ? metric.value : prev));
     onCLS(
-      (metric) => {
-        setCLS(metric.value);
-      },
+      (metric) => setCLS(metric.value),
       { reportAllChanges: true },
     );
     onINP(
-      (metric) => {
-        setINP(metric.value);
-      },
+      (metric) =>  setINP(metric.value),
       { reportAllChanges: true },
     );
   }, []);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intended
+  useEffect(() => {
+    if (FCP === null || fcpLoaded.current) return;
+
+    fcpLoaded.current = true;
+    ingestSpanAction(
+      pathname,
+      Math.round(performance.timeOrigin),
+      Math.round(performance.timeOrigin + FCP),
+    );
+  }, [FCP]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: intended
   useEffect(() => {
