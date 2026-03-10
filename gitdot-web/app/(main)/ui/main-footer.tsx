@@ -7,6 +7,7 @@ import CreateRepoDialog from "@/(main)/[owner]/ui/create-repo-dialog";
 import { useAuthBlocker } from "@/(main)/provider/auth-blocker-provider";
 import { useUserContext } from "@/(main)/provider/user-provider";
 import { signout } from "@/actions";
+import { useAnimateNumber } from "@/hooks/use-animate-number";
 import { useMetricsContext } from "@/provider/metrics-provider";
 import {
   DropdownMenu,
@@ -18,43 +19,18 @@ import Link from "@/ui/link";
 import { cn } from "@/util";
 
 export function MainFooter() {
-  const pathname = usePathname();
-  const params = useParams();
-  const segments = pathname.split("/").filter(Boolean);
-  const pathLinks: React.ReactNode[] = [];
   const [createRepoOpen, setCreateRepoOpen] = useState(false);
   const { requireAuth } = useAuthBlocker();
   const { currentPageLoad } = useMetricsContext();
-
-  segments.forEach((segment, index) => {
-    let path = `/${segments.slice(0, index + 1).join("/")}`;
-    if ("filePath" in params && index === 1) {
-      path = `${path}/files`;
-    }
-
-    if (index > 0) {
-      pathLinks.push(<span key={`sep-${segment}`}>/</span>);
-    }
-    pathLinks.push(
-      <Link
-        className="hover:underline"
-        href={path}
-        key={`segment-${segment}`}
-        prefetch={true}
-      >
-        {segment}
-      </Link>,
-    );
-  });
+  const pageLoad = useAnimateNumber(currentPageLoad);
 
   return (
     <>
       <div className="shrink-0 flex w-full h-8 items-center border-t bg-sidebar">
         <div className="text-sm font-mono flex items-center px-2 ml-auto">
-          {pathLinks}
-          {/* TODO: get rid of this flicker, i think we should have the server return latency so we don't have to poll on the async FCP */}
-          <span className="text-xs text-muted-foreground font-mono ml-1.5 animate-in fade-in duration-500">
-            {currentPageLoad && `${currentPageLoad.toFixed(0)}ms`}
+          <Breadcrumbs />
+          <span className="inline-block w-[5ch] text-center text-xs text-muted-foreground font-mono ml-1.5">
+            {pageLoad != null && `${pageLoad}ms`}
           </span>
         </div>
         <div className="flex items-center">
@@ -82,6 +58,35 @@ export function MainFooter() {
       <CreateRepoDialog open={createRepoOpen} setOpen={setCreateRepoOpen} />
     </>
   );
+}
+
+function Breadcrumbs() {
+  const pathname = usePathname();
+  const params = useParams();
+  const pathLinks: React.ReactNode[] = [];
+  const segments = pathname.split("/").filter(Boolean);
+  segments.forEach((segment, index) => {
+    let path = `/${segments.slice(0, index + 1).join("/")}`;
+    if ("filePath" in params && index === 1) {
+      path = `${path}/files`;
+    }
+
+    if (index > 0) {
+      pathLinks.push(<span key={`sep-${segment}`}>/</span>);
+    }
+    pathLinks.push(
+      <Link
+        className="hover:underline"
+        href={path}
+        key={`segment-${segment}`}
+        prefetch={true}
+      >
+        {segment}
+      </Link>,
+    );
+  });
+
+  return pathLinks;
 }
 
 function NavButton({
@@ -165,9 +170,7 @@ function AuthenticatedMenuItems() {
   return (
     <>
       <Link href="/settings">
-        <DropdownMenuItem>
-          Profile
-        </DropdownMenuItem>
+        <DropdownMenuItem>Profile</DropdownMenuItem>
       </Link>
       <DropdownMenuItem
         onClick={async () => {
@@ -187,14 +190,10 @@ function UnauthenticatedMenuItems() {
   return (
     <>
       <Link href="/login">
-        <DropdownMenuItem>
-          Log in
-        </DropdownMenuItem>
+        <DropdownMenuItem>Log in</DropdownMenuItem>
       </Link>
       <Link href="/signup">
-        <DropdownMenuItem>
-          Sign up
-        </DropdownMenuItem>
+        <DropdownMenuItem>Sign up</DropdownMenuItem>
       </Link>
     </>
   );
