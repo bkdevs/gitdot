@@ -11,7 +11,10 @@ function computeLayout(tasks: TaskResource[]) {
   const levelMap = new Map<string, number>();
 
   function getLevel(task: TaskResource): number {
-    if (levelMap.has(task.id)) return levelMap.get(task.id)!;
+    if (levelMap.has(task.id)) {
+      const existingLevel = levelMap.get(task.id);
+      if (existingLevel !== undefined) return existingLevel;
+    }
     if (task.waits_for.length === 0) {
       levelMap.set(task.id, 0);
       return 0;
@@ -31,7 +34,10 @@ function computeLayout(tasks: TaskResource[]) {
   const numLevels = Math.max(...levelMap.values()) + 1;
   const levels: TaskResource[][] = Array.from({ length: numLevels }, () => []);
   for (const task of tasks) {
-    levels[levelMap.get(task.id)!].push(task);
+    const level = levelMap.get(task.id);
+    if (level !== undefined) {
+      levels[level].push(task);
+    }
   }
 
   const posMap = new Map<string, { x: number; y: number }>();
@@ -81,6 +87,7 @@ export function BuildDag({ tasks }: { tasks: TaskResource[] }) {
 
   return (
     <svg width={totalW} height={totalH} className="overflow-visible">
+      <title>Build task dependency graph</title>
       <defs>
         <marker
           id="arrow"
@@ -95,8 +102,9 @@ export function BuildDag({ tasks }: { tasks: TaskResource[] }) {
       </defs>
 
       {edges.map(({ from, to }) => {
-        const src = posMap.get(from)!;
-        const dst = posMap.get(to)!;
+        const src = posMap.get(from);
+        const dst = posMap.get(to);
+        if (!src || !dst) return null;
         const x1 = src.x + NODE_W / 2;
         const y1 = src.y + NODE_H;
         const x2 = dst.x + NODE_W / 2;
@@ -115,7 +123,8 @@ export function BuildDag({ tasks }: { tasks: TaskResource[] }) {
       })}
 
       {tasks.map((task) => {
-        const pos = posMap.get(task.id)!;
+        const pos = posMap.get(task.id);
+        if (!pos) return null;
         const fill = STATUS_FILL[task.status] ?? "#f3f4f6";
         const stroke = STATUS_STROKE[task.status] ?? "#9ca3af";
         const label =

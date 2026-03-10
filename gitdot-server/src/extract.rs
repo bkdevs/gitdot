@@ -1,5 +1,7 @@
 mod auth;
 mod content_type;
 
-pub use auth::{Principal, RunnerToken, TaskJwt, User, UserJwt, VercelOidc};
+#[cfg(feature = "otel")]
+pub use auth::VercelOidc;
+pub use auth::{Principal, RunnerToken, TaskJwt, User, UserJwt};
 pub use content_type::ContentType;

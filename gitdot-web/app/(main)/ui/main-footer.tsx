@@ -220,8 +220,6 @@ function AuthenticatedMenuItems() {
 }
 
 function UnauthenticatedMenuItems() {
-  const router = useRouter();
-
   return (
     <>
       <Link href="/login">

@@ -4,7 +4,6 @@ mod internal;
 mod migration;
 mod oauth;
 mod organization;
-mod otel;
 mod question;
 mod repository;
 mod review;
@@ -18,10 +17,14 @@ pub use internal::*;
 pub use migration::*;
 pub use oauth::*;
 pub use organization::*;
-pub use otel::*;
 pub use question::*;
 pub use repository::*;
 pub use review::*;
 pub use runner::*;
 pub use task::*;
 pub use user::*;
+
+#[cfg(feature = "otel")]
+mod otel;
+#[cfg(feature = "otel")]
+pub use otel::*;

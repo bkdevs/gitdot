@@ -6,7 +6,7 @@ use axum::{
     http::request::Parts,
 };
 use base64::Engine;
-use jsonwebtoken::{Algorithm, DecodingKey, Validation, decode, decode_header};
+use jsonwebtoken::{Algorithm, DecodingKey, Validation, decode};
 use uuid::Uuid;
 
 use gitdot_core::{
@@ -201,14 +201,18 @@ impl Authenticator for TaskJwt {
     }
 }
 
+#[cfg(feature = "otel")]
 pub struct VercelOidc;
 
+#[cfg(feature = "otel")]
 #[async_trait]
 impl Authenticator for VercelOidc {
     async fn authenticate(
         parts: &Parts,
         app_state: &AppState,
     ) -> Result<Principal<Self>, AuthorizationError> {
+        use jsonwebtoken::decode_header;
+
         let header = extract_auth_header(parts)?;
         let jwt = header
             .strip_prefix("Bearer ")
