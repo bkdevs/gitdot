@@ -12,6 +12,7 @@ pub struct Settings {
     pub supabase_jwt_public_key: String,
     pub oauth_device_verification_uri: String,
     pub s2_server_url: String,
+    pub vercel_oidc_url: String,
 }
 
 impl Settings {
@@ -31,6 +32,7 @@ impl Settings {
             oauth_device_verification_uri: env::var("OAUTH_DEVICE_VERIFICATION_URI")
                 .expect("OAUTH_DEVICE_VERIFICATION_URI must be set"),
             s2_server_url: env::var("S2_SERVER_URL").expect("S2_SERVER_URL must be set"),
+            vercel_oidc_url: env::var("VERCEL_OIDC_URL").expect("VERCEL_OIDC_URL must be set"),
         })
     }
 

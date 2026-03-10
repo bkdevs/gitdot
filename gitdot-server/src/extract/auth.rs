@@ -6,8 +6,7 @@ use axum::{
     http::request::Parts,
 };
 use base64::Engine;
-use jsonwebtoken::{Algorithm, DecodingKey, Validation, decode};
-use serde::{Deserialize, Serialize};
+use jsonwebtoken::{Algorithm, DecodingKey, Validation, decode, decode_header};
 use uuid::Uuid;
 
 use gitdot_core::{
@@ -99,16 +98,6 @@ impl Authenticator for User {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-struct UserClaims {
-    pub sub: String,
-    pub email: Option<String>,
-    pub exp: usize,
-    pub iat: usize,
-    pub aud: String,
-    pub role: Option<String>,
-}
-
 pub struct UserJwt;
 
 #[async_trait]
@@ -126,7 +115,7 @@ impl Authenticator for UserJwt {
 
         let key = DecodingKey::from_ec_pem(app_state.settings.supabase_jwt_public_key.as_bytes())
             .map_err(|e| AuthorizationError::InvalidPublicKey(e.to_string()))?;
-        let jwt_data = decode::<UserClaims>(jwt, &key, &validation)
+        let jwt_data = decode::<JwtClaims>(jwt, &key, &validation)
             .map_err(|e| AuthorizationError::InvalidToken(e.to_string()))?;
         let id = Uuid::parse_str(&jwt_data.claims.sub)
             .map_err(|e| AuthorizationError::InvalidToken(e.to_string()))?;
@@ -209,6 +198,49 @@ impl Authenticator for TaskJwt {
             .map_err(|e| AuthorizationError::InvalidToken(e.to_string()))?;
 
         Ok(Principal::new(id))
+    }
+}
+
+pub struct VercelOidc;
+
+#[async_trait]
+impl Authenticator for VercelOidc {
+    async fn authenticate(
+        parts: &Parts,
+        app_state: &AppState,
+    ) -> Result<Principal<Self>, AuthorizationError> {
+        let header = extract_auth_header(parts)?;
+        let jwt = header
+            .strip_prefix("Bearer ")
+            .ok_or(AuthorizationError::InvalidHeaderFormat)?;
+
+        let jwt_header =
+            decode_header(jwt).map_err(|e| AuthorizationError::InvalidToken(e.to_string()))?;
+        let kid = jwt_header
+            .kid
+            .ok_or(AuthorizationError::InvalidToken("missing kid".to_string()))?;
+
+        let jwk = app_state
+            .vercel_jwks
+            .find(&kid)
+            .ok_or(AuthorizationError::InvalidToken(format!(
+                "no matching key for kid: {kid}"
+            )))?;
+
+        let key = DecodingKey::from_jwk(jwk)
+            .map_err(|e| AuthorizationError::InvalidPublicKey(e.to_string()))?;
+
+        let issuer = &app_state.settings.vercel_oidc_url;
+        let audience = issuer.replace("oidc.vercel.com", "vercel.com");
+
+        let mut validation = Validation::new(Algorithm::RS256);
+        validation.set_audience(&[&audience]);
+        validation.set_issuer(&[issuer]);
+
+        decode::<JwtClaims>(jwt, &key, &validation)
+            .map_err(|e| AuthorizationError::InvalidToken(e.to_string()))?;
+
+        Ok(Principal::new(Uuid::nil()))
     }
 }
 

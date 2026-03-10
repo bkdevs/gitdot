@@ -1,11 +1,11 @@
 "use server";
 
-import { ingestSpan } from "@/dal";
+import { createSpan } from "@/dal";
 
-export async function ingestSpanAction(
+export async function createSpanAction(
   url: string,
   startTime: number,
   endTime: number,
 ): Promise<void> {
-  await ingestSpan({ url, start_time: startTime, end_time: endTime });
+  await createSpan({ url, start_time: startTime, end_time: endTime });
 }

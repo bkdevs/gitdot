@@ -1,1 +1,1 @@
-export * from "./ingest-span";
+export * from "./create-span";

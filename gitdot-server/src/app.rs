@@ -97,6 +97,7 @@ fn create_router(app_state: AppState) -> Router {
         .merge(create_build_router())
         .merge(create_oauth_router())
         .merge(create_migration_router())
+        .merge(create_otel_router())
         .nest(
             "/ci",
             Router::new()
@@ -107,13 +108,11 @@ fn create_router(app_state: AppState) -> Router {
 
     let git_router = Router::new().merge(create_git_http_router());
     let internal_router = Router::new().merge(create_internal_router());
-    let otel_router = Router::new().merge(create_otel_router());
 
     Router::new()
         .route("/health", get(|| async { "OK" }))
         .merge(api_router)
         .merge(git_router)
         .merge(internal_router)
-        .merge(otel_router)
         .with_state(app_state)
 }

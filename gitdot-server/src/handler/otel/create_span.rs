@@ -1,6 +1,10 @@
 use std::time::{Duration, SystemTime};
 
-use axum::{Json, extract::Extension, http::StatusCode};
+use axum::{
+    Json,
+    extract::{Extension, State},
+    http::StatusCode,
+};
 use opentelemetry::{
     KeyValue, global,
     trace::{SpanKind, Tracer as _},
@@ -8,19 +12,24 @@ use opentelemetry::{
 use serde::Deserialize;
 use tower_http::request_id::RequestId;
 
-use crate::app::{AppError, AppResponse};
+use crate::{
+    app::{AppError, AppResponse, AppState},
+    extract::{Principal, VercelOidc},
+};
 
 #[derive(Deserialize)]
-pub struct IngestSpanRequest {
+pub struct CreateSpanRequest {
     pub url: String,
     pub start_time: u64,
     pub end_time: u64,
 }
 
 #[axum::debug_handler]
-pub async fn ingest_span(
+pub async fn create_span(
+    _auth: Principal<VercelOidc>,
+    State(_state): State<AppState>,
     Extension(request_id): Extension<RequestId>,
-    Json(request): Json<IngestSpanRequest>,
+    Json(request): Json<CreateSpanRequest>,
 ) -> Result<AppResponse<()>, AppError> {
     let tracer = global::tracer("gitdot");
     let _span = tracer

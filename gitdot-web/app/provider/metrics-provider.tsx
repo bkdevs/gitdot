@@ -1,9 +1,9 @@
 "use client";
 
-import { ingestSpanAction } from "@/actions/otel";
 import { usePathname } from "next/navigation";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { onCLS, onFCP, onINP } from "web-vitals";
+import { createSpanAction } from "@/actions/otel";
 
 // note: we have multiple navigations here as it's possible for a navigation to be cancelled
 // in which case we append both entries, but only report the latency to the one resolved
@@ -32,15 +32,9 @@ export function MetricsProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
-    onFCP((metric) => setFCP((prev) => prev === null ? metric.value : prev));
-    onCLS(
-      (metric) => setCLS(metric.value),
-      { reportAllChanges: true },
-    );
-    onINP(
-      (metric) =>  setINP(metric.value),
-      { reportAllChanges: true },
-    );
+    onFCP((metric) => setFCP((prev) => (prev === null ? metric.value : prev)));
+    onCLS((metric) => setCLS(metric.value), { reportAllChanges: true });
+    onINP((metric) => setINP(metric.value), { reportAllChanges: true });
   }, []);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: intended
@@ -48,7 +42,7 @@ export function MetricsProvider({ children }: { children: React.ReactNode }) {
     if (FCP === null || fcpLoaded.current) return;
 
     fcpLoaded.current = true;
-    ingestSpanAction(
+    createSpanAction(
       pathname,
       Math.round(performance.timeOrigin),
       Math.round(performance.timeOrigin + FCP),
@@ -65,7 +59,8 @@ export function MetricsProvider({ children }: { children: React.ReactNode }) {
         const fcp = Math.round(navigationEnd - navigation.start);
         setFCP(fcp);
 
-        ingestSpanAction(
+        fcpLoaded.current = true;
+        createSpanAction(
           navigation.path,
           Math.round(performance.timeOrigin + navigation.start),
           Math.round(performance.timeOrigin + navigationEnd),
