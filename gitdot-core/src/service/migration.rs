@@ -22,7 +22,7 @@ use crate::{
         RepositoryRepositoryImpl,
     },
     util::{
-        git::{GitHookType, POST_RECEIVE_SCRIPT},
+        git::{GitHookType, POST_RECEIVE_SCRIPT, PRE_RECEIVE_SCRIPT},
         github::get_github_clone_url,
     },
 };
@@ -166,6 +166,14 @@ where
         visibility: &RepositoryVisibility,
     ) -> Result<(Repository, Option<String>), MigrationError> {
         self.git_client.empty_hooks(owner_name, repo_name).await?;
+        self.git_client
+            .install_hook(
+                owner_name,
+                repo_name,
+                GitHookType::PreReceive,
+                PRE_RECEIVE_SCRIPT,
+            )
+            .await?;
         self.git_client
             .install_hook(
                 owner_name,

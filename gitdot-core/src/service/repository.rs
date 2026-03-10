@@ -20,7 +20,7 @@ use crate::{
         OrganizationRepository, OrganizationRepositoryImpl, RepositoryRepository,
         RepositoryRepositoryImpl, UserRepository, UserRepositoryImpl,
     },
-    util::git::{GitHookType, POST_RECEIVE_SCRIPT},
+    util::git::{GitHookType, POST_RECEIVE_SCRIPT, PRE_RECEIVE_SCRIPT},
 };
 
 #[async_trait]
@@ -202,7 +202,15 @@ where
             .create_repo(&request.owner_name, &repo_name)
             .await?;
 
-        // Install post-receive hook to create commit rows
+        // Install gitdot hooks
+        self.git_client
+            .install_hook(
+                &request.owner_name,
+                &repo_name,
+                GitHookType::PreReceive,
+                PRE_RECEIVE_SCRIPT,
+            )
+            .await?;
         self.git_client
             .install_hook(
                 &request.owner_name,
