@@ -36,7 +36,13 @@ pub async fn git_receive_pack(
         body.into_data_stream()
             .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e)),
     );
-    let request = ReceivePackRequest::new(&owner, &repo, &content_type, Box::new(body_reader))?;
+    let request = ReceivePackRequest::new(
+        Some(auth_user.id),
+        &owner,
+        &repo,
+        &content_type,
+        Box::new(body_reader),
+    )?;
     let response = state.git_http_service.receive_pack(request).await?;
     Ok(response.into())
 }

@@ -29,6 +29,7 @@ pub trait GitHttpClient: Send + Sync + Clone + 'static {
         service: &str,
         content_type: &str,
         body: Box<dyn AsyncRead + Unpin + Send>,
+        env_vars: Vec<(String, String)>,
     ) -> Result<GitHttpResponse, GitHttpError>;
 
     fn normalize_repo_name(&self, repo_name: &str) -> String {
@@ -176,11 +177,12 @@ impl GitHttpClient for GitHttpClientImpl {
         service: &str,
         content_type: &str,
         mut body: Box<dyn AsyncRead + Unpin + Send>,
+        env_vars: Vec<(String, String)>,
     ) -> Result<GitHttpResponse, GitHttpError> {
         let repo_name = self.normalize_repo_name(repo);
 
-        let mut child = Command::new("git")
-            .arg("http-backend")
+        let mut cmd = Command::new("git");
+        cmd.arg("http-backend")
             .env("REQUEST_METHOD", "POST")
             .env(
                 "PATH_INFO",
@@ -188,7 +190,12 @@ impl GitHttpClient for GitHttpClientImpl {
             )
             .env("CONTENT_TYPE", content_type)
             .env("GIT_PROJECT_ROOT", &self.project_root)
-            .env("GIT_HTTP_EXPORT_ALL", "1")
+            .env("GIT_HTTP_EXPORT_ALL", "1");
+        for (key, value) in &env_vars {
+            cmd.env(key, value);
+        }
+
+        let mut child = cmd
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())

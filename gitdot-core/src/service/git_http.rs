@@ -58,6 +58,7 @@ where
                 "upload-pack",
                 &request.content_type,
                 request.body,
+                vec![],
             )
             .await
     }
@@ -66,6 +67,11 @@ where
         &self,
         request: ReceivePackRequest,
     ) -> Result<GitHttpResponse, GitHttpError> {
+        let mut env_vars = vec![];
+        if let Some(pusher_id) = request.pusher_id {
+            env_vars.push(("GITDOT_PUSHER_ID".to_string(), pusher_id.to_string()));
+        }
+
         self.git_http_client
             .service_rpc(
                 &request.owner,
@@ -73,6 +79,7 @@ where
                 "receive-pack",
                 &request.content_type,
                 request.body,
+                env_vars,
             )
             .await
     }
