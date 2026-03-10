@@ -21,17 +21,13 @@ import { cn } from "@/util";
 export function MainFooter() {
   const [createRepoOpen, setCreateRepoOpen] = useState(false);
   const { requireAuth } = useAuthBlocker();
-  const { currentPageLoad } = useMetricsContext();
-  const pageLoad = useAnimateNumber(currentPageLoad);
 
   return (
     <>
       <div className="shrink-0 flex w-full h-8 items-center border-t bg-sidebar">
         <div className="text-sm font-mono flex items-center px-2 ml-auto">
           <Breadcrumbs />
-          <span className="inline-block w-[5ch] text-center text-xs text-muted-foreground font-mono ml-1.5">
-            {pageLoad != null && `${pageLoad}ms`}
-          </span>
+          <PageVitals />
         </div>
         <div className="flex items-center">
           <NavButton icon={Search} label="Search" onClick={() => {}} />
@@ -87,6 +83,45 @@ function Breadcrumbs() {
   });
 
   return pathLinks;
+}
+
+function PageVitals() {
+  const { FCP, CLS, INP } = useMetricsContext();
+  const animatedFCP = useAnimateNumber(FCP);
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          className="inline-block w-[5ch] text-center text-xs text-muted-foreground font-mono ml-1.5 hover:text-foreground transition-colors outline-none cursor-pointer"
+        >
+          {animatedFCP != null ? `${animatedFCP}ms` : ""}
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        side="top"
+        align="end"
+        sideOffset={12}
+        alignOffset={-8}
+      >
+        <div className="px-2 py-1.5 text-xs font-mono space-y-1">
+          <div className="flex justify-between gap-4">
+            <span className="text-muted-foreground">FCP</span>
+            <span>{FCP != null ? `${Math.round(FCP)}ms` : "-"}</span>
+          </div>
+          <div className="flex justify-between gap-4">
+            <span className="text-muted-foreground">CLS</span>
+            <span>{CLS != null ? CLS.toFixed(3) : "-"}</span>
+          </div>
+          <div className="flex justify-between gap-4">
+            <span className="text-muted-foreground">INP</span>
+            <span>{INP != null ? `${Math.round(INP)}ms` : "-"}</span>
+          </div>
+        </div>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
 }
 
 function NavButton({

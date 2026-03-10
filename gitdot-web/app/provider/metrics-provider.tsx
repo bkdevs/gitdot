@@ -11,7 +11,9 @@ import {
 // note: we have multiple navigations here as it's possible for a navigation to be cancelled
 // in which case we append both entries, but only report the latency to the one resolved
 interface MetricsContext {
-  currentPageLoad: number | null;
+  FCP: number | null;
+  CLS: number | null;
+  INP: number | null;
   navigations: NavigationEvent[];
   startNavigation: (path: string) => void;
 }
@@ -25,16 +27,26 @@ interface NavigationEvent {
 
 export function MetricsProvider({ children }: { children: React.ReactNode }) {
   const [navigations, setNavigations] = useState<NavigationEvent[]>([]);
-  const [currentPageLoad, setCurrentPageLoad] = useState<number | null>(null);
+  const [FCP, setFCP] = useState<number | null>(null);
+  const [CLS, setCLS] = useState<number | null>(null);
+  const [INP, setINP] = useState<number | null>(null);
 
   const pathname = usePathname();
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: intended
   const handleWebVitals = useCallback((metric: any) => {
-    if (metric.name === "FCP" && currentPageLoad === null) {
-      setCurrentPageLoad(metric.value);
-    } else {
-      console.log(metric);
+    switch (metric.name) {
+      case "FCP":
+        if (FCP === null) setFCP(metric.value);
+        break;
+      case "CLS":
+        setCLS(metric.value);
+        break;
+      case "INP":
+        setINP(metric.value);
+        break;
+      default:
+        console.log(metric);
     }
   }, []);
   useReportWebVitals(handleWebVitals);
@@ -44,7 +56,7 @@ export function MetricsProvider({ children }: { children: React.ReactNode }) {
     if (!pathname) return;
     for (const navigation of navigations) {
       if (navigation.path === pathname) {
-        setCurrentPageLoad(performance.now() - navigation.start);
+        setFCP(performance.now() - navigation.start);
         setNavigations([]);
       }
     }
@@ -53,7 +65,9 @@ export function MetricsProvider({ children }: { children: React.ReactNode }) {
   return (
     <MetricsContext
       value={{
-        currentPageLoad,
+        FCP,
+        CLS,
+        INP,
         navigations,
         startNavigation: (path: string) => {
           setNavigations([...navigations, { path, start: performance.now() }]);
