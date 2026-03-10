@@ -1,8 +1,9 @@
+"use client";
+
+import { onCLS, onFCP, onINP } from "web-vitals";
 import { usePathname } from "next/navigation";
-import { useReportWebVitals } from "next/web-vitals";
 import {
   createContext,
-  useCallback,
   useContext,
   useEffect,
   useState,
@@ -33,30 +34,18 @@ export function MetricsProvider({ children }: { children: React.ReactNode }) {
 
   const pathname = usePathname();
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intended
-  const handleWebVitals = useCallback((metric: any) => {
-    switch (metric.name) {
-      case "FCP":
-        if (FCP === null) setFCP(metric.value);
-        break;
-      case "CLS":
-        setCLS(metric.value);
-        break;
-      case "INP":
-        setINP(metric.value);
-        break;
-      default:
-        console.log(metric);
-    }
+  useEffect(() => {
+    onFCP((metric) => setFCP((prev) => (prev === null ? metric.value : prev)));
+    onCLS((metric) => { setCLS(metric.value); }, { reportAllChanges: true });
+    onINP((metric) => { setINP(metric.value); }, { reportAllChanges: true });
   }, []);
-  useReportWebVitals(handleWebVitals);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: intended
   useEffect(() => {
     if (!pathname) return;
     for (const navigation of navigations) {
       if (navigation.path === pathname) {
-        setFCP(performance.now() - navigation.start);
+        setFCP(Math.round(performance.now() - navigation.start));
         setNavigations([]);
       }
     }
