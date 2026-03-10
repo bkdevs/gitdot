@@ -114,13 +114,7 @@ where
             .repo_repo
             .get(request.owner.as_ref(), request.repo.as_ref())
             .await?
-            .ok_or_else(|| {
-                AuthorizationError::NotFound(format!(
-                    "Repository not found: {}/{}",
-                    request.owner.as_ref(),
-                    request.repo.as_ref()
-                ))
-            })?;
+            .ok_or(AuthorizationError::Unauthorized)?;
 
         let permission = if repository.is_owned_by_user() {
             if repository.owner_id == request.user_id {
@@ -167,12 +161,7 @@ where
                     .org_repo
                     .get(request.owner.as_ref())
                     .await?
-                    .ok_or_else(|| {
-                        AuthorizationError::NotFound(format!(
-                            "Organization not found: {}",
-                            request.owner.as_ref()
-                        ))
-                    })?;
+                    .ok_or(AuthorizationError::Unauthorized)?;
 
                 let is_member = self.org_repo.is_member(org.id, request.user_id).await?;
                 if !is_member {
@@ -191,12 +180,7 @@ where
             .repo_repo
             .get(request.owner.as_ref(), request.repo.as_ref())
             .await?
-            .ok_or_else(|| {
-                AuthorizationError::NotFound(format!(
-                    "Repository not found: {}",
-                    request.get_repo_path(),
-                ))
-            })?;
+            .ok_or(AuthorizationError::Unauthorized)?;
 
         if request.permission == RepositoryPermission::Read && repository.is_public() {
             return Ok(());
@@ -255,12 +239,7 @@ where
                 request.number,
             )
             .await?
-            .ok_or_else(|| {
-                AuthorizationError::NotFound(format!(
-                    "Question not found: {}",
-                    request.get_repo_path(),
-                ))
-            })?;
+            .ok_or(AuthorizationError::Unauthorized)?;
 
         if author_id != request.user_id {
             return Err(AuthorizationError::Unauthorized);
@@ -277,9 +256,7 @@ where
             .question_repo
             .get_answer_author_id(request.answer_id)
             .await?
-            .ok_or_else(|| {
-                AuthorizationError::NotFound(format!("Answer not found: {}", request.answer_id))
-            })?;
+            .ok_or(AuthorizationError::Unauthorized)?;
 
         if author_id != request.user_id {
             return Err(AuthorizationError::Unauthorized);
@@ -296,9 +273,7 @@ where
             .question_repo
             .get_comment_author_id(request.comment_id)
             .await?
-            .ok_or_else(|| {
-                AuthorizationError::NotFound(format!("Comment not found: {}", request.comment_id))
-            })?;
+            .ok_or(AuthorizationError::Unauthorized)?;
 
         if author_id != request.user_id {
             return Err(AuthorizationError::Unauthorized);
@@ -328,12 +303,7 @@ where
                     .org_repo
                     .get(request.owner_name.as_ref())
                     .await?
-                    .ok_or_else(|| {
-                        AuthorizationError::NotFound(format!(
-                            "Organization not found: {}",
-                            request.owner_name.as_ref()
-                        ))
-                    })?;
+                    .ok_or(AuthorizationError::Unauthorized)?;
 
                 let is_member = self.org_repo.is_member(org.id, request.user_id).await?;
                 if !is_member {
@@ -489,7 +459,7 @@ mod tests {
             .await
             .unwrap_err();
 
-        assert!(matches!(err, AuthorizationError::NotFound(_)));
+        assert!(matches!(err, AuthorizationError::Unauthorized));
     }
 
     #[tokio::test]
