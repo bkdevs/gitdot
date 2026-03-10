@@ -1,13 +1,8 @@
 "use client";
 
-import { onCLS, onFCP, onINP } from "web-vitals";
 import { usePathname } from "next/navigation";
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import { createContext, useContext, useEffect, useState } from "react";
+import { onCLS, onFCP, onINP } from "web-vitals";
 
 // note: we have multiple navigations here as it's possible for a navigation to be cancelled
 // in which case we append both entries, but only report the latency to the one resolved
@@ -36,8 +31,18 @@ export function MetricsProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     onFCP((metric) => setFCP((prev) => (prev === null ? metric.value : prev)));
-    onCLS((metric) => { setCLS(metric.value); }, { reportAllChanges: true });
-    onINP((metric) => { setINP(metric.value); }, { reportAllChanges: true });
+    onCLS(
+      (metric) => {
+        setCLS(metric.value);
+      },
+      { reportAllChanges: true },
+    );
+    onINP(
+      (metric) => {
+        setINP(metric.value);
+      },
+      { reportAllChanges: true },
+    );
   }, []);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: intended
