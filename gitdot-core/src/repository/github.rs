@@ -28,7 +28,7 @@ impl GitHubRepositoryImpl {
     }
 }
 
-#[crate::instrument_all]
+#[crate::instrument_all(level = "debug")]
 #[async_trait]
 impl GitHubRepository for GitHubRepositoryImpl {
     async fn create(

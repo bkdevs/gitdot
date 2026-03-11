@@ -56,7 +56,7 @@ impl GoogleSecretClient {
     }
 }
 
-#[crate::instrument_all]
+#[crate::instrument_all(level = "debug")]
 #[async_trait]
 impl SecretClient for GoogleSecretClient {
     async fn get_database_url(&self) -> Result<String, SecretError> {

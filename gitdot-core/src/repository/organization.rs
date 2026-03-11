@@ -41,7 +41,7 @@ impl OrganizationRepositoryImpl {
     }
 }
 
-#[crate::instrument_all]
+#[crate::instrument_all(level = "debug")]
 #[async_trait]
 impl OrganizationRepository for OrganizationRepositoryImpl {
     async fn create(&self, org_name: &str, owner_id: Uuid) -> Result<Organization, Error> {

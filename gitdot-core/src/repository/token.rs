@@ -34,7 +34,7 @@ impl TokenRepositoryImpl {
     }
 }
 
-#[crate::instrument_all]
+#[crate::instrument_all(level = "debug")]
 #[async_trait]
 impl TokenRepository for TokenRepositoryImpl {
     async fn create_token(

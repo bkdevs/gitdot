@@ -47,7 +47,7 @@ impl S2ClientImpl {
     }
 }
 
-#[crate::instrument_all]
+#[crate::instrument_all(level = "debug")]
 #[async_trait]
 impl S2Client for S2ClientImpl {
     async fn create_stream(

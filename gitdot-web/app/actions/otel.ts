@@ -2,10 +2,12 @@
 
 import { createSpan } from "@/dal";
 
+const otelEnabled = process.env.OTEL_ENABLED === "1";
+
 export async function createSpanAction(
   url: string,
   startTime: number,
   endTime: number,
 ): Promise<void> {
-  await createSpan({ url, start_time: startTime, end_time: endTime });
+  otelEnabled && await createSpan({ url, start_time: startTime, end_time: endTime });
 }

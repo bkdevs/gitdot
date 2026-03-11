@@ -500,7 +500,7 @@ impl Git2Client {
     }
 }
 
-#[crate::instrument_all]
+#[crate::instrument_all(level = "debug")]
 #[async_trait]
 impl GitClient for Git2Client {
     async fn repo_exists(&self, owner: &str, repo: &str) -> bool {

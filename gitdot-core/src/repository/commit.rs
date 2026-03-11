@@ -29,7 +29,7 @@ impl CommitRepositoryImpl {
     }
 }
 
-#[crate::instrument_all]
+#[crate::instrument_all(level = "debug")]
 #[async_trait]
 impl CommitRepository for CommitRepositoryImpl {
     async fn create_bulk(

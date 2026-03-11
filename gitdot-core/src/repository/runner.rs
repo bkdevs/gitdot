@@ -36,7 +36,7 @@ impl RunnerRepositoryImpl {
     }
 }
 
-#[crate::instrument_all]
+#[crate::instrument_all(level = "debug")]
 #[async_trait]
 impl RunnerRepository for RunnerRepositoryImpl {
     async fn create(

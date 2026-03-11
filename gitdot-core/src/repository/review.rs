@@ -131,7 +131,7 @@ impl ReviewRepositoryImpl {
     }
 }
 
-#[crate::instrument_all]
+#[crate::instrument_all(level = "debug")]
 #[async_trait]
 impl ReviewRepository for ReviewRepositoryImpl {
     async fn get_review(
