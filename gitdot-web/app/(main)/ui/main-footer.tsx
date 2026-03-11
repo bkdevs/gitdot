@@ -86,7 +86,7 @@ function Breadcrumbs() {
 }
 
 function PageVitals() {
-  const { FCP, CLS, INP } = useMetricsContext();
+  const { FCP, TTFB, CLS, INP } = useMetricsContext();
   const animatedFCP = useAnimateNumber(FCP);
 
   return (
@@ -109,6 +109,10 @@ function PageVitals() {
           <div className="flex justify-between gap-4">
             <span className="text-muted-foreground">FCP</span>
             <span>{FCP != null ? `${Math.round(FCP)}ms` : "-"}</span>
+          </div>
+          <div className="flex justify-between gap-4">
+            <span className="text-muted-foreground">TTFB</span>
+            <span>{TTFB != null ? `${Math.round(TTFB)}ms` : "-"}</span>
           </div>
           <div className="flex justify-between gap-4">
             <span className="text-muted-foreground">CLS</span>

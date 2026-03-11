@@ -9,5 +9,6 @@ export async function createSpanAction(
   startTime: number,
   endTime: number,
 ): Promise<void> {
-  otelEnabled && await createSpan({ url, start_time: startTime, end_time: endTime });
+  otelEnabled &&
+    (await createSpan({ url, start_time: startTime, end_time: endTime }));
 }

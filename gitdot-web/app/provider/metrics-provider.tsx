@@ -2,13 +2,14 @@
 
 import { usePathname } from "next/navigation";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
-import { onCLS, onFCP, onINP } from "web-vitals";
+import { onCLS, onFCP, onINP, onTTFB } from "web-vitals";
 import { createSpanAction } from "@/actions/otel";
 
 // note: we have multiple navigations here as it's possible for a navigation to be cancelled
 // in which case we append both entries, but only report the latency to the one resolved
 interface MetricsContext {
   FCP: number | null;
+  TTFB: number | null;
   CLS: number | null;
   INP: number | null;
   navigations: NavigationEvent[];
@@ -25,6 +26,7 @@ interface NavigationEvent {
 export function MetricsProvider({ children }: { children: React.ReactNode }) {
   const [navigations, setNavigations] = useState<NavigationEvent[]>([]);
   const [FCP, setFCP] = useState<number | null>(null);
+  const [TTFB, setTTFB] = useState<number | null>(null);
   const [CLS, setCLS] = useState<number | null>(null);
   const [INP, setINP] = useState<number | null>(null);
 
@@ -33,6 +35,9 @@ export function MetricsProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     onFCP((metric) => setFCP((prev) => (prev === null ? metric.value : prev)));
+    onTTFB((metric) =>
+      setTTFB((prev) => (prev === null ? metric.value : prev)),
+    );
     onCLS((metric) => setCLS(metric.value), { reportAllChanges: true });
     onINP((metric) => setINP(metric.value), { reportAllChanges: true });
   }, []);
@@ -74,6 +79,7 @@ export function MetricsProvider({ children }: { children: React.ReactNode }) {
     <MetricsContext
       value={{
         FCP,
+        TTFB,
         CLS,
         INP,
         navigations,
