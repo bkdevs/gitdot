@@ -63,6 +63,7 @@ export function MetricsProvider({ children }: { children: React.ReactNode }) {
         const navigationEnd = performance.now();
         const fcp = Math.round(navigationEnd - navigation.start);
         setFCP(fcp);
+        setTTFB(null);
 
         fcpLoaded.current = true;
         createSpanAction(
