@@ -24,6 +24,14 @@ pub trait GitClient: Send + Sync + Clone + 'static {
 
     async fn mirror_repo(&self, owner: &str, repo: &str, url: &str) -> Result<(), GitError>;
 
+    async fn create_ref(
+        &self,
+        owner: &str,
+        repo: &str,
+        ref_name: &str,
+        sha: &str,
+    ) -> Result<(), GitError>;
+
     async fn get_repo_blob(
         &self,
         owner: &str,
@@ -577,6 +585,26 @@ impl GitClient for Git2Client {
         fs::write(&export_ok_path, "").await?;
 
         Ok(())
+    }
+
+    async fn create_ref(
+        &self,
+        owner: &str,
+        repo: &str,
+        ref_name: &str,
+        sha: &str,
+    ) -> Result<(), GitError> {
+        let ref_name = ref_name.to_string();
+        let sha = sha.to_string();
+        let repository = self.open_repository(owner, repo)?;
+
+        task::spawn_blocking(move || {
+            let oid = git2::Oid::from_str(&sha)?;
+            let commit = repository.find_commit(oid)?;
+            repository.reference(&ref_name, commit.id(), false, "create_ref")?;
+            Ok(())
+        })
+        .await?
     }
 
     async fn get_repo_blob(
