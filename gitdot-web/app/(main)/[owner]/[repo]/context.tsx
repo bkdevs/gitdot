@@ -23,7 +23,7 @@ export function RepoProvider({
   tree: Promise<RepositoryTreeResource | null>;
   commits: Promise<RepositoryCommitsResource | null>;
   children: React.ReactNode;
-  }) {
+}) {
   // TODO: think through, a bit hairy.
   async function requireNotNull<T>(promise: Promise<T | null>): Promise<T> {
     const value = await promise;

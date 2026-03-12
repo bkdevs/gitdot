@@ -1,12 +1,10 @@
 "use client";
 
-import type { RepositoryTreeEntryResource } from "gitdot-api";
 import { use, useEffect, useMemo, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
 import Link from "@/ui/link";
-import { fuzzyMatch } from "../../util";
 import { useRepoResource } from "../../context";
-import { parseRepositoryTree } from "../../util";
+import { fuzzyMatch, parseRepositoryTree } from "../../util";
 
 export function RepoFileDialog({
   open,

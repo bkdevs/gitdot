@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "@/ui/link";
-import { formatDateKey, formatTime } from "@/util";
 import { usePathname } from "next/navigation";
 import { Fragment } from "react";
+import Link from "@/ui/link";
+import { formatDateKey, formatTime } from "@/util";
 import { useRepoResource } from "../../context";
 import { groupCommitsByDate } from "../../util/commit";
 

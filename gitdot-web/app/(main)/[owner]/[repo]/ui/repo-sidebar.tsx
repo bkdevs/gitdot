@@ -1,11 +1,11 @@
 "use client";
 
-import { Sidebar, SidebarContent } from "@/ui/sidebar";
 import { usePathname } from "next/navigation";
+import { Suspense } from "react";
+import { Sidebar, SidebarContent } from "@/ui/sidebar";
 import { RepoSidebarCommits } from "./sidebar/repo-sidebar-commits";
 import { RepoSidebarFiles } from "./sidebar/repo-sidebar-files";
 import { RepoSidebarNav } from "./sidebar/repo-sidebar-nav";
-import { Suspense } from "react";
 
 const SIDEBAR_WIDTH = "15rem";
 
@@ -41,11 +41,7 @@ export function RepoSidebar({
     if (!isNavRoute && path !== "/") {
       const currentPath = path.slice(1);
       return (
-        <RepoSidebarFiles
-          owner={owner}
-          repo={repo}
-          currentPath={currentPath}
-        />
+        <RepoSidebarFiles owner={owner} repo={repo} currentPath={currentPath} />
       );
     }
 

@@ -1,10 +1,12 @@
-import Link from "@/ui/link";
-import type { RepositoryTreeEntryResource } from "gitdot-api";
 import { File, Folder, FolderOpen } from "lucide-react";
 import { useMemo } from "react";
-import { getFolderEntries, getParentPath } from "../../util";
+import Link from "@/ui/link";
 import { useRepoResource } from "../../context";
-import { parseRepositoryTree } from "../../util";
+import {
+  getFolderEntries,
+  getParentPath,
+  parseRepositoryTree,
+} from "../../util";
 
 function FileRow({
   filePath,
@@ -22,7 +24,7 @@ function FileRow({
       href={href}
       className={`flex flex-row w-full px-2 h-9 items-center border-b select-none cursor-default text-sm font-mono hover:bg-accent/50 ${
         isActive && "bg-sidebar"
-        }`}
+      }`}
       prefetch={true}
     >
       {isFolder ? (
@@ -69,15 +71,15 @@ export function RepoSidebarFiles({
   return (
     <div className="flex flex-col w-full">
       <FileRow
-      key=".."
-      filePath={".."}
-      href={
-        parentPath
-        ? `/${owner}/${repo}/${parentPath}`
-        : `/${owner}/${repo}/files`
-      }
-      isFolder={true}
-      isActive={false}
+        key=".."
+        filePath={".."}
+        href={
+          parentPath
+            ? `/${owner}/${repo}/${parentPath}`
+            : `/${owner}/${repo}/files`
+        }
+        isFolder={true}
+        isActive={false}
       />
       {contextFiles.map((file) => {
         const filePath = file.path.split("/").pop();
@@ -86,11 +88,11 @@ export function RepoSidebarFiles({
 
         return (
           <FileRow
-          key={file.path}
-          filePath={filePath}
-          href={`/${owner}/${repo}/${parentPath}/${filePath}`}
-          isFolder={file.entry_type === "tree"}
-          isActive={currentPath === fullPath}
+            key={file.path}
+            filePath={filePath}
+            href={`/${owner}/${repo}/${parentPath}/${filePath}`}
+            isFolder={file.entry_type === "tree"}
+            isActive={currentPath === fullPath}
           />
         );
       })}

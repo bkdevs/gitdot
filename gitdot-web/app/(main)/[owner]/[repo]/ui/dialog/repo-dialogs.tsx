@@ -46,11 +46,11 @@ export function RepoDialogs({
   return (
     <Suspense fallback={null}>
       <RepoFileDialog
-      open={fileDialogOpen}
-      setOpen={setFileDialogOpen}
-      owner={owner}
-      repo={repo}
-      previewsPromise={previewsPromise}
+        open={fileDialogOpen}
+        setOpen={setFileDialogOpen}
+        owner={owner}
+        repo={repo}
+        previewsPromise={previewsPromise}
       />
     </Suspense>
   );

@@ -1,9 +1,8 @@
 import {
   getRepositoryCommits,
   getRepositoryPreview,
-  getRepositoryTree
+  getRepositoryTree,
 } from "@/dal";
-import { Suspense } from "react";
 import { RepoProvider } from "./context";
 import { RepoDialogs } from "./ui/dialog/repo-dialogs";
 import { RepoSidebar } from "./ui/repo-sidebar";
@@ -38,20 +37,16 @@ export default async function Layout({
       </div>
 
       <div className="hidden md:flex h-full w-full">
-        <RepoSidebar
-          owner={owner}
-          repo={repo}
-          showSettings={true}
-        />
+        <RepoSidebar owner={owner} repo={repo} showSettings={true} />
         <div className="flex-1 min-w-0 overflow-auto scrollbar-thin">
           {children}
         </div>
       </div>
 
       <RepoDialogs
-      owner={owner}
-      repo={repo}
-      previewsPromise={previewsPromise}
+        owner={owner}
+        repo={repo}
+        previewsPromise={previewsPromise}
       />
     </RepoProvider>
   );
