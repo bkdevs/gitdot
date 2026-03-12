@@ -9,7 +9,7 @@ import {
   useState,
 } from "react";
 import { getCurrentUserAction } from "@/actions";
-import { AuthDialog } from "./ui/auth-dialog";
+import { AuthDialog } from "../ui/auth-dialog";
 
 interface UserContext {
   user: UserResource | null;

@@ -2,7 +2,7 @@
 
 import type { CommentResource } from "gitdot-api";
 import { useOptimistic } from "react";
-import { useUserContext } from "@/(main)/context";
+import { useUserContext } from "@/(main)/context/user";
 import { createCommentAction } from "@/actions";
 import { CommentInput } from "./comment-input";
 import { CommentRow } from "./comment-row";

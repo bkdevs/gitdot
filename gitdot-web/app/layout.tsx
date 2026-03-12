@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Sans, Inconsolata } from "next/font/google";
+import { MetricsProvider } from "./context/metrics";
 import "./globals.css";
-import { RootProvider } from "./context";
+import { TooltipProvider } from "./ui/tooltip";
 
 export const metadata: Metadata = {
   title: "gitdot",
@@ -32,7 +33,11 @@ export default function RootLayout({
       className={`${ibm_plex_sans.variable} ${inconsolata.variable} overscroll-none`}
     >
       <body>
-        <RootProvider>{children}</RootProvider>
+        <MetricsProvider>
+          <TooltipProvider delayDuration={0}>
+            {children}
+          </TooltipProvider>
+        </MetricsProvider>
       </body>
     </html>
   );

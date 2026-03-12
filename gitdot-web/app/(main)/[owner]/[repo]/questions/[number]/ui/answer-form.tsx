@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { useUserContext } from "@/(main)/context";
+import { useUserContext } from "@/(main)/context/user";
 import { type CreateAnswerActionResult, createAnswerAction } from "@/actions";
 import { Button } from "@/ui/button";
 

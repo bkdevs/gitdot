@@ -2,7 +2,7 @@
 
 import { Plus } from "lucide-react";
 import { useState } from "react";
-import { useUserContext } from "@/(main)/context";
+import { useUserContext } from "@/(main)/context/user";
 import { CreateBuildDialog } from "./create-build-dialog";
 
 export function CreateBuildButton({

@@ -4,7 +4,7 @@ import { Files, Plus, Search, User } from "lucide-react";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import CreateRepoDialog from "@/(main)/[owner]/ui/create-repo-dialog";
-import { useUserContext } from "@/(main)/context";
+import { useUserContext } from "@/(main)/context/user";
 import { signout } from "@/actions";
 import { useMetricsContext } from "@/context/metrics";
 import { useAnimateNumber } from "@/hooks/use-animate-number";

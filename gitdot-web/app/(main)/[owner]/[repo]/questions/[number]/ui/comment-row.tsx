@@ -3,7 +3,7 @@
 import type { CommentResource } from "gitdot-api";
 import { Check, Edit3 } from "lucide-react";
 import { useActionState, useOptimistic, useRef, useState } from "react";
-import { useUserContext } from "@/(main)/context";
+import { useUserContext } from "@/(main)/context/user";
 import {
   type UpdateCommentActionResult,
   updateCommentAction,

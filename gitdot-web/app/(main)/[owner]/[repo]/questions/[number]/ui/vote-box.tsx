@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useOptimistic } from "react";
-import { useUserContext } from "@/(main)/context";
+import { useUserContext } from "@/(main)/context/user";
 import { type VoteActionResult, voteAction } from "@/actions";
 import { TriangleDown, TriangleUp } from "@/icons";
 import { cn } from "@/util";
