@@ -1,57 +1,12 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
-import { RepoFileDialog } from "./repo-file-dialog";
+import { Suspense } from "react";
+import { RepoFileDialogWrapper } from "./repo-file-dialog";
 
-export function RepoDialogs({
-  owner,
-  repo,
-  previewsPromise,
-}: {
-  owner: string;
-  repo: string;
-  previewsPromise: Promise<Map<string, string>>;
-}) {
-  const [fileDialogOpen, setFileDialogOpen] = useState(false);
-  const [previewsReady, setPreviewsReady] = useState(false);
-
-  useEffect(() => {
-    previewsPromise.then(() => setPreviewsReady(true));
-  }, [previewsPromise]);
-
-  useEffect(() => {
-    if (!previewsReady) return;
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "p" || e.key === "/") {
-        const target = e.target as HTMLElement;
-        if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") {
-          return;
-        }
-        e.preventDefault();
-        setFileDialogOpen(true);
-      }
-    };
-
-    const handleOpenFileSearch = () => setFileDialogOpen(true);
-
-    window.addEventListener("keydown", handleKeyDown);
-    window.addEventListener("openFileSearch", handleOpenFileSearch);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-      window.removeEventListener("openFileSearch", handleOpenFileSearch);
-    };
-  }, [previewsReady]);
-
+export function RepoDialogs({ owner, repo }: { owner: string; repo: string }) {
   return (
     <Suspense fallback={null}>
-      <RepoFileDialog
-        open={fileDialogOpen}
-        setOpen={setFileDialogOpen}
-        owner={owner}
-        repo={repo}
-        previewsPromise={previewsPromise}
-      />
+      <RepoFileDialogWrapper owner={owner} repo={repo} />
     </Suspense>
   );
 }

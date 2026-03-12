@@ -1,38 +1,91 @@
 "use client";
 
-import { use, useEffect, useMemo, useRef, useState } from "react";
+import type {
+  RepositoryPreviewResource,
+  RepositoryTreeResource,
+} from "gitdot-api";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
 import Link from "@/ui/link";
 import { useRepoResource } from "../../context";
-import { fuzzyMatch, parseRepositoryTree } from "../../util";
+import {
+  fuzzyMatch,
+  parseRepositoryTree,
+  renderFilePreviews,
+} from "../../util";
 
-export function RepoFileDialog({
-  open,
-  setOpen,
+export function RepoFileDialogWrapper({
   owner,
   repo,
-  previewsPromise,
 }: {
-  open: boolean;
-  setOpen: (open: boolean) => void;
   owner: string;
   repo: string;
-  previewsPromise: Promise<Map<string, string>>;
 }) {
   const tree = useRepoResource("tree");
-  const { entries } = parseRepositoryTree(tree);
-  const files = Array.from(entries.values()).filter(
-    (entry) => entry.entry_type === "blob",
+  const previewResource = useRepoResource("preview");
+  return (
+    <RepoFileDialog
+      owner={owner}
+      repo={repo}
+      tree={tree}
+      previewResource={previewResource}
+    />
   );
+}
 
+function RepoFileDialog({
+  owner,
+  repo,
+  tree,
+  previewResource,
+}: {
+  owner: string;
+  repo: string;
+  tree: RepositoryTreeResource;
+  previewResource: RepositoryPreviewResource;
+}) {
+  const [previews, setPreviews] = useState<Map<string, string>>(new Map());
+  const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [enableHover, setEnableHover] = useState(false);
   const [mouseMoved, setMouseMoved] = useState(false);
 
+  const { entries } = parseRepositoryTree(tree);
+  const files = Array.from(entries.values()).filter(
+    (entry) => entry.entry_type === "blob",
+  );
+
+  useEffect(() => {
+    renderFilePreviews(previewResource.entries).then(setPreviews);
+  }, [previewResource]);
+
   const initialMousePos = useRef<{ x: number; y: number } | null>(null);
   const selectedItemRef = useRef<HTMLAnchorElement | null>(null);
-  const previews = use(previewsPromise);
+
+  useEffect(() => {
+    if (Object.keys(previews).length === 0) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "p" || e.key === "/") {
+        const target = e.target as HTMLElement;
+        if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") {
+          return;
+        }
+        e.preventDefault();
+        setOpen(true);
+      }
+    };
+
+    const handleOpenFileSearch = () => setOpen(true);
+
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("openFileSearch", handleOpenFileSearch);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("openFileSearch", handleOpenFileSearch);
+    };
+  }, [previews]);
 
   const filteredFiles = useMemo(() => {
     if (!query) return files;
@@ -123,7 +176,7 @@ export function RepoFileDialog({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [open, setOpen, filteredFiles.length, selectedFile]);
+  }, [open, filteredFiles.length, selectedFile]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

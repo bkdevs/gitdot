@@ -3,46 +3,49 @@
 import type {
   RepositoryCommitResource,
   RepositoryCommitsResource,
+  RepositoryPreviewResource,
   RepositoryTreeResource,
 } from "gitdot-api";
-import { createContext, use, useContext } from "react";
+import { createContext, use, useContext, useMemo } from "react";
 
 interface RepoContext {
   tree: Promise<RepositoryTreeResource>;
   commits: Promise<RepositoryCommitResource[]>;
+  preview: Promise<RepositoryPreviewResource>;
 }
 
 const RepoContext = createContext<RepoContext | null>(null);
 class RepoError extends Error {}
 
+async function requireNotNull<T>(promise: Promise<T | null>): Promise<T> {
+  const value = await promise;
+  if (value === null) {
+    throw new RepoError("Resource fetch failed");
+  }
+  return value;
+}
+
 export function RepoProvider({
   tree,
   commits,
+  preview,
   children,
 }: {
   tree: Promise<RepositoryTreeResource | null>;
   commits: Promise<RepositoryCommitsResource | null>;
+  preview: Promise<RepositoryPreviewResource | null>;
   children: React.ReactNode;
 }) {
-  // TODO: think through, a bit hairy.
-  async function requireNotNull<T>(promise: Promise<T | null>): Promise<T> {
-    const value = await promise;
-    if (value === null) {
-      throw new RepoError("Resource fetch failed");
-    }
-    return value;
-  }
-
-  return (
-    <RepoContext
-      value={{
-        tree: requireNotNull(tree),
-        commits: requireNotNull(commits).then((c) => c.commits),
-      }}
-    >
-      {children}
-    </RepoContext>
+  const value = useMemo(
+    () => ({
+      tree: requireNotNull(tree),
+      commits: requireNotNull(commits).then((c) => c.commits),
+      preview: requireNotNull(preview),
+    }),
+    [tree, commits, preview],
   );
+
+  return <RepoContext value={value}>{children}</RepoContext>;
 }
 
 export function useRepoContext(): RepoContext {
