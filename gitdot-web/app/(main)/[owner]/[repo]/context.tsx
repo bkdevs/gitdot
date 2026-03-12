@@ -4,11 +4,11 @@ import type {
   RepositoryCommitsResource,
   RepositoryTreeResource,
 } from "gitdot-api";
-import { createContext, useContext } from "react";
+import { createContext, use, useContext } from "react";
 
 interface RepoContext {
-  tree: RepositoryTreeResource;
-  commits: RepositoryCommitsResource;
+  tree: Promise<RepositoryTreeResource>;
+  commits: Promise<RepositoryCommitsResource>;
 }
 
 const RepoContext = createContext<RepoContext | null>(null);
@@ -18,8 +18,8 @@ export function RepoProvider({
   commits,
   children,
 }: {
-  tree: RepositoryTreeResource;
-  commits: RepositoryCommitsResource;
+  tree: Promise<RepositoryTreeResource>;
+  commits: Promise<RepositoryCommitsResource>;
   children: React.ReactNode;
 }) {
   return <RepoContext value={{ tree, commits }}>{children}</RepoContext>;
@@ -31,4 +31,11 @@ export function useRepoContext(): RepoContext {
     throw new Error("useRepo must be used within an RepoProvider");
   }
   return context;
+}
+
+export function useRepoResource<K extends keyof RepoContext>(
+  key: K,
+): Awaited<RepoContext[K]> {
+  const context = useRepoContext();
+  return use(context[key] as Promise<Awaited<RepoContext[K]>>);
 }

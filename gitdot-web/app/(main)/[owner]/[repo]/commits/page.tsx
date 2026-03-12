@@ -1,4 +1,4 @@
-import CommitsClient from "./ui/commits-client";
+import { CommitsClient } from "./ui/commits-client";
 
 export default async function Page({
   params,

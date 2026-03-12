@@ -46,7 +46,7 @@ export default async function Layout({
   })();
 
   return (
-    <RepoProvider tree={tree} commits={commits}>
+    <RepoProvider tree={Promise.resolve(tree)} commits={Promise.resolve(commits)}>
       <div className="flex md:hidden h-full w-full p-2 text-sm">
         Mobile support to come.
       </div>

@@ -4,16 +4,16 @@ import { Fragment } from "react";
 import { groupCommitsByDate } from "@/(main)/[owner]/[repo]/util";
 import Link from "@/ui/link";
 import { formatDateKey, formatTime } from "@/util";
-import { useRepoContext } from "../../context";
+import { useRepoResource } from "../../context";
 
-export default function CommitsClient({
+export function CommitsClient({
   owner,
   repo,
 }: {
   owner: string;
   repo: string;
 }) {
-  const { commits } = useRepoContext();
+  const commits = useRepoResource("commits");
   const commitsByDate = groupCommitsByDate(commits.commits);
 
   return (
