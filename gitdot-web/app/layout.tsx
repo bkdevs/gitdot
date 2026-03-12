@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Sans, Inconsolata } from "next/font/google";
 import "./globals.css";
-import { RootProvider } from "./provider";
+import { RootProvider } from "./context";
 
 export const metadata: Metadata = {
   title: "gitdot",

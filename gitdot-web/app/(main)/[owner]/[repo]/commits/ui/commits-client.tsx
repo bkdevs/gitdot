@@ -4,7 +4,7 @@ import { Fragment } from "react";
 import { groupCommitsByDate } from "@/(main)/[owner]/[repo]/util";
 import Link from "@/ui/link";
 import { formatDateKey, formatTime } from "@/util";
-import { useRepoContext } from "../../provider";
+import { useRepoContext } from "../../context";
 
 export default function CommitsClient({
   owner,

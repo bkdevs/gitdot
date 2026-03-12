@@ -5,7 +5,7 @@ import {
   isRepositoryAdmin,
   NotFound,
 } from "@/dal";
-import { RepoProvider } from "./provider";
+import { RepoProvider } from "./context";
 import { RepoDialogs } from "./ui/dialog/repo-dialogs";
 import { RepoSidebar } from "./ui/repo-sidebar";
 import { parseRepositoryTree, renderFilePreviews } from "./util";

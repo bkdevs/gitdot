@@ -1,7 +1,7 @@
 "use client";
 
 import { TooltipProvider } from "@/ui/tooltip";
-import { MetricsProvider } from "./metrics-provider";
+import { MetricsProvider } from "./metrics";
 
 export function RootProvider({ children }: { children: React.ReactNode }) {
   return (

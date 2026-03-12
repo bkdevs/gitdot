@@ -6,8 +6,8 @@ import { useState } from "react";
 import CreateRepoDialog from "@/(main)/[owner]/ui/create-repo-dialog";
 import { useUserContext } from "@/(main)/context";
 import { signout } from "@/actions";
+import { useMetricsContext } from "@/context/metrics";
 import { useAnimateNumber } from "@/hooks/use-animate-number";
-import { useMetricsContext } from "@/provider/metrics-provider";
 import {
   DropdownMenu,
   DropdownMenuContent,

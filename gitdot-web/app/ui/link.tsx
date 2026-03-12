@@ -2,7 +2,7 @@
 
 import NextLink from "next/link";
 import type { AnchorHTMLAttributes, ReactNode, Ref } from "react";
-import { useMetricsContext } from "@/provider/metrics-provider";
+import { useMetricsContext } from "@/context/metrics";
 
 interface SmartLinkProps
   extends Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "href"> {
