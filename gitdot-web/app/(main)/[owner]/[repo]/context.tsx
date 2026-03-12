@@ -1,6 +1,7 @@
 "use client";
 
 import type {
+  RepositoryCommitResource,
   RepositoryCommitsResource,
   RepositoryTreeResource,
 } from "gitdot-api";
@@ -8,7 +9,7 @@ import { createContext, use, useContext } from "react";
 
 interface RepoContext {
   tree: Promise<RepositoryTreeResource>;
-  commits: Promise<RepositoryCommitsResource>;
+  commits: Promise<RepositoryCommitResource[]>;
 }
 
 const RepoContext = createContext<RepoContext | null>(null);
@@ -36,7 +37,7 @@ export function RepoProvider({
     <RepoContext
       value={{
         tree: requireNotNull(tree),
-        commits: requireNotNull(commits),
+        commits: requireNotNull(commits).then((c) => c.commits),
       }}
     >
       {children}

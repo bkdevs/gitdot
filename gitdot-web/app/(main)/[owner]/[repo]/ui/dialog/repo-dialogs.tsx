@@ -1,8 +1,6 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
-import { useRepoResource } from "../../context";
-import { parseRepositoryTree } from "../../util";
 import { RepoFileDialog } from "./repo-file-dialog";
 
 export function RepoDialogs({
@@ -16,12 +14,6 @@ export function RepoDialogs({
 }) {
   const [fileDialogOpen, setFileDialogOpen] = useState(false);
   const [previewsReady, setPreviewsReady] = useState(false);
-
-  const tree = useRepoResource("tree");
-  const { entries } = parseRepositoryTree(tree);
-  const files = Array.from(entries.values()).filter(
-    (entry) => entry.entry_type === "blob",
-  );
 
   useEffect(() => {
     previewsPromise.then(() => setPreviewsReady(true));
@@ -54,12 +46,11 @@ export function RepoDialogs({
   return (
     <Suspense fallback={null}>
       <RepoFileDialog
-        open={fileDialogOpen}
-        setOpen={setFileDialogOpen}
-        owner={owner}
-        repo={repo}
-        files={files}
-        previewsPromise={previewsPromise}
+      open={fileDialogOpen}
+      setOpen={setFileDialogOpen}
+      owner={owner}
+      repo={repo}
+      previewsPromise={previewsPromise}
       />
     </Suspense>
   );

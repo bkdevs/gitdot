@@ -1,9 +1,9 @@
 import {
   getRepositoryCommits,
   getRepositoryPreview,
-  getRepositoryTree,
-  isRepositoryAdmin,
+  getRepositoryTree
 } from "@/dal";
+import { Suspense } from "react";
 import { RepoProvider } from "./context";
 import { RepoDialogs } from "./ui/dialog/repo-dialogs";
 import { RepoSidebar } from "./ui/repo-sidebar";
@@ -19,14 +19,8 @@ export default async function Layout({
   const { owner, repo } = await params;
 
   const tree = getRepositoryTree(owner, repo);
-  const [commits, isAdmin] = await Promise.all([
-    getRepositoryCommits(owner, repo),
-    isRepositoryAdmin(owner, repo),
-  ]);
-
-  if (!commits) {
-    return <div className="p-2 text-sm">Repository {repo} not found</div>;
-  }
+  const commits = getRepositoryCommits(owner, repo);
+  // const isAdmin = await isRepositoryAdmin(owner, repo);
 
   // note: setting up this promise still seems to incur some blocking latency (200ms?)
   // TODO: experiment with just moving this to plain old ajax
@@ -38,7 +32,7 @@ export default async function Layout({
   })();
 
   return (
-    <RepoProvider tree={tree} commits={Promise.resolve(commits)}>
+    <RepoProvider tree={tree} commits={commits}>
       <div className="flex md:hidden h-full w-full p-2 text-sm">
         Mobile support to come.
       </div>
@@ -47,17 +41,17 @@ export default async function Layout({
         <RepoSidebar
           owner={owner}
           repo={repo}
-          commits={commits?.commits ?? []}
-          showSettings={isAdmin}
+          showSettings={true}
         />
         <div className="flex-1 min-w-0 overflow-auto scrollbar-thin">
           {children}
         </div>
       </div>
+
       <RepoDialogs
-        owner={owner}
-        repo={repo}
-        previewsPromise={previewsPromise}
+      owner={owner}
+      repo={repo}
+      previewsPromise={previewsPromise}
       />
     </RepoProvider>
   );

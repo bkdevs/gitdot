@@ -95,7 +95,7 @@ function PageVitals() {
           type="button"
           className="inline-block w-[5ch] text-center text-xs text-muted-foreground font-mono ml-1.5 hover:text-foreground transition-colors outline-none cursor-pointer"
         >
-          {animatedFCP != null ? `${animatedFCP}ms` : ""}
+          {animatedFCP != null ? `${animatedFCP}ms` : "0ms"}
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent

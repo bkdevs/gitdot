@@ -5,22 +5,28 @@ import { use, useEffect, useMemo, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
 import Link from "@/ui/link";
 import { fuzzyMatch } from "../../util";
+import { useRepoResource } from "../../context";
+import { parseRepositoryTree } from "../../util";
 
 export function RepoFileDialog({
   open,
   setOpen,
   owner,
   repo,
-  files,
   previewsPromise,
 }: {
   open: boolean;
   setOpen: (open: boolean) => void;
   owner: string;
   repo: string;
-  files: RepositoryTreeEntryResource[];
   previewsPromise: Promise<Map<string, string>>;
 }) {
+  const tree = useRepoResource("tree");
+  const { entries } = parseRepositoryTree(tree);
+  const files = Array.from(entries.values()).filter(
+    (entry) => entry.entry_type === "blob",
+  );
+
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [enableHover, setEnableHover] = useState(false);

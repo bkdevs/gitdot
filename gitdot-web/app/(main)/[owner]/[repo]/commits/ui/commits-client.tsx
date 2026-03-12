@@ -14,7 +14,7 @@ export function CommitsClient({
   repo: string;
 }) {
   const commits = useRepoResource("commits");
-  const commitsByDate = groupCommitsByDate(commits.commits);
+  const commitsByDate = groupCommitsByDate(commits);
 
   return (
     <div className="flex flex-col">
