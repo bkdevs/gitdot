@@ -47,12 +47,12 @@ import vue from "@shikijs/langs/vue";
 import xml from "@shikijs/langs/xml";
 import yaml from "@shikijs/langs/yaml";
 import zig from "@shikijs/langs/zig";
-
-import gitdotLight from "@/themes/gitdot-light";
 import vitesseLight from "@shikijs/themes/vitesse-light";
 import { createHighlighterCore } from "shiki/core";
 import { createOnigurumaEngine } from "shiki/engine/oniguruma";
+import gitdotLight from "@/themes/gitdot-light";
 import { inferLanguage } from "./util";
+
 /// ==================================
 
 // necessary as while the browser will queue messages while the worker is downloading

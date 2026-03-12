@@ -1,13 +1,54 @@
-import { type RepositoryCommitResource } from "gitdot-api";
+"use client";
 
-export interface RepositoryCommitRow extends RepositoryCommitResource {
-  owner: string;
-  repo: string;
-}
+import type {
+  RepositoryCommitResource,
+  RepositoryPreviewResource,
+  RepositoryTreeResource,
+} from "gitdot-api";
 
 export interface Database {
-  getCommit(sha: string): Promise<RepositoryCommitRow | undefined>;
-  putCommit(commit: RepositoryCommitRow): Promise<void>;
-  putCommits(commits: RepositoryCommitRow[]): Promise<void>;
-  getAllCommits(): Promise<RepositoryCommitRow[]>;
+  getCommit(
+    owner: string,
+    repo: string,
+    sha: string,
+  ): Promise<RepositoryCommitResource | undefined>;
+
+  putCommit(
+    owner: string,
+    repo: string,
+    commit: RepositoryCommitResource,
+  ): Promise<void>;
+
+  putCommits(
+    owner: string,
+    repo: string,
+    commits: RepositoryCommitResource[],
+  ): Promise<void>;
+
+  getAllCommits(
+    owner: string,
+    repo: string,
+  ): Promise<RepositoryCommitResource[]>;
+
+  getTree(
+    owner: string,
+    repo: string,
+  ): Promise<RepositoryTreeResource | undefined>;
+
+  putTree(
+    owner: string,
+    repo: string,
+    tree: RepositoryTreeResource,
+  ): Promise<void>;
+
+  getPreview(
+    owner: string,
+    repo: string,
+  ): Promise<RepositoryPreviewResource | undefined>;
+
+  putPreview(
+    owner: string,
+    repo: string,
+    preview: RepositoryPreviewResource,
+  ): Promise<void>;
 }

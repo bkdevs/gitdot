@@ -24,7 +24,13 @@ export default async function Layout({
   const isAdmin = username === owner || orgs.includes(`${owner}:admin`);
 
   return (
-    <RepoProvider tree={tree} commits={commits} preview={preview}>
+    <RepoProvider
+      owner={owner}
+      repo={repo}
+      tree={tree}
+      commits={commits}
+      preview={preview}
+    >
       <div className="flex md:hidden h-full w-full p-2 text-sm">
         Mobile support to come.
       </div>

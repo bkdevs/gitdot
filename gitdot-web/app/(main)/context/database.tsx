@@ -22,7 +22,9 @@ export function DatabaseProvider({ children }: { children: React.ReactNode }) {
 export function useDatabaseContext(): DatabaseContext {
   const context = useContext(DatabaseContext);
   if (!context) {
-    throw new Error("useDatabaseContext must be used within a DatabaseProvider");
+    throw new Error(
+      "useDatabaseContext must be used within a DatabaseProvider",
+    );
   }
   return context;
 }
