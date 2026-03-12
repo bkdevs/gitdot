@@ -25,7 +25,6 @@ import {
   authPost,
   GITDOT_SERVER_URL,
   handleResponse,
-  NotFound,
 } from "./util";
 
 export async function createRepository(
@@ -45,12 +44,11 @@ export async function getRepositoryBlob(
   owner: string,
   repo: string,
   query: GetRepositoryBlobRequest,
-): Promise<RepositoryBlobResource | NotFound | null> {
+): Promise<RepositoryBlobResource | null> {
   const queryString = toQueryString(query);
   const response = await authFetch(
     `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/blob?${queryString}`,
   );
-  if (response.status === 404) return NotFound;
 
   return await handleResponse(response, RepositoryBlobResource);
 }
@@ -59,12 +57,11 @@ export async function getRepositoryTree(
   owner: string,
   repo: string,
   query?: GetRepositoryTreeRequest,
-): Promise<RepositoryTreeResource | NotFound | null> {
+): Promise<RepositoryTreeResource | null> {
   const queryString = toQueryString(query);
   const response = await authFetch(
     `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/tree?${queryString}`,
   );
-  if (response.status === 404) return NotFound;
 
   return await handleResponse(response, RepositoryTreeResource);
 }
@@ -73,12 +70,11 @@ export async function getRepositoryCommits(
   owner: string,
   repo: string,
   query?: GetRepositoryCommitsRequest,
-): Promise<RepositoryCommitsResource | NotFound | null> {
+): Promise<RepositoryCommitsResource | null> {
   const queryString = toQueryString(query);
   const response = await authFetch(
     `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/commits?${queryString}`,
   );
-  if (response.status === 404) return NotFound;
 
   return await handleResponse(response, RepositoryCommitsResource);
 }
@@ -136,12 +132,11 @@ export async function getRepositoryPreview(
   owner: string,
   repo: string,
   query?: GetRepositoryPreviewRequest,
-): Promise<RepositoryPreviewResource | NotFound | null> {
+): Promise<RepositoryPreviewResource | null> {
   const queryString = toQueryString(query);
   const response = await authFetch(
     `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/preview?${queryString}`,
   );
-  if (response.status === 404) return NotFound;
 
   return await handleResponse(response, RepositoryPreviewResource);
 }

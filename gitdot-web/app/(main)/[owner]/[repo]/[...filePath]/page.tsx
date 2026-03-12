@@ -1,4 +1,4 @@
-import { getRepositoryBlob, getRepositoryFileCommits, NotFound } from "@/dal";
+import { getRepositoryBlob, getRepositoryFileCommits } from "@/dal";
 import { FileViewer } from "./ui/file-viewer";
 import { FolderViewer } from "./ui/folder-viewer";
 import { parseLineSelection } from "./util";
@@ -25,7 +25,7 @@ export default async function Page({
     ref_name: ref,
   });
 
-  if (!blob || blob === NotFound) return <div>File not found.</div>;
+  if (!blob) return <div>File not found.</div>;
 
   if (blob.type === "folder") {
     return (

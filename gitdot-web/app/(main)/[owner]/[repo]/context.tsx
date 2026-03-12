@@ -12,17 +12,36 @@ interface RepoContext {
 }
 
 const RepoContext = createContext<RepoContext | null>(null);
+class RepoError extends Error {}
 
 export function RepoProvider({
   tree,
   commits,
   children,
 }: {
-  tree: Promise<RepositoryTreeResource>;
-  commits: Promise<RepositoryCommitsResource>;
+  tree: Promise<RepositoryTreeResource | null>;
+  commits: Promise<RepositoryCommitsResource | null>;
   children: React.ReactNode;
-}) {
-  return <RepoContext value={{ tree, commits }}>{children}</RepoContext>;
+  }) {
+  // TODO: think through, a bit hairy.
+  async function requireNotNull<T>(promise: Promise<T | null>): Promise<T> {
+    const value = await promise;
+    if (value === null) {
+      throw new RepoError("Resource fetch failed");
+    }
+    return value;
+  }
+
+  return (
+    <RepoContext
+      value={{
+        tree: requireNotNull(tree),
+        commits: requireNotNull(commits),
+      }}
+    >
+      {children}
+    </RepoContext>
+  );
 }
 
 export function useRepoContext(): RepoContext {

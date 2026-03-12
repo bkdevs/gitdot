@@ -1,4 +1,4 @@
-import { getRepositoryBlob, NotFound } from "@/dal";
+import { getRepositoryBlob } from "@/dal";
 import { MarkdownBody } from "./ui/markdown/markdown-body";
 
 // export async function generateStaticParams() {
@@ -15,9 +15,7 @@ export default async function Page({
     path: "README.md",
   });
 
-  if (!readme) {
-    return <div className="p-2 text-sm">Failed to fetch README.md</div>;
-  } else if (readme === NotFound || readme.type !== "file") {
+  if (!readme || readme.type !== "file") {
     return <div className="p-2 text-sm">README.md not found</div>;
   }
   return (

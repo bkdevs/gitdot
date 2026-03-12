@@ -14,7 +14,6 @@ import {
   authPatch,
   GITDOT_SERVER_URL,
   handleResponse,
-  NotFound,
 } from "./util";
 
 export async function getCurrentUser(
@@ -54,22 +53,20 @@ export async function getUser(username: string): Promise<UserResource | null> {
 
 export async function listUserRepositories(
   username: string,
-): Promise<RepositoryResource[] | NotFound | null> {
+): Promise<RepositoryResource[] | null> {
   const response = await authFetch(
     `${GITDOT_SERVER_URL}/user/${username}/repositories`,
   );
 
-  if (response.status === 404) return NotFound;
   return await handleResponse(response, z.array(RepositoryResource));
 }
 
 export async function listUserOrganizations(
   username: string,
-): Promise<OrganizationResource[] | NotFound | null> {
+): Promise<OrganizationResource[] | null> {
   const response = await authFetch(
     `${GITDOT_SERVER_URL}/user/${username}/organizations`,
   );
 
-  if (response.status === 404) return NotFound;
   return await handleResponse(response, z.array(OrganizationResource));
 }

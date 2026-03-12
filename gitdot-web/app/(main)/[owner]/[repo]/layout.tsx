@@ -3,12 +3,11 @@ import {
   getRepositoryPreview,
   getRepositoryTree,
   isRepositoryAdmin,
-  NotFound,
 } from "@/dal";
 import { RepoProvider } from "./context";
 import { RepoDialogs } from "./ui/dialog/repo-dialogs";
 import { RepoSidebar } from "./ui/repo-sidebar";
-import { parseRepositoryTree, renderFilePreviews } from "./util";
+import { renderFilePreviews } from "./util";
 
 export default async function Layout({
   children,
@@ -19,34 +18,27 @@ export default async function Layout({
 }>) {
   const { owner, repo } = await params;
 
-  const [tree, commits, isAdmin] = await Promise.all([
-    getRepositoryTree(owner, repo),
+  const tree = getRepositoryTree(owner, repo);
+  const [commits, isAdmin] = await Promise.all([
     getRepositoryCommits(owner, repo),
     isRepositoryAdmin(owner, repo),
   ]);
 
-  if (!tree || !commits) {
-    return null;
-  } else if (tree === NotFound || commits === NotFound) {
+  if (!commits) {
     return <div className="p-2 text-sm">Repository {repo} not found</div>;
   }
 
-  const { folders, entries } = parseRepositoryTree(tree);
-  const files = Array.from(entries.values()).filter(
-    (entry) => entry.entry_type === "blob",
-  );
-
   // note: setting up this promise still seems to incur some blocking latency (200ms?)
   // TODO: experiment with just moving this to plain old ajax
+  // note: this is because of renderFilePrevies and that blocking the next.js main thread
   const previewsPromise = (async () => {
     const data = await getRepositoryPreview(owner, repo);
-    const entries =
-      data && data !== NotFound && "entries" in data ? data.entries : [];
+    const entries = data && "entries" in data ? data.entries : [];
     return renderFilePreviews(entries);
   })();
 
   return (
-    <RepoProvider tree={Promise.resolve(tree)} commits={Promise.resolve(commits)}>
+    <RepoProvider tree={tree} commits={Promise.resolve(commits)}>
       <div className="flex md:hidden h-full w-full p-2 text-sm">
         Mobile support to come.
       </div>
@@ -55,8 +47,6 @@ export default async function Layout({
         <RepoSidebar
           owner={owner}
           repo={repo}
-          folders={folders}
-          entries={entries}
           commits={commits?.commits ?? []}
           showSettings={isAdmin}
         />
@@ -67,7 +57,6 @@ export default async function Layout({
       <RepoDialogs
         owner={owner}
         repo={repo}
-        files={files}
         previewsPromise={previewsPromise}
       />
     </RepoProvider>

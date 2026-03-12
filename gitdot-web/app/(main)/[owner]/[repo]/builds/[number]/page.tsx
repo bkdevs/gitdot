@@ -4,7 +4,6 @@ import {
   getRepositoryBlob,
   getRepositoryCommit,
   issueTaskToken,
-  NotFound,
 } from "@/dal";
 import { getTaskLogs } from "@/lib/s2/server";
 import { renderFileToHtml } from "../../util/hast";
@@ -47,7 +46,7 @@ export default async function Page({
   ]);
 
   const configHtml =
-    configFile && configFile !== NotFound && configFile.type === "file"
+    configFile && configFile.type === "file"
       ? await renderFileToHtml(configFile, "vitesse-light")
       : null;
 

@@ -4,7 +4,6 @@ import {
   listInstallationRepositories,
   listInstallations,
   listUserOrganizations,
-  NotFound,
 } from "@/dal";
 import { CreateMigrationForm } from "./ui/create-migration-form";
 import { CreateMigrationInstructions } from "./ui/create-migration-instructions";
@@ -22,7 +21,7 @@ export default async function Page({
     listUserOrganizations(user.name),
     listInstallations(),
   ]);
-  const organizations = orgs && orgs !== NotFound ? orgs : [];
+  const organizations = orgs ?? [];
   const installationList = installations ?? [];
   const defaultOrigin = installationList.find(
     (i) => i.installation_id === Number(params.installation_id),

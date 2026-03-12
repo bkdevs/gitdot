@@ -1,22 +1,27 @@
 "use client";
 
-import type { RepositoryTreeEntryResource } from "gitdot-api";
 import { Suspense, useEffect, useState } from "react";
+import { useRepoResource } from "../../context";
+import { parseRepositoryTree } from "../../util";
 import { RepoFileDialog } from "./repo-file-dialog";
 
 export function RepoDialogs({
   owner,
   repo,
-  files,
   previewsPromise,
 }: {
   owner: string;
   repo: string;
-  files: RepositoryTreeEntryResource[];
   previewsPromise: Promise<Map<string, string>>;
 }) {
   const [fileDialogOpen, setFileDialogOpen] = useState(false);
   const [previewsReady, setPreviewsReady] = useState(false);
+
+  const tree = useRepoResource("tree");
+  const { entries } = parseRepositoryTree(tree);
+  const files = Array.from(entries.values()).filter(
+    (entry) => entry.entry_type === "blob",
+  );
 
   useEffect(() => {
     previewsPromise.then(() => setPreviewsReady(true));

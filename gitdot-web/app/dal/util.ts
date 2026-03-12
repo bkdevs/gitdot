@@ -6,9 +6,6 @@ import { getSession } from "@/lib/supabase";
 export const GITDOT_SERVER_URL =
   process.env.GITDOT_SERVER_URL || "http://localhost:8080";
 
-export const NotFound = 404 as const;
-export type NotFound = typeof NotFound;
-
 export async function authFetch(
   url: string,
   options?: RequestInit,
@@ -84,6 +81,8 @@ export async function handleResponse<T>(
   response: Response,
   schema: ZodType<T>,
 ): Promise<T | null> {
+  if (response.status === 404) return null;
+
   if (!response.ok) {
     let message = response.statusText;
     try {

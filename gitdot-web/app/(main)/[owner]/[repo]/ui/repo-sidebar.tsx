@@ -1,11 +1,10 @@
 "use client";
 
-import type {
-  RepositoryCommitResource,
-  RepositoryTreeEntryResource,
-} from "gitdot-api";
+import type { RepositoryCommitResource } from "gitdot-api";
 import { usePathname } from "next/navigation";
 import { Sidebar, SidebarContent } from "@/ui/sidebar";
+import { useRepoResource } from "../context";
+import { parseRepositoryTree } from "../util";
 import { RepoSidebarCommits } from "./sidebar/repo-sidebar-commits";
 import { RepoSidebarFiles } from "./sidebar/repo-sidebar-files";
 import { RepoSidebarNav } from "./sidebar/repo-sidebar-nav";
@@ -15,18 +14,17 @@ const SIDEBAR_WIDTH = "15rem";
 export function RepoSidebar({
   owner,
   repo,
-  folders,
-  entries,
   commits,
   showSettings,
 }: {
   owner: string;
   repo: string;
-  folders: Map<string, string[]>;
-  entries: Map<string, RepositoryTreeEntryResource>;
   commits: RepositoryCommitResource[];
   showSettings?: boolean;
 }) {
+  const tree = useRepoResource("tree");
+  const { folders, entries } = parseRepositoryTree(tree);
+
   const pathname = usePathname();
   const path = pathname.replace(`/${owner}/${repo}`, "") || "/";
 

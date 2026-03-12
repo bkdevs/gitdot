@@ -9,4 +9,4 @@ export * from "./repository";
 export * from "./runner";
 export * from "./task";
 export * from "./user";
-export { ApiError, NotFound } from "./util";
+export { ApiError } from "./util";
