@@ -1,6 +1,5 @@
 /// <reference lib="webworker" />
-
-// module imports to discourage chunk splitting
+/// ==================================
 import angularHtml from "@shikijs/langs/angular-html";
 import angularTs from "@shikijs/langs/angular-ts";
 import bash from "@shikijs/langs/bash";
@@ -8,11 +7,12 @@ import c from "@shikijs/langs/c";
 import clojure from "@shikijs/langs/clojure";
 import commonLisp from "@shikijs/langs/common-lisp";
 import cpp from "@shikijs/langs/cpp";
-import css from "@shikijs/langs/css";
 import csharp from "@shikijs/langs/csharp";
+import css from "@shikijs/langs/css";
 import dart from "@shikijs/langs/dart";
 import diff from "@shikijs/langs/diff";
 import dockerfile from "@shikijs/langs/dockerfile";
+import dotenv from "@shikijs/langs/dotenv";
 import elixir from "@shikijs/langs/elixir";
 import emacsLisp from "@shikijs/langs/emacs-lisp";
 import go from "@shikijs/langs/go";
@@ -50,10 +50,38 @@ import zig from "@shikijs/langs/zig";
 
 import gitdotLight from "@/themes/gitdot-light";
 import vitesseLight from "@shikijs/themes/vitesse-light";
+import { createHighlighterCore } from "shiki/core";
+import { createOnigurumaEngine } from "shiki/engine/oniguruma";
+import { inferLanguage } from "./util";
+/// ==================================
 
-import { createHighlighterCore } from 'shiki/core'
-import { createOnigurumaEngine } from 'shiki/engine/oniguruma'
+// necessary as while the browser will queue messages while the worker is downloading
+// it does _NOT_ queue between download -> self.onmessage
+// that is, the block of code from imports above to what you see below must be very very fast
+const queue: WorkerMessage[] = [];
+interface WorkerMessage {
+  path: string;
+  code: string;
+  theme: "vitesse-light" | "gitdot-light";
+}
 
+let ready = false;
+self.onmessage = (event: MessageEvent<WorkerMessage>) => {
+  if (ready) {
+    process(event.data);
+  } else {
+    queue.push(event.data);
+  }
+};
+
+function process({ path, code, theme }: WorkerMessage) {
+  const lang = inferLanguage(path);
+  if (!lang) return;
+  const html = highlighter.codeToHtml(code, { lang, theme });
+  self.postMessage({ path, html });
+}
+
+const start = performance.now();
 const highlighter = await createHighlighterCore({
   langs: [
     angularHtml,
@@ -67,6 +95,7 @@ const highlighter = await createHighlighterCore({
     csharp,
     dart,
     diff,
+    dotenv,
     dockerfile,
     elixir,
     emacsLisp,
@@ -104,17 +133,10 @@ const highlighter = await createHighlighterCore({
     zig,
   ],
   themes: [vitesseLight, gitdotLight],
-  engine: createOnigurumaEngine(import("shiki/wasm"))
-})
+  engine: createOnigurumaEngine(import("shiki/wasm")),
+});
 
-interface WorkerMessage {
-  code: string;
-  lang: string;
-  theme: "vitesse-light" | "gitdot-light";
-}
-
-self.onmessage = async function (event: MessageEvent<WorkerMessage>) {
-  const { code, lang, theme } = event.data;
-  const html = highlighter.codeToHtml(code, { lang, theme });
-  self.postMessage({ html });
-};
+console.log(`[shiki-worker] took ${performance.now() - start}ms to load`);
+ready = true;
+for (const msg of queue) process(msg);
+queue.length = 0;

@@ -34,9 +34,7 @@ export default function RootLayout({
     >
       <body>
         <MetricsProvider>
-          <TooltipProvider delayDuration={0}>
-            {children}
-          </TooltipProvider>
+          <TooltipProvider delayDuration={0}>{children}</TooltipProvider>
         </MetricsProvider>
       </body>
     </html>

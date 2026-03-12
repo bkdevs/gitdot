@@ -1,7 +1,7 @@
 "use client";
 
-import { createShikiWorker } from "@/workers";
 import { createContext, useContext, useEffect, useState } from "react";
+import { createShikiWorker } from "@/workers";
 
 interface WorkerContext {
   shiki: Worker | null;
@@ -14,13 +14,11 @@ export function WorkerProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const worker = createShikiWorker();
-    setShiki(createShikiWorker());
+    setShiki(worker);
     return () => worker.terminate();
   }, []);
 
-  return (
-    <WorkerContext value={{ shiki }}>{children}</WorkerContext>
-  );
+  return <WorkerContext value={{ shiki }}>{children}</WorkerContext>;
 }
 
 export function useWorkerContext(): WorkerContext {

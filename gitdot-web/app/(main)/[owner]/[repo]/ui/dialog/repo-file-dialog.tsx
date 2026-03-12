@@ -5,14 +5,11 @@ import type {
   RepositoryTreeResource,
 } from "gitdot-api";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useWorkerContext } from "@/(main)/context/worker";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
 import Link from "@/ui/link";
 import { useRepoResource } from "../../context";
-import {
-  fuzzyMatch,
-  parseRepositoryTree,
-  renderFilePreviews,
-} from "../../util";
+import { fuzzyMatch, parseRepositoryTree } from "../../util";
 
 export function RepoFileDialog({
   owner,
@@ -52,21 +49,41 @@ function RepoFileDialogInner({
   const [enableHover, setEnableHover] = useState(false);
   const [mouseMoved, setMouseMoved] = useState(false);
 
+  const { shiki } = useWorkerContext();
   const { entries } = parseRepositoryTree(tree);
+
   const files = Array.from(entries.values()).filter(
     (entry) => entry.entry_type === "blob",
   );
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: preview is stable; worker queues messages internally until ready
   useEffect(() => {
-    renderFilePreviews(preview.entries).then(setPreviews);
-  }, [preview]);
+    if (!shiki) return;
+
+    const onMessage = (event: MessageEvent<{ path: string; html: string }>) => {
+      setPreviews((prev) =>
+        new Map(prev).set(event.data.path, event.data.html),
+      );
+    };
+
+    shiki.addEventListener("message", onMessage);
+
+    for (const file of preview.entries) {
+      if (!file.preview) continue;
+      shiki.postMessage({
+        path: file.path,
+        code: file.preview.content,
+        theme: "vitesse-light",
+      });
+    }
+
+    return () => shiki.removeEventListener("message", onMessage);
+  }, [shiki]);
 
   const initialMousePos = useRef<{ x: number; y: number } | null>(null);
   const selectedItemRef = useRef<HTMLAnchorElement | null>(null);
 
   useEffect(() => {
-    if (Object.keys(previews).length === 0) return;
-
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "p" || e.key === "/") {
         const target = e.target as HTMLElement;
@@ -86,7 +103,7 @@ function RepoFileDialogInner({
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("openFileSearch", handleOpenFileSearch);
     };
-  }, [previews]);
+  }, []);
 
   const filteredFiles = useMemo(() => {
     if (!query) return files;
