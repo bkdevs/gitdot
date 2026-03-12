@@ -2,12 +2,12 @@
 
 import { Plus } from "lucide-react";
 import { useState } from "react";
-import { useAuthBlocker } from "@/(main)/provider/auth-blocker-provider";
+import { useUserContext } from "@/(main)/context";
 import CreateRepoDialog from "./create-repo-dialog";
 
 export function CreateRepoButton() {
   const [open, setOpen] = useState(false);
-  const { requireAuth } = useAuthBlocker();
+  const { requireAuth } = useUserContext();
 
   return (
     <>

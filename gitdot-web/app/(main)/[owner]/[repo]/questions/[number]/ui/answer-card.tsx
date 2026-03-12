@@ -2,7 +2,7 @@
 
 import type { AnswerResource } from "gitdot-api";
 import { MarkdownBody } from "@/(main)/[owner]/[repo]/ui/markdown/markdown-body";
-import { useUserContext } from "@/(main)/provider/user-provider";
+import { useUserContext } from "@/(main)/context";
 import { formatDate, timeAgoFull } from "@/util";
 import { AnswerDropdown } from "./answer-dropdown";
 import { CommentThread } from "./comment-thread";

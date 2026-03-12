@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useOptimistic } from "react";
-import { useAuthBlocker } from "@/(main)/provider/auth-blocker-provider";
+import { useUserContext } from "@/(main)/context";
 import { type VoteActionResult, voteAction } from "@/actions";
 import { TriangleDown, TriangleUp } from "@/icons";
 import { cn } from "@/util";
@@ -35,7 +35,7 @@ export function VoteBox({
     }),
   );
 
-  const { requireAuth } = useAuthBlocker();
+  const { requireAuth } = useUserContext();
   const vote = voteAction.bind(null, owner, repo, number, targetId, targetType);
   const [, formAction] = useActionState(
     async (_prev: VoteActionResult | null, formData: FormData) => {

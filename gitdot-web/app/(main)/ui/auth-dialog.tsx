@@ -6,7 +6,7 @@ import { useEffect, useState, useTransition } from "react";
 import { login, loginWithGithub } from "@/actions";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
 
-export function AuthBlockerDialog({
+export function AuthDialog({
   open,
   setOpen,
 }: {

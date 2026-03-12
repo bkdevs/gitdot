@@ -2,7 +2,7 @@
 
 import { Plus } from "lucide-react";
 import { useState } from "react";
-import { useAuthBlocker } from "@/(main)/provider/auth-blocker-provider";
+import { useUserContext } from "@/(main)/context";
 import { CreateBuildDialog } from "./create-build-dialog";
 
 export function CreateBuildButton({
@@ -13,7 +13,7 @@ export function CreateBuildButton({
   repo: string;
 }) {
   const [open, setOpen] = useState(false);
-  const { requireAuth } = useAuthBlocker();
+  const { requireAuth } = useUserContext();
 
   return (
     <>

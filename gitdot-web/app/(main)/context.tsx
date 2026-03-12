@@ -9,10 +9,12 @@ import {
   useState,
 } from "react";
 import { getCurrentUserAction } from "@/actions";
+import { AuthDialog } from "./ui/auth-dialog";
 
 interface UserContext {
   user: UserResource | null;
   refreshUser: () => void;
+  requireAuth: () => boolean;
 }
 
 const UserContext = createContext<UserContext | null>(null);
@@ -25,6 +27,12 @@ const UserContext = createContext<UserContext | null>(null);
  */
 export function UserProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserResource | null>(null);
+  const [open, setOpen] = useState(false);
+
+  const requireAuth = useCallback(() => {
+    if (!user) setOpen(true);
+    return !user;
+  }, [user]);
 
   const refreshUser = useCallback(() => {
     getCurrentUserAction().then(setUser);
@@ -34,7 +42,12 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     refreshUser();
   }, [refreshUser]);
 
-  return <UserContext value={{ user, refreshUser }}>{children}</UserContext>;
+  return (
+    <UserContext value={{ user, refreshUser, requireAuth }}>
+      {children}
+      <AuthDialog open={open} setOpen={setOpen} />
+    </UserContext>
+  );
 }
 
 export function useUserContext(): UserContext {

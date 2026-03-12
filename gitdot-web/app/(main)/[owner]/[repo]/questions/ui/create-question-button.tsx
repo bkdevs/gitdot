@@ -2,7 +2,7 @@
 
 import { Plus } from "lucide-react";
 import { useState } from "react";
-import { useAuthBlocker } from "@/(main)/provider/auth-blocker-provider";
+import { useUserContext } from "@/(main)/context";
 import { CreateQuestionDialog } from "./create-question-dialog";
 
 export function CreateQuestionButton({
@@ -13,7 +13,7 @@ export function CreateQuestionButton({
   repo: string;
 }) {
   const [open, setOpen] = useState(false);
-  const { requireAuth } = useAuthBlocker();
+  const { requireAuth } = useUserContext();
 
   return (
     <>

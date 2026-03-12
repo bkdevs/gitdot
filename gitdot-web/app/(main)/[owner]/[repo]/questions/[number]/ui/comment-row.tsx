@@ -3,8 +3,7 @@
 import type { CommentResource } from "gitdot-api";
 import { Check, Edit3 } from "lucide-react";
 import { useActionState, useOptimistic, useRef, useState } from "react";
-import { useAuthBlocker } from "@/(main)/provider/auth-blocker-provider";
-import { useUserContext } from "@/(main)/provider/user-provider";
+import { useUserContext } from "@/(main)/context";
 import {
   type UpdateCommentActionResult,
   updateCommentAction,
@@ -140,7 +139,7 @@ function CommentVote({
   comment: CommentResource;
 }) {
   const { id, upvote, user_vote } = comment;
-  const { requireAuth } = useAuthBlocker();
+  const { requireAuth } = useUserContext();
   const voteComment = voteAction.bind(null, owner, repo, number, id, "comment");
   const [optimistic, setOptimistic] = useOptimistic(
     { upvote, user_vote },

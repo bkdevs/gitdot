@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { useAuthBlocker } from "@/(main)/provider/auth-blocker-provider";
+import { useUserContext } from "@/(main)/context";
 import { type CreateAnswerActionResult, createAnswerAction } from "@/actions";
 import { Button } from "@/ui/button";
 
@@ -14,7 +14,7 @@ export function AnswerForm({
   repo: string;
   number: number;
 }) {
-  const { requireAuth } = useAuthBlocker();
+  const { requireAuth } = useUserContext();
   const [body, setBody] = useState("");
 
   const createAnswer = createAnswerAction.bind(null, owner, repo, number);

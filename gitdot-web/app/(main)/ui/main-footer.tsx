@@ -4,8 +4,7 @@ import { Files, Plus, Search, User } from "lucide-react";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import CreateRepoDialog from "@/(main)/[owner]/ui/create-repo-dialog";
-import { useAuthBlocker } from "@/(main)/provider/auth-blocker-provider";
-import { useUserContext } from "@/(main)/provider/user-provider";
+import { useUserContext } from "@/(main)/context";
 import { signout } from "@/actions";
 import { useAnimateNumber } from "@/hooks/use-animate-number";
 import { useMetricsContext } from "@/provider/metrics-provider";
@@ -20,7 +19,7 @@ import { cn } from "@/util";
 
 export function MainFooter() {
   const [createRepoOpen, setCreateRepoOpen] = useState(false);
-  const { requireAuth } = useAuthBlocker();
+  const { requireAuth } = useUserContext();
 
   return (
     <>

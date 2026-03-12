@@ -2,7 +2,7 @@
 
 import { Check } from "lucide-react";
 import { useActionState, useRef, useState } from "react";
-import { useAuthBlocker } from "@/(main)/provider/auth-blocker-provider";
+import { useUserContext } from "@/(main)/context";
 import type { CreateCommentActionResult } from "@/actions";
 import { cn } from "@/util";
 
@@ -13,7 +13,7 @@ export function CommentInput({
   createComment: (formData: FormData) => Promise<CreateCommentActionResult>;
   addOptimisticComment: (body: string) => void;
 }) {
-  const { requireAuth } = useAuthBlocker();
+  const { requireAuth } = useUserContext();
   const [showInput, setShowInput] = useState(false);
   const [body, setBody] = useState("");
   const formRef = useRef<HTMLFormElement>(null);

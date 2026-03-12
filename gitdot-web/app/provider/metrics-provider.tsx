@@ -5,13 +5,14 @@ import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { onCLS, onFCP, onINP, onTTFB } from "web-vitals";
 import { createSpanAction } from "@/actions/otel";
 
-// note: we have multiple navigations here as it's possible for a navigation to be cancelled
-// in which case we append both entries, but only report the latency to the one resolved
 interface MetricsContext {
   FCP: number | null;
   TTFB: number | null;
   CLS: number | null;
   INP: number | null;
+
+  // note: we have multiple navigations here as it's possible for a navigation to be cancelled
+  // in which case we append both entries, but only report the latency to the one resolved
   navigations: NavigationEvent[];
   startNavigation: (path: string) => void;
 }
