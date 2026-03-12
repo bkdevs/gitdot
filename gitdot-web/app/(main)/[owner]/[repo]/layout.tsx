@@ -3,6 +3,7 @@ import {
   getRepositoryPreview,
   getRepositoryTree,
 } from "@/dal";
+import { getUserMetadata } from "@/lib/supabase";
 import { RepoProvider } from "./context";
 import { RepoDialogs } from "./ui/dialog/repo-dialogs";
 import { RepoSidebar } from "./ui/repo-sidebar";
@@ -19,7 +20,8 @@ export default async function Layout({
   const tree = getRepositoryTree(owner, repo);
   const commits = getRepositoryCommits(owner, repo);
   const preview = getRepositoryPreview(owner, repo);
-  // const isAdmin = await isRepositoryAdmin(owner, repo);
+  const { username, orgs } = await getUserMetadata();
+  const isAdmin = username === owner || orgs.includes(`${owner}:admin`);
 
   return (
     <RepoProvider tree={tree} commits={commits} preview={preview}>
@@ -28,7 +30,7 @@ export default async function Layout({
       </div>
 
       <div className="hidden md:flex h-full w-full">
-        <RepoSidebar owner={owner} repo={repo} showSettings={true} />
+        <RepoSidebar owner={owner} repo={repo} showSettings={isAdmin} />
         <div className="flex-1 min-w-0 overflow-auto scrollbar-thin">
           {children}
         </div>

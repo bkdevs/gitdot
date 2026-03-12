@@ -14,7 +14,7 @@ import {
   renderFilePreviews,
 } from "../../util";
 
-export function RepoFileDialogWrapper({
+export function RepoFileDialog({
   owner,
   repo,
 }: {
@@ -23,8 +23,10 @@ export function RepoFileDialogWrapper({
 }) {
   const tree = useRepoResource("tree");
   const previewResource = useRepoResource("preview");
+
+  // TODO: move the rendering here so repo file dialog is simpler
   return (
-    <RepoFileDialog
+    <RepoFileDialogInner
       owner={owner}
       repo={repo}
       tree={tree}
@@ -33,7 +35,7 @@ export function RepoFileDialogWrapper({
   );
 }
 
-function RepoFileDialog({
+function RepoFileDialogInner({
   owner,
   repo,
   tree,

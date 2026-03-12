@@ -84,6 +84,22 @@ export async function updateSession(request: NextRequest): Promise<{
   return { user, response };
 }
 
+// populated with the custom_access_token_hook in supabase
+export interface UserMetadata {
+  username: string;
+  orgs: string[];
+}
+
+export async function getUserMetadata(): Promise<UserMetadata> {
+  const supabase = await createSupabaseClient();
+  const { data } = await supabase.auth.getClaims();
+  const meta = data?.claims?.user_metadata ?? {};
+  return {
+    username: typeof meta.username === "string" ? meta.username : "",
+    orgs: Array.isArray(meta.orgs) ? (meta.orgs as string[]) : [],
+  };
+}
+
 /**
  * for use in server-components that need user identity info
  */
