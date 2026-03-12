@@ -22,15 +22,14 @@ export function RepoFileDialog({
   repo: string;
 }) {
   const tree = useRepoResource("tree");
-  const previewResource = useRepoResource("preview");
+  const preview = useRepoResource("preview");
 
-  // TODO: move the rendering here so repo file dialog is simpler
   return (
     <RepoFileDialogInner
       owner={owner}
       repo={repo}
       tree={tree}
-      previewResource={previewResource}
+      preview={preview}
     />
   );
 }
@@ -39,12 +38,12 @@ function RepoFileDialogInner({
   owner,
   repo,
   tree,
-  previewResource,
+  preview,
 }: {
   owner: string;
   repo: string;
   tree: RepositoryTreeResource;
-  previewResource: RepositoryPreviewResource;
+  preview: RepositoryPreviewResource;
 }) {
   const [previews, setPreviews] = useState<Map<string, string>>(new Map());
   const [open, setOpen] = useState(false);
@@ -59,8 +58,8 @@ function RepoFileDialogInner({
   );
 
   useEffect(() => {
-    renderFilePreviews(previewResource.entries).then(setPreviews);
-  }, [previewResource]);
+    renderFilePreviews(preview.entries).then(setPreviews);
+  }, [preview]);
 
   const initialMousePos = useRef<{ x: number; y: number } | null>(null);
   const selectedItemRef = useRef<HTMLAnchorElement | null>(null);
