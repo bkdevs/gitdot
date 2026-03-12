@@ -8,6 +8,7 @@ import type {
 } from "gitdot-api";
 import { createContext, use, useContext, useEffect, useMemo } from "react";
 import { useDatabaseContext } from "@/(main)/context/database";
+import { firstNonNull } from "@/util";
 
 interface RepoContext {
   tree: Promise<RepositoryTreeResource>;
@@ -43,21 +44,43 @@ export function RepoProvider({
 }) {
   const { db } = useDatabaseContext();
 
-  const value = useMemo(
-    () => ({
-      tree: requireNotNull(tree),
-      commits: requireNotNull(commits).then((c) => c.commits),
-      preview: requireNotNull(preview),
-    }),
-    [tree, commits, preview],
-  );
+  const value = useMemo(() => {
+    const serverTree = requireNotNull(tree);
+    const serverCommits = requireNotNull(commits).then((c) => c.commits);
+    const serverPreview = requireNotNull(preview);
+
+    if (!db) {
+      console.log("[db] db is null, using server promises");
+      return { tree: serverTree, commits: serverCommits, preview: serverPreview };
+    }
+    console.log("[db] db is ready, racing IDB vs server");
+    const t0 = performance.now();
+    const ms = () => `${(performance.now() - t0).toFixed(1)}ms`;
+
+    const treeFromDb = db.getTree(owner, repo).then((v) => { console.log(`[db] idb tree: ${ms()}`); return v; });
+    const commitsFromDb = db.getAllCommits(owner, repo).then((c) => {
+      console.log(`[db] idb commits: ${ms()}`);
+      return c.length > 0 ? c : null;
+    });
+    const previewFromDb = db.getPreview(owner, repo).then((v) => { console.log(`[db] idb preview: ${ms()}`); return v; });
+
+    serverTree.then(() => console.log(`[db] server tree: ${ms()}`));
+    serverCommits.then(() => console.log(`[db] server commits: ${ms()}`));
+    serverPreview.then(() => console.log(`[db] server preview: ${ms()}`));
+
+    return {
+      tree: firstNonNull(treeFromDb, serverTree),
+      commits: firstNonNull(commitsFromDb, serverCommits),
+      preview: firstNonNull(previewFromDb, serverPreview),
+    };
+  }, [db, owner, repo, tree, commits, preview]);
 
   useEffect(() => {
     if (!db) return;
-    value.commits.then((commits) => db.putCommits(owner, repo, commits));
-    value.tree.then((tree) => db.putTree(owner, repo, tree));
-    value.preview.then((preview) => db.putPreview(owner, repo, preview));
-  }, [db, value, owner, repo]);
+    requireNotNull(tree).then((t) => db.putTree(owner, repo, t));
+    requireNotNull(commits).then((c) => db.putCommits(owner, repo, c.commits));
+    requireNotNull(preview).then((p) => db.putPreview(owner, repo, p));
+  }, [db, owner, repo, tree, commits, preview]);
 
   return <RepoContext value={value}>{children}</RepoContext>;
 }

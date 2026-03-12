@@ -1,7 +1,7 @@
 "use client";
 
 import { FolderViewer } from "../../[...filePath]/ui/folder-viewer";
-import { useRepoResource } from "../../context";
+import { useRepoResource } from "@/(main)/[owner]/[repo]/context";
 import { getFolderEntries, parseRepositoryTree } from "../../util";
 
 export function FilesClient({ owner, repo }: { owner: string; repo: string }) {

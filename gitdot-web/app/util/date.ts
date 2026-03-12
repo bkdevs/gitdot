@@ -1,32 +1,3 @@
-import { type ClassValue, clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
-
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
-
-export function validateRepoSlug(slug: string): boolean {
-  return /^[a-zA-Z0-9_-]+$/.test(slug);
-}
-
-/**
- * helper to serialize objects that have non-string values into url parameter queries
- */
-export function toQueryString(
-  params: Record<string, string | number | boolean> | undefined,
-): string {
-  if (!params) {
-    return "";
-  }
-
-  const stringParams = Object.fromEntries(
-    Object.entries(params)
-      .filter(([_, value]) => value !== undefined && value !== null)
-      .map(([key, value]) => [key, String(value)]),
-  );
-  return new URLSearchParams(stringParams).toString();
-}
-
 export function timeAgo(date: Date) {
   const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
 
@@ -123,42 +94,6 @@ export function formatDateTime(date: Date): string {
   return `${monthDay}, ${year} ${hours}:${minutes}:${seconds} ${ampm}`;
 }
 
-export function pluralize(count: number, word: string): string {
-  return `${count} ${word}${count === 1 ? "" : "s"}`;
-}
-
-const emailTester =
-  /^[-!#$%&'*+/0-9=?A-Z^_a-z`{|}~](\.?[-!#$%&'*+/0-9=?A-Z^_a-z`{|}~])*@[a-zA-Z0-9](-*\.?[a-zA-Z0-9])*\.[a-zA-Z](-?[a-zA-Z0-9])+$/;
-
-export function validateEmail(email: string): boolean {
-  if (!email) {
-    return false;
-  }
-
-  const emailParts = email.split("@");
-  if (emailParts.length !== 2) {
-    return false;
-  }
-
-  const account = emailParts[0];
-  const address = emailParts[1];
-  if (account.length > 64) {
-    return false;
-  } else if (address.length > 255) {
-    return false;
-  }
-
-  const domainParts = address.split(".");
-  if (domainParts.some((part) => part.length > 63)) {
-    return false;
-  }
-  return emailTester.test(email);
-}
-
-export function validatePassword(password: string): boolean {
-  return !!password && password.length >= 8;
-}
-
 export function formatDuration(ms: number): string {
   const totalSeconds = Math.floor(ms / 1000);
   if (totalSeconds < 60) return `${totalSeconds}s`;
@@ -169,12 +104,4 @@ export function formatDuration(ms: number): string {
   const hours = Math.floor(minutes / 60);
   const remainingMinutes = minutes % 60;
   return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
-}
-
-export function delay<T>(ms: number, value: T): Promise<T> {
-  return new Promise((resolve) => setTimeout(() => resolve(value), ms));
-}
-
-export function githubAppInstallUrl(state: string): string {
-  return `https://github.com/apps/gitdot-app/installations/new?state=${encodeURIComponent(state)}`;
 }

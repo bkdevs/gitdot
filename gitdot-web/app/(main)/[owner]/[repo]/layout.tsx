@@ -17,9 +17,10 @@ export default async function Layout({
 }>) {
   const { owner, repo } = await params;
 
-  const tree = getRepositoryTree(owner, repo);
-  const commits = getRepositoryCommits(owner, repo);
-  const preview = getRepositoryPreview(owner, repo);
+  const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
+  const tree = delay(2000).then(() => getRepositoryTree(owner, repo));
+  const commits = delay(2000).then(() => getRepositoryCommits(owner, repo));
+  const preview = delay(2000).then(() => getRepositoryPreview(owner, repo));
   const { username, orgs } = await getUserMetadata();
   const isAdmin = username === owner || orgs.includes(`${owner}:admin`);
 

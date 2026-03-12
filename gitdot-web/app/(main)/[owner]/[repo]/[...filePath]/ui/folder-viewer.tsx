@@ -1,7 +1,7 @@
-import type { RepositoryTreeEntryResource } from "gitdot-api";
-import { File, Folder } from "lucide-react";
 import Link from "@/ui/link";
 import { timeAgo } from "@/util";
+import type { RepositoryTreeEntryResource } from "gitdot-api";
+import { File, Folder } from "lucide-react";
 
 export function FolderViewer({
   owner,
