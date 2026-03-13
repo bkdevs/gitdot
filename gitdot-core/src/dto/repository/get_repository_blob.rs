@@ -31,6 +31,7 @@ impl GetRepositoryBlobRequest {
 
 #[derive(Debug, Clone)]
 pub struct RepositoryFolderResponse {
+    pub path: String,
     pub entries: Vec<RepositoryTreeEntry>,
 }
 

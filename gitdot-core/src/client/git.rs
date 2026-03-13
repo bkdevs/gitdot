@@ -634,6 +634,7 @@ impl GitClient for Git2Client {
                         })
                         .collect();
                     Ok(RepositoryBlobResponse::Folder(RepositoryFolderResponse {
+                        path,
                         entries,
                     }))
                 }
@@ -698,6 +699,7 @@ impl GitClient for Git2Client {
                             })
                             .collect();
                         blobs.push(RepositoryBlobResponse::Folder(RepositoryFolderResponse {
+                            path: path.clone(),
                             entries,
                         }));
                     }

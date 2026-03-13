@@ -130,6 +130,7 @@ export type RepositoryTreeResource = z.infer<typeof RepositoryTreeResource>;
 
 export const RepositoryFolderResource = z.object({
   type: z.literal("folder"),
+  path: z.string(),
   entries: z.array(RepositoryTreeEntryResource),
 });
 export type RepositoryFolderResource = z.infer<typeof RepositoryFolderResource>;

@@ -1,8 +1,10 @@
 "use client";
 
 import type {
+  RepositoryBlobsResource,
   RepositoryCommitResource,
   RepositoryCommitsResource,
+  RepositoryPathsResource,
   RepositoryPreviewResource,
   RepositoryTreeResource,
 } from "gitdot-api";
@@ -14,6 +16,8 @@ interface RepoContext {
   tree: Promise<RepositoryTreeResource>;
   commits: Promise<RepositoryCommitResource[]>;
   preview: Promise<RepositoryPreviewResource>;
+  paths: Promise<RepositoryPathsResource>;
+  blobs: Promise<RepositoryBlobsResource>;
 }
 
 const RepoContext = createContext<RepoContext | null>(null);
@@ -33,6 +37,8 @@ export function RepoProvider({
   tree,
   commits,
   preview,
+  paths,
+  blobs,
   children,
 }: {
   owner: string;
@@ -40,6 +46,8 @@ export function RepoProvider({
   tree: Promise<RepositoryTreeResource | null>;
   commits: Promise<RepositoryCommitsResource | null>;
   preview: Promise<RepositoryPreviewResource | null>;
+  paths: Promise<RepositoryPathsResource | null>;
+  blobs: Promise<RepositoryBlobsResource | null>;
   children: React.ReactNode;
 }) {
   const { db } = useDatabaseContext();
@@ -48,6 +56,8 @@ export function RepoProvider({
     const serverTree = requireNotNull(tree);
     const serverCommits = requireNotNull(commits).then((c) => c.commits);
     const serverPreview = requireNotNull(preview);
+    const serverPaths = requireNotNull(paths);
+    const serverBlobs = requireNotNull(blobs);
 
     if (!db) {
       console.log("[db] db is null, using server promises");
@@ -55,6 +65,8 @@ export function RepoProvider({
         tree: serverTree,
         commits: serverCommits,
         preview: serverPreview,
+        paths: serverPaths,
+        blobs: serverBlobs,
       };
     }
 
@@ -74,24 +86,38 @@ export function RepoProvider({
       console.log(`[db] idb preview: ${ms()}`);
       return v;
     });
+    const pathsFromDb = db.getPaths(owner, repo).then((v) => {
+      console.log(`[db] idb paths: ${ms()}`);
+      return v;
+    });
+    const blobsFromDb = db.getBlobs(owner, repo).then((v) => {
+      console.log(`[db] idb blobs: ${ms()}`);
+      return v;
+    });
 
     serverTree.then(() => console.log(`[db] server tree: ${ms()}`));
     serverCommits.then(() => console.log(`[db] server commits: ${ms()}`));
     serverPreview.then(() => console.log(`[db] server preview: ${ms()}`));
+    serverPaths.then(() => console.log(`[db] server paths: ${ms()}`));
+    serverBlobs.then(() => console.log(`[db] server blobs: ${ms()}`));
 
     return {
       tree: firstNonNull(treeFromDb, serverTree),
       commits: firstNonNull(commitsFromDb, serverCommits),
       preview: firstNonNull(previewFromDb, serverPreview),
+      paths: firstNonNull(pathsFromDb, serverPaths),
+      blobs: firstNonNull(blobsFromDb, serverBlobs),
     };
-  }, [db, owner, repo, tree, commits, preview]);
+  }, [db, owner, repo, tree, commits, preview, paths, blobs]);
 
   useEffect(() => {
     if (!db) return;
     requireNotNull(tree).then((t) => db.putTree(owner, repo, t));
     requireNotNull(commits).then((c) => db.putCommits(owner, repo, c.commits));
     requireNotNull(preview).then((p) => db.putPreview(owner, repo, p));
-  }, [db, owner, repo, tree, commits, preview]);
+    requireNotNull(paths).then((p) => db.putPaths(owner, repo, p));
+    requireNotNull(blobs).then((b) => db.putBlobs(owner, repo, b));
+  }, [db, owner, repo, tree, commits, preview, paths, blobs]);
 
   return <RepoContext value={value}>{children}</RepoContext>;
 }

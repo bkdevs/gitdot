@@ -3,15 +3,19 @@ import "server-only";
 import {
   type CreateRepositoryRequest,
   type GetRepositoryBlobRequest,
+  type GetRepositoryBlobsRequest,
   type GetRepositoryCommitsRequest,
   type GetRepositoryFileCommitsRequest,
+  type GetRepositoryPathsRequest,
   type GetRepositoryPreviewRequest,
   type GetRepositoryTreeRequest,
   RepositoryBlobResource,
+  RepositoryBlobsResource,
   RepositoryCommitDiffResource,
   RepositoryCommitResource,
   RepositoryCommitStatResource,
   RepositoryCommitsResource,
+  RepositoryPathsResource,
   RepositoryPreviewResource,
   RepositoryResource,
   RepositoryTreeResource,
@@ -138,6 +142,30 @@ export async function getRepositoryPreview(
   );
 
   return await handleResponse(response, RepositoryPreviewResource);
+}
+
+export async function getRepositoryPaths(
+  owner: string,
+  repo: string,
+  query?: GetRepositoryPathsRequest,
+): Promise<RepositoryPathsResource | null> {
+  const queryString = toQueryString(query);
+  const response = await authFetch(
+    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/paths?${queryString}`,
+  );
+  return await handleResponse(response, RepositoryPathsResource);
+}
+
+export async function getRepositoryBlobs(
+  owner: string,
+  repo: string,
+  request: GetRepositoryBlobsRequest,
+): Promise<RepositoryBlobsResource | null> {
+  const response = await authPost(
+    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/blobs`,
+    request,
+  );
+  return await handleResponse(response, RepositoryBlobsResource);
 }
 
 export async function deleteRepository(

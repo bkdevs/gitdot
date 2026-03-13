@@ -1,7 +1,10 @@
 "use client";
 
 import type {
+  RepositoryBlobResource,
+  RepositoryBlobsResource,
   RepositoryCommitResource,
+  RepositoryPathsResource,
   RepositoryPreviewResource,
   RepositoryTreeResource,
 } from "gitdot-api";
@@ -50,5 +53,33 @@ export interface Database {
     owner: string,
     repo: string,
     preview: RepositoryPreviewResource,
+  ): Promise<void>;
+
+  getPaths(
+    owner: string,
+    repo: string,
+  ): Promise<RepositoryPathsResource | undefined>;
+
+  putPaths(
+    owner: string,
+    repo: string,
+    paths: RepositoryPathsResource,
+  ): Promise<void>;
+
+  getBlob(
+    owner: string,
+    repo: string,
+    path: string,
+  ): Promise<RepositoryBlobResource | undefined>;
+
+  getBlobs(
+    owner: string,
+    repo: string,
+  ): Promise<RepositoryBlobsResource | undefined>;
+
+  putBlobs(
+    owner: string,
+    repo: string,
+    blobs: RepositoryBlobsResource,
   ): Promise<void>;
 }

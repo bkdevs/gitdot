@@ -109,6 +109,7 @@ impl IntoApi for RepositoryFolderResponse {
     type ApiType = api::RepositoryFolderResource;
     fn into_api(self) -> Self::ApiType {
         api::RepositoryFolderResource {
+            path: self.path,
             entries: self.entries.into_api(),
         }
     }

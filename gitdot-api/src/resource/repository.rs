@@ -86,6 +86,7 @@ pub struct RepositoryTreeEntryResource {
 
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RepositoryFolderResource {
+    pub path: String,
     pub entries: Vec<RepositoryTreeEntryResource>,
 }
 

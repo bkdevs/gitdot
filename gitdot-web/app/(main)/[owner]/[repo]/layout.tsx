@@ -1,5 +1,7 @@
 import {
+  getRepositoryBlobs,
   getRepositoryCommits,
+  getRepositoryPaths,
   getRepositoryPreview,
   getRepositoryTree,
 } from "@/dal";
@@ -21,6 +23,12 @@ export default async function Layout({
   const tree = delay(2000).then(() => getRepositoryTree(owner, repo));
   const commits = delay(2000).then(() => getRepositoryCommits(owner, repo));
   const preview = delay(2000).then(() => getRepositoryPreview(owner, repo));
+  const paths = delay(2000).then(() => getRepositoryPaths(owner, repo));
+  const blobs = paths.then((p) =>
+    p
+      ? getRepositoryBlobs(owner, repo, { paths: p.entries.map((e) => e.path) })
+      : null,
+  );
   const { username, orgs } = await getUserMetadata();
   const isAdmin = username === owner || orgs.includes(`${owner}:admin`);
 
@@ -31,6 +39,8 @@ export default async function Layout({
       tree={tree}
       commits={commits}
       preview={preview}
+      paths={paths}
+      blobs={blobs}
     >
       <div className="flex md:hidden h-full w-full p-2 text-sm">
         Mobile support to come.
