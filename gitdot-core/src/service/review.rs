@@ -139,7 +139,7 @@ where
             .await?;
 
         for (position, commit) in commits.iter().rev().enumerate() {
-            let diff_title = commit
+            let commit_title = commit
                 .message
                 .lines()
                 .next()
@@ -147,7 +147,12 @@ where
                 .to_string();
             let diff = self
                 .review_repo
-                .create_diff(review.id, (position + 1) as i32, &diff_title)
+                .create_diff(
+                    review.id,
+                    (position + 1) as i32,
+                    &commit_title,
+                    &commit_title,
+                )
                 .await?;
 
             self.review_repo

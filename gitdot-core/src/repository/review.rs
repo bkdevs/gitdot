@@ -127,8 +127,13 @@ pub trait ReviewRepository: Send + Sync + Clone + 'static {
         target_branch: &str,
     ) -> Result<Review, Error>;
 
-    async fn create_diff(&self, review_id: Uuid, position: i32, title: &str)
-    -> Result<Diff, Error>;
+    async fn create_diff(
+        &self,
+        review_id: Uuid,
+        position: i32,
+        title: &str,
+        description: &str,
+    ) -> Result<Diff, Error>;
 
     async fn create_revision(
         &self,
@@ -232,11 +237,12 @@ impl ReviewRepository for ReviewRepositoryImpl {
         review_id: Uuid,
         position: i32,
         title: &str,
+        description: &str,
     ) -> Result<Diff, Error> {
         sqlx::query_as::<_, Diff>(
             r#"
             INSERT INTO diffs (review_id, position, title, description)
-            VALUES ($1, $2, $3, '')
+            VALUES ($1, $2, $3, $4)
             RETURNING
                 id, review_id, position, title, description,
                 status, created_at, updated_at,
@@ -246,6 +252,7 @@ impl ReviewRepository for ReviewRepositoryImpl {
         .bind(review_id)
         .bind(position)
         .bind(title)
+        .bind(description)
         .fetch_one(&self.pool)
         .await
     }
