@@ -55,9 +55,7 @@ export const RepositoryDiffResource = z.object({
   lines_removed: z.number().int(),
   hunks: z.array(DiffHunkResource),
 });
-export type RepositoryDiffResource = z.infer<
-  typeof RepositoryDiffResource
->;
+export type RepositoryDiffResource = z.infer<typeof RepositoryDiffResource>;
 
 export const RepositoryCommitResource = z.object({
   sha: z.string(),
