@@ -10,10 +10,9 @@ use crate::{
         GetRepositoryBlobRequest, GetRepositoryBlobsRequest, GetRepositoryCommitDiffRequest,
         GetRepositoryCommitRequest, GetRepositoryCommitStatRequest, GetRepositoryCommitsRequest,
         GetRepositoryFileCommitsRequest, GetRepositoryPathsRequest, GetRepositoryPreviewRequest,
-        GetRepositoryTreeRequest, RepositoryBlobResponse, RepositoryBlobsResponse,
-        RepositoryCommitDiffResponse, RepositoryCommitResponse, RepositoryCommitStatResponse,
-        RepositoryCommitsResponse, RepositoryPathsResponse, RepositoryPreviewResponse,
-        RepositoryResponse, RepositoryTreeResponse,
+        RepositoryBlobResponse, RepositoryBlobsResponse, RepositoryCommitDiffResponse,
+        RepositoryCommitResponse, RepositoryCommitStatResponse, RepositoryCommitsResponse,
+        RepositoryPathsResponse, RepositoryPreviewResponse, RepositoryResponse,
     },
     error::RepositoryError,
     model::RepositoryOwnerType,
@@ -45,11 +44,6 @@ pub trait RepositoryService: Send + Sync + 'static {
         &self,
         request: GetRepositoryPathsRequest,
     ) -> Result<RepositoryPathsResponse, RepositoryError>;
-
-    async fn get_repository_tree(
-        &self,
-        request: GetRepositoryTreeRequest,
-    ) -> Result<RepositoryTreeResponse, RepositoryError>;
 
     async fn get_repository_commit(
         &self,
@@ -307,34 +301,6 @@ where
             .get_repo_paths(&request.owner_name, &request.name, &request.ref_name)
             .await
             .map_err(Into::into)
-    }
-
-    async fn get_repository_tree(
-        &self,
-        request: GetRepositoryTreeRequest,
-    ) -> Result<RepositoryTreeResponse, RepositoryError> {
-        let mut response = self
-            .git_client
-            .get_repo_tree(&request.owner_name, &request.name, &request.ref_name)
-            .await?;
-
-        let mut commits: Vec<RepositoryCommitResponse> = response
-            .entries
-            .iter()
-            .filter_map(|e| e.commit.clone())
-            .collect();
-        self.enrich_commits_with_users(&mut commits).await?;
-
-        for (entry, enriched_commit) in response
-            .entries
-            .iter_mut()
-            .filter(|e| e.commit.is_some())
-            .zip(commits.into_iter())
-        {
-            entry.commit = Some(enriched_commit);
-        }
-
-        Ok(response)
     }
 
     async fn get_repository_commit(

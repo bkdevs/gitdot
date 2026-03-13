@@ -2,11 +2,7 @@ import { File, Folder, FolderOpen } from "lucide-react";
 import { useMemo } from "react";
 import Link from "@/ui/link";
 import { useRepoResource } from "../../context";
-import {
-  getFolderEntries,
-  getParentPath,
-  parseRepositoryTree,
-} from "../../util";
+import { getFolderEntries, getParentPath } from "../../util";
 
 function FileRow({
   filePath,
@@ -50,23 +46,14 @@ export function RepoSidebarFiles({
   repo: string;
   currentPath: string;
 }) {
-  const tree = useRepoResource("tree");
-  const { folders, entries } = parseRepositoryTree(tree);
+  const paths = useRepoResource("paths");
 
-  const contextFiles = useMemo(() => {
-    const parentPath = getParentPath(currentPath);
-
-    const files = getFolderEntries(parentPath, folders, entries);
-    return files.sort((a, b) => {
-      if (a.entry_type === b.entry_type) {
-        return a.path.localeCompare(b.path);
-      }
-      return a.entry_type === "tree" ? -1 : 1;
-    });
-  }, [folders, entries, currentPath]);
   const parentPath = getParentPath(currentPath);
 
-  if (!folders) return null;
+  const contextFiles = useMemo(
+    () => getFolderEntries(parentPath, paths),
+    [parentPath, paths],
+  );
 
   return (
     <div className="flex flex-col w-full">
@@ -84,14 +71,14 @@ export function RepoSidebarFiles({
       {contextFiles.map((file) => {
         const filePath = file.path.split("/").pop();
         if (!filePath) return null;
-        const fullPath = parentPath ? `${parentPath}/${filePath}` : filePath; // account for root files
+        const fullPath = parentPath ? `${parentPath}/${filePath}` : filePath;
 
         return (
           <FileRow
             key={file.path}
             filePath={filePath}
             href={`/${owner}/${repo}/${parentPath}/${filePath}`}
-            isFolder={file.entry_type === "tree"}
+            isFolder={file.path_type === "tree"}
             isActive={currentPath === fullPath}
           />
         );

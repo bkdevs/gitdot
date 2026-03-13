@@ -28,9 +28,11 @@ export async function openIdb(): Promise<Database> {
     getCommit(owner, repo, sha) {
       return db.get("commits", commitKey(owner, repo, sha));
     },
+
     async putCommit(owner, repo, commit) {
       await db.put("commits", commit, commitKey(owner, repo, commit.sha));
     },
+
     async putCommits(owner, repo, commits) {
       const tx = db.transaction("commits", "readwrite");
       await Promise.all([
@@ -38,23 +40,21 @@ export async function openIdb(): Promise<Database> {
         tx.done,
       ]);
     },
+
     async getAllCommits(owner, repo) {
       const prefix = `${owner}/${repo}/`;
       const range = IDBKeyRange.bound(prefix, `${prefix}\uffff`);
       return db.getAll("commits", range);
     },
-    getTree(owner, repo) {
-      return db.get("tree", repoKey(owner, repo));
-    },
-    async putTree(owner, repo, tree) {
-      await db.put("tree", tree, repoKey(owner, repo));
-    },
+
     getPreview(owner, repo) {
       return db.get("preview", repoKey(owner, repo));
     },
+
     async putPreview(owner, repo, preview) {
       await db.put("preview", preview, repoKey(owner, repo));
     },
+
     async getPaths(owner, repo) {
       const prefix = `${repoKey(owner, repo)}/`;
       const range = IDBKeyRange.bound(prefix, `${prefix}\uffff`);
@@ -67,6 +67,7 @@ export async function openIdb(): Promise<Database> {
         entries: rows.map(({ ref_name, commit_sha, ...e }) => e),
       };
     },
+
     async putPaths(owner, repo, paths) {
       const { ref_name, commit_sha } = paths;
       const tx = db.transaction("paths", "readwrite");
@@ -80,12 +81,14 @@ export async function openIdb(): Promise<Database> {
         tx.done,
       ]);
     },
+
     async getBlob(owner, repo, path) {
       const row = await db.get("blobs", blobKey(owner, repo, path));
       if (!row) return undefined;
       const { ref_name, commit_sha, ...blob } = row;
       return blob;
     },
+
     async getBlobs(owner, repo) {
       const prefix = `${repoKey(owner, repo)}/`;
       const range = IDBKeyRange.bound(prefix, `${prefix}\uffff`);
@@ -98,6 +101,7 @@ export async function openIdb(): Promise<Database> {
         blobs: rows.map(({ ref_name, commit_sha, ...b }) => b),
       };
     },
+
     async putBlobs(owner, repo, blobs) {
       const { ref_name, commit_sha } = blobs;
       const tx = db.transaction("blobs", "readwrite");

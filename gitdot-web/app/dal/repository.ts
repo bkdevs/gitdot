@@ -56,19 +56,6 @@ export async function getRepositoryBlob(
   return await handleResponse(response, RepositoryBlobResource);
 }
 
-export async function getRepositoryTree(
-  owner: string,
-  repo: string,
-  query?: GetRepositoryTreeRequest,
-): Promise<RepositoryTreeResource | null> {
-  const queryString = toQueryString(query);
-  const response = await authFetch(
-    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/tree?${queryString}`,
-  );
-
-  return await handleResponse(response, RepositoryTreeResource);
-}
-
 export async function getRepositoryCommits(
   owner: string,
   repo: string,

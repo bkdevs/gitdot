@@ -3,7 +3,6 @@ import {
   getRepositoryCommits,
   getRepositoryPaths,
   getRepositoryPreview,
-  getRepositoryTree,
 } from "@/dal";
 import { getUserMetadata } from "@/lib/supabase";
 import { RepoProvider } from "./context";
@@ -20,7 +19,6 @@ export default async function Layout({
   const { owner, repo } = await params;
 
   const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
-  const tree = delay(2000).then(() => getRepositoryTree(owner, repo));
   const commits = delay(2000).then(() => getRepositoryCommits(owner, repo));
   const preview = delay(2000).then(() => getRepositoryPreview(owner, repo));
   const paths = delay(2000).then(() => getRepositoryPaths(owner, repo));
@@ -36,7 +34,6 @@ export default async function Layout({
     <RepoProvider
       owner={owner}
       repo={repo}
-      tree={tree}
       commits={commits}
       preview={preview}
       paths={paths}

@@ -1,5 +1,3 @@
-use std::collections::{HashMap, HashSet};
-
 use async_trait::async_trait;
 use tokio::{fs, task};
 
@@ -8,7 +6,7 @@ use crate::{
         FilePreview, RepositoryBlobResponse, RepositoryBlobsResponse, RepositoryCommitResponse,
         RepositoryCommitStatResponse, RepositoryCommitsResponse, RepositoryFileResponse,
         RepositoryFolderResponse, RepositoryPath, RepositoryPathsResponse, RepositoryPreviewEntry,
-        RepositoryPreviewResponse, RepositoryTreeEntry, RepositoryTreeResponse,
+        RepositoryPreviewResponse, RepositoryTreeEntry,
     },
     error::GitError,
     util::{
@@ -57,13 +55,6 @@ pub trait GitClient: Send + Sync + Clone + 'static {
         repo: &str,
         ref_name: &str,
     ) -> Result<RepositoryPathsResponse, GitError>;
-
-    async fn get_repo_tree(
-        &self,
-        owner: &str,
-        repo: &str,
-        ref_name: &str,
-    ) -> Result<RepositoryTreeResponse, GitError>;
 
     async fn get_repo_commit(
         &self,
@@ -211,114 +202,6 @@ impl Git2Client {
         repo.find_blob(tree_entry.id())
     }
 
-    fn collect_paths(
-        repo: &git2::Repository,
-        tree: &git2::Tree,
-        base_path: &str,
-        paths: &mut Vec<String>,
-    ) -> Result<(), git2::Error> {
-        for entry in tree.iter() {
-            let name = entry.name().unwrap_or("").to_string();
-            let entry_path = if base_path.is_empty() {
-                name.clone()
-            } else {
-                format!("{}/{}", base_path, name)
-            };
-
-            paths.push(entry_path.clone());
-
-            if entry.kind() == Some(git2::ObjectType::Tree) {
-                if let Ok(subtree) = repo.find_tree(entry.id()) {
-                    Self::collect_paths(repo, &subtree, &entry_path, paths)?;
-                }
-            }
-        }
-        Ok(())
-    }
-
-    fn build_path_commit_map(
-        repo: &git2::Repository,
-        start_commit: &git2::Commit,
-        needed_paths: &HashSet<String>,
-    ) -> Result<HashMap<String, RepositoryCommitResponse>, git2::Error> {
-        let mut path_commit_map = HashMap::new();
-        let mut found_paths = HashSet::new();
-
-        let mut revwalk = repo.revwalk()?;
-        revwalk.push(start_commit.id())?;
-        revwalk.set_sorting(git2::Sort::TIME).ok();
-
-        for oid_result in revwalk {
-            let oid = oid_result?;
-            let commit = repo.find_commit(oid)?;
-
-            let repo_commit = RepositoryCommitResponse::from(&commit);
-
-            // Handle initial commit (no parents)
-            if commit.parent_count() == 0 {
-                let tree = commit.tree()?;
-
-                for path in needed_paths.iter() {
-                    if path_commit_map.contains_key(path) {
-                        continue;
-                    }
-
-                    if tree.get_path(std::path::Path::new(path)).is_ok() {
-                        path_commit_map.insert(path.clone(), repo_commit.clone());
-                        found_paths.insert(path.clone());
-                    }
-                }
-            } else {
-                // Check diff against all parents
-                for parent in commit.parents() {
-                    let parent_tree = parent.tree()?;
-                    let commit_tree = commit.tree()?;
-
-                    let diff =
-                        repo.diff_tree_to_tree(Some(&parent_tree), Some(&commit_tree), None)?;
-
-                    for delta in diff.deltas() {
-                        let modified_path = delta
-                            .new_file()
-                            .path()
-                            .or_else(|| delta.old_file().path())
-                            .and_then(|p| p.to_str())
-                            .map(|s| s.to_string());
-
-                        if let Some(path) = modified_path {
-                            // Add commit for this exact path if needed
-                            if needed_paths.contains(&path) && !path_commit_map.contains_key(&path)
-                            {
-                                path_commit_map.insert(path.clone(), repo_commit.clone());
-                                found_paths.insert(path.clone());
-                            }
-
-                            // Add commit for all parent folder paths
-                            let mut parent_path = path.as_str();
-                            while let Some(idx) = parent_path.rfind('/') {
-                                parent_path = &parent_path[..idx];
-                                if needed_paths.contains(parent_path)
-                                    && !path_commit_map.contains_key(parent_path)
-                                {
-                                    path_commit_map
-                                        .insert(parent_path.to_string(), repo_commit.clone());
-                                    found_paths.insert(parent_path.to_string());
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Early exit optimization
-            if found_paths.len() == needed_paths.len() {
-                break;
-            }
-        }
-
-        Ok(path_commit_map)
-    }
-
     fn is_binary(data: &[u8]) -> bool {
         data.iter().take(8000).any(|&b| b == 0)
     }
@@ -343,63 +226,6 @@ impl Git2Client {
             content,
             encoding,
         }
-    }
-
-    fn walk_tree(
-        repo: &git2::Repository,
-        tree: &git2::Tree,
-        base_path: &str,
-        entries: &mut Vec<RepositoryTreeEntry>,
-        commit_map: &HashMap<String, RepositoryCommitResponse>,
-        fallback_commit: &RepositoryCommitResponse,
-    ) -> Result<(), git2::Error> {
-        for entry in tree.iter() {
-            let name = entry.name().unwrap_or("").to_string();
-            let entry_path = if base_path.is_empty() {
-                name.clone()
-            } else {
-                format!("{}/{}", base_path, name)
-            };
-
-            let entry_type = match entry.kind() {
-                Some(git2::ObjectType::Blob) => "blob",
-                Some(git2::ObjectType::Tree) => "tree",
-                Some(git2::ObjectType::Commit) => "commit", // for Git submodule
-                _ => "unknown",
-            }
-            .to_string();
-
-            let sha = entry.id().to_string();
-
-            let commit = Some(
-                commit_map
-                    .get(&entry_path)
-                    .cloned()
-                    .unwrap_or_else(|| fallback_commit.clone()),
-            );
-
-            entries.push(RepositoryTreeEntry {
-                path: entry_path.clone(),
-                name,
-                entry_type: entry_type.clone(),
-                sha,
-                commit,
-            });
-
-            if entry_type == "tree" {
-                if let Ok(subtree) = repo.find_tree(entry.id()) {
-                    Self::walk_tree(
-                        repo,
-                        &subtree,
-                        &entry_path,
-                        entries,
-                        commit_map,
-                        fallback_commit,
-                    )?;
-                }
-            }
-        }
-        Ok(())
     }
 
     fn get_file_preview(
@@ -753,45 +579,6 @@ impl GitClient for Git2Client {
                 git2::TreeWalkResult::Ok
             })?;
             Ok(RepositoryPathsResponse {
-                ref_name,
-                commit_sha,
-                entries,
-            })
-        })
-        .await?
-    }
-
-    async fn get_repo_tree(
-        &self,
-        owner: &str,
-        repo: &str,
-        ref_name: &str,
-    ) -> Result<RepositoryTreeResponse, GitError> {
-        let ref_name = ref_name.to_string();
-        let repository = self.open_repository(owner, repo)?;
-
-        task::spawn_blocking(move || {
-            let commit = Self::resolve_ref(&repository, &ref_name)?;
-            let commit_sha = commit.id().to_string();
-            let tree = commit.tree()?;
-
-            let mut path_collector = Vec::new();
-            Self::collect_paths(&repository, &tree, "", &mut path_collector)?;
-            let needed_paths: HashSet<String> = path_collector.into_iter().collect();
-            let commit_map = Self::build_path_commit_map(&repository, &commit, &needed_paths)?;
-
-            let fallback_commit = RepositoryCommitResponse::from(&commit);
-            let mut entries = Vec::new();
-            Self::walk_tree(
-                &repository,
-                &tree,
-                "",
-                &mut entries,
-                &commit_map,
-                &fallback_commit,
-            )?;
-
-            Ok(RepositoryTreeResponse {
                 ref_name,
                 commit_sha,
                 entries,

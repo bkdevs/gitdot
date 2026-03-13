@@ -1,39 +1,33 @@
 import type {
-  RepositoryTreeEntryResource,
-  RepositoryTreeResource,
+  RepositoryPathResource,
+  RepositoryPathsResource,
 } from "gitdot-api";
 
-export function parseRepositoryTree(tree: RepositoryTreeResource): {
-  entries: Map<string, RepositoryTreeEntryResource>;
-  folders: Map<string, string[]>;
-} {
-  const entries = new Map<string, RepositoryTreeEntryResource>();
-  const folders = new Map<string, string[]>();
+export function getFolderEntries(
+  folderPath: string,
+  paths: RepositoryPathsResource,
+): RepositoryPathResource[] {
+  if (folderPath !== "") {
+    const folderExists = paths.entries.some(
+      (e) => e.path === folderPath && e.path_type === "tree",
+    );
+    if (!folderExists) return [];
+  }
 
-  for (const entry of tree.entries) {
-    entries.set(entry.path, entry);
-
-    const segments = entry.path.split("/");
-    const fileName = segments[segments.length - 1];
-
-    if (segments.length === 1) {
-      if (!folders.has("")) {
-        folders.set("", []);
-      }
-      folders.get("")?.push(fileName);
-    } else if (segments.length > 1) {
-      const folder = segments.slice(0, -1).join("/");
-      if (!folders.has(folder)) {
-        folders.set(folder, []);
-      }
-      folders.get(folder)?.push(fileName);
+  const entries = paths.entries.filter((e) => {
+    if (folderPath === "") {
+      return !e.path.includes("/");
     }
-  }
+    const prefix = `${folderPath}/`;
+    if (!e.path.startsWith(prefix)) return false;
+    const remainder = e.path.slice(prefix.length);
+    return !remainder.includes("/");
+  });
 
-  for (const arr of folders.values()) {
-    arr.sort();
-  }
-  return { entries, folders };
+  return entries.sort((a, b) => {
+    if (a.path_type === b.path_type) return a.path.localeCompare(b.path);
+    return a.path_type === "tree" ? -1 : 1;
+  });
 }
 
 export function getParentPath(currentPath: string): string {
@@ -52,20 +46,4 @@ export function getParentPath(currentPath: string): string {
 export type FolderFile = {
   path: string;
   type: "file" | "folder";
-};
-
-export const getFolderEntries = (
-  folderPath: string,
-  folders: Map<string, string[]>,
-  entries: Map<string, RepositoryTreeEntryResource>,
-): RepositoryTreeEntryResource[] => {
-  const files = folders.get(folderPath);
-  if (!files) return [];
-  return files
-    .map((fileName) =>
-      entries.get(folderPath ? `${folderPath}/${fileName}` : fileName),
-    )
-    .filter(
-      (entry): entry is RepositoryTreeEntryResource => entry !== undefined,
-    );
 };

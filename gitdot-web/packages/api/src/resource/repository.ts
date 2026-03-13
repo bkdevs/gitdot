@@ -121,13 +121,6 @@ export type RepositoryTreeEntryResource = z.infer<
   typeof RepositoryTreeEntryResource
 >;
 
-export const RepositoryTreeResource = z.object({
-  ref_name: z.string(),
-  commit_sha: z.string(),
-  entries: z.array(RepositoryTreeEntryResource),
-});
-export type RepositoryTreeResource = z.infer<typeof RepositoryTreeResource>;
-
 export const RepositoryFolderResource = z.object({
   type: z.literal("folder"),
   path: z.string(),

@@ -1,15 +1,15 @@
 "use client";
 
 import type {
+  RepositoryPathsResource,
   RepositoryPreviewResource,
-  RepositoryTreeResource,
 } from "gitdot-api";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useWorkerContext } from "@/(main)/context/worker";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
 import Link from "@/ui/link";
 import { useRepoResource } from "../../context";
-import { fuzzyMatch, parseRepositoryTree } from "../../util";
+import { fuzzyMatch } from "../../util";
 
 export function RepoFileDialog({
   owner,
@@ -18,14 +18,14 @@ export function RepoFileDialog({
   owner: string;
   repo: string;
 }) {
-  const tree = useRepoResource("tree");
+  const paths = useRepoResource("paths");
   const preview = useRepoResource("preview");
 
   return (
     <RepoFileDialogInner
       owner={owner}
       repo={repo}
-      tree={tree}
+      paths={paths}
       preview={preview}
     />
   );
@@ -34,12 +34,12 @@ export function RepoFileDialog({
 function RepoFileDialogInner({
   owner,
   repo,
-  tree,
+  paths,
   preview,
 }: {
   owner: string;
   repo: string;
-  tree: RepositoryTreeResource;
+  paths: RepositoryPathsResource;
   preview: RepositoryPreviewResource;
 }) {
   const [previews, setPreviews] = useState<Map<string, string>>(new Map());
@@ -50,11 +50,8 @@ function RepoFileDialogInner({
   const [mouseMoved, setMouseMoved] = useState(false);
 
   const { shiki } = useWorkerContext();
-  const { entries } = parseRepositoryTree(tree);
 
-  const files = Array.from(entries.values()).filter(
-    (entry) => entry.entry_type === "blob",
-  );
+  const files = paths.entries.filter((entry) => entry.path_type === "blob");
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: preview is stable; worker queues messages internally until ready
   useEffect(() => {

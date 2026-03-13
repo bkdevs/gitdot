@@ -35,9 +35,7 @@ pub use get_repository_paths::{
 pub use get_repository_preview::{
     FilePreview, GetRepositoryPreviewRequest, RepositoryPreviewEntry, RepositoryPreviewResponse,
 };
-pub use get_repository_tree::{
-    GetRepositoryTreeRequest, RepositoryTreeEntry, RepositoryTreeResponse,
-};
+pub use get_repository_tree::RepositoryTreeEntry;
 
 #[derive(Debug, Clone)]
 pub struct RepositoryResponse {

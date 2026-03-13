@@ -1,7 +1,6 @@
 import type { RepositoryTreeEntryResource } from "gitdot-api";
 import { File, Folder } from "lucide-react";
 import Link from "@/ui/link";
-import { timeAgo } from "@/util";
 
 export function FolderViewer({
   owner,
@@ -41,8 +40,6 @@ function FolderEntryRow({
   entry: RepositoryTreeEntryResource;
   href: string;
 }) {
-  const author = entry.commit?.author.name;
-
   return (
     <Link
       className="grid grid-cols-[1fr_300px_150px] w-full pl-2 h-9 items-center border-b hover:bg-accent/50 select-none cursor-default text-sm"
@@ -60,9 +57,6 @@ function FolderEntryRow({
         </span>
       </span>
       <span className="truncate">{entry.commit?.message}</span>
-      <span className="text-primary/60 ml-4 whitespace-nowrap">
-        {author} • {timeAgo(new Date(entry.commit?.date))}
-      </span>
     </Link>
   );
 }
