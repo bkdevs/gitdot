@@ -24,7 +24,7 @@ pub enum ReviewAction {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ProcessReviewServerResponse {
-    pub review_number: i64,
+    pub review_number: i32,
     pub action: ReviewAction,
 }
 

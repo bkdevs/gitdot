@@ -1,17 +1,18 @@
 use axum::{
-    extract::{Json, Path},
+    extract::{Json, Path, State},
     http::StatusCode,
 };
 
 use gitdot_core::dto::ProcessReviewRequest;
 
 use crate::{
-    app::{AppError, AppResponse},
+    app::{AppError, AppResponse, AppState},
     dto::{ProcessReviewServerRequest, ProcessReviewServerResponse, ReviewAction},
 };
 
 #[axum::debug_handler]
 pub async fn process_review(
+    State(state): State<AppState>,
     Path((owner, repo)): Path<(String, String)>,
     Json(request): Json<ProcessReviewServerRequest>,
 ) -> Result<AppResponse<ProcessReviewServerResponse>, AppError> {
@@ -23,16 +24,18 @@ pub async fn process_review(
         request.pusher_id,
     )?;
 
-    let action = if review_request.is_new() {
-        ReviewAction::Created
+    let (action, review_number) = if review_request.is_new() {
+        let review = state.review_service.create_review(review_request).await?;
+        (ReviewAction::Created, review.number)
     } else {
-        ReviewAction::Updated
+        // TODO: implement update review
+        (ReviewAction::Updated, 1)
     };
 
     Ok(AppResponse::new(
         StatusCode::OK,
         ProcessReviewServerResponse {
-            review_number: 1,
+            review_number,
             action,
         },
     ))

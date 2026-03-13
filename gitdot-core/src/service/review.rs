@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 
 use crate::{
-    dto::{GetReviewRequest, ListReviewsRequest, ReviewResponse},
+    dto::{GetReviewRequest, ListReviewsRequest, ProcessReviewRequest, ReviewResponse},
     error::ReviewError,
     repository::{ReviewRepository, ReviewRepositoryImpl},
 };
@@ -14,6 +14,11 @@ pub trait ReviewService: Send + Sync + 'static {
         &self,
         request: ListReviewsRequest,
     ) -> Result<Vec<ReviewResponse>, ReviewError>;
+
+    async fn create_review(
+        &self,
+        request: ProcessReviewRequest,
+    ) -> Result<ReviewResponse, ReviewError>;
 }
 
 #[derive(Debug, Clone)]
@@ -60,5 +65,12 @@ where
             .await?;
 
         Ok(reviews.into_iter().map(ReviewResponse::from).collect())
+    }
+
+    async fn create_review(
+        &self,
+        request: ProcessReviewRequest,
+    ) -> Result<ReviewResponse, ReviewError> {
+        todo!();
     }
 }
