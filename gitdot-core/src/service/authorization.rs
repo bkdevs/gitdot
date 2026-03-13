@@ -5,14 +5,14 @@ use crate::{
         AnswerAuthorizationRequest, CommentAuthorizationRequest, MigrationAuthorizationRequest,
         OrganizationAuthorizationRequest, QuestionAuthorizationRequest,
         RepositoryAuthorizationRequest, RepositoryCreationAuthorizationRequest,
-        RepositoryPermission,
+        RepositoryPermission, ReviewAuthorizationRequest,
     },
     error::AuthorizationError,
     model::{OrganizationRole, RepositoryOwnerType},
     repository::{
         OrganizationRepository, OrganizationRepositoryImpl, QuestionRepository,
-        QuestionRepositoryImpl, RepositoryRepository, RepositoryRepositoryImpl, UserRepository,
-        UserRepositoryImpl,
+        QuestionRepositoryImpl, RepositoryRepository, RepositoryRepositoryImpl, ReviewRepository,
+        ReviewRepositoryImpl, UserRepository, UserRepositoryImpl,
     },
 };
 
@@ -48,6 +48,11 @@ pub trait AuthorizationService: Send + Sync + 'static {
         request: CommentAuthorizationRequest,
     ) -> Result<(), AuthorizationError>;
 
+    async fn verify_authorized_for_review(
+        &self,
+        request: ReviewAuthorizationRequest,
+    ) -> Result<(), AuthorizationError>;
+
     async fn verify_authorized_for_migration(
         &self,
         request: MigrationAuthorizationRequest,
@@ -55,17 +60,19 @@ pub trait AuthorizationService: Send + Sync + 'static {
 }
 
 #[derive(Debug, Clone)]
-pub struct AuthorizationServiceImpl<O, R, Q, U>
+pub struct AuthorizationServiceImpl<O, R, Q, U, V>
 where
     O: OrganizationRepository,
     R: RepositoryRepository,
     Q: QuestionRepository,
     U: UserRepository,
+    V: ReviewRepository,
 {
     org_repo: O,
     repo_repo: R,
     question_repo: Q,
     user_repo: U,
+    review_repo: V,
 }
 
 impl
@@ -74,6 +81,7 @@ impl
         RepositoryRepositoryImpl,
         QuestionRepositoryImpl,
         UserRepositoryImpl,
+        ReviewRepositoryImpl,
     >
 {
     pub fn new(
@@ -81,24 +89,27 @@ impl
         repo_repo: RepositoryRepositoryImpl,
         question_repo: QuestionRepositoryImpl,
         user_repo: UserRepositoryImpl,
+        review_repo: ReviewRepositoryImpl,
     ) -> Self {
         Self {
             org_repo,
             repo_repo,
             question_repo,
             user_repo,
+            review_repo,
         }
     }
 }
 
 #[crate::instrument_all]
 #[async_trait]
-impl<O, R, Q, U> AuthorizationService for AuthorizationServiceImpl<O, R, Q, U>
+impl<O, R, Q, U, V> AuthorizationService for AuthorizationServiceImpl<O, R, Q, U, V>
 where
     O: OrganizationRepository,
     R: RepositoryRepository,
     Q: QuestionRepository,
     U: UserRepository,
+    V: ReviewRepository,
 {
     async fn verify_authorized_for_repository_creation(
         &self,
@@ -242,6 +253,27 @@ where
         Ok(())
     }
 
+    async fn verify_authorized_for_review(
+        &self,
+        request: ReviewAuthorizationRequest,
+    ) -> Result<(), AuthorizationError> {
+        let review = self
+            .review_repo
+            .get_review(
+                request.owner.as_ref(),
+                request.repo.as_ref(),
+                request.number,
+            )
+            .await?
+            .ok_or(AuthorizationError::Unauthorized)?;
+
+        if review.author_id != request.user_id {
+            return Err(AuthorizationError::Unauthorized);
+        }
+
+        Ok(())
+    }
+
     async fn verify_authorized_for_migration(
         &self,
         request: MigrationAuthorizationRequest,
@@ -285,11 +317,13 @@ mod tests {
         dto::{RepositoryAuthorizationRequest, RepositoryPermission},
         error::AuthorizationError,
         model::{
-            Answer, Comment, Organization, OrganizationMember, OrganizationRole, Question,
-            Repository, RepositoryOwnerType, RepositoryVisibility, User, VoteResult, VoteTarget,
+            Answer, Comment, Diff, Organization, OrganizationMember, OrganizationRole, Question,
+            Repository, RepositoryOwnerType, RepositoryVisibility, Review, Revision, User,
+            VoteResult, VoteTarget,
         },
         repository::{
-            OrganizationRepository, QuestionRepository, RepositoryRepository, UserRepository,
+            OrganizationRepository, QuestionRepository, RepositoryRepository, ReviewRepository,
+            UserRepository,
         },
     };
 
@@ -367,6 +401,21 @@ mod tests {
         }
     }
 
+    mock! {
+        pub ReviewRepo {}
+        impl Clone for ReviewRepo {
+            fn clone(&self) -> Self;
+        }
+        #[async_trait]
+        impl ReviewRepository for ReviewRepo {
+            async fn get_review(&self, owner: &str, repo: &str, number: i32) -> Result<Option<Review>, sqlx::Error>;
+            async fn get_reviews(&self, owner: &str, repo: &str) -> Result<Vec<Review>, sqlx::Error>;
+            async fn create_review(&self, repository_id: Uuid, author_id: Uuid, target_branch: &str) -> Result<Review, sqlx::Error>;
+            async fn create_diff(&self, review_id: Uuid, position: i32, title: &str) -> Result<Diff, sqlx::Error>;
+            async fn create_revision(&self, diff_id: Uuid, number: i32, commit_hash: &str) -> Result<Revision, sqlx::Error>;
+        }
+    }
+
     fn create_repository(
         owner_id: Uuid,
         owner_type: RepositoryOwnerType,
@@ -391,12 +440,14 @@ mod tests {
         MockRepositoryRepo,
         MockQuestionRepo,
         MockUserRepo,
+        MockReviewRepo,
     > {
         AuthorizationServiceImpl {
             org_repo,
             repo_repo,
             question_repo: MockQuestionRepo::new(),
             user_repo: MockUserRepo::new(),
+            review_repo: MockReviewRepo::new(),
         }
     }
 

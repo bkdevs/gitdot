@@ -1,0 +1,32 @@
+use uuid::Uuid;
+
+use crate::{
+    dto::{OwnerName, RepositoryName},
+    error::AuthorizationError,
+};
+
+#[derive(Debug, Clone)]
+pub struct ReviewAuthorizationRequest {
+    pub user_id: Uuid,
+    pub owner: OwnerName,
+    pub repo: RepositoryName,
+    pub number: i32,
+}
+
+impl ReviewAuthorizationRequest {
+    pub fn new(
+        user_id: Uuid,
+        owner_name: &str,
+        repo_name: &str,
+        number: i32,
+    ) -> Result<Self, AuthorizationError> {
+        Ok(Self {
+            user_id,
+            owner: OwnerName::try_new(owner_name)
+                .map_err(|e| AuthorizationError::InvalidRequest(e.to_string()))?,
+            repo: RepositoryName::try_new(repo_name)
+                .map_err(|e| AuthorizationError::InvalidRequest(e.to_string()))?,
+            number,
+        })
+    }
+}
