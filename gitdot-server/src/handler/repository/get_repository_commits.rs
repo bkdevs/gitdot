@@ -30,13 +30,8 @@ pub async fn get_repository_commits(
         .verify_authorized_for_repository(request)
         .await?;
 
-    let request = GetCommitsRequest::new(
-        &owner,
-        &repo,
-        params.ref_name,
-        params.page,
-        params.per_page,
-    )?;
+    let request =
+        GetCommitsRequest::new(&owner, &repo, params.ref_name, params.page, params.per_page)?;
     state
         .commit_service
         .get_commits(request)

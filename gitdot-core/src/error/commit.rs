@@ -10,6 +10,9 @@ pub enum CommitError {
     #[error("Invalid repository name: {0}")]
     InvalidRepositoryName(String),
 
+    #[error("Commit not found: {0}")]
+    NotFound(String),
+
     #[error("Repository not found: {0}")]
     RepositoryNotFound(String),
 

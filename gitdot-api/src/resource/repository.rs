@@ -25,6 +25,7 @@ pub struct RepositoryCommitResource {
     pub message: String,
     pub date: DateTime<Utc>,
     pub author: CommitAuthorResource,
+    pub diffs: Vec<RepositoryCommitStatResource>,
 }
 
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

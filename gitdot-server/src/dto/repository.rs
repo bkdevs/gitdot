@@ -2,10 +2,10 @@ use gitdot_api::resource::repository as api;
 use gitdot_core::dto::{
     CommitAuthorResponse, CommitResponse, CommitsResponse, DiffChange, DiffLine, DiffPair,
     FilePreview, PathType, RepositoryBlobResponse, RepositoryBlobsResponse,
-    RepositoryCommitDiffResponse, RepositoryCommitResponse, RepositoryCommitStatResponse,
-    RepositoryCommitsResponse, RepositoryDiffResponse, RepositoryFileResponse,
-    RepositoryFolderResponse, RepositoryPath, RepositoryPathsResponse, RepositoryPreviewEntry,
-    RepositoryPreviewResponse, RepositoryResponse, SyntaxHighlight,
+    RepositoryCommitDiffResponse, RepositoryCommitResponse, RepositoryCommitsResponse,
+    RepositoryDiffResponse, RepositoryFileResponse, RepositoryFolderResponse, RepositoryPath,
+    RepositoryPathsResponse, RepositoryPreviewEntry, RepositoryPreviewResponse, RepositoryResponse,
+    SyntaxHighlight,
 };
 
 use super::IntoApi;
@@ -57,6 +57,15 @@ impl IntoApi for CommitResponse {
                 name: self.git_author_name,
                 email: self.git_author_email,
             },
+            diffs: self
+                .diffs
+                .into_iter()
+                .map(|d| api::RepositoryCommitStatResource {
+                    path: d.path,
+                    lines_added: d.lines_added as u32,
+                    lines_removed: d.lines_removed as u32,
+                })
+                .collect(),
         }
     }
 }
@@ -70,6 +79,7 @@ impl IntoApi for RepositoryCommitResponse {
             message: self.message,
             date: self.date,
             author: self.author.into_api(),
+            diffs: vec![],
         }
     }
 }
@@ -195,17 +205,6 @@ impl IntoApi for PathType {
             PathType::Tree => api::PathType::Tree,
             PathType::Commit => api::PathType::Commit,
             PathType::Unknown => api::PathType::Unknown,
-        }
-    }
-}
-
-impl IntoApi for RepositoryCommitStatResponse {
-    type ApiType = api::RepositoryCommitStatResource;
-    fn into_api(self) -> Self::ApiType {
-        api::RepositoryCommitStatResource {
-            path: self.path,
-            lines_added: self.lines_added,
-            lines_removed: self.lines_removed,
         }
     }
 }

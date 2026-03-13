@@ -4,7 +4,6 @@ mod get_repository_blob;
 mod get_repository_blobs;
 mod get_repository_commit;
 mod get_repository_commit_diff;
-mod get_repository_commit_stat;
 mod get_repository_file;
 mod get_repository_file_commits;
 mod get_repository_paths;
@@ -23,7 +22,6 @@ pub use get_repository_blob::{
 pub use get_repository_blobs::{GetRepositoryBlobsRequest, RepositoryBlobsResponse};
 pub use get_repository_commit::GetRepositoryCommitRequest;
 pub use get_repository_commit_diff::GetRepositoryCommitDiffRequest;
-pub use get_repository_commit_stat::GetRepositoryCommitStatRequest;
 pub use get_repository_file::RepositoryFileResponse;
 pub use get_repository_file_commits::GetRepositoryFileCommitsRequest;
 pub use get_repository_paths::{

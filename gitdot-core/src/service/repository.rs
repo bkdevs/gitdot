@@ -8,10 +8,9 @@ use crate::{
     dto::{
         CommitAuthorResponse, CreateRepositoryRequest, DeleteRepositoryRequest,
         GetRepositoryBlobRequest, GetRepositoryBlobsRequest, GetRepositoryCommitDiffRequest,
-        GetRepositoryCommitRequest, GetRepositoryCommitStatRequest,
-        GetRepositoryFileCommitsRequest, GetRepositoryPathsRequest, GetRepositoryPreviewRequest,
-        RepositoryBlobResponse, RepositoryBlobsResponse, RepositoryCommitDiffResponse,
-        RepositoryCommitResponse, RepositoryCommitStatResponse, RepositoryCommitsResponse,
+        GetRepositoryCommitRequest, GetRepositoryFileCommitsRequest, GetRepositoryPathsRequest,
+        GetRepositoryPreviewRequest, RepositoryBlobResponse, RepositoryBlobsResponse,
+        RepositoryCommitDiffResponse, RepositoryCommitResponse, RepositoryCommitsResponse,
         RepositoryPathsResponse, RepositoryPreviewResponse, RepositoryResponse,
     },
     error::RepositoryError,
@@ -64,11 +63,6 @@ pub trait RepositoryService: Send + Sync + 'static {
         &self,
         request: GetRepositoryCommitDiffRequest,
     ) -> Result<Vec<RepositoryCommitDiffResponse>, RepositoryError>;
-
-    async fn get_repository_commit_stat(
-        &self,
-        request: GetRepositoryCommitStatRequest,
-    ) -> Result<Vec<RepositoryCommitStatResponse>, RepositoryError>;
 
     async fn get_repository_by_id(&self, id: Uuid) -> Result<RepositoryResponse, RepositoryError>;
 
@@ -397,33 +391,6 @@ where
         }
 
         Ok(diffs)
-    }
-
-    async fn get_repository_commit_stat(
-        &self,
-        request: GetRepositoryCommitStatRequest,
-    ) -> Result<Vec<RepositoryCommitStatResponse>, RepositoryError> {
-        let commit = self
-            .git_client
-            .get_repo_commit(&request.owner_name, &request.name, &request.ref_name)
-            .await
-            .map_err(RepositoryError::from)?;
-
-        let parent_sha = commit
-            .parent_sha
-            .unwrap_or(crate::util::git::EMPTY_TREE_REF.to_string());
-
-        let stats = self
-            .git_client
-            .get_repo_diff_stats(
-                &request.owner_name,
-                &request.name,
-                &parent_sha,
-                &request.ref_name,
-            )
-            .await?;
-
-        Ok(stats)
     }
 
     async fn get_repository_by_id(&self, id: Uuid) -> Result<RepositoryResponse, RepositoryError> {

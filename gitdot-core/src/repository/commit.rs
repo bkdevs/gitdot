@@ -7,6 +7,8 @@ use crate::model::{Commit, CommitDiff};
 
 #[async_trait]
 pub trait CommitRepository: Send + Sync + Clone + 'static {
+    async fn get_commit(&self, repo_id: Uuid, sha: &str) -> Result<Option<Commit>, Error>;
+
     async fn get_commits(
         &self,
         repo_id: Uuid,
@@ -43,6 +45,19 @@ impl CommitRepositoryImpl {
 #[crate::instrument_all(level = "debug")]
 #[async_trait]
 impl CommitRepository for CommitRepositoryImpl {
+    async fn get_commit(&self, repo_id: Uuid, sha: &str) -> Result<Option<Commit>, Error> {
+        sqlx::query_as::<_, Commit>(
+            r#"
+            SELECT * FROM commits
+            WHERE repo_id = $1 AND sha LIKE $2
+            "#,
+        )
+        .bind(repo_id)
+        .bind(format!("{}%", sha))
+        .fetch_optional(&self.pool)
+        .await
+    }
+
     async fn get_commits(
         &self,
         repo_id: Uuid,

@@ -6,7 +6,9 @@ use uuid::Uuid;
 
 use crate::{
     client::{Git2Client, GitClient},
-    dto::{CommitResponse, CommitsResponse, CreateCommitsRequest, GetCommitsRequest},
+    dto::{
+        CommitResponse, CommitsResponse, CreateCommitsRequest, GetCommitRequest, GetCommitsRequest,
+    },
     error::CommitError,
     model,
     repository::{
@@ -18,10 +20,10 @@ use crate::{
 
 #[async_trait]
 pub trait CommitService: Send + Sync + 'static {
-    async fn get_commits(
-        &self,
-        request: GetCommitsRequest,
-    ) -> Result<CommitsResponse, CommitError>;
+    async fn get_commit(&self, request: GetCommitRequest) -> Result<CommitResponse, CommitError>;
+
+    async fn get_commits(&self, request: GetCommitsRequest)
+    -> Result<CommitsResponse, CommitError>;
 
     async fn create_commits(
         &self,
@@ -75,6 +77,23 @@ where
     U: UserRepository,
     G: GitClient,
 {
+    async fn get_commit(&self, request: GetCommitRequest) -> Result<CommitResponse, CommitError> {
+        let owner = request.owner.to_string();
+        let repo_name = request.repo.to_string();
+
+        let repository = self
+            .repo_repo
+            .get(&owner, &repo_name)
+            .await?
+            .ok_or_else(|| CommitError::RepositoryNotFound(format!("{}/{}", owner, repo_name)))?;
+
+        self.commit_repo
+            .get_commit(repository.id, &request.sha)
+            .await?
+            .map(Into::into)
+            .ok_or_else(|| CommitError::NotFound(request.sha))
+    }
+
     async fn get_commits(
         &self,
         request: GetCommitsRequest,

@@ -161,6 +161,7 @@ impl IntoResponse for AppError {
                 let status_code = match e {
                     CommitError::InvalidOwnerName(_) => StatusCode::BAD_REQUEST,
                     CommitError::InvalidRepositoryName(_) => StatusCode::BAD_REQUEST,
+                    CommitError::NotFound(_) => StatusCode::NOT_FOUND,
                     CommitError::RepositoryNotFound(_) => StatusCode::NOT_FOUND,
                     CommitError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                     CommitError::GitError(_) => StatusCode::INTERNAL_SERVER_ERROR,

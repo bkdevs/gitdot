@@ -65,12 +65,22 @@ export const CommitAuthorResource = z.object({
 });
 export type CommitAuthorResource = z.infer<typeof CommitAuthorResource>;
 
+export const RepositoryCommitStatResource = z.object({
+  path: z.string(),
+  lines_added: z.number().int(),
+  lines_removed: z.number().int(),
+});
+export type RepositoryCommitStatResource = z.infer<
+  typeof RepositoryCommitStatResource
+>;
+
 export const RepositoryCommitResource = z.object({
   sha: z.string(),
   parent_sha: z.string().optional(),
   message: z.string(),
   date: z.iso.datetime(),
   author: CommitAuthorResource,
+  diffs: z.array(RepositoryCommitStatResource),
 });
 export type RepositoryCommitResource = z.infer<typeof RepositoryCommitResource>;
 
@@ -140,15 +150,6 @@ export const RepositoryBlobResource = z.discriminatedUnion("type", [
   RepositoryFolderResource,
 ]);
 export type RepositoryBlobResource = z.infer<typeof RepositoryBlobResource>;
-
-export const RepositoryCommitStatResource = z.object({
-  path: z.string(),
-  lines_added: z.number().int(),
-  lines_removed: z.number().int(),
-});
-export type RepositoryCommitStatResource = z.infer<
-  typeof RepositoryCommitStatResource
->;
 
 export const RepositoryBlobsResource = z.object({
   ref_name: z.string(),
