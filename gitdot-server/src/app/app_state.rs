@@ -132,6 +132,7 @@ impl AppState {
             review_service: Arc::new(ReviewServiceImpl::new(
                 review_repo.clone(),
                 repo_repo.clone(),
+                user_repo.clone(),
                 git_client.clone(),
             )),
             commit_service: Arc::new(CommitServiceImpl::new(

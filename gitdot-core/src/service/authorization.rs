@@ -318,8 +318,8 @@ mod tests {
         error::AuthorizationError,
         model::{
             Answer, Comment, Diff, Organization, OrganizationMember, OrganizationRole, Question,
-            Repository, RepositoryOwnerType, RepositoryVisibility, Review, Revision, User,
-            VoteResult, VoteTarget,
+            Repository, RepositoryOwnerType, RepositoryVisibility, Review, Reviewer, Revision,
+            User, VoteResult, VoteTarget,
         },
         repository::{
             OrganizationRepository, QuestionRepository, RepositoryRepository, ReviewRepository,
@@ -413,7 +413,8 @@ mod tests {
             async fn create_review(&self, repository_id: Uuid, author_id: Uuid, target_branch: &str) -> Result<Review, sqlx::Error>;
             async fn create_diff(&self, review_id: Uuid, position: i32, title: &str) -> Result<Diff, sqlx::Error>;
             async fn create_revision(&self, diff_id: Uuid, number: i32, commit_hash: &str) -> Result<Revision, sqlx::Error>;
-        }
+            async fn add_reviewer(&self, review_id: Uuid, reviewer_id: Uuid) -> Result<Option<Reviewer>, sqlx::Error>;
+            async fn remove_reviewer(&self, review_id: Uuid, reviewer_id: Uuid) -> Result<bool, sqlx::Error>;        }
     }
 
     fn create_repository(

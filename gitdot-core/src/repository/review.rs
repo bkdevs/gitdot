@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use sqlx::{Error, PgPool};
 use uuid::Uuid;
 
-use crate::model::{Diff, Review, Revision};
+use crate::model::{Diff, Review, Reviewer, Revision};
 
 const REVIEW_DETAILS_QUERY: &str = r#"
 SELECT
@@ -136,6 +136,14 @@ pub trait ReviewRepository: Send + Sync + Clone + 'static {
         number: i32,
         commit_hash: &str,
     ) -> Result<Revision, Error>;
+
+    async fn add_reviewer(
+        &self,
+        review_id: Uuid,
+        reviewer_id: Uuid,
+    ) -> Result<Option<Reviewer>, Error>;
+
+    async fn remove_reviewer(&self, review_id: Uuid, reviewer_id: Uuid) -> Result<bool, Error>;
 }
 
 #[derive(Debug, Clone)]
@@ -260,5 +268,42 @@ impl ReviewRepository for ReviewRepositoryImpl {
         .bind(commit_hash)
         .fetch_one(&self.pool)
         .await
+    }
+
+    async fn add_reviewer(
+        &self,
+        review_id: Uuid,
+        reviewer_id: Uuid,
+    ) -> Result<Option<Reviewer>, Error> {
+        sqlx::query_as::<_, Reviewer>(
+            r#"
+            INSERT INTO reviewers (review_id, reviewer_id, status)
+            VALUES ($1, $2, 'pending')
+            ON CONFLICT (review_id, reviewer_id) DO NOTHING
+            RETURNING
+                id, review_id, reviewer_id, status, created_at,
+                (SELECT json_build_object('id', u.id, 'name', u.name, 'email', u.email, 'created_at', u.created_at)
+                 FROM users u WHERE u.id = reviewer_id) AS user
+            "#,
+        )
+        .bind(review_id)
+        .bind(reviewer_id)
+        .fetch_optional(&self.pool)
+        .await
+    }
+
+    async fn remove_reviewer(&self, review_id: Uuid, reviewer_id: Uuid) -> Result<bool, Error> {
+        let result = sqlx::query(
+            r#"
+            DELETE FROM reviewers
+            WHERE review_id = $1 AND reviewer_id = $2
+            "#,
+        )
+        .bind(review_id)
+        .bind(reviewer_id)
+        .execute(&self.pool)
+        .await?;
+
+        Ok(result.rows_affected() > 0)
     }
 }

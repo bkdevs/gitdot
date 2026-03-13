@@ -19,6 +19,15 @@ pub enum ReviewError {
     #[error("Repository not found: {0}")]
     RepositoryNotFound(String),
 
+    #[error("User not found: {0}")]
+    UserNotFound(String),
+
+    #[error("Reviewer already exists: {0}")]
+    ReviewerAlreadyExists(String),
+
+    #[error("Reviewer not found: {0}")]
+    ReviewerNotFound(String),
+
     #[error("No commits found between target branch and pushed ref")]
     CommitsNotFound,
 
