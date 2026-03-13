@@ -3,10 +3,10 @@ use tokio::{fs, task};
 
 use crate::{
     dto::{
-        FilePreview, RepositoryBlobResponse, RepositoryBlobsResponse, RepositoryCommitResponse,
-        RepositoryCommitStatResponse, RepositoryCommitsResponse, RepositoryFileResponse,
-        RepositoryFolderResponse, RepositoryPath, RepositoryPathsResponse, RepositoryPreviewEntry,
-        RepositoryPreviewResponse,
+        FilePreview, PathType, RepositoryBlobResponse, RepositoryBlobsResponse,
+        RepositoryCommitResponse, RepositoryCommitStatResponse, RepositoryCommitsResponse,
+        RepositoryFileResponse, RepositoryFolderResponse, RepositoryPath, RepositoryPathsResponse,
+        RepositoryPreviewEntry, RepositoryPreviewResponse,
     },
     error::GitError,
     util::{
@@ -443,17 +443,10 @@ impl GitClient for Git2Client {
                         .map(|e| {
                             let name = e.name().unwrap_or("").to_string();
                             let entry_path = format!("{}/{}", path, name);
-                            let path_type = match e.kind() {
-                                Some(git2::ObjectType::Blob) => "blob",
-                                Some(git2::ObjectType::Tree) => "tree",
-                                Some(git2::ObjectType::Commit) => "commit",
-                                _ => "unknown",
-                            }
-                            .to_string();
                             RepositoryPath {
                                 path: entry_path,
                                 name,
-                                path_type,
+                                path_type: PathType::from_git2(e.kind()),
                                 sha: e.id().to_string(),
                             }
                         })
@@ -507,17 +500,10 @@ impl GitClient for Git2Client {
                             .map(|e| {
                                 let name = e.name().unwrap_or("").to_string();
                                 let entry_path = format!("{}/{}", path, name);
-                                let path_type = match e.kind() {
-                                    Some(git2::ObjectType::Blob) => "blob",
-                                    Some(git2::ObjectType::Tree) => "tree",
-                                    Some(git2::ObjectType::Commit) => "commit",
-                                    _ => "unknown",
-                                }
-                                .to_string();
                                 RepositoryPath {
                                     path: entry_path,
                                     name,
-                                    path_type,
+                                    path_type: PathType::from_git2(e.kind()),
                                     sha: e.id().to_string(),
                                 }
                             })
@@ -561,17 +547,10 @@ impl GitClient for Git2Client {
                 } else {
                     format!("{}{}", root, name)
                 };
-                let path_type = match entry.kind() {
-                    Some(git2::ObjectType::Blob) => "blob",
-                    Some(git2::ObjectType::Tree) => "tree",
-                    Some(git2::ObjectType::Commit) => "commit",
-                    _ => "unknown",
-                }
-                .to_string();
                 entries.push(RepositoryPath {
                     path,
                     name,
-                    path_type,
+                    path_type: PathType::from_git2(entry.kind()),
                     sha: entry.id().to_string(),
                 });
                 git2::TreeWalkResult::Ok

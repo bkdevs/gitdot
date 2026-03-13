@@ -37,6 +37,25 @@ pub struct RepositoryPathsResponse {
 pub struct RepositoryPath {
     pub path: String,
     pub name: String,
-    pub path_type: String,
+    pub path_type: PathType,
     pub sha: String,
+}
+
+#[derive(Debug, Clone)]
+pub enum PathType {
+    Blob,
+    Tree,
+    Commit,
+    Unknown,
+}
+
+impl PathType {
+    pub fn from_git2(kind: Option<git2::ObjectType>) -> Self {
+        match kind {
+            Some(git2::ObjectType::Blob) => Self::Blob,
+            Some(git2::ObjectType::Tree) => Self::Tree,
+            Some(git2::ObjectType::Commit) => Self::Commit,
+            _ => Self::Unknown,
+        }
+    }
 }

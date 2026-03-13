@@ -110,10 +110,13 @@ export type RepositoryPreviewResource = z.infer<
   typeof RepositoryPreviewResource
 >;
 
+export const PathType = z.enum(["blob", "tree", "commit", "unknown"]);
+export type PathType = z.infer<typeof PathType>;
+
 export const RepositoryPathResource = z.object({
   path: z.string(),
   name: z.string(),
-  path_type: z.string(),
+  path_type: PathType,
   sha: z.string(),
 });
 export type RepositoryPathResource = z.infer<typeof RepositoryPathResource>;

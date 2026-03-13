@@ -29,7 +29,7 @@ pub use get_repository_commits::GetRepositoryCommitsRequest;
 pub use get_repository_file::RepositoryFileResponse;
 pub use get_repository_file_commits::GetRepositoryFileCommitsRequest;
 pub use get_repository_paths::{
-    GetRepositoryPathsRequest, RepositoryPath, RepositoryPathsResponse,
+    GetRepositoryPathsRequest, PathType, RepositoryPath, RepositoryPathsResponse,
 };
 pub use get_repository_preview::{
     FilePreview, GetRepositoryPreviewRequest, RepositoryPreviewEntry, RepositoryPreviewResponse,

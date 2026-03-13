@@ -143,8 +143,17 @@ pub struct RepositoryPathsResource {
 pub struct RepositoryPathResource {
     pub path: String,
     pub name: String,
-    pub path_type: String,
+    pub path_type: PathType,
     pub sha: String,
+}
+
+#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum PathType {
+    Blob,
+    Tree,
+    Commit,
+    Unknown,
 }
 
 #[derive(ApiResource, PartialEq, Eq, Debug, Clone, Serialize, Deserialize)]

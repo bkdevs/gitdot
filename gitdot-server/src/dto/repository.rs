@@ -1,10 +1,11 @@
 use gitdot_api::resource::repository as api;
 use gitdot_core::dto::{
-    CommitAuthorResponse, DiffChange, DiffLine, DiffPair, FilePreview, RepositoryBlobResponse,
-    RepositoryBlobsResponse, RepositoryCommitDiffResponse, RepositoryCommitResponse,
-    RepositoryCommitStatResponse, RepositoryCommitsResponse, RepositoryDiffResponse,
-    RepositoryFileResponse, RepositoryFolderResponse, RepositoryPath, RepositoryPathsResponse,
-    RepositoryPreviewEntry, RepositoryPreviewResponse, RepositoryResponse, SyntaxHighlight,
+    CommitAuthorResponse, DiffChange, DiffLine, DiffPair, FilePreview, PathType,
+    RepositoryBlobResponse, RepositoryBlobsResponse, RepositoryCommitDiffResponse,
+    RepositoryCommitResponse, RepositoryCommitStatResponse, RepositoryCommitsResponse,
+    RepositoryDiffResponse, RepositoryFileResponse, RepositoryFolderResponse, RepositoryPath,
+    RepositoryPathsResponse, RepositoryPreviewEntry, RepositoryPreviewResponse, RepositoryResponse,
+    SyntaxHighlight,
 };
 
 use super::IntoApi;
@@ -152,8 +153,20 @@ impl IntoApi for RepositoryPath {
         api::RepositoryPathResource {
             path: self.path,
             name: self.name,
-            path_type: self.path_type,
+            path_type: self.path_type.into_api(),
             sha: self.sha,
+        }
+    }
+}
+
+impl IntoApi for PathType {
+    type ApiType = api::PathType;
+    fn into_api(self) -> Self::ApiType {
+        match self {
+            PathType::Blob => api::PathType::Blob,
+            PathType::Tree => api::PathType::Tree,
+            PathType::Commit => api::PathType::Commit,
+            PathType::Unknown => api::PathType::Unknown,
         }
     }
 }
