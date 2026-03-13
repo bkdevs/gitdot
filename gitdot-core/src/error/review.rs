@@ -1,5 +1,7 @@
 use thiserror::Error;
 
+use super::GitError;
+
 #[derive(Debug, Error)]
 pub enum ReviewError {
     #[error("Invalid owner name: {0}")]
@@ -16,6 +18,12 @@ pub enum ReviewError {
 
     #[error("Repository not found: {0}")]
     RepositoryNotFound(String),
+
+    #[error("No commits found between target branch and pushed ref")]
+    CommitsNotFound,
+
+    #[error("Git error: {0}")]
+    GitError(#[from] GitError),
 
     #[error("Database error: {0}")]
     DatabaseError(#[from] sqlx::Error),

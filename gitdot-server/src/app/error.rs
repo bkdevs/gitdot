@@ -200,6 +200,8 @@ impl IntoResponse for AppError {
                     ReviewError::InvalidRefName(_) => StatusCode::BAD_REQUEST,
                     ReviewError::ReviewNotFound(_) => StatusCode::NOT_FOUND,
                     ReviewError::RepositoryNotFound(_) => StatusCode::NOT_FOUND,
+                    ReviewError::CommitsNotFound => StatusCode::BAD_REQUEST,
+                    ReviewError::GitError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                     ReviewError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                 };
                 let response = AppResponse::new(

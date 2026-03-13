@@ -129,7 +129,11 @@ impl AppState {
                 question_repo.clone(),
                 repo_repo.clone(),
             )),
-            review_service: Arc::new(ReviewServiceImpl::new(review_repo.clone())),
+            review_service: Arc::new(ReviewServiceImpl::new(
+                review_repo.clone(),
+                repo_repo.clone(),
+                git_client.clone(),
+            )),
             commit_service: Arc::new(CommitServiceImpl::new(
                 commit_repo.clone(),
                 repo_repo.clone(),

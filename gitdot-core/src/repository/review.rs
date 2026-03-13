@@ -1,7 +1,8 @@
 use async_trait::async_trait;
 use sqlx::{Error, PgPool};
+use uuid::Uuid;
 
-use crate::model::Review;
+use crate::model::{Diff, Review, Revision};
 
 const REVIEW_DETAILS_QUERY: &str = r#"
 SELECT
@@ -118,6 +119,23 @@ pub trait ReviewRepository: Send + Sync + Clone + 'static {
     ) -> Result<Option<Review>, Error>;
 
     async fn get_reviews(&self, owner: &str, repo: &str) -> Result<Vec<Review>, Error>;
+
+    async fn create_review(
+        &self,
+        repository_id: Uuid,
+        author_id: Uuid,
+        target_branch: &str,
+    ) -> Result<Review, Error>;
+
+    async fn create_diff(&self, review_id: Uuid, position: i32, title: &str)
+    -> Result<Diff, Error>;
+
+    async fn create_revision(
+        &self,
+        diff_id: Uuid,
+        number: i32,
+        commit_hash: &str,
+    ) -> Result<Revision, Error>;
 }
 
 #[derive(Debug, Clone)]
@@ -169,6 +187,78 @@ impl ReviewRepository for ReviewRepositoryImpl {
         .bind(owner)
         .bind(repo)
         .fetch_all(&self.pool)
+        .await
+    }
+
+    async fn create_review(
+        &self,
+        repository_id: Uuid,
+        author_id: Uuid,
+        target_branch: &str,
+    ) -> Result<Review, Error> {
+        sqlx::query_as::<_, Review>(
+            r#"
+            WITH next_number AS (
+                SELECT COALESCE(MAX(number), 0) + 1 AS number
+                FROM reviews
+                WHERE repository_id = $1
+            )
+            INSERT INTO reviews (repository_id, number, author_id, title, description, target_branch)
+            SELECT $1, next_number.number, $2, '', '', $3
+            FROM next_number
+            RETURNING
+                id, repository_id, number, author_id, title, description,
+                target_branch, status, created_at, updated_at,
+                NULL AS author, NULL AS diffs, NULL AS reviewers, NULL AS comments
+            "#,
+        )
+        .bind(repository_id)
+        .bind(author_id)
+        .bind(target_branch)
+        .fetch_one(&self.pool)
+        .await
+    }
+
+    async fn create_diff(
+        &self,
+        review_id: Uuid,
+        position: i32,
+        title: &str,
+    ) -> Result<Diff, Error> {
+        sqlx::query_as::<_, Diff>(
+            r#"
+            INSERT INTO diffs (review_id, position, title, description)
+            VALUES ($1, $2, $3, '')
+            RETURNING
+                id, review_id, position, title, description,
+                status, created_at, updated_at,
+                NULL AS revisions
+            "#,
+        )
+        .bind(review_id)
+        .bind(position)
+        .bind(title)
+        .fetch_one(&self.pool)
+        .await
+    }
+
+    async fn create_revision(
+        &self,
+        diff_id: Uuid,
+        number: i32,
+        commit_hash: &str,
+    ) -> Result<Revision, Error> {
+        sqlx::query_as::<_, Revision>(
+            r#"
+            INSERT INTO revisions (diff_id, number, commit_hash)
+            VALUES ($1, $2, $3)
+            RETURNING id, diff_id, number, commit_hash, created_at
+            "#,
+        )
+        .bind(diff_id)
+        .bind(number)
+        .bind(commit_hash)
+        .fetch_one(&self.pool)
         .await
     }
 }
