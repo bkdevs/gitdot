@@ -74,13 +74,32 @@ impl DiffClient for DifftClient {
         left: Option<&RepositoryFileResponse>,
         right: Option<&RepositoryFileResponse>,
     ) -> Result<RepositoryDiffResponse, DiffError> {
-        let left_content = left.map(|f| f.content.as_str()).unwrap_or("");
-        let right_content = right.map(|f| f.content.as_str()).unwrap_or("");
-        let file_path = right
-            .map(|f| f.path.as_str())
-            .or_else(|| left.map(|f| f.path.as_str()));
+        match (left, right) {
+            (None, Some(r)) => {
+                let lines_added = r.content.lines().count() as u32;
+                return Ok(RepositoryDiffResponse {
+                    lines_added,
+                    lines_removed: 0,
+                    hunks: vec![],
+                });
+            }
+            (Some(l), None) => {
+                let lines_removed = l.content.lines().count() as u32;
+                return Ok(RepositoryDiffResponse {
+                    lines_added: 0,
+                    lines_removed,
+                    hunks: vec![],
+                });
+            }
+            (None, None) => return Err(DiffError::InvalidFiles),
+            (Some(_), Some(_)) => {}
+        }
 
-        let output = Self::execute_difftastic(left_content, right_content, file_path)
+        let left = left.unwrap();
+        let right = right.unwrap();
+        let file_path = Some(right.path.as_str());
+
+        let output = Self::execute_difftastic(&left.content, &right.content, file_path)
             .await
             .ok_or_else(|| DiffError::DifftasticFailed("difftastic failed".to_string()))?;
 
