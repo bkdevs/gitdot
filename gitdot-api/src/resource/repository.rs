@@ -25,7 +25,7 @@ pub struct RepositoryCommitResource {
     pub message: String,
     pub date: DateTime<Utc>,
     pub author: CommitAuthorResource,
-    pub diffs: Vec<RepositoryCommitStatResource>,
+    pub diffs: Vec<RepositoryDiffResource>,
 }
 
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -89,7 +89,7 @@ pub enum RepositoryBlobResource {
 }
 
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct RepositoryCommitStatResource {
+pub struct RepositoryDiffResource {
     pub path: String,
     pub lines_added: u32,
     pub lines_removed: u32,

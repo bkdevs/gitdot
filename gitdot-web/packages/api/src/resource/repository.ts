@@ -49,14 +49,14 @@ export const CommitAuthorResource = z.object({
 });
 export type CommitAuthorResource = z.infer<typeof CommitAuthorResource>;
 
-export const RepositoryCommitStatResource = z.object({
+export const RepositoryDiffResource = z.object({
   path: z.string(),
   lines_added: z.number().int(),
   lines_removed: z.number().int(),
   hunks: z.array(DiffHunkResource),
 });
-export type RepositoryCommitStatResource = z.infer<
-  typeof RepositoryCommitStatResource
+export type RepositoryDiffResource = z.infer<
+  typeof RepositoryDiffResource
 >;
 
 export const RepositoryCommitResource = z.object({
@@ -65,7 +65,7 @@ export const RepositoryCommitResource = z.object({
   message: z.string(),
   date: z.iso.datetime(),
   author: CommitAuthorResource,
-  diffs: z.array(RepositoryCommitStatResource),
+  diffs: z.array(RepositoryDiffResource),
 });
 export type RepositoryCommitResource = z.infer<typeof RepositoryCommitResource>;
 

@@ -1,4 +1,4 @@
-import type { RepositoryCommitStatResource } from "gitdot-api";
+import type { RepositoryDiffResource } from "gitdot-api";
 import { Suspense } from "react";
 import { DiffBody } from "./diff-body";
 import { DiffFileClient } from "./diff-file-client";
@@ -19,7 +19,7 @@ export function CommitBody({
   repo: string;
   sha: string;
   parentSha: string | undefined;
-  diffs: RepositoryCommitStatResource[];
+  diffs: RepositoryDiffResource[];
   useSuspense: boolean;
 }) {
   return useSuspense ? (
@@ -54,7 +54,7 @@ function CommitBodyContent({
   repo: string;
   sha: string;
   parentSha: string | undefined;
-  diffs: RepositoryCommitStatResource[];
+  diffs: RepositoryDiffResource[];
 }) {
   return (
     <div className="flex flex-col">

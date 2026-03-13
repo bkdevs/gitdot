@@ -1,4 +1,4 @@
-import type { RepositoryCommitStatResource } from "gitdot-api";
+import type { RepositoryDiffResource } from "gitdot-api";
 import { mergeHunks } from "@/(main)/[owner]/[repo]/util";
 import { getRepositoryBlob } from "@/dal";
 import { DiffSingle } from "./diff-single";
@@ -11,7 +11,7 @@ export async function DiffBody({
   sha,
   parentSha,
 }: {
-  stat: RepositoryCommitStatResource;
+  stat: RepositoryDiffResource;
   owner: string;
   repo: string;
   sha: string;

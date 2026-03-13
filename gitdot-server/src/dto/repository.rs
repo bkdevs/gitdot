@@ -62,7 +62,7 @@ impl IntoApi for CommitResponse {
             diffs: self
                 .diffs
                 .into_iter()
-                .map(|d| api::RepositoryCommitStatResource {
+                .map(|d| api::RepositoryDiffResource {
                     path: d.path,
                     lines_added: d.lines_added as u32,
                     lines_removed: d.lines_removed as u32,
