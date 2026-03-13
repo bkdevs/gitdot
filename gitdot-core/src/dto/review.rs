@@ -1,7 +1,9 @@
 mod get_review;
 mod list_reviews;
+mod process_review;
 
 use chrono::{DateTime, Utc};
+use nutype::nutype;
 use uuid::Uuid;
 
 use crate::model::{
@@ -11,6 +13,44 @@ use crate::model::{
 
 pub use get_review::GetReviewRequest;
 pub use list_reviews::ListReviewsRequest;
+pub use process_review::ProcessReviewRequest;
+
+use crate::util::review::MAGIC_REF_PREFIX;
+
+/// Validates that a ref is either `refs/for/<branch>` (create)
+/// or `refs/for/<branch>/<review_number>` (update).
+fn is_review_ref(s: &str) -> bool {
+    let Some(rest) = s
+        .strip_prefix(MAGIC_REF_PREFIX)
+        .and_then(|r| r.strip_prefix('/'))
+    else {
+        return false;
+    };
+
+    if rest.is_empty() {
+        return false;
+    }
+
+    // If the last segment is numeric, it's an update (refs/for/branch/123)
+    // and we need at least one segment before it for the branch name.
+    // Otherwise, the entire rest is a branch name (refs/for/branch).
+    match rest.rsplit_once('/') {
+        Some((branch, number)) => {
+            if number.parse::<i64>().is_ok() {
+                !branch.is_empty()
+            } else {
+                true
+            }
+        }
+        None => true,
+    }
+}
+
+#[nutype(
+    validate(predicate = is_review_ref),
+    derive(Debug, Clone, PartialEq, Eq, AsRef, Deref)
+)]
+pub struct ReviewRef(String);
 
 #[derive(Debug, Clone)]
 pub struct ReviewResponse {

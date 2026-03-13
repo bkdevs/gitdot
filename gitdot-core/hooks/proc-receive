@@ -79,8 +79,7 @@ for update in updates:
                 result = json.loads(resp.read())
 
             review_number = result["review_number"]
-            suffix = ref.removeprefix("refs/for/")
-            action = "updated" if "/" in suffix else "created"
+            action = result["action"]
             print(
                 f"review #{review_number} {action} at https://gitdot.io/{owner}/{repo}/reviews/{review_number}",
                 file=sys.stderr,

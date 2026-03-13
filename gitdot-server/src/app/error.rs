@@ -197,6 +197,7 @@ impl IntoResponse for AppError {
                 let status_code = match e {
                     ReviewError::InvalidOwnerName(_) => StatusCode::BAD_REQUEST,
                     ReviewError::InvalidRepositoryName(_) => StatusCode::BAD_REQUEST,
+                    ReviewError::InvalidRefName(_) => StatusCode::BAD_REQUEST,
                     ReviewError::ReviewNotFound(_) => StatusCode::NOT_FOUND,
                     ReviewError::RepositoryNotFound(_) => StatusCode::NOT_FOUND,
                     ReviewError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
