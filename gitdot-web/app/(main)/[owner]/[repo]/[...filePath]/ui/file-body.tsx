@@ -27,7 +27,8 @@ export function FileBody({
 }: {
   file: RepositoryFileResource;
   selectedLines: LineSelection | null;
-}) {
+  }) {
+  // TODO: make sync?
   const hast = use(fileToHast(file, "vitesse-light", FILE_BODY_TRANSFORMERS));
 
   const content = toJsxRuntime(hast, {
