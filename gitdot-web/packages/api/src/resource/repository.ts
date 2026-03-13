@@ -168,13 +168,6 @@ export type RepositoryCommitStatResource = z.infer<
   typeof RepositoryCommitStatResource
 >;
 
-export const RepositoryPermissionResource = z.object({
-  permission: z.string(),
-});
-export type RepositoryPermissionResource = z.infer<
-  typeof RepositoryPermissionResource
->;
-
 export const RepositoryResource = z.object({
   id: z.uuid(),
   name: z.string(),

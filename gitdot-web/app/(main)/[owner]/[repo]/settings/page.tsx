@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 
-import { isRepositoryAdmin, listRunners } from "@/dal";
+import { listRunners } from "@/dal";
+import { getUserMetadata } from "@/lib/supabase";
 import { RepositorySettingsGeneral } from "./ui/repository-settings-general";
 import { RepositorySettingsRunners } from "./ui/repository-settings-runners";
 
@@ -11,7 +12,8 @@ export default async function Page({
 }) {
   const { owner, repo } = await params;
 
-  const isAdmin = await isRepositoryAdmin(owner, repo);
+  const { username, orgs } = await getUserMetadata();
+  const isAdmin = username === owner || orgs.includes(`${owner}:admin`);
   if (!isAdmin) notFound();
 
   const runners = (await listRunners(owner)) ?? [];
