@@ -54,8 +54,8 @@ while True:
 
 # Step 5: Process updates and send results
 abs_git_dir = os.path.realpath(os.environ["GIT_DIR"])
-repo_dir = os.path.basename(abs_git_dir).removesuffix(".git")
-owner_dir = os.path.basename(os.path.dirname(abs_git_dir))
+repo = os.path.basename(abs_git_dir).removesuffix(".git")
+owner = os.path.basename(os.path.dirname(abs_git_dir))
 pusher_id = os.environ["GITDOT_PUSHER_ID"]
 for update in updates:
     parts = update.split(" ")
@@ -70,7 +70,7 @@ for update in updates:
             }
         ).encode("utf-8")
 
-        url = f"http://127.0.0.1:8080/internal/{owner_dir}/{repo_dir}/process-review"
+        url = f"http://127.0.0.1:8080/internal/{owner}/{repo}/process-review"
         req = urllib.request.Request(
             url, data=payload, headers={"Content-Type": "application/json"}
         )
@@ -79,7 +79,12 @@ for update in updates:
                 result = json.loads(resp.read())
 
             review_number = result["review_number"]
-            print(f"review #{review_number} created", file=sys.stderr)
+            suffix = ref.removeprefix("refs/for/")
+            action = "updated" if "/" in suffix else "created"
+            print(
+                f"review #{review_number} {action} at https://gitdot.io/{owner}/{repo}/reviews/{review_number}",
+                file=sys.stderr,
+            )
             write_pkt_line(f"ok {ref}")
         except Exception:
             write_pkt_line(f"ng {ref} failed to process review")
