@@ -9,10 +9,11 @@ use crate::{
         CommitAuthorResponse, CreateRepositoryRequest, DeleteRepositoryRequest,
         GetRepositoryBlobRequest, GetRepositoryCommitDiffRequest, GetRepositoryCommitRequest,
         GetRepositoryCommitStatRequest, GetRepositoryCommitsRequest,
-        GetRepositoryFileCommitsRequest, GetRepositoryPreviewRequest, GetRepositoryTreeRequest,
-        RepositoryBlobResponse, RepositoryCommitDiffResponse, RepositoryCommitResponse,
-        RepositoryCommitStatResponse, RepositoryCommitsResponse, RepositoryFolderResponse,
-        RepositoryPreviewResponse, RepositoryResponse, RepositoryTreeResponse,
+        GetRepositoryFileCommitsRequest, GetRepositoryPathsRequest, GetRepositoryPreviewRequest,
+        GetRepositoryTreeRequest, RepositoryBlobResponse, RepositoryCommitDiffResponse,
+        RepositoryCommitResponse, RepositoryCommitStatResponse, RepositoryCommitsResponse,
+        RepositoryFolderResponse, RepositoryPathsResponse, RepositoryPreviewResponse,
+        RepositoryResponse, RepositoryTreeResponse,
     },
     error::RepositoryError,
     model::RepositoryOwnerType,
@@ -34,6 +35,11 @@ pub trait RepositoryService: Send + Sync + 'static {
         &self,
         request: GetRepositoryBlobRequest,
     ) -> Result<RepositoryBlobResponse, RepositoryError>;
+
+    async fn get_repository_paths(
+        &self,
+        request: GetRepositoryPathsRequest,
+    ) -> Result<RepositoryPathsResponse, RepositoryError>;
 
     async fn get_repository_tree(
         &self,
@@ -283,6 +289,16 @@ where
                 }))
             }
         }
+    }
+
+    async fn get_repository_paths(
+        &self,
+        request: GetRepositoryPathsRequest,
+    ) -> Result<RepositoryPathsResponse, RepositoryError> {
+        self.git_client
+            .get_repo_paths(&request.owner_name, &request.name, &request.ref_name)
+            .await
+            .map_err(Into::into)
     }
 
     async fn get_repository_tree(

@@ -7,8 +7,8 @@ use crate::{
     dto::{
         FilePreview, RepositoryBlobResponse, RepositoryCommitResponse,
         RepositoryCommitStatResponse, RepositoryCommitsResponse, RepositoryFileResponse,
-        RepositoryFolderResponse, RepositoryPreviewEntry, RepositoryPreviewResponse,
-        RepositoryTreeEntry, RepositoryTreeResponse,
+        RepositoryFolderResponse, RepositoryPath, RepositoryPathsResponse, RepositoryPreviewEntry,
+        RepositoryPreviewResponse, RepositoryTreeEntry, RepositoryTreeResponse,
     },
     error::GitError,
     util::{
@@ -42,6 +42,13 @@ pub trait GitClient: Send + Sync + Clone + 'static {
         ref_name: &str,
         path: &str,
     ) -> Result<RepositoryBlobResponse, GitError>;
+
+    async fn get_repo_paths(
+        &self,
+        owner: &str,
+        repo: &str,
+        ref_name: &str,
+    ) -> Result<RepositoryPathsResponse, GitError>;
 
     async fn get_repo_tree(
         &self,
@@ -670,6 +677,51 @@ impl GitClient for Git2Client {
                 }
                 _ => Err(git2::Error::from_str("Path is not a blob or tree").into()),
             }
+        })
+        .await?
+    }
+
+    async fn get_repo_paths(
+        &self,
+        owner: &str,
+        repo: &str,
+        ref_name: &str,
+    ) -> Result<RepositoryPathsResponse, GitError> {
+        let ref_name = ref_name.to_string();
+        let repository = self.open_repository(owner, repo)?;
+
+        task::spawn_blocking(move || {
+            let commit = Self::resolve_ref(&repository, &ref_name)?;
+            let commit_sha = commit.id().to_string();
+            let tree = commit.tree()?;
+            let mut entries = Vec::new();
+            tree.walk(git2::TreeWalkMode::PreOrder, |root, entry| {
+                let name = entry.name().unwrap_or("").to_string();
+                let path = if root.is_empty() {
+                    name.clone()
+                } else {
+                    format!("{}{}", root, name)
+                };
+                let path_type = match entry.kind() {
+                    Some(git2::ObjectType::Blob) => "blob",
+                    Some(git2::ObjectType::Tree) => "tree",
+                    Some(git2::ObjectType::Commit) => "commit",
+                    _ => "unknown",
+                }
+                .to_string();
+                entries.push(RepositoryPath {
+                    path,
+                    name,
+                    path_type,
+                    sha: entry.id().to_string(),
+                });
+                git2::TreeWalkResult::Ok
+            })?;
+            Ok(RepositoryPathsResponse {
+                ref_name,
+                commit_sha,
+                entries,
+            })
         })
         .await?
     }

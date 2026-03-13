@@ -51,18 +51,29 @@ export function RepoProvider({
 
     if (!db) {
       console.log("[db] db is null, using server promises");
-      return { tree: serverTree, commits: serverCommits, preview: serverPreview };
+      return {
+        tree: serverTree,
+        commits: serverCommits,
+        preview: serverPreview,
+      };
     }
+
     console.log("[db] db is ready, racing IDB vs server");
     const t0 = performance.now();
     const ms = () => `${(performance.now() - t0).toFixed(1)}ms`;
 
-    const treeFromDb = db.getTree(owner, repo).then((v) => { console.log(`[db] idb tree: ${ms()}`); return v; });
+    const treeFromDb = db.getTree(owner, repo).then((v) => {
+      console.log(`[db] idb tree: ${ms()}`);
+      return v;
+    });
     const commitsFromDb = db.getAllCommits(owner, repo).then((c) => {
       console.log(`[db] idb commits: ${ms()}`);
       return c.length > 0 ? c : null;
     });
-    const previewFromDb = db.getPreview(owner, repo).then((v) => { console.log(`[db] idb preview: ${ms()}`); return v; });
+    const previewFromDb = db.getPreview(owner, repo).then((v) => {
+      console.log(`[db] idb preview: ${ms()}`);
+      return v;
+    });
 
     serverTree.then(() => console.log(`[db] server tree: ${ms()}`));
     serverCommits.then(() => console.log(`[db] server commits: ${ms()}`));

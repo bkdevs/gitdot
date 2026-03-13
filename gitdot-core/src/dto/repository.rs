@@ -7,6 +7,7 @@ mod get_repository_commit_stat;
 mod get_repository_commits;
 mod get_repository_file;
 mod get_repository_file_commits;
+mod get_repository_paths;
 mod get_repository_preview;
 mod get_repository_tree;
 
@@ -26,6 +27,9 @@ pub use get_repository_commit_stat::GetRepositoryCommitStatRequest;
 pub use get_repository_commits::GetRepositoryCommitsRequest;
 pub use get_repository_file::RepositoryFileResponse;
 pub use get_repository_file_commits::GetRepositoryFileCommitsRequest;
+pub use get_repository_paths::{
+    GetRepositoryPathsRequest, RepositoryPath, RepositoryPathsResponse,
+};
 pub use get_repository_preview::{
     FilePreview, GetRepositoryPreviewRequest, RepositoryPreviewEntry, RepositoryPreviewResponse,
 };

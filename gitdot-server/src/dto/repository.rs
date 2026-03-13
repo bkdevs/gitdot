@@ -3,8 +3,9 @@ use gitdot_core::dto::{
     CommitAuthorResponse, DiffChange, DiffLine, DiffPair, FilePreview, RepositoryBlobResponse,
     RepositoryCommitDiffResponse, RepositoryCommitResponse, RepositoryCommitStatResponse,
     RepositoryCommitsResponse, RepositoryDiffResponse, RepositoryFileResponse,
-    RepositoryFolderResponse, RepositoryPreviewEntry, RepositoryPreviewResponse,
-    RepositoryResponse, RepositoryTreeEntry, RepositoryTreeResponse, SyntaxHighlight,
+    RepositoryFolderResponse, RepositoryPath, RepositoryPathsResponse, RepositoryPreviewEntry,
+    RepositoryPreviewResponse, RepositoryResponse, RepositoryTreeEntry, RepositoryTreeResponse,
+    SyntaxHighlight,
 };
 
 use super::IntoApi;
@@ -123,6 +124,29 @@ impl IntoApi for RepositoryBlobResponse {
         match self {
             RepositoryBlobResponse::File(f) => api::RepositoryBlobResource::File(f.into_api()),
             RepositoryBlobResponse::Folder(f) => api::RepositoryBlobResource::Folder(f.into_api()),
+        }
+    }
+}
+
+impl IntoApi for RepositoryPathsResponse {
+    type ApiType = api::RepositoryPathsResource;
+    fn into_api(self) -> Self::ApiType {
+        api::RepositoryPathsResource {
+            ref_name: self.ref_name,
+            commit_sha: self.commit_sha,
+            entries: self.entries.into_api(),
+        }
+    }
+}
+
+impl IntoApi for RepositoryPath {
+    type ApiType = api::RepositoryPathResource;
+    fn into_api(self) -> Self::ApiType {
+        api::RepositoryPathResource {
+            path: self.path,
+            name: self.name,
+            path_type: self.path_type,
+            sha: self.sha,
         }
     }
 }

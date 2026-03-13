@@ -7,6 +7,7 @@ mod get_repository_commit_diff;
 mod get_repository_commit_stat;
 mod get_repository_commits;
 mod get_repository_file_commits;
+mod get_repository_paths;
 mod get_repository_preview;
 mod get_repository_tree;
 
@@ -26,6 +27,7 @@ use get_repository_commit_diff::get_repository_commit_diff;
 use get_repository_commit_stat::get_repository_commit_stat;
 use get_repository_commits::get_repository_commits;
 use get_repository_file_commits::get_repository_file_commits;
+use get_repository_paths::get_repository_paths;
 use get_repository_preview::get_repository_preview;
 use get_repository_tree::get_repository_tree;
 
@@ -37,6 +39,10 @@ pub fn create_repository_router() -> Router<AppState> {
         )
         .route("/repository/{owner}/{repo}/permission", get(get_permission))
         .route("/repository/{owner}/{repo}/blob", get(get_repository_blob))
+        .route(
+            "/repository/{owner}/{repo}/paths",
+            get(get_repository_paths),
+        )
         .route("/repository/{owner}/{repo}/tree", get(get_repository_tree))
         .route(
             "/repository/{owner}/{repo}/preview",

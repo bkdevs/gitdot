@@ -144,6 +144,21 @@ export const RepositoryBlobResource = z.discriminatedUnion("type", [
 ]);
 export type RepositoryBlobResource = z.infer<typeof RepositoryBlobResource>;
 
+export const RepositoryPathResource = z.object({
+  path: z.string(),
+  name: z.string(),
+  path_type: z.string(),
+  sha: z.string(),
+});
+export type RepositoryPathResource = z.infer<typeof RepositoryPathResource>;
+
+export const RepositoryPathsResource = z.object({
+  ref_name: z.string(),
+  commit_sha: z.string(),
+  entries: z.array(RepositoryPathResource),
+});
+export type RepositoryPathsResource = z.infer<typeof RepositoryPathsResource>;
+
 export const RepositoryCommitStatResource = z.object({
   path: z.string(),
   lines_added: z.number().int(),

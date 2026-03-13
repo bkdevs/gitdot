@@ -7,6 +7,7 @@ pub mod get_repository_commit_diff;
 pub mod get_repository_commit_stat;
 pub mod get_repository_commits;
 pub mod get_repository_file_commits;
+pub mod get_repository_paths;
 pub mod get_repository_preview;
 pub mod get_repository_tree;
 

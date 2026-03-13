@@ -145,6 +145,21 @@ pub struct DiffChangeResource {
 }
 
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RepositoryPathsResource {
+    pub ref_name: String,
+    pub commit_sha: String,
+    pub entries: Vec<RepositoryPathResource>,
+}
+
+#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RepositoryPathResource {
+    pub path: String,
+    pub name: String,
+    pub path_type: String,
+    pub sha: String,
+}
+
+#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RepositoryPermissionResource {
     pub permission: String,
 }
