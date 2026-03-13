@@ -4,9 +4,7 @@ use axum::{
 };
 
 use gitdot_api::endpoint::get_repository_commits as api;
-use gitdot_core::dto::{
-    GetRepositoryCommitsRequest, RepositoryAuthorizationRequest, RepositoryPermission,
-};
+use gitdot_core::dto::{GetCommitsRequest, RepositoryAuthorizationRequest, RepositoryPermission};
 
 use crate::{
     app::{AppError, AppResponse, AppState},
@@ -32,16 +30,16 @@ pub async fn get_repository_commits(
         .verify_authorized_for_repository(request)
         .await?;
 
-    let request = GetRepositoryCommitsRequest::new(
-        &repo,
+    let request = GetCommitsRequest::new(
         &owner,
+        &repo,
         params.ref_name,
         params.page,
         params.per_page,
     )?;
     state
-        .repo_service
-        .get_repository_commits(request)
+        .commit_service
+        .get_commits(request)
         .await
         .map_err(AppError::from)
         .map(|commits| AppResponse::new(StatusCode::OK, commits.into_api()))

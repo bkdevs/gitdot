@@ -8,7 +8,7 @@ use crate::{
     dto::{
         CommitAuthorResponse, CreateRepositoryRequest, DeleteRepositoryRequest,
         GetRepositoryBlobRequest, GetRepositoryBlobsRequest, GetRepositoryCommitDiffRequest,
-        GetRepositoryCommitRequest, GetRepositoryCommitStatRequest, GetRepositoryCommitsRequest,
+        GetRepositoryCommitRequest, GetRepositoryCommitStatRequest,
         GetRepositoryFileCommitsRequest, GetRepositoryPathsRequest, GetRepositoryPreviewRequest,
         RepositoryBlobResponse, RepositoryBlobsResponse, RepositoryCommitDiffResponse,
         RepositoryCommitResponse, RepositoryCommitStatResponse, RepositoryCommitsResponse,
@@ -49,11 +49,6 @@ pub trait RepositoryService: Send + Sync + 'static {
         &self,
         request: GetRepositoryCommitRequest,
     ) -> Result<RepositoryCommitResponse, RepositoryError>;
-
-    async fn get_repository_commits(
-        &self,
-        request: GetRepositoryCommitsRequest,
-    ) -> Result<RepositoryCommitsResponse, RepositoryError>;
 
     async fn get_repository_file_commits(
         &self,
@@ -317,27 +312,6 @@ where
         self.enrich_commits_with_users(&mut commits).await?;
 
         Ok(commits.into_iter().next().unwrap())
-    }
-
-    async fn get_repository_commits(
-        &self,
-        request: GetRepositoryCommitsRequest,
-    ) -> Result<RepositoryCommitsResponse, RepositoryError> {
-        let mut response = self
-            .git_client
-            .get_repo_commits(
-                &request.owner_name,
-                &request.name,
-                &request.ref_name,
-                request.page,
-                request.per_page,
-            )
-            .await?;
-
-        self.enrich_commits_with_users(&mut response.commits)
-            .await?;
-
-        Ok(response)
     }
 
     async fn get_repository_file_commits(

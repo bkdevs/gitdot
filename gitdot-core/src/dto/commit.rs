@@ -1,4 +1,5 @@
 mod create_commits;
+mod get_commits;
 
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
@@ -6,6 +7,7 @@ use uuid::Uuid;
 use crate::model::Commit;
 
 pub use create_commits::CreateCommitsRequest;
+pub use get_commits::GetCommitsRequest;
 
 #[derive(Debug, Clone)]
 pub struct CommitResponse {
@@ -18,6 +20,12 @@ pub struct CommitResponse {
     pub sha: String,
     pub message: String,
     pub created_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone)]
+pub struct CommitsResponse {
+    pub commits: Vec<CommitResponse>,
+    pub has_next: bool,
 }
 
 impl From<Commit> for CommitResponse {

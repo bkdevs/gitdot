@@ -1,11 +1,11 @@
 use gitdot_api::resource::repository as api;
 use gitdot_core::dto::{
-    CommitAuthorResponse, DiffChange, DiffLine, DiffPair, FilePreview, PathType,
-    RepositoryBlobResponse, RepositoryBlobsResponse, RepositoryCommitDiffResponse,
-    RepositoryCommitResponse, RepositoryCommitStatResponse, RepositoryCommitsResponse,
-    RepositoryDiffResponse, RepositoryFileResponse, RepositoryFolderResponse, RepositoryPath,
-    RepositoryPathsResponse, RepositoryPreviewEntry, RepositoryPreviewResponse, RepositoryResponse,
-    SyntaxHighlight,
+    CommitAuthorResponse, CommitResponse, CommitsResponse, DiffChange, DiffLine, DiffPair,
+    FilePreview, PathType, RepositoryBlobResponse, RepositoryBlobsResponse,
+    RepositoryCommitDiffResponse, RepositoryCommitResponse, RepositoryCommitStatResponse,
+    RepositoryCommitsResponse, RepositoryDiffResponse, RepositoryFileResponse,
+    RepositoryFolderResponse, RepositoryPath, RepositoryPathsResponse, RepositoryPreviewEntry,
+    RepositoryPreviewResponse, RepositoryResponse, SyntaxHighlight,
 };
 
 use super::IntoApi;
@@ -29,6 +29,34 @@ impl IntoApi for RepositoryCommitsResponse {
         api::RepositoryCommitsResource {
             commits: self.commits.into_api(),
             has_next: self.has_next,
+        }
+    }
+}
+
+impl IntoApi for CommitsResponse {
+    type ApiType = api::RepositoryCommitsResource;
+    fn into_api(self) -> Self::ApiType {
+        api::RepositoryCommitsResource {
+            commits: self.commits.into_iter().map(|c| c.into_api()).collect(),
+            has_next: self.has_next,
+        }
+    }
+}
+
+// TODO: think a tad on the commit author this is no longer real.
+impl IntoApi for CommitResponse {
+    type ApiType = api::RepositoryCommitResource;
+    fn into_api(self) -> Self::ApiType {
+        api::RepositoryCommitResource {
+            sha: self.sha,
+            parent_sha: None,
+            message: self.message,
+            date: self.created_at,
+            author: api::CommitAuthorResource {
+                id: self.author_id,
+                name: self.git_author_name,
+                email: self.git_author_email,
+            },
         }
     }
 }

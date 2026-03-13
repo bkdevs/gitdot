@@ -7,6 +7,14 @@ use crate::model::{Commit, CommitDiff};
 
 #[async_trait]
 pub trait CommitRepository: Send + Sync + Clone + 'static {
+    async fn get_commits(
+        &self,
+        repo_id: Uuid,
+        ref_name: &str,
+        page: u32,
+        per_page: u32,
+    ) -> Result<Vec<Commit>, Error>;
+
     async fn create_bulk(
         &self,
         author_ids: &[Option<Uuid>],
@@ -35,6 +43,32 @@ impl CommitRepositoryImpl {
 #[crate::instrument_all(level = "debug")]
 #[async_trait]
 impl CommitRepository for CommitRepositoryImpl {
+    async fn get_commits(
+        &self,
+        repo_id: Uuid,
+        ref_name: &str,
+        page: u32,
+        per_page: u32,
+    ) -> Result<Vec<Commit>, Error> {
+        let offset = (page.saturating_sub(1)) * per_page;
+        let rows = sqlx::query_as::<_, Commit>(
+            r#"
+            SELECT * FROM commits
+            WHERE repo_id = $1 AND ref_name = $2
+            ORDER BY created_at DESC
+            LIMIT $3 OFFSET $4
+            "#,
+        )
+        .bind(repo_id)
+        .bind(ref_name)
+        .bind(per_page as i64)
+        .bind(offset as i64)
+        .fetch_all(&self.pool)
+        .await?;
+
+        Ok(rows)
+    }
+
     async fn create_bulk(
         &self,
         author_ids: &[Option<Uuid>],

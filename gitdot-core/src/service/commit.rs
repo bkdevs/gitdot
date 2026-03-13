@@ -6,7 +6,7 @@ use uuid::Uuid;
 
 use crate::{
     client::{Git2Client, GitClient},
-    dto::{CommitResponse, CreateCommitsRequest},
+    dto::{CommitResponse, CommitsResponse, CreateCommitsRequest, GetCommitsRequest},
     error::CommitError,
     model,
     repository::{
@@ -18,6 +18,11 @@ use crate::{
 
 #[async_trait]
 pub trait CommitService: Send + Sync + 'static {
+    async fn get_commits(
+        &self,
+        request: GetCommitsRequest,
+    ) -> Result<CommitsResponse, CommitError>;
+
     async fn create_commits(
         &self,
         request: CreateCommitsRequest,
@@ -70,6 +75,34 @@ where
     U: UserRepository,
     G: GitClient,
 {
+    async fn get_commits(
+        &self,
+        request: GetCommitsRequest,
+    ) -> Result<CommitsResponse, CommitError> {
+        let owner = request.owner.to_string();
+        let repo_name = request.repo.to_string();
+
+        let repository = self
+            .repo_repo
+            .get(&owner, &repo_name)
+            .await?
+            .ok_or_else(|| CommitError::RepositoryNotFound(format!("{}/{}", owner, repo_name)))?;
+
+        let fetch_count = request.per_page + 1;
+        let mut commits = self
+            .commit_repo
+            .get_commits(repository.id, &request.ref_name, request.page, fetch_count)
+            .await?;
+
+        let has_next = commits.len() > request.per_page as usize;
+        commits.truncate(request.per_page as usize);
+
+        Ok(CommitsResponse {
+            commits: commits.into_iter().map(Into::into).collect(),
+            has_next,
+        })
+    }
+
     async fn create_commits(
         &self,
         request: CreateCommitsRequest,
