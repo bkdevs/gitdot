@@ -18,11 +18,11 @@ pub struct Commit {
     pub created_at: DateTime<Utc>,
 
     #[sqlx(json)]
-    pub diffs: Vec<Diff>,
+    pub diffs: Vec<CommitDiff>,
 }
 
 #[derive(Debug, Clone, FromRow, Serialize, Deserialize)]
-pub struct Diff {
+pub struct CommitDiff {
     pub path: String,
     pub lines_added: i32,
     pub lines_removed: i32,

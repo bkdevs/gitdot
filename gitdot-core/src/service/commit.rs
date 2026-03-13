@@ -8,10 +8,12 @@ use crate::{
     client::{Git2Client, GitClient},
     dto::{CommitResponse, CreateCommitsRequest},
     error::CommitError,
+    model,
     repository::{
         CommitRepository, CommitRepositoryImpl, RepositoryRepository, RepositoryRepositoryImpl,
         UserRepository, UserRepositoryImpl,
     },
+    util::git::EMPTY_TREE_REF,
 };
 
 #[async_trait]
@@ -108,6 +110,24 @@ where
         let mut shas = Vec::new();
         let mut messages = Vec::new();
         let mut created_ats: Vec<DateTime<Utc>> = Vec::new();
+        let mut diffs_per_commit: Vec<Vec<model::CommitDiff>> = Vec::new();
+
+        for commit in &git_commits {
+            let left_ref = commit.parent_sha.as_deref().unwrap_or(EMPTY_TREE_REF);
+            let stats = self
+                .git_client
+                .get_repo_diff_stats(&owner, &repo_name, left_ref, &commit.sha)
+                .await?;
+            let diffs = stats
+                .into_iter()
+                .map(|s| model::CommitDiff {
+                    path: s.path,
+                    lines_added: s.lines_added as i32,
+                    lines_removed: s.lines_removed as i32,
+                })
+                .collect();
+            diffs_per_commit.push(diffs);
+        }
 
         for commit in git_commits {
             author_ids.push(email_to_id.get(&commit.author.email).copied());
@@ -131,6 +151,7 @@ where
                 &shas,
                 &messages,
                 &created_ats,
+                &diffs_per_commit,
             )
             .await?;
         Ok(commits.into_iter().map(|c| c.into()).collect())

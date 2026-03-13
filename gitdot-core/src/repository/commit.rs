@@ -3,7 +3,7 @@ use chrono::{DateTime, Utc};
 use sqlx::{Error, PgPool};
 use uuid::Uuid;
 
-use crate::model::Commit;
+use crate::model::{Commit, CommitDiff};
 
 #[async_trait]
 pub trait CommitRepository: Send + Sync + Clone + 'static {
@@ -17,6 +17,7 @@ pub trait CommitRepository: Send + Sync + Clone + 'static {
         shas: &[String],
         messages: &[String],
         created_ats: &[DateTime<Utc>],
+        diffs: &[Vec<CommitDiff>],
     ) -> Result<Vec<Commit>, Error>;
 }
 
@@ -44,15 +45,21 @@ impl CommitRepository for CommitRepositoryImpl {
         shas: &[String],
         messages: &[String],
         created_ats: &[DateTime<Utc>],
+        diffs: &[Vec<CommitDiff>],
     ) -> Result<Vec<Commit>, Error> {
         if shas.is_empty() {
             return Ok(Vec::new());
         }
 
+        let diffs_json: Vec<serde_json::Value> = diffs
+            .iter()
+            .map(|d| serde_json::to_value(d).unwrap_or(serde_json::Value::Array(vec![])))
+            .collect();
+
         let rows = sqlx::query_as::<_, Commit>(
             r#"
-            INSERT INTO commits (author_id, git_author_name, git_author_email, repo_id, ref_name, sha, message, created_at)
-            SELECT * FROM UNNEST($1::uuid[], $2::text[], $3::text[], $4::uuid[], $5::varchar[], $6::varchar[], $7::text[], $8::timestamptz[])
+            INSERT INTO commits (author_id, git_author_name, git_author_email, repo_id, ref_name, sha, message, created_at, diffs)
+            SELECT * FROM UNNEST($1::uuid[], $2::text[], $3::text[], $4::uuid[], $5::varchar[], $6::varchar[], $7::text[], $8::timestamptz[], $9::jsonb[])
             RETURNING *
             "#,
         )
@@ -64,6 +71,7 @@ impl CommitRepository for CommitRepositoryImpl {
         .bind(shas)
         .bind(messages)
         .bind(created_ats)
+        .bind(diffs_json)
         .fetch_all(&self.pool)
         .await?;
 
