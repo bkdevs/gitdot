@@ -6,8 +6,12 @@ use uuid::Uuid;
 #[derive(Debug, Clone, FromRow)]
 pub struct Commit {
     pub id: Uuid,
-    pub author_id: Uuid,
     pub repo_id: Uuid,
+
+    pub author_id: Option<Uuid>,
+    pub git_author_name: String,
+    pub git_author_email: String,
+
     pub ref_name: String,
     pub sha: String,
     pub message: String,

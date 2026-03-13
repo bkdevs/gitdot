@@ -9,7 +9,9 @@ use crate::model::Commit;
 pub trait CommitRepository: Send + Sync + Clone + 'static {
     async fn create_bulk(
         &self,
-        author_ids: &[Uuid],
+        author_ids: &[Option<Uuid>],
+        git_author_names: &[String],
+        git_author_emails: &[String],
         repo_ids: &[Uuid],
         ref_names: &[String],
         shas: &[String],
@@ -34,25 +36,29 @@ impl CommitRepositoryImpl {
 impl CommitRepository for CommitRepositoryImpl {
     async fn create_bulk(
         &self,
-        author_ids: &[Uuid],
+        author_ids: &[Option<Uuid>],
+        git_author_names: &[String],
+        git_author_emails: &[String],
         repo_ids: &[Uuid],
         ref_names: &[String],
         shas: &[String],
         messages: &[String],
         created_ats: &[DateTime<Utc>],
     ) -> Result<Vec<Commit>, Error> {
-        if author_ids.is_empty() {
+        if shas.is_empty() {
             return Ok(Vec::new());
         }
 
         let rows = sqlx::query_as::<_, Commit>(
             r#"
-            INSERT INTO commits (author_id, repo_id, ref_name, sha, message, created_at)
-            SELECT * FROM UNNEST($1::uuid[], $2::uuid[], $3::varchar[], $4::varchar[], $5::text[], $6::timestamptz[])
-            RETURNING id, author_id, repo_id, ref_name, sha, message, created_at
+            INSERT INTO commits (author_id, git_author_name, git_author_email, repo_id, ref_name, sha, message, created_at)
+            SELECT * FROM UNNEST($1::uuid[], $2::text[], $3::text[], $4::uuid[], $5::varchar[], $6::varchar[], $7::text[], $8::timestamptz[])
+            RETURNING *
             "#,
         )
         .bind(author_ids)
+        .bind(git_author_names)
+        .bind(git_author_emails)
         .bind(repo_ids)
         .bind(ref_names)
         .bind(shas)

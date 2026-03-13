@@ -100,7 +100,9 @@ where
         let email_to_id: HashMap<String, Uuid> =
             users.into_iter().map(|u| (u.email.clone(), u.id)).collect();
 
-        let mut author_ids = Vec::new();
+        let mut author_ids: Vec<Option<Uuid>> = Vec::new();
+        let mut git_author_names = Vec::new();
+        let mut git_author_emails = Vec::new();
         let mut repo_ids = Vec::new();
         let mut ref_names = Vec::new();
         let mut shas = Vec::new();
@@ -108,24 +110,22 @@ where
         let mut created_ats: Vec<DateTime<Utc>> = Vec::new();
 
         for commit in git_commits {
-            // skip commit if corresponding gitdot user that matches the email is not found
-            if let Some(&author_id) = email_to_id.get(&commit.author.email) {
-                author_ids.push(author_id);
-                repo_ids.push(repo_id);
-                ref_names.push(request.ref_name.clone());
-                shas.push(commit.sha);
-                messages.push(commit.message);
-                created_ats.push(commit.date);
-            }
-        }
-        if author_ids.is_empty() {
-            return Ok(Vec::new());
+            author_ids.push(email_to_id.get(&commit.author.email).copied());
+            git_author_names.push(commit.author.name.clone());
+            git_author_emails.push(commit.author.email.clone());
+            repo_ids.push(repo_id);
+            ref_names.push(request.ref_name.clone());
+            shas.push(commit.sha);
+            messages.push(commit.message);
+            created_ats.push(commit.date);
         }
 
         let commits = self
             .commit_repo
             .create_bulk(
                 &author_ids,
+                &git_author_names,
+                &git_author_emails,
                 &repo_ids,
                 &ref_names,
                 &shas,

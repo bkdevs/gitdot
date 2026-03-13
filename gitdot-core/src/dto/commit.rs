@@ -10,7 +10,9 @@ pub use create_commits::CreateCommitsRequest;
 #[derive(Debug, Clone)]
 pub struct CommitResponse {
     pub id: Uuid,
-    pub author_id: Uuid,
+    pub author_id: Option<Uuid>,
+    pub git_author_name: String,
+    pub git_author_email: String,
     pub repo_id: Uuid,
     pub ref_name: String,
     pub sha: String,
@@ -23,6 +25,8 @@ impl From<Commit> for CommitResponse {
         Self {
             id: commit.id,
             author_id: commit.author_id,
+            git_author_name: commit.git_author_name,
+            git_author_email: commit.git_author_email,
             repo_id: commit.repo_id,
             ref_name: commit.ref_name,
             sha: commit.sha,
