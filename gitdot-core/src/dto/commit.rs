@@ -5,7 +5,11 @@ mod get_commits;
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
-use crate::model::{Commit, CommitDiff};
+use crate::model::{
+    Commit, CommitDiff, CommitDiffChange, CommitDiffLine, CommitDiffPair, CommitDiffSyntaxHighlight,
+};
+
+use super::{DiffChange, DiffLine, DiffPair, SyntaxHighlight};
 
 pub use create_commits::CreateCommitsRequest;
 pub use get_commit::GetCommitRequest;
@@ -29,6 +33,49 @@ pub struct CommitResponse {
 pub struct CommitsResponse {
     pub commits: Vec<CommitResponse>,
     pub has_next: bool,
+}
+
+impl From<DiffPair> for CommitDiffPair {
+    fn from(p: DiffPair) -> Self {
+        Self {
+            lhs: p.lhs.map(Into::into),
+            rhs: p.rhs.map(Into::into),
+        }
+    }
+}
+
+impl From<DiffLine> for CommitDiffLine {
+    fn from(l: DiffLine) -> Self {
+        Self {
+            line_number: l.line_number,
+            changes: l.changes.into_iter().map(Into::into).collect(),
+        }
+    }
+}
+
+impl From<DiffChange> for CommitDiffChange {
+    fn from(c: DiffChange) -> Self {
+        Self {
+            start: c.start,
+            end: c.end,
+            content: c.content,
+            highlight: c.highlight.into(),
+        }
+    }
+}
+
+impl From<SyntaxHighlight> for CommitDiffSyntaxHighlight {
+    fn from(h: SyntaxHighlight) -> Self {
+        match h {
+            SyntaxHighlight::Delimiter => Self::Delimiter,
+            SyntaxHighlight::Normal => Self::Normal,
+            SyntaxHighlight::String => Self::String,
+            SyntaxHighlight::Type => Self::Type,
+            SyntaxHighlight::Comment => Self::Comment,
+            SyntaxHighlight::Keyword => Self::Keyword,
+            SyntaxHighlight::TreeSitterError => Self::TreeSitterError,
+        }
+    }
 }
 
 impl From<Commit> for CommitResponse {

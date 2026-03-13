@@ -355,16 +355,12 @@ where
             .await
             .map_err(RepositoryError::from)?;
 
-        let parent_sha = commit
-            .parent_sha
-            .unwrap_or(crate::util::git::EMPTY_TREE_REF.to_string());
-
         let file_pairs = self
             .git_client
             .get_repo_diff_files(
                 &request.owner_name,
                 &request.name,
-                &parent_sha,
+                commit.parent_sha.as_deref(),
                 &request.ref_name,
             )
             .await?;

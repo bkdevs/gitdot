@@ -139,6 +139,7 @@ impl AppState {
                 repo_repo.clone(),
                 user_repo.clone(),
                 git_client.clone(),
+                diff_client.clone(),
             )),
             migration_service: Arc::new(MigrationServiceImpl::new(
                 git_client.clone(),

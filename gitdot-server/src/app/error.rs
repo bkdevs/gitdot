@@ -165,6 +165,7 @@ impl IntoResponse for AppError {
                     CommitError::RepositoryNotFound(_) => StatusCode::NOT_FOUND,
                     CommitError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                     CommitError::GitError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+                    CommitError::DiffError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                 };
                 let response = AppResponse::new(
                     status_code,

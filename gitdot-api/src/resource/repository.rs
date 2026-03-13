@@ -93,6 +93,7 @@ pub struct RepositoryCommitStatResource {
     pub path: String,
     pub lines_added: u32,
     pub lines_removed: u32,
+    pub hunks: Vec<DiffHunkResource>,
 }
 
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

@@ -1,11 +1,14 @@
 use gitdot_api::resource::repository as api;
-use gitdot_core::dto::{
-    CommitAuthorResponse, CommitResponse, CommitsResponse, DiffChange, DiffLine, DiffPair,
-    FilePreview, PathType, RepositoryBlobResponse, RepositoryBlobsResponse,
-    RepositoryCommitDiffResponse, RepositoryCommitResponse, RepositoryCommitsResponse,
-    RepositoryDiffResponse, RepositoryFileResponse, RepositoryFolderResponse, RepositoryPath,
-    RepositoryPathsResponse, RepositoryPreviewEntry, RepositoryPreviewResponse, RepositoryResponse,
-    SyntaxHighlight,
+use gitdot_core::{
+    dto::{
+        CommitAuthorResponse, CommitResponse, CommitsResponse, DiffChange, DiffLine, DiffPair,
+        FilePreview, PathType, RepositoryBlobResponse, RepositoryBlobsResponse,
+        RepositoryCommitDiffResponse, RepositoryCommitResponse, RepositoryCommitsResponse,
+        RepositoryDiffResponse, RepositoryFileResponse, RepositoryFolderResponse, RepositoryPath,
+        RepositoryPathsResponse, RepositoryPreviewEntry, RepositoryPreviewResponse,
+        RepositoryResponse, SyntaxHighlight,
+    },
+    model::{CommitDiffChange, CommitDiffLine, CommitDiffPair, CommitDiffSyntaxHighlight},
 };
 
 use super::IntoApi;
@@ -64,6 +67,7 @@ impl IntoApi for CommitResponse {
                     path: d.path,
                     lines_added: d.lines_added as u32,
                     lines_removed: d.lines_removed as u32,
+                    hunks: d.hunks.into_iter().map(|h| h.into_api()).collect(),
                 })
                 .collect(),
         }
@@ -274,6 +278,53 @@ impl IntoApi for SyntaxHighlight {
             SyntaxHighlight::Comment => api::SyntaxHighlight::Comment,
             SyntaxHighlight::Keyword => api::SyntaxHighlight::Keyword,
             SyntaxHighlight::TreeSitterError => api::SyntaxHighlight::TreeSitterError,
+        }
+    }
+}
+
+impl IntoApi for CommitDiffPair {
+    type ApiType = api::DiffPairResource;
+    fn into_api(self) -> Self::ApiType {
+        api::DiffPairResource {
+            lhs: self.lhs.into_api(),
+            rhs: self.rhs.into_api(),
+        }
+    }
+}
+
+impl IntoApi for CommitDiffLine {
+    type ApiType = api::DiffLineResource;
+    fn into_api(self) -> Self::ApiType {
+        api::DiffLineResource {
+            line_number: self.line_number,
+            changes: self.changes.into_api(),
+        }
+    }
+}
+
+impl IntoApi for CommitDiffChange {
+    type ApiType = api::DiffChangeResource;
+    fn into_api(self) -> Self::ApiType {
+        api::DiffChangeResource {
+            start: self.start,
+            end: self.end,
+            content: self.content,
+            highlight: self.highlight.into_api(),
+        }
+    }
+}
+
+impl IntoApi for CommitDiffSyntaxHighlight {
+    type ApiType = api::SyntaxHighlight;
+    fn into_api(self) -> Self::ApiType {
+        match self {
+            CommitDiffSyntaxHighlight::Delimiter => api::SyntaxHighlight::Delimiter,
+            CommitDiffSyntaxHighlight::Normal => api::SyntaxHighlight::Normal,
+            CommitDiffSyntaxHighlight::String => api::SyntaxHighlight::String,
+            CommitDiffSyntaxHighlight::Type => api::SyntaxHighlight::Type,
+            CommitDiffSyntaxHighlight::Comment => api::SyntaxHighlight::Comment,
+            CommitDiffSyntaxHighlight::Keyword => api::SyntaxHighlight::Keyword,
+            CommitDiffSyntaxHighlight::TreeSitterError => api::SyntaxHighlight::TreeSitterError,
         }
     }
 }

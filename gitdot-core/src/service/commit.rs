@@ -5,7 +5,7 @@ use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
 use crate::{
-    client::{Git2Client, GitClient},
+    client::{DiffClient, DifftClient, Git2Client, GitClient},
     dto::{
         CommitResponse, CommitsResponse, CreateCommitsRequest, GetCommitRequest, GetCommitsRequest,
     },
@@ -15,7 +15,6 @@ use crate::{
         CommitRepository, CommitRepositoryImpl, RepositoryRepository, RepositoryRepositoryImpl,
         UserRepository, UserRepositoryImpl,
     },
-    util::git::EMPTY_TREE_REF,
 };
 
 #[async_trait]
@@ -32,17 +31,19 @@ pub trait CommitService: Send + Sync + 'static {
 }
 
 #[derive(Debug, Clone)]
-pub struct CommitServiceImpl<C, R, U, G>
+pub struct CommitServiceImpl<C, R, U, G, D>
 where
     C: CommitRepository,
     R: RepositoryRepository,
     U: UserRepository,
     G: GitClient,
+    D: DiffClient,
 {
     commit_repo: C,
     repo_repo: R,
     user_repo: U,
     git_client: G,
+    diff_client: D,
 }
 
 impl
@@ -51,6 +52,7 @@ impl
         RepositoryRepositoryImpl,
         UserRepositoryImpl,
         Git2Client,
+        DifftClient,
     >
 {
     pub fn new(
@@ -58,24 +60,27 @@ impl
         repo_repo: RepositoryRepositoryImpl,
         user_repo: UserRepositoryImpl,
         git_client: Git2Client,
+        diff_client: DifftClient,
     ) -> Self {
         Self {
             commit_repo,
             repo_repo,
             user_repo,
             git_client,
+            diff_client,
         }
     }
 }
 
 #[crate::instrument_all]
 #[async_trait]
-impl<C, R, U, G> CommitService for CommitServiceImpl<C, R, U, G>
+impl<C, R, U, G, D> CommitService for CommitServiceImpl<C, R, U, G, D>
 where
     C: CommitRepository,
     R: RepositoryRepository,
     U: UserRepository,
     G: GitClient,
+    D: DiffClient,
 {
     async fn get_commit(&self, request: GetCommitRequest) -> Result<CommitResponse, CommitError> {
         let owner = request.owner.to_string();
@@ -165,19 +170,32 @@ where
         let mut diffs_per_commit: Vec<Vec<model::CommitDiff>> = Vec::new();
 
         for commit in &git_commits {
-            let left_ref = commit.parent_sha.as_deref().unwrap_or(EMPTY_TREE_REF);
-            let stats = self
+            let diff_files = self
                 .git_client
-                .get_repo_diff_stats(&owner, &repo_name, left_ref, &commit.sha)
+                .get_repo_diff_files(&owner, &repo_name, commit.parent_sha.as_deref(), &commit.sha)
                 .await?;
-            let diffs = stats
-                .into_iter()
-                .map(|s| model::CommitDiff {
-                    path: s.path,
-                    lines_added: s.lines_added as i32,
-                    lines_removed: s.lines_removed as i32,
-                })
-                .collect();
+            let mut diffs = Vec::new();
+            for (left, right) in diff_files {
+                let path = right
+                    .as_ref()
+                    .or(left.as_ref())
+                    .map(|f| f.path.clone())
+                    .unwrap_or_default();
+                let diff = self
+                    .diff_client
+                    .diff_files(left.as_ref(), right.as_ref())
+                    .await?;
+                diffs.push(model::CommitDiff {
+                    path,
+                    lines_added: diff.lines_added as i32,
+                    lines_removed: diff.lines_removed as i32,
+                    hunks: diff
+                        .hunks
+                        .into_iter()
+                        .map(|hunk| hunk.into_iter().map(Into::into).collect())
+                        .collect(),
+                });
+            }
             diffs_per_commit.push(diffs);
         }
 
