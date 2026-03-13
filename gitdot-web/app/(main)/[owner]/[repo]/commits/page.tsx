@@ -1,4 +1,5 @@
 import { CommitsClient } from "./ui/commits-client";
+import { Suspense } from "react";
 
 export default async function Page({
   params,
@@ -6,5 +7,7 @@ export default async function Page({
   params: Promise<{ owner: string; repo: string }>;
 }) {
   const { owner, repo } = await params;
-  return <CommitsClient owner={owner} repo={repo} />;
+  return <Suspense>
+    <CommitsClient owner={owner} repo={repo} />
+  </Suspense>
 }
