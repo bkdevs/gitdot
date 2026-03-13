@@ -1,0 +1,75 @@
+import { z } from "zod";
+
+export const ReviewAuthorResource = z.object({
+  id: z.uuid(),
+  name: z.string(),
+});
+export type ReviewAuthorResource = z.infer<typeof ReviewAuthorResource>;
+
+export const RevisionResource = z.object({
+  id: z.uuid(),
+  diff_id: z.uuid(),
+  number: z.number().int(),
+  commit_hash: z.string(),
+  created_at: z.iso.datetime(),
+});
+export type RevisionResource = z.infer<typeof RevisionResource>;
+
+export const DiffResource = z.object({
+  id: z.uuid(),
+  review_id: z.uuid(),
+  position: z.number().int(),
+  title: z.string(),
+  description: z.string(),
+  status: z.string(),
+  created_at: z.iso.datetime(),
+  updated_at: z.iso.datetime(),
+  revisions: z.array(RevisionResource),
+});
+export type DiffResource = z.infer<typeof DiffResource>;
+
+export const ReviewerResource = z.object({
+  id: z.uuid(),
+  review_id: z.uuid(),
+  reviewer_id: z.uuid(),
+  status: z.string(),
+  created_at: z.iso.datetime(),
+  user: ReviewAuthorResource.nullable(),
+});
+export type ReviewerResource = z.infer<typeof ReviewerResource>;
+
+export const ReviewCommentResource = z.object({
+  id: z.uuid(),
+  review_id: z.uuid(),
+  diff_id: z.uuid().nullable(),
+  revision_id: z.uuid().nullable(),
+  author_id: z.uuid(),
+  parent_id: z.uuid().nullable(),
+  body: z.string(),
+  file_path: z.string().nullable(),
+  line_number: z.number().int().nullable(),
+  side: z.string().nullable(),
+  resolved: z.boolean(),
+  created_at: z.iso.datetime(),
+  updated_at: z.iso.datetime(),
+  author: ReviewAuthorResource.nullable(),
+});
+export type ReviewCommentResource = z.infer<typeof ReviewCommentResource>;
+
+export const ReviewResource = z.object({
+  id: z.uuid(),
+  number: z.number().int(),
+  author_id: z.uuid(),
+  repository_id: z.uuid(),
+  title: z.string(),
+  description: z.string(),
+  target_branch: z.string(),
+  status: z.string(),
+  created_at: z.iso.datetime(),
+  updated_at: z.iso.datetime(),
+  author: ReviewAuthorResource.nullable(),
+  diffs: z.array(DiffResource),
+  reviewers: z.array(ReviewerResource),
+  comments: z.array(ReviewCommentResource),
+});
+export type ReviewResource = z.infer<typeof ReviewResource>;
