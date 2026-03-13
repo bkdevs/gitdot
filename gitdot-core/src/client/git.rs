@@ -120,6 +120,13 @@ pub trait GitClient: Send + Sync + Clone + 'static {
         new_sha: &str,
     ) -> Result<Vec<RepositoryCommitResponse>, GitError>;
 
+    async fn resolve_ref_sha(
+        &self,
+        owner: &str,
+        repo: &str,
+        ref_name: &str,
+    ) -> Result<String, GitError>;
+
     async fn install_hook(
         &self,
         owner: &str,
@@ -929,6 +936,22 @@ impl GitClient for Git2Client {
             }
 
             Ok(commits)
+        })
+        .await?
+    }
+
+    async fn resolve_ref_sha(
+        &self,
+        owner: &str,
+        repo: &str,
+        ref_name: &str,
+    ) -> Result<String, GitError> {
+        let ref_name = ref_name.to_string();
+        let repository = self.open_repository(owner, repo)?;
+
+        task::spawn_blocking(move || {
+            let commit = Self::resolve_ref(&repository, &ref_name)?;
+            Ok(commit.id().to_string())
         })
         .await?
     }
