@@ -1,4 +1,5 @@
 mod process_post_receive;
+mod process_review;
 
 use std::{net::SocketAddr, time::Duration};
 
@@ -20,12 +21,17 @@ use tower_http::{
 use crate::app::AppState;
 
 use process_post_receive::process_post_receive;
+use process_review::process_review;
 
 pub fn create_internal_router() -> Router<AppState> {
     Router::new()
         .route(
             "/internal/{owner}/{repo}/process-post-receive",
             post(process_post_receive),
+        )
+        .route(
+            "/internal/{owner}/{repo}/process-review",
+            post(process_review),
         )
         .layer(middleware::from_fn(require_localhost))
         .layer(SetRequestIdLayer::x_request_id(MakeRequestUuid))

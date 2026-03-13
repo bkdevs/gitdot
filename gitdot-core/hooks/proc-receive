@@ -3,7 +3,10 @@
 # proc-receive script
 # https://git-scm.com/docs/githooks/2.30.1#proc-receive
 
+import json
+import os
 import sys
+import urllib.request
 
 
 def read_pkt_line():
@@ -50,14 +53,36 @@ while True:
     updates.append(line)
 
 # Step 5: Process updates and send results
+abs_git_dir = os.path.realpath(os.environ["GIT_DIR"])
+repo_dir = os.path.basename(abs_git_dir).removesuffix(".git")
+owner_dir = os.path.basename(os.path.dirname(abs_git_dir))
+pusher_id = os.environ["GITDOT_PUSHER_ID"]
 for update in updates:
     parts = update.split(" ")
     old_oid, new_oid, ref = parts[0], parts[1], parts[2]
 
     if ref.startswith("refs/for/"):
-        # TODO: call create review API here
+        payload = json.dumps(
+            {
+                "ref_name": ref,
+                "new_sha": new_oid,
+                "pusher_id": pusher_id,
+            }
+        ).encode("utf-8")
 
-        write_pkt_line(f"ok {ref}")
+        url = f"http://127.0.0.1:8080/internal/{owner_dir}/{repo_dir}/process-review"
+        req = urllib.request.Request(
+            url, data=payload, headers={"Content-Type": "application/json"}
+        )
+        try:
+            with urllib.request.urlopen(req) as resp:
+                result = json.loads(resp.read())
+
+            review_number = result["review_number"]
+            print(f"review #{review_number} created", file=sys.stderr)
+            write_pkt_line(f"ok {ref}")
+        except Exception:
+            write_pkt_line(f"ng {ref} failed to process review")
     else:
         write_pkt_line(f"ng {ref} not-handled")
 
