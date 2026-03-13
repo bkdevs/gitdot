@@ -20,7 +20,7 @@ use crate::{
         OrganizationRepository, OrganizationRepositoryImpl, RepositoryRepository,
         RepositoryRepositoryImpl, UserRepository, UserRepositoryImpl,
     },
-    util::git::{GitHookType, POST_RECEIVE_SCRIPT, PRE_RECEIVE_SCRIPT},
+    util::git::{GitHookType, POST_RECEIVE_SCRIPT, PRE_RECEIVE_SCRIPT, PROC_RECEIVE_SCRIPT},
 };
 
 #[async_trait]
@@ -217,6 +217,14 @@ where
                 &repo_name,
                 GitHookType::PostReceive,
                 POST_RECEIVE_SCRIPT,
+            )
+            .await?;
+        self.git_client
+            .install_hook(
+                &request.owner_name,
+                &repo_name,
+                GitHookType::ProcReceive,
+                PROC_RECEIVE_SCRIPT,
             )
             .await?;
 

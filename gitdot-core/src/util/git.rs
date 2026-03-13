@@ -6,12 +6,14 @@ pub const DEFAULT_PREVIEW_LINES: u32 = 100;
 /// include git hook scripts in the binary during compilation
 pub const PRE_RECEIVE_SCRIPT: &str = include_str!("../../hooks/pre-receive");
 pub const POST_RECEIVE_SCRIPT: &str = include_str!("../../hooks/post-receive");
+pub const PROC_RECEIVE_SCRIPT: &str = include_str!("../../hooks/proc-receive");
 
 /// server-side git hook types
 #[derive(Debug)]
 pub enum GitHookType {
     PreReceive,
     PostReceive,
+    ProcReceive,
     Update,
 }
 
@@ -20,6 +22,7 @@ impl GitHookType {
         match self {
             GitHookType::PreReceive => "pre-receive",
             GitHookType::PostReceive => "post-receive",
+            GitHookType::ProcReceive => "proc-receive",
             GitHookType::Update => "update",
         }
     }

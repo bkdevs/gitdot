@@ -11,7 +11,10 @@ use crate::{
         RepositoryTreeEntry, RepositoryTreeResponse,
     },
     error::GitError,
-    util::git::{DEFAULT_BRANCH, EMPTY_TREE_REF, GitHookType, REPO_SUFFIX},
+    util::{
+        git::{DEFAULT_BRANCH, EMPTY_TREE_REF, GitHookType, REPO_SUFFIX},
+        review::MAGIC_REF_PREFIX,
+    },
 };
 
 #[async_trait]
@@ -528,10 +531,13 @@ impl GitClient for Git2Client {
         task::spawn_blocking(move || -> Result<(), git2::Error> {
             let repo = git2::Repository::init_bare(&repo_path_clone)?;
             repo.set_head(&format!("refs/heads/{}", DEFAULT_BRANCH))?;
+            let mut config = repo.config()?;
 
             // Configure the repository for HTTP access
-            let mut config = repo.config()?;
             config.set_bool("http.receivepack", true)?;
+
+            // Configure the magic ref to handle review creation via proc-receive hook
+            config.set_str("receive.procReceiveRefs", MAGIC_REF_PREFIX)?;
 
             Ok(())
         })
@@ -570,12 +576,16 @@ impl GitClient for Git2Client {
             ))));
         }
 
-        // Configure the repository for HTTP access
         let repo_path_clone = repo_path.clone();
         task::spawn_blocking(move || -> Result<(), git2::Error> {
             let repo = git2::Repository::open_bare(&repo_path_clone)?;
             let mut config = repo.config()?;
+
+            // Configure the repository for HTTP access
             config.set_bool("http.receivepack", true)?;
+
+            // Configure the magic ref to handle review creation via proc-receive hook
+            config.set_str("receive.procReceiveRefs", MAGIC_REF_PREFIX)?;
             Ok(())
         })
         .await??;
