@@ -1,6 +1,6 @@
 import type { ReviewResource } from "gitdot-api";
 import Link from "@/ui/link";
-import { pluralize, timeAgo } from "@/util";
+import { timeAgo } from "@/util";
 
 export function ReviewRow({
   owner,
@@ -30,8 +30,6 @@ export function ReviewRow({
           <span>{review.status}</span>
           <span>•</span>
           <span>{review.target_branch}</span>
-          <span>•</span>
-          {pluralize(review.diffs.length, "diff")}
         </div>
       </div>
     </Link>
