@@ -33,6 +33,8 @@ export function RepoSidebar({
       path.startsWith("/commits") ||
       path === "/questions" ||
       path.startsWith("/questions/") ||
+      path === "/reviews" ||
+      path.startsWith("/reviews/") ||
       path === "/builds" ||
       path.startsWith("/builds/") ||
       path === "/settings" ||

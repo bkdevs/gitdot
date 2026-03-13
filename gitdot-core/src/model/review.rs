@@ -33,6 +33,7 @@ pub struct Review {
 
 #[derive(Debug, Clone, PartialEq, Eq, Type, Serialize, Deserialize)]
 #[sqlx(type_name = "review_status", rename_all = "lowercase")]
+#[serde(rename_all = "lowercase")]
 pub enum ReviewStatus {
     Draft,
     Open,
@@ -58,6 +59,7 @@ pub struct Diff {
 
 #[derive(Debug, Clone, PartialEq, Eq, Type, Serialize, Deserialize)]
 #[sqlx(type_name = "diff_status", rename_all = "lowercase")]
+#[serde(rename_all = "lowercase")]
 pub enum DiffStatus {
     Open,
     ChangesRequested,
@@ -88,6 +90,7 @@ pub struct Reviewer {
 
 #[derive(Debug, Clone, PartialEq, Eq, Type, Serialize, Deserialize)]
 #[sqlx(type_name = "reviewer_status", rename_all = "lowercase")]
+#[serde(rename_all = "lowercase")]
 pub enum ReviewerStatus {
     Pending,
     ChangesRequested,
@@ -119,6 +122,7 @@ pub struct ReviewComment {
 
 #[derive(Debug, Clone, PartialEq, Eq, Type, Serialize, Deserialize)]
 #[sqlx(type_name = "comment_side", rename_all = "lowercase")]
+#[serde(rename_all = "lowercase")]
 pub enum CommentSide {
     Old,
     New,
