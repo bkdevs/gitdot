@@ -1,12 +1,11 @@
 use gitdot_api::resource::repository as api;
 use gitdot_core::{
     dto::{
-        CommitAuthorResponse, CommitResponse, CommitsResponse, DiffChange, DiffLine, DiffPair,
-        FilePreview, PathType, RepositoryBlobResponse, RepositoryBlobsResponse,
-        RepositoryCommitDiffResponse, RepositoryCommitResponse, RepositoryCommitsResponse,
-        RepositoryDiffResponse, RepositoryFileResponse, RepositoryFolderResponse, RepositoryPath,
-        RepositoryPathsResponse, RepositoryPreviewEntry, RepositoryPreviewResponse,
-        RepositoryResponse, SyntaxHighlight,
+        CommitAuthorResponse, CommitResponse, CommitsResponse, FilePreview, PathType,
+        RepositoryBlobResponse, RepositoryBlobsResponse, RepositoryCommitResponse,
+        RepositoryCommitsResponse, RepositoryFileResponse, RepositoryFolderResponse,
+        RepositoryPath, RepositoryPathsResponse, RepositoryPreviewEntry, RepositoryPreviewResponse,
+        RepositoryResponse,
     },
     model::{CommitDiffChange, CommitDiffLine, CommitDiffPair, CommitDiffSyntaxHighlight},
 };
@@ -209,75 +208,6 @@ impl IntoApi for PathType {
             PathType::Tree => api::PathType::Tree,
             PathType::Commit => api::PathType::Commit,
             PathType::Unknown => api::PathType::Unknown,
-        }
-    }
-}
-
-impl IntoApi for RepositoryCommitDiffResponse {
-    type ApiType = api::RepositoryCommitDiffResource;
-    fn into_api(self) -> Self::ApiType {
-        api::RepositoryCommitDiffResource {
-            diff: self.diff.into_api(),
-            left: self.left.into_api(),
-            right: self.right.into_api(),
-        }
-    }
-}
-
-impl IntoApi for RepositoryDiffResponse {
-    type ApiType = api::RepositoryDiffResource;
-    fn into_api(self) -> Self::ApiType {
-        api::RepositoryDiffResource {
-            lines_added: self.lines_added,
-            lines_removed: self.lines_removed,
-            hunks: self.hunks.into_iter().map(|hunk| hunk.into_api()).collect(),
-        }
-    }
-}
-
-impl IntoApi for DiffPair {
-    type ApiType = api::DiffPairResource;
-    fn into_api(self) -> Self::ApiType {
-        api::DiffPairResource {
-            lhs: self.lhs.into_api(),
-            rhs: self.rhs.into_api(),
-        }
-    }
-}
-
-impl IntoApi for DiffLine {
-    type ApiType = api::DiffLineResource;
-    fn into_api(self) -> Self::ApiType {
-        api::DiffLineResource {
-            line_number: self.line_number,
-            changes: self.changes.into_api(),
-        }
-    }
-}
-
-impl IntoApi for DiffChange {
-    type ApiType = api::DiffChangeResource;
-    fn into_api(self) -> Self::ApiType {
-        api::DiffChangeResource {
-            start: self.start,
-            end: self.end,
-            content: self.content,
-            highlight: self.highlight.into_api(),
-        }
-    }
-}
-
-impl IntoApi for SyntaxHighlight {
-    type ApiType = api::SyntaxHighlight;
-    fn into_api(self) -> Self::ApiType {
-        match self {
-            SyntaxHighlight::Delimiter => api::SyntaxHighlight::Delimiter,
-            SyntaxHighlight::Normal => api::SyntaxHighlight::Normal,
-            SyntaxHighlight::String => api::SyntaxHighlight::String,
-            SyntaxHighlight::Type => api::SyntaxHighlight::Type,
-            SyntaxHighlight::Comment => api::SyntaxHighlight::Comment,
-            SyntaxHighlight::Keyword => api::SyntaxHighlight::Keyword,
-            SyntaxHighlight::TreeSitterError => api::SyntaxHighlight::TreeSitterError,
         }
     }
 }

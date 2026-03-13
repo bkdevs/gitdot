@@ -1,5 +1,5 @@
+import type { RepositoryCommitStatResource } from "gitdot-api";
 import { Suspense } from "react";
-import { getRepositoryCommitDiff } from "@/dal";
 import { DiffBody } from "./diff-body";
 import { DiffFileClient } from "./diff-file-client";
 
@@ -7,70 +7,97 @@ import { DiffFileClient } from "./diff-file-client";
  * we do the optional suspense to avoid the "loading" flicker for short loads, in which case
  * we just block the original page load instead.
  */
-export async function CommitBody({
+export function CommitBody({
   owner,
   repo,
   sha,
+  parentSha,
+  diffs,
   useSuspense,
 }: {
   owner: string;
   repo: string;
   sha: string;
+  parentSha: string | undefined;
+  diffs: RepositoryCommitStatResource[];
   useSuspense: boolean;
 }) {
   return useSuspense ? (
     <CommitSuspense>
-      <CommitBodyContent owner={owner} repo={repo} sha={sha} />
+      <CommitBodyContent
+        owner={owner}
+        repo={repo}
+        sha={sha}
+        parentSha={parentSha}
+        diffs={diffs}
+      />
     </CommitSuspense>
   ) : (
-    <CommitBodyContent owner={owner} repo={repo} sha={sha} />
+    <CommitBodyContent
+      owner={owner}
+      repo={repo}
+      sha={sha}
+      parentSha={parentSha}
+      diffs={diffs}
+    />
   );
 }
 
-async function CommitBodyContent({
+function CommitBodyContent({
   owner,
   repo,
   sha,
+  parentSha,
+  diffs,
 }: {
   owner: string;
   repo: string;
   sha: string;
+  parentSha: string | undefined;
+  diffs: RepositoryCommitStatResource[];
 }) {
-  const diffs = await getRepositoryCommitDiff(owner, repo, sha);
-  if (!diffs) return null;
-
   return (
     <div className="flex flex-col">
-      {diffs.slice(0, 3).map((diff) => {
-        const key = diff.left?.path || diff.right?.path;
-        return (
-          <DiffFileClient
-            key={key}
-            leftPath={diff.left?.path}
-            rightPath={diff.right?.path}
-            linesAdded={diff.diff.lines_added}
-            linesRemoved={diff.diff.lines_removed}
-          >
-            <DiffBody diff={diff} />
-          </DiffFileClient>
-        );
-      })}
+      {diffs.slice(0, 3).map((stat) => (
+        <DiffFileClient
+          key={stat.path}
+          leftPath={stat.path}
+          rightPath={stat.path}
+          linesAdded={stat.lines_added}
+          linesRemoved={stat.lines_removed}
+        >
+          <CommitSuspense>
+            <DiffBody
+              stat={stat}
+              owner={owner}
+              repo={repo}
+              sha={sha}
+              parentSha={parentSha}
+            />
+          </CommitSuspense>
+        </DiffFileClient>
+      ))}
       {/* also use suspense to render large lists in two blocks, first three files for atf, and then after for btf */}
       <CommitSuspense>
-        {diffs.slice(3).map((diff) => {
-          const key = diff.left?.path || diff.right?.path;
-          return (
-            <DiffFileClient
-              key={key}
-              leftPath={diff.left?.path}
-              rightPath={diff.right?.path}
-              linesAdded={diff.diff.lines_added}
-              linesRemoved={diff.diff.lines_removed}
-            >
-              <DiffBody diff={diff} />
-            </DiffFileClient>
-          );
-        })}
+        {diffs.slice(3).map((stat) => (
+          <DiffFileClient
+            key={stat.path}
+            leftPath={stat.path}
+            rightPath={stat.path}
+            linesAdded={stat.lines_added}
+            linesRemoved={stat.lines_removed}
+          >
+            <CommitSuspense>
+              <DiffBody
+                stat={stat}
+                owner={owner}
+                repo={repo}
+                sha={sha}
+                parentSha={parentSha}
+              />
+            </CommitSuspense>
+          </DiffFileClient>
+        ))}
       </CommitSuspense>
     </div>
   );

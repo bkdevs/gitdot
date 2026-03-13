@@ -12,7 +12,6 @@ pub trait CommitRepository: Send + Sync + Clone + 'static {
     async fn get_commits(
         &self,
         repo_id: Uuid,
-        ref_name: &str,
         page: u32,
         per_page: u32,
     ) -> Result<Vec<Commit>, Error>;
@@ -61,7 +60,6 @@ impl CommitRepository for CommitRepositoryImpl {
     async fn get_commits(
         &self,
         repo_id: Uuid,
-        ref_name: &str,
         page: u32,
         per_page: u32,
     ) -> Result<Vec<Commit>, Error> {
@@ -69,13 +67,12 @@ impl CommitRepository for CommitRepositoryImpl {
         let rows = sqlx::query_as::<_, Commit>(
             r#"
             SELECT * FROM commits
-            WHERE repo_id = $1 AND ref_name = $2
+            WHERE repo_id = $1
             ORDER BY created_at DESC
-            LIMIT $3 OFFSET $4
+            LIMIT $2 OFFSET $3
             "#,
         )
         .bind(repo_id)
-        .bind(ref_name)
         .bind(per_page as i64)
         .bind(offset as i64)
         .fetch_all(&self.pool)

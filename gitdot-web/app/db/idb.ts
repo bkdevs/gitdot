@@ -16,7 +16,6 @@ export async function openIdb(): Promise<Database> {
     upgrade(db) {
       if (!db.objectStoreNames.contains("commits"))
         db.createObjectStore("commits");
-      if (!db.objectStoreNames.contains("tree")) db.createObjectStore("tree");
       if (!db.objectStoreNames.contains("preview"))
         db.createObjectStore("preview");
       if (!db.objectStoreNames.contains("paths")) db.createObjectStore("paths");

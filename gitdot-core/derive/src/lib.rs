@@ -1,9 +1,9 @@
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{
-    Attribute, ImplItem, ItemImpl, LitStr, MetaNameValue, ReturnType, Type, parse_macro_input,
-    parse_quote,
+    Attribute, ImplItem, ItemImpl, LitStr, MetaNameValue, ReturnType, Type,
     parse::{Parse, ParseStream},
+    parse_macro_input, parse_quote,
 };
 
 struct InstrumentArgs {
@@ -20,7 +20,10 @@ impl Parse for InstrumentArgs {
             return Err(syn::Error::new_spanned(&meta.path, "expected `level`"));
         }
         let level = match &meta.value {
-            syn::Expr::Lit(syn::ExprLit { lit: syn::Lit::Str(s), .. }) => Some(s.clone()),
+            syn::Expr::Lit(syn::ExprLit {
+                lit: syn::Lit::Str(s),
+                ..
+            }) => Some(s.clone()),
             other => return Err(syn::Error::new_spanned(other, "expected string literal")),
         };
         Ok(InstrumentArgs { level })
@@ -38,7 +41,9 @@ pub fn instrument_all(args: TokenStream, input: TokenStream) -> TokenStream {
                 continue;
             }
             let attr: Attribute = match (&level, return_type_is_result(&method.sig.output)) {
-                (Some(lvl), true) => parse_quote!(#[tracing::instrument(level = #lvl, skip_all, err)]),
+                (Some(lvl), true) => {
+                    parse_quote!(#[tracing::instrument(level = #lvl, skip_all, err)])
+                }
                 (Some(lvl), false) => parse_quote!(#[tracing::instrument(level = #lvl, skip_all)]),
                 (None, true) => parse_quote!(#[tracing::instrument(skip_all, err)]),
                 (None, false) => parse_quote!(#[tracing::instrument(skip_all)]),

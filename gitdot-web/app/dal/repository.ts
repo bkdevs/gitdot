@@ -10,14 +10,12 @@ import {
   type GetRepositoryPreviewRequest,
   RepositoryBlobResource,
   RepositoryBlobsResource,
-  RepositoryCommitDiffResource,
   RepositoryCommitResource,
   RepositoryCommitsResource,
   RepositoryPathsResource,
   RepositoryPreviewResource,
   RepositoryResource,
 } from "gitdot-api";
-import { z } from "zod";
 import { toQueryString } from "@/util";
 import {
   authDelete,
@@ -89,18 +87,6 @@ export async function getRepositoryCommit(
   );
 
   return await handleResponse(response, RepositoryCommitResource);
-}
-
-export async function getRepositoryCommitDiff(
-  owner: string,
-  repo: string,
-  sha: string,
-): Promise<RepositoryCommitDiffResource[] | null> {
-  const response = await authFetch(
-    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/commits/${sha}/diff`,
-  );
-
-  return await handleResponse(response, z.array(RepositoryCommitDiffResource));
 }
 
 export async function getRepositoryPreview(

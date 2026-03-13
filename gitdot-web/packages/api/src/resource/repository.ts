@@ -34,13 +34,6 @@ export type DiffPairResource = z.infer<typeof DiffPairResource>;
 export const DiffHunkResource = z.array(DiffPairResource);
 export type DiffHunkResource = z.infer<typeof DiffHunkResource>;
 
-export const RepositoryDiffResource = z.object({
-  lines_added: z.number().int(),
-  lines_removed: z.number().int(),
-  hunks: z.array(DiffHunkResource),
-});
-export type RepositoryDiffResource = z.infer<typeof RepositoryDiffResource>;
-
 export const RepositoryFileResource = z.object({
   path: z.string(),
   sha: z.string(),
@@ -48,15 +41,6 @@ export const RepositoryFileResource = z.object({
   encoding: z.string(),
 });
 export type RepositoryFileResource = z.infer<typeof RepositoryFileResource>;
-
-export const RepositoryCommitDiffResource = z.object({
-  diff: RepositoryDiffResource,
-  left: RepositoryFileResource.nullable(),
-  right: RepositoryFileResource.nullable(),
-});
-export type RepositoryCommitDiffResource = z.infer<
-  typeof RepositoryCommitDiffResource
->;
 
 export const CommitAuthorResource = z.object({
   id: z.uuid().optional(),
@@ -69,6 +53,7 @@ export const RepositoryCommitStatResource = z.object({
   path: z.string(),
   lines_added: z.number().int(),
   lines_removed: z.number().int(),
+  hunks: z.array(DiffHunkResource),
 });
 export type RepositoryCommitStatResource = z.infer<
   typeof RepositoryCommitStatResource

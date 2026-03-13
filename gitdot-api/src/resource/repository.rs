@@ -96,20 +96,6 @@ pub struct RepositoryCommitStatResource {
     pub hunks: Vec<DiffHunkResource>,
 }
 
-#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct RepositoryCommitDiffResource {
-    pub diff: RepositoryDiffResource,
-    pub left: Option<RepositoryFileResource>,
-    pub right: Option<RepositoryFileResource>,
-}
-
-#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct RepositoryDiffResource {
-    pub lines_added: u32,
-    pub lines_removed: u32,
-    pub hunks: Vec<DiffHunkResource>,
-}
-
 pub type DiffHunkResource = Vec<DiffPairResource>;
 
 #[derive(ApiResource, PartialEq, Eq, Debug, Clone, Serialize, Deserialize)]

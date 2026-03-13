@@ -12,7 +12,6 @@ export default async function Page({
   if (!commit) return null;
 
   const diffs = commit.diffs;
-  console.log(commit);
 
   // a heuristic, use suspense if either more than 100 modified lines or more than 5 files in the diff
   const useSuspense =
@@ -27,6 +26,8 @@ export default async function Page({
         owner={owner}
         repo={repo}
         sha={sha}
+        parentSha={commit.parent_sha}
+        diffs={diffs}
         useSuspense={useSuspense}
       />
     </div>

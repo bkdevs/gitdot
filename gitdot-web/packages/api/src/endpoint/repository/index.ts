@@ -3,7 +3,6 @@ export * from "./delete-repository";
 export * from "./get-repository-blob";
 export * from "./get-repository-blobs";
 export * from "./get-repository-commit";
-export * from "./get-repository-commit-diff";
 export * from "./get-repository-commits";
 export * from "./get-repository-file-commits";
 export * from "./get-repository-paths";

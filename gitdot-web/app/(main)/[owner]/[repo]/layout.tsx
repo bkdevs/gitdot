@@ -19,9 +19,9 @@ export default async function Layout({
   const { owner, repo } = await params;
 
   const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
-  const commits = delay(5000).then(() => getRepositoryCommits(owner, repo));
-  const preview = delay(5000).then(() => getRepositoryPreview(owner, repo));
-  const paths = delay(5000).then(() => getRepositoryPaths(owner, repo));
+  const commits = delay(1000).then(() => getRepositoryCommits(owner, repo));
+  const preview = delay(1000).then(() => getRepositoryPreview(owner, repo));
+  const paths = delay(1000).then(() => getRepositoryPaths(owner, repo));
   const blobs = paths.then((p) =>
     p
       ? getRepositoryBlobs(owner, repo, { paths: p.entries.map((e) => e.path) })

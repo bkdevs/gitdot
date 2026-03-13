@@ -112,11 +112,21 @@ where
             .await?
             .ok_or_else(|| CommitError::RepositoryNotFound(format!("{}/{}", owner, repo_name)))?;
 
+        tracing::debug!(
+            repo_id = %repository.id,
+            ref_name = %request.ref_name,
+            page = request.page,
+            per_page = request.per_page,
+            "get_commits: querying db",
+        );
+
         let fetch_count = request.per_page + 1;
         let mut commits = self
             .commit_repo
-            .get_commits(repository.id, &request.ref_name, request.page, fetch_count)
+            .get_commits(repository.id, request.page, fetch_count)
             .await?;
+
+        tracing::debug!(count = commits.len(), "get_commits: db returned {} rows", commits.len());
 
         let has_next = commits.len() > request.per_page as usize;
         commits.truncate(request.per_page as usize);
@@ -169,10 +179,16 @@ where
         let mut created_ats: Vec<DateTime<Utc>> = Vec::new();
         let mut diffs_per_commit: Vec<Vec<model::CommitDiff>> = Vec::new();
 
+        // TODO: parallelize this, this is rather slow.
         for commit in &git_commits {
             let diff_files = self
                 .git_client
-                .get_repo_diff_files(&owner, &repo_name, commit.parent_sha.as_deref(), &commit.sha)
+                .get_repo_diff_files(
+                    &owner,
+                    &repo_name,
+                    commit.parent_sha.as_deref(),
+                    &commit.sha,
+                )
                 .await?;
             let mut diffs = Vec::new();
             for (left, right) in diff_files {

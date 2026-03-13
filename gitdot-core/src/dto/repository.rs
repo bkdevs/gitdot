@@ -3,7 +3,6 @@ mod delete_repository;
 mod get_repository_blob;
 mod get_repository_blobs;
 mod get_repository_commit;
-mod get_repository_commit_diff;
 mod get_repository_file;
 mod get_repository_file_commits;
 mod get_repository_paths;
@@ -21,7 +20,6 @@ pub use get_repository_blob::{
 };
 pub use get_repository_blobs::{GetRepositoryBlobsRequest, RepositoryBlobsResponse};
 pub use get_repository_commit::GetRepositoryCommitRequest;
-pub use get_repository_commit_diff::GetRepositoryCommitDiffRequest;
 pub use get_repository_file::RepositoryFileResponse;
 pub use get_repository_file_commits::GetRepositoryFileCommitsRequest;
 pub use get_repository_paths::{
@@ -96,13 +94,6 @@ pub struct RepositoryCommitStatResponse {
     pub path: String,
     pub lines_added: u32,
     pub lines_removed: u32,
-}
-
-#[derive(Debug, Clone)]
-pub struct RepositoryCommitDiffResponse {
-    pub diff: RepositoryDiffResponse,
-    pub left: Option<RepositoryFileResponse>,
-    pub right: Option<RepositoryFileResponse>,
 }
 
 #[derive(Debug, Clone)]

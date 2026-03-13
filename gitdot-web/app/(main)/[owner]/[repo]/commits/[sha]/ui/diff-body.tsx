@@ -1,19 +1,36 @@
-import type { RepositoryCommitDiffResource } from "gitdot-api";
+import type { RepositoryCommitStatResource } from "gitdot-api";
 import { mergeHunks } from "@/(main)/[owner]/[repo]/util";
+import { getRepositoryBlob } from "@/dal";
 import { DiffSingle } from "./diff-single";
 import { DiffSplit } from "./diff-split";
 
 export async function DiffBody({
-  diff,
+  stat,
+  owner,
+  repo,
+  sha,
+  parentSha,
 }: {
-  diff: RepositoryCommitDiffResource;
+  stat: RepositoryCommitStatResource;
+  owner: string;
+  repo: string;
+  sha: string;
+  parentSha: string | undefined;
 }) {
-  const { left, right, diff: fileDiff } = diff;
+  const [rightBlob, leftBlob] = await Promise.all([
+    getRepositoryBlob(owner, repo, { ref_name: sha, path: stat.path }),
+    parentSha
+      ? getRepositoryBlob(owner, repo, { ref_name: parentSha, path: stat.path })
+      : null,
+  ]);
 
-  const processedHunks = mergeHunks(fileDiff.hunks);
+  const right = rightBlob?.type === "file" ? rightBlob : null;
+  const left = leftBlob?.type === "file" ? leftBlob : null;
+
+  const processedHunks = mergeHunks(stat.hunks);
 
   const renderDiff = () => {
-    if (left && right && fileDiff.hunks.length > 0) {
+    if (left && right && stat.hunks.length > 0) {
       return <DiffSplit left={left} right={right} hunks={processedHunks} />;
     } else if (left && !right) {
       return <DiffSingle file={left} side="left" />;
