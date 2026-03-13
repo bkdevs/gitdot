@@ -1,13 +1,13 @@
 #!/bin/bash
 
-echo "$GITDOT_PUSHER_ID"
+# pre-receive script
+# https://git-scm.com/docs/githooks/2.30.1#pre-receive
 
 while read -r old_sha new_sha ref_name; do
-  # Block direct pushes to refs/reviews/
-  if [[ "$ref_name" == refs/reviews/* ]]; then
-    echo "error: direct pushes to refs/reviews/ are not allowed" >&2
-    exit 1
-  fi
+    if [[ "$ref_name" == refs/reviews/* ]]; then
+        echo "error: direct pushes to refs/reviews/ are not allowed" >&2
+        exit 1
+    fi
 done
 
 exit 0

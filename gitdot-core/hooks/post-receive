@@ -1,17 +1,22 @@
 #!/bin/bash
 
-# Post-receive hook: reads ref updates from stdin and notifies the backend.
-# Each line from stdin has the format: <old-sha> <new-sha> <ref-name>
+# post-receive script
+# https://git-scm.com/docs/githooks/2.30.1#post-receive
 
 abs_git_dir=$(cd "$GIT_DIR" && pwd)
 repo_dir=$(basename "$abs_git_dir" .git)
 owner_dir=$(basename "$(dirname "$abs_git_dir")")
 
 while read -r old_sha new_sha ref_name; do
-  curl -sf -o /dev/null -X POST \
-    -H "Content-Type: application/json" \
-    -d "{\"old_sha\":\"$old_sha\",\"new_sha\":\"$new_sha\",\"ref_name\":\"$ref_name\"}" \
-    "http://127.0.0.1:8080/internal/${owner_dir}/${repo_dir}/process-post-receive" &
+    if [[ "$ref_name" == refs/for/* ]]; then
+        continue
+    fi
+
+    # TODO: break into multiple APIs, e.g. create_commits, broadcase, etc
+    curl -sf -o /dev/null -X POST \
+        -H "Content-Type: application/json" \
+        -d "{\"old_sha\":\"$old_sha\",\"new_sha\":\"$new_sha\",\"ref_name\":\"$ref_name\"}" \
+        "http://127.0.0.1:8080/internal/${owner_dir}/${repo_dir}/process-post-receive" &
 done
 
 wait

@@ -1,0 +1,65 @@
+#!/usr/bin/env python3
+
+# proc-receive script
+# https://git-scm.com/docs/githooks/2.30.1#proc-receive
+
+import sys
+
+
+def read_pkt_line():
+    raw = sys.stdin.buffer.read(4)
+    if not raw or len(raw) < 4:
+        return None
+    hex_len = raw.decode("ascii")
+    if hex_len == "0000":
+        return None
+    length = int(hex_len, base=16) - 4
+    data = sys.stdin.buffer.read(length)
+    return data.rstrip(b"\n").decode("utf-8", errors="replace")
+
+
+def write_pkt_line(data):
+    encoded = data.encode("utf-8") + b"\n"
+    length = len(encoded) + 4
+    packet = f"{length:04x}".encode("ascii") + encoded
+    sys.stdout.buffer.write(packet)
+    sys.stdout.buffer.flush()
+
+
+def write_flush():
+    sys.stdout.buffer.write(b"0000")
+    sys.stdout.buffer.flush()
+
+
+# Step 1: Read version from Git
+read_pkt_line()
+
+# Step 2: Send our version back
+write_pkt_line("version=1")
+write_flush()
+
+# Step 3: Consume the flush after capability exchange
+read_pkt_line()
+
+# Step 4: Read ref updates
+updates = []
+while True:
+    line = read_pkt_line()
+    if line is None:
+        break
+    updates.append(line)
+
+# Step 5: Process updates and send results
+for update in updates:
+    parts = update.split(" ")
+    old_oid, new_oid, ref = parts[0], parts[1], parts[2]
+
+    if ref.startswith("refs/for/"):
+        # TODO: call create review API here
+
+        write_pkt_line(f"ok {ref}")
+    else:
+        write_pkt_line(f"ng {ref} not-handled")
+
+write_flush()
+sys.exit(0)
