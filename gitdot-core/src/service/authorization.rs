@@ -411,7 +411,7 @@ mod tests {
             async fn get_review(&self, owner: &str, repo: &str, number: i32) -> Result<Option<Review>, sqlx::Error>;
             async fn get_reviews(&self, owner: &str, repo: &str) -> Result<Vec<Review>, sqlx::Error>;
             async fn create_review(&self, repository_id: Uuid, author_id: Uuid, target_branch: &str) -> Result<Review, sqlx::Error>;
-            async fn create_diff(&self, review_id: Uuid, position: i32, title: &str) -> Result<Diff, sqlx::Error>;
+            async fn create_diff(&self, review_id: Uuid, position: i32, title: &str, description: &str) -> Result<Diff, sqlx::Error>;
             async fn create_revision(&self, diff_id: Uuid, number: i32, commit_hash: &str) -> Result<Revision, sqlx::Error>;
             async fn add_reviewer(&self, review_id: Uuid, reviewer_id: Uuid) -> Result<Option<Reviewer>, sqlx::Error>;
             async fn remove_reviewer(&self, review_id: Uuid, reviewer_id: Uuid) -> Result<bool, sqlx::Error>;        }

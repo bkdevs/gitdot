@@ -213,6 +213,12 @@ where
                 ))
             })?;
 
+        if user.id == review.author_id {
+            return Err(ReviewError::CannotReviewOwnReview(
+                request.user_name.to_string(),
+            ));
+        }
+
         let reviewer = self
             .review_repo
             .add_reviewer(review.id, user.id)

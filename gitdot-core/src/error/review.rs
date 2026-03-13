@@ -22,6 +22,9 @@ pub enum ReviewError {
     #[error("User not found: {0}")]
     UserNotFound(String),
 
+    #[error("Cannot add review author as reviewer: {0}")]
+    CannotReviewOwnReview(String),
+
     #[error("Reviewer already exists: {0}")]
     ReviewerAlreadyExists(String),
 
