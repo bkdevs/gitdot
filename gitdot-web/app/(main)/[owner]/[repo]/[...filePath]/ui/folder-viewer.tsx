@@ -1,21 +1,21 @@
-import type { RepositoryTreeEntryResource } from "gitdot-api";
+import type { RepositoryPathResource } from "gitdot-api";
 import { File, Folder } from "lucide-react";
 import Link from "@/ui/link";
 
 export function FolderViewer({
   owner,
   repo,
-  folderEntries,
+  entries,
 }: {
   owner: string;
   repo: string;
-  folderEntries: RepositoryTreeEntryResource[];
+  entries: RepositoryPathResource[];
 }) {
-  const sortedEntries = folderEntries.toSorted((a, b) => {
-    if (a.entry_type === b.entry_type) {
+  const sortedEntries = entries.toSorted((a, b) => {
+    if (a.path_type === b.path_type) {
       return a.path.localeCompare(b.path);
     }
-    return a.entry_type === "tree" ? -1 : 1;
+    return a.path_type === "tree" ? -1 : 1;
   });
 
   return (
@@ -37,7 +37,7 @@ function FolderEntryRow({
   entry,
   href,
 }: {
-  entry: RepositoryTreeEntryResource;
+  entry: RepositoryPathResource;
   href: string;
 }) {
   return (
@@ -47,7 +47,7 @@ function FolderEntryRow({
       prefetch={true}
     >
       <span className="flex items-center min-w-0">
-        {entry.entry_type === "blob" ? (
+        {entry.path_type === "blob" ? (
           <File className="size-4 shrink-0" />
         ) : (
           <Folder className="size-4 shrink-0" />
@@ -56,7 +56,7 @@ function FolderEntryRow({
           {entry.path.split("/").pop()}
         </span>
       </span>
-      <span className="truncate">{entry.commit?.message}</span>
+      <span className="truncate" />
     </Link>
   );
 }

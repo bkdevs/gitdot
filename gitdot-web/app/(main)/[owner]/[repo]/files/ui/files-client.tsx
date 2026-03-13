@@ -1,12 +1,12 @@
 "use client";
 
 import { useRepoResource } from "@/(main)/[owner]/[repo]/context";
+import { FolderViewer } from "../../[...filePath]/ui/folder-viewer";
 import { getFolderEntries } from "../../util";
-import { PathsFolderViewer } from "./paths-folder-viewer";
 
 export function FilesClient({ owner, repo }: { owner: string; repo: string }) {
   const paths = useRepoResource("paths");
-  const rootEntries = getFolderEntries("", paths);
+  const entries = getFolderEntries("", paths);
 
-  return <PathsFolderViewer owner={owner} repo={repo} entries={rootEntries} />;
+  return <FolderViewer owner={owner} repo={repo} entries={entries} />;
 }

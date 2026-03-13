@@ -6,7 +6,7 @@ use crate::{
         FilePreview, RepositoryBlobResponse, RepositoryBlobsResponse, RepositoryCommitResponse,
         RepositoryCommitStatResponse, RepositoryCommitsResponse, RepositoryFileResponse,
         RepositoryFolderResponse, RepositoryPath, RepositoryPathsResponse, RepositoryPreviewEntry,
-        RepositoryPreviewResponse, RepositoryTreeEntry,
+        RepositoryPreviewResponse,
     },
     error::GitError,
     util::{
@@ -443,19 +443,18 @@ impl GitClient for Git2Client {
                         .map(|e| {
                             let name = e.name().unwrap_or("").to_string();
                             let entry_path = format!("{}/{}", path, name);
-                            let entry_type = match e.kind() {
+                            let path_type = match e.kind() {
                                 Some(git2::ObjectType::Blob) => "blob",
                                 Some(git2::ObjectType::Tree) => "tree",
                                 Some(git2::ObjectType::Commit) => "commit",
                                 _ => "unknown",
                             }
                             .to_string();
-                            RepositoryTreeEntry {
+                            RepositoryPath {
                                 path: entry_path,
                                 name,
-                                entry_type,
+                                path_type,
                                 sha: e.id().to_string(),
-                                commit: None,
                             }
                         })
                         .collect();
@@ -508,19 +507,18 @@ impl GitClient for Git2Client {
                             .map(|e| {
                                 let name = e.name().unwrap_or("").to_string();
                                 let entry_path = format!("{}/{}", path, name);
-                                let entry_type = match e.kind() {
+                                let path_type = match e.kind() {
                                     Some(git2::ObjectType::Blob) => "blob",
                                     Some(git2::ObjectType::Tree) => "tree",
                                     Some(git2::ObjectType::Commit) => "commit",
                                     _ => "unknown",
                                 }
                                 .to_string();
-                                RepositoryTreeEntry {
+                                RepositoryPath {
                                     path: entry_path,
                                     name,
-                                    entry_type,
+                                    path_type,
                                     sha: e.id().to_string(),
-                                    commit: None,
                                 }
                             })
                             .collect();

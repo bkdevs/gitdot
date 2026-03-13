@@ -4,8 +4,7 @@ use gitdot_core::dto::{
     RepositoryBlobsResponse, RepositoryCommitDiffResponse, RepositoryCommitResponse,
     RepositoryCommitStatResponse, RepositoryCommitsResponse, RepositoryDiffResponse,
     RepositoryFileResponse, RepositoryFolderResponse, RepositoryPath, RepositoryPathsResponse,
-    RepositoryPreviewEntry, RepositoryPreviewResponse, RepositoryResponse, RepositoryTreeEntry,
-    SyntaxHighlight,
+    RepositoryPreviewEntry, RepositoryPreviewResponse, RepositoryResponse, SyntaxHighlight,
 };
 
 use super::IntoApi;
@@ -155,19 +154,6 @@ impl IntoApi for RepositoryPath {
             name: self.name,
             path_type: self.path_type,
             sha: self.sha,
-        }
-    }
-}
-
-impl IntoApi for RepositoryTreeEntry {
-    type ApiType = api::RepositoryTreeEntryResource;
-    fn into_api(self) -> Self::ApiType {
-        api::RepositoryTreeEntryResource {
-            path: self.path,
-            name: self.name,
-            entry_type: self.entry_type,
-            sha: self.sha,
-            commit: self.commit.into_api(),
         }
     }
 }

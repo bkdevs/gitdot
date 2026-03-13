@@ -8,7 +8,6 @@ import {
   type GetRepositoryFileCommitsRequest,
   type GetRepositoryPathsRequest,
   type GetRepositoryPreviewRequest,
-  type GetRepositoryTreeRequest,
   RepositoryBlobResource,
   RepositoryBlobsResource,
   RepositoryCommitDiffResource,
@@ -18,7 +17,6 @@ import {
   RepositoryPathsResource,
   RepositoryPreviewResource,
   RepositoryResource,
-  RepositoryTreeResource,
 } from "gitdot-api";
 import { z } from "zod";
 import { toQueryString } from "@/util";

@@ -68,26 +68,9 @@ pub struct FilePreviewResource {
 }
 
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct RepositoryTreeResource {
-    pub ref_name: String,
-    pub commit_sha: String,
-    pub entries: Vec<RepositoryTreeEntryResource>,
-}
-
-#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct RepositoryTreeEntryResource {
-    pub path: String,
-    pub name: String,
-    pub entry_type: String,
-    pub sha: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub commit: Option<RepositoryCommitResource>,
-}
-
-#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RepositoryFolderResource {
     pub path: String,
-    pub entries: Vec<RepositoryTreeEntryResource>,
+    pub entries: Vec<RepositoryPathResource>,
 }
 
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

@@ -1,5 +1,5 @@
 use crate::{
-    dto::{OwnerName, RepositoryFileResponse, RepositoryName, RepositoryTreeEntry},
+    dto::{OwnerName, RepositoryFileResponse, RepositoryName, RepositoryPath},
     error::RepositoryError,
 };
 
@@ -32,7 +32,7 @@ impl GetRepositoryBlobRequest {
 #[derive(Debug, Clone)]
 pub struct RepositoryFolderResponse {
     pub path: String,
-    pub entries: Vec<RepositoryTreeEntry>,
+    pub entries: Vec<RepositoryPath>,
 }
 
 #[derive(Debug, Clone)]

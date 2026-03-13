@@ -110,30 +110,6 @@ export type RepositoryPreviewResource = z.infer<
   typeof RepositoryPreviewResource
 >;
 
-export const RepositoryTreeEntryResource = z.object({
-  path: z.string(),
-  name: z.string(),
-  entry_type: z.string(),
-  sha: z.string(),
-  commit: RepositoryCommitResource.optional(),
-});
-export type RepositoryTreeEntryResource = z.infer<
-  typeof RepositoryTreeEntryResource
->;
-
-export const RepositoryFolderResource = z.object({
-  type: z.literal("folder"),
-  path: z.string(),
-  entries: z.array(RepositoryTreeEntryResource),
-});
-export type RepositoryFolderResource = z.infer<typeof RepositoryFolderResource>;
-
-export const RepositoryBlobResource = z.discriminatedUnion("type", [
-  RepositoryFileResource.extend({ type: z.literal("file") }),
-  RepositoryFolderResource,
-]);
-export type RepositoryBlobResource = z.infer<typeof RepositoryBlobResource>;
-
 export const RepositoryPathResource = z.object({
   path: z.string(),
   name: z.string(),
@@ -148,6 +124,19 @@ export const RepositoryPathsResource = z.object({
   entries: z.array(RepositoryPathResource),
 });
 export type RepositoryPathsResource = z.infer<typeof RepositoryPathsResource>;
+
+export const RepositoryFolderResource = z.object({
+  type: z.literal("folder"),
+  path: z.string(),
+  entries: z.array(RepositoryPathResource),
+});
+export type RepositoryFolderResource = z.infer<typeof RepositoryFolderResource>;
+
+export const RepositoryBlobResource = z.discriminatedUnion("type", [
+  RepositoryFileResource.extend({ type: z.literal("file") }),
+  RepositoryFolderResource,
+]);
+export type RepositoryBlobResource = z.infer<typeof RepositoryBlobResource>;
 
 export const RepositoryCommitStatResource = z.object({
   path: z.string(),

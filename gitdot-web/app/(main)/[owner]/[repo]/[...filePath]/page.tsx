@@ -28,9 +28,7 @@ export default async function Page({
   if (!blob) return <div>File not found.</div>;
 
   if (blob.type === "folder") {
-    return (
-      <FolderViewer owner={owner} repo={repo} folderEntries={blob.entries} />
-    );
+    return <FolderViewer owner={owner} repo={repo} entries={blob.entries} />;
   } else {
     // TODO: parallel thing, probably make this API generic yeah makes sense for a tree history too.
     const commits = await getRepositoryFileCommits(owner, repo, {

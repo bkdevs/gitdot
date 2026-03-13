@@ -10,7 +10,6 @@ mod get_repository_file;
 mod get_repository_file_commits;
 mod get_repository_paths;
 mod get_repository_preview;
-mod get_repository_tree;
 
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
@@ -35,7 +34,6 @@ pub use get_repository_paths::{
 pub use get_repository_preview::{
     FilePreview, GetRepositoryPreviewRequest, RepositoryPreviewEntry, RepositoryPreviewResponse,
 };
-pub use get_repository_tree::RepositoryTreeEntry;
 
 #[derive(Debug, Clone)]
 pub struct RepositoryResponse {
