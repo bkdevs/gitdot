@@ -41,7 +41,7 @@ function FolderEntryRow({
   entry: RepositoryTreeEntryResource;
   href: string;
 }) {
-  const author = entry.commit.author.name;
+  const author = entry.commit?.author.name;
 
   return (
     <Link
@@ -59,9 +59,9 @@ function FolderEntryRow({
           {entry.path.split("/").pop()}
         </span>
       </span>
-      <span className="truncate">{entry.commit.message}</span>
+      <span className="truncate">{entry.commit?.message}</span>
       <span className="text-primary/60 ml-4 whitespace-nowrap">
-        {author} • {timeAgo(new Date(entry.commit.date))}
+        {author} • {timeAgo(new Date(entry.commit?.date))}
       </span>
     </Link>
   );

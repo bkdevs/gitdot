@@ -37,9 +37,7 @@ pub struct CommitAuthorResource {
 
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RepositoryFileResource {
-    pub ref_name: String,
     pub path: String,
-    pub commit_sha: String,
     pub sha: String,
     pub content: String,
     pub encoding: String,
@@ -82,14 +80,20 @@ pub struct RepositoryTreeEntryResource {
     pub name: String,
     pub entry_type: String,
     pub sha: String,
-    pub commit: RepositoryCommitResource,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub commit: Option<RepositoryCommitResource>,
 }
 
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RepositoryFolderResource {
+    pub entries: Vec<RepositoryTreeEntryResource>,
+}
+
+#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RepositoryBlobsResource {
     pub ref_name: String,
     pub commit_sha: String,
-    pub entries: Vec<RepositoryTreeEntryResource>,
+    pub blobs: Vec<RepositoryBlobResource>,
 }
 
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

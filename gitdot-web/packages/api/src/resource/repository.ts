@@ -42,9 +42,7 @@ export const RepositoryDiffResource = z.object({
 export type RepositoryDiffResource = z.infer<typeof RepositoryDiffResource>;
 
 export const RepositoryFileResource = z.object({
-  ref_name: z.string(),
   path: z.string(),
-  commit_sha: z.string(),
   sha: z.string(),
   content: z.string(),
   encoding: z.string(),
@@ -117,7 +115,7 @@ export const RepositoryTreeEntryResource = z.object({
   name: z.string(),
   entry_type: z.string(),
   sha: z.string(),
-  commit: RepositoryCommitResource,
+  commit: RepositoryCommitResource.optional(),
 });
 export type RepositoryTreeEntryResource = z.infer<
   typeof RepositoryTreeEntryResource
@@ -132,8 +130,6 @@ export type RepositoryTreeResource = z.infer<typeof RepositoryTreeResource>;
 
 export const RepositoryFolderResource = z.object({
   type: z.literal("folder"),
-  ref_name: z.string(),
-  commit_sha: z.string(),
   entries: z.array(RepositoryTreeEntryResource),
 });
 export type RepositoryFolderResource = z.infer<typeof RepositoryFolderResource>;
@@ -167,6 +163,13 @@ export const RepositoryCommitStatResource = z.object({
 export type RepositoryCommitStatResource = z.infer<
   typeof RepositoryCommitStatResource
 >;
+
+export const RepositoryBlobsResource = z.object({
+  ref_name: z.string(),
+  commit_sha: z.string(),
+  blobs: z.array(RepositoryBlobResource),
+});
+export type RepositoryBlobsResource = z.infer<typeof RepositoryBlobsResource>;
 
 export const RepositoryResource = z.object({
   id: z.uuid(),

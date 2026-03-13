@@ -39,7 +39,7 @@ pub struct RepositoryTreeEntry {
     pub name: String,
     pub entry_type: String,
     pub sha: String,
-    pub commit: RepositoryCommitResponse,
+    pub commit: Option<RepositoryCommitResponse>,
 }
 
 #[cfg(test)]

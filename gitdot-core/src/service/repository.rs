@@ -7,12 +7,12 @@ use crate::{
     client::{DiffClient, DifftClient, Git2Client, GitClient},
     dto::{
         CommitAuthorResponse, CreateRepositoryRequest, DeleteRepositoryRequest,
-        GetRepositoryBlobRequest, GetRepositoryCommitDiffRequest, GetRepositoryCommitRequest,
-        GetRepositoryCommitStatRequest, GetRepositoryCommitsRequest,
+        GetRepositoryBlobRequest, GetRepositoryBlobsRequest, GetRepositoryCommitDiffRequest,
+        GetRepositoryCommitRequest, GetRepositoryCommitStatRequest, GetRepositoryCommitsRequest,
         GetRepositoryFileCommitsRequest, GetRepositoryPathsRequest, GetRepositoryPreviewRequest,
-        GetRepositoryTreeRequest, RepositoryBlobResponse, RepositoryCommitDiffResponse,
-        RepositoryCommitResponse, RepositoryCommitStatResponse, RepositoryCommitsResponse,
-        RepositoryFolderResponse, RepositoryPathsResponse, RepositoryPreviewResponse,
+        GetRepositoryTreeRequest, RepositoryBlobResponse, RepositoryBlobsResponse,
+        RepositoryCommitDiffResponse, RepositoryCommitResponse, RepositoryCommitStatResponse,
+        RepositoryCommitsResponse, RepositoryPathsResponse, RepositoryPreviewResponse,
         RepositoryResponse, RepositoryTreeResponse,
     },
     error::RepositoryError,
@@ -35,6 +35,11 @@ pub trait RepositoryService: Send + Sync + 'static {
         &self,
         request: GetRepositoryBlobRequest,
     ) -> Result<RepositoryBlobResponse, RepositoryError>;
+
+    async fn get_repository_blobs(
+        &self,
+        request: GetRepositoryBlobsRequest,
+    ) -> Result<RepositoryBlobsResponse, RepositoryError>;
 
     async fn get_repository_paths(
         &self,
@@ -275,20 +280,23 @@ where
 
         match response {
             RepositoryBlobResponse::File(f) => Ok(RepositoryBlobResponse::File(f)),
-            RepositoryBlobResponse::Folder(mut folder) => {
-                let mut commits: Vec<RepositoryCommitResponse> =
-                    folder.entries.iter().map(|e| e.commit.clone()).collect();
-                self.enrich_commits_with_users(&mut commits).await?;
-                for (entry, enriched_commit) in folder.entries.iter_mut().zip(commits.into_iter()) {
-                    entry.commit = enriched_commit;
-                }
-                Ok(RepositoryBlobResponse::Folder(RepositoryFolderResponse {
-                    ref_name: folder.ref_name,
-                    commit_sha: folder.commit_sha,
-                    entries: folder.entries,
-                }))
-            }
+            RepositoryBlobResponse::Folder(folder) => Ok(RepositoryBlobResponse::Folder(folder)),
         }
+    }
+
+    async fn get_repository_blobs(
+        &self,
+        request: GetRepositoryBlobsRequest,
+    ) -> Result<RepositoryBlobsResponse, RepositoryError> {
+        self.git_client
+            .get_repo_blobs(
+                &request.owner_name,
+                &request.name,
+                &request.ref_name,
+                &request.paths,
+            )
+            .await
+            .map_err(Into::into)
     }
 
     async fn get_repository_paths(
@@ -310,12 +318,20 @@ where
             .get_repo_tree(&request.owner_name, &request.name, &request.ref_name)
             .await?;
 
-        let mut commits: Vec<RepositoryCommitResponse> =
-            response.entries.iter().map(|e| e.commit.clone()).collect();
+        let mut commits: Vec<RepositoryCommitResponse> = response
+            .entries
+            .iter()
+            .filter_map(|e| e.commit.clone())
+            .collect();
         self.enrich_commits_with_users(&mut commits).await?;
 
-        for (entry, enriched_commit) in response.entries.iter_mut().zip(commits.into_iter()) {
-            entry.commit = enriched_commit;
+        for (entry, enriched_commit) in response
+            .entries
+            .iter_mut()
+            .filter(|e| e.commit.is_some())
+            .zip(commits.into_iter())
+        {
+            entry.commit = Some(enriched_commit);
         }
 
         Ok(response)

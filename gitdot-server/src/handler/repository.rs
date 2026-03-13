@@ -1,6 +1,7 @@
 mod create_repository;
 mod delete_repository;
 mod get_repository_blob;
+mod get_repository_blobs;
 mod get_repository_commit;
 mod get_repository_commit_diff;
 mod get_repository_commit_stat;
@@ -20,6 +21,7 @@ use crate::app::AppState;
 use create_repository::create_repository;
 use delete_repository::delete_repository;
 use get_repository_blob::get_repository_blob;
+use get_repository_blobs::get_repository_blobs;
 use get_repository_commit::get_repository_commit;
 use get_repository_commit_diff::get_repository_commit_diff;
 use get_repository_commit_stat::get_repository_commit_stat;
@@ -36,6 +38,10 @@ pub fn create_repository_router() -> Router<AppState> {
             post(create_repository).delete(delete_repository),
         )
         .route("/repository/{owner}/{repo}/blob", get(get_repository_blob))
+        .route(
+            "/repository/{owner}/{repo}/blobs",
+            post(get_repository_blobs),
+        )
         .route(
             "/repository/{owner}/{repo}/paths",
             get(get_repository_paths),

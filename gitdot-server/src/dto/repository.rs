@@ -1,11 +1,11 @@
 use gitdot_api::resource::repository as api;
 use gitdot_core::dto::{
     CommitAuthorResponse, DiffChange, DiffLine, DiffPair, FilePreview, RepositoryBlobResponse,
-    RepositoryCommitDiffResponse, RepositoryCommitResponse, RepositoryCommitStatResponse,
-    RepositoryCommitsResponse, RepositoryDiffResponse, RepositoryFileResponse,
-    RepositoryFolderResponse, RepositoryPath, RepositoryPathsResponse, RepositoryPreviewEntry,
-    RepositoryPreviewResponse, RepositoryResponse, RepositoryTreeEntry, RepositoryTreeResponse,
-    SyntaxHighlight,
+    RepositoryBlobsResponse, RepositoryCommitDiffResponse, RepositoryCommitResponse,
+    RepositoryCommitStatResponse, RepositoryCommitsResponse, RepositoryDiffResponse,
+    RepositoryFileResponse, RepositoryFolderResponse, RepositoryPath, RepositoryPathsResponse,
+    RepositoryPreviewEntry, RepositoryPreviewResponse, RepositoryResponse, RepositoryTreeEntry,
+    RepositoryTreeResponse, SyntaxHighlight,
 };
 
 use super::IntoApi;
@@ -61,9 +61,7 @@ impl IntoApi for RepositoryFileResponse {
     type ApiType = api::RepositoryFileResource;
     fn into_api(self) -> Self::ApiType {
         api::RepositoryFileResource {
-            ref_name: self.ref_name,
             path: self.path,
-            commit_sha: self.commit_sha,
             sha: self.sha,
             content: self.content,
             encoding: self.encoding,
@@ -111,9 +109,18 @@ impl IntoApi for RepositoryFolderResponse {
     type ApiType = api::RepositoryFolderResource;
     fn into_api(self) -> Self::ApiType {
         api::RepositoryFolderResource {
+            entries: self.entries.into_api(),
+        }
+    }
+}
+
+impl IntoApi for RepositoryBlobsResponse {
+    type ApiType = api::RepositoryBlobsResource;
+    fn into_api(self) -> Self::ApiType {
+        api::RepositoryBlobsResource {
             ref_name: self.ref_name,
             commit_sha: self.commit_sha,
-            entries: self.entries.into_api(),
+            blobs: self.blobs.into_api(),
         }
     }
 }

@@ -1,6 +1,7 @@
 export * from "./create-repository";
 export * from "./delete-repository";
 export * from "./get-repository-blob";
+export * from "./get-repository-blobs";
 export * from "./get-repository-commit";
 export * from "./get-repository-commit-diff";
 export * from "./get-repository-commit-stat";
