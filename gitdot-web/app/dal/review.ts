@@ -1,8 +1,13 @@
 import "server-only";
 
 import type { PublishReviewRequest } from "gitdot-api";
-import { ReviewerResource, ReviewResource } from "gitdot-api";
+import {
+  GetReviewDiffResponse,
+  ReviewerResource,
+  ReviewResource,
+} from "gitdot-api";
 import { z } from "zod";
+import { toQueryString } from "@/util";
 import {
   authDelete,
   authFetch,
@@ -33,6 +38,25 @@ export async function getReview(
   );
 
   return await handleResponse(response, ReviewResource);
+}
+
+export async function getReviewDiff(
+  owner: string,
+  repo: string,
+  number: number,
+  position: number,
+  revision?: number,
+  compareTo?: number,
+): Promise<GetReviewDiffResponse | null> {
+  const params: Record<string, number> = {};
+  if (revision !== undefined) params.revision = revision;
+  if (compareTo !== undefined) params.compare_to = compareTo;
+  const query = toQueryString(params);
+  const response = await authFetch(
+    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/review/${number}/diff/${position}${query}`,
+  );
+
+  return await handleResponse(response, GetReviewDiffResponse);
 }
 
 export async function addReviewer(

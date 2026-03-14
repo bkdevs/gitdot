@@ -11,6 +11,7 @@ export const RevisionResource = z.object({
   diff_id: z.uuid(),
   number: z.number().int(),
   commit_hash: z.string(),
+  parent_hash: z.string(),
   created_at: z.iso.datetime(),
 });
 export type RevisionResource = z.infer<typeof RevisionResource>;
