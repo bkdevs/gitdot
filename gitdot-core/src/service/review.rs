@@ -4,9 +4,10 @@ use crate::{
     client::{Git2Client, GitClient},
     dto::{
         AddReviewerRequest, GetReviewRequest, ListReviewsRequest, ProcessReviewRequest,
-        RemoveReviewerRequest, ReviewResponse, ReviewerResponse,
+        PublishReviewRequest, RemoveReviewerRequest, ReviewResponse, ReviewerResponse,
     },
     error::ReviewError,
+    model::ReviewStatus,
     repository::{
         RepositoryRepository, RepositoryRepositoryImpl, ReviewRepository, ReviewRepositoryImpl,
         UserRepository, UserRepositoryImpl,
@@ -34,6 +35,11 @@ pub trait ReviewService: Send + Sync + 'static {
     ) -> Result<ReviewerResponse, ReviewError>;
 
     async fn remove_reviewer(&self, request: RemoveReviewerRequest) -> Result<(), ReviewError>;
+
+    async fn publish_review(
+        &self,
+        request: PublishReviewRequest,
+    ) -> Result<ReviewResponse, ReviewError>;
 }
 
 #[derive(Debug, Clone)]
@@ -260,5 +266,78 @@ where
         }
 
         Ok(())
+    }
+
+    async fn publish_review(
+        &self,
+        request: PublishReviewRequest,
+    ) -> Result<ReviewResponse, ReviewError> {
+        let review = self
+            .review_repo
+            .get_review(
+                request.owner.as_ref(),
+                request.repo.as_ref(),
+                request.number,
+            )
+            .await?
+            .ok_or_else(|| {
+                ReviewError::ReviewNotFound(format!(
+                    "{}/{}/review/{}",
+                    request.owner.as_ref(),
+                    request.repo.as_ref(),
+                    request.number
+                ))
+            })?;
+
+        if review.status != ReviewStatus::Draft {
+            return Err(ReviewError::ReviewNotPublishable(format!(
+                "review is in '{}' status, expected 'draft'",
+                serde_json::to_string(&review.status)
+                    .unwrap_or_default()
+                    .trim_matches('"')
+            )));
+        }
+
+        let title = request.title.as_deref().unwrap_or(&review.title);
+        let description = request
+            .description
+            .as_deref()
+            .unwrap_or(&review.description);
+        self.review_repo
+            .publish_review(review.id, title, description)
+            .await?;
+
+        let diffs = review.diffs.unwrap_or_default();
+        for diff_update in &request.diffs {
+            if let Some(diff) = diffs.iter().find(|d| d.position == diff_update.position) {
+                let diff_title = diff_update.title.as_deref().unwrap_or(&diff.title);
+                let diff_desc = diff_update
+                    .description
+                    .as_deref()
+                    .unwrap_or(&diff.description);
+                self.review_repo
+                    .update_diff(diff.id, diff_title, diff_desc)
+                    .await?;
+            }
+        }
+
+        let updated = self
+            .review_repo
+            .get_review(
+                request.owner.as_ref(),
+                request.repo.as_ref(),
+                request.number,
+            )
+            .await?
+            .ok_or_else(|| {
+                ReviewError::ReviewNotFound(format!(
+                    "{}/{}/review/{}",
+                    request.owner.as_ref(),
+                    request.repo.as_ref(),
+                    request.number
+                ))
+            })?;
+
+        Ok(updated.into())
     }
 }

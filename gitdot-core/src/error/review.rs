@@ -28,6 +28,9 @@ pub enum ReviewError {
     #[error("Reviewer already exists: {0}")]
     ReviewerAlreadyExists(String),
 
+    #[error("Review is not publishable: {0}")]
+    ReviewNotPublishable(String),
+
     #[error("Reviewer not found: {0}")]
     ReviewerNotFound(String),
 

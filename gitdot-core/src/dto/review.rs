@@ -2,6 +2,7 @@ mod add_reviewer;
 mod get_review;
 mod list_reviews;
 mod process_review;
+mod publish_review;
 mod remove_reviewer;
 
 use chrono::{DateTime, Utc};
@@ -16,6 +17,7 @@ pub use add_reviewer::AddReviewerRequest;
 pub use get_review::GetReviewRequest;
 pub use list_reviews::ListReviewsRequest;
 pub use process_review::ProcessReviewRequest;
+pub use publish_review::{DiffUpdateRequest, PublishReviewRequest};
 pub use remove_reviewer::RemoveReviewerRequest;
 
 #[derive(Debug, Clone)]

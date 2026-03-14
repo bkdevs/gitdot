@@ -126,7 +126,11 @@ where
             .get_commits(repository.id, request.page, fetch_count)
             .await?;
 
-        tracing::debug!(count = commits.len(), "get_commits: db returned {} rows", commits.len());
+        tracing::debug!(
+            count = commits.len(),
+            "get_commits: db returned {} rows",
+            commits.len()
+        );
 
         let has_next = commits.len() > request.per_page as usize;
         commits.truncate(request.per_page as usize);

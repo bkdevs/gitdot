@@ -414,7 +414,10 @@ mod tests {
             async fn create_diff(&self, review_id: Uuid, position: i32, title: &str, description: &str) -> Result<Diff, sqlx::Error>;
             async fn create_revision(&self, diff_id: Uuid, number: i32, commit_hash: &str) -> Result<Revision, sqlx::Error>;
             async fn add_reviewer(&self, review_id: Uuid, reviewer_id: Uuid) -> Result<Option<Reviewer>, sqlx::Error>;
-            async fn remove_reviewer(&self, review_id: Uuid, reviewer_id: Uuid) -> Result<bool, sqlx::Error>;        }
+            async fn remove_reviewer(&self, review_id: Uuid, reviewer_id: Uuid) -> Result<bool, sqlx::Error>;
+            async fn publish_review(&self, review_id: Uuid, title: &str, description: &str) -> Result<(), sqlx::Error>;
+            async fn update_diff(&self, diff_id: Uuid, title: &str, description: &str) -> Result<(), sqlx::Error>;
+        }
     }
 
     fn create_repository(

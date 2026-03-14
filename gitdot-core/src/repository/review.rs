@@ -149,6 +149,16 @@ pub trait ReviewRepository: Send + Sync + Clone + 'static {
     ) -> Result<Option<Reviewer>, Error>;
 
     async fn remove_reviewer(&self, review_id: Uuid, reviewer_id: Uuid) -> Result<bool, Error>;
+
+    async fn publish_review(
+        &self,
+        review_id: Uuid,
+        title: &str,
+        description: &str,
+    ) -> Result<(), Error>;
+
+    async fn update_diff(&self, diff_id: Uuid, title: &str, description: &str)
+    -> Result<(), Error>;
 }
 
 #[derive(Debug, Clone)]
@@ -312,5 +322,54 @@ impl ReviewRepository for ReviewRepositoryImpl {
         .await?;
 
         Ok(result.rows_affected() > 0)
+    }
+
+    async fn publish_review(
+        &self,
+        review_id: Uuid,
+        title: &str,
+        description: &str,
+    ) -> Result<(), Error> {
+        sqlx::query(
+            r#"
+            UPDATE reviews
+            SET status = 'open',
+                title = $2,
+                description = $3,
+                updated_at = NOW()
+            WHERE id = $1
+            "#,
+        )
+        .bind(review_id)
+        .bind(title)
+        .bind(description)
+        .execute(&self.pool)
+        .await?;
+
+        Ok(())
+    }
+
+    async fn update_diff(
+        &self,
+        diff_id: Uuid,
+        title: &str,
+        description: &str,
+    ) -> Result<(), Error> {
+        sqlx::query(
+            r#"
+            UPDATE diffs
+            SET title = $2,
+                description = $3,
+                updated_at = NOW()
+            WHERE id = $1
+            "#,
+        )
+        .bind(diff_id)
+        .bind(title)
+        .bind(description)
+        .execute(&self.pool)
+        .await?;
+
+        Ok(())
     }
 }
