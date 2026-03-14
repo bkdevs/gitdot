@@ -1,5 +1,6 @@
 mod add_reviewer;
 mod get_review;
+mod get_review_diff;
 mod list_reviews;
 mod process_review;
 mod publish_review;
@@ -13,8 +14,11 @@ use crate::model::{
     User,
 };
 
+use super::RepositoryDiffResponse;
+
 pub use add_reviewer::AddReviewerRequest;
 pub use get_review::GetReviewRequest;
+pub use get_review_diff::GetReviewDiffRequest;
 pub use list_reviews::ListReviewsRequest;
 pub use process_review::ProcessReviewRequest;
 pub use publish_review::{DiffUpdateRequest, PublishReviewRequest};
@@ -129,6 +133,7 @@ pub struct RevisionResponse {
     pub diff_id: Uuid,
     pub number: i32,
     pub commit_hash: String,
+    pub parent_hash: String,
     pub created_at: DateTime<Utc>,
 }
 
@@ -139,6 +144,7 @@ impl From<Revision> for RevisionResponse {
             diff_id: revision.diff_id,
             number: revision.number,
             commit_hash: revision.commit_hash,
+            parent_hash: revision.parent_hash,
             created_at: revision.created_at,
         }
     }
@@ -238,4 +244,15 @@ fn side_to_string(side: CommentSide) -> String {
         CommentSide::Old => "old".to_string(),
         CommentSide::New => "new".to_string(),
     }
+}
+
+#[derive(Debug, Clone)]
+pub struct ReviewFileDiffResponse {
+    pub path: String,
+    pub diff: RepositoryDiffResponse,
+}
+
+#[derive(Debug, Clone)]
+pub struct ReviewDiffResponse {
+    pub files: Vec<ReviewFileDiffResponse>,
 }

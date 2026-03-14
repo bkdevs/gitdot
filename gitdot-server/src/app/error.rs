@@ -207,8 +207,11 @@ impl IntoResponse for AppError {
                     ReviewError::ReviewerAlreadyExists(_) => StatusCode::CONFLICT,
                     ReviewError::ReviewNotPublishable(_) => StatusCode::BAD_REQUEST,
                     ReviewError::ReviewerNotFound(_) => StatusCode::NOT_FOUND,
+                    ReviewError::DiffNotFound(_) => StatusCode::NOT_FOUND,
+                    ReviewError::RevisionNotFound(_) => StatusCode::NOT_FOUND,
                     ReviewError::CommitsNotFound => StatusCode::BAD_REQUEST,
                     ReviewError::GitError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+                    ReviewError::DiffError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                     ReviewError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                 };
                 let response = AppResponse::new(

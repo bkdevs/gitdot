@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-use super::GitError;
+use super::{DiffError, GitError};
 
 #[derive(Debug, Error)]
 pub enum ReviewError {
@@ -34,11 +34,20 @@ pub enum ReviewError {
     #[error("Reviewer not found: {0}")]
     ReviewerNotFound(String),
 
+    #[error("Diff not found: {0}")]
+    DiffNotFound(String),
+
+    #[error("Revision not found: {0}")]
+    RevisionNotFound(String),
+
     #[error("No commits found between target branch and pushed ref")]
     CommitsNotFound,
 
     #[error("Git error: {0}")]
     GitError(#[from] GitError),
+
+    #[error("Diff rendering error: {0}")]
+    DiffError(#[from] DiffError),
 
     #[error("Database error: {0}")]
     DatabaseError(#[from] sqlx::Error),

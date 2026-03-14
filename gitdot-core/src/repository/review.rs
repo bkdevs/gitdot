@@ -43,6 +43,7 @@ SELECT
                                     'diff_id', rev.diff_id,
                                     'number', rev.number,
                                     'commit_hash', rev.commit_hash,
+                                    'parent_hash', rev.parent_hash,
                                     'created_at', rev.created_at
                                 ) ORDER BY rev.number DESC
                             )
@@ -140,6 +141,7 @@ pub trait ReviewRepository: Send + Sync + Clone + 'static {
         diff_id: Uuid,
         number: i32,
         commit_hash: &str,
+        parent_hash: &str,
     ) -> Result<Revision, Error>;
 
     async fn add_reviewer(
@@ -272,17 +274,19 @@ impl ReviewRepository for ReviewRepositoryImpl {
         diff_id: Uuid,
         number: i32,
         commit_hash: &str,
+        parent_hash: &str,
     ) -> Result<Revision, Error> {
         sqlx::query_as::<_, Revision>(
             r#"
-            INSERT INTO revisions (diff_id, number, commit_hash)
-            VALUES ($1, $2, $3)
-            RETURNING id, diff_id, number, commit_hash, created_at
+            INSERT INTO revisions (diff_id, number, commit_hash, parent_hash)
+            VALUES ($1, $2, $3, $4)
+            RETURNING id, diff_id, number, commit_hash, parent_hash, created_at
             "#,
         )
         .bind(diff_id)
         .bind(number)
         .bind(commit_hash)
+        .bind(parent_hash)
         .fetch_one(&self.pool)
         .await
     }

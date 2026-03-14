@@ -134,6 +134,7 @@ impl AppState {
                 repo_repo.clone(),
                 user_repo.clone(),
                 git_client.clone(),
+                diff_client.clone(),
             )),
             commit_service: Arc::new(CommitServiceImpl::new(
                 commit_repo.clone(),

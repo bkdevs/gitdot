@@ -45,6 +45,7 @@ pub struct RevisionResource {
     pub diff_id: Uuid,
     pub number: i32,
     pub commit_hash: String,
+    pub parent_hash: String,
     pub created_at: DateTime<Utc>,
 }
 

@@ -1,10 +1,11 @@
 use async_trait::async_trait;
 
 use crate::{
-    client::{Git2Client, GitClient},
+    client::{DiffClient, DifftClient, Git2Client, GitClient},
     dto::{
-        AddReviewerRequest, GetReviewRequest, ListReviewsRequest, ProcessReviewRequest,
-        PublishReviewRequest, RemoveReviewerRequest, ReviewResponse, ReviewerResponse,
+        AddReviewerRequest, GetReviewDiffRequest, GetReviewRequest, ListReviewsRequest,
+        ProcessReviewRequest, PublishReviewRequest, RemoveReviewerRequest, ReviewDiffResponse,
+        ReviewFileDiffResponse, ReviewResponse, ReviewerResponse,
     },
     error::ReviewError,
     model::ReviewStatus,
@@ -40,20 +41,27 @@ pub trait ReviewService: Send + Sync + 'static {
         &self,
         request: PublishReviewRequest,
     ) -> Result<ReviewResponse, ReviewError>;
+
+    async fn get_review_diff(
+        &self,
+        request: GetReviewDiffRequest,
+    ) -> Result<ReviewDiffResponse, ReviewError>;
 }
 
 #[derive(Debug, Clone)]
-pub struct ReviewServiceImpl<V, R, U, G>
+pub struct ReviewServiceImpl<V, R, U, G, D>
 where
     V: ReviewRepository,
     R: RepositoryRepository,
     U: UserRepository,
     G: GitClient,
+    D: DiffClient,
 {
     review_repo: V,
     repo_repo: R,
     user_repo: U,
     git_client: G,
+    diff_client: D,
 }
 
 impl
@@ -62,6 +70,7 @@ impl
         RepositoryRepositoryImpl,
         UserRepositoryImpl,
         Git2Client,
+        DifftClient,
     >
 {
     pub fn new(
@@ -69,24 +78,27 @@ impl
         repo_repo: RepositoryRepositoryImpl,
         user_repo: UserRepositoryImpl,
         git_client: Git2Client,
+        diff_client: DifftClient,
     ) -> Self {
         Self {
             review_repo,
             repo_repo,
             user_repo,
             git_client,
+            diff_client,
         }
     }
 }
 
 #[crate::instrument_all]
 #[async_trait]
-impl<V, R, U, G> ReviewService for ReviewServiceImpl<V, R, U, G>
+impl<V, R, U, G, D> ReviewService for ReviewServiceImpl<V, R, U, G, D>
 where
     V: ReviewRepository,
     R: RepositoryRepository,
     U: UserRepository,
     G: GitClient,
+    D: DiffClient,
 {
     async fn get_review(&self, request: GetReviewRequest) -> Result<ReviewResponse, ReviewError> {
         let review = self
@@ -144,6 +156,7 @@ where
             .create_review(repository.id, request.pusher_id, &request.target_branch)
             .await?;
 
+        let mut previous_sha = target_sha.clone();
         for (position, commit) in commits.iter().rev().enumerate() {
             let commit_title = commit
                 .message
@@ -151,21 +164,17 @@ where
                 .next()
                 .unwrap_or(&commit.message)
                 .to_string();
+            let diff_position = (position + 1) as i32;
             let diff = self
                 .review_repo
-                .create_diff(
-                    review.id,
-                    (position + 1) as i32,
-                    &commit_title,
-                    &commit_title,
-                )
+                .create_diff(review.id, diff_position, &commit_title, &commit_title)
                 .await?;
 
             self.review_repo
-                .create_revision(diff.id, 1, &commit.sha)
+                .create_revision(diff.id, 1, &commit.sha, &previous_sha)
                 .await?;
+            previous_sha = commit.sha.clone();
 
-            let diff_position = (position + 1) as i32;
             self.git_client
                 .create_ref(
                     owner,
@@ -339,5 +348,89 @@ where
             })?;
 
         Ok(updated.into())
+    }
+
+    async fn get_review_diff(
+        &self,
+        request: GetReviewDiffRequest,
+    ) -> Result<ReviewDiffResponse, ReviewError> {
+        let owner = request.owner.as_ref();
+        let repo = request.repo.as_ref();
+
+        let review = self
+            .review_repo
+            .get_review(owner, repo, request.number)
+            .await?
+            .ok_or_else(|| {
+                ReviewError::ReviewNotFound(format!("{}/{}/review/{}", owner, repo, request.number))
+            })?;
+
+        let diffs = review.diffs.unwrap_or_default();
+        let diff = diffs
+            .iter()
+            .find(|d| d.position == request.position)
+            .ok_or_else(|| {
+                ReviewError::DiffNotFound(format!(
+                    "{}/{}/review/{}/diff/{}",
+                    owner, repo, request.number, request.position
+                ))
+            })?;
+
+        let revisions = diff.revisions.as_ref().cloned().unwrap_or_default();
+        let revision = if let Some(rev_num) = request.revision {
+            revisions
+                .iter()
+                .find(|r| r.number == rev_num)
+                .ok_or_else(|| {
+                    ReviewError::RevisionNotFound(format!(
+                        "{}/{}/review/{}/diff/{}/revision/{}",
+                        owner, repo, request.number, request.position, rev_num
+                    ))
+                })?
+        } else {
+            revisions.first().ok_or_else(|| {
+                ReviewError::RevisionNotFound(format!(
+                    "{}/{}/review/{}/diff/{} has no revisions",
+                    owner, repo, request.number, request.position
+                ))
+            })?
+        };
+
+        let right_sha = &revision.commit_hash;
+        let left_sha = if let Some(compare_to) = request.compare_to {
+            let compare_rev = revisions
+                .iter()
+                .find(|r| r.number == compare_to)
+                .ok_or_else(|| {
+                    ReviewError::RevisionNotFound(format!(
+                        "{}/{}/review/{}/diff/{}/revision/{}",
+                        owner, repo, request.number, request.position, compare_to
+                    ))
+                })?;
+            compare_rev.commit_hash.clone()
+        } else {
+            revision.parent_hash.clone()
+        };
+
+        let diff_files = self
+            .git_client
+            .get_repo_diff_files(owner, repo, Some(&left_sha), right_sha)
+            .await?;
+
+        let mut files = Vec::new();
+        for (left, right) in diff_files {
+            let path = right
+                .as_ref()
+                .or(left.as_ref())
+                .map(|f| f.path.clone())
+                .unwrap_or_default();
+            let diff = self
+                .diff_client
+                .diff_files(left.as_ref(), right.as_ref())
+                .await?;
+            files.push(ReviewFileDiffResponse { path, diff });
+        }
+
+        Ok(ReviewDiffResponse { files })
     }
 }
