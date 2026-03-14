@@ -209,6 +209,8 @@ impl IntoResponse for AppError {
                     ReviewError::ReviewerNotFound(_) => StatusCode::NOT_FOUND,
                     ReviewError::DiffNotFound(_) => StatusCode::NOT_FOUND,
                     ReviewError::RevisionNotFound(_) => StatusCode::NOT_FOUND,
+                    ReviewError::CommentNotFound(_) => StatusCode::NOT_FOUND,
+                    ReviewError::InvalidComment(_) => StatusCode::BAD_REQUEST,
                     ReviewError::CommitsNotFound => StatusCode::BAD_REQUEST,
                     ReviewError::GitError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                     ReviewError::DiffError(_) => StatusCode::INTERNAL_SERVER_ERROR,

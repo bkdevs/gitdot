@@ -1,4 +1,5 @@
 mod add_reviewer;
+mod create_review_comment;
 mod get_review;
 mod get_review_diff;
 mod get_reviews;
@@ -13,6 +14,7 @@ use axum::{
 use crate::app::AppState;
 
 use add_reviewer::add_reviewer;
+use create_review_comment::create_review_comment;
 use get_review::get_review;
 use get_review_diff::get_review_diff;
 use get_reviews::get_reviews;
@@ -41,5 +43,9 @@ pub fn create_review_router() -> Router<AppState> {
         .route(
             "/repository/{owner}/{repo}/review/{number}/reviewer/{reviewer_name}",
             delete(remove_reviewer),
+        )
+        .route(
+            "/repository/{owner}/{repo}/review/{number}/comment",
+            post(create_review_comment),
         )
 }

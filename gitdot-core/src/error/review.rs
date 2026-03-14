@@ -40,6 +40,12 @@ pub enum ReviewError {
     #[error("Revision not found: {0}")]
     RevisionNotFound(String),
 
+    #[error("Comment not found: {0}")]
+    CommentNotFound(String),
+
+    #[error("Invalid comment: {0}")]
+    InvalidComment(String),
+
     #[error("No commits found between target branch and pushed ref")]
     CommitsNotFound,
 

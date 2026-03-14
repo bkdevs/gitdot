@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use sqlx::{Error, PgPool};
 use uuid::Uuid;
 
-use crate::model::{Diff, Review, Reviewer, Revision};
+use crate::model::{CommentSide, Diff, Review, ReviewComment, Reviewer, Revision};
 
 const REVIEW_DETAILS_QUERY: &str = r#"
 SELECT
@@ -161,6 +161,19 @@ pub trait ReviewRepository: Send + Sync + Clone + 'static {
 
     async fn update_diff(&self, diff_id: Uuid, title: &str, description: &str)
     -> Result<(), Error>;
+
+    async fn create_comment(
+        &self,
+        review_id: Uuid,
+        author_id: Uuid,
+        body: &str,
+        diff_id: Option<Uuid>,
+        revision_id: Option<Uuid>,
+        parent_id: Option<Uuid>,
+        file_path: Option<String>,
+        line_number: Option<i32>,
+        side: Option<CommentSide>,
+    ) -> Result<ReviewComment, Error>;
 }
 
 #[derive(Debug, Clone)]
@@ -375,5 +388,41 @@ impl ReviewRepository for ReviewRepositoryImpl {
         .await?;
 
         Ok(())
+    }
+
+    async fn create_comment(
+        &self,
+        review_id: Uuid,
+        author_id: Uuid,
+        body: &str,
+        diff_id: Option<Uuid>,
+        revision_id: Option<Uuid>,
+        parent_id: Option<Uuid>,
+        file_path: Option<String>,
+        line_number: Option<i32>,
+        side: Option<CommentSide>,
+    ) -> Result<ReviewComment, Error> {
+        sqlx::query_as::<_, ReviewComment>(
+            r#"
+            INSERT INTO review_comments (review_id, author_id, body, diff_id, revision_id, parent_id, file_path, line_number, side)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+            RETURNING
+                id, review_id, diff_id, revision_id, author_id, parent_id,
+                body, file_path, line_number, side, resolved, created_at, updated_at,
+                (SELECT json_build_object('id', u.id, 'name', u.name, 'email', u.email, 'created_at', u.created_at)
+                 FROM users u WHERE u.id = $2) AS author
+            "#,
+        )
+        .bind(review_id)
+        .bind(author_id)
+        .bind(body)
+        .bind(diff_id)
+        .bind(revision_id)
+        .bind(parent_id)
+        .bind(file_path)
+        .bind(line_number)
+        .bind(side)
+        .fetch_one(&self.pool)
+        .await
     }
 }

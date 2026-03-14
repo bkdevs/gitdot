@@ -53,6 +53,11 @@ pub trait AuthorizationService: Send + Sync + 'static {
         request: ReviewAuthorizationRequest,
     ) -> Result<(), AuthorizationError>;
 
+    async fn verify_authorized_for_review_comment(
+        &self,
+        request: ReviewAuthorizationRequest,
+    ) -> Result<(), AuthorizationError>;
+
     async fn verify_authorized_for_migration(
         &self,
         request: MigrationAuthorizationRequest,
@@ -274,6 +279,32 @@ where
         Ok(())
     }
 
+    async fn verify_authorized_for_review_comment(
+        &self,
+        request: ReviewAuthorizationRequest,
+    ) -> Result<(), AuthorizationError> {
+        let review = self
+            .review_repo
+            .get_review(
+                request.owner.as_ref(),
+                request.repo.as_ref(),
+                request.number,
+            )
+            .await?
+            .ok_or(AuthorizationError::Unauthorized)?;
+
+        if review.author_id == request.user_id {
+            return Ok(());
+        }
+
+        let reviewers = review.reviewers.unwrap_or_default();
+        if reviewers.iter().any(|r| r.reviewer_id == request.user_id) {
+            return Ok(());
+        }
+
+        Err(AuthorizationError::Unauthorized)
+    }
+
     async fn verify_authorized_for_migration(
         &self,
         request: MigrationAuthorizationRequest,
@@ -317,9 +348,9 @@ mod tests {
         dto::{RepositoryAuthorizationRequest, RepositoryPermission},
         error::AuthorizationError,
         model::{
-            Answer, Comment, Diff, Organization, OrganizationMember, OrganizationRole, Question,
-            Repository, RepositoryOwnerType, RepositoryVisibility, Review, Reviewer, Revision,
-            User, VoteResult, VoteTarget,
+            Answer, Comment, CommentSide, Diff, Organization, OrganizationMember, OrganizationRole,
+            Question, Repository, RepositoryOwnerType, RepositoryVisibility, Review, ReviewComment,
+            Reviewer, Revision, User, VoteResult, VoteTarget,
         },
         repository::{
             OrganizationRepository, QuestionRepository, RepositoryRepository, ReviewRepository,
@@ -417,6 +448,7 @@ mod tests {
             async fn remove_reviewer(&self, review_id: Uuid, reviewer_id: Uuid) -> Result<bool, sqlx::Error>;
             async fn publish_review(&self, review_id: Uuid, title: &str, description: &str) -> Result<(), sqlx::Error>;
             async fn update_diff(&self, diff_id: Uuid, title: &str, description: &str) -> Result<(), sqlx::Error>;
+            async fn create_comment(&self, review_id: Uuid, author_id: Uuid, body: &str, diff_id: Option<Uuid>, revision_id: Option<Uuid>, parent_id: Option<Uuid>, file_path: Option<String>, line_number: Option<i32>, side: Option<CommentSide>) -> Result<ReviewComment, sqlx::Error>;
         }
     }
 
