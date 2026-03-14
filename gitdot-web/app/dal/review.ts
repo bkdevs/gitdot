@@ -1,5 +1,6 @@
 import "server-only";
 
+import type { PublishReviewRequest } from "gitdot-api";
 import { ReviewerResource, ReviewResource } from "gitdot-api";
 import { z } from "zod";
 import {
@@ -59,4 +60,18 @@ export async function removeReviewer(
   );
 
   await handleEmptyResponse(response);
+}
+
+export async function publishReview(
+  owner: string,
+  repo: string,
+  number: number,
+  request: PublishReviewRequest,
+): Promise<ReviewResource | null> {
+  const response = await authPost(
+    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/review/${number}/publish`,
+    request,
+  );
+
+  return await handleResponse(response, ReviewResource);
 }

@@ -1,8 +1,9 @@
 "use client";
 
 import type { DiffResource, ReviewResource } from "gitdot-api";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useUserContext } from "@/(main)/context/user";
+import { publishReviewAction } from "@/actions/review";
 import { Button } from "@/ui/button";
 import { cn, timeAgo } from "@/util";
 import { Reviewers } from "./reviewers";
@@ -23,6 +24,35 @@ export function ReviewDetail({
   const isDraft = review.status === "draft" && user?.id === review.author_id;
   const selectedDiff: DiffResource | undefined =
     review.diffs[selectedDiffIndex];
+  const [isPublishing, setIsPublishing] = useState(false);
+
+  const titleRef = useRef<HTMLInputElement>(null);
+  const descriptionRef = useRef<HTMLTextAreaElement>(null);
+  const diffDescriptionRefs = useRef<Map<number, HTMLTextAreaElement>>(
+    new Map(),
+  );
+
+  async function handlePublish() {
+    setIsPublishing(true);
+
+    const diffs = review.diffs
+      .map((diff) => {
+        const textarea = diffDescriptionRefs.current.get(diff.position);
+        return {
+          position: diff.position,
+          description: textarea?.value,
+        };
+      })
+      .filter((d) => d.description !== undefined);
+
+    await publishReviewAction(owner, repo, number, {
+      title: titleRef.current?.value || undefined,
+      description: descriptionRef.current?.value || undefined,
+      diffs: diffs.length > 0 ? diffs : undefined,
+    });
+
+    setIsPublishing(false);
+  }
 
   return (
     <div className="w-full flex">
@@ -31,6 +61,7 @@ export function ReviewDetail({
           <div className="flex flex-col gap-1">
             {isDraft ? (
               <input
+                ref={titleRef}
                 type="text"
                 defaultValue={review.title || `Review #${review.number}`}
                 className="text-lg font-medium bg-transparent border-b border-border outline-none focus:border-ring"
@@ -53,6 +84,7 @@ export function ReviewDetail({
 
             {isDraft ? (
               <textarea
+                ref={descriptionRef}
                 defaultValue={review.description}
                 placeholder="Add a description..."
                 className="text-sm mt-2 bg-transparent border border-border rounded-md p-2 outline-none focus:border-ring resize-none min-h-30"
@@ -98,9 +130,17 @@ export function ReviewDetail({
           <div className="flex-1 min-w-0 px-4 py-3">
             {selectedDiff ? (
               <div className="flex flex-col gap-2">
-
                 {isDraft ? (
                   <textarea
+                    ref={(el) => {
+                      if (el) {
+                        diffDescriptionRefs.current.set(
+                          selectedDiff.position,
+                          el,
+                        );
+                      }
+                    }}
+                    key={selectedDiff.id}
                     defaultValue={selectedDiff.description}
                     placeholder="Add a description..."
                     className="text-sm text-muted-foreground bg-transparent border border-border rounded-md p-2 outline-none focus:border-ring resize-none min-h-30"
@@ -145,9 +185,10 @@ export function ReviewDetail({
             variant="default"
             size="sm"
             className="w-full"
-            onClick={() => {}}
+            disabled={isPublishing}
+            onClick={handlePublish}
           >
-            Publish
+            {isPublishing ? "Publishing..." : "Publish"}
           </Button>
         )}
         <Reviewers

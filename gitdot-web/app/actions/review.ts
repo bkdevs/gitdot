@@ -1,8 +1,12 @@
 "use server";
 
-import type { ReviewerResource } from "gitdot-api";
+import type {
+  PublishReviewRequest,
+  ReviewerResource,
+  ReviewResource,
+} from "gitdot-api";
 import { refresh } from "next/cache";
-import { addReviewer, removeReviewer } from "@/dal";
+import { addReviewer, publishReview, removeReviewer } from "@/dal";
 
 export type AddReviewerActionResult =
   | { reviewer: ReviewerResource }
@@ -46,4 +50,23 @@ export async function removeReviewerAction(
 
   refresh();
   return { success: true };
+}
+
+export type PublishReviewActionResult =
+  | { review: ReviewResource }
+  | { error: string };
+
+export async function publishReviewAction(
+  owner: string,
+  repo: string,
+  number: number,
+  request: PublishReviewRequest,
+): Promise<PublishReviewActionResult> {
+  const result = await publishReview(owner, repo, number, request);
+  if (!result) {
+    return { error: "publishReview call failed" };
+  }
+
+  refresh();
+  return { review: result };
 }
