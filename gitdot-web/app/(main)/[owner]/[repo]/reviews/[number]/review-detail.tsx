@@ -13,11 +13,13 @@ export function ReviewDetail({
   repo,
   number,
   review,
+  diffContents,
 }: {
   owner: string;
   repo: string;
   number: number;
   review: ReviewResource;
+  diffContents: Record<number, React.ReactNode>;
 }) {
   const { user } = useUserContext();
   const [selectedDiffIndex, setSelectedDiffIndex] = useState(0);
@@ -127,53 +129,58 @@ export function ReviewDetail({
             ))}
           </div>
 
-          <div className="flex-1 min-w-0 px-4 py-3">
+          <div className="flex-1 min-w-0">
             {selectedDiff ? (
-              <div className="flex flex-col gap-2">
-                {isDraft ? (
-                  <textarea
-                    ref={(el) => {
-                      if (el) {
-                        diffDescriptionRefs.current.set(
-                          selectedDiff.position,
-                          el,
-                        );
-                      }
-                    }}
-                    key={selectedDiff.id}
-                    defaultValue={selectedDiff.description}
-                    placeholder="Add a description..."
-                    className="text-sm text-muted-foreground bg-transparent border border-border rounded-md p-2 outline-none focus:border-ring resize-none min-h-30"
-                  />
-                ) : (
-                  selectedDiff.description && (
-                    <p className="text-sm text-muted-foreground">
-                      {selectedDiff.description}
-                    </p>
-                  )
-                )}
-
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <span>{selectedDiff.status}</span>
-                  {selectedDiff.revisions.length > 0 && (
-                    <>
-                      <span>•</span>
-                      <span>
-                        {selectedDiff.revisions.length}{" "}
-                        {selectedDiff.revisions.length === 1
-                          ? "revision"
-                          : "revisions"}
-                      </span>
-                      <span>•</span>
-                      <span>
-                        {selectedDiff.revisions[0].commit_hash.slice(0, 7)}
-                      </span>
-                    </>
+              <div className="flex flex-col">
+                <div className="flex flex-col gap-2 px-4 py-3">
+                  {isDraft ? (
+                    <textarea
+                      ref={(el) => {
+                        if (el) {
+                          diffDescriptionRefs.current.set(
+                            selectedDiff.position,
+                            el,
+                          );
+                        }
+                      }}
+                      key={selectedDiff.id}
+                      defaultValue={selectedDiff.description}
+                      placeholder="Add a description..."
+                      className="text-sm text-muted-foreground bg-transparent border border-border rounded-md p-2 outline-none focus:border-ring resize-none min-h-30"
+                    />
+                  ) : (
+                    selectedDiff.description && (
+                      <p className="text-sm text-muted-foreground">
+                        {selectedDiff.description}
+                      </p>
+                    )
                   )}
+
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <span>{selectedDiff.status}</span>
+                    {selectedDiff.revisions.length > 0 && (
+                      <>
+                        <span>•</span>
+                        <span>
+                          {selectedDiff.revisions.length}{" "}
+                          {selectedDiff.revisions.length === 1
+                            ? "revision"
+                            : "revisions"}
+                        </span>
+                        <span>•</span>
+                        <span>
+                          {selectedDiff.revisions[0].commit_hash.slice(0, 7)}
+                        </span>
+                      </>
+                    )}
+                  </div>
                 </div>
+                {diffContents[selectedDiff.position]}
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground">No diffs</p>
+              <p className="text-sm text-muted-foreground px-4 py-3">
+                No diffs
+              </p>
             )}
           </div>
         </div>
