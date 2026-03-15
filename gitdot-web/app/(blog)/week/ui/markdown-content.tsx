@@ -29,6 +29,11 @@ export default function MarkdownContent({ content }: { content: string }) {
             {children}
           </a>
         ),
+        blockquote: ({ children }) => (
+          <blockquote className="border-l-4 border-gray-300 dark:border-gray-600 pl-4 italic my-4 text-gray-700 dark:text-gray-300">
+            {children}
+          </blockquote>
+        ),
         code: ({ children, className, node }) => {
           // Check if this is a code block (inside pre) vs inline code
           // Code blocks have className with "language-" OR their parent is a <pre> element
