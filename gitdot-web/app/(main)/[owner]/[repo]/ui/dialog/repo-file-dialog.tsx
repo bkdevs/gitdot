@@ -1,13 +1,13 @@
 "use client";
 
+import type {
+  RepositoryBlobsResource,
+  RepositoryPathsResource,
+} from "gitdot-api";
+import { use, useEffect, useMemo, useRef, useState } from "react";
 import { useWorkerContext } from "@/(main)/context/worker";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
 import Link from "@/ui/link";
-import type {
-    RepositoryBlobsResource,
-    RepositoryPathsResource,
-} from "gitdot-api";
-import { use, useEffect, useMemo, useRef, useState } from "react";
 import { useRepoContext } from "../../context";
 import { fuzzyMatch } from "../../util";
 

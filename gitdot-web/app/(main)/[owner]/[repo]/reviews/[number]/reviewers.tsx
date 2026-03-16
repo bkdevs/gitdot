@@ -63,9 +63,6 @@ export function Reviewers({
             >
               <div className="flex items-center gap-2">
                 <span>{reviewer.user?.name ?? "Unknown"}</span>
-                <span className="text-xs text-muted-foreground">
-                  {reviewer.status}
-                </span>
               </div>
               <Button
                 variant="ghost"

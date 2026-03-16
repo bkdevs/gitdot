@@ -13,10 +13,7 @@ export function RepoSidebarCommits() {
 
   const commitsByDate = groupCommitsByDate(commits);
   const pathname = usePathname();
-  const [owner, repo, _, currentSha] = pathname
-    .split("/")
-    .filter(Boolean);
-
+  const [owner, repo, _, currentSha] = pathname.split("/").filter(Boolean);
 
   return (
     <div className="flex flex-col w-full">

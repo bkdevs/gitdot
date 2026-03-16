@@ -77,7 +77,6 @@ impl IntoApi for ReviewerResponse {
             id: self.id,
             review_id: self.review_id,
             reviewer_id: self.reviewer_id,
-            status: self.status,
             created_at: self.created_at,
             user: self.user.into_api(),
         }

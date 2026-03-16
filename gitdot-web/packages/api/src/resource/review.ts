@@ -33,7 +33,6 @@ export const ReviewerResource = z.object({
   id: z.uuid(),
   review_id: z.uuid(),
   reviewer_id: z.uuid(),
-  status: z.string(),
   created_at: z.iso.datetime(),
   user: ReviewAuthorResource.nullable(),
 });

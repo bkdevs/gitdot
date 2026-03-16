@@ -54,7 +54,6 @@ pub struct ReviewerResource {
     pub id: Uuid,
     pub review_id: Uuid,
     pub reviewer_id: Uuid,
-    pub status: String,
     pub created_at: DateTime<Utc>,
     pub user: Option<ReviewAuthorResource>,
 }

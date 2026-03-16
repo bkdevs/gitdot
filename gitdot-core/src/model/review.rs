@@ -36,10 +36,8 @@ pub struct Review {
 #[serde(rename_all = "lowercase")]
 pub enum ReviewStatus {
     Draft,
-    Open,
-    ChangesRequested,
-    Approved,
-    Merged,
+    InProgress,
+    Closed,
 }
 
 #[derive(Debug, Clone, FromRow, Serialize, Deserialize)]
@@ -82,20 +80,10 @@ pub struct Reviewer {
     pub id: Uuid,
     pub review_id: Uuid,
     pub reviewer_id: Uuid,
-    pub status: ReviewerStatus,
     pub created_at: DateTime<Utc>,
 
     #[sqlx(json(nullable))]
     pub user: Option<User>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Type, Serialize, Deserialize)]
-#[sqlx(type_name = "reviewer_status", rename_all = "lowercase")]
-#[serde(rename_all = "lowercase")]
-pub enum ReviewerStatus {
-    Pending,
-    ChangesRequested,
-    Approved,
 }
 
 #[derive(Debug, Clone, FromRow, Serialize, Deserialize)]

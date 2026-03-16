@@ -11,8 +11,7 @@ use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
 use crate::model::{
-    CommentSide, Diff, DiffStatus, Review, ReviewComment, ReviewStatus, ReviewerStatus, Revision,
-    User,
+    CommentSide, Diff, DiffStatus, Review, ReviewComment, ReviewStatus, Revision, User,
 };
 
 use super::RepositoryDiffResponse;
@@ -157,7 +156,6 @@ pub struct ReviewerResponse {
     pub id: Uuid,
     pub review_id: Uuid,
     pub reviewer_id: Uuid,
-    pub status: String,
     pub created_at: DateTime<Utc>,
     pub user: Option<ReviewAuthorResponse>,
 }
@@ -168,7 +166,6 @@ impl From<crate::model::Reviewer> for ReviewerResponse {
             id: reviewer.id,
             review_id: reviewer.review_id,
             reviewer_id: reviewer.reviewer_id,
-            status: reviewer_status_to_string(reviewer.status),
             created_at: reviewer.created_at,
             user: reviewer.user.map(ReviewAuthorResponse::from),
         }
@@ -217,10 +214,8 @@ impl From<ReviewComment> for ReviewCommentResponse {
 fn status_to_string(status: ReviewStatus) -> String {
     match status {
         ReviewStatus::Draft => "draft".to_string(),
-        ReviewStatus::Open => "open".to_string(),
-        ReviewStatus::ChangesRequested => "changes_requested".to_string(),
-        ReviewStatus::Approved => "approved".to_string(),
-        ReviewStatus::Merged => "merged".to_string(),
+        ReviewStatus::InProgress => "in_progress".to_string(),
+        ReviewStatus::Closed => "closed".to_string(),
     }
 }
 
@@ -230,14 +225,6 @@ fn diff_status_to_string(status: DiffStatus) -> String {
         DiffStatus::ChangesRequested => "changes_requested".to_string(),
         DiffStatus::Approved => "approved".to_string(),
         DiffStatus::Merged => "merged".to_string(),
-    }
-}
-
-fn reviewer_status_to_string(status: ReviewerStatus) -> String {
-    match status {
-        ReviewerStatus::Pending => "pending".to_string(),
-        ReviewerStatus::ChangesRequested => "changes_requested".to_string(),
-        ReviewerStatus::Approved => "approved".to_string(),
     }
 }
 

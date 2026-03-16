@@ -1,8 +1,8 @@
 "use client";
 
-import { useRepoContext } from "@/(main)/[owner]/[repo]/context";
 import { usePathname } from "next/navigation";
 import { Suspense, use } from "react";
+import { useRepoContext } from "@/(main)/[owner]/[repo]/context";
 import { FolderViewer } from "../[...filePath]/ui/folder-viewer";
 import { getFolderEntries } from "../util";
 

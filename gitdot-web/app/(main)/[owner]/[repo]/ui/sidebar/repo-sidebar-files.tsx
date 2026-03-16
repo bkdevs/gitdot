@@ -45,7 +45,7 @@ export function RepoSidebarFiles({
   owner: string;
   repo: string;
   currentPath: string;
-  }) {
+}) {
   const paths = use(useRepoContext().paths);
   if (!paths) return null;
 

@@ -68,7 +68,6 @@ SELECT
                     'id', rv.id,
                     'review_id', rv.review_id,
                     'reviewer_id', rv.reviewer_id,
-                    'status', rv.status,
                     'created_at', rv.created_at,
                     'user', (SELECT json_build_object('id', u.id, 'name', u.name, 'email', u.email, 'created_at', u.created_at)
                              FROM users u WHERE u.id = rv.reviewer_id)
@@ -311,11 +310,11 @@ impl ReviewRepository for ReviewRepositoryImpl {
     ) -> Result<Option<Reviewer>, Error> {
         sqlx::query_as::<_, Reviewer>(
             r#"
-            INSERT INTO reviewers (review_id, reviewer_id, status)
-            VALUES ($1, $2, 'pending')
+            INSERT INTO reviewers (review_id, reviewer_id)
+            VALUES ($1, $2)
             ON CONFLICT (review_id, reviewer_id) DO NOTHING
             RETURNING
-                id, review_id, reviewer_id, status, created_at,
+                id, review_id, reviewer_id, created_at,
                 (SELECT json_build_object('id', u.id, 'name', u.name, 'email', u.email, 'created_at', u.created_at)
                  FROM users u WHERE u.id = reviewer_id) AS user
             "#,
@@ -350,7 +349,7 @@ impl ReviewRepository for ReviewRepositoryImpl {
         sqlx::query(
             r#"
             UPDATE reviews
-            SET status = 'open',
+            SET status = 'inprogress',
                 title = $2,
                 description = $3,
                 updated_at = NOW()
