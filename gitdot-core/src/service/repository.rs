@@ -8,9 +8,9 @@ use crate::{
     dto::{
         CommitAuthorResponse, CreateRepositoryRequest, DeleteRepositoryRequest,
         GetRepositoryBlobRequest, GetRepositoryBlobsRequest, GetRepositoryFileCommitsRequest,
-        GetRepositoryPathsRequest, GetRepositoryPreviewRequest, RepositoryBlobResponse,
-        RepositoryBlobsResponse, RepositoryCommitResponse, RepositoryCommitsResponse,
-        RepositoryPathsResponse, RepositoryPreviewResponse, RepositoryResponse,
+        GetRepositoryPathsRequest, RepositoryBlobResponse, RepositoryBlobsResponse,
+        RepositoryCommitResponse, RepositoryCommitsResponse, RepositoryPathsResponse,
+        RepositoryResponse,
     },
     error::RepositoryError,
     model::RepositoryOwnerType,
@@ -47,11 +47,6 @@ pub trait RepositoryService: Send + Sync + 'static {
         &self,
         request: GetRepositoryFileCommitsRequest,
     ) -> Result<RepositoryCommitsResponse, RepositoryError>;
-
-    async fn get_repository_preview(
-        &self,
-        request: GetRepositoryPreviewRequest,
-    ) -> Result<RepositoryPreviewResponse, RepositoryError>;
 
     async fn get_repository_by_id(&self, id: Uuid) -> Result<RepositoryResponse, RepositoryError>;
 
@@ -294,21 +289,6 @@ where
             .await?;
 
         Ok(response)
-    }
-
-    async fn get_repository_preview(
-        &self,
-        request: GetRepositoryPreviewRequest,
-    ) -> Result<RepositoryPreviewResponse, RepositoryError> {
-        self.git_client
-            .get_repo_preview(
-                &request.owner_name,
-                &request.name,
-                &request.ref_name,
-                request.preview_lines,
-            )
-            .await
-            .map_err(|e| e.into())
     }
 
     async fn get_repository_by_id(&self, id: Uuid) -> Result<RepositoryResponse, RepositoryError> {

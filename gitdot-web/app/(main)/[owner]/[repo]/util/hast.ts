@@ -1,8 +1,4 @@
-import type {
-  DiffChangeResource,
-  RepositoryFileResource,
-  RepositoryPreviewEntryResource,
-} from "gitdot-api";
+import type { DiffChangeResource, RepositoryFileResource } from "gitdot-api";
 import type { Element, ElementContent, Root } from "hast";
 import {
   addClassToHast,
@@ -68,39 +64,6 @@ export async function renderFileToHtml(
     lang: lang ?? "plaintext",
     theme,
   });
-}
-
-export async function renderFilePreviews(
-  files: RepositoryPreviewEntryResource[],
-): Promise<Map<string, string>> {
-  const renderFile = async (
-    file: RepositoryPreviewEntryResource,
-  ): Promise<[string, string] | null> => {
-    const preview = file.preview;
-    if (!preview) return null;
-
-    const lang = inferLanguage(file.path);
-    const highlighter = await getHighlighter(lang, "vitesse-light");
-
-    const html = highlighter.codeToHtml(preview.content, {
-      lang: inferLanguage(file.path) ?? "plaintext",
-      theme: "vitesse-light",
-      transformers: [
-        {
-          pre(node) {
-            this.addClassToHast(node, "outline-none");
-          },
-        },
-      ],
-    });
-    return [file.path, html];
-  };
-
-  return Promise.all(files.map(renderFile))
-    .then((results) =>
-      results.filter((item): item is [string, string] => item !== null),
-    )
-    .then((entries) => new Map(entries));
 }
 
 export async function renderSpans(

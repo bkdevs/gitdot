@@ -6,7 +6,6 @@ mod get_repository_commit;
 mod get_repository_file;
 mod get_repository_file_commits;
 mod get_repository_paths;
-mod get_repository_preview;
 
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
@@ -24,9 +23,6 @@ pub use get_repository_file::RepositoryFileResponse;
 pub use get_repository_file_commits::GetRepositoryFileCommitsRequest;
 pub use get_repository_paths::{
     GetRepositoryPathsRequest, PathType, RepositoryPath, RepositoryPathsResponse,
-};
-pub use get_repository_preview::{
-    FilePreview, GetRepositoryPreviewRequest, RepositoryPreviewEntry, RepositoryPreviewResponse,
 };
 
 #[derive(Debug, Clone)]

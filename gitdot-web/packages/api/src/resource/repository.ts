@@ -75,34 +75,6 @@ export type RepositoryCommitsResource = z.infer<
   typeof RepositoryCommitsResource
 >;
 
-export const FilePreviewResource = z.object({
-  content: z.string(),
-  total_lines: z.number().int(),
-  preview_lines: z.number().int(),
-  truncated: z.boolean(),
-  encoding: z.string(),
-});
-export type FilePreviewResource = z.infer<typeof FilePreviewResource>;
-
-export const RepositoryPreviewEntryResource = z.object({
-  path: z.string(),
-  name: z.string(),
-  sha: z.string(),
-  preview: FilePreviewResource.nullable(),
-});
-export type RepositoryPreviewEntryResource = z.infer<
-  typeof RepositoryPreviewEntryResource
->;
-
-export const RepositoryPreviewResource = z.object({
-  ref_name: z.string(),
-  commit_sha: z.string(),
-  entries: z.array(RepositoryPreviewEntryResource),
-});
-export type RepositoryPreviewResource = z.infer<
-  typeof RepositoryPreviewResource
->;
-
 export const PathType = z.enum(["blob", "tree", "commit", "unknown"]);
 export type PathType = z.infer<typeof PathType>;
 

@@ -1,8 +1,8 @@
 "use client";
 
 import type {
+  RepositoryBlobsResource,
   RepositoryPathsResource,
-  RepositoryPreviewResource,
 } from "gitdot-api";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useWorkerContext } from "@/(main)/context/worker";
@@ -19,14 +19,14 @@ export function RepoFileDialog({
   repo: string;
 }) {
   const paths = useRepoResource("paths");
-  const preview = useRepoResource("preview");
+  const blobs = useRepoResource("blobs");
 
   return (
     <RepoFileDialogInner
       owner={owner}
       repo={repo}
       paths={paths}
-      preview={preview}
+      blobs={blobs}
     />
   );
 }
@@ -35,12 +35,12 @@ function RepoFileDialogInner({
   owner,
   repo,
   paths,
-  preview,
+  blobs,
 }: {
   owner: string;
   repo: string;
   paths: RepositoryPathsResource;
-  preview: RepositoryPreviewResource;
+  blobs: RepositoryBlobsResource;
 }) {
   const [previews, setPreviews] = useState<Map<string, string>>(new Map());
   const [open, setOpen] = useState(false);
@@ -65,11 +65,11 @@ function RepoFileDialogInner({
 
     shiki.addEventListener("message", onMessage);
 
-    for (const file of preview.entries) {
-      if (!file.preview) continue;
+    for (const blob of blobs.blobs) {
+      if (blob.type !== "file") continue;
       shiki.postMessage({
-        path: file.path,
-        code: file.preview.content,
+        path: blob.path,
+        code: blob.content,
         theme: "vitesse-light",
       });
     }

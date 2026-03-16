@@ -5,7 +5,6 @@ import type {
   RepositoryCommitResource,
   RepositoryCommitsResource,
   RepositoryPathsResource,
-  RepositoryPreviewResource,
 } from "gitdot-api";
 import { createContext, use, useContext, useEffect, useMemo } from "react";
 import { useDatabaseContext } from "@/(main)/context/database";
@@ -13,7 +12,6 @@ import { firstNonNull } from "@/util";
 
 interface RepoContext {
   commits: Promise<RepositoryCommitResource[]>;
-  preview: Promise<RepositoryPreviewResource>;
   paths: Promise<RepositoryPathsResource>;
   blobs: Promise<RepositoryBlobsResource>;
 }
@@ -33,7 +31,6 @@ export function RepoProvider({
   owner,
   repo,
   commits,
-  preview,
   paths,
   blobs,
   children,
@@ -41,7 +38,6 @@ export function RepoProvider({
   owner: string;
   repo: string;
   commits: Promise<RepositoryCommitsResource | null>;
-  preview: Promise<RepositoryPreviewResource | null>;
   paths: Promise<RepositoryPathsResource | null>;
   blobs: Promise<RepositoryBlobsResource | null>;
   children: React.ReactNode;
@@ -50,7 +46,6 @@ export function RepoProvider({
 
   const value = useMemo(() => {
     const serverCommits = requireNotNull(commits).then((c) => c.commits);
-    const serverPreview = requireNotNull(preview);
     const serverPaths = requireNotNull(paths);
     const serverBlobs = requireNotNull(blobs);
 
@@ -58,7 +53,6 @@ export function RepoProvider({
       console.log("[db] db is null, using server promises");
       return {
         commits: serverCommits,
-        preview: serverPreview,
         paths: serverPaths,
         blobs: serverBlobs,
       };
@@ -72,10 +66,6 @@ export function RepoProvider({
       console.log(`[db] idb commits: ${ms()}`);
       return c.length > 0 ? c : null;
     });
-    const previewFromDb = db.getPreview(owner, repo).then((v) => {
-      console.log(`[db] idb preview: ${ms()}`);
-      return v;
-    });
     const pathsFromDb = db.getPaths(owner, repo).then((v) => {
       console.log(`[db] idb paths: ${ms()}`);
       return v;
@@ -86,25 +76,22 @@ export function RepoProvider({
     });
 
     serverCommits.then(() => console.log(`[db] server commits: ${ms()}`));
-    serverPreview.then(() => console.log(`[db] server preview: ${ms()}`));
     serverPaths.then(() => console.log(`[db] server paths: ${ms()}`));
     serverBlobs.then(() => console.log(`[db] server blobs: ${ms()}`));
 
     return {
       commits: firstNonNull(commitsFromDb, serverCommits),
-      preview: firstNonNull(previewFromDb, serverPreview),
       paths: firstNonNull(pathsFromDb, serverPaths),
       blobs: firstNonNull(blobsFromDb, serverBlobs),
     };
-  }, [db, owner, repo, commits, preview, paths, blobs]);
+  }, [db, owner, repo, commits, paths, blobs]);
 
   useEffect(() => {
     if (!db) return;
     requireNotNull(commits).then((c) => db.putCommits(owner, repo, c.commits));
-    requireNotNull(preview).then((p) => db.putPreview(owner, repo, p));
     requireNotNull(paths).then((p) => db.putPaths(owner, repo, p));
     requireNotNull(blobs).then((b) => db.putBlobs(owner, repo, b));
-  }, [db, owner, repo, commits, preview, paths, blobs]);
+  }, [db, owner, repo, commits, paths, blobs]);
 
   return <RepoContext value={value}>{children}</RepoContext>;
 }

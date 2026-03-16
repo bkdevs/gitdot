@@ -5,7 +5,6 @@ import type {
   RepositoryBlobsResource,
   RepositoryCommitResource,
   RepositoryPathsResource,
-  RepositoryPreviewResource,
 } from "gitdot-api";
 
 export interface Database {
@@ -31,17 +30,6 @@ export interface Database {
     owner: string,
     repo: string,
   ): Promise<RepositoryCommitResource[]>;
-
-  getPreview(
-    owner: string,
-    repo: string,
-  ): Promise<RepositoryPreviewResource | undefined>;
-
-  putPreview(
-    owner: string,
-    repo: string,
-    preview: RepositoryPreviewResource,
-  ): Promise<void>;
 
   getPaths(
     owner: string,

@@ -3,10 +3,9 @@ use tokio::{fs, task};
 
 use crate::{
     dto::{
-        FilePreview, PathType, RepositoryBlobResponse, RepositoryBlobsResponse,
-        RepositoryCommitResponse, RepositoryCommitsResponse, RepositoryFileResponse,
-        RepositoryFolderResponse, RepositoryPath, RepositoryPathsResponse, RepositoryPreviewEntry,
-        RepositoryPreviewResponse,
+        PathType, RepositoryBlobResponse, RepositoryBlobsResponse, RepositoryCommitResponse,
+        RepositoryCommitsResponse, RepositoryFileResponse, RepositoryFolderResponse,
+        RepositoryPath, RepositoryPathsResponse,
     },
     error::GitError,
     util::{
@@ -72,14 +71,6 @@ pub trait GitClient: Send + Sync + Clone + 'static {
         page: u32,
         per_page: u32,
     ) -> Result<RepositoryCommitsResponse, GitError>;
-
-    async fn get_repo_preview(
-        &self,
-        owner: &str,
-        repo: &str,
-        ref_name: &str,
-        preview_lines: u32,
-    ) -> Result<RepositoryPreviewResponse, GitError>;
 
     async fn get_repo_diff_files(
         &self,
@@ -216,83 +207,6 @@ impl Git2Client {
             content,
             encoding,
         }
-    }
-
-    fn get_file_preview(
-        repo: &git2::Repository,
-        blob_id: git2::Oid,
-        preview_lines: u32,
-    ) -> Option<FilePreview> {
-        let blob = repo.find_blob(blob_id).ok()?;
-        let content_bytes = blob.content();
-
-        if Self::is_binary(content_bytes) {
-            return None;
-        }
-
-        let content_str = std::str::from_utf8(content_bytes).ok()?;
-        let lines: Vec<&str> = content_str.lines().collect();
-        let total_lines = lines.len() as u32;
-        let preview_line_count = std::cmp::min(preview_lines, total_lines);
-        let truncated = total_lines > preview_lines;
-
-        let preview_content = lines
-            .into_iter()
-            .take(preview_lines as usize)
-            .collect::<Vec<_>>()
-            .join("\n");
-
-        Some(FilePreview {
-            content: preview_content,
-            total_lines,
-            preview_lines: preview_line_count,
-            truncated,
-            encoding: "utf-8".to_string(),
-        })
-    }
-
-    fn walk_tree_with_preview(
-        repo: &git2::Repository,
-        tree: &git2::Tree,
-        base_path: &str,
-        entries: &mut Vec<RepositoryPreviewEntry>,
-        preview_lines: u32,
-    ) -> Result<(), git2::Error> {
-        for entry in tree.iter() {
-            let name = entry.name().unwrap_or("").to_string();
-            let entry_path = if base_path.is_empty() {
-                name.clone()
-            } else {
-                format!("{}/{}", base_path, name)
-            };
-
-            match entry.kind() {
-                Some(git2::ObjectType::Blob) => {
-                    let sha = entry.id().to_string();
-                    let preview = Self::get_file_preview(repo, entry.id(), preview_lines);
-
-                    entries.push(RepositoryPreviewEntry {
-                        path: entry_path,
-                        name,
-                        sha,
-                        preview,
-                    });
-                }
-                Some(git2::ObjectType::Tree) => {
-                    if let Ok(subtree) = repo.find_tree(entry.id()) {
-                        Self::walk_tree_with_preview(
-                            repo,
-                            &subtree,
-                            &entry_path,
-                            entries,
-                            preview_lines,
-                        )?;
-                    }
-                }
-                _ => {}
-            }
-        }
-        Ok(())
     }
 }
 
@@ -683,33 +597,6 @@ impl GitClient for Git2Client {
             }
 
             Ok(RepositoryCommitsResponse { commits, has_next })
-        })
-        .await?
-    }
-
-    async fn get_repo_preview(
-        &self,
-        owner: &str,
-        repo: &str,
-        ref_name: &str,
-        preview_lines: u32,
-    ) -> Result<RepositoryPreviewResponse, GitError> {
-        let ref_name = ref_name.to_string();
-        let repository = self.open_repository(owner, repo)?;
-
-        task::spawn_blocking(move || {
-            let commit = Self::resolve_ref(&repository, &ref_name)?;
-            let commit_sha = commit.id().to_string();
-            let tree = commit.tree()?;
-
-            let mut entries = Vec::new();
-            Self::walk_tree_with_preview(&repository, &tree, "", &mut entries, preview_lines)?;
-
-            Ok(RepositoryPreviewResponse {
-                ref_name,
-                commit_sha,
-                entries,
-            })
         })
         .await?
     }

@@ -6,7 +6,6 @@ pub mod get_repository_commit;
 pub mod get_repository_commits;
 pub mod get_repository_file_commits;
 pub mod get_repository_paths;
-pub mod get_repository_preview;
 
 fn default_visibility() -> String {
     "public".to_string()

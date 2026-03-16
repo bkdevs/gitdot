@@ -16,8 +16,6 @@ export async function openIdb(): Promise<Database> {
     upgrade(db) {
       if (!db.objectStoreNames.contains("commits"))
         db.createObjectStore("commits");
-      if (!db.objectStoreNames.contains("preview"))
-        db.createObjectStore("preview");
       if (!db.objectStoreNames.contains("paths")) db.createObjectStore("paths");
       if (!db.objectStoreNames.contains("blobs")) db.createObjectStore("blobs");
     },
@@ -44,14 +42,6 @@ export async function openIdb(): Promise<Database> {
       const prefix = `${owner}/${repo}/`;
       const range = IDBKeyRange.bound(prefix, `${prefix}\uffff`);
       return db.getAll("commits", range);
-    },
-
-    getPreview(owner, repo) {
-      return db.get("preview", repoKey(owner, repo));
-    },
-
-    async putPreview(owner, repo, preview) {
-      await db.put("preview", preview, repoKey(owner, repo));
     },
 
     async getPaths(owner, repo) {

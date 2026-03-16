@@ -1,10 +1,9 @@
 use gitdot_api::resource::repository as api;
 use gitdot_core::{
     dto::{
-        CommitAuthorResponse, CommitResponse, CommitsResponse, FilePreview, PathType,
-        RepositoryBlobResponse, RepositoryBlobsResponse, RepositoryCommitResponse,
-        RepositoryCommitsResponse, RepositoryFileResponse, RepositoryFolderResponse,
-        RepositoryPath, RepositoryPathsResponse, RepositoryPreviewEntry, RepositoryPreviewResponse,
+        CommitAuthorResponse, CommitResponse, CommitsResponse, PathType, RepositoryBlobResponse,
+        RepositoryBlobsResponse, RepositoryCommitResponse, RepositoryCommitsResponse,
+        RepositoryFileResponse, RepositoryFolderResponse, RepositoryPath, RepositoryPathsResponse,
         RepositoryResponse,
     },
     model::{CommitDiffChange, CommitDiffLine, CommitDiffPair, CommitDiffSyntaxHighlight},
@@ -105,42 +104,6 @@ impl IntoApi for RepositoryFileResponse {
             path: self.path,
             sha: self.sha,
             content: self.content,
-            encoding: self.encoding,
-        }
-    }
-}
-
-impl IntoApi for RepositoryPreviewResponse {
-    type ApiType = api::RepositoryPreviewResource;
-    fn into_api(self) -> Self::ApiType {
-        api::RepositoryPreviewResource {
-            ref_name: self.ref_name,
-            commit_sha: self.commit_sha,
-            entries: self.entries.into_api(),
-        }
-    }
-}
-
-impl IntoApi for RepositoryPreviewEntry {
-    type ApiType = api::RepositoryPreviewEntryResource;
-    fn into_api(self) -> Self::ApiType {
-        api::RepositoryPreviewEntryResource {
-            path: self.path,
-            name: self.name,
-            sha: self.sha,
-            preview: self.preview.into_api(),
-        }
-    }
-}
-
-impl IntoApi for FilePreview {
-    type ApiType = api::FilePreviewResource;
-    fn into_api(self) -> Self::ApiType {
-        api::FilePreviewResource {
-            content: self.content,
-            total_lines: self.total_lines,
-            preview_lines: self.preview_lines,
-            truncated: self.truncated,
             encoding: self.encoding,
         }
     }

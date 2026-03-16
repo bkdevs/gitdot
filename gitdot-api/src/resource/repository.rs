@@ -45,30 +45,6 @@ pub struct RepositoryFileResource {
 }
 
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct RepositoryPreviewResource {
-    pub ref_name: String,
-    pub commit_sha: String,
-    pub entries: Vec<RepositoryPreviewEntryResource>,
-}
-
-#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct RepositoryPreviewEntryResource {
-    pub path: String,
-    pub name: String,
-    pub sha: String,
-    pub preview: Option<FilePreviewResource>,
-}
-
-#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct FilePreviewResource {
-    pub content: String,
-    pub total_lines: u32,
-    pub preview_lines: u32,
-    pub truncated: bool,
-    pub encoding: String,
-}
-
-#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RepositoryFolderResource {
     pub path: String,
     pub entries: Vec<RepositoryPathResource>,

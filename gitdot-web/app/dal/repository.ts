@@ -7,13 +7,11 @@ import {
   type GetRepositoryCommitsRequest,
   type GetRepositoryFileCommitsRequest,
   type GetRepositoryPathsRequest,
-  type GetRepositoryPreviewRequest,
   RepositoryBlobResource,
   RepositoryBlobsResource,
   RepositoryCommitResource,
   RepositoryCommitsResource,
   RepositoryPathsResource,
-  RepositoryPreviewResource,
   RepositoryResource,
 } from "gitdot-api";
 import { toQueryString } from "@/util";
@@ -87,19 +85,6 @@ export async function getRepositoryCommit(
   );
 
   return await handleResponse(response, RepositoryCommitResource);
-}
-
-export async function getRepositoryPreview(
-  owner: string,
-  repo: string,
-  query?: GetRepositoryPreviewRequest,
-): Promise<RepositoryPreviewResource | null> {
-  const queryString = toQueryString(query);
-  const response = await authFetch(
-    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/preview?${queryString}`,
-  );
-
-  return await handleResponse(response, RepositoryPreviewResource);
 }
 
 export async function getRepositoryPaths(

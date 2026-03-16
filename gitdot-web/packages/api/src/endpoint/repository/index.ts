@@ -6,4 +6,3 @@ export * from "./get-repository-commit";
 export * from "./get-repository-commits";
 export * from "./get-repository-file-commits";
 export * from "./get-repository-paths";
-export * from "./get-repository-preview";
