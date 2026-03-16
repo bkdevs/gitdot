@@ -1,32 +1,21 @@
-import type { DiffHunkResource, RepositoryFileResource } from "gitdot-api";
+import type { DiffHunkResource } from "gitdot-api";
 import type { Element } from "hast";
 import { toJsxRuntime } from "hast-util-to-jsx-runtime";
 import type { JSX } from "react";
 import { Fragment } from "react";
 import { jsx, jsxs } from "react/jsx-runtime";
-import {
-  createChangeMaps,
-  expandLines,
-  pairLines,
-  renderSpans,
-} from "@/(main)/[owner]/[repo]/util";
+import { expandLines, pairLines } from "@/(main)/[owner]/[repo]/util";
 import { DiffLine } from "./diff-line";
 
-export async function DiffSplit({
-  left,
-  right,
+export function DiffSplit({
+  leftSpans,
+  rightSpans,
   hunks,
 }: {
-  left: RepositoryFileResource;
-  right: RepositoryFileResource;
+  leftSpans: Element[];
+  rightSpans: Element[];
   hunks: DiffHunkResource[];
 }) {
-  const { leftChangeMap, rightChangeMap } = createChangeMaps(hunks);
-  const [leftSpans, rightSpans] = await Promise.all([
-    renderSpans("left", left, leftChangeMap),
-    renderSpans("right", right, rightChangeMap),
-  ]);
-
   return (
     <div className="flex flex-col w-full">
       {hunks.map((hunk, index) => {

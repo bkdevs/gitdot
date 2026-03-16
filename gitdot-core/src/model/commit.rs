@@ -14,6 +14,7 @@ pub struct Commit {
 
     pub ref_name: String,
     pub sha: String,
+    pub parent_sha: String,
     pub message: String,
     pub created_at: DateTime<Utc>,
 

@@ -179,6 +179,7 @@ where
         let mut repo_ids = Vec::new();
         let mut ref_names = Vec::new();
         let mut shas = Vec::new();
+        let mut parent_shas: Vec<String> = Vec::new();
         let mut messages = Vec::new();
         let mut created_ats: Vec<DateTime<Utc>> = Vec::new();
         let mut diffs_per_commit: Vec<Vec<model::CommitDiff>> = Vec::new();
@@ -226,6 +227,11 @@ where
             repo_ids.push(repo_id);
             ref_names.push(request.ref_name.clone());
             shas.push(commit.sha);
+            parent_shas.push(
+                commit
+                    .parent_sha
+                    .unwrap_or_else(|| "0000000000000000000000000000000000000000".to_string()),
+            );
             messages.push(commit.message);
             created_ats.push(commit.date);
         }
@@ -239,6 +245,7 @@ where
                 &repo_ids,
                 &ref_names,
                 &shas,
+                &parent_shas,
                 &messages,
                 &created_ats,
                 &diffs_per_commit,

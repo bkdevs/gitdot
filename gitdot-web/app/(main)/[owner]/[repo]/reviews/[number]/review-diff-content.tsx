@@ -1,8 +1,11 @@
 import type { DiffResource } from "gitdot-api";
 import { Suspense } from "react";
+import { getReviewAllDiffDataAction } from "@/actions/repository";
 import { DiffBody } from "@/(main)/[owner]/[repo]/commits/[sha]/ui/diff-body";
 import { DiffFileClient } from "@/(main)/[owner]/[repo]/commits/[sha]/ui/diff-file-client";
 import { getReviewDiff } from "@/dal";
+
+const NULL_SHA = "0000000000000000000000000000000000000000";
 
 export async function ReviewDiffContent({
   owner,
@@ -31,6 +34,14 @@ export async function ReviewDiffContent({
     );
   }
 
+  const allDiffDataPromise = getReviewAllDiffDataAction(
+    owner,
+    repo,
+    diffResponse.files,
+    revision.commit_hash,
+    revision.parent_hash ?? NULL_SHA,
+  );
+
   return (
     <div className="flex flex-col">
       {diffResponse.files.map((stat) => (
@@ -48,13 +59,7 @@ export async function ReviewDiffContent({
               </div>
             }
           >
-            <DiffBody
-              stat={stat}
-              owner={owner}
-              repo={repo}
-              sha={revision.commit_hash}
-              parentSha={revision.parent_hash}
-            />
+            <DiffBody path={stat.path} allDiffDataPromise={allDiffDataPromise} />
           </Suspense>
         </DiffFileClient>
       ))}

@@ -24,6 +24,7 @@ pub trait CommitRepository: Send + Sync + Clone + 'static {
         repo_ids: &[Uuid],
         ref_names: &[String],
         shas: &[String],
+        parent_shas: &[String],
         messages: &[String],
         created_ats: &[DateTime<Utc>],
         diffs: &[Vec<CommitDiff>],
@@ -91,6 +92,7 @@ impl CommitRepository for CommitRepositoryImpl {
         repo_ids: &[Uuid],
         ref_names: &[String],
         shas: &[String],
+        parent_shas: &[String],
         messages: &[String],
         created_ats: &[DateTime<Utc>],
         diffs: &[Vec<CommitDiff>],
@@ -106,8 +108,8 @@ impl CommitRepository for CommitRepositoryImpl {
 
         let rows = sqlx::query_as::<_, Commit>(
             r#"
-            INSERT INTO commits (author_id, git_author_name, git_author_email, repo_id, ref_name, sha, message, created_at, diffs)
-            SELECT * FROM UNNEST($1::uuid[], $2::text[], $3::text[], $4::uuid[], $5::varchar[], $6::varchar[], $7::text[], $8::timestamptz[], $9::jsonb[])
+            INSERT INTO commits (author_id, git_author_name, git_author_email, repo_id, ref_name, sha, parent_sha, message, created_at, diffs)
+            SELECT * FROM UNNEST($1::uuid[], $2::text[], $3::text[], $4::uuid[], $5::varchar[], $6::varchar[], $7::varchar[], $8::text[], $9::timestamptz[], $10::jsonb[])
             RETURNING *
             "#,
         )
@@ -117,6 +119,7 @@ impl CommitRepository for CommitRepositoryImpl {
         .bind(repo_ids)
         .bind(ref_names)
         .bind(shas)
+        .bind(parent_shas)
         .bind(messages)
         .bind(created_ats)
         .bind(diffs_json)

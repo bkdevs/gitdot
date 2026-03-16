@@ -59,7 +59,7 @@ export type RepositoryDiffResource = z.infer<typeof RepositoryDiffResource>;
 
 export const RepositoryCommitResource = z.object({
   sha: z.string(),
-  parent_sha: z.string().optional(),
+  parent_sha: z.string(),
   message: z.string(),
   date: z.iso.datetime(),
   author: CommitAuthorResource,

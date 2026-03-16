@@ -50,7 +50,7 @@ impl IntoApi for CommitResponse {
     fn into_api(self) -> Self::ApiType {
         api::RepositoryCommitResource {
             sha: self.sha,
-            parent_sha: None,
+            parent_sha: self.parent_sha,
             message: self.message,
             date: self.created_at,
             author: api::CommitAuthorResource {
@@ -77,7 +77,9 @@ impl IntoApi for RepositoryCommitResponse {
     fn into_api(self) -> Self::ApiType {
         api::RepositoryCommitResource {
             sha: self.sha,
-            parent_sha: self.parent_sha,
+            parent_sha: self
+                .parent_sha
+                .unwrap_or_else(|| "0000000000000000000000000000000000000000".to_string()),
             message: self.message,
             date: self.date,
             author: self.author.into_api(),

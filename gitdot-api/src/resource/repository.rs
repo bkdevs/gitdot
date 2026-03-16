@@ -20,8 +20,7 @@ pub struct RepositoryCommitsResource {
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RepositoryCommitResource {
     pub sha: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub parent_sha: Option<String>,
+    pub parent_sha: String,
     pub message: String,
     pub date: DateTime<Utc>,
     pub author: CommitAuthorResource,

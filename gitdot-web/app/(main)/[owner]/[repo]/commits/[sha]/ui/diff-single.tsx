@@ -1,32 +1,19 @@
-import type { RepositoryFileResource } from "gitdot-api";
+import type { Element } from "hast";
 import { toJsxRuntime } from "hast-util-to-jsx-runtime";
 import type { JSX } from "react";
 import { Fragment } from "react";
 import { jsx, jsxs } from "react/jsx-runtime";
-import { fileToHast } from "@/(main)/[owner]/[repo]/util";
 import { DiffLine } from "./diff-line";
 
-export async function DiffSingle({
-  file,
-  side,
-}: {
-  file: RepositoryFileResource;
-  side: "left" | "right";
-}) {
-  const hast = await fileToHast(file, "vitesse-light", [
-    {
-      pre(node) {
-        this.addClassToHast(node, "outline-none");
-      },
-      line(node, line) {
-        node.tagName = "diffline";
-        node.properties["data-line-number"] = line;
-        node.properties["data-line-type"] =
-          side === "left" ? "removed" : "added";
-      },
-    },
-  ]);
-  const content = toJsxRuntime(hast, {
+export function DiffSingle({ spans }: { spans: Element[] }) {
+  const container: Element = {
+    type: "element",
+    tagName: "pre",
+    properties: { className: "outline-none" },
+    children: spans,
+  };
+
+  const content = toJsxRuntime(container, {
     Fragment,
     jsx,
     jsxs,
