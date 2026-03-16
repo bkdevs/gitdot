@@ -7,6 +7,38 @@ import type {
   RepositoryPathsResource,
 } from "gitdot-api";
 
+export abstract class RepoProvider {
+  protected owner: string;
+  protected repo: string;
+  private callLog: Array<{ method: string; args: any[] }> = [];
+
+  constructor(owner: string, repo: string) {
+    this.owner = owner;
+    this.repo = repo;
+
+    return new Proxy(this, {
+      get(target, prop) {
+        const val = (target as any)[prop];
+        if (typeof val !== 'function' || prop === 'replay') return val;
+        return (...args: any[]) => {
+          target.callLog.push({ method: prop as string, args });
+          return val.apply(target, args);
+        };
+      }
+    });
+  }
+
+  async replay(callLog: Array<{ method: string; args: any[] }>) {
+    for (const { method, args } of callLog) {
+      await (this as any)[method](...args);
+    }
+  }
+
+  abstract getBlob(id: string): Promise<RepositoryBlobResource | null>;
+  abstract getCommit(sha: string): Promise<RepositoryCommitResource | null>;
+  abstract getPaths(): Promise<RepositoryPathsResource | null>;
+}
+
 export interface Database {
   getCommit(
     owner: string,

@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
-import { type Database, openIdb } from "@/db";
+import { type Database, openIdb } from "@/provider";
 
 interface DatabaseContext {
   db: Database | null;
