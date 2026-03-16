@@ -1,6 +1,7 @@
 "use client";
 
 import { openDB } from "idb";
+import { RepoProvider } from "./types";
 import type { Database } from "./types";
 
 const commitKey = (owner: string, repo: string, sha: string) =>
@@ -10,6 +11,30 @@ const pathKey = (owner: string, repo: string, path: string) =>
   `${owner}/${repo}/${path}`;
 const blobKey = (owner: string, repo: string, path: string) =>
   `${owner}/${repo}/${path}`;
+
+export class IdbProvider extends RepoProvider {
+  private dbPromise: Promise<Database> | null = null;
+
+  private db(): Promise<Database> {
+    if (!this.dbPromise) this.dbPromise = openIdb();
+    return this.dbPromise;
+  }
+
+  async getBlob(path: string) {
+    const db = await this.db();
+    return db.getBlob(this.owner, this.repo, path);
+  }
+
+  async getCommit(sha: string) {
+    const db = await this.db();
+    return db.getCommit(this.owner, this.repo, sha);
+  }
+
+  async getPaths() {
+    const db = await this.db();
+    return db.getPaths(this.owner, this.repo);
+  }
+}
 
 export async function openIdb(): Promise<Database> {
   const db = await openDB("gitdot", 2, {
@@ -22,8 +47,8 @@ export async function openIdb(): Promise<Database> {
   });
 
   return {
-    getCommit(owner, repo, sha) {
-      return db.get("commits", commitKey(owner, repo, sha));
+    async getCommit(owner, repo, sha) {
+      return (await db.get("commits", commitKey(owner, repo, sha))) ?? null;
     },
 
     async putCommit(owner, repo, commit) {
@@ -48,7 +73,7 @@ export async function openIdb(): Promise<Database> {
       const prefix = `${repoKey(owner, repo)}/`;
       const range = IDBKeyRange.bound(prefix, `${prefix}\uffff`);
       const rows = await db.getAll("paths", range);
-      if (rows.length === 0) return undefined;
+      if (rows.length === 0) return null;
       const { ref_name, commit_sha } = rows[0];
       return {
         ref_name,
@@ -73,7 +98,7 @@ export async function openIdb(): Promise<Database> {
 
     async getBlob(owner, repo, path) {
       const row = await db.get("blobs", blobKey(owner, repo, path));
-      if (!row) return undefined;
+      if (!row) return null;
       const { ref_name, commit_sha, ...blob } = row;
       return blob;
     },

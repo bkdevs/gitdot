@@ -1,4 +1,4 @@
-"use server";
+import "server-only";
 
 import {
   getRepositoryBlob,
@@ -13,8 +13,8 @@ import type {
 import { RepoProvider } from "./types";
 
 export class ApiProvider extends RepoProvider {
-  async getBlob(id: string): Promise<RepositoryBlobResource | null> {
-    return await getRepositoryBlob(this.owner, this.repo, { path: id });
+  async getBlob(path: string): Promise<RepositoryBlobResource | null> {
+    return await getRepositoryBlob(this.owner, this.repo, { path: path });
   }
 
   async getCommit(sha: string): Promise<RepositoryCommitResource | null> {

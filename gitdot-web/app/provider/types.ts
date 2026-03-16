@@ -1,5 +1,3 @@
-"use client";
-
 import type {
   RepositoryBlobResource,
   RepositoryBlobsResource,
@@ -7,10 +5,12 @@ import type {
   RepositoryPathsResource,
 } from "gitdot-api";
 
+type MethodCall = { method: string; args: any[] };
+
 export abstract class RepoProvider {
   protected owner: string;
   protected repo: string;
-  private callLog: Array<{ method: string; args: any[] }> = [];
+  private promises: Map<MethodCall, Promise<any>> = new Map();
 
   constructor(owner: string, repo: string) {
     this.owner = owner;
@@ -19,22 +19,22 @@ export abstract class RepoProvider {
     return new Proxy(this, {
       get(target, prop) {
         const val = (target as any)[prop];
-        if (typeof val !== 'function' || prop === 'replay') return val;
+        if (typeof val !== 'function' || prop === 'getPromises') return val;
         return (...args: any[]) => {
-          target.callLog.push({ method: prop as string, args });
-          return val.apply(target, args);
+          const call: MethodCall = { method: prop as string, args };
+          const promise = val.apply(target, args);
+          target.promises.set(call, promise);
+          return promise;
         };
       }
     });
   }
 
-  async replay(callLog: Array<{ method: string; args: any[] }>) {
-    for (const { method, args } of callLog) {
-      await (this as any)[method](...args);
-    }
+  getPromises(): Map<MethodCall, Promise<any>> {
+    return this.promises;
   }
 
-  abstract getBlob(id: string): Promise<RepositoryBlobResource | null>;
+  abstract getBlob(path: string): Promise<RepositoryBlobResource | null>;
   abstract getCommit(sha: string): Promise<RepositoryCommitResource | null>;
   abstract getPaths(): Promise<RepositoryPathsResource | null>;
 }
@@ -44,7 +44,7 @@ export interface Database {
     owner: string,
     repo: string,
     sha: string,
-  ): Promise<RepositoryCommitResource | undefined>;
+  ): Promise<RepositoryCommitResource | null>;
 
   putCommit(
     owner: string,
@@ -66,7 +66,7 @@ export interface Database {
   getPaths(
     owner: string,
     repo: string,
-  ): Promise<RepositoryPathsResource | undefined>;
+  ): Promise<RepositoryPathsResource | null>;
 
   putPaths(
     owner: string,
@@ -78,7 +78,7 @@ export interface Database {
     owner: string,
     repo: string,
     path: string,
-  ): Promise<RepositoryBlobResource | undefined>;
+  ): Promise<RepositoryBlobResource | null>;
 
   getBlobs(
     owner: string,

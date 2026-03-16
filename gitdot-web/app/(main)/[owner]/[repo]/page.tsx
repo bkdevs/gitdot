@@ -1,5 +1,6 @@
-import { getRepositoryBlob } from "@/dal";
-import { MarkdownBody } from "./ui/markdown/markdown-body";
+import { ApiProvider } from "@/provider/api";
+import { Client } from "./client";
+import { Shell } from "./shell";
 
 // export async function generateStaticParams() {
 //   // return CACHED_REPOS;
@@ -11,16 +12,9 @@ export default async function Page({
   params: Promise<{ owner: string; repo: string }>;
 }) {
   const { owner, repo } = await params;
-  const readme = await getRepositoryBlob(owner, repo, {
-    path: "README.md",
-  });
+  const provider = new ApiProvider(owner, repo);
 
-  if (!readme || readme.type !== "file") {
-    return <div className="p-2 text-sm">README.md not found</div>;
-  }
-  return (
-    <div className="p-4 max-w-4xl">
-      <MarkdownBody content={readme.content} />
-    </div>
-  );
+  return <Shell context={{readme: provider.getBlob("README.md")}}>
+    <Client />
+  </Shell>
 }
