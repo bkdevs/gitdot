@@ -8,7 +8,7 @@ use uuid::Uuid;
 
 use crate::model::{Commit, CommitDiff};
 
-use super::RepositoryDiffResponse;
+use super::RepositoryDiffFileResponse;
 
 pub use create_commits::CreateCommitsRequest;
 pub use get_commit::GetCommitRequest;
@@ -48,7 +48,7 @@ pub struct CommitFileDiffResponse {
     pub path: String,
     pub left_content: Option<String>,
     pub right_content: Option<String>,
-    pub diff: RepositoryDiffResponse,
+    pub diff: RepositoryDiffFileResponse,
 }
 
 impl From<Commit> for CommitResponse {

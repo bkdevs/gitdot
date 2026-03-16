@@ -3,8 +3,8 @@ use tempfile::Builder;
 
 use crate::{
     dto::{
-        DiffChange, DiffHunk, DiffLine, DiffPair, RepositoryDiffResponse, RepositoryFileResponse,
-        SyntaxHighlight,
+        DiffChange, DiffHunk, DiffLine, DiffPair, RepositoryDiffFileResponse,
+        RepositoryFileResponse, SyntaxHighlight,
     },
     error::DiffError,
 };
@@ -15,7 +15,7 @@ pub trait DiffClient: Send + Sync + Clone + 'static {
         &self,
         left: Option<&RepositoryFileResponse>,
         right: Option<&RepositoryFileResponse>,
-    ) -> Result<RepositoryDiffResponse, DiffError>;
+    ) -> Result<RepositoryDiffFileResponse, DiffError>;
 }
 
 #[derive(Clone)]
@@ -73,11 +73,11 @@ impl DiffClient for DifftClient {
         &self,
         left: Option<&RepositoryFileResponse>,
         right: Option<&RepositoryFileResponse>,
-    ) -> Result<RepositoryDiffResponse, DiffError> {
+    ) -> Result<RepositoryDiffFileResponse, DiffError> {
         match (left, right) {
             (None, Some(r)) => {
                 let lines_added = r.content.lines().count() as u32;
-                return Ok(RepositoryDiffResponse {
+                return Ok(RepositoryDiffFileResponse {
                     lines_added,
                     lines_removed: 0,
                     hunks: vec![],
@@ -85,7 +85,7 @@ impl DiffClient for DifftClient {
             }
             (Some(l), None) => {
                 let lines_removed = l.content.lines().count() as u32;
-                return Ok(RepositoryDiffResponse {
+                return Ok(RepositoryDiffFileResponse {
                     lines_added: 0,
                     lines_removed,
                     hunks: vec![],
@@ -129,7 +129,7 @@ impl DiffClient for DifftClient {
             }
         }
 
-        Ok(RepositoryDiffResponse {
+        Ok(RepositoryDiffFileResponse {
             lines_added,
             lines_removed,
             hunks,

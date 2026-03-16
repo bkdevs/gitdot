@@ -93,7 +93,7 @@ pub struct RepositoryDiffStatResponse {
 }
 
 #[derive(Debug, Clone)]
-pub struct RepositoryDiffResponse {
+pub struct RepositoryDiffFileResponse {
     pub lines_added: u32,
     pub lines_removed: u32,
     pub hunks: Vec<DiffHunk>,

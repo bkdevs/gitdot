@@ -14,7 +14,7 @@ use crate::model::{
     CommentSide, Diff, DiffStatus, Review, ReviewComment, ReviewStatus, Revision, User,
 };
 
-use super::RepositoryDiffResponse;
+use super::RepositoryDiffFileResponse;
 
 pub use add_reviewer::AddReviewerRequest;
 pub use create_review_comment::CreateReviewCommentRequest;
@@ -238,7 +238,7 @@ fn side_to_string(side: CommentSide) -> String {
 #[derive(Debug, Clone)]
 pub struct ReviewFileDiffResponse {
     pub path: String,
-    pub diff: RepositoryDiffResponse,
+    pub diff: RepositoryDiffFileResponse,
 }
 
 #[derive(Debug, Clone)]
