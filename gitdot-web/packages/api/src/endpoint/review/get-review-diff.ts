@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { RepositoryDiffResource } from "../../resource";
+import { RepositoryDiffFileResource } from "../../resource";
 import type { Endpoint } from "../endpoint";
 
 export const GetReviewDiffResponse = z.object({
-  files: z.array(RepositoryDiffResource),
+  files: z.array(RepositoryDiffFileResource),
 });
 export type GetReviewDiffResponse = z.infer<typeof GetReviewDiffResponse>;
 

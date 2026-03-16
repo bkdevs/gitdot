@@ -4,8 +4,8 @@ use tokio::{fs, task};
 use crate::{
     dto::{
         PathType, RepositoryBlobResponse, RepositoryBlobsResponse, RepositoryCommitResponse,
-        RepositoryCommitsResponse, RepositoryFileResponse, RepositoryFolderResponse,
-        RepositoryPath, RepositoryPathsResponse,
+        RepositoryCommitsResponse, RepositoryDiffStatResponse, RepositoryFileResponse,
+        RepositoryFolderResponse, RepositoryPath, RepositoryPathsResponse,
     },
     error::GitError,
     util::{
@@ -85,6 +85,14 @@ pub trait GitClient: Send + Sync + Clone + 'static {
         )>,
         GitError,
     >;
+
+    async fn get_repo_diff_stats(
+        &self,
+        owner: &str,
+        repo: &str,
+        left_ref: Option<&str>,
+        right_ref: &str,
+    ) -> Result<Vec<RepositoryDiffStatResponse>, GitError>;
 
     async fn rev_list(
         &self,
@@ -663,6 +671,58 @@ impl GitClient for Git2Client {
                 };
 
                 results.push((left, right));
+            }
+
+            Ok(results)
+        })
+        .await?
+    }
+
+    async fn get_repo_diff_stats(
+        &self,
+        owner: &str,
+        repo: &str,
+        left_ref: Option<&str>,
+        right_ref: &str,
+    ) -> Result<Vec<RepositoryDiffStatResponse>, GitError> {
+        let owner = owner.to_string();
+        let repo = repo.to_string();
+        let left_ref = left_ref.map(str::to_string);
+        let right_ref = right_ref.to_string();
+        let repository = self.open_repository(&owner, &repo)?;
+
+        task::spawn_blocking(move || {
+            let left_tree = match left_ref {
+                None => {
+                    let empty_oid = repository.treebuilder(None)?.write()?;
+                    repository.find_tree(empty_oid)?
+                }
+                Some(ref r) => Self::resolve_ref(&repository, r)?.tree()?,
+            };
+            let right_tree = Self::resolve_ref(&repository, &right_ref)?.tree()?;
+            let diff = Self::diff_trees(&repository, &left_tree, &right_tree)?;
+
+            let num_deltas = diff.deltas().count();
+            let mut results = Vec::new();
+            for i in 0..num_deltas {
+                let delta = diff
+                    .get_delta(i)
+                    .ok_or_else(|| git2::Error::from_str("delta index out of range"))?;
+                let path = delta
+                    .new_file()
+                    .path()
+                    .or_else(|| delta.old_file().path())
+                    .and_then(|p| p.to_str())
+                    .unwrap_or("")
+                    .to_string();
+                let patch = git2::Patch::from_diff(&diff, i)?;
+                let (_, insertions, deletions) =
+                    patch.map(|p| p.line_stats()).unwrap_or(Ok((0, 0, 0)))?;
+                results.push(RepositoryDiffStatResponse {
+                    path,
+                    lines_added: insertions as u32,
+                    lines_removed: deletions as u32,
+                });
             }
 
             Ok(results)

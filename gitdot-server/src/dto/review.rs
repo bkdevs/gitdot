@@ -115,9 +115,9 @@ impl IntoApi for ReviewDiffResponse {
 }
 
 impl IntoApi for ReviewFileDiffResponse {
-    type ApiType = repo_api::RepositoryDiffResource;
+    type ApiType = repo_api::RepositoryDiffFileResource;
     fn into_api(self) -> Self::ApiType {
-        repo_api::RepositoryDiffResource {
+        repo_api::RepositoryDiffFileResource {
             path: self.path,
             lines_added: self.diff.lines_added,
             lines_removed: self.diff.lines_removed,
@@ -127,6 +127,8 @@ impl IntoApi for ReviewFileDiffResponse {
                 .into_iter()
                 .map(|h| h.into_iter().map(|p| p.into_api()).collect())
                 .collect(),
+            left_content: None,
+            right_content: None,
         }
     }
 }

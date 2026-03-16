@@ -1,4 +1,4 @@
-import type { RepositoryDiffResource } from "gitdot-api";
+import type { RepositoryDiffStatResource } from "gitdot-api";
 import { Suspense } from "react";
 import type { DiffData } from "@/actions/repository";
 import { DiffBody } from "./diff-body";
@@ -8,7 +8,7 @@ export function CommitBody({
   diffs,
   allDiffDataPromise,
 }: {
-  diffs: RepositoryDiffResource[];
+  diffs: RepositoryDiffStatResource[];
   allDiffDataPromise: Promise<Record<string, DiffData>>;
 }) {
   return (

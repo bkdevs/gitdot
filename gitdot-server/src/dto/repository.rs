@@ -6,9 +6,7 @@ use gitdot_core::{
         RepositoryCommitResponse, RepositoryCommitsResponse, RepositoryFileResponse,
         RepositoryFolderResponse, RepositoryPath, RepositoryPathsResponse, RepositoryResponse,
     },
-    model::{
-        CommitDiff, CommitDiffChange, CommitDiffLine, CommitDiffPair, CommitDiffSyntaxHighlight,
-    },
+    model::CommitDiff,
 };
 
 use super::IntoApi;
@@ -60,16 +58,7 @@ impl IntoApi for CommitResponse {
                 name: self.git_author_name,
                 email: self.git_author_email,
             },
-            diffs: self
-                .diffs
-                .into_iter()
-                .map(|d| api::RepositoryDiffResource {
-                    path: d.path,
-                    lines_added: d.lines_added as u32,
-                    lines_removed: d.lines_removed as u32,
-                    hunks: d.hunks.into_iter().map(|h| h.into_api()).collect(),
-                })
-                .collect(),
+            diffs: self.diffs.into_iter().map(|d| d.into_api()).collect(),
         }
     }
 }
@@ -179,61 +168,13 @@ impl IntoApi for PathType {
     }
 }
 
-impl IntoApi for CommitDiffPair {
-    type ApiType = api::DiffPairResource;
-    fn into_api(self) -> Self::ApiType {
-        api::DiffPairResource {
-            lhs: self.lhs.into_api(),
-            rhs: self.rhs.into_api(),
-        }
-    }
-}
-
-impl IntoApi for CommitDiffLine {
-    type ApiType = api::DiffLineResource;
-    fn into_api(self) -> Self::ApiType {
-        api::DiffLineResource {
-            line_number: self.line_number,
-            changes: self.changes.into_api(),
-        }
-    }
-}
-
-impl IntoApi for CommitDiffChange {
-    type ApiType = api::DiffChangeResource;
-    fn into_api(self) -> Self::ApiType {
-        api::DiffChangeResource {
-            start: self.start,
-            end: self.end,
-            content: self.content,
-            highlight: self.highlight.into_api(),
-        }
-    }
-}
-
-impl IntoApi for CommitDiffSyntaxHighlight {
-    type ApiType = api::SyntaxHighlight;
-    fn into_api(self) -> Self::ApiType {
-        match self {
-            CommitDiffSyntaxHighlight::Delimiter => api::SyntaxHighlight::Delimiter,
-            CommitDiffSyntaxHighlight::Normal => api::SyntaxHighlight::Normal,
-            CommitDiffSyntaxHighlight::String => api::SyntaxHighlight::String,
-            CommitDiffSyntaxHighlight::Type => api::SyntaxHighlight::Type,
-            CommitDiffSyntaxHighlight::Comment => api::SyntaxHighlight::Comment,
-            CommitDiffSyntaxHighlight::Keyword => api::SyntaxHighlight::Keyword,
-            CommitDiffSyntaxHighlight::TreeSitterError => api::SyntaxHighlight::TreeSitterError,
-        }
-    }
-}
-
 impl IntoApi for CommitDiff {
-    type ApiType = api::RepositoryDiffResource;
+    type ApiType = api::RepositoryDiffStatResource;
     fn into_api(self) -> Self::ApiType {
-        api::RepositoryDiffResource {
+        api::RepositoryDiffStatResource {
             path: self.path,
             lines_added: self.lines_added as u32,
             lines_removed: self.lines_removed as u32,
-            hunks: self.hunks.into_iter().map(|h| h.into_api()).collect(),
         }
     }
 }
@@ -250,13 +191,20 @@ impl IntoApi for CommitDiffResponse {
 }
 
 impl IntoApi for CommitFileDiffResponse {
-    type ApiType = api::CommitFileDiffResource;
+    type ApiType = api::RepositoryDiffFileResource;
     fn into_api(self) -> Self::ApiType {
-        api::CommitFileDiffResource {
+        api::RepositoryDiffFileResource {
             path: self.path,
+            lines_added: self.diff.lines_added,
+            lines_removed: self.diff.lines_removed,
+            hunks: self
+                .diff
+                .hunks
+                .into_iter()
+                .map(|h| h.into_iter().map(|p| p.into_api()).collect())
+                .collect(),
             left_content: self.left_content,
             right_content: self.right_content,
-            diff: self.diff.into_api(),
         }
     }
 }

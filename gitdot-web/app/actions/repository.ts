@@ -1,9 +1,8 @@
 "use server";
 
 import type {
-  CommitFileDiffResource,
   DiffHunkResource,
-  RepositoryDiffResource,
+  RepositoryDiffFileResource,
   RepositoryResource,
 } from "gitdot-api";
 import type { Element } from "hast";
@@ -40,7 +39,7 @@ const NULL_SHA = "0000000000000000000000000000000000000000";
 async function computeDiffDataFromBlobs(
   owner: string,
   repo: string,
-  diffs: RepositoryDiffResource[],
+  diffs: RepositoryDiffFileResource[],
   sha: string,
   parentSha: string,
 ): Promise<Record<string, DiffData>> {
@@ -104,14 +103,14 @@ async function computeDiffDataFromBlobs(
   return Object.fromEntries(diffs.map((stat, i) => [stat.path, results[i]]));
 }
 
-async function renderDiff(file: CommitFileDiffResource): Promise<DiffData> {
+async function renderDiff(file: RepositoryDiffFileResource): Promise<DiffData> {
   const left = file.left_content ?? null;
   const right = file.right_content ?? null;
 
   const lang = inferLanguage(file.path);
-  const processedHunks = mergeHunks(file.diff.hunks);
+  const processedHunks = mergeHunks(file.hunks);
 
-  if (left && right && file.diff.hunks.length > 0) {
+  if (left && right && file.hunks.length > 0) {
     const { leftChangeMap, rightChangeMap } = createChangeMaps(processedHunks);
     const [leftSpans, rightSpans] = await Promise.all([
       renderSpans("left", left, lang, leftChangeMap),
@@ -150,7 +149,7 @@ async function renderDiff(file: CommitFileDiffResource): Promise<DiffData> {
 }
 
 async function renderDiffs(
-  files: CommitFileDiffResource[],
+  files: RepositoryDiffFileResource[],
 ): Promise<Record<string, DiffData>> {
   const results = await Promise.all(files.map(renderDiff));
   return Object.fromEntries(files.map((f, i) => [f.path, results[i]]));
@@ -169,7 +168,7 @@ export async function renderCommitDiffAction(
 export async function getReviewAllDiffDataAction(
   owner: string,
   repo: string,
-  files: RepositoryDiffResource[],
+  files: RepositoryDiffFileResource[],
   sha: string,
   parentSha: string,
 ): Promise<Record<string, DiffData>> {

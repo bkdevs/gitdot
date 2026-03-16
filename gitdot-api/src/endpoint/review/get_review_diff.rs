@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{endpoint::Endpoint, resource::repository::RepositoryDiffResource};
+use crate::{endpoint::Endpoint, resource::repository::RepositoryDiffFileResource};
 
 pub struct GetReviewDiff;
 
@@ -17,5 +17,5 @@ pub struct GetReviewDiffRequest {}
 
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct GetReviewDiffResponse {
-    pub files: Vec<RepositoryDiffResource>,
+    pub files: Vec<RepositoryDiffFileResource>,
 }

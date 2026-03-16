@@ -9,7 +9,6 @@ use crate::{
     dto::{
         CommitDiffResponse, CommitFileDiffResponse, CommitResponse, CommitsResponse,
         CreateCommitsRequest, GetCommitDiffRequest, GetCommitRequest, GetCommitsRequest,
-        RepositoryBlobResponse,
     },
     error::CommitError,
     model,
@@ -128,59 +127,43 @@ where
         let sha = commit.sha.clone();
         let parent_sha = commit.parent_sha.clone();
         let is_initial = parent_sha == "0000000000000000000000000000000000000000";
-        let paths: Vec<String> = commit.diffs.iter().map(|d| d.path.clone()).collect();
-
-        let left_fut = async {
-            if is_initial {
-                vec![None; paths.len()]
-            } else {
-                self.git_client
-                    .get_repo_blobs(&owner, &repo_name, &parent_sha, &paths)
-                    .await
-                    .map(|r| {
-                        r.blobs
-                            .into_iter()
-                            .map(|b| match b {
-                                RepositoryBlobResponse::File(f) => Some(f.content),
-                                _ => None,
-                            })
-                            .collect()
-                    })
-                    .unwrap_or_else(|_| vec![None; paths.len()])
-            }
-        };
-        let right_fut = async {
-            self.git_client
-                .get_repo_blobs(&owner, &repo_name, &sha, &paths)
-                .await
-                .map(|r| {
-                    r.blobs
-                        .into_iter()
-                        .map(|b| match b {
-                            RepositoryBlobResponse::File(f) => Some(f.content),
-                            _ => None,
-                        })
-                        .collect::<Vec<_>>()
-                })
-                .unwrap_or_else(|_| vec![None; paths.len()])
+        let left_ref = if is_initial {
+            None
+        } else {
+            Some(parent_sha.as_str())
         };
 
-        let (left_contents, right_contents) = tokio::join!(left_fut, right_fut);
+        let diff_files = self
+            .git_client
+            .get_repo_diff_files(&owner, &repo_name, left_ref, &sha)
+            .await?;
 
-        let files = commit
-            .diffs
+        let diff_futures: Vec<_> = diff_files
+            .iter()
+            .map(|(left, right)| self.diff_client.diff_files(left.as_ref(), right.as_ref()))
+            .collect();
+        let diff_results = futures::future::join_all(diff_futures).await;
+
+        let files = diff_files
             .into_iter()
-            .zip(left_contents)
-            .zip(right_contents)
-            .map(
-                |((diff, left_content), right_content)| CommitFileDiffResponse {
-                    path: diff.path.clone(),
+            .zip(diff_results)
+            .map(|((left, right), diff_result)| {
+                let path = right
+                    .as_ref()
+                    .or(left.as_ref())
+                    .map(|f| f.path.clone())
+                    .unwrap_or_default();
+                let left_content = left.map(|f| f.content);
+                let right_content = right.map(|f| f.content);
+                let diff = diff_result?;
+                Ok(CommitFileDiffResponse {
+                    path,
                     left_content,
                     right_content,
                     diff,
-                },
-            )
-            .collect();
+                })
+            })
+            .collect::<Result<Vec<_>, CommitError>>()?;
 
         Ok(CommitDiffResponse {
             sha,
@@ -274,39 +257,24 @@ where
         let mut created_ats: Vec<DateTime<Utc>> = Vec::new();
         let mut diffs_per_commit: Vec<Vec<model::CommitDiff>> = Vec::new();
 
-        // TODO: parallelize this, this is rather slow.
         for commit in &git_commits {
-            let diff_files = self
+            let stats = self
                 .git_client
-                .get_repo_diff_files(
+                .get_repo_diff_stats(
                     &owner,
                     &repo_name,
                     commit.parent_sha.as_deref(),
                     &commit.sha,
                 )
                 .await?;
-            let mut diffs = Vec::new();
-            for (left, right) in diff_files {
-                let path = right
-                    .as_ref()
-                    .or(left.as_ref())
-                    .map(|f| f.path.clone())
-                    .unwrap_or_default();
-                let diff = self
-                    .diff_client
-                    .diff_files(left.as_ref(), right.as_ref())
-                    .await?;
-                diffs.push(model::CommitDiff {
-                    path,
-                    lines_added: diff.lines_added as i32,
-                    lines_removed: diff.lines_removed as i32,
-                    hunks: diff
-                        .hunks
-                        .into_iter()
-                        .map(|hunk| hunk.into_iter().map(Into::into).collect())
-                        .collect(),
-                });
-            }
+            let diffs = stats
+                .into_iter()
+                .map(|s| model::CommitDiff {
+                    path: s.path,
+                    lines_added: s.lines_added as i32,
+                    lines_removed: s.lines_removed as i32,
+                })
+                .collect();
             diffs_per_commit.push(diffs);
         }
 

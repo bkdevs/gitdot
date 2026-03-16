@@ -12,27 +12,27 @@ pub struct RepositoryResource {
 }
 
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct RepositoryCommitsResource {
-    pub commits: Vec<RepositoryCommitResource>,
-    pub has_next: bool,
+pub struct RepositoryPathsResource {
+    pub ref_name: String,
+    pub commit_sha: String,
+    pub entries: Vec<RepositoryPathResource>,
 }
 
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct RepositoryCommitResource {
-    pub sha: String,
-    pub parent_sha: String,
-    pub message: String,
-    pub date: DateTime<Utc>,
-    pub author: CommitAuthorResource,
-    pub diffs: Vec<RepositoryDiffResource>,
-}
-
-#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct CommitAuthorResource {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub id: Option<Uuid>,
+pub struct RepositoryPathResource {
+    pub path: String,
     pub name: String,
-    pub email: String,
+    pub path_type: PathType,
+    pub sha: String,
+}
+
+#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum PathType {
+    Blob,
+    Tree,
+    Commit,
+    Unknown,
 }
 
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -64,11 +64,46 @@ pub enum RepositoryBlobResource {
 }
 
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct RepositoryDiffResource {
+pub struct RepositoryCommitsResource {
+    pub commits: Vec<RepositoryCommitResource>,
+    pub has_next: bool,
+}
+
+#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RepositoryCommitResource {
+    pub sha: String,
+    pub parent_sha: String,
+    pub message: String,
+    pub date: DateTime<Utc>,
+    pub author: CommitAuthorResource,
+    pub diffs: Vec<RepositoryDiffStatResource>,
+}
+
+#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct CommitAuthorResource {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub id: Option<Uuid>,
+    pub name: String,
+    pub email: String,
+}
+
+#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RepositoryDiffStatResource {
+    pub path: String,
+    pub lines_added: u32,
+    pub lines_removed: u32,
+}
+
+#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RepositoryDiffFileResource {
     pub path: String,
     pub lines_added: u32,
     pub lines_removed: u32,
     pub hunks: Vec<DiffHunkResource>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub left_content: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub right_content: Option<String>,
 }
 
 pub type DiffHunkResource = Vec<DiffPairResource>;
@@ -95,47 +130,6 @@ pub struct DiffChangeResource {
     pub highlight: SyntaxHighlight,
 }
 
-#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct RepositoryPathsResource {
-    pub ref_name: String,
-    pub commit_sha: String,
-    pub entries: Vec<RepositoryPathResource>,
-}
-
-#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct RepositoryPathResource {
-    pub path: String,
-    pub name: String,
-    pub path_type: PathType,
-    pub sha: String,
-}
-
-#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum PathType {
-    Blob,
-    Tree,
-    Commit,
-    Unknown,
-}
-
-#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct RepositoryCommitDiffResource {
-    pub sha: String,
-    pub parent_sha: String,
-    pub files: Vec<CommitFileDiffResource>,
-}
-
-#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct CommitFileDiffResource {
-    pub path: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub left_content: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub right_content: Option<String>,
-    pub diff: RepositoryDiffResource,
-}
-
 #[derive(ApiResource, PartialEq, Eq, Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum SyntaxHighlight {
@@ -146,4 +140,11 @@ pub enum SyntaxHighlight {
     Comment,
     Keyword,
     TreeSitterError,
+}
+
+#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RepositoryCommitDiffResource {
+    pub sha: String,
+    pub parent_sha: String,
+    pub files: Vec<RepositoryDiffFileResource>,
 }
