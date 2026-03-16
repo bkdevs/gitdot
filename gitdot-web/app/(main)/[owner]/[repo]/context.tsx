@@ -5,6 +5,7 @@ import { createContext, useContext, useEffect, useMemo, useRef } from "react";
 import { useWorkerContext } from "@/(main)/context/worker";
 import { IdbProvider } from "@/provider";
 import { firstNonNull } from "@/util";
+import { setRepoCookie } from "@/cookie";
 import { type Promises, Resources } from "./resources";
 
 type RepoContext = Promises & { hasts: Promise<Map<string, Root>> };
@@ -47,7 +48,11 @@ export function RepoClient({
   );
 
   useEffect(() => {
-    serverPromises.paths.then((p) => p && idb.putPaths(p));
+    serverPromises.paths.then((p) => {
+      if (!p) return;
+      idb.putPaths(p);
+      setRepoCookie(owner, repo, p.commit_sha);
+    });
     serverPromises.commits.then((c) => c && idb.putCommits(c));
     serverPromises.blobs.then((b) => b && idb.putBlobs(b));
   }, [idb, serverPromises]);
