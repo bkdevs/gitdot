@@ -5,7 +5,7 @@ edition = "2024"
 description = ""
 
 [[bin]]
-name = "gitdot"
+name = "gdot"
 path = "src/bin/main.rs"
 
 [dependencies]

@@ -1,18 +1,19 @@
 #[cfg(feature = "main")]
-pub mod auth;
+mod auth;
 #[cfg(feature = "main")]
-use auth::AuthArgs;
+mod ci;
 #[cfg(feature = "main")]
-pub mod ci;
-#[cfg(feature = "main")]
-use ci::CiArgs;
-
+mod review;
 #[cfg(feature = "runner")]
-pub mod runner;
-#[cfg(feature = "runner")]
-use runner::RunnerArgs;
+mod runner;
 
 use clap::Parser;
+
+#[cfg(feature = "main")]
+use {auth::AuthArgs, ci::CiArgs, review::ReviewArgs};
+
+#[cfg(feature = "runner")]
+use runner::RunnerArgs;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -20,6 +21,10 @@ pub enum Args {
     #[cfg(feature = "main")]
     /// Manage authentication credentials
     Auth(AuthArgs),
+
+    #[cfg(feature = "main")]
+    /// Create and manage code reviews
+    Review(ReviewArgs),
 
     #[cfg(feature = "main")]
     /// Lint, format, and test CI configuration

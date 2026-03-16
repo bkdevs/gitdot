@@ -5,9 +5,6 @@ use clap::{Args, Subcommand};
 
 use crate::config::UserConfig;
 
-pub use login::login;
-pub use status::get_status;
-
 #[derive(Args, Debug)]
 pub struct AuthArgs {
     #[command(subcommand)]
@@ -26,8 +23,8 @@ pub enum AuthCommand {
 impl AuthCommand {
     pub async fn execute(&self, config: UserConfig) -> anyhow::Result<()> {
         match self {
-            AuthCommand::Login {} => login(config).await,
-            AuthCommand::Status {} => get_status(config).await,
+            AuthCommand::Login {} => login::login(config).await,
+            AuthCommand::Status {} => status::get_status(config).await,
         }
     }
 }
