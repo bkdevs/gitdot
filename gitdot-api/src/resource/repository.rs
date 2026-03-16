@@ -119,6 +119,23 @@ pub enum PathType {
     Unknown,
 }
 
+#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RepositoryCommitDiffResource {
+    pub sha: String,
+    pub parent_sha: String,
+    pub files: Vec<CommitFileDiffResource>,
+}
+
+#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct CommitFileDiffResource {
+    pub path: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub left_content: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub right_content: Option<String>,
+    pub diff: RepositoryDiffResource,
+}
+
 #[derive(ApiResource, PartialEq, Eq, Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum SyntaxHighlight {

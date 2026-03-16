@@ -39,14 +39,14 @@ async function getHighlighter(
 }
 
 export async function fileToHast(
-  file: RepositoryFileResource,
+  content: string,
+  lang: BundledLanguage | undefined,
   theme: "vitesse-light" | "gitdot-light",
   transformers: ShikiTransformer[],
 ) {
-  const lang = inferLanguage(file.path);
   const highlighter = await getHighlighter(lang, theme);
 
-  return highlighter.codeToHast(file.content, {
+  return highlighter.codeToHast(content, {
     lang: lang ?? "plaintext",
     theme,
     transformers,
@@ -68,10 +68,11 @@ export async function renderFileToHtml(
 
 export async function renderSpans(
   side: "left" | "right",
-  file: RepositoryFileResource,
+  content: string,
+  lang: BundledLanguage | undefined,
   changeMap: Map<number, DiffChangeResource[]>,
 ): Promise<Element[]> {
-  const hast = await fileToHast(file, "gitdot-light", [
+  const hast = await fileToHast(content, lang, "gitdot-light", [
     {
       pre(node) {
         this.addClassToHast(node, "outline-none");

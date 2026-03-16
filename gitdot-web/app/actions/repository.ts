@@ -1,6 +1,7 @@
 "use server";
 
 import type {
+  CommitFileDiffResource,
   DiffHunkResource,
   RepositoryDiffResource,
   RepositoryResource,
@@ -11,6 +12,7 @@ import { redirect } from "next/navigation";
 import {
   createChangeMaps,
   fileToHast,
+  inferLanguage,
   mergeHunks,
   renderSpans,
 } from "@/(main)/[owner]/[repo]/util";
@@ -19,7 +21,7 @@ import {
   createRepository,
   deleteRepository,
   getRepositoryBlob,
-  getRepositoryCommit,
+  getRepositoryCommitDiff,
   migrateGitHubRepositories,
 } from "@/dal";
 
@@ -35,7 +37,7 @@ export type DiffData =
 
 const NULL_SHA = "0000000000000000000000000000000000000000";
 
-async function computeDiffData(
+async function computeDiffDataFromBlobs(
   owner: string,
   repo: string,
   diffs: RepositoryDiffResource[],
@@ -56,14 +58,15 @@ async function computeDiffData(
 
       const right = rightBlob?.type === "file" ? rightBlob : null;
       const left = leftBlob?.type === "file" ? leftBlob : null;
+      const lang = inferLanguage(stat.path);
       const processedHunks = mergeHunks(stat.hunks);
 
       if (left && right && stat.hunks.length > 0) {
         const { leftChangeMap, rightChangeMap } =
           createChangeMaps(processedHunks);
         const [leftSpans, rightSpans] = await Promise.all([
-          renderSpans("left", left, leftChangeMap),
-          renderSpans("right", right, rightChangeMap),
+          renderSpans("left", left.content, lang, leftChangeMap),
+          renderSpans("right", right.content, lang, rightChangeMap),
         ]);
         return {
           kind: "split" as const,
@@ -76,7 +79,7 @@ async function computeDiffData(
         const file = (left ?? right)!;
         const side = left ? "left" : "right";
         const lineType = side === "left" ? "removed" : "added";
-        const hast = await fileToHast(file, "vitesse-light", [
+        const hast = await fileToHast(file.content, lang, "vitesse-light", [
           {
             line(node, lineNumber) {
               node.type = "element";
@@ -101,14 +104,66 @@ async function computeDiffData(
   return Object.fromEntries(diffs.map((stat, i) => [stat.path, results[i]]));
 }
 
-export async function getAllDiffDataAction(
+async function renderDiff(file: CommitFileDiffResource): Promise<DiffData> {
+  const left = file.left_content ?? null;
+  const right = file.right_content ?? null;
+
+  const lang = inferLanguage(file.path);
+  const processedHunks = mergeHunks(file.diff.hunks);
+
+  if (left && right && file.diff.hunks.length > 0) {
+    const { leftChangeMap, rightChangeMap } = createChangeMaps(processedHunks);
+    const [leftSpans, rightSpans] = await Promise.all([
+      renderSpans("left", left, lang, leftChangeMap),
+      renderSpans("right", right, lang, rightChangeMap),
+    ]);
+    return {
+      kind: "split" as const,
+      leftSpans,
+      rightSpans,
+      hunks: processedHunks,
+    };
+  } else if (left != null || right != null) {
+    // biome-ignore lint/style/noNonNullAssertion: guaranteed non-null by the `left != null || right != null` condition
+    const content = (left ?? right)!;
+    const side = left != null ? "left" : "right";
+    const lineType = side === "left" ? "removed" : "added";
+    const hast = await fileToHast(content, lang, "vitesse-light", [
+      {
+        line(node, lineNumber) {
+          node.type = "element";
+          node.tagName = "diffline";
+          node.properties["data-line-number"] = lineNumber;
+          node.properties["data-line-type"] = lineType;
+        },
+      },
+    ]);
+    const pre = hast.children[0] as Element;
+    const code = pre.children[0] as Element;
+    const spans = code.children.filter(
+      (child): child is Element => child.type === "element",
+    );
+    return { kind: "single" as const, spans };
+  } else {
+    return { kind: "no-change" as const };
+  }
+}
+
+async function renderDiffs(
+  files: CommitFileDiffResource[],
+): Promise<Record<string, DiffData>> {
+  const results = await Promise.all(files.map(renderDiff));
+  return Object.fromEntries(files.map((f, i) => [f.path, results[i]]));
+}
+
+export async function renderCommitDiffAction(
   owner: string,
   repo: string,
   sha: string,
 ): Promise<Record<string, DiffData>> {
-  const commit = await getRepositoryCommit(owner, repo, sha);
-  if (!commit) return {};
-  return computeDiffData(owner, repo, commit.diffs, sha, commit.parent_sha);
+  const result = await getRepositoryCommitDiff(owner, repo, sha);
+  if (!result) return {};
+  return renderDiffs(result.files);
 }
 
 export async function getReviewAllDiffDataAction(
@@ -118,7 +173,7 @@ export async function getReviewAllDiffDataAction(
   sha: string,
   parentSha: string,
 ): Promise<Record<string, DiffData>> {
-  return computeDiffData(owner, repo, files, sha, parentSha);
+  return computeDiffDataFromBlobs(owner, repo, files, sha, parentSha);
 }
 
 export type CreateRepositoryActionResult =

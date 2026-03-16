@@ -1,12 +1,14 @@
 use gitdot_api::resource::repository as api;
 use gitdot_core::{
     dto::{
-        CommitAuthorResponse, CommitResponse, CommitsResponse, PathType, RepositoryBlobResponse,
-        RepositoryBlobsResponse, RepositoryCommitResponse, RepositoryCommitsResponse,
-        RepositoryFileResponse, RepositoryFolderResponse, RepositoryPath, RepositoryPathsResponse,
-        RepositoryResponse,
+        CommitAuthorResponse, CommitDiffResponse, CommitFileDiffResponse, CommitResponse,
+        CommitsResponse, PathType, RepositoryBlobResponse, RepositoryBlobsResponse,
+        RepositoryCommitResponse, RepositoryCommitsResponse, RepositoryFileResponse,
+        RepositoryFolderResponse, RepositoryPath, RepositoryPathsResponse, RepositoryResponse,
     },
-    model::{CommitDiffChange, CommitDiffLine, CommitDiffPair, CommitDiffSyntaxHighlight},
+    model::{
+        CommitDiff, CommitDiffChange, CommitDiffLine, CommitDiffPair, CommitDiffSyntaxHighlight,
+    },
 };
 
 use super::IntoApi;
@@ -220,6 +222,41 @@ impl IntoApi for CommitDiffSyntaxHighlight {
             CommitDiffSyntaxHighlight::Comment => api::SyntaxHighlight::Comment,
             CommitDiffSyntaxHighlight::Keyword => api::SyntaxHighlight::Keyword,
             CommitDiffSyntaxHighlight::TreeSitterError => api::SyntaxHighlight::TreeSitterError,
+        }
+    }
+}
+
+impl IntoApi for CommitDiff {
+    type ApiType = api::RepositoryDiffResource;
+    fn into_api(self) -> Self::ApiType {
+        api::RepositoryDiffResource {
+            path: self.path,
+            lines_added: self.lines_added as u32,
+            lines_removed: self.lines_removed as u32,
+            hunks: self.hunks.into_iter().map(|h| h.into_api()).collect(),
+        }
+    }
+}
+
+impl IntoApi for CommitDiffResponse {
+    type ApiType = api::RepositoryCommitDiffResource;
+    fn into_api(self) -> Self::ApiType {
+        api::RepositoryCommitDiffResource {
+            sha: self.sha,
+            parent_sha: self.parent_sha,
+            files: self.files.into_iter().map(|f| f.into_api()).collect(),
+        }
+    }
+}
+
+impl IntoApi for CommitFileDiffResponse {
+    type ApiType = api::CommitFileDiffResource;
+    fn into_api(self) -> Self::ApiType {
+        api::CommitFileDiffResource {
+            path: self.path,
+            left_content: self.left_content,
+            right_content: self.right_content,
+            diff: self.diff.into_api(),
         }
     }
 }

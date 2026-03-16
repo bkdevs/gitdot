@@ -4,7 +4,7 @@ import type { JSX } from "react";
 import { Fragment, use } from "react";
 import { jsx, jsxs } from "react/jsx-runtime";
 import type { ShikiTransformer } from "shiki";
-import { fileToHast } from "@/(main)/[owner]/[repo]/util";
+import { fileToHast, inferLanguage } from "@/(main)/[owner]/[repo]/util";
 import type { LineSelection } from "../util";
 import { FileBodyClient } from "./file-body-client";
 import { FileLine } from "./file-line";
@@ -28,7 +28,14 @@ export function FileBody({
   file: RepositoryFileResource;
   selectedLines: LineSelection | null;
 }) {
-  const hast = use(fileToHast(file, "vitesse-light", FILE_BODY_TRANSFORMERS));
+  const hast = use(
+    fileToHast(
+      file.content,
+      inferLanguage(file.path),
+      "vitesse-light",
+      FILE_BODY_TRANSFORMERS,
+    ),
+  );
 
   const content = toJsxRuntime(hast, {
     Fragment,

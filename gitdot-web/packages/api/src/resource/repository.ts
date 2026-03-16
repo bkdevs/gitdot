@@ -75,6 +75,23 @@ export type RepositoryCommitsResource = z.infer<
   typeof RepositoryCommitsResource
 >;
 
+export const CommitFileDiffResource = z.object({
+  path: z.string(),
+  left_content: z.string().optional(),
+  right_content: z.string().optional(),
+  diff: RepositoryDiffResource,
+});
+export type CommitFileDiffResource = z.infer<typeof CommitFileDiffResource>;
+
+export const RepositoryCommitDiffResource = z.object({
+  sha: z.string(),
+  parent_sha: z.string(),
+  files: z.array(CommitFileDiffResource),
+});
+export type RepositoryCommitDiffResource = z.infer<
+  typeof RepositoryCommitDiffResource
+>;
+
 export const PathType = z.enum(["blob", "tree", "commit", "unknown"]);
 export type PathType = z.infer<typeof PathType>;
 

@@ -1,8 +1,8 @@
 import type { DiffResource } from "gitdot-api";
 import { Suspense } from "react";
-import { getReviewAllDiffDataAction } from "@/actions/repository";
 import { DiffBody } from "@/(main)/[owner]/[repo]/commits/[sha]/ui/diff-body";
 import { DiffFileClient } from "@/(main)/[owner]/[repo]/commits/[sha]/ui/diff-file-client";
+import { getReviewAllDiffDataAction } from "@/actions/repository";
 import { getReviewDiff } from "@/dal";
 
 const NULL_SHA = "0000000000000000000000000000000000000000";
@@ -59,7 +59,10 @@ export async function ReviewDiffContent({
               </div>
             }
           >
-            <DiffBody path={stat.path} allDiffDataPromise={allDiffDataPromise} />
+            <DiffBody
+              path={stat.path}
+              allDiffDataPromise={allDiffDataPromise}
+            />
           </Suspense>
         </DiffFileClient>
       ))}

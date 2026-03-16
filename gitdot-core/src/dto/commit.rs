@@ -1,5 +1,6 @@
 mod create_commits;
 mod get_commit;
+mod get_commit_diff;
 mod get_commits;
 
 use chrono::{DateTime, Utc};
@@ -13,6 +14,7 @@ use super::{DiffChange, DiffLine, DiffPair, SyntaxHighlight};
 
 pub use create_commits::CreateCommitsRequest;
 pub use get_commit::GetCommitRequest;
+pub use get_commit_diff::GetCommitDiffRequest;
 pub use get_commits::GetCommitsRequest;
 
 #[derive(Debug, Clone)]
@@ -77,6 +79,21 @@ impl From<SyntaxHighlight> for CommitDiffSyntaxHighlight {
             SyntaxHighlight::TreeSitterError => Self::TreeSitterError,
         }
     }
+}
+
+#[derive(Debug, Clone)]
+pub struct CommitDiffResponse {
+    pub sha: String,
+    pub parent_sha: String,
+    pub files: Vec<CommitFileDiffResponse>,
+}
+
+#[derive(Debug, Clone)]
+pub struct CommitFileDiffResponse {
+    pub path: String,
+    pub left_content: Option<String>,
+    pub right_content: Option<String>,
+    pub diff: CommitDiff,
 }
 
 impl From<Commit> for CommitResponse {

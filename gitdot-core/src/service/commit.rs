@@ -7,7 +7,9 @@ use uuid::Uuid;
 use crate::{
     client::{DiffClient, DifftClient, Git2Client, GitClient},
     dto::{
-        CommitResponse, CommitsResponse, CreateCommitsRequest, GetCommitRequest, GetCommitsRequest,
+        CommitDiffResponse, CommitFileDiffResponse, CommitResponse, CommitsResponse,
+        CreateCommitsRequest, GetCommitDiffRequest, GetCommitRequest, GetCommitsRequest,
+        RepositoryBlobResponse,
     },
     error::CommitError,
     model,
@@ -20,6 +22,11 @@ use crate::{
 #[async_trait]
 pub trait CommitService: Send + Sync + 'static {
     async fn get_commit(&self, request: GetCommitRequest) -> Result<CommitResponse, CommitError>;
+
+    async fn get_commit_diff(
+        &self,
+        request: GetCommitDiffRequest,
+    ) -> Result<CommitDiffResponse, CommitError>;
 
     async fn get_commits(&self, request: GetCommitsRequest)
     -> Result<CommitsResponse, CommitError>;
@@ -97,6 +104,89 @@ where
             .await?
             .map(Into::into)
             .ok_or_else(|| CommitError::NotFound(request.sha))
+    }
+
+    async fn get_commit_diff(
+        &self,
+        request: GetCommitDiffRequest,
+    ) -> Result<CommitDiffResponse, CommitError> {
+        let owner = request.owner.to_string();
+        let repo_name = request.repo.to_string();
+
+        let repository = self
+            .repo_repo
+            .get(&owner, &repo_name)
+            .await?
+            .ok_or_else(|| CommitError::RepositoryNotFound(format!("{}/{}", owner, repo_name)))?;
+
+        let commit = self
+            .commit_repo
+            .get_commit(repository.id, &request.sha)
+            .await?
+            .ok_or_else(|| CommitError::NotFound(request.sha.clone()))?;
+
+        let sha = commit.sha.clone();
+        let parent_sha = commit.parent_sha.clone();
+        let is_initial = parent_sha == "0000000000000000000000000000000000000000";
+        let paths: Vec<String> = commit.diffs.iter().map(|d| d.path.clone()).collect();
+
+        let left_fut = async {
+            if is_initial {
+                vec![None; paths.len()]
+            } else {
+                self.git_client
+                    .get_repo_blobs(&owner, &repo_name, &parent_sha, &paths)
+                    .await
+                    .map(|r| {
+                        r.blobs
+                            .into_iter()
+                            .map(|b| match b {
+                                RepositoryBlobResponse::File(f) => Some(f.content),
+                                _ => None,
+                            })
+                            .collect()
+                    })
+                    .unwrap_or_else(|_| vec![None; paths.len()])
+            }
+        };
+        let right_fut = async {
+            self.git_client
+                .get_repo_blobs(&owner, &repo_name, &sha, &paths)
+                .await
+                .map(|r| {
+                    r.blobs
+                        .into_iter()
+                        .map(|b| match b {
+                            RepositoryBlobResponse::File(f) => Some(f.content),
+                            _ => None,
+                        })
+                        .collect::<Vec<_>>()
+                })
+                .unwrap_or_else(|_| vec![None; paths.len()])
+        };
+
+        let (left_contents, right_contents) = tokio::join!(left_fut, right_fut);
+
+        let files = commit
+            .diffs
+            .into_iter()
+            .zip(left_contents)
+            .zip(right_contents)
+            .map(
+                |((diff, left_content), right_content)| CommitFileDiffResponse {
+                    path: diff.path.clone(),
+                    left_content,
+                    right_content,
+                    diff,
+                },
+            )
+            .collect();
+
+        Ok(CommitDiffResponse {
+            sha,
+            parent_sha,
+            files,
+        })
     }
 
     async fn get_commits(
