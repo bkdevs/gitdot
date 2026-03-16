@@ -3,7 +3,6 @@
 import { usePathname } from "next/navigation";
 import { Suspense } from "react";
 import { Sidebar, SidebarContent } from "@/ui/sidebar";
-import { RepoSidebarCommits } from "./sidebar/repo-sidebar-commits";
 import { RepoSidebarFiles } from "./sidebar/repo-sidebar-files";
 import { RepoSidebarNav } from "./sidebar/repo-sidebar-nav";
 
@@ -21,11 +20,11 @@ export function RepoSidebar({
   const pathname = usePathname();
   const path = pathname.replace(`/${owner}/${repo}`, "") || "/";
 
-  const getSidebarContent = () => {
-    if (/^\/commits\/[^/]+/.test(path)) {
-      return <RepoSidebarCommits />;
-    }
+  if (/^\/commits\/[^/]+/.test(path)) {
+    return null;
+  }
 
+  const getSidebarContent = () => {
     const isNavRoute =
       path === "/" ||
       path === "/files" ||

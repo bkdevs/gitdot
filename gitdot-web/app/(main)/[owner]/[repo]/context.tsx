@@ -26,7 +26,6 @@ export function RepoClient({
     () => ({
       readme: firstNonNull(idbPromises.readme, serverPromises.readme),
       paths: firstNonNull(idbPromises.paths, serverPromises.paths),
-      commits: firstNonNull(idbPromises.commits, serverPromises.commits),
       blobs: firstNonNull(idbPromises.blobs, serverPromises.blobs),
     }),
     [idbPromises, serverPromises],
@@ -34,7 +33,6 @@ export function RepoClient({
 
   useEffect(() => {
     serverPromises.paths.then((p) => p && idb.putPaths(p));
-    serverPromises.commits.then((c) => c && idb.putCommits(c));
     serverPromises.blobs.then((b) => b && idb.putBlobs(b));
   }, [idb, serverPromises]);
 

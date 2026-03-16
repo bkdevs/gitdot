@@ -4,11 +4,11 @@ import { usePathname } from "next/navigation";
 import { Fragment, use } from "react";
 import Link from "@/ui/link";
 import { formatDateKey, formatTime } from "@/util";
-import { useRepoContext } from "../../context";
+import { useCommitsContext } from "../../commits/context";
 import { groupCommitsByDate } from "../../util/commit";
 
 export function RepoSidebarCommits() {
-  const commits = use(useRepoContext().commits);
+  const commits = use(useCommitsContext().commits);
   if (!commits) return null;
 
   const commitsByDate = groupCommitsByDate(commits);

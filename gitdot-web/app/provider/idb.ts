@@ -17,12 +17,65 @@ const pathKey = (owner: string, repo: string, path: string) =>
 const blobKey = (owner: string, repo: string, path: string) =>
   `${owner}/${repo}/${path}`;
 
+// --- Session storage cache ---
+// Synchronous reads so Promise.resolve() resolves in the microtask queue
+// rather than waiting for IndexedDB I/O.
+
+function sessionAvailable() {
+  return typeof sessionStorage !== "undefined";
+}
+
+function sessionGet<T>(key: string): T | null {
+  if (!sessionAvailable()) return null;
+  try {
+    const raw = sessionStorage.getItem(`gitdot:${key}`);
+    return raw ? (JSON.parse(raw) as T) : null;
+  } catch {
+    return null;
+  }
+}
+
+function sessionSet(key: string, value: unknown): void {
+  if (!sessionAvailable()) return;
+  try {
+    sessionStorage.setItem(`gitdot:${key}`, JSON.stringify(value));
+  } catch {
+    // quota exceeded — ignore
+  }
+}
+
+
 export class IdbProvider extends RepoProvider {
   private dbPromise: Promise<Database> | null = null;
+
+  constructor(owner: string, repo: string) {
+    super(owner, repo);
+    // Prime session cache from IDB in the background so subsequent reads
+    // within this session can resolve synchronously.
+    this.primeSessionCache();
+  }
 
   private db(): Promise<Database> {
     if (!this.dbPromise) this.dbPromise = openIdb();
     return this.dbPromise;
+  }
+
+  private async primeSessionCache(): Promise<void> {
+    if (typeof indexedDB === "undefined") return;
+    const db = await this.db();
+
+    const [commits, paths, blobs] = await Promise.all([
+      db.getAllCommits(this.owner, this.repo),
+      db.getPaths(this.owner, this.repo),
+      db.getBlobs(this.owner, this.repo),
+    ]);
+
+    if (commits.length > 0)
+      sessionSet(`commits:${repoKey(this.owner, this.repo)}`, commits);
+    if (paths)
+      sessionSet(`paths:${repoKey(this.owner, this.repo)}`, paths);
+    if (blobs)
+      sessionSet(`blobs:${repoKey(this.owner, this.repo)}`, blobs);
   }
 
   async getBlob(path: string) {
@@ -39,12 +92,20 @@ export class IdbProvider extends RepoProvider {
 
   async getPaths() {
     if (typeof indexedDB === "undefined") return null;
+    const cached = sessionGet<RepositoryPathsResource>(
+      `paths:${repoKey(this.owner, this.repo)}`,
+    );
+    if (cached) return cached;
     const db = await this.db();
     return db.getPaths(this.owner, this.repo);
   }
 
   async getCommits(): Promise<RepositoryCommitResource[] | null> {
     if (typeof indexedDB === "undefined") return null;
+    const cached = sessionGet<RepositoryCommitResource[]>(
+      `commits:${repoKey(this.owner, this.repo)}`,
+    );
+    if (cached) return cached;
     const db = await this.db();
     const commits = await db.getAllCommits(this.owner, this.repo);
     return commits.length > 0 ? commits : null;
@@ -52,24 +113,31 @@ export class IdbProvider extends RepoProvider {
 
   async getBlobs(): Promise<RepositoryBlobsResource | null> {
     if (typeof indexedDB === "undefined") return null;
+    const cached = sessionGet<RepositoryBlobsResource>(
+      `blobs:${repoKey(this.owner, this.repo)}`,
+    );
+    if (cached) return cached;
     const db = await this.db();
     const blobs = await db.getBlobs(this.owner, this.repo);
     return blobs ?? null;
   }
 
   async putCommits(commits: RepositoryCommitResource[]): Promise<void> {
+    sessionSet(`commits:${repoKey(this.owner, this.repo)}`, commits);
     if (typeof indexedDB === "undefined") return;
     const db = await this.db();
     await db.putCommits(this.owner, this.repo, commits);
   }
 
   async putPaths(paths: RepositoryPathsResource): Promise<void> {
+    sessionSet(`paths:${repoKey(this.owner, this.repo)}`, paths);
     if (typeof indexedDB === "undefined") return;
     const db = await this.db();
     await db.putPaths(this.owner, this.repo, paths);
   }
 
   async putBlobs(blobs: RepositoryBlobsResource): Promise<void> {
+    sessionSet(`blobs:${repoKey(this.owner, this.repo)}`, blobs);
     if (typeof indexedDB === "undefined") return;
     const db = await this.db();
     await db.putBlobs(this.owner, this.repo, blobs);
