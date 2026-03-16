@@ -1,5 +1,6 @@
 import { ApiProvider } from "@/provider/api";
 import { Client } from "./client";
+import { repoDef } from "./def";
 import { Shell } from "./shell";
 
 // export async function generateStaticParams() {
@@ -13,8 +14,11 @@ export default async function Page({
 }) {
   const { owner, repo } = await params;
   const provider = new ApiProvider(owner, repo);
+  const serverContext = provider.define(repoDef);
 
-  return <Shell context={{readme: provider.getBlob("README.md")}}>
-    <Client />
-  </Shell>
+  return (
+    <Shell owner={owner} repo={repo} serverContext={serverContext}>
+      <Client />
+    </Shell>
+  );
 }

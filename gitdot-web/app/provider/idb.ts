@@ -21,16 +21,19 @@ export class IdbProvider extends RepoProvider {
   }
 
   async getBlob(path: string) {
+    if (typeof indexedDB === "undefined") return null;
     const db = await this.db();
     return db.getBlob(this.owner, this.repo, path);
   }
 
   async getCommit(sha: string) {
+    if (typeof indexedDB === "undefined") return null;
     const db = await this.db();
     return db.getCommit(this.owner, this.repo, sha);
   }
 
   async getPaths() {
+    if (typeof indexedDB === "undefined") return null;
     const db = await this.db();
     return db.getPaths(this.owner, this.repo);
   }

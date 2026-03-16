@@ -1,14 +1,20 @@
 "use client";
 
-import { use } from "react";
+import { useEffect, useState } from "react";
+import type { RepositoryBlobResource } from "gitdot-api";
 import { usePageContext } from "./shell";
 import { MarkdownBody } from "./ui/markdown/markdown-body";
 
 export function Client() {
   const context = usePageContext();
-  const readme = use(context.readme);
+  const [readme, setReadme] = useState<RepositoryBlobResource | null>(null);
 
-  if (!readme || readme.type !== "file") {
+  useEffect(() => {
+    context.readme.then(setReadme);
+  }, [context.readme]);
+
+  if (readme === null) return null;
+  if (readme.type !== "file") {
     return <div className="p-2 text-sm">README.md not found</div>;
   }
   return (

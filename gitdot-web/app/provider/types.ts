@@ -5,33 +5,36 @@ import type {
   RepositoryPathsResource,
 } from "gitdot-api";
 
-type MethodCall = { method: string; args: any[] };
+type ContextDef = Record<string, (provider: RepoProvider) => Promise<any>>;
+type ContextResult<T extends ContextDef> = {
+  [K in keyof T]: ReturnType<T[K]>;
+} & {
+  promises: Map<string, Promise<any>>;
+};
 
 export abstract class RepoProvider {
   protected owner: string;
   protected repo: string;
-  private promises: Map<MethodCall, Promise<any>> = new Map();
 
   constructor(owner: string, repo: string) {
     this.owner = owner;
     this.repo = repo;
-
-    return new Proxy(this, {
-      get(target, prop) {
-        const val = (target as any)[prop];
-        if (typeof val !== 'function' || prop === 'getPromises') return val;
-        return (...args: any[]) => {
-          const call: MethodCall = { method: prop as string, args };
-          const promise = val.apply(target, args);
-          target.promises.set(call, promise);
-          return promise;
-        };
-      }
-    });
   }
 
-  getPromises(): Map<MethodCall, Promise<any>> {
-    return this.promises;
+  define<T extends ContextDef>(def: T): ContextResult<T> {
+    const promises = new Map<string, Promise<any>>();
+    const context: Record<string, Promise<any>> = {};
+
+    for (const [key, factory] of Object.entries(def)) {
+      const promise = factory(this);
+      promises.set(key, promise);
+      context[key] = promise;
+    }
+
+    return {
+      ...context,
+      promises,
+    } as ContextResult<T>;
   }
 
   abstract getBlob(path: string): Promise<RepositoryBlobResource | null>;

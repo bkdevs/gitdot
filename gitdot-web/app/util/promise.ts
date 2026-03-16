@@ -9,7 +9,7 @@ export function firstNonNull<T>(
     let remaining = promises.length;
     let resolved = false;
     for (const p of promises) {
-      p.then((value) => {
+      Promise.resolve(p).then((value) => {
         if (resolved) return;
         if (value != null) {
           resolved = true;
