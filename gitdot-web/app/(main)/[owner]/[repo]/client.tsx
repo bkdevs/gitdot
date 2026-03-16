@@ -1,20 +1,56 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import type { RepositoryBlobResource } from "gitdot-api";
-import { usePageContext } from "./shell";
+import { createContext, useContext, useEffect, useState } from "react";
+import { IdbProvider } from "@/provider";
+import type { RepoProvider } from "@/provider/types";
+import { firstNonNull } from "@/util";
 import { MarkdownBody } from "./ui/markdown/markdown-body";
 
-export function Client() {
-  const context = usePageContext();
-  const [readme, setReadme] = useState<RepositoryBlobResource | null>(null);
+export const Resources = {
+  readme: (p: RepoProvider) => p.getBlob("README.md"),
+};
+interface Promises {
+  readme: Promise<RepositoryBlobResource | null>;
+}
+interface Context {
+  readme: RepositoryBlobResource | null | undefined;
+}
+const Context = createContext<Context | null>(null);
+
+export function Client({
+  owner,
+  repo,
+  serverPromises,
+}: {
+  owner: string;
+  repo: string;
+  serverPromises: Promises;
+}) {
+  const [readme, setReadme] = useState<
+    RepositoryBlobResource | null | undefined
+  >(undefined);
 
   useEffect(() => {
-    context.readme.then(setReadme);
-  }, [context.readme]);
+    const idbPromises = new IdbProvider(owner, repo).fetch(Resources);
 
-  if (readme === null) return null;
-  if (readme.type !== "file") {
+    firstNonNull(idbPromises.readme, serverPromises.readme)
+      .then(setReadme)
+      .catch(() => setReadme(null));
+  }, [owner, repo, serverPromises]);
+
+  return (
+    <Context value={{ readme }}>
+      <ClientInner />
+    </Context>
+  );
+}
+
+function ClientInner() {
+  const { readme } = useContext(Context)!;
+
+  if (readme === undefined) return null;
+  if (readme === null || readme.type !== "file") {
     return <div className="p-2 text-sm">README.md not found</div>;
   }
   return (

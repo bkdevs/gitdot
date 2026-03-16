@@ -1,8 +1,8 @@
 "use client";
 
 import { openDB } from "idb";
-import { RepoProvider } from "./types";
 import type { Database } from "./types";
+import { RepoProvider } from "./types";
 
 const commitKey = (owner: string, repo: string, sha: string) =>
   `${owner}/${repo}/${sha}`;

@@ -5,8 +5,8 @@ import type {
   RepositoryPathsResource,
 } from "gitdot-api";
 
-type ContextDef = Record<string, (provider: RepoProvider) => Promise<any>>;
-type ContextResult<T extends ContextDef> = {
+type ResourcesDef = Record<string, (provider: RepoProvider) => Promise<any>>;
+type ResourcesResult<T extends ResourcesDef> = {
   [K in keyof T]: ReturnType<T[K]>;
 } & {
   promises: Map<string, Promise<any>>;
@@ -21,7 +21,7 @@ export abstract class RepoProvider {
     this.repo = repo;
   }
 
-  define<T extends ContextDef>(def: T): ContextResult<T> {
+  fetch<T extends ResourcesDef>(def: T): ResourcesResult<T> {
     const promises = new Map<string, Promise<any>>();
     const context: Record<string, Promise<any>> = {};
 
@@ -34,7 +34,7 @@ export abstract class RepoProvider {
     return {
       ...context,
       promises,
-    } as ContextResult<T>;
+    } as ResourcesResult<T>;
   }
 
   abstract getBlob(path: string): Promise<RepositoryBlobResource | null>;

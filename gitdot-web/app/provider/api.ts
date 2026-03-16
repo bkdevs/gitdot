@@ -1,15 +1,15 @@
 import "server-only";
 
-import {
-  getRepositoryBlob,
-  getRepositoryCommit,
-  getRepositoryPaths,
-} from "@/dal/repository";
 import type {
   RepositoryBlobResource,
   RepositoryCommitResource,
   RepositoryPathsResource,
 } from "gitdot-api";
+import {
+  getRepositoryBlob,
+  getRepositoryCommit,
+  getRepositoryPaths,
+} from "@/dal/repository";
 import { RepoProvider } from "./types";
 
 export class ApiProvider extends RepoProvider {
