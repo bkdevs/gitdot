@@ -3,6 +3,7 @@ use std::process::Stdio;
 use anyhow::{Context, bail};
 use tokio::process::Command;
 
+use super::get_default_branch;
 use crate::config::UserConfig;
 
 pub async fn create_review(_config: UserConfig) -> anyhow::Result<()> {
@@ -50,18 +51,4 @@ pub async fn create_review(_config: UserConfig) -> anyhow::Result<()> {
     }
 
     Ok(())
-}
-
-async fn get_default_branch() -> anyhow::Result<String> {
-    let output = Command::new("git")
-        .args(["symbolic-ref", "--short", "refs/remotes/origin/HEAD"])
-        .output()
-        .await?;
-    let remote_head = String::from_utf8(output.stdout)?.trim().to_string();
-    let default_branch = remote_head
-        .rsplit('/')
-        .next()
-        .unwrap_or(&remote_head)
-        .to_string();
-    Ok(default_branch)
 }
