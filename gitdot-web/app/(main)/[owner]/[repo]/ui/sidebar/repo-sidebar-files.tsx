@@ -47,8 +47,9 @@ export function RepoSidebarFiles({
   currentPath: string;
   }) {
   const paths = use(useRepoContext().paths);
-  const parentPath = getParentPath(currentPath);
+  if (!paths) return null;
 
+  const parentPath = getParentPath(currentPath);
   const contextFiles = useMemo(
     () => getFolderEntries(parentPath, paths),
     [parentPath, paths],

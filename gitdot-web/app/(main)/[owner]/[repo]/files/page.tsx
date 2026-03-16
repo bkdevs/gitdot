@@ -10,7 +10,9 @@ function FilesClient() {
   const paths = use(useRepoContext().paths);
   if (!paths) return null;
 
-  const [owner, repo] = usePathname();
+  const pathname = usePathname();
+  const [owner, repo] = pathname.split("/").filter(Boolean);
+
   const entries = getFolderEntries("", paths);
   return <FolderViewer owner={owner} repo={repo} entries={entries} />;
 }
