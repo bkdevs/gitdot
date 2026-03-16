@@ -7,11 +7,10 @@ use crate::{
     client::{Git2Client, GitClient},
     dto::{
         CommitAuthorResponse, CreateRepositoryRequest, DeleteRepositoryRequest,
-        GetRepositoryBlobRequest, GetRepositoryBlobsRequest, GetRepositoryCommitRequest,
-        GetRepositoryFileCommitsRequest, GetRepositoryPathsRequest, GetRepositoryPreviewRequest,
-        RepositoryBlobResponse, RepositoryBlobsResponse, RepositoryCommitResponse,
-        RepositoryCommitsResponse, RepositoryPathsResponse, RepositoryPreviewResponse,
-        RepositoryResponse,
+        GetRepositoryBlobRequest, GetRepositoryBlobsRequest, GetRepositoryFileCommitsRequest,
+        GetRepositoryPathsRequest, GetRepositoryPreviewRequest, RepositoryBlobResponse,
+        RepositoryBlobsResponse, RepositoryCommitResponse, RepositoryCommitsResponse,
+        RepositoryPathsResponse, RepositoryPreviewResponse, RepositoryResponse,
     },
     error::RepositoryError,
     model::RepositoryOwnerType,
@@ -43,11 +42,6 @@ pub trait RepositoryService: Send + Sync + 'static {
         &self,
         request: GetRepositoryPathsRequest,
     ) -> Result<RepositoryPathsResponse, RepositoryError>;
-
-    async fn get_repository_commit(
-        &self,
-        request: GetRepositoryCommitRequest,
-    ) -> Result<RepositoryCommitResponse, RepositoryError>;
 
     async fn get_repository_file_commits(
         &self,
@@ -278,22 +272,6 @@ where
             .get_repo_paths(&request.owner_name, &request.name, &request.ref_name)
             .await
             .map_err(Into::into)
-    }
-
-    async fn get_repository_commit(
-        &self,
-        request: GetRepositoryCommitRequest,
-    ) -> Result<RepositoryCommitResponse, RepositoryError> {
-        let commit = self
-            .git_client
-            .get_repo_commit(&request.owner_name, &request.name, &request.ref_name)
-            .await
-            .map_err(RepositoryError::from)?;
-
-        let mut commits = [commit];
-        self.enrich_commits_with_users(&mut commits).await?;
-
-        Ok(commits.into_iter().next().unwrap())
     }
 
     async fn get_repository_file_commits(
