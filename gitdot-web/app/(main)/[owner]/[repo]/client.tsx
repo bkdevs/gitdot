@@ -6,7 +6,7 @@ import { IdbProvider } from "@/provider";
 import type { RepoProvider } from "@/provider/types";
 import { firstNonNull } from "@/util";
 import { MarkdownBody } from "./ui/markdown/markdown-body";
-import { Resources, Promises } from "./types";
+import { Resources, Promises } from "./resources";
 
 const Context = createContext<Promises | null>(null);
 

@@ -1,6 +1,6 @@
 import { ApiProvider } from "@/provider/api";
 import { Client } from "./client";
-import { Resources } from "./types";
+import { Resources } from "./resources";
 
 // export async function generateStaticParams() {
 //   return CACHED_REPOS;
