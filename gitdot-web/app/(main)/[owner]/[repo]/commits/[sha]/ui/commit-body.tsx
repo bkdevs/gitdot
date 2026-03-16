@@ -1,5 +1,4 @@
 import type { RepositoryDiffStatResource } from "gitdot-api";
-import { Suspense } from "react";
 import type { DiffData } from "@/actions/repository";
 import { DiffBody } from "./diff-body";
 import { DiffFileClient } from "./diff-file-client";

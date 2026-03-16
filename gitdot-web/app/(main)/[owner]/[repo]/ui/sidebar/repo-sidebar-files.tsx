@@ -47,13 +47,12 @@ export function RepoSidebarFiles({
   currentPath: string;
 }) {
   const paths = use(useRepoContext().paths);
-  if (!paths) return null;
-
   const parentPath = getParentPath(currentPath);
   const contextFiles = useMemo(
-    () => getFolderEntries(parentPath, paths),
+    () => (paths ? getFolderEntries(parentPath, paths) : []),
     [parentPath, paths],
   );
+  if (!paths) return null;
 
   return (
     <div className="flex flex-col w-full">

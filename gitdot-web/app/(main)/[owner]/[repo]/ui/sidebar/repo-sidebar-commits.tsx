@@ -8,12 +8,12 @@ import { useRepoContext } from "../../context";
 import { groupCommitsByDate } from "../../util/commit";
 
 export function RepoSidebarCommits() {
-  const commits = use(useRepoContext().commits);
-  if (!commits) return null;
-
-  const commitsByDate = groupCommitsByDate(commits);
   const pathname = usePathname();
   const [owner, repo, _, currentSha] = pathname.split("/").filter(Boolean);
+
+  const commits = use(useRepoContext().commits);
+  if (!commits) return null;
+  const commitsByDate = groupCommitsByDate(commits);
 
   return (
     <div className="flex flex-col w-full">

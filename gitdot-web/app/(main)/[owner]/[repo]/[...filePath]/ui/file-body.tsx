@@ -1,6 +1,5 @@
 "use client";
 
-import type { RepositoryFileResource } from "gitdot-api";
 import type { Element, Root } from "hast";
 import { toJsxRuntime } from "hast-util-to-jsx-runtime";
 import type { JSX } from "react";

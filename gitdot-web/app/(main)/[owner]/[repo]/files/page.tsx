@@ -7,11 +7,11 @@ import { FolderViewer } from "../[...filePath]/ui/folder-viewer";
 import { getFolderEntries } from "../util";
 
 function FilesClient() {
-  const paths = use(useRepoContext().paths);
-  if (!paths) return null;
-
   const pathname = usePathname();
   const [owner, repo] = pathname.split("/").filter(Boolean);
+
+  const paths = use(useRepoContext().paths);
+  if (!paths) return null;
 
   const entries = getFolderEntries("", paths);
   return <FolderViewer owner={owner} repo={repo} entries={entries} />;

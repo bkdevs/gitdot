@@ -8,11 +8,12 @@ import { formatDateKey, formatTime } from "@/util";
 import { useRepoContext } from "../context";
 
 export function CommitsClient() {
+  const pathname = usePathname();
+  const [owner, repo] = pathname.split("/").filter(Boolean);
+
   const commits = use(useRepoContext().commits);
   if (!commits) return null;
 
-  const pathname = usePathname();
-  const [owner, repo] = pathname.split("/").filter(Boolean);
   const commitsByDate = groupCommitsByDate(commits);
 
   return (

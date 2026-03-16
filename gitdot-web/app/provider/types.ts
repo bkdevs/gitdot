@@ -5,11 +5,14 @@ import type {
   RepositoryPathsResource,
 } from "gitdot-api";
 
-type ResourcesDef = Record<string, (provider: RepoProvider) => Promise<any>>;
+type ResourcesDef = Record<
+  string,
+  (provider: RepoProvider) => Promise<unknown>
+>;
 type ResourcesResult<T extends ResourcesDef> = {
   [K in keyof T]: ReturnType<T[K]>;
 } & {
-  promises: Map<string, Promise<any>>;
+  promises: Map<string, Promise<unknown>>;
 };
 
 export abstract class RepoProvider {
@@ -22,8 +25,8 @@ export abstract class RepoProvider {
   }
 
   fetch<T extends ResourcesDef>(def: T): ResourcesResult<T> {
-    const promises = new Map<string, Promise<any>>();
-    const context: Record<string, Promise<any>> = {};
+    const promises = new Map<string, Promise<unknown>>();
+    const context: Record<string, Promise<unknown>> = {};
 
     for (const [key, factory] of Object.entries(def)) {
       const promise = factory(this);
