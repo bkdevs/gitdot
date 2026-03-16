@@ -1,11 +1,11 @@
 "use client";
 
-import type {
-  RepositoryBlobsResource,
-  RepositoryPathsResource,
-} from "gitdot-api";
-import { use, useEffect, useMemo, useRef, useState } from "react";
-import { useWorkerContext } from "@/(main)/context/worker";
+import type { RepositoryPathsResource } from "gitdot-api";
+import type { Root } from "hast";
+import { toJsxRuntime } from "hast-util-to-jsx-runtime";
+import type { JSX } from "react";
+import { Fragment, use, useEffect, useMemo, useRef, useState } from "react";
+import { jsx, jsxs } from "react/jsx-runtime";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
 import Link from "@/ui/link";
 import { useRepoContext } from "../../context";
@@ -18,15 +18,13 @@ export function RepoFileDialog({
   owner: string;
   repo: string;
 }) {
-  const { paths, blobs } = useRepoContext();
+  const { paths } = useRepoContext();
+  const resolvedPaths = use(paths);
+
+  if (!resolvedPaths) return null;
 
   return (
-    <RepoFileDialogInner
-      owner={owner}
-      repo={repo}
-      paths={use(paths)}
-      blobs={use(blobs)}
-    />
+    <RepoFileDialogInner owner={owner} repo={repo} paths={resolvedPaths} />
   );
 }
 
@@ -34,47 +32,24 @@ function RepoFileDialogInner({
   owner,
   repo,
   paths,
-  blobs,
 }: {
   owner: string;
   repo: string;
   paths: RepositoryPathsResource;
-  blobs: RepositoryBlobsResource;
 }) {
-  const [previews, setPreviews] = useState<Map<string, string>>(new Map());
+  const { hasts } = useRepoContext();
+  const [hastsMap, setHashsMap] = useState<Map<string, Root> | null>(null);
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [enableHover, setEnableHover] = useState(false);
   const [mouseMoved, setMouseMoved] = useState(false);
 
-  const { shiki } = useWorkerContext();
+  useEffect(() => {
+    hasts.then(setHashsMap);
+  }, [hasts]);
 
   const files = paths.entries.filter((entry) => entry.path_type === "blob");
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: preview is stable; worker queues messages internally until ready
-  useEffect(() => {
-    if (!shiki) return;
-
-    const onMessage = (event: MessageEvent<{ path: string; html: string }>) => {
-      setPreviews((prev) =>
-        new Map(prev).set(event.data.path, event.data.html),
-      );
-    };
-
-    shiki.addEventListener("message", onMessage);
-
-    for (const blob of blobs.blobs) {
-      if (blob.type !== "file") continue;
-      shiki.postMessage({
-        path: blob.path,
-        code: blob.content,
-        theme: "vitesse-light",
-      });
-    }
-
-    return () => shiki.removeEventListener("message", onMessage);
-  }, [shiki]);
 
   const initialMousePos = useRef<{ x: number; y: number } | null>(null);
   const selectedItemRef = useRef<HTMLAnchorElement | null>(null);
@@ -192,6 +167,8 @@ function RepoFileDialogInner({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [open, filteredFiles.length, selectedFile]);
 
+  const selectedHast = selectedFile ? hastsMap?.get(selectedFile.path) : null;
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent
@@ -243,14 +220,16 @@ function RepoFileDialogInner({
           </div>
 
           <div className="w-3/5 flex flex-col text-sm scrollbar-none overflow-y-hidden">
-            {selectedFile && previews.has(selectedFile.path) && (
-              <div
-                className="px-2 py-2"
-                // biome-ignore lint/security/noDangerouslySetInnerHtml: trusted Shiki-rendered HTML
-                dangerouslySetInnerHTML={{
-                  __html: previews.get(selectedFile.path) ?? "",
-                }}
-              />
+            {selectedHast && (
+              <div className="px-2 py-2">
+                {
+                  toJsxRuntime(selectedHast, {
+                    Fragment,
+                    jsx,
+                    jsxs,
+                  }) as JSX.Element
+                }
+              </div>
             )}
           </div>
         </div>

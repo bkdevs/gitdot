@@ -75,10 +75,9 @@ self.onmessage = (event: MessageEvent<WorkerMessage>) => {
 };
 
 function process({ path, code, theme }: WorkerMessage) {
-  const lang = inferLanguage(path);
-  if (!lang) return;
-  const html = highlighter.codeToHtml(code, { lang, theme });
-  self.postMessage({ path, html });
+  const lang = inferLanguage(path) ?? "plaintext";
+  const hast = highlighter.codeToHast(code, { lang, theme });
+  self.postMessage({ path, hast });
 }
 
 const start = performance.now();

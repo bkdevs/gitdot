@@ -1,50 +1,49 @@
+"use client";
+
 import type { RepositoryFileResource } from "gitdot-api";
+import type { Element, Root } from "hast";
 import { toJsxRuntime } from "hast-util-to-jsx-runtime";
 import type { JSX } from "react";
-import { Fragment, use } from "react";
+import { Fragment } from "react";
 import { jsx, jsxs } from "react/jsx-runtime";
-import type { ShikiTransformer } from "shiki";
-import { fileToHast, inferLanguage } from "@/(main)/[owner]/[repo]/util";
+import { addClassToHast } from "shiki";
 import type { LineSelection } from "../util";
 import { FileBodyClient } from "./file-body-client";
 import { FileLine } from "./file-line";
 
-const FILE_BODY_TRANSFORMERS: ShikiTransformer[] = [
-  {
-    pre(node) {
-      this.addClassToHast(node, "outline-none");
-    },
-    line(node, line) {
-      node.tagName = "fileline";
-      node.properties["data-line-number"] = line;
-    },
-  },
-];
+function applyFileBodyTransformers(hast: Root): Root {
+  const pre = hast.children[0] as Element;
+  addClassToHast(pre, "outline-none");
+  const code = pre.children[0] as Element;
+  let lineIndex = 0;
+  for (const child of code.children) {
+    if (child.type === "element") {
+      child.tagName = "fileline";
+      child.properties["data-line-number"] = lineIndex + 1;
+      lineIndex++;
+    }
+  }
+  return hast;
+}
 
 export function FileBody({
-  file,
   selectedLines,
+  hast,
 }: {
-  file: RepositoryFileResource;
   selectedLines: LineSelection | null;
+  hast: Root;
 }) {
-  const hast = use(
-    fileToHast(
-      file.content,
-      inferLanguage(file.path),
-      "vitesse-light",
-      FILE_BODY_TRANSFORMERS,
-    ),
-  );
-
-  const content = toJsxRuntime(hast, {
-    Fragment,
-    jsx,
-    jsxs,
-    components: {
-      fileline: (props) => <FileLine {...props} />,
+  const content = toJsxRuntime(
+    applyFileBodyTransformers(structuredClone(hast)),
+    {
+      Fragment,
+      jsx,
+      jsxs,
+      components: {
+        fileline: (props) => <FileLine {...props} />,
+      },
     },
-  }) as JSX.Element;
+  ) as JSX.Element;
 
   return (
     <div className="w-full text-sm">

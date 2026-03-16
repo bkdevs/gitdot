@@ -54,7 +54,9 @@ export const RepositoryDiffStatResource = z.object({
   lines_added: z.number().int(),
   lines_removed: z.number().int(),
 });
-export type RepositoryDiffStatResource = z.infer<typeof RepositoryDiffStatResource>;
+export type RepositoryDiffStatResource = z.infer<
+  typeof RepositoryDiffStatResource
+>;
 
 export const RepositoryDiffFileResource = z.object({
   path: z.string(),
@@ -64,7 +66,9 @@ export const RepositoryDiffFileResource = z.object({
   left_content: z.string().optional(),
   right_content: z.string().optional(),
 });
-export type RepositoryDiffFileResource = z.infer<typeof RepositoryDiffFileResource>;
+export type RepositoryDiffFileResource = z.infer<
+  typeof RepositoryDiffFileResource
+>;
 
 export const RepositoryCommitResource = z.object({
   sha: z.string(),

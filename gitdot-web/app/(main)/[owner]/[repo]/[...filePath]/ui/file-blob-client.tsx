@@ -1,6 +1,5 @@
 "use client";
 
-import type { RepositoryBlobResource } from "gitdot-api";
 import { use } from "react";
 import { useRepoContext } from "../../context";
 import type { LineSelection } from "../util";
@@ -20,22 +19,23 @@ export function FileBlobClient({
   selectedLines: LineSelection | null;
   historySlot: React.ReactNode;
 }) {
-  const { blobs } = useRepoContext();
-  const blob = use(
-    blobs.then(
-      (r): RepositoryBlobResource | null =>
-        r.blobs.find((b) => b.path === path) ?? null,
-    ),
-  );
+  const { blobs, hasts } = useRepoContext();
+  const resolved = use(blobs);
+  const blob = resolved?.blobs.find((b) => b.path === path) ?? null;
 
-  if (!blob) return <div>File not found.</div>;
-  if (blob.type === "folder")
+  if (!blob) {
+    return <div>File not found.</div>;
+  } else if (blob.type === "folder") {
     return <FolderViewer owner={owner} repo={repo} entries={blob.entries} />;
+  }
+
+  const hast = use(hasts).get(path);
+  if (!hast) return null;
 
   return (
     <div className="flex w-full h-full min-h-0 overflow-hidden">
       <div className="flex-1 min-w-0 overflow-auto scrollbar-thin">
-        <FileBody file={blob} selectedLines={selectedLines} />
+        <FileBody selectedLines={selectedLines} hast={hast} />
       </div>
       {historySlot}
     </div>
