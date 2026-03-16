@@ -1,20 +1,24 @@
 use std::io::{self, Write};
 
 use anyhow::{Context, bail};
-use tokio::process::Command;
+use tokio::{fs, process::Command};
 
-use super::get_default_branch;
+use super::git_dir;
 use crate::config::UserConfig;
 
 pub async fn checkout_review(_config: UserConfig) -> anyhow::Result<()> {
-    let default_branch = get_default_branch().await?;
+    let branch_output = Command::new("git")
+        .args(["branch", "--show-current"])
+        .output()
+        .await
+        .context("Failed to get current branch")?;
+    let branch = String::from_utf8(branch_output.stdout)?.trim().to_string();
+    if branch.is_empty() {
+        bail!("Not currently on a branch");
+    }
 
     let output = Command::new("git")
-        .args([
-            "log",
-            &format!("origin/{}..HEAD", default_branch),
-            "--oneline",
-        ])
+        .args(["log", &format!("origin/{}..HEAD", branch), "--oneline"])
         .output()
         .await
         .context("Failed to run git log")?;
@@ -33,13 +37,13 @@ pub async fn checkout_review(_config: UserConfig) -> anyhow::Result<()> {
         .collect();
 
     if commits.is_empty() {
-        bail!("No commits ahead of origin/{}", default_branch);
+        bail!("No commits ahead of origin/{}", branch);
     }
 
     let selected = if commits.len() == 1 {
         0
     } else {
-        println!("Commits ahead of origin/{}:", default_branch);
+        println!("Commits ahead of origin/{}:", branch);
         for (i, (hash, subject)) in commits.iter().enumerate() {
             println!("  [{}] {} {}", i + 1, &hash[..7.min(hash.len())], subject);
         }
@@ -59,6 +63,10 @@ pub async fn checkout_review(_config: UserConfig) -> anyhow::Result<()> {
     };
 
     let (hash, subject) = commits[selected];
+
+    // Save current branch name so `gdot review amend` knows where to rebase
+    let git_dir = git_dir().await?;
+    fs::write(git_dir.join("gdot-review-branch"), &branch).await?;
 
     let status = Command::new("git")
         .args(["checkout", hash])
