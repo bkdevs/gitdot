@@ -1,15 +1,24 @@
-import { Suspense } from "react";
-import { FilesClient } from "./ui/files-client";
+"use client";
 
-export default async function FilesPage({
-  params,
-}: {
-  params: Promise<{ owner: string; repo: string }>;
-}) {
-  const { owner, repo } = await params;
+import { useRepoContext } from "@/(main)/[owner]/[repo]/context";
+import { usePathname } from "next/navigation";
+import { Suspense, use } from "react";
+import { FolderViewer } from "../[...filePath]/ui/folder-viewer";
+import { getFolderEntries } from "../util";
+
+function FilesClient() {
+  const paths = use(useRepoContext().paths);
+  if (!paths) return null;
+
+  const [owner, repo] = usePathname();
+  const entries = getFolderEntries("", paths);
+  return <FolderViewer owner={owner} repo={repo} entries={entries} />;
+}
+
+export default function Page() {
   return (
     <Suspense>
-      <FilesClient owner={owner} repo={repo} />
+      <FilesClient />
     </Suspense>
   );
 }
