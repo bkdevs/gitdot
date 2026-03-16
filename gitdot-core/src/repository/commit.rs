@@ -45,14 +45,16 @@ impl CommitRepositoryImpl {
 #[async_trait]
 impl CommitRepository for CommitRepositoryImpl {
     async fn get_commit(&self, repo_id: Uuid, sha: &str) -> Result<Option<Commit>, Error> {
+        let short = if sha.len() >= 7 { &sha[..7] } else { sha };
+
         sqlx::query_as::<_, Commit>(
             r#"
             SELECT * FROM commits
-            WHERE repo_id = $1 AND sha LIKE $2
+            WHERE repo_id = $1 AND sha_short = $2
             "#,
         )
         .bind(repo_id)
-        .bind(format!("{}%", sha))
+        .bind(short)
         .fetch_optional(&self.pool)
         .await
     }
