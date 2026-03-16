@@ -1,5 +1,10 @@
 "use client";
 
+import type {
+  RepositoryBlobsResource,
+  RepositoryCommitResource,
+  RepositoryPathsResource,
+} from "gitdot-api";
 import { openDB } from "idb";
 import type { Database } from "./types";
 import { RepoProvider } from "./types";
@@ -36,6 +41,38 @@ export class IdbProvider extends RepoProvider {
     if (typeof indexedDB === "undefined") return null;
     const db = await this.db();
     return db.getPaths(this.owner, this.repo);
+  }
+
+  async getCommits(): Promise<RepositoryCommitResource[] | null> {
+    if (typeof indexedDB === "undefined") return null;
+    const db = await this.db();
+    const commits = await db.getAllCommits(this.owner, this.repo);
+    return commits.length > 0 ? commits : null;
+  }
+
+  async getBlobs(): Promise<RepositoryBlobsResource | null> {
+    if (typeof indexedDB === "undefined") return null;
+    const db = await this.db();
+    const blobs = await db.getBlobs(this.owner, this.repo);
+    return blobs ?? null;
+  }
+
+  async putCommits(commits: RepositoryCommitResource[]): Promise<void> {
+    if (typeof indexedDB === "undefined") return;
+    const db = await this.db();
+    await db.putCommits(this.owner, this.repo, commits);
+  }
+
+  async putPaths(paths: RepositoryPathsResource): Promise<void> {
+    if (typeof indexedDB === "undefined") return;
+    const db = await this.db();
+    await db.putPaths(this.owner, this.repo, paths);
+  }
+
+  async putBlobs(blobs: RepositoryBlobsResource): Promise<void> {
+    if (typeof indexedDB === "undefined") return;
+    const db = await this.db();
+    await db.putBlobs(this.owner, this.repo, blobs);
   }
 }
 

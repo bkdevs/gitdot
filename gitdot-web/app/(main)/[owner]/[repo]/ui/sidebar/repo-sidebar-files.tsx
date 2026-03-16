@@ -1,7 +1,7 @@
 import { File, Folder, FolderOpen } from "lucide-react";
-import { useMemo } from "react";
+import { use, useMemo } from "react";
 import Link from "@/ui/link";
-import { useRepoResource } from "../../context";
+import { useRepoContext } from "../../context";
 import { getFolderEntries, getParentPath } from "../../util";
 
 function FileRow({
@@ -45,9 +45,8 @@ export function RepoSidebarFiles({
   owner: string;
   repo: string;
   currentPath: string;
-}) {
-  const paths = useRepoResource("paths");
-
+  }) {
+  const paths = use(useRepoContext().paths);
   const parentPath = getParentPath(currentPath);
 
   const contextFiles = useMemo(

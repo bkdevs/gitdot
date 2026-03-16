@@ -1,24 +1,22 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { Fragment } from "react";
+import { Fragment, use } from "react";
 import Link from "@/ui/link";
 import { formatDateKey, formatTime } from "@/util";
-import { useRepoResource } from "../../context";
+import { useRepoContext } from "../../context";
 import { groupCommitsByDate } from "../../util/commit";
 
 export function RepoSidebarCommits() {
-  const commits = useRepoResource("commits");
+  const commits = use(useRepoContext().commits);
+  if (!commits) return null;
+
+  const commitsByDate = groupCommitsByDate(commits);
   const pathname = usePathname();
-  const [owner, repo, section, currentSha] = pathname
+  const [owner, repo, _, currentSha] = pathname
     .split("/")
     .filter(Boolean);
 
-  if (section !== "commits") {
-    throw new Error(`Expected commits route, got: ${pathname}`);
-  }
-
-  const commitsByDate = groupCommitsByDate(commits);
 
   return (
     <div className="flex flex-col w-full">

@@ -1,24 +1,27 @@
-import { ApiProvider } from "@/provider/api";
-import { Client } from "./client";
-import { Resources } from "./resources";
+"use client";
 
-// export async function generateStaticParams() {
-//   return CACHED_REPOS;
-// }
+import { Suspense, use } from "react";
+import { useRepoContext } from "./context";
+import { MarkdownBody } from "./ui/markdown/markdown-body";
 
-export default async function Page({
-  params,
-}: {
-  params: Promise<{ owner: string; repo: string }>;
-}) {
-  const { owner, repo } = await params;
-  const provider = new ApiProvider(owner, repo);
+function ReadmeContent() {
+  const { readme } = useRepoContext();
+  const resolved = use(readme);
 
+  if (!resolved || resolved.type !== "file") {
+    return <div className="p-2 text-sm">README.md not found</div>;
+  }
   return (
-    <Client
-      owner={owner}
-      repo={repo}
-      serverPromises={provider.fetch(Resources)}
-    />
+    <div className="p-4 max-w-4xl">
+      <MarkdownBody content={resolved.content} />
+    </div>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense>
+      <ReadmeContent />
+    </Suspense>
   );
 }

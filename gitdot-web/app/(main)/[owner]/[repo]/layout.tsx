@@ -1,10 +1,7 @@
-import {
-  getRepositoryBlobs,
-  getRepositoryCommits,
-  getRepositoryPaths,
-} from "@/dal";
 import { getUserMetadata } from "@/lib/supabase";
-import { RepoProvider } from "./context";
+import { ApiProvider } from "@/provider/api";
+import { RepoClient } from "./context";
+import { Resources } from "./resources";
 import { RepoDialogs } from "./ui/dialog/repo-dialogs";
 import { RepoSidebar } from "./ui/repo-sidebar";
 
@@ -17,25 +14,13 @@ export default async function Layout({
 }>) {
   const { owner, repo } = await params;
 
-  const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
-  const commits = delay(1000).then(() => getRepositoryCommits(owner, repo));
-  const paths = delay(1000).then(() => getRepositoryPaths(owner, repo));
-  const blobs = paths.then((p) =>
-    p
-      ? getRepositoryBlobs(owner, repo, { paths: p.entries.map((e) => e.path) })
-      : null,
-  );
+  const provider = new ApiProvider(owner, repo);
+  const serverPromises = provider.fetch(Resources);
   const { username, orgs } = await getUserMetadata();
   const isAdmin = username === owner || orgs.includes(`${owner}:admin`);
 
   return (
-    <RepoProvider
-      owner={owner}
-      repo={repo}
-      commits={commits}
-      paths={paths}
-      blobs={blobs}
-    >
+    <RepoClient owner={owner} repo={repo} serverPromises={serverPromises}>
       <div className="flex md:hidden h-full w-full p-2 text-sm">
         Mobile support to come.
       </div>
@@ -48,6 +33,6 @@ export default async function Layout({
       </div>
 
       <RepoDialogs owner={owner} repo={repo} />
-    </RepoProvider>
+    </RepoClient>
   );
 }

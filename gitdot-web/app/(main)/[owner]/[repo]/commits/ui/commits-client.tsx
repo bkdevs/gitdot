@@ -1,10 +1,10 @@
 "use client";
 
-import { Fragment } from "react";
+import { Fragment, use } from "react";
 import { groupCommitsByDate } from "@/(main)/[owner]/[repo]/util";
 import Link from "@/ui/link";
 import { formatDateKey, formatTime } from "@/util";
-import { useRepoResource } from "../../context";
+import { useRepoContext } from "../../context";
 
 export function CommitsClient({
   owner,
@@ -13,19 +13,20 @@ export function CommitsClient({
   owner: string;
   repo: string;
 }) {
-  const commits = useRepoResource("commits");
+  const commits = use(useRepoContext().commits);
+  if (!commits) return null;
   const commitsByDate = groupCommitsByDate(commits);
 
   return (
     <div className="flex flex-col">
-      {commitsByDate.map(([date, commits]) => (
+      {commitsByDate.map(([date, dateCommits]) => (
         <Fragment key={date}>
           <div className="sticky top-0 bg-background flex items-center border-b px-2 h-9 z-10">
             <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
               {formatDateKey(date)}
             </h3>
           </div>
-          {commits.map((commit) => (
+          {dateCommits.map((commit) => (
             <Link
               key={commit.sha}
               href={`/${owner}/${repo}/commits/${commit.sha.substring(0, 7)}`}

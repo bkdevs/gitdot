@@ -1,14 +1,14 @@
 "use client";
 
-import type {
-  RepositoryBlobsResource,
-  RepositoryPathsResource,
-} from "gitdot-api";
-import { useEffect, useMemo, useRef, useState } from "react";
 import { useWorkerContext } from "@/(main)/context/worker";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
 import Link from "@/ui/link";
-import { useRepoResource } from "../../context";
+import type {
+    RepositoryBlobsResource,
+    RepositoryPathsResource,
+} from "gitdot-api";
+import { use, useEffect, useMemo, useRef, useState } from "react";
+import { useRepoContext } from "../../context";
 import { fuzzyMatch } from "../../util";
 
 export function RepoFileDialog({
@@ -18,15 +18,14 @@ export function RepoFileDialog({
   owner: string;
   repo: string;
 }) {
-  const paths = useRepoResource("paths");
-  const blobs = useRepoResource("blobs");
+  const { paths, blobs } = useRepoContext();
 
   return (
     <RepoFileDialogInner
       owner={owner}
       repo={repo}
-      paths={paths}
-      blobs={blobs}
+      paths={use(paths)}
+      blobs={use(blobs)}
     />
   );
 }

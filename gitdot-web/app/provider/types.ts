@@ -40,6 +40,8 @@ export abstract class RepoProvider {
   abstract getBlob(path: string): Promise<RepositoryBlobResource | null>;
   abstract getCommit(sha: string): Promise<RepositoryCommitResource | null>;
   abstract getPaths(): Promise<RepositoryPathsResource | null>;
+  abstract getCommits(): Promise<RepositoryCommitResource[] | null>;
+  abstract getBlobs(): Promise<RepositoryBlobsResource | null>;
 }
 
 export interface Database {
