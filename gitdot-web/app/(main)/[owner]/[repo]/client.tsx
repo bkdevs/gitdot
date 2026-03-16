@@ -1,22 +1,14 @@
 "use client";
 
 import type { RepositoryBlobResource } from "gitdot-api";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, Suspense, use, useContext, useMemo } from "react";
 import { IdbProvider } from "@/provider";
 import type { RepoProvider } from "@/provider/types";
 import { firstNonNull } from "@/util";
 import { MarkdownBody } from "./ui/markdown/markdown-body";
+import { Resources, Promises } from "./types";
 
-export const Resources = {
-  readme: (p: RepoProvider) => p.getBlob("README.md"),
-};
-interface Promises {
-  readme: Promise<RepositoryBlobResource | null>;
-}
-interface Context {
-  readme: RepositoryBlobResource | null | undefined;
-}
-const Context = createContext<Context | null>(null);
+const Context = createContext<Promises | null>(null);
 
 export function Client({
   owner,
@@ -27,35 +19,37 @@ export function Client({
   repo: string;
   serverPromises: Promises;
 }) {
-  const [readme, setReadme] = useState<
-    RepositoryBlobResource | null | undefined
-  >(undefined);
+  const idbPromises = useMemo(
+    () => new IdbProvider(owner, repo).fetch(Resources),
+    [owner, repo],
+  );
 
-  useEffect(() => {
-    const idbPromises = new IdbProvider(owner, repo).fetch(Resources);
-
-    firstNonNull(idbPromises.readme, serverPromises.readme)
-      .then(setReadme)
-      .catch(() => setReadme(null));
-  }, [owner, repo, serverPromises]);
+  const context = useMemo(
+    () => ({
+      readme: firstNonNull(idbPromises.readme, serverPromises.readme),
+    }),
+    [idbPromises, serverPromises],
+  );
 
   return (
-    <Context value={{ readme }}>
-      <ClientInner />
+    <Context value={context}>
+      <Suspense>
+        <ClientInner />
+      </Suspense>
     </Context>
   );
 }
 
 function ClientInner() {
   const { readme } = useContext(Context)!;
+  const resolved = use(readme);
 
-  if (readme === undefined) return null;
-  if (readme === null || readme.type !== "file") {
+  if (!resolved || resolved.type !== "file") {
     return <div className="p-2 text-sm">README.md not found</div>;
   }
   return (
     <div className="p-4 max-w-4xl">
-      <MarkdownBody content={readme.content} />
+      <MarkdownBody content={resolved.content} />
     </div>
   );
 }
