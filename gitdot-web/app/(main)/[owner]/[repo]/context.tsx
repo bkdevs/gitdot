@@ -38,7 +38,6 @@ export function RepoClient({
 
   const context = useMemo(
     () => ({
-      readme: firstNonNull(idbPromises.readme, serverPromises.readme),
       paths: firstNonNull(idbPromises.paths, serverPromises.paths),
       commits: firstNonNull(idbPromises.commits, serverPromises.commits),
       blobs: firstNonNull(idbPromises.blobs, serverPromises.blobs),
