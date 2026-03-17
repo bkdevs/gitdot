@@ -26,6 +26,10 @@ export function RepoShortcuts() {
         name: "navigate-up",
         execute: () => console.log("navigate-up"),
       },
+      p: {
+        name: "open-file-search",
+        execute: () => window.dispatchEvent(new Event("openFileSearch")),
+      },
     }),
     [owner, repo, router],
   );

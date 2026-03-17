@@ -51,25 +51,9 @@ function RepoFileDialogInner({
   const selectedItemRef = useRef<HTMLAnchorElement | null>(null);
 
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "p" || e.key === "/") {
-        const target = e.target as HTMLElement;
-        if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") {
-          return;
-        }
-        e.preventDefault();
-        setOpen(true);
-      }
-    };
-
     const handleOpenFileSearch = () => setOpen(true);
-
-    window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("openFileSearch", handleOpenFileSearch);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-      window.removeEventListener("openFileSearch", handleOpenFileSearch);
-    };
+    return () => window.removeEventListener("openFileSearch", handleOpenFileSearch);
   }, []);
 
   const filteredFiles = useMemo(() => {
