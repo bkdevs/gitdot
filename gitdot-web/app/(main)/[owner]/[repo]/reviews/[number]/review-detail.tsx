@@ -1,12 +1,74 @@
 "use client";
 
-import type { DiffResource, ReviewResource } from "gitdot-api";
+import type {
+  DiffResource,
+  ReviewerResource,
+  ReviewResource,
+} from "gitdot-api";
 import { useRef, useState } from "react";
 import { useUserContext } from "@/(main)/context/user";
 import { publishReviewAction } from "@/actions/review";
 import { Button } from "@/ui/button";
 import { cn, timeAgo } from "@/util";
 import { Reviewers } from "./reviewers";
+
+function getLatestVerdicts(diff: DiffResource) {
+  const latestRevision = diff.revisions[0];
+  if (!latestRevision) return [];
+  return latestRevision.verdicts;
+}
+
+function DiffVerdicts({
+  diff,
+  reviewers,
+}: {
+  diff: DiffResource;
+  reviewers: ReviewerResource[];
+}) {
+  const verdicts = getLatestVerdicts(diff);
+  if (reviewers.length === 0) return null;
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      {reviewers.map((reviewer) => {
+        const verdict = verdicts.find(
+          (v) => v.reviewer_id === reviewer.reviewer_id,
+        );
+        return (
+          <div key={reviewer.id} className="flex items-center gap-2 text-xs">
+            <span
+              className={cn(
+                "size-2 rounded-full shrink-0",
+                verdict?.verdict === "approved"
+                  ? "bg-green-500"
+                  : verdict?.verdict === "changes_requested"
+                    ? "bg-orange-500"
+                    : "bg-muted-foreground/30",
+              )}
+            />
+            <span className="text-muted-foreground truncate">
+              {reviewer.user?.name ?? "Unknown"}
+            </span>
+            {verdict && (
+              <span
+                className={cn(
+                  "ml-auto shrink-0",
+                  verdict.verdict === "approved"
+                    ? "text-green-500"
+                    : "text-orange-500",
+                )}
+              >
+                {verdict.verdict === "approved"
+                  ? "Approved"
+                  : "Changes requested"}
+              </span>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 export function ReviewDetail({
   owner,
@@ -107,32 +169,55 @@ export function ReviewDetail({
               {review.diffs.length}{" "}
               {review.diffs.length === 1 ? "diff" : "diffs"}
             </div>
-            {review.diffs.map((diff, index) => (
-              <button
-                key={diff.id}
-                type="button"
-                className={cn(
-                  "w-full text-left px-4 py-2 border-border border-b transition-colors",
-                  index === selectedDiffIndex
-                    ? "bg-accent"
-                    : "hover:bg-accent/50",
-                )}
-                onClick={() => setSelectedDiffIndex(index)}
-              >
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">
-                    #{diff.position}
-                  </span>
-                  <span className="text-sm truncate">{diff.title}</span>
-                </div>
-              </button>
-            ))}
+            {review.diffs.map((diff, index) => {
+              const verdicts = getLatestVerdicts(diff);
+              const allApproved =
+                review.reviewers.length > 0 &&
+                review.reviewers.every((r) =>
+                  verdicts.some(
+                    (v) =>
+                      v.reviewer_id === r.reviewer_id &&
+                      v.verdict === "approved",
+                  ),
+                );
+              const hasChangesRequested = verdicts.some(
+                (v) => v.verdict === "changes_requested",
+              );
+
+              return (
+                <button
+                  key={diff.id}
+                  type="button"
+                  className={cn(
+                    "w-full text-left px-4 py-2 border-border border-b transition-colors",
+                    index === selectedDiffIndex
+                      ? "bg-accent"
+                      : "hover:bg-accent/50",
+                  )}
+                  onClick={() => setSelectedDiffIndex(index)}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground">
+                      #{diff.position}
+                    </span>
+                    <span className="text-sm truncate flex-1">
+                      {diff.title}
+                    </span>
+                    {allApproved ? (
+                      <span className="size-2 rounded-full bg-green-500 shrink-0" />
+                    ) : hasChangesRequested ? (
+                      <span className="size-2 rounded-full bg-orange-500 shrink-0" />
+                    ) : null}
+                  </div>
+                </button>
+              );
+            })}
           </div>
 
           <div className="flex-1 min-w-0">
             {selectedDiff ? (
               <div className="flex flex-col">
-                <div className="flex flex-col gap-2 px-4 py-3">
+                <div className="flex flex-col gap-2 px-4 py-3 border-border border-b">
                   {isDraft ? (
                     <textarea
                       ref={(el) => {
@@ -175,6 +260,19 @@ export function ReviewDetail({
                     )}
                   </div>
                 </div>
+
+                {review.reviewers.length > 0 && (
+                  <div className="px-4 py-3 border-border border-b">
+                    <h3 className="text-xs font-medium text-muted-foreground mb-2">
+                      Reviewer status
+                    </h3>
+                    <DiffVerdicts
+                      diff={selectedDiff}
+                      reviewers={review.reviewers}
+                    />
+                  </div>
+                )}
+
                 {diffContents[selectedDiff.position]}
               </div>
             ) : (
