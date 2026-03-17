@@ -1,8 +1,7 @@
 use gitdot_api::resource::{repository as repo_api, review as api};
 use gitdot_core::dto::{
     DiffChange, DiffLine, DiffPair, DiffResponse, ReviewAuthorResponse, ReviewCommentResponse,
-    ReviewDiffResponse, ReviewFileDiffResponse, ReviewResponse, ReviewerResponse, RevisionResponse,
-    SyntaxHighlight,
+    ReviewDiffResponse, ReviewResponse, ReviewerResponse, RevisionResponse, SyntaxHighlight,
 };
 
 use super::IntoApi;
@@ -110,25 +109,6 @@ impl IntoApi for ReviewDiffResponse {
     fn into_api(self) -> Self::ApiType {
         gitdot_api::endpoint::review::get_review_diff::GetReviewDiffResponse {
             files: self.files.into_api(),
-        }
-    }
-}
-
-impl IntoApi for ReviewFileDiffResponse {
-    type ApiType = repo_api::RepositoryDiffFileResource;
-    fn into_api(self) -> Self::ApiType {
-        repo_api::RepositoryDiffFileResource {
-            path: self.path,
-            lines_added: self.diff.lines_added,
-            lines_removed: self.diff.lines_removed,
-            hunks: self
-                .diff
-                .hunks
-                .into_iter()
-                .map(|h| h.into_iter().map(|p| p.into_api()).collect())
-                .collect(),
-            left_content: self.left_content,
-            right_content: self.right_content,
         }
     }
 }

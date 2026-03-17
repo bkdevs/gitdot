@@ -94,6 +94,9 @@ pub struct RepositoryDiffStatResponse {
 
 #[derive(Debug, Clone)]
 pub struct RepositoryDiffFileResponse {
+    pub path: String,
+    pub left_content: Option<String>,
+    pub right_content: Option<String>,
     pub lines_added: u32,
     pub lines_removed: u32,
     pub hunks: Vec<DiffHunk>,

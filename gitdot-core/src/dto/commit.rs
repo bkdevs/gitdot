@@ -40,15 +40,7 @@ pub struct CommitsResponse {
 pub struct CommitDiffResponse {
     pub sha: String,
     pub parent_sha: String,
-    pub files: Vec<CommitFileDiffResponse>,
-}
-
-#[derive(Debug, Clone)]
-pub struct CommitFileDiffResponse {
-    pub path: String,
-    pub left_content: Option<String>,
-    pub right_content: Option<String>,
-    pub diff: RepositoryDiffFileResponse,
+    pub files: Vec<RepositoryDiffFileResponse>,
 }
 
 impl From<Commit> for CommitResponse {

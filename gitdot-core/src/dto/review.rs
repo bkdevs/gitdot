@@ -236,14 +236,6 @@ fn side_to_string(side: CommentSide) -> String {
 }
 
 #[derive(Debug, Clone)]
-pub struct ReviewFileDiffResponse {
-    pub path: String,
-    pub left_content: Option<String>,
-    pub right_content: Option<String>,
-    pub diff: RepositoryDiffFileResponse,
-}
-
-#[derive(Debug, Clone)]
 pub struct ReviewDiffResponse {
-    pub files: Vec<ReviewFileDiffResponse>,
+    pub files: Vec<RepositoryDiffFileResponse>,
 }

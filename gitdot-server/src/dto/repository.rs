@@ -1,9 +1,9 @@
 use gitdot_api::resource::repository as api;
 use gitdot_core::{
     dto::{
-        CommitAuthorResponse, CommitDiffResponse, CommitFileDiffResponse, CommitResponse,
-        CommitsResponse, PathType, RepositoryBlobResponse, RepositoryBlobsResponse,
-        RepositoryCommitResponse, RepositoryCommitsResponse, RepositoryFileResponse,
+        CommitAuthorResponse, CommitDiffResponse, CommitResponse, CommitsResponse, PathType,
+        RepositoryBlobResponse, RepositoryBlobsResponse, RepositoryCommitResponse,
+        RepositoryCommitsResponse, RepositoryDiffFileResponse, RepositoryFileResponse,
         RepositoryFolderResponse, RepositoryPath, RepositoryPathsResponse, RepositoryResponse,
     },
     model::CommitDiff,
@@ -190,15 +190,14 @@ impl IntoApi for CommitDiffResponse {
     }
 }
 
-impl IntoApi for CommitFileDiffResponse {
+impl IntoApi for RepositoryDiffFileResponse {
     type ApiType = api::RepositoryDiffFileResource;
     fn into_api(self) -> Self::ApiType {
         api::RepositoryDiffFileResource {
             path: self.path,
-            lines_added: self.diff.lines_added,
-            lines_removed: self.diff.lines_removed,
+            lines_added: self.lines_added,
+            lines_removed: self.lines_removed,
             hunks: self
-                .diff
                 .hunks
                 .into_iter()
                 .map(|h| h.into_iter().map(|p| p.into_api()).collect())

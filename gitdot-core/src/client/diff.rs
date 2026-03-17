@@ -78,6 +78,9 @@ impl DiffClient for DifftClient {
             (None, Some(r)) => {
                 let lines_added = r.content.lines().count() as u32;
                 return Ok(RepositoryDiffFileResponse {
+                    path: r.path.clone(),
+                    left_content: None,
+                    right_content: Some(r.content.clone()),
                     lines_added,
                     lines_removed: 0,
                     hunks: vec![],
@@ -86,6 +89,9 @@ impl DiffClient for DifftClient {
             (Some(l), None) => {
                 let lines_removed = l.content.lines().count() as u32;
                 return Ok(RepositoryDiffFileResponse {
+                    path: l.path.clone(),
+                    left_content: Some(l.content.clone()),
+                    right_content: None,
                     lines_added: 0,
                     lines_removed,
                     hunks: vec![],
@@ -130,6 +136,9 @@ impl DiffClient for DifftClient {
         }
 
         Ok(RepositoryDiffFileResponse {
+            path: right.path.clone(),
+            left_content: Some(left.content.clone()),
+            right_content: Some(right.content.clone()),
             lines_added,
             lines_removed,
             hunks,

@@ -5,8 +5,7 @@ use crate::{
     dto::{
         AddReviewerRequest, CreateReviewCommentRequest, GetReviewDiffRequest, GetReviewRequest,
         ListReviewsRequest, ProcessReviewRequest, PublishReviewRequest, RemoveReviewerRequest,
-        ReviewCommentResponse, ReviewDiffResponse, ReviewFileDiffResponse, ReviewResponse,
-        ReviewerResponse,
+        ReviewCommentResponse, ReviewDiffResponse, ReviewResponse, ReviewerResponse,
     },
     error::ReviewError,
     model::ReviewStatus,
@@ -645,18 +644,11 @@ where
 
         let mut files = Vec::new();
         for (left, right) in diff_files {
-            let path = right
-                .as_ref()
-                .or(left.as_ref())
-                .map(|f| f.path.clone())
-                .unwrap_or_default();
-            let left_content = left.as_ref().map(|f| f.content.clone());
-            let right_content = right.as_ref().map(|f| f.content.clone());
             let diff = self
                 .diff_client
                 .diff_files(left.as_ref(), right.as_ref())
                 .await?;
-            files.push(ReviewFileDiffResponse { path, left_content, right_content, diff });
+            files.push(diff);
         }
 
         Ok(ReviewDiffResponse { files })

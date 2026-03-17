@@ -7,8 +7,8 @@ use uuid::Uuid;
 use crate::{
     client::{DiffClient, DifftClient, Git2Client, GitClient},
     dto::{
-        CommitDiffResponse, CommitFileDiffResponse, CommitResponse, CommitsResponse,
-        CreateCommitsRequest, GetCommitDiffRequest, GetCommitRequest, GetCommitsRequest,
+        CommitDiffResponse, CommitResponse, CommitsResponse, CreateCommitsRequest,
+        GetCommitDiffRequest, GetCommitRequest, GetCommitsRequest,
     },
     error::CommitError,
     model,
@@ -144,25 +144,9 @@ where
             .collect();
         let diff_results = futures::future::join_all(diff_futures).await;
 
-        let files = diff_files
+        let files = diff_results
             .into_iter()
-            .zip(diff_results)
-            .map(|((left, right), diff_result)| {
-                let path = right
-                    .as_ref()
-                    .or(left.as_ref())
-                    .map(|f| f.path.clone())
-                    .unwrap_or_default();
-                let left_content = left.map(|f| f.content);
-                let right_content = right.map(|f| f.content);
-                let diff = diff_result?;
-                Ok(CommitFileDiffResponse {
-                    path,
-                    left_content,
-                    right_content,
-                    diff,
-                })
-            })
+            .map(|diff_result| diff_result.map_err(CommitError::from))
             .collect::<Result<Vec<_>, CommitError>>()?;
 
         Ok(CommitDiffResponse {
