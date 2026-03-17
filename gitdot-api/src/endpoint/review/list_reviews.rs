@@ -2,17 +2,17 @@ use serde::{Deserialize, Serialize};
 
 use crate::{endpoint::Endpoint, resource::review::ReviewResource};
 
-pub struct GetReviews;
+pub struct ListReviews;
 
-impl Endpoint for GetReviews {
+impl Endpoint for ListReviews {
     const PATH: &'static str = "/repository/{owner}/{repo}/reviews";
     const METHOD: http::Method = http::Method::GET;
 
-    type Request = GetReviewsRequest;
-    type Response = GetReviewsResponse;
+    type Request = ListReviewsRequest;
+    type Response = ListReviewsResponse;
 }
 
 #[derive(ApiRequest, Debug, Serialize, Deserialize)]
-pub struct GetReviewsRequest;
+pub struct ListReviewsRequest;
 
-pub type GetReviewsResponse = Vec<ReviewResource>;
+pub type ListReviewsResponse = Vec<ReviewResource>;

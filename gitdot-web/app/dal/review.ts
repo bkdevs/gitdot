@@ -17,7 +17,7 @@ import {
   handleResponse,
 } from "./util";
 
-export async function getReviews(
+export async function listReviews(
   owner: string,
   repo: string,
 ): Promise<ReviewResource[] | null> {

@@ -3,7 +3,7 @@ use axum::{
     http::StatusCode,
 };
 
-use gitdot_api::endpoint::get_reviews as api;
+use gitdot_api::endpoint::list_reviews as api;
 use gitdot_core::dto::{ListReviewsRequest, RepositoryAuthorizationRequest, RepositoryPermission};
 
 use crate::{
@@ -13,11 +13,11 @@ use crate::{
 };
 
 #[axum::debug_handler]
-pub async fn get_reviews(
+pub async fn list_reviews(
     auth_user: Option<Principal<User>>,
     State(state): State<AppState>,
     Path((owner, repo)): Path<(String, String)>,
-) -> Result<AppResponse<api::GetReviewsResponse>, AppError> {
+) -> Result<AppResponse<api::ListReviewsResponse>, AppError> {
     let user_id = auth_user.as_ref().map(|u| u.id);
     let auth_request =
         RepositoryAuthorizationRequest::new(user_id, &owner, &repo, RepositoryPermission::Read)?;

@@ -2,7 +2,7 @@ mod add_reviewer;
 mod create_review_comment;
 mod get_review;
 mod get_review_diff;
-mod get_reviews;
+mod list_reviews;
 mod publish_review;
 mod remove_reviewer;
 
@@ -17,7 +17,7 @@ use add_reviewer::add_reviewer;
 use create_review_comment::create_review_comment;
 use get_review::get_review;
 use get_review_diff::get_review_diff;
-use get_reviews::get_reviews;
+use list_reviews::list_reviews;
 use publish_review::publish_review;
 use remove_reviewer::remove_reviewer;
 
@@ -27,7 +27,7 @@ pub fn create_review_router() -> Router<AppState> {
             "/repository/{owner}/{repo}/review/{number}",
             get(get_review),
         )
-        .route("/repository/{owner}/{repo}/reviews", get(get_reviews))
+        .route("/repository/{owner}/{repo}/reviews", get(list_reviews))
         .route(
             "/repository/{owner}/{repo}/review/{number}/diff/{position}",
             get(get_review_diff),
