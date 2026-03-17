@@ -3,6 +3,7 @@ mod get_user;
 mod has_user;
 mod list_user_organizations;
 mod list_user_repositories;
+mod list_user_reviews;
 mod update_current_user;
 
 use axum::{Router, routing::get};
@@ -14,6 +15,7 @@ use get_user::get_user;
 use has_user::has_user;
 use list_user_organizations::list_user_organizations;
 use list_user_repositories::list_user_repositories;
+use list_user_reviews::list_user_reviews;
 use update_current_user::update_current_user;
 
 pub fn create_user_router() -> Router<AppState> {
@@ -28,4 +30,5 @@ pub fn create_user_router() -> Router<AppState> {
             "/user/{user_name}/organizations",
             get(list_user_organizations),
         )
+        .route("/user/{user_name}/reviews", get(list_user_reviews))
 }

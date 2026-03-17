@@ -3,6 +3,7 @@ mod get_user;
 mod has_user;
 mod list_user_organizations;
 mod list_user_repositories;
+mod list_user_reviews;
 mod update_current_user;
 
 use chrono::{DateTime, Utc};
@@ -15,6 +16,7 @@ pub use get_user::GetUserRequest;
 pub use has_user::HasUserRequest;
 pub use list_user_organizations::ListUserOrganizationsRequest;
 pub use list_user_repositories::ListUserRepositoriesRequest;
+pub use list_user_reviews::ListUserReviewsRequest;
 pub use update_current_user::UpdateCurrentUserRequest;
 
 #[derive(Debug, Clone)]

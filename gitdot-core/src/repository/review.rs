@@ -120,6 +120,8 @@ pub trait ReviewRepository: Send + Sync + Clone + 'static {
 
     async fn get_reviews(&self, owner: &str, repo: &str) -> Result<Vec<Review>, Error>;
 
+    async fn get_reviews_by_user(&self, user_name: &str) -> Result<Vec<Review>, Error>;
+
     async fn create_review(
         &self,
         repository_id: Uuid,
@@ -223,6 +225,24 @@ impl ReviewRepository for ReviewRepositoryImpl {
         )
         .bind(owner)
         .bind(repo)
+        .fetch_all(&self.pool)
+        .await
+    }
+
+    async fn get_reviews_by_user(&self, user_name: &str) -> Result<Vec<Review>, Error> {
+        sqlx::query_as::<_, Review>(
+            r#"
+            SELECT
+                r.id, r.repository_id, r.number, r.author_id, r.title, r.description,
+                r.target_branch, r.status, r.created_at, r.updated_at,
+                NULL AS author, NULL AS diffs, NULL AS reviewers, NULL AS comments
+            FROM reviews r
+            JOIN users u ON r.author_id = u.id
+            WHERE u.name = $1
+            ORDER BY r.created_at DESC
+            "#,
+        )
+        .bind(user_name)
         .fetch_all(&self.pool)
         .await
     }

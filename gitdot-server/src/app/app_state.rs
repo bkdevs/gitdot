@@ -111,6 +111,7 @@ impl AppState {
                 user_repo.clone(),
                 repo_repo.clone(),
                 org_repo.clone(),
+                review_repo.clone(),
             )),
             org_service: Arc::new(OrganizationServiceImpl::new(
                 org_repo.clone(),
