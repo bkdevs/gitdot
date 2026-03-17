@@ -4,7 +4,6 @@ import type {
   RepositoryCommitResource,
   RepositoryPathsResource,
 } from "gitdot-api";
-import type { Root } from "hast";
 
 type ResourcesDef = Record<
   string,
@@ -41,66 +40,9 @@ export abstract class RepoProvider {
     } as ResourcesResult<T>;
   }
 
+  abstract getPaths(): Promise<RepositoryPathsResource | null>;
   abstract getBlob(path: string): Promise<RepositoryBlobResource | null>;
   abstract getCommit(sha: string): Promise<RepositoryCommitResource | null>;
-  abstract getPaths(): Promise<RepositoryPathsResource | null>;
   abstract getCommits(): Promise<RepositoryCommitResource[] | null>;
   abstract getBlobs(): Promise<RepositoryBlobsResource | null>;
-}
-
-export interface Database {
-  getCommit(
-    owner: string,
-    repo: string,
-    sha: string,
-  ): Promise<RepositoryCommitResource | null>;
-
-  putCommit(
-    owner: string,
-    repo: string,
-    commit: RepositoryCommitResource,
-  ): Promise<void>;
-
-  putCommits(
-    owner: string,
-    repo: string,
-    commits: RepositoryCommitResource[],
-  ): Promise<void>;
-
-  getAllCommits(
-    owner: string,
-    repo: string,
-  ): Promise<RepositoryCommitResource[]>;
-
-  getPaths(
-    owner: string,
-    repo: string,
-  ): Promise<RepositoryPathsResource | null>;
-
-  putPaths(
-    owner: string,
-    repo: string,
-    paths: RepositoryPathsResource,
-  ): Promise<void>;
-
-  getBlob(
-    owner: string,
-    repo: string,
-    path: string,
-  ): Promise<RepositoryBlobResource | null>;
-
-  getBlobs(
-    owner: string,
-    repo: string,
-  ): Promise<RepositoryBlobsResource | undefined>;
-
-  putBlobs(
-    owner: string,
-    repo: string,
-    blobs: RepositoryBlobsResource,
-  ): Promise<void>;
-
-  getHasts(owner: string, repo: string): Promise<Map<string, Root> | null>;
-
-  putHast(owner: string, repo: string, path: string, hast: Root): Promise<void>;
 }

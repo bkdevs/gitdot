@@ -3,7 +3,8 @@
 import type { Root } from "hast";
 import { createContext, useContext, useEffect, useMemo } from "react";
 import { setRepoCookie } from "@/cookie";
-import { IdbProvider } from "@/provider";
+import { openIdb } from "@/db";
+import { DbProvider } from "@/provider";
 import { firstNonNull } from "@/util";
 import { useRenderBlobs } from "./hooks/use-render-blobs";
 import { type RepoPromises, RepoResources } from "./resources";
@@ -22,35 +23,38 @@ export function RepoClient({
   serverPromises: RepoPromises;
   children: React.ReactNode;
 }) {
-  const idb = useMemo(() => new IdbProvider(owner, repo), [owner, repo]);
-  const idbPromises = useMemo(() => idb.fetch(RepoResources), [idb]);
+  const idb = useMemo(() => openIdb(), []);
+  const dbPromises = useMemo(
+    () => new DbProvider(owner, repo).fetch(RepoResources),
+    [owner, repo],
+  );
 
   const pathsPromise = useMemo(
-    () => firstNonNull(idbPromises.paths, serverPromises.paths),
-    [idbPromises, serverPromises],
+    () => firstNonNull(dbPromises.paths, serverPromises.paths),
+    [dbPromises, serverPromises],
   );
   const commitsPromise = useMemo(
-    () => firstNonNull(idbPromises.commits, serverPromises.commits),
-    [idbPromises, serverPromises],
+    () => firstNonNull(dbPromises.commits, serverPromises.commits),
+    [dbPromises, serverPromises],
   );
   const blobsPromise = useMemo(
-    () => firstNonNull(idbPromises.blobs, serverPromises.blobs),
-    [idbPromises, serverPromises],
+    () => firstNonNull(dbPromises.blobs, serverPromises.blobs),
+    [dbPromises, serverPromises],
   );
-  const shikiPromise = useRenderBlobs(blobsPromise, idb);
+  const shikiPromise = useRenderBlobs(owner, repo, blobsPromise);
   const hastsPromise = useMemo(
-    () => firstNonNull(idb.getHasts(), shikiPromise),
-    [idb, shikiPromise],
+    () => firstNonNull(idb.getHasts(owner, repo), shikiPromise),
+    [idb, owner, repo, shikiPromise],
   );
 
   useEffect(() => {
     serverPromises.paths.then((p) => {
       if (!p) return;
-      idb.putPaths(p);
+      idb.putPaths(owner, repo, p);
       setRepoCookie(owner, repo, p.commit_sha);
     });
-    serverPromises.commits.then((c) => c && idb.putCommits(c));
-    serverPromises.blobs.then((b) => b && idb.putBlobs(b));
+    serverPromises.commits.then((c) => c && idb.putCommits(owner, repo, c));
+    serverPromises.blobs.then((b) => b && idb.putBlobs(owner, repo, b));
   }, [owner, repo, idb, serverPromises]);
 
   return (

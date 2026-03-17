@@ -1,0 +1,61 @@
+import type {
+  RepositoryBlobResource,
+  RepositoryBlobsResource,
+  RepositoryCommitResource,
+  RepositoryPathsResource,
+} from "gitdot-api";
+import type { Root } from "hast";
+
+export interface Database {
+  getPaths(
+    owner: string,
+    repo: string,
+  ): Promise<RepositoryPathsResource | null>;
+
+  putPaths(
+    owner: string,
+    repo: string,
+    paths: RepositoryPathsResource,
+  ): Promise<void>;
+
+  getCommit(
+    owner: string,
+    repo: string,
+    sha: string,
+  ): Promise<RepositoryCommitResource | null>;
+
+  getCommits(owner: string, repo: string): Promise<RepositoryCommitResource[]>;
+
+  putCommit(
+    owner: string,
+    repo: string,
+    commit: RepositoryCommitResource,
+  ): Promise<void>;
+
+  putCommits(
+    owner: string,
+    repo: string,
+    commits: RepositoryCommitResource[],
+  ): Promise<void>;
+
+  getBlob(
+    owner: string,
+    repo: string,
+    path: string,
+  ): Promise<RepositoryBlobResource | null>;
+
+  getBlobs(
+    owner: string,
+    repo: string,
+  ): Promise<RepositoryBlobsResource | undefined>;
+
+  putBlobs(
+    owner: string,
+    repo: string,
+    blobs: RepositoryBlobsResource,
+  ): Promise<void>;
+
+  getHasts(owner: string, repo: string): Promise<Map<string, Root> | null>;
+
+  putHast(owner: string, repo: string, path: string, hast: Root): Promise<void>;
+}

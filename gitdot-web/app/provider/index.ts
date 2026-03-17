@@ -1,4 +1,4 @@
 "use client";
 
-export * from "./idb";
+export * from "./db";
 export * from "./types";

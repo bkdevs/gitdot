@@ -2,14 +2,16 @@
 
 import type { RepositoryBlobsResource } from "gitdot-api";
 import type { Root } from "hast";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useWorkerContext } from "@/(main)/context/worker";
-import type { IdbProvider } from "@/provider";
+import { openIdb } from "@/db";
 
 export function useRenderBlobs(
+  owner: string,
+  repo: string,
   blobs: Promise<RepositoryBlobsResource | null>,
-  idb: IdbProvider,
 ): Promise<Map<string, Root>> {
+  const idb = useMemo(() => openIdb(), []);
   const hastsRef = useRef(
     (() => {
       let resolve!: (map: Map<string, Root>) => void;
@@ -42,7 +44,7 @@ export function useRenderBlobs(
       onMessage = (event: MessageEvent<{ path: string; hast: Root }>) => {
         const { path, hast } = event.data;
         map.set(path, hast);
-        idb.putHast(path, hast);
+        idb.putHast(owner, repo, path, hast);
         if (--remaining === 0) {
           hastsRef.current.resolve(map);
         }
@@ -61,7 +63,7 @@ export function useRenderBlobs(
     return () => {
       if (onMessage) shiki.removeEventListener("message", onMessage);
     };
-  }, [shiki, blobs, idb]);
+  }, [shiki, blobs, owner, repo, idb]);
 
   return hastsRef.current.promise;
 }

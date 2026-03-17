@@ -13,10 +13,9 @@ export default async function Layout({
   params: Promise<{ owner: string; repo: string }>;
 }>) {
   const { owner, repo } = await params;
-
-  const provider = new ApiProvider(owner, repo);
-  const serverPromises = provider.fetch(RepoResources);
   const { username, orgs } = await getUserMetadata();
+
+  const serverPromises = new ApiProvider(owner, repo).fetch(RepoResources);
   const isAdmin = username === owner || orgs.includes(`${owner}:admin`);
 
   return (
