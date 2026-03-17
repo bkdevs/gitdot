@@ -6,6 +6,7 @@ use gitdot_api::endpoint::user::{
     has_user::HasUserApiRequest,
     list_user_organizations::{ListUserOrganizationsRequest, ListUserOrganizationsResponse},
     list_user_repositories::{ListUserRepositoriesRequest, ListUserRepositoriesResponse},
+    list_user_reviews::{ListUserReviewsRequest, ListUserReviewsResponse},
     update_current_user::{UpdateCurrentUserRequest, UpdateCurrentUserResponse},
 };
 
@@ -47,6 +48,15 @@ impl GitdotClient {
         request: ListUserOrganizationsRequest,
     ) -> Result<ListUserOrganizationsResponse> {
         self.get(format!("user/{}/organizations", user_name), request)
+            .await
+    }
+
+    pub async fn list_user_reviews(
+        &self,
+        user_name: &str,
+        request: ListUserReviewsRequest,
+    ) -> Result<ListUserReviewsResponse> {
+        self.get(format!("user/{}/reviews", user_name), request)
             .await
     }
 

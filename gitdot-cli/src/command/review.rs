@@ -1,6 +1,7 @@
 mod amend;
 mod checkout;
 mod create;
+mod update;
 
 use std::path::PathBuf;
 
@@ -24,6 +25,8 @@ pub enum ReviewCommand {
     Checkout,
     /// Amend changes into the checked-out commit and rebase
     Amend,
+    /// Update an existing review
+    Update,
 }
 
 impl ReviewCommand {
@@ -32,6 +35,7 @@ impl ReviewCommand {
             ReviewCommand::Create {} => create::create_review(config).await,
             ReviewCommand::Checkout {} => checkout::checkout_review(config).await,
             ReviewCommand::Amend {} => amend::amend_review(config).await,
+            ReviewCommand::Update {} => update::update_review(config).await,
         }
     }
 }
