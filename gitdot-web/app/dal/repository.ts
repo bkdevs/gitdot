@@ -15,7 +15,7 @@ import {
   RepositoryPathsResource,
   RepositoryResource,
 } from "gitdot-api";
-import { getRepoCookie } from "@/cookie";
+import { getRepoCookie, repoCookieHeaders } from "@/cookie";
 import { toQueryString } from "@/util";
 import {
   authDelete,
@@ -56,9 +56,11 @@ export async function getRepositoryCommits(
   repo: string,
   query?: GetRepositoryCommitsRequest,
 ): Promise<RepositoryCommitsResource | null> {
+  const cookie = await getRepoCookie(owner, repo);
   const queryString = toQueryString(query);
   const response = await authFetch(
     `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/commits?${queryString}`,
+    { headers: repoCookieHeaders(cookie) },
   );
 
   return await handleResponse(response, RepositoryCommitsResource);
@@ -94,8 +96,6 @@ export async function getRepositoryPaths(
   repo: string,
   query?: GetRepositoryPathsRequest,
 ): Promise<RepositoryPathsResource | null> {
-  const clientContent = await getRepoCookie(owner, repo);
-  console.log(`[dal:paths] ${owner}/${repo} — client last content:`, clientContent);
   const queryString = toQueryString(query);
   const response = await authFetch(
     `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/paths?${queryString}`,
@@ -108,11 +108,11 @@ export async function getRepositoryBlobs(
   repo: string,
   request: GetRepositoryBlobsRequest,
 ): Promise<RepositoryBlobsResource | null> {
-  const clientContent = await getRepoCookie(owner, repo);
-  console.log(`[dal:blobs] ${owner}/${repo} — client last content:`, clientContent);
+  const cookie = await getRepoCookie(owner, repo);
   const response = await authPost(
     `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/blobs`,
     request,
+    repoCookieHeaders(cookie),
   );
   return await handleResponse(response, RepositoryBlobsResource);
 }

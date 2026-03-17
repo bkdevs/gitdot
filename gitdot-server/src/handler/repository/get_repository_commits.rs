@@ -9,13 +9,14 @@ use gitdot_core::dto::{GetCommitsRequest, RepositoryAuthorizationRequest, Reposi
 use crate::{
     app::{AppError, AppResponse, AppState},
     dto::IntoApi,
-    extract::{Principal, User},
+    extract::{ClientCookies, Principal, User},
 };
 
 // TODO: this does not support ref in request as of now, service ignores it.
 #[axum::debug_handler]
 pub async fn get_repository_commits(
     auth_user: Option<Principal<User>>,
+    client_cookies: ClientCookies,
     State(state): State<AppState>,
     Path((owner, repo)): Path<(String, String)>,
     Query(params): Query<api::GetRepositoryCommitsRequest>,
@@ -30,6 +31,17 @@ pub async fn get_repository_commits(
         .authorization_service
         .verify_authorized_for_repository(request)
         .await?;
+
+    if let Some(client_sha) = client_cookies.sha {
+        let latest_sha = state
+            .repo_service
+            .resolve_ref_sha(&owner, &repo, &params.ref_name)
+            .await
+            .map_err(AppError::from)?;
+        if latest_sha == client_sha {
+            return Ok(AppResponse::NotModified);
+        }
+    }
 
     let request =
         GetCommitsRequest::new(&owner, &repo, params.ref_name, params.page, params.per_page)?;

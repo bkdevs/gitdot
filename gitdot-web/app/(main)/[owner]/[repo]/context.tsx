@@ -3,9 +3,9 @@
 import type { Root } from "hast";
 import { createContext, useContext, useEffect, useMemo, useRef } from "react";
 import { useWorkerContext } from "@/(main)/context/worker";
+import { setRepoCookie } from "@/cookie";
 import { IdbProvider } from "@/provider";
 import { firstNonNull } from "@/util";
-import { setRepoCookie } from "@/cookie";
 import { type Promises, Resources } from "./resources";
 
 type RepoContext = Promises & { hasts: Promise<Map<string, Root>> };
@@ -55,7 +55,7 @@ export function RepoClient({
     });
     serverPromises.commits.then((c) => c && idb.putCommits(c));
     serverPromises.blobs.then((b) => b && idb.putBlobs(b));
-  }, [idb, serverPromises]);
+  }, [owner, repo, idb, serverPromises]);
 
   useEffect(() => {
     if (!shiki) return;
@@ -64,7 +64,7 @@ export function RepoClient({
       | ((e: MessageEvent<{ path: string; hast: Root }>) => void)
       | null = null;
 
-    serverPromises.blobs.then((blobs) => {
+    context.blobs.then((blobs) => {
       const fileBlobs = blobs?.blobs.filter((b) => b.type === "file") ?? [];
       if (fileBlobs.length === 0) {
         hastsRef.current.resolve(new Map());
@@ -94,7 +94,7 @@ export function RepoClient({
     return () => {
       if (onMessage) shiki.removeEventListener("message", onMessage);
     };
-  }, [shiki, serverPromises.blobs]);
+  }, [shiki, context.blobs]);
 
   return <RepoContext value={context}>{children}</RepoContext>;
 }

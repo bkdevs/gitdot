@@ -34,11 +34,13 @@ export async function authHead(
 export async function authPost(
   url: string,
   request: unknown,
+  extraHeaders?: Record<string, string>,
 ): Promise<Response> {
   return await authFetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      ...extraHeaders,
     },
     body: JSON.stringify(request),
   });
@@ -82,6 +84,7 @@ export async function handleResponse<T>(
   schema: ZodType<T>,
 ): Promise<T | null> {
   if (response.status === 404) return null;
+  if (response.status === 304) return null;
 
   if (!response.ok) {
     let message = response.statusText;

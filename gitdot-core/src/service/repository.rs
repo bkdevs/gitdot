@@ -54,6 +54,13 @@ pub trait RepositoryService: Send + Sync + 'static {
         &self,
         request: DeleteRepositoryRequest,
     ) -> Result<(), RepositoryError>;
+
+    async fn resolve_ref_sha(
+        &self,
+        owner: &str,
+        repo: &str,
+        ref_name: &str,
+    ) -> Result<String, RepositoryError>;
 }
 
 #[derive(Debug, Clone)]
@@ -318,5 +325,17 @@ where
         self.repo_repo.delete(repository.id).await?;
 
         Ok(())
+    }
+
+    async fn resolve_ref_sha(
+        &self,
+        owner: &str,
+        repo: &str,
+        ref_name: &str,
+    ) -> Result<String, RepositoryError> {
+        self.git_client
+            .resolve_ref_sha(owner, repo, ref_name)
+            .await
+            .map_err(Into::into)
     }
 }

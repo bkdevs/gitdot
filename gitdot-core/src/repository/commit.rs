@@ -67,7 +67,7 @@ impl CommitRepository for CommitRepositoryImpl {
         per_page: u32,
     ) -> Result<Vec<Commit>, Error> {
         let offset = (page.saturating_sub(1)) * per_page;
-        let rows = sqlx::query_as::<_, Commit>(
+        sqlx::query_as::<_, Commit>(
             r#"
             SELECT * FROM commits
             WHERE repo_id = $1
@@ -79,9 +79,7 @@ impl CommitRepository for CommitRepositoryImpl {
         .bind(per_page as i64)
         .bind(offset as i64)
         .fetch_all(&self.pool)
-        .await?;
-
-        Ok(rows)
+        .await
     }
 
     async fn create_bulk(
