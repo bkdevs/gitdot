@@ -127,8 +127,8 @@ impl IntoApi for ReviewFileDiffResponse {
                 .into_iter()
                 .map(|h| h.into_iter().map(|p| p.into_api()).collect())
                 .collect(),
-            left_content: None,
-            right_content: None,
+            left_content: self.left_content,
+            right_content: self.right_content,
         }
     }
 }

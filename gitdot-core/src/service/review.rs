@@ -650,11 +650,13 @@ where
                 .or(left.as_ref())
                 .map(|f| f.path.clone())
                 .unwrap_or_default();
+            let left_content = left.as_ref().map(|f| f.content.clone());
+            let right_content = right.as_ref().map(|f| f.content.clone());
             let diff = self
                 .diff_client
                 .diff_files(left.as_ref(), right.as_ref())
                 .await?;
-            files.push(ReviewFileDiffResponse { path, diff });
+            files.push(ReviewFileDiffResponse { path, left_content, right_content, diff });
         }
 
         Ok(ReviewDiffResponse { files })

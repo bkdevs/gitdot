@@ -9,7 +9,7 @@ import {
   mergeHunks,
   renderSpans,
 } from "@/(main)/[owner]/[repo]/util";
-import { getRepositoryCommitDiff } from "@/dal";
+import { getRepositoryCommitDiff, getReviewDiff } from "@/dal";
 
 export type DiffData =
   | {
@@ -37,9 +37,14 @@ export async function renderCommitDiffAction(
 }
 
 export async function renderReviewDiffAction(
-  files: RepositoryDiffFileResource[],
+  owner: string,
+  repo: string,
+  number: number,
+  position: number,
 ): Promise<DiffEntry[]> {
-  return renderDiffs(files);
+  const result = await getReviewDiff(owner, repo, number, position);
+  if (!result) return [];
+  return renderDiffs(result.files);
 }
 
 async function renderDiffs(
