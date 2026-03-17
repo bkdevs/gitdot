@@ -9,7 +9,13 @@ export function RepoScroll({ children }: { children: React.ReactNode }) {
       defer
       element="div"
       className="flex-1 min-w-0"
-      options={{ scrollbars: { theme: "os-theme-gitdot", autoHide: "scroll", autoHideDelay: 800 } }}
+      options={{
+        scrollbars: {
+          theme: "os-theme-gitdot",
+          autoHide: "scroll",
+          autoHideDelay: 800,
+        },
+      }}
     >
       {children}
     </OverlayScrollbarsComponent>

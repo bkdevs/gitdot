@@ -9,10 +9,9 @@ export function DiffSingle({ spans }: { spans: Element[] }) {
   const container: Element = {
     type: "element",
     tagName: "pre",
-    properties: { className: "outline-none" },
+    properties: { className: "flex flex-col outline-none" },
     children: spans,
   };
-
   const content = toJsxRuntime(container, {
     Fragment,
     jsx,

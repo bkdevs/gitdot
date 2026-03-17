@@ -20,5 +20,17 @@ export function groupCommitsByDate(
     groups.get(key)?.push(commit);
   }
 
-  return Array.from(groups.entries()).sort((a, b) => b[0].localeCompare(a[0]));
+  return Array.from(groups.entries())
+    .sort((a, b) => b[0].localeCompare(a[0]))
+    .map(
+      ([date, commits]) =>
+        [
+          date,
+          commits
+            .slice()
+            .sort(
+              (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+            ),
+        ] as [string, RepositoryCommitResource[]],
+    );
 }

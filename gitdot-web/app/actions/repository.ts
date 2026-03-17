@@ -122,10 +122,10 @@ async function renderDiff(file: RepositoryDiffFileResource): Promise<DiffData> {
       rightSpans,
       hunks: processedHunks,
     };
-  } else if (left != null || right != null) {
-    // biome-ignore lint/style/noNonNullAssertion: guaranteed non-null by the `left != null || right != null` condition
-    const content = (left ?? right)!;
-    const side = left != null ? "left" : "right";
+  } else if (left || right) {
+    // biome-ignore lint/style/noNonNullAssertion: guaranteed non-null by the `left || right` condition
+    const content = (left || right)!;
+    const side = left ? "left" : "right";
     const lineType = side === "left" ? "removed" : "added";
     const hast = await fileToHast(content, lang, "vitesse-light", [
       {
