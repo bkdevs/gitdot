@@ -3,7 +3,7 @@ export * from "./create-answer-comment";
 export * from "./create-question";
 export * from "./create-question-comment";
 export * from "./get-question";
-export * from "./get-questions";
+export * from "./list-questions";
 export * from "./update-answer";
 export * from "./update-comment";
 export * from "./update-question";

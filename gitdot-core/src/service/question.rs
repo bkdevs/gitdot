@@ -174,7 +174,7 @@ where
 
         let questions = self
             .question_repo
-            .get_questions(repository.id, request.user_id)
+            .list_questions(repository.id, request.user_id)
             .await?;
 
         Ok(questions.into_iter().map(QuestionResponse::from).collect())

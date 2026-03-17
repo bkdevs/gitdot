@@ -1,4 +1,4 @@
-import { getQuestions } from "@/dal";
+import { listQuestions } from "@/dal";
 import { QuestionsClient } from "./ui/questions-client";
 
 export default async function Page({
@@ -7,7 +7,7 @@ export default async function Page({
   params: Promise<{ owner: string; repo: string }>;
 }) {
   const { owner, repo } = await params;
-  const questions = await getQuestions(owner, repo);
+  const questions = await listQuestions(owner, repo);
   if (!questions) return null;
 
   return <QuestionsClient owner={owner} repo={repo} questions={questions} />;

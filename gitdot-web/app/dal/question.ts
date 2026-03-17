@@ -64,7 +64,7 @@ export async function updateQuestion(
   return await handleResponse(response, QuestionResource);
 }
 
-export async function getQuestions(
+export async function listQuestions(
   owner: string,
   repo: string,
 ): Promise<QuestionResource[] | null> {

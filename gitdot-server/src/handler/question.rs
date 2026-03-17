@@ -3,7 +3,7 @@ mod create_answer_comment;
 mod create_question;
 mod create_question_comment;
 mod get_question;
-mod get_questions;
+mod list_questions;
 mod update_answer;
 mod update_comment;
 mod update_question;
@@ -23,7 +23,7 @@ use create_answer_comment::create_answer_comment;
 use create_question::create_question;
 use create_question_comment::create_question_comment;
 use get_question::get_question;
-use get_questions::get_questions;
+use list_questions::list_questions;
 use update_answer::update_answer;
 use update_comment::update_comment;
 use update_question::update_question;
@@ -38,7 +38,7 @@ pub fn create_question_router() -> Router<AppState> {
             "/repository/{owner}/{repo}/question/{number}",
             get(get_question).patch(update_question),
         )
-        .route("/repository/{owner}/{repo}/questions", get(get_questions))
+        .route("/repository/{owner}/{repo}/questions", get(list_questions))
         .route(
             "/repository/{owner}/{repo}/question/{number}/answer",
             post(create_answer),

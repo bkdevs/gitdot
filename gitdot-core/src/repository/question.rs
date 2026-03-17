@@ -126,7 +126,7 @@ pub trait QuestionRepository: Send + Sync + Clone + 'static {
         question_number: i32,
     ) -> Result<Option<Uuid>, Error>;
 
-    async fn get_questions(
+    async fn list_questions(
         &self,
         repository_id: Uuid,
         user_id: Option<Uuid>,
@@ -295,7 +295,7 @@ impl QuestionRepository for QuestionRepositoryImpl {
         Ok(id)
     }
 
-    async fn get_questions(
+    async fn list_questions(
         &self,
         repository_id: Uuid,
         user_id: Option<Uuid>,

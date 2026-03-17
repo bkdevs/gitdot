@@ -3,7 +3,7 @@ pub mod create_answer_comment;
 pub mod create_question;
 pub mod create_question_comment;
 pub mod get_question;
-pub mod get_questions;
+pub mod list_questions;
 pub mod update_answer;
 pub mod update_comment;
 pub mod update_question;

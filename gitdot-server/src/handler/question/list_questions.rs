@@ -3,7 +3,7 @@ use axum::{
     http::StatusCode,
 };
 
-use gitdot_api::endpoint::get_questions as api;
+use gitdot_api::endpoint::list_questions as api;
 use gitdot_core::dto::{
     ListQuestionsRequest, RepositoryAuthorizationRequest, RepositoryPermission,
 };
@@ -15,11 +15,11 @@ use crate::{
 };
 
 #[axum::debug_handler]
-pub async fn get_questions(
+pub async fn list_questions(
     auth_user: Option<Principal<User>>,
     State(state): State<AppState>,
     Path((owner, repo)): Path<(String, String)>,
-) -> Result<AppResponse<api::GetQuestionsResponse>, AppError> {
+) -> Result<AppResponse<api::ListQuestionsResponse>, AppError> {
     let user_id = auth_user.as_ref().map(|u| u.id);
     let request =
         RepositoryAuthorizationRequest::new(user_id, &owner, &repo, RepositoryPermission::Read)?;

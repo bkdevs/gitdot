@@ -2,17 +2,17 @@ use serde::{Deserialize, Serialize};
 
 use crate::{endpoint::Endpoint, resource::question::QuestionResource};
 
-pub struct GetQuestions;
+pub struct ListQuestions;
 
-impl Endpoint for GetQuestions {
+impl Endpoint for ListQuestions {
     const PATH: &'static str = "/repository/{owner}/{repo}/questions";
     const METHOD: http::Method = http::Method::GET;
 
-    type Request = GetQuestionsRequest;
-    type Response = GetQuestionsResponse;
+    type Request = ListQuestionsRequest;
+    type Response = ListQuestionsResponse;
 }
 
 #[derive(ApiRequest, Debug, Serialize, Deserialize)]
-pub struct GetQuestionsRequest;
+pub struct ListQuestionsRequest;
 
-pub type GetQuestionsResponse = Vec<QuestionResource>;
+pub type ListQuestionsResponse = Vec<QuestionResource>;
