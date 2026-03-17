@@ -154,6 +154,20 @@
   }
 }
 
+/* OverlayScrollbars custom theme — thin dark handle */
+.os-theme-gitdot.os-scrollbar {
+  box-sizing: border-box;
+  --os-size: 8px;
+  --os-padding-perpendicular: 2px;
+  --os-padding-axis: 2px;
+  --os-track-border-radius: 10px;
+  --os-handle-interactive-area-offset: 16px;
+  --os-handle-border-radius: 10px;
+  --os-handle-bg: rgba(0, 0, 0, 0.3);
+  --os-handle-bg-hover: rgba(0, 0, 0, 0.45);
+  --os-handle-bg-active: rgba(0, 0, 0, 0.6);
+}
+
 @layer base {
   * {
     @apply border-border focus-visible:outline-ring/50;

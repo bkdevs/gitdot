@@ -17,13 +17,11 @@ export function RepoFileDialog({
 }: {
   owner: string;
   repo: string;
-  }) {
+}) {
   const paths = use(useRepoContext().paths);
   if (!paths) return null;
 
-  return (
-    <RepoFileDialogInner owner={owner} repo={repo} paths={paths} />
-  );
+  return <RepoFileDialogInner owner={owner} repo={repo} paths={paths} />;
 }
 
 function RepoFileDialogInner({

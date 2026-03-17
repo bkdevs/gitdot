@@ -3,6 +3,7 @@ import { ApiProvider } from "@/provider/api";
 import { RepoClient } from "./context";
 import { RepoResources } from "./resources";
 import { RepoDialogs } from "./ui/dialog/repo-dialogs";
+import { RepoScroll } from "./ui/repo-scroll";
 import { RepoSidebar } from "./ui/repo-sidebar";
 
 export default async function Layout({
@@ -26,9 +27,7 @@ export default async function Layout({
 
       <div className="hidden md:flex h-full w-full">
         <RepoSidebar owner={owner} repo={repo} showSettings={isAdmin} />
-        <div className="flex-1 min-w-0 overflow-auto scrollbar-none">
-          {children}
-        </div>
+        <RepoScroll>{children}</RepoScroll>
       </div>
 
       <RepoDialogs owner={owner} repo={repo} />
