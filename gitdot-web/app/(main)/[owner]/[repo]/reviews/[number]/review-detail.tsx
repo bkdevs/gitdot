@@ -10,6 +10,10 @@ import { useUserContext } from "@/(main)/context/user";
 import { publishReviewAction } from "@/actions/review";
 import { Button } from "@/ui/button";
 import { cn, timeAgo } from "@/util";
+import {
+  type DraftComment,
+  ReviewCommentContext,
+} from "./review-comment-context";
 import { Reviewers } from "./reviewers";
 
 function getLatestVerdicts(diff: DiffResource) {
@@ -89,6 +93,38 @@ export function ReviewDetail({
   const selectedDiff: DiffResource | undefined =
     review.diffs[selectedDiffIndex];
   const [isPublishing, setIsPublishing] = useState(false);
+  const [draftComments, setDraftComments] = useState<DraftComment[]>([]);
+  const [activeInput, setActiveInput] = useState<{
+    filePath: string;
+    lineNumber: number;
+    side: "old" | "new";
+  } | null>(null);
+
+  const canComment =
+    user?.id === review.author_id ||
+    review.reviewers.some((r) => r.reviewer_id === user?.id);
+
+  function addComment(
+    filePath: string,
+    lineNumber: number,
+    side: "old" | "new",
+    body: string,
+  ) {
+    if (!user || !canComment || !selectedDiff) return;
+    setDraftComments((prev) => [
+      ...prev,
+      {
+        diff_id: selectedDiff.id,
+        revision_id: selectedDiff.revisions[0]?.id ?? null,
+        file_path: filePath,
+        line_number: lineNumber,
+        side,
+        author_name: user.name,
+        body,
+        created_at: new Date().toISOString(),
+      },
+    ]);
+  }
 
   const titleRef = useRef<HTMLInputElement>(null);
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
@@ -273,7 +309,19 @@ export function ReviewDetail({
                   </div>
                 )}
 
-                {diffContents[selectedDiff.position]}
+                <ReviewCommentContext.Provider
+                  value={{
+                    comments: draftComments.filter(
+                      (c) => c.diff_id === selectedDiff.id,
+                    ),
+                    addComment,
+                    canComment,
+                    activeInput,
+                    setActiveInput,
+                  }}
+                >
+                  {diffContents[selectedDiff.position]}
+                </ReviewCommentContext.Provider>
               </div>
             ) : (
               <p className="text-sm text-muted-foreground px-4 py-3">

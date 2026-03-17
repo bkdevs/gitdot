@@ -70,11 +70,17 @@ function DiffSection({
 
   const getSpanOrSentinel = (index: number | null, spans: Element[]) =>
     index !== null && index < spans.length ? spans[index] : sentinelSpan;
+
+  const withSide = (span: Element, side: "old" | "new"): Element => ({
+    ...span,
+    properties: { ...span.properties, "data-side": side },
+  });
+
   const leftSpansChunk = expandedLines.map(([left]) =>
-    getSpanOrSentinel(left, leftSpans),
+    withSide(getSpanOrSentinel(left, leftSpans), "old"),
   );
   const rightSpansChunk = expandedLines.map(([, right]) =>
-    getSpanOrSentinel(right, rightSpans),
+    withSide(getSpanOrSentinel(right, rightSpans), "new"),
   );
 
   const container: Element = {
