@@ -3,6 +3,7 @@
 import { Suspense, use } from "react";
 import { useRepoContext } from "@/(main)/[owner]/[repo]/context";
 import type { DiffEntry } from "@/actions";
+import { Loading } from "@/ui/loading";
 import { CommitBody } from "./commit-body";
 import { CommitHeader } from "./commit-header";
 
@@ -21,14 +22,7 @@ export function CommitClient({
   return (
     <div className="flex flex-col w-full">
       <CommitHeader commit={commit} stats={commit.diffs} />
-      <Suspense
-        fallback={
-          // match padding of diff header to avoid layout shift
-          <div className="flex flex-row w-full h-9 shrink-0 items-center p-2 font-mono text-sm text-muted-foreground">
-            loading...
-          </div>
-        }
-      >
+      <Suspense fallback={<Loading />}>
         <CommitBody diffEntries={diffEntries} />
       </Suspense>
     </div>

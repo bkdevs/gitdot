@@ -2,6 +2,7 @@ import type { DiffResource } from "gitdot-api";
 import { Suspense } from "react";
 import { renderReviewDiffAction } from "@/actions";
 import { getReviewDiff } from "@/dal";
+import { Loading } from "@/ui/loading";
 import { ReviewBody } from "./review-body";
 
 export async function ReviewDiffContent({
@@ -34,13 +35,7 @@ export async function ReviewDiffContent({
   const diffData = renderReviewDiffAction(diffResponse.files);
 
   return (
-    <Suspense
-      fallback={
-        <div className="flex flex-row w-full h-9 shrink-0 items-center p-2 font-mono text-sm text-muted-foreground">
-          loading...
-        </div>
-      }
-    >
+    <Suspense fallback={<Loading />}>
       <ReviewBody diffData={diffData} />
     </Suspense>
   );

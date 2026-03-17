@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { getReview } from "@/dal";
+import { Loading } from "@/ui/loading";
 import { ReviewDetail } from "./review-detail";
 import { ReviewDiffContent } from "./review-diff-content";
 
@@ -15,14 +16,7 @@ export default async function Page({
   const diffContents: Record<number, React.ReactNode> = {};
   for (const diff of review.diffs) {
     diffContents[diff.position] = (
-      <Suspense
-        key={diff.id}
-        fallback={
-          <div className="flex flex-row w-full h-9 shrink-0 items-center p-2 font-mono text-sm text-muted-foreground">
-            loading...
-          </div>
-        }
-      >
+      <Suspense key={diff.id} fallback={<Loading />}>
         <ReviewDiffContent
           owner={owner}
           repo={repo}

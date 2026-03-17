@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { Suspense } from "react";
+import { Loading } from "@/ui/loading";
 import { Sidebar, SidebarContent } from "@/ui/sidebar";
 import { RepoSidebarCommits } from "./sidebar/repo-sidebar-commits";
 import { RepoSidebarFiles } from "./sidebar/repo-sidebar-files";
@@ -64,16 +65,7 @@ export function RepoSidebar({
         style={{ width: SIDEBAR_WIDTH }}
       >
         <SidebarContent className="overflow-auto">
-          <Suspense
-            fallback={
-              <div className="p-2 font-mono text-sm text-muted-foreground">
-                {" "}
-                loading...{" "}
-              </div>
-            }
-          >
-            {getSidebarContent()}
-          </Suspense>
+          <Suspense fallback={<Loading />}>{getSidebarContent()}</Suspense>
         </SidebarContent>
       </Sidebar>
     </div>
