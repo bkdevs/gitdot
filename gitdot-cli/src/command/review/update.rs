@@ -4,10 +4,12 @@ use anyhow::{Context, bail};
 
 use gitdot_api::endpoint::list_user_reviews::ListUserReviewsRequest;
 
+use super::{pull_rebase_default_branch, push_for_review};
 use crate::{client::GitdotClient, config::UserConfig};
 
 pub async fn update_review(config: UserConfig) -> anyhow::Result<()> {
     // TODO: init client with token from store
+    // TODO: filter by in_progress reviews that are within the current repo
     let client = GitdotClient::from_user_config(&config);
     let reviews = client
         .list_user_reviews(&config.user_name, ListUserReviewsRequest)
@@ -47,7 +49,13 @@ pub async fn update_review(config: UserConfig) -> anyhow::Result<()> {
     };
 
     let review = &reviews[selected];
-    println!("Selected review #{}", review.number);
+    let default_branch = pull_rebase_default_branch().await?;
+    let review_url = push_for_review(&default_branch, Some(review.number)).await?;
 
-    todo!("implement review update")
+    match review_url {
+        Some(url) => println!("Review updated: {}", url),
+        None => println!("Review updated"),
+    }
+
+    Ok(())
 }

@@ -1,49 +1,9 @@
-use std::process::Stdio;
-
-use anyhow::{Context, bail};
-use tokio::process::Command;
-
-use super::get_default_branch;
+use super::{pull_rebase_default_branch, push_for_review};
 use crate::config::UserConfig;
 
 pub async fn create_review(_config: UserConfig) -> anyhow::Result<()> {
-    let default_branch = get_default_branch().await?;
-
-    let pull_status = Command::new("git")
-        .args(["pull", "origin", &default_branch, "--rebase"])
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .status()
-        .await
-        .context("Failed to run git pull")?;
-
-    if !pull_status.success() {
-        bail!("Failed to rebase onto origin/{}", default_branch);
-    }
-
-    let refspec = format!("HEAD:refs/for/{}", default_branch);
-
-    let output = Command::new("git")
-        .args(["push", "origin", &refspec])
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .output()
-        .await
-        .context("Failed to run git push")?;
-
-    if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        eprintln!("{}", stderr.trim());
-        bail!("Failed to create review");
-    }
-
-    let stderr = String::from_utf8_lossy(&output.stderr);
-    let review_url = stderr.lines().find_map(|line| {
-        let trimmed = line.strip_prefix("remote: ")?;
-        trimmed
-            .split_whitespace()
-            .find(|w| w.starts_with("https://"))
-    });
+    let default_branch = pull_rebase_default_branch().await?;
+    let review_url = push_for_review(&default_branch, None).await?;
 
     match review_url {
         Some(url) => println!("Review created. Finish publishing it at: {}", url),
