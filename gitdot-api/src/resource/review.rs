@@ -47,6 +47,17 @@ pub struct RevisionResource {
     pub commit_hash: String,
     pub parent_hash: String,
     pub created_at: DateTime<Utc>,
+    pub verdicts: Vec<ReviewVerdictResource>,
+}
+
+#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ReviewVerdictResource {
+    pub id: Uuid,
+    pub diff_id: Uuid,
+    pub revision_id: Uuid,
+    pub reviewer_id: Uuid,
+    pub verdict: String,
+    pub created_at: DateTime<Utc>,
 }
 
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

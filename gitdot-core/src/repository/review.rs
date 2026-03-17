@@ -44,7 +44,24 @@ SELECT
                                     'number', rev.number,
                                     'commit_hash', rev.commit_hash,
                                     'parent_hash', rev.parent_hash,
-                                    'created_at', rev.created_at
+                                    'created_at', rev.created_at,
+                                    'verdicts', COALESCE(
+                                        (
+                                            SELECT json_agg(
+                                                json_build_object(
+                                                    'id', v.id,
+                                                    'diff_id', v.diff_id,
+                                                    'revision_id', v.revision_id,
+                                                    'reviewer_id', v.reviewer_id,
+                                                    'verdict', v.verdict,
+                                                    'created_at', v.created_at
+                                                ) ORDER BY v.created_at ASC
+                                            )
+                                            FROM review_verdicts v
+                                            WHERE v.revision_id = rev.id
+                                        ),
+                                        '[]'::json
+                                    )
                                 ) ORDER BY rev.number DESC
                             )
                             FROM revisions rev

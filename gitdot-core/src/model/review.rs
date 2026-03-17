@@ -73,6 +73,9 @@ pub struct Revision {
     pub commit_hash: String,
     pub parent_hash: String,
     pub created_at: DateTime<Utc>,
+
+    #[sqlx(json(nullable))]
+    pub verdicts: Option<Vec<ReviewVerdict>>,
 }
 
 #[derive(Debug, Clone, FromRow, Serialize, Deserialize)]

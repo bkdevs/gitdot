@@ -1,7 +1,8 @@
 use gitdot_api::resource::{repository as repo_api, review as api};
 use gitdot_core::dto::{
     DiffChange, DiffLine, DiffPair, DiffResponse, ReviewAuthorResponse, ReviewCommentResponse,
-    ReviewDiffResponse, ReviewResponse, ReviewerResponse, RevisionResponse, SyntaxHighlight,
+    ReviewDiffResponse, ReviewResponse, ReviewVerdictResponse, ReviewerResponse, RevisionResponse,
+    SyntaxHighlight,
 };
 
 use super::IntoApi;
@@ -64,6 +65,21 @@ impl IntoApi for RevisionResponse {
             number: self.number,
             commit_hash: self.commit_hash,
             parent_hash: self.parent_hash,
+            created_at: self.created_at,
+            verdicts: self.verdicts.into_api(),
+        }
+    }
+}
+
+impl IntoApi for ReviewVerdictResponse {
+    type ApiType = api::ReviewVerdictResource;
+    fn into_api(self) -> Self::ApiType {
+        api::ReviewVerdictResource {
+            id: self.id,
+            diff_id: self.diff_id,
+            revision_id: self.revision_id,
+            reviewer_id: self.reviewer_id,
+            verdict: self.verdict,
             created_at: self.created_at,
         }
     }

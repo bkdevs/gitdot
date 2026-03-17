@@ -6,6 +6,16 @@ export const ReviewAuthorResource = z.object({
 });
 export type ReviewAuthorResource = z.infer<typeof ReviewAuthorResource>;
 
+export const ReviewVerdictResource = z.object({
+  id: z.uuid(),
+  diff_id: z.uuid(),
+  revision_id: z.uuid(),
+  reviewer_id: z.uuid(),
+  verdict: z.string(),
+  created_at: z.iso.datetime(),
+});
+export type ReviewVerdictResource = z.infer<typeof ReviewVerdictResource>;
+
 export const RevisionResource = z.object({
   id: z.uuid(),
   diff_id: z.uuid(),
@@ -13,6 +23,7 @@ export const RevisionResource = z.object({
   commit_hash: z.string(),
   parent_hash: z.string(),
   created_at: z.iso.datetime(),
+  verdicts: z.array(ReviewVerdictResource),
 });
 export type RevisionResource = z.infer<typeof RevisionResource>;
 

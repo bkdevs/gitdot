@@ -10,7 +10,8 @@ use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
 use crate::model::{
-    CommentSide, Diff, DiffStatus, Review, ReviewComment, ReviewStatus, Revision, User,
+    CommentSide, Diff, DiffStatus, Review, ReviewComment, ReviewStatus, ReviewVerdict, Revision,
+    User, Verdict,
 };
 
 use super::RepositoryDiffFileResponse;
@@ -134,6 +135,7 @@ pub struct RevisionResponse {
     pub commit_hash: String,
     pub parent_hash: String,
     pub created_at: DateTime<Utc>,
+    pub verdicts: Vec<ReviewVerdictResponse>,
 }
 
 impl From<Revision> for RevisionResponse {
@@ -145,6 +147,35 @@ impl From<Revision> for RevisionResponse {
             commit_hash: revision.commit_hash,
             parent_hash: revision.parent_hash,
             created_at: revision.created_at,
+            verdicts: revision
+                .verdicts
+                .unwrap_or_default()
+                .into_iter()
+                .map(ReviewVerdictResponse::from)
+                .collect(),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct ReviewVerdictResponse {
+    pub id: Uuid,
+    pub diff_id: Uuid,
+    pub revision_id: Uuid,
+    pub reviewer_id: Uuid,
+    pub verdict: String,
+    pub created_at: DateTime<Utc>,
+}
+
+impl From<ReviewVerdict> for ReviewVerdictResponse {
+    fn from(v: ReviewVerdict) -> Self {
+        Self {
+            id: v.id,
+            diff_id: v.diff_id,
+            revision_id: v.revision_id,
+            reviewer_id: v.reviewer_id,
+            verdict: verdict_to_string(v.verdict),
+            created_at: v.created_at,
         }
     }
 }
@@ -230,6 +261,13 @@ fn side_to_string(side: CommentSide) -> String {
     match side {
         CommentSide::Old => "old".to_string(),
         CommentSide::New => "new".to_string(),
+    }
+}
+
+fn verdict_to_string(verdict: Verdict) -> String {
+    match verdict {
+        Verdict::Approved => "approved".to_string(),
+        Verdict::ChangesRequested => "changes_requested".to_string(),
     }
 }
 
