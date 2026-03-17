@@ -1,7 +1,7 @@
 import { getUserMetadata } from "@/lib/supabase";
 import { ApiProvider } from "@/provider/api";
 import { RepoClient } from "./context";
-import { Resources } from "./resources";
+import { RepoResources } from "./resources";
 import { RepoDialogs } from "./ui/dialog/repo-dialogs";
 import { RepoSidebar } from "./ui/repo-sidebar";
 
@@ -15,7 +15,7 @@ export default async function Layout({
   const { owner, repo } = await params;
 
   const provider = new ApiProvider(owner, repo);
-  const serverPromises = provider.fetch(Resources);
+  const serverPromises = provider.fetch(RepoResources);
   const { username, orgs } = await getUserMetadata();
   const isAdmin = username === owner || orgs.includes(`${owner}:admin`);
 

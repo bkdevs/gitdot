@@ -6,9 +6,9 @@ import { useWorkerContext } from "@/(main)/context/worker";
 import { setRepoCookie } from "@/cookie";
 import { IdbProvider } from "@/provider";
 import { firstNonNull } from "@/util";
-import { type Promises, Resources } from "./resources";
+import { type RepoPromises, RepoResources } from "./resources";
 
-type RepoContext = Promises & { hasts: Promise<Map<string, Root>> };
+type RepoContext = RepoPromises & { hasts: Promise<Map<string, Root>> };
 const RepoContext = createContext<RepoContext | null>(null);
 
 export function RepoClient({
@@ -19,11 +19,11 @@ export function RepoClient({
 }: {
   owner: string;
   repo: string;
-  serverPromises: Promises;
+  serverPromises: RepoPromises;
   children: React.ReactNode;
 }) {
   const idb = useMemo(() => new IdbProvider(owner, repo), [owner, repo]);
-  const idbPromises = useMemo(() => idb.fetch(Resources), [idb]);
+  const idbPromises = useMemo(() => idb.fetch(RepoResources), [idb]);
 
   const { shiki } = useWorkerContext();
   const hastsRef = useRef(
