@@ -8,11 +8,11 @@ export default async function Page({
   params: Promise<{ owner: string; repo: string; sha: string }>;
 }) {
   const { owner, repo, sha } = await params;
-  const diffData = renderCommitDiffAction(owner, repo, sha);
+  const diffEntries = renderCommitDiffAction(owner, repo, sha);
 
   return (
     <Suspense>
-      <CommitClient sha={sha} diffData={diffData} />
+      <CommitClient sha={sha} diffEntries={diffEntries} />
     </Suspense>
   );
 }

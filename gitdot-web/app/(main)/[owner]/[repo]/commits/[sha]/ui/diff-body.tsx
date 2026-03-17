@@ -1,6 +1,9 @@
 "use client";
 
-import type { RepositoryDiffStatResource } from "gitdot-api";
+import type {
+  RepositoryDiffFileResource,
+  RepositoryDiffStatResource,
+} from "gitdot-api";
 import { useState } from "react";
 import type { DiffData } from "@/actions";
 import { DiffHeader } from "./diff-header";
@@ -8,28 +11,28 @@ import { DiffSingle } from "./diff-single";
 import { DiffSplit } from "./diff-split";
 
 export function DiffBody({
-  stat,
   diff,
+  data,
 }: {
-  stat: RepositoryDiffStatResource;
-  diff: DiffData;
+  diff: RepositoryDiffStatResource | RepositoryDiffFileResource;
+  data: DiffData;
 }) {
   const [open, setOpen] = useState(true);
 
   return (
     <>
-      <DiffHeader open={open} setOpen={setOpen} stat={stat} />
+      <DiffHeader open={open} setOpen={setOpen} diff={diff} />
       {open && (
         <div className="w-full border-b border-border">
-          {diff.kind === "split" && (
+          {data.kind === "split" && (
             <DiffSplit
-              leftSpans={diff.leftSpans}
-              rightSpans={diff.rightSpans}
-              hunks={diff.hunks}
+              leftSpans={data.leftSpans}
+              rightSpans={data.rightSpans}
+              hunks={data.hunks}
             />
           )}
-          {diff.kind === "single" && <DiffSingle spans={diff.spans} />}
-          {(!diff || diff.kind === "no-change") && (
+          {data.kind === "single" && <DiffSingle spans={data.spans} />}
+          {(!data || data.kind === "no-change") && (
             <div className="text-sm font-mono px-2">No changes made</div>
           )}
         </div>

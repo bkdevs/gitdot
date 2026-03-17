@@ -2,16 +2,16 @@
 
 import { Suspense, use } from "react";
 import { useRepoContext } from "@/(main)/[owner]/[repo]/context";
-import type { DiffData } from "@/actions/repository";
+import type { DiffEntry } from "@/actions";
 import { CommitBody } from "./commit-body";
 import { CommitHeader } from "./commit-header";
 
 export function CommitClient({
   sha,
-  diffData,
+  diffEntries,
 }: {
   sha: string;
-  diffData: Promise<Record<string, DiffData>>;
+  diffEntries: Promise<DiffEntry[]>;
 }) {
   const commits = use(useRepoContext().commits);
   const commit = commits?.find((c) => c.sha.startsWith(sha));
@@ -29,7 +29,7 @@ export function CommitClient({
           </div>
         }
       >
-        <CommitBody diffs={commit.diffs} diffData={diffData} />
+        <CommitBody diffEntries={diffEntries} />
       </Suspense>
     </div>
   );

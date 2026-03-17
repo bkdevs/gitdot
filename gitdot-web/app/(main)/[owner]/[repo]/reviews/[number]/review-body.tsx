@@ -1,13 +1,15 @@
-import { use } from "react";
-import type { DiffEntry } from "@/actions";
-import { DiffBody } from "./diff-body";
+"use client";
 
-export function CommitBody({
-  diffEntries: diffData,
+import { use } from "react";
+import { DiffBody } from "@/(main)/[owner]/[repo]/commits/[sha]/ui/diff-body";
+import type { DiffEntry } from "@/actions";
+
+export function ReviewBody({
+  diffEntries,
 }: {
   diffEntries: Promise<DiffEntry[]>;
 }) {
-  const entries = use(diffData);
+  const entries = use(diffEntries);
 
   return (
     <div className="flex flex-col">

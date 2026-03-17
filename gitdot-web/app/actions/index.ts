@@ -1,4 +1,5 @@
 export * from "./build";
+export * from "./diff";
 export * from "./otel";
 export * from "./question";
 export * from "./repository";

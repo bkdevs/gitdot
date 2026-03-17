@@ -1,4 +1,7 @@
-import type { RepositoryDiffStatResource } from "gitdot-api";
+import type {
+  RepositoryDiffFileResource,
+  RepositoryDiffStatResource,
+} from "gitdot-api";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { cn } from "@/util";
 import { DiffStatBar } from "./diff-stat-bar";
@@ -6,17 +9,17 @@ import { DiffStatBar } from "./diff-stat-bar";
 export function DiffHeader({
   open,
   setOpen,
-  stat,
+  diff,
 }: {
   open: boolean;
   setOpen: (open: boolean) => void;
-  stat: RepositoryDiffStatResource;
+  diff: RepositoryDiffStatResource | RepositoryDiffFileResource;
 }) {
   // TODO: renames no longer work
-  const leftPath = stat.path;
-  const rightPath = stat.path;
+  const leftPath = diff.path;
+  const rightPath = diff.path;
   const path = leftPath || rightPath;
-  const { lines_added, lines_removed } = stat;
+  const { lines_added, lines_removed } = diff;
 
   return (
     <button

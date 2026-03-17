@@ -1,11 +1,8 @@
 import type { DiffResource } from "gitdot-api";
 import { Suspense } from "react";
-import { DiffBody } from "@/(main)/[owner]/[repo]/commits/[sha]/ui/diff-body";
-import { DiffFileClient } from "@/(main)/[owner]/[repo]/commits/[sha]/ui/diff-file-client";
-import { getReviewAllDiffDataAction } from "@/actions/repository";
+import { renderReviewDiffAction } from "@/actions";
 import { getReviewDiff } from "@/dal";
-
-const NULL_SHA = "0000000000000000000000000000000000000000";
+import { ReviewBody } from "./review-body";
 
 export async function ReviewDiffContent({
   owner,
@@ -34,38 +31,17 @@ export async function ReviewDiffContent({
     );
   }
 
-  const allDiffDataPromise = getReviewAllDiffDataAction(
-    owner,
-    repo,
-    diffResponse.files,
-    revision.commit_hash,
-    revision.parent_hash ?? NULL_SHA,
-  );
+  const diffData = renderReviewDiffAction(diffResponse.files);
 
   return (
-    <div className="flex flex-col">
-      {diffResponse.files.map((stat) => (
-        <DiffFileClient
-          key={stat.path}
-          leftPath={stat.path}
-          rightPath={stat.path}
-          linesAdded={stat.lines_added}
-          linesRemoved={stat.lines_removed}
-        >
-          <Suspense
-            fallback={
-              <div className="flex flex-row w-full h-9 shrink-0 items-center p-2 font-mono text-sm text-muted-foreground">
-                loading...
-              </div>
-            }
-          >
-            <DiffBody
-              path={stat.path}
-              allDiffDataPromise={allDiffDataPromise}
-            />
-          </Suspense>
-        </DiffFileClient>
-      ))}
-    </div>
+    <Suspense
+      fallback={
+        <div className="flex flex-row w-full h-9 shrink-0 items-center p-2 font-mono text-sm text-muted-foreground">
+          loading...
+        </div>
+      }
+    >
+      <ReviewBody diffData={diffData} />
+    </Suspense>
   );
 }
