@@ -4,10 +4,11 @@ export function delay<T>(ms: number, value: T): Promise<T> {
 
 export function firstNonNull<T>(
   ...promises: Promise<T | null | undefined>[]
-): Promise<T> {
-  return new Promise((resolve, reject) => {
+): Promise<T | null> {
+  return new Promise((resolve) => {
     let remaining = promises.length;
     let resolved = false;
+
     for (const p of promises) {
       Promise.resolve(p)
         .then((value) => {
@@ -16,12 +17,12 @@ export function firstNonNull<T>(
             resolved = true;
             resolve(value);
           } else if (--remaining === 0) {
-            reject(new Error("all null"));
+            resolve(null);
           }
         })
         .catch(() => {
           if (resolved) return;
-          if (--remaining === 0) reject(new Error("all null"));
+          if (--remaining === 0) resolve(null);
         });
     }
   });
