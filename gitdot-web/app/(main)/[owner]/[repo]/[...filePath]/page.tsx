@@ -1,5 +1,5 @@
-import { Suspense } from "react";
 import { getRepositoryBlob, getRepositoryFileCommits } from "@/dal";
+import { Suspense } from "react";
 import { FileBlobClient } from "./ui/file-blob-client";
 import { FileHistoryLoader } from "./ui/file-history-loader";
 import { FileViewer } from "./ui/file-viewer";
@@ -51,7 +51,7 @@ export default async function Page({
   });
 
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<div className="p-2 font-mono text-sm text-muted-foreground"> loading... </div>}>
       <FileBlobClient
         owner={owner}
         repo={repo}

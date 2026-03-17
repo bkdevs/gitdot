@@ -1,8 +1,8 @@
 "use client";
 
+import { Sidebar, SidebarContent } from "@/ui/sidebar";
 import { usePathname } from "next/navigation";
 import { Suspense } from "react";
-import { Sidebar, SidebarContent } from "@/ui/sidebar";
 import { RepoSidebarCommits } from "./sidebar/repo-sidebar-commits";
 import { RepoSidebarFiles } from "./sidebar/repo-sidebar-files";
 import { RepoSidebarNav } from "./sidebar/repo-sidebar-nav";
@@ -64,7 +64,7 @@ export function RepoSidebar({
         style={{ width: SIDEBAR_WIDTH }}
       >
         <SidebarContent className="overflow-auto">
-          <Suspense fallback={<div>Loading</div>}>
+          <Suspense fallback={<div className="p-2 font-mono text-sm text-muted-foreground"> loading... </div>}>
             {getSidebarContent()}
           </Suspense>
         </SidebarContent>
