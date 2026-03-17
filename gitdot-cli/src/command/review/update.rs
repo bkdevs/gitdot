@@ -12,7 +12,14 @@ pub async fn update_review(config: UserConfig) -> anyhow::Result<()> {
     // TODO: filter by in_progress reviews that are within the current repo
     let client = GitdotClient::from_user_config(&config);
     let reviews = client
-        .list_user_reviews(&config.user_name, ListUserReviewsRequest)
+        .list_user_reviews(
+            &config.user_name,
+            ListUserReviewsRequest {
+                status: None,
+                owner: None,
+                repo: None,
+            },
+        )
         .await?;
 
     if reviews.is_empty() {

@@ -13,6 +13,10 @@ impl Endpoint for ListUserReviews {
 }
 
 #[derive(ApiRequest, Debug, Serialize, Deserialize)]
-pub struct ListUserReviewsRequest;
+pub struct ListUserReviewsRequest {
+    pub status: Option<String>,
+    pub owner: Option<String>,
+    pub repo: Option<String>,
+}
 
 pub type ListUserReviewsResponse = Vec<ReviewResource>;

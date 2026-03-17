@@ -124,6 +124,9 @@ pub trait ReviewRepository: Send + Sync + Clone + 'static {
         &self,
         user_name: &str,
         viewer_id: Option<Uuid>,
+        status: Option<String>,
+        owner: Option<String>,
+        repo: Option<String>,
     ) -> Result<Vec<Review>, Error>;
 
     async fn create_review(
@@ -248,8 +251,11 @@ impl ReviewRepository for ReviewRepositoryImpl {
         &self,
         user_name: &str,
         viewer_id: Option<Uuid>,
+        status: Option<String>,
+        owner: Option<String>,
+        repo: Option<String>,
     ) -> Result<Vec<Review>, Error> {
-        sqlx::query_as::<_, Review>(
+        let mut query = String::from(
             r#"
             SELECT
                 r.id, r.repository_id, r.number, r.author_id, r.title, r.description,
@@ -260,13 +266,36 @@ impl ReviewRepository for ReviewRepositoryImpl {
             JOIN repositories repo ON r.repository_id = repo.id
             WHERE u.name = $1
               AND (r.author_id = $2 OR (r.status != 'draft' AND repo.visibility = 'public'))
-            ORDER BY r.created_at DESC
             "#,
-        )
-        .bind(user_name)
-        .bind(viewer_id)
-        .fetch_all(&self.pool)
-        .await
+        );
+
+        let mut param_index = 3;
+        if status.is_some() {
+            query.push_str(&format!(" AND r.status = ${}", param_index));
+            param_index += 1;
+        }
+        if owner.is_some() {
+            query.push_str(&format!(" AND repo.owner_name = ${}", param_index));
+            param_index += 1;
+        }
+        if repo.is_some() {
+            query.push_str(&format!(" AND repo.name = ${}", param_index));
+        }
+        query.push_str(" ORDER BY r.created_at DESC");
+
+        let mut q = sqlx::query_as::<_, Review>(&query)
+            .bind(user_name)
+            .bind(viewer_id);
+        if let Some(s) = status {
+            q = q.bind(s);
+        }
+        if let Some(o) = owner {
+            q = q.bind(o);
+        }
+        if let Some(r) = repo {
+            q = q.bind(r);
+        }
+        q.fetch_all(&self.pool).await
     }
 
     async fn create_review(
