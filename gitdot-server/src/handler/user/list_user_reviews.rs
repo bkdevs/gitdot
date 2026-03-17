@@ -9,14 +9,17 @@ use gitdot_core::dto::ListUserReviewsRequest;
 use crate::{
     app::{AppError, AppResponse, AppState},
     dto::IntoApi,
+    extract::{Principal, User},
 };
 
 #[axum::debug_handler]
 pub async fn list_user_reviews(
+    auth_user: Option<Principal<User>>,
     State(state): State<AppState>,
     Path(user_name): Path<String>,
 ) -> Result<AppResponse<api::ListUserReviewsResponse>, AppError> {
-    let request = ListUserReviewsRequest::new(&user_name)?;
+    let viewer_id = auth_user.map(|u| u.id);
+    let request = ListUserReviewsRequest::new(&user_name, viewer_id)?;
     state
         .user_service
         .list_reviews(request)
