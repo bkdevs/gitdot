@@ -3,9 +3,9 @@ use async_trait::async_trait;
 use crate::{
     client::{DiffClient, DifftClient, Git2Client, GitClient},
     dto::{
-        AddReviewerRequest, CreateReviewCommentRequest, GetReviewDiffRequest, GetReviewRequest,
+        AddReviewerRequest, GetReviewDiffRequest, GetReviewRequest,
         ListReviewsRequest, ProcessReviewRequest, PublishReviewRequest, RemoveReviewerRequest,
-        ReviewCommentResponse, ReviewDiffResponse, ReviewResponse, ReviewerResponse,
+        ReviewDiffResponse, ReviewResponse, ReviewerResponse,
     },
     error::ReviewError,
     model::ReviewStatus,
@@ -87,10 +87,6 @@ pub trait ReviewService: Send + Sync + 'static {
         request: GetReviewDiffRequest,
     ) -> Result<ReviewDiffResponse, ReviewError>;
 
-    async fn create_comment(
-        &self,
-        request: CreateReviewCommentRequest,
-    ) -> Result<ReviewCommentResponse, ReviewError>;
 }
 
 #[derive(Debug, Clone)]
@@ -654,62 +650,4 @@ where
         Ok(ReviewDiffResponse { files })
     }
 
-    async fn create_comment(
-        &self,
-        request: CreateReviewCommentRequest,
-    ) -> Result<ReviewCommentResponse, ReviewError> {
-        let owner = request.owner.as_ref();
-        let repo = request.repo.as_ref();
-
-        let review = self
-            .review_repo
-            .get_review(owner, repo, request.number)
-            .await?
-            .ok_or_else(|| {
-                ReviewError::ReviewNotFound(format!("{}/{}/review/{}", owner, repo, request.number))
-            })?;
-
-        if let Some(diff_id) = request.diff_id {
-            let diffs = review.diffs.as_ref().map(|d| d.as_slice()).unwrap_or(&[]);
-            let diff = diffs
-                .iter()
-                .find(|d| d.id == diff_id)
-                .ok_or_else(|| ReviewError::DiffNotFound(diff_id.to_string()))?;
-
-            if let Some(revision_id) = request.revision_id {
-                let revisions = diff.revisions.as_ref().map(|r| r.as_slice()).unwrap_or(&[]);
-                if !revisions.iter().any(|r| r.id == revision_id) {
-                    return Err(ReviewError::RevisionNotFound(revision_id.to_string()));
-                }
-            }
-        }
-
-        if let Some(parent_id) = request.parent_id {
-            let comments = review
-                .comments
-                .as_ref()
-                .map(|c| c.as_slice())
-                .unwrap_or(&[]);
-            if !comments.iter().any(|c| c.id == parent_id) {
-                return Err(ReviewError::CommentNotFound(parent_id.to_string()));
-            }
-        }
-
-        let comment = self
-            .review_repo
-            .create_comment(
-                review.id,
-                request.author_id,
-                &request.body,
-                request.diff_id,
-                request.revision_id,
-                request.parent_id,
-                request.file_path,
-                request.line_number,
-                request.side,
-            )
-            .await?;
-
-        Ok(comment.into())
-    }
 }
