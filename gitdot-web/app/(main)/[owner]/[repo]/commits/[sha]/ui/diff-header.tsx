@@ -1,3 +1,4 @@
+import type { RepositoryDiffStatResource } from "gitdot-api";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { cn } from "@/util";
 import { DiffStatBar } from "./diff-stat-bar";
@@ -5,19 +6,17 @@ import { DiffStatBar } from "./diff-stat-bar";
 export function DiffHeader({
   open,
   setOpen,
-  leftPath,
-  rightPath,
-  linesAdded,
-  linesRemoved,
+  stat,
 }: {
   open: boolean;
   setOpen: (open: boolean) => void;
-  leftPath: string | undefined;
-  rightPath: string | undefined;
-  linesAdded: number;
-  linesRemoved: number;
+  stat: RepositoryDiffStatResource;
 }) {
+  // TODO: renames no longer work
+  const leftPath = stat.path;
+  const rightPath = stat.path;
   const path = leftPath || rightPath;
+  const { lines_added, lines_removed } = stat;
 
   return (
     <button
@@ -51,7 +50,7 @@ export function DiffHeader({
           (leftPath !== rightPath ? (
             <span className="text-muted-foreground">renamed</span>
           ) : (
-            <DiffStatBar added={linesAdded} removed={linesRemoved} />
+            <DiffStatBar added={lines_added} removed={lines_removed} />
           ))}
         {open ? (
           <ChevronDown className="ml-1.5 mb-px size-3" />

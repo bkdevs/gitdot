@@ -6,26 +6,12 @@ import type { DiffData } from "@/actions/repository";
 import { CommitBody } from "./commit-body";
 import { CommitHeader } from "./commit-header";
 
-export function CommitPageClient({
+export function CommitClient({
   sha,
-  allDiffDataPromise,
+  diffData,
 }: {
   sha: string;
-  allDiffDataPromise: Promise<Record<string, DiffData>>;
-}) {
-  return (
-    <Suspense>
-      <CommitPageInner sha={sha} allDiffDataPromise={allDiffDataPromise} />
-    </Suspense>
-  );
-}
-
-function CommitPageInner({
-  sha,
-  allDiffDataPromise,
-}: {
-  sha: string;
-  allDiffDataPromise: Promise<Record<string, DiffData>>;
+  diffData: Promise<Record<string, DiffData>>;
 }) {
   const commits = use(useRepoContext().commits);
   const commit = commits?.find((c) => c.sha.startsWith(sha));
@@ -43,10 +29,7 @@ function CommitPageInner({
           </div>
         }
       >
-        <CommitBody
-          diffs={commit.diffs}
-          allDiffDataPromise={allDiffDataPromise}
-        />
+        <CommitBody diffs={commit.diffs} diffData={diffData} />
       </Suspense>
     </div>
   );

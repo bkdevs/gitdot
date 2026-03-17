@@ -1,27 +1,21 @@
 import type { RepositoryDiffStatResource } from "gitdot-api";
+import { use } from "react";
 import type { DiffData } from "@/actions/repository";
 import { DiffBody } from "./diff-body";
-import { DiffFileClient } from "./diff-file-client";
 
 export function CommitBody({
   diffs,
-  allDiffDataPromise,
+  diffData,
 }: {
   diffs: RepositoryDiffStatResource[];
-  allDiffDataPromise: Promise<Record<string, DiffData>>;
+  diffData: Promise<Record<string, DiffData>>;
 }) {
+  const diffMap = use(diffData);
+
   return (
     <div className="flex flex-col">
       {diffs.map((stat) => (
-        <DiffFileClient
-          key={stat.path}
-          leftPath={stat.path}
-          rightPath={stat.path}
-          linesAdded={stat.lines_added}
-          linesRemoved={stat.lines_removed}
-        >
-          <DiffBody path={stat.path} allDiffDataPromise={allDiffDataPromise} />
-        </DiffFileClient>
+        <DiffBody key={stat.path} stat={stat} diff={diffMap[stat.path]} />
       ))}
     </div>
   );

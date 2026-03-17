@@ -1,5 +1,6 @@
-import { renderCommitDiffAction } from "@/actions/repository";
-import { CommitPageClient } from "./ui/commit-page-client";
+import { Suspense } from "react";
+import { renderCommitDiffAction } from "@/actions";
+import { CommitClient } from "./ui/commit-client";
 
 export default async function Page({
   params,
@@ -7,7 +8,11 @@ export default async function Page({
   params: Promise<{ owner: string; repo: string; sha: string }>;
 }) {
   const { owner, repo, sha } = await params;
-  const allDiffDataPromise = renderCommitDiffAction(owner, repo, sha);
+  const diffData = renderCommitDiffAction(owner, repo, sha);
 
-  return <CommitPageClient sha={sha} allDiffDataPromise={allDiffDataPromise} />;
+  return (
+    <Suspense>
+      <CommitClient sha={sha} diffData={diffData} />
+    </Suspense>
+  );
 }
