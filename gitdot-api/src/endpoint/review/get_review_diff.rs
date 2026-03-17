@@ -13,7 +13,10 @@ impl Endpoint for GetReviewDiff {
 }
 
 #[derive(ApiRequest, Debug, Serialize, Deserialize)]
-pub struct GetReviewDiffRequest {}
+pub struct GetReviewDiffRequest {
+    pub revision: Option<i32>,
+    pub compare_to: Option<i32>,
+}
 
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct GetReviewDiffResponse {

@@ -2,8 +2,8 @@ use axum::{
     extract::{Path, Query, State},
     http::StatusCode,
 };
-use serde::Deserialize;
 
+use gitdot_api::endpoint::get_review_diff as api;
 use gitdot_core::dto::{
     GetReviewDiffRequest, RepositoryAuthorizationRequest, RepositoryPermission,
 };
@@ -14,18 +14,12 @@ use crate::{
     extract::{Principal, User},
 };
 
-#[derive(Debug, Deserialize)]
-pub struct GetReviewDiffQuery {
-    pub revision: Option<i32>,
-    pub compare_to: Option<i32>,
-}
-
 #[axum::debug_handler]
 pub async fn get_review_diff(
     auth_user: Option<Principal<User>>,
     State(state): State<AppState>,
     Path((owner, repo, number, position)): Path<(String, String, i32, i32)>,
-    Query(query): Query<GetReviewDiffQuery>,
+    Query(query): Query<api::GetReviewDiffRequest>,
 ) -> Result<
     AppResponse<gitdot_api::endpoint::review::get_review_diff::GetReviewDiffResponse>,
     AppError,
