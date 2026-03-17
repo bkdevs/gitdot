@@ -32,8 +32,8 @@ pub struct Review {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Type, Serialize, Deserialize)]
-#[sqlx(type_name = "review_status", rename_all = "lowercase")]
-#[serde(rename_all = "lowercase")]
+#[sqlx(type_name = "review_status", rename_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
 pub enum ReviewStatus {
     Draft,
     InProgress,
@@ -56,8 +56,8 @@ pub struct Diff {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Type, Serialize, Deserialize)]
-#[sqlx(type_name = "diff_status", rename_all = "lowercase")]
-#[serde(rename_all = "lowercase")]
+#[sqlx(type_name = "diff_status", rename_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
 pub enum DiffStatus {
     Open,
     ChangesRequested,
@@ -87,6 +87,24 @@ pub struct Reviewer {
 }
 
 #[derive(Debug, Clone, FromRow, Serialize, Deserialize)]
+pub struct ReviewVerdict {
+    pub id: Uuid,
+    pub diff_id: Uuid,
+    pub revision_id: Uuid,
+    pub reviewer_id: Uuid,
+    pub verdict: Verdict,
+    pub created_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Type, Serialize, Deserialize)]
+#[sqlx(type_name = "verdict", rename_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
+pub enum Verdict {
+    Approved,
+    ChangesRequested,
+}
+
+#[derive(Debug, Clone, FromRow, Serialize, Deserialize)]
 pub struct ReviewComment {
     pub id: Uuid,
     pub review_id: Uuid,
@@ -110,8 +128,8 @@ pub struct ReviewComment {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Type, Serialize, Deserialize)]
-#[sqlx(type_name = "comment_side", rename_all = "lowercase")]
-#[serde(rename_all = "lowercase")]
+#[sqlx(type_name = "comment_side", rename_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
 pub enum CommentSide {
     Old,
     New,
