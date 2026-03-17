@@ -4,6 +4,7 @@ import type {
   RepositoryCommitResource,
   RepositoryPathsResource,
 } from "gitdot-api";
+import type { Root } from "hast";
 
 type ResourcesDef = Record<
   string,
@@ -98,4 +99,8 @@ export interface Database {
     repo: string,
     blobs: RepositoryBlobsResource,
   ): Promise<void>;
+
+  getHasts(owner: string, repo: string): Promise<Map<string, Root> | null>;
+
+  putHast(owner: string, repo: string, path: string, hast: Root): Promise<void>;
 }

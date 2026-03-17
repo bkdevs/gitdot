@@ -5,6 +5,7 @@ import type {
   RepositoryCommitResource,
   RepositoryPathsResource,
 } from "gitdot-api";
+import type { Root } from "hast";
 import { openDB } from "idb";
 import type { Database } from "./types";
 import { RepoProvider } from "./types";
@@ -74,15 +75,28 @@ export class IdbProvider extends RepoProvider {
     const db = await this.db();
     await db.putBlobs(this.owner, this.repo, blobs);
   }
+
+  async getHasts(): Promise<Map<string, Root> | null> {
+    if (typeof indexedDB === "undefined") return null;
+    const db = await this.db();
+    return db.getHasts(this.owner, this.repo);
+  }
+
+  async putHast(path: string, hast: Root): Promise<void> {
+    if (typeof indexedDB === "undefined") return;
+    const db = await this.db();
+    await db.putHast(this.owner, this.repo, path, hast);
+  }
 }
 
 export async function openIdb(): Promise<Database> {
-  const db = await openDB("gitdot", 2, {
+  const db = await openDB("gitdot", 3, {
     upgrade(db) {
       if (!db.objectStoreNames.contains("commits"))
         db.createObjectStore("commits");
       if (!db.objectStoreNames.contains("paths")) db.createObjectStore("paths");
       if (!db.objectStoreNames.contains("blobs")) db.createObjectStore("blobs");
+      if (!db.objectStoreNames.contains("hasts")) db.createObjectStore("hasts");
     },
   });
 
@@ -168,6 +182,24 @@ export async function openIdb(): Promise<Database> {
         ),
         tx.done,
       ]);
+    },
+
+    async getHasts(owner, repo) {
+      const prefix = `${repoKey(owner, repo)}/`;
+      const range = IDBKeyRange.bound(prefix, `${prefix}\uffff`);
+      const keys = await db.getAllKeys("hasts", range);
+      const values = await db.getAll("hasts", range);
+      if (values.length === 0) return null;
+      const map = new Map<string, Root>();
+      for (let i = 0; i < keys.length; i++) {
+        const path = (keys[i] as string).slice(prefix.length);
+        map.set(path, values[i]);
+      }
+      return map;
+    },
+
+    async putHast(owner, repo, path, hast) {
+      await db.put("hasts", hast, blobKey(owner, repo, path));
     },
   };
 }
