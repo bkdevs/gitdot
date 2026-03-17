@@ -5,6 +5,7 @@ mod list_reviews;
 mod process_review;
 mod publish_review;
 mod remove_reviewer;
+mod submit_review;
 
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
@@ -23,6 +24,7 @@ pub use list_reviews::ListReviewsRequest;
 pub use process_review::ProcessReviewRequest;
 pub use publish_review::{DiffUpdateRequest, PublishReviewRequest};
 pub use remove_reviewer::RemoveReviewerRequest;
+pub use submit_review::{SubmitAction, SubmitComment, SubmitReviewRequest};
 
 #[derive(Debug, Clone)]
 pub struct ReviewResponse {

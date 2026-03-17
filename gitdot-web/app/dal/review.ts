@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { PublishReviewRequest } from "gitdot-api";
+import type { PublishReviewRequest, SubmitReviewRequest } from "gitdot-api";
 import {
   GetReviewDiffResponse,
   ReviewerResource,
@@ -94,6 +94,21 @@ export async function publishReview(
 ): Promise<ReviewResource | null> {
   const response = await authPost(
     `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/review/${number}/publish`,
+    request,
+  );
+
+  return await handleResponse(response, ReviewResource);
+}
+
+export async function submitReview(
+  owner: string,
+  repo: string,
+  number: number,
+  position: number,
+  request: SubmitReviewRequest,
+): Promise<ReviewResource | null> {
+  const response = await authPost(
+    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/review/${number}/diff/${position}/submit`,
     request,
   );
 

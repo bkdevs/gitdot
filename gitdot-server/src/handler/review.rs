@@ -4,6 +4,7 @@ mod get_review_diff;
 mod list_reviews;
 mod publish_review;
 mod remove_reviewer;
+mod submit_review;
 
 use axum::{
     Router,
@@ -18,6 +19,7 @@ use get_review_diff::get_review_diff;
 use list_reviews::list_reviews;
 use publish_review::publish_review;
 use remove_reviewer::remove_reviewer;
+use submit_review::submit_review;
 
 pub fn create_review_router() -> Router<AppState> {
     Router::new()
@@ -41,5 +43,9 @@ pub fn create_review_router() -> Router<AppState> {
         .route(
             "/repository/{owner}/{repo}/review/{number}/reviewer/{reviewer_name}",
             delete(remove_reviewer),
+        )
+        .route(
+            "/repository/{owner}/{repo}/review/{number}/diff/{position}/submit",
+            post(submit_review),
         )
 }

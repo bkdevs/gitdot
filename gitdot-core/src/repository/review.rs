@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use sqlx::{Error, PgPool};
 use uuid::Uuid;
 
-use crate::model::{Diff, Review, Reviewer, Revision};
+use crate::model::{CommentSide, Diff, DiffStatus, Review, Reviewer, Revision, Verdict};
 
 const REVIEW_DETAILS_QUERY: &str = r#"
 SELECT
@@ -190,14 +190,36 @@ pub trait ReviewRepository: Send + Sync + Clone + 'static {
 
     async fn touch_review(&self, review_id: Uuid) -> Result<(), Error>;
 
-    async fn reset_diff_status(&self, diff_id: Uuid) -> Result<(), Error>;
-
     async fn update_revision_sha(
         &self,
         revision_id: Uuid,
         commit_hash: &str,
         parent_hash: &str,
     ) -> Result<(), Error>;
+
+    async fn create_verdict(
+        &self,
+        diff_id: Uuid,
+        revision_id: Uuid,
+        reviewer_id: Uuid,
+        verdict: Verdict,
+    ) -> Result<(), Error>;
+
+    async fn create_comment(
+        &self,
+        review_id: Uuid,
+        diff_id: Uuid,
+        revision_id: Uuid,
+        author_id: Uuid,
+        body: &str,
+        parent_id: Option<Uuid>,
+        file_path: Option<String>,
+        line_number_start: Option<i32>,
+        line_number_end: Option<i32>,
+        side: Option<CommentSide>,
+    ) -> Result<(), Error>;
+
+    async fn update_diff_status(&self, diff_id: Uuid, status: DiffStatus) -> Result<(), Error>;
 }
 
 #[derive(Debug, Clone)]
@@ -480,22 +502,6 @@ impl ReviewRepository for ReviewRepositoryImpl {
         Ok(())
     }
 
-    async fn reset_diff_status(&self, diff_id: Uuid) -> Result<(), Error> {
-        sqlx::query(
-            r#"
-            UPDATE diffs
-            SET status = 'open',
-                updated_at = NOW()
-            WHERE id = $1
-            "#,
-        )
-        .bind(diff_id)
-        .execute(&self.pool)
-        .await?;
-
-        Ok(())
-    }
-
     async fn update_revision_sha(
         &self,
         revision_id: Uuid,
@@ -513,6 +519,81 @@ impl ReviewRepository for ReviewRepositoryImpl {
         .bind(revision_id)
         .bind(commit_hash)
         .bind(parent_hash)
+        .execute(&self.pool)
+        .await?;
+
+        Ok(())
+    }
+
+    async fn create_verdict(
+        &self,
+        diff_id: Uuid,
+        revision_id: Uuid,
+        reviewer_id: Uuid,
+        verdict: Verdict,
+    ) -> Result<(), Error> {
+        sqlx::query(
+            r#"
+            INSERT INTO review_verdicts (diff_id, revision_id, reviewer_id, verdict)
+            VALUES ($1, $2, $3, $4)
+            "#,
+        )
+        .bind(diff_id)
+        .bind(revision_id)
+        .bind(reviewer_id)
+        .bind(verdict)
+        .execute(&self.pool)
+        .await?;
+
+        Ok(())
+    }
+
+    async fn create_comment(
+        &self,
+        review_id: Uuid,
+        diff_id: Uuid,
+        revision_id: Uuid,
+        author_id: Uuid,
+        body: &str,
+        parent_id: Option<Uuid>,
+        file_path: Option<String>,
+        line_number_start: Option<i32>,
+        line_number_end: Option<i32>,
+        side: Option<CommentSide>,
+    ) -> Result<(), Error> {
+        sqlx::query(
+            r#"
+            INSERT INTO review_comments (review_id, diff_id, revision_id, author_id, body, parent_id, file_path, line_number_start, line_number_end, side)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            "#,
+        )
+        .bind(review_id)
+        .bind(diff_id)
+        .bind(revision_id)
+        .bind(author_id)
+        .bind(body)
+        .bind(parent_id)
+        .bind(file_path)
+        .bind(line_number_start)
+        .bind(line_number_end)
+        .bind(side)
+        .execute(&self.pool)
+        .await?;
+
+        Ok(())
+    }
+
+    async fn update_diff_status(&self, diff_id: Uuid, status: DiffStatus) -> Result<(), Error> {
+        sqlx::query(
+            r#"
+            UPDATE diffs
+            SET status = $2,
+                updated_at = NOW()
+            WHERE id = $1
+            "#,
+        )
+        .bind(diff_id)
+        .bind(status)
         .execute(&self.pool)
         .await?;
 

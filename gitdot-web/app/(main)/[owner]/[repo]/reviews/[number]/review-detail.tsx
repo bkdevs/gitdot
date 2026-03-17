@@ -7,7 +7,7 @@ import type {
 } from "gitdot-api";
 import { useRef, useState } from "react";
 import { useUserContext } from "@/(main)/context/user";
-import { publishReviewAction } from "@/actions/review";
+import { publishReviewAction, submitReviewAction } from "@/actions/review";
 import { Button } from "@/ui/button";
 import { cn, timeAgo } from "@/util";
 import {
@@ -93,6 +93,7 @@ export function ReviewDetail({
   const selectedDiff: DiffResource | undefined =
     review.diffs[selectedDiffIndex];
   const [isPublishing, setIsPublishing] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [draftComments, setDraftComments] = useState<DraftComment[]>([]);
   const [activeInput, setActiveInput] = useState<{
     filePath: string;
@@ -100,9 +101,8 @@ export function ReviewDetail({
     side: "old" | "new";
   } | null>(null);
 
-  const canComment =
-    user?.id === review.author_id ||
-    review.reviewers.some((r) => r.reviewer_id === user?.id);
+  const isReviewer = review.reviewers.some((r) => r.reviewer_id === user?.id);
+  const canComment = user?.id === review.author_id || isReviewer;
 
   function addComment(
     filePath: string,
@@ -152,6 +152,39 @@ export function ReviewDetail({
     });
 
     setIsPublishing(false);
+  }
+
+  async function handleSubmit(
+    action: "approve" | "request_changes" | "comment",
+  ) {
+    if (!selectedDiff) return;
+    setIsSubmitting(true);
+
+    const diffComments = draftComments
+      .filter((c) => c.diff_id === selectedDiff.id)
+      .map((c) => ({
+        body: c.body,
+        file_path: c.file_path,
+        line_number_start: c.line_number,
+        line_number_end: null,
+        side: c.side,
+      }));
+
+    const result = await submitReviewAction(
+      owner,
+      repo,
+      number,
+      selectedDiff.position,
+      { action, comments: diffComments },
+    );
+
+    if ("review" in result) {
+      setDraftComments((prev) =>
+        prev.filter((c) => c.diff_id !== selectedDiff.id),
+      );
+    }
+
+    setIsSubmitting(false);
   }
 
   return (
@@ -350,6 +383,53 @@ export function ReviewDetail({
           number={number}
           reviewers={review.reviewers}
         />
+
+        {isReviewer && review.status === "in_progress" && selectedDiff && (
+          <div className="flex flex-col gap-2">
+            <h2 className="text-sm font-medium">Submit review</h2>
+            <Button
+              variant="default"
+              size="sm"
+              className="w-full"
+              disabled={isSubmitting}
+              onClick={() => handleSubmit("approve")}
+            >
+              Approve
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full"
+              disabled={isSubmitting}
+              onClick={() => handleSubmit("request_changes")}
+            >
+              Request changes
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full"
+              disabled={isSubmitting}
+              onClick={() => handleSubmit("comment")}
+            >
+              Comment
+            </Button>
+            {draftComments.filter((c) => c.diff_id === selectedDiff.id).length >
+              0 && (
+              <p className="text-xs text-muted-foreground">
+                {
+                  draftComments.filter((c) => c.diff_id === selectedDiff.id)
+                    .length
+                }{" "}
+                pending{" "}
+                {draftComments.filter((c) => c.diff_id === selectedDiff.id)
+                  .length === 1
+                  ? "comment"
+                  : "comments"}
+              </p>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -4,9 +4,15 @@ import type {
   PublishReviewRequest,
   ReviewerResource,
   ReviewResource,
+  SubmitReviewRequest,
 } from "gitdot-api";
 import { refresh } from "next/cache";
-import { addReviewer, publishReview, removeReviewer } from "@/dal";
+import {
+  addReviewer,
+  publishReview,
+  removeReviewer,
+  submitReview,
+} from "@/dal";
 
 export type AddReviewerActionResult =
   | { reviewer: ReviewerResource }
@@ -65,6 +71,26 @@ export async function publishReviewAction(
   const result = await publishReview(owner, repo, number, request);
   if (!result) {
     return { error: "publishReview call failed" };
+  }
+
+  refresh();
+  return { review: result };
+}
+
+export type SubmitReviewActionResult =
+  | { review: ReviewResource }
+  | { error: string };
+
+export async function submitReviewAction(
+  owner: string,
+  repo: string,
+  number: number,
+  position: number,
+  request: SubmitReviewRequest,
+): Promise<SubmitReviewActionResult> {
+  const result = await submitReview(owner, repo, number, position, request);
+  if (!result) {
+    return { error: "submitReview call failed" };
   }
 
   refresh();

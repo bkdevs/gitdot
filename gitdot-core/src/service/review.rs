@@ -3,12 +3,12 @@ use async_trait::async_trait;
 use crate::{
     client::{DiffClient, DifftClient, Git2Client, GitClient},
     dto::{
-        AddReviewerRequest, GetReviewDiffRequest, GetReviewRequest,
-        ListReviewsRequest, ProcessReviewRequest, PublishReviewRequest, RemoveReviewerRequest,
-        ReviewDiffResponse, ReviewResponse, ReviewerResponse,
+        AddReviewerRequest, GetReviewDiffRequest, GetReviewRequest, ListReviewsRequest,
+        ProcessReviewRequest, PublishReviewRequest, RemoveReviewerRequest, ReviewDiffResponse,
+        ReviewResponse, ReviewerResponse, SubmitAction, SubmitReviewRequest,
     },
     error::ReviewError,
-    model::ReviewStatus,
+    model::{DiffStatus, ReviewStatus, Verdict},
     repository::{
         RepositoryRepository, RepositoryRepositoryImpl, ReviewRepository, ReviewRepositoryImpl,
         UserRepository, UserRepositoryImpl,
@@ -87,6 +87,10 @@ pub trait ReviewService: Send + Sync + 'static {
         request: GetReviewDiffRequest,
     ) -> Result<ReviewDiffResponse, ReviewError>;
 
+    async fn submit_review(
+        &self,
+        request: SubmitReviewRequest,
+    ) -> Result<ReviewResponse, ReviewError>;
 }
 
 #[derive(Debug, Clone)]
@@ -363,7 +367,9 @@ where
                         )
                         .await?;
 
-                    self.review_repo.reset_diff_status(existing_diff.id).await?;
+                    self.review_repo
+                        .update_diff_status(existing_diff.id, DiffStatus::Open)
+                        .await?;
                 }
             } else {
                 // New diff position — create diff + revision
@@ -650,4 +656,104 @@ where
         Ok(ReviewDiffResponse { files })
     }
 
+    async fn submit_review(
+        &self,
+        request: SubmitReviewRequest,
+    ) -> Result<ReviewResponse, ReviewError> {
+        let owner = request.owner.as_ref();
+        let repo = request.repo.as_ref();
+
+        let review = self
+            .review_repo
+            .get_review(owner, repo, request.number)
+            .await?
+            .ok_or_else(|| {
+                ReviewError::ReviewNotFound(format!("{}/{}/review/{}", owner, repo, request.number))
+            })?;
+
+        if review.status != ReviewStatus::InProgress {
+            return Err(ReviewError::ReviewNotPublishable(
+                "Review must be in progress to submit a review".to_string(),
+            ));
+        }
+
+        let reviewers = review
+            .reviewers
+            .as_ref()
+            .map(|r| r.as_slice())
+            .unwrap_or(&[]);
+        if !reviewers
+            .iter()
+            .any(|r| r.reviewer_id == request.reviewer_id)
+        {
+            return Err(ReviewError::Unauthorized(
+                "Only assigned reviewers can submit a review".to_string(),
+            ));
+        }
+
+        let diffs = review.diffs.as_ref().map(|d| d.as_slice()).unwrap_or(&[]);
+        let diff = diffs
+            .iter()
+            .find(|d| d.position == request.position)
+            .ok_or_else(|| ReviewError::DiffNotFound(format!("position {}", request.position)))?;
+
+        let revisions = diff.revisions.as_ref().map(|r| r.as_slice()).unwrap_or(&[]);
+        let latest_revision = revisions
+            .first()
+            .ok_or_else(|| ReviewError::RevisionNotFound("No revisions found".to_string()))?;
+
+        // Create verdict and update diff status
+        if request.action != SubmitAction::Comment {
+            let verdict = match request.action {
+                SubmitAction::Approve => Verdict::Approved,
+                SubmitAction::RequestChanges => Verdict::ChangesRequested,
+                SubmitAction::Comment => unreachable!(),
+            };
+            self.review_repo
+                .create_verdict(diff.id, latest_revision.id, request.reviewer_id, verdict)
+                .await?;
+
+            // Update diff status: once approved, stays approved.
+            // Otherwise, reflect the new action directly.
+            if diff.status != DiffStatus::Approved {
+                let new_status = match request.action {
+                    SubmitAction::Approve => DiffStatus::Approved,
+                    SubmitAction::RequestChanges => DiffStatus::ChangesRequested,
+                    SubmitAction::Comment => unreachable!(),
+                };
+                self.review_repo
+                    .update_diff_status(diff.id, new_status)
+                    .await?;
+            }
+        }
+
+        for comment in &request.comments {
+            self.review_repo
+                .create_comment(
+                    review.id,
+                    diff.id,
+                    latest_revision.id,
+                    request.reviewer_id,
+                    &comment.body,
+                    comment.parent_id,
+                    comment.file_path.clone(),
+                    comment.line_number_start,
+                    comment.line_number_end,
+                    comment.side.clone(),
+                )
+                .await?;
+        }
+
+        self.review_repo.touch_review(review.id).await?;
+
+        let updated = self
+            .review_repo
+            .get_review(owner, repo, request.number)
+            .await?
+            .ok_or_else(|| {
+                ReviewError::ReviewNotFound(format!("{}/{}/review/{}", owner, repo, request.number))
+            })?;
+
+        Ok(updated.into())
+    }
 }
