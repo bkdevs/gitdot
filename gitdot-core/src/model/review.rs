@@ -111,8 +111,8 @@ pub enum Verdict {
 pub struct ReviewComment {
     pub id: Uuid,
     pub review_id: Uuid,
-    pub diff_id: Option<Uuid>,
-    pub revision_id: Option<Uuid>,
+    pub diff_id: Uuid,
+    pub revision_id: Uuid,
     pub author_id: Uuid,
 
     // for threaded comments
@@ -120,7 +120,8 @@ pub struct ReviewComment {
 
     pub body: String,
     pub file_path: Option<String>,
-    pub line_number: Option<i32>,
+    pub line_number_start: Option<i32>,
+    pub line_number_end: Option<i32>,
     pub side: Option<CommentSide>,
     pub resolved: bool,
     pub created_at: DateTime<Utc>,
