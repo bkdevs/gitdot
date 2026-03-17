@@ -17,14 +17,12 @@ export function RepoFileDialog({
 }: {
   owner: string;
   repo: string;
-}) {
-  const { paths } = useRepoContext();
-  const resolvedPaths = use(paths);
-
-  if (!resolvedPaths) return null;
+  }) {
+  const paths = use(useRepoContext().paths);
+  if (!paths) return null;
 
   return (
-    <RepoFileDialogInner owner={owner} repo={repo} paths={resolvedPaths} />
+    <RepoFileDialogInner owner={owner} repo={repo} paths={paths} />
   );
 }
 
@@ -37,8 +35,8 @@ function RepoFileDialogInner({
   repo: string;
   paths: RepositoryPathsResource;
 }) {
-  const { hasts } = useRepoContext();
-  const [hastsMap, setHashsMap] = useState<Map<string, Root> | null>(null);
+  const { hasts: hastsPromise } = useRepoContext();
+  const [hasts, setHasts] = useState<Map<string, Root> | null>(null);
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -46,8 +44,8 @@ function RepoFileDialogInner({
   const [mouseMoved, setMouseMoved] = useState(false);
 
   useEffect(() => {
-    hasts.then(setHashsMap);
-  }, [hasts]);
+    hastsPromise.then(setHasts);
+  }, [hastsPromise]);
 
   const files = paths.entries.filter((entry) => entry.path_type === "blob");
 
@@ -167,7 +165,7 @@ function RepoFileDialogInner({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [open, filteredFiles.length, selectedFile]);
 
-  const selectedHast = selectedFile ? hastsMap?.get(selectedFile.path) : null;
+  const selectedHast = selectedFile ? hasts?.get(selectedFile.path) : null;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
