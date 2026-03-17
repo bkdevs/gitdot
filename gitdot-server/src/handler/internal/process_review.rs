@@ -28,8 +28,8 @@ pub async fn process_review(
         let review = state.review_service.create_review(review_request).await?;
         (ReviewAction::Created, review.number)
     } else {
-        // TODO: implement update review
-        (ReviewAction::Updated, 1)
+        let review = state.review_service.update_review(review_request).await?;
+        (ReviewAction::Updated, review.number)
     };
 
     Ok(AppResponse::new(

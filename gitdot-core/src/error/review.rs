@@ -49,6 +49,9 @@ pub enum ReviewError {
     #[error("No commits found between target branch and pushed ref")]
     CommitsNotFound,
 
+    #[error("Unauthorized: {0}")]
+    Unauthorized(String),
+
     #[error("Git error: {0}")]
     GitError(#[from] GitError),
 

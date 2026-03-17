@@ -26,7 +26,47 @@ pub trait ReviewService: Send + Sync + 'static {
         request: ListReviewsRequest,
     ) -> Result<Vec<ReviewResponse>, ReviewError>;
 
+    /// Creates a new review from a push to `refs/for/<branch>`.
+    ///
+    /// Triggered by the proc-receive hook when a user pushes to a magic ref
+    /// without a review number (e.g. `refs/for/main`).
+    ///
+    /// Steps:
+    /// 1. Resolve the target branch SHA and list new commits between it and the pushed ref.
+    /// 2. Create a review record (draft status, auto-incremented number).
+    /// 3. For each commit (oldest first), create a diff (position 1..N) and an initial
+    ///    revision (number 1) with the commit's SHA and parent SHA.
+    /// 4. Create git refs for tracking:
+    ///    - `refs/reviews/<number>/diffs/<position>/revisions/1` — specific revision
+    ///    - `refs/reviews/<number>/diffs/<position>/current` — latest revision of this diff
+    ///    - `refs/reviews/<number>/head` — tip of the review
     async fn create_review(
+        &self,
+        request: ProcessReviewRequest,
+    ) -> Result<ReviewResponse, ReviewError>;
+
+    /// Updates an existing review from a push to `refs/for/<branch>/<number>`.
+    ///
+    /// Triggered by the proc-receive hook when a user pushes to a magic ref
+    /// that includes a review number (e.g. `refs/for/main/42`).
+    ///
+    /// Steps:
+    /// 1. Fetch the review (with diffs and revisions) and verify the pusher is the author.
+    /// 2. Resolve the target branch SHA and list new commits between it and the pushed ref.
+    /// 3. For each commit (oldest first), match it to an existing diff by position:
+    ///    - **Existing diff, unchanged**: Compare patch IDs (content-based hash of
+    ///      added/removed lines, ignoring context and line numbers). If the patch is
+    ///      identical, the commit was only rebased — update the latest revision's
+    ///      commit_hash and parent_hash in place, and force-update the git refs.
+    ///    - **Existing diff, modified**: The patch changed — create a new revision
+    ///      (incrementing the revision number), create a new revision ref, force-update
+    ///      the current ref, reset the diff status to `open` (invalidating any prior
+    ///      approval or change request), and update `updated_at`.
+    ///    - **New diff position**: More commits than before — create a new diff and
+    ///      initial revision, same as in `create_review`.
+    /// 4. Force-update `refs/reviews/<number>/head` to the pushed SHA.
+    /// 5. Touch the review's `updated_at`.
+    async fn update_review(
         &self,
         request: ProcessReviewRequest,
     ) -> Result<ReviewResponse, ReviewError>;
@@ -205,6 +245,186 @@ where
             .await?;
 
         Ok(review.into())
+    }
+
+    async fn update_review(
+        &self,
+        request: ProcessReviewRequest,
+    ) -> Result<ReviewResponse, ReviewError> {
+        let owner = request.owner.as_ref();
+        let repo = request.repo.as_ref();
+        let review_number = request
+            .review_number
+            .ok_or_else(|| ReviewError::InvalidRefName("missing review number".to_string()))?
+            as i32;
+
+        let review = self
+            .review_repo
+            .get_review(owner, repo, review_number)
+            .await?
+            .ok_or_else(|| {
+                ReviewError::ReviewNotFound(format!("{}/{}/review/{}", owner, repo, review_number))
+            })?;
+
+        if review.author_id != request.pusher_id {
+            return Err(ReviewError::Unauthorized(
+                "only the review author can update a review".to_string(),
+            ));
+        }
+
+        let target_sha = self
+            .git_client
+            .resolve_ref_sha(owner, repo, &get_target_ref(&request.target_branch))
+            .await?;
+
+        let commits = self
+            .git_client
+            .rev_list(owner, repo, &target_sha, &request.new_sha)
+            .await?;
+        if commits.is_empty() {
+            return Err(ReviewError::CommitsNotFound);
+        }
+
+        let existing_diffs = review.diffs.unwrap_or_default();
+
+        let mut previous_sha = target_sha.clone();
+        for (position, commit) in commits.iter().rev().enumerate() {
+            let diff_position = (position + 1) as i32;
+
+            if let Some(existing_diff) = existing_diffs.iter().find(|d| d.position == diff_position)
+            {
+                let revisions = existing_diff
+                    .revisions
+                    .as_ref()
+                    .cloned()
+                    .unwrap_or_default();
+                let latest_revision = revisions.first().ok_or_else(|| {
+                    ReviewError::RevisionNotFound(format!(
+                        "{}/{}/review/{}/diff/{} has no revisions",
+                        owner, repo, review_number, diff_position
+                    ))
+                })?;
+
+                let old_patch_id = self
+                    .git_client
+                    .get_commit_patch_id(owner, repo, &latest_revision.commit_hash)
+                    .await?;
+                let new_patch_id = self
+                    .git_client
+                    .get_commit_patch_id(owner, repo, &commit.sha)
+                    .await?;
+
+                if old_patch_id == new_patch_id {
+                    // Rebased but unchanged — update SHA only
+                    self.review_repo
+                        .update_revision_sha(latest_revision.id, &commit.sha, &previous_sha)
+                        .await?;
+
+                    self.git_client
+                        .update_ref(
+                            owner,
+                            repo,
+                            &get_revision_ref(review_number, diff_position, latest_revision.number),
+                            &commit.sha,
+                        )
+                        .await?;
+
+                    self.git_client
+                        .update_ref(
+                            owner,
+                            repo,
+                            &get_current_ref(review_number, diff_position),
+                            &commit.sha,
+                        )
+                        .await?;
+                } else {
+                    // Actually modified — create new revision
+                    let new_revision_number = latest_revision.number + 1;
+
+                    self.review_repo
+                        .create_revision(
+                            existing_diff.id,
+                            new_revision_number,
+                            &commit.sha,
+                            &previous_sha,
+                        )
+                        .await?;
+
+                    self.git_client
+                        .create_ref(
+                            owner,
+                            repo,
+                            &get_revision_ref(review_number, diff_position, new_revision_number),
+                            &commit.sha,
+                        )
+                        .await?;
+
+                    self.git_client
+                        .update_ref(
+                            owner,
+                            repo,
+                            &get_current_ref(review_number, diff_position),
+                            &commit.sha,
+                        )
+                        .await?;
+
+                    self.review_repo.reset_diff_status(existing_diff.id).await?;
+                }
+            } else {
+                // New diff position — create diff + revision
+                let commit_title = commit
+                    .message
+                    .lines()
+                    .next()
+                    .unwrap_or(&commit.message)
+                    .to_string();
+
+                let diff = self
+                    .review_repo
+                    .create_diff(review.id, diff_position, &commit_title, &commit_title)
+                    .await?;
+
+                self.review_repo
+                    .create_revision(diff.id, 1, &commit.sha, &previous_sha)
+                    .await?;
+
+                self.git_client
+                    .create_ref(
+                        owner,
+                        repo,
+                        &get_revision_ref(review_number, diff_position, 1),
+                        &commit.sha,
+                    )
+                    .await?;
+
+                self.git_client
+                    .create_ref(
+                        owner,
+                        repo,
+                        &get_current_ref(review_number, diff_position),
+                        &commit.sha,
+                    )
+                    .await?;
+            }
+
+            previous_sha = commit.sha.clone();
+        }
+
+        self.git_client
+            .update_ref(owner, repo, &get_head_ref(review_number), &request.new_sha)
+            .await?;
+
+        self.review_repo.touch_review(review.id).await?;
+
+        let updated = self
+            .review_repo
+            .get_review(owner, repo, review_number)
+            .await?
+            .ok_or_else(|| {
+                ReviewError::ReviewNotFound(format!("{}/{}/review/{}", owner, repo, review_number))
+            })?;
+
+        Ok(updated.into())
     }
 
     async fn add_reviewer(

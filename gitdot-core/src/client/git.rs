@@ -32,6 +32,14 @@ pub trait GitClient: Send + Sync + Clone + 'static {
         sha: &str,
     ) -> Result<(), GitError>;
 
+    async fn update_ref(
+        &self,
+        owner: &str,
+        repo: &str,
+        ref_name: &str,
+        sha: &str,
+    ) -> Result<(), GitError>;
+
     async fn get_repo_blob(
         &self,
         owner: &str,
@@ -107,6 +115,13 @@ pub trait GitClient: Send + Sync + Clone + 'static {
         owner: &str,
         repo: &str,
         ref_name: &str,
+    ) -> Result<String, GitError>;
+
+    async fn get_commit_patch_id(
+        &self,
+        owner: &str,
+        repo: &str,
+        sha: &str,
     ) -> Result<String, GitError>;
 
     async fn install_hook(
@@ -319,6 +334,26 @@ impl GitClient for Git2Client {
             let oid = git2::Oid::from_str(&sha)?;
             let commit = repository.find_commit(oid)?;
             repository.reference(&ref_name, commit.id(), false, "create_ref")?;
+            Ok(())
+        })
+        .await?
+    }
+
+    async fn update_ref(
+        &self,
+        owner: &str,
+        repo: &str,
+        ref_name: &str,
+        sha: &str,
+    ) -> Result<(), GitError> {
+        let ref_name = ref_name.to_string();
+        let sha = sha.to_string();
+        let repository = self.open_repository(owner, repo)?;
+
+        task::spawn_blocking(move || {
+            let oid = git2::Oid::from_str(&sha)?;
+            let commit = repository.find_commit(oid)?;
+            repository.reference(&ref_name, commit.id(), true, "update_ref")?;
             Ok(())
         })
         .await?
@@ -779,6 +814,69 @@ impl GitClient for Git2Client {
         task::spawn_blocking(move || {
             let commit = Self::resolve_ref(&repository, &ref_name)?;
             Ok(commit.id().to_string())
+        })
+        .await?
+    }
+
+    async fn get_commit_patch_id(
+        &self,
+        owner: &str,
+        repo: &str,
+        sha: &str,
+    ) -> Result<String, GitError> {
+        let sha = sha.to_string();
+        let repository = self.open_repository(owner, repo)?;
+
+        task::spawn_blocking(move || {
+            let oid = git2::Oid::from_str(&sha)?;
+            let commit = repository.find_commit(oid)?;
+            let tree = commit.tree()?;
+
+            let parent_tree = if commit.parent_count() > 0 {
+                Some(commit.parent(0)?.tree()?)
+            } else {
+                None
+            };
+
+            let mut diff_opts = git2::DiffOptions::new();
+            let diff = repository.diff_tree_to_tree(
+                parent_tree.as_ref(),
+                Some(&tree),
+                Some(&mut diff_opts),
+            )?;
+
+            let patch_bytes = std::cell::RefCell::new(Vec::<u8>::new());
+            diff.foreach(
+                &mut |delta, _progress| {
+                    let mut bytes = patch_bytes.borrow_mut();
+                    if let Some(path) = delta.old_file().path() {
+                        bytes.extend_from_slice(path.to_string_lossy().as_bytes());
+                    }
+                    if let Some(path) = delta.new_file().path() {
+                        bytes.extend_from_slice(path.to_string_lossy().as_bytes());
+                    }
+                    bytes.push(delta.status() as u8);
+                    true
+                },
+                None,
+                None,
+                Some(&mut |_delta, _hunk, line| {
+                    match line.origin() {
+                        '+' | '-' => {
+                            let mut bytes = patch_bytes.borrow_mut();
+                            bytes.push(line.origin() as u8);
+                            bytes.extend_from_slice(line.content());
+                        }
+                        _ => {}
+                    }
+                    true
+                }),
+            )?;
+
+            let patch_bytes = patch_bytes.into_inner();
+
+            let patch_id = git2::Oid::hash_object(git2::ObjectType::Blob, &patch_bytes)?;
+            Ok(patch_id.to_string())
         })
         .await?
     }

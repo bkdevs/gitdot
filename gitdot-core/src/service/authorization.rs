@@ -450,6 +450,9 @@ mod tests {
             async fn publish_review(&self, review_id: Uuid, title: &str, description: &str) -> Result<(), sqlx::Error>;
             async fn update_diff(&self, diff_id: Uuid, title: &str, description: &str) -> Result<(), sqlx::Error>;
             async fn create_comment(&self, review_id: Uuid, author_id: Uuid, body: &str, diff_id: Option<Uuid>, revision_id: Option<Uuid>, parent_id: Option<Uuid>, file_path: Option<String>, line_number: Option<i32>, side: Option<CommentSide>) -> Result<ReviewComment, sqlx::Error>;
+            async fn touch_review(&self, review_id: Uuid) -> Result<(), sqlx::Error>;
+            async fn reset_diff_status(&self, diff_id: Uuid) -> Result<(), sqlx::Error>;
+            async fn update_revision_sha(&self, revision_id: Uuid, commit_hash: &str, parent_hash: &str) -> Result<(), sqlx::Error>;
         }
     }
 

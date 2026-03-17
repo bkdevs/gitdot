@@ -179,6 +179,17 @@ pub trait ReviewRepository: Send + Sync + Clone + 'static {
         line_number: Option<i32>,
         side: Option<CommentSide>,
     ) -> Result<ReviewComment, Error>;
+
+    async fn touch_review(&self, review_id: Uuid) -> Result<(), Error>;
+
+    async fn reset_diff_status(&self, diff_id: Uuid) -> Result<(), Error>;
+
+    async fn update_revision_sha(
+        &self,
+        revision_id: Uuid,
+        commit_hash: &str,
+        parent_hash: &str,
+    ) -> Result<(), Error>;
 }
 
 #[derive(Debug, Clone)]
@@ -454,5 +465,59 @@ impl ReviewRepository for ReviewRepositoryImpl {
         .bind(side)
         .fetch_one(&self.pool)
         .await
+    }
+
+    async fn touch_review(&self, review_id: Uuid) -> Result<(), Error> {
+        sqlx::query(
+            r#"
+            UPDATE reviews
+            SET updated_at = NOW()
+            WHERE id = $1
+            "#,
+        )
+        .bind(review_id)
+        .execute(&self.pool)
+        .await?;
+
+        Ok(())
+    }
+
+    async fn reset_diff_status(&self, diff_id: Uuid) -> Result<(), Error> {
+        sqlx::query(
+            r#"
+            UPDATE diffs
+            SET status = 'open',
+                updated_at = NOW()
+            WHERE id = $1
+            "#,
+        )
+        .bind(diff_id)
+        .execute(&self.pool)
+        .await?;
+
+        Ok(())
+    }
+
+    async fn update_revision_sha(
+        &self,
+        revision_id: Uuid,
+        commit_hash: &str,
+        parent_hash: &str,
+    ) -> Result<(), Error> {
+        sqlx::query(
+            r#"
+            UPDATE revisions
+            SET commit_hash = $2,
+                parent_hash = $3
+            WHERE id = $1
+            "#,
+        )
+        .bind(revision_id)
+        .bind(commit_hash)
+        .bind(parent_hash)
+        .execute(&self.pool)
+        .await?;
+
+        Ok(())
     }
 }
