@@ -2,6 +2,7 @@ import { getUserMetadata } from "@/lib/supabase";
 import { ApiProvider } from "@/provider/api";
 import { RepoClient } from "./context";
 import { RepoResources } from "./resources";
+import { RepoShortcuts } from "./shortcuts";
 import { RepoDialogs } from "./ui/dialog/repo-dialogs";
 import { RepoScroll } from "./ui/repo-scroll";
 import { RepoSidebar } from "./ui/repo-sidebar";
@@ -21,6 +22,7 @@ export default async function Layout({
 
   return (
     <RepoClient owner={owner} repo={repo} serverPromises={serverPromises}>
+      <RepoShortcuts />
       <div className="flex md:hidden h-full w-full p-2 text-sm">
         Mobile support to come.
       </div>
