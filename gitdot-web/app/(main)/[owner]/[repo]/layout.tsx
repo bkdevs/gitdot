@@ -26,7 +26,7 @@ export default async function Layout({
 
       <div className="hidden md:flex h-full w-full">
         <RepoSidebar owner={owner} repo={repo} showSettings={isAdmin} />
-        <div className="flex-1 min-w-0 overflow-auto scrollbar-thin">
+        <div className="flex-1 min-w-0 overflow-auto scrollbar-none">
           {children}
         </div>
       </div>

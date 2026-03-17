@@ -41,6 +41,94 @@ Server Component              → DAL directly
 
 **API Types** — Zod schemas live in the `gitdot-api-ts` workspace package. Import from `gitdot-api` in the DAL for response validation.
 
+## Multi-Fetch Pattern (Provider + IDB Race)
+
+For data-heavy pages (e.g. repo browser), we race IndexedDB against the server API and display whichever resolves first, then update IDB with the API result so the next load is instant.
+
+### Providers
+
+`app/provider/` defines an abstract `RepoProvider` with two concrete implementations:
+
+- **`DbProvider`** — reads from IndexedDB (client-only, synchronous-ish)
+- **`ApiProvider`** — fetches from the backend API via DAL functions
+
+Both implement the same interface, so callers are provider-agnostic. A resource definition object drives what gets fetched:
+
+```typescript
+// app/(main)/[owner]/[repo]/resources.ts
+export const RepoResources = {
+  paths:   (p: RepoProvider) => p.getPaths(),
+  commits: (p: RepoProvider) => p.getCommits(),
+  blobs:   (p: RepoProvider) => p.getBlobs(),
+};
+```
+
+Calling `provider.fetch(RepoResources)` returns a map of named promises — one per resource key.
+
+### Racing IDB → API
+
+The server runs `ApiProvider` and passes the resulting promises (`serverPromises`) down to the client via props. The client instantiates `DbProvider` and races the two for each resource using `firstNonNull()` from `app/util/promise.ts`:
+
+```typescript
+// app/(main)/[owner]/[repo]/context.tsx
+const dbPromises    = new DbProvider(owner, repo).fetch(RepoResources);
+const pathsPromise  = firstNonNull(dbPromises.paths,   serverPromises.paths);
+const commitsPromise = firstNonNull(dbPromises.commits, serverPromises.commits);
+```
+
+`firstNonNull(...promises)` resolves with the first promise that returns a non-null value, ignoring nulls and errors. IDB almost always wins on repeat visits; the API wins on first load or cache miss.
+
+After the server promise settles, a `useEffect` writes the result back to IDB so subsequent visits hit the cache:
+
+```typescript
+useEffect(() => {
+  serverPromises.paths.then((p) => {
+    if (!p) return;
+    idb.putPaths(owner, repo, p);
+    setRepoCookie(owner, repo, p.commit_sha); // also update cookie (see below)
+  });
+}, [owner, repo, idb, serverPromises]);
+```
+
+### Cookie-Based Incremental GETs
+
+`app/cookie.ts` stores the last-seen commit SHA in a browser cookie (`gd_sha_{owner}_{repo}`). The DAL reads this cookie server-side and forwards it as an `X-Gitdot-Client-Sha` header:
+
+```typescript
+// app/dal/repository.ts
+const cookie = await getRepoCookie(owner, repo);
+const response = await authFetch(url, { headers: repoCookieHeaders(cookie) });
+// repoCookieHeaders returns { "X-Gitdot-Client-Sha": sha, "X-Gitdot-Client-Timestamp": at }
+```
+
+The backend can use this header to return only what changed since that SHA — making repeat GETs incremental. The cookie is updated client-side after every successful fetch (see `useEffect` above), so each navigation keeps it current.
+
+### Consuming Resources in Components
+
+Client components inside the repo route should **not** fetch data themselves. Instead, read from `useRepoContext()`, which exposes the already-racing promises:
+
+```typescript
+import { useRepoContext } from "@/(main)/[owner]/[repo]/context";
+
+export function MyComponent() {
+  const { paths, commits, blobs, hasts } = useRepoContext();
+  // each is a Promise<Resource | null> — pass to `use()` or Suspense as needed
+}
+```
+
+`RepoContext` is `RepoPromises & { hasts: Promise<Map<string, Root>> }`, so all four resources are available. The race (IDB vs API) has already been set up by `RepoClient`; consumers just await the winning promise.
+
+### Complete Flow
+
+```
+1. Server layout:   ApiProvider.fetch(RepoResources)             → serverPromises (in-flight)
+2. Client context:  DbProvider.fetch(RepoResources)              → dbPromises (IDB read)
+3. Race:            firstNonNull(dbPromises.x, serverPromises.x) → display first non-null
+4. Sync:            useEffect → serverPromises.x → idb.put*() + setRepoCookie()
+5. Components:      useRepoContext() → consume the winning promise
+6. Next visit:      IDB wins race; cookie enables incremental server fetch
+```
+
 ## Auth Flow
 
 1. Supabase manages sessions via httpOnly cookies
