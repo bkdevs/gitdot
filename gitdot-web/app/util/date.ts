@@ -13,24 +13,35 @@ export function timeAgoFull(date: Date) {
   const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
   if (seconds < 60) return "just now";
 
+  const p = (n: number, unit: string) => `${n} ${unit}${n === 1 ? "" : "s"}`;
+
   const minutes = Math.floor(seconds / 60);
-  if (seconds < 3600) {
-    return minutes === 1 ? "1 minute ago" : `${minutes} minutes ago`;
-  }
+  if (seconds < 3600) return `${p(minutes, "minute")} ago`;
+
   const hours = Math.floor(seconds / 3600);
-  if (seconds < 86400) {
-    return hours === 1 ? "1 hour ago" : `${hours} hours ago`;
-  }
+  if (seconds < 86400) return `${p(hours, "hour")} ago`;
+
   const days = Math.floor(seconds / 86400);
+  const remHours = Math.floor((seconds % 86400) / 3600);
   if (seconds < 2592000) {
-    return days === 1 ? "1 day ago" : `${days} days ago`;
+    return remHours > 0
+      ? `${p(days, "day")}, ${p(remHours, "hour")} ago`
+      : `${p(days, "day")} ago`;
   }
+
   const months = Math.floor(seconds / 2592000);
+  const remDays = Math.floor((seconds % 2592000) / 86400);
   if (seconds < 31536000) {
-    return months === 1 ? "1 month ago" : `${months} months ago`;
+    return remDays > 0
+      ? `${p(months, "month")}, ${p(remDays, "day")} ago`
+      : `${p(months, "month")} ago`;
   }
+
   const years = Math.floor(seconds / 31536000);
-  return years === 1 ? "1 year ago" : `${years} years ago`;
+  const remMonths = Math.floor((seconds % 31536000) / 2592000);
+  return remMonths > 0
+    ? `${p(years, "year")}, ${p(remMonths, "month")} ago`
+    : `${p(years, "year")} ago`;
 }
 
 /**

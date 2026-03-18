@@ -8,6 +8,7 @@ import { DbProvider } from "@/provider";
 import { firstNonNull } from "@/util";
 import { useRenderBlobs } from "./hooks/use-render-blobs";
 import { type RepoPromises, RepoResources } from "./resources";
+import { sortCommits } from "./util/commit";
 
 type RepoContext = RepoPromises & { hasts: Promise<Map<string, Root>> };
 const RepoContext = createContext<RepoContext | null>(null);
@@ -34,7 +35,8 @@ export function RepoClient({
     [dbPromises, serverPromises],
   );
   const commitsPromise = useMemo(
-    () => firstNonNull(dbPromises.commits, serverPromises.commits),
+    () =>
+      firstNonNull(dbPromises.commits, serverPromises.commits).then(sortCommits),
     [dbPromises, serverPromises],
   );
   const blobsPromise = useMemo(
