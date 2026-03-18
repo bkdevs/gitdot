@@ -6,7 +6,7 @@ use axum::{
 use uuid::Uuid;
 
 use gitdot_api::endpoint::review::resolve_review_comment as api;
-use gitdot_core::dto::ResolveReviewCommentRequest;
+use gitdot_core::dto::{ResolveReviewCommentRequest, ReviewAuthorizationRequest};
 
 use crate::{
     app::{AppError, AppResponse, AppState},
@@ -21,6 +21,12 @@ pub async fn resolve_review_comment(
     Path((owner, repo, number, comment_id)): Path<(String, String, i32, Uuid)>,
     Json(request): Json<api::ResolveReviewCommentRequest>,
 ) -> Result<AppResponse<api::ResolveReviewCommentResponse>, AppError> {
+    let auth_request = ReviewAuthorizationRequest::new(auth_user.id, &owner, &repo, number)?;
+    state
+        .authorization_service
+        .verify_authorized_for_review(auth_request)
+        .await?;
+
     let request = ResolveReviewCommentRequest::new(
         &owner,
         &repo,

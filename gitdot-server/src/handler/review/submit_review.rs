@@ -5,7 +5,7 @@ use axum::{
 };
 
 use gitdot_api::endpoint::submit_review as api;
-use gitdot_core::dto::{SubmitComment, SubmitReviewRequest};
+use gitdot_core::dto::{ReviewingAuthorizationRequest, SubmitComment, SubmitReviewRequest};
 
 use crate::{
     app::{AppError, AppResponse, AppState},
@@ -20,6 +20,12 @@ pub async fn submit_review(
     Path((owner, repo, number, position)): Path<(String, String, i32, i32)>,
     Json(request): Json<api::SubmitReviewRequest>,
 ) -> Result<AppResponse<api::SubmitReviewResponse>, AppError> {
+    let auth_request = ReviewingAuthorizationRequest::new(auth_user.id, &owner, &repo, number)?;
+    state
+        .authorization_service
+        .verify_authorized_for_reviewing(auth_request)
+        .await?;
+
     let comments = request
         .comments
         .into_iter()

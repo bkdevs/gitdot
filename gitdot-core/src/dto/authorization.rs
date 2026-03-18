@@ -7,6 +7,8 @@ mod verify_authorized_for_question;
 mod verify_authorized_for_repository;
 mod verify_authorized_for_repository_creation;
 mod verify_authorized_for_review;
+mod verify_authorized_for_review_comment;
+mod verify_authorized_for_reviewing;
 
 pub use validate_token::{ValidateTokenRequest, ValidateTokenResponse};
 pub use verify_authorized_for_answer::AnswerAuthorizationRequest;
@@ -17,6 +19,8 @@ pub use verify_authorized_for_question::QuestionAuthorizationRequest;
 pub use verify_authorized_for_repository::RepositoryAuthorizationRequest;
 pub use verify_authorized_for_repository_creation::RepositoryCreationAuthorizationRequest;
 pub use verify_authorized_for_review::ReviewAuthorizationRequest;
+pub use verify_authorized_for_review_comment::ReviewCommentAuthorizationRequest;
+pub use verify_authorized_for_reviewing::ReviewingAuthorizationRequest;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RepositoryPermission {

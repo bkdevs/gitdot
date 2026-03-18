@@ -5,7 +5,8 @@ use crate::{
         AnswerAuthorizationRequest, CommentAuthorizationRequest, MigrationAuthorizationRequest,
         OrganizationAuthorizationRequest, QuestionAuthorizationRequest,
         RepositoryAuthorizationRequest, RepositoryCreationAuthorizationRequest,
-        RepositoryPermission, ReviewAuthorizationRequest,
+        RepositoryPermission, ReviewAuthorizationRequest, ReviewCommentAuthorizationRequest,
+        ReviewingAuthorizationRequest,
     },
     error::AuthorizationError,
     model::{OrganizationRole, RepositoryOwnerType},
@@ -51,6 +52,16 @@ pub trait AuthorizationService: Send + Sync + 'static {
     async fn verify_authorized_for_review(
         &self,
         request: ReviewAuthorizationRequest,
+    ) -> Result<(), AuthorizationError>;
+
+    async fn verify_authorized_for_review_comment(
+        &self,
+        request: ReviewCommentAuthorizationRequest,
+    ) -> Result<(), AuthorizationError>;
+
+    async fn verify_authorized_for_reviewing(
+        &self,
+        request: ReviewingAuthorizationRequest,
     ) -> Result<(), AuthorizationError>;
 
     async fn verify_authorized_for_migration(
@@ -274,6 +285,45 @@ where
         Ok(())
     }
 
+    async fn verify_authorized_for_review_comment(
+        &self,
+        request: ReviewCommentAuthorizationRequest,
+    ) -> Result<(), AuthorizationError> {
+        let comment = self
+            .review_repo
+            .get_comment(request.comment_id)
+            .await?
+            .ok_or(AuthorizationError::Unauthorized)?;
+
+        if comment.author_id != request.user_id {
+            return Err(AuthorizationError::Unauthorized);
+        }
+
+        Ok(())
+    }
+
+    async fn verify_authorized_for_reviewing(
+        &self,
+        request: ReviewingAuthorizationRequest,
+    ) -> Result<(), AuthorizationError> {
+        let review = self
+            .review_repo
+            .get_review(
+                request.owner.as_ref(),
+                request.repo.as_ref(),
+                request.number,
+            )
+            .await?
+            .ok_or(AuthorizationError::Unauthorized)?;
+
+        let reviewers = review.reviewers.unwrap_or_default();
+        if !reviewers.iter().any(|r| r.reviewer_id == request.user_id) {
+            return Err(AuthorizationError::Unauthorized);
+        }
+
+        Ok(())
+    }
+
     async fn verify_authorized_for_migration(
         &self,
         request: MigrationAuthorizationRequest,
@@ -424,7 +474,7 @@ mod tests {
             async fn create_comment(&self, review_id: Uuid, diff_id: Uuid, revision_id: Uuid, author_id: Uuid, body: &str, parent_id: Option<Uuid>, file_path: Option<String>, line_number_start: Option<i32>, line_number_end: Option<i32>, side: Option<CommentSide>) -> Result<(), sqlx::Error>;
             async fn get_comment(&self, comment_id: Uuid) -> Result<Option<ReviewComment>, sqlx::Error>;
             async fn update_comment(&self, comment_id: Uuid, body: &str) -> Result<ReviewComment, sqlx::Error>;
-            async fn resolve_comment(&self, comment_id: Uuid, resolved: bool) -> Result<(), Error>;
+            async fn resolve_comment(&self, comment_id: Uuid, resolved: bool) -> Result<(), sqlx::Error>;
             async fn update_diff_status(&self, diff_id: Uuid, status: DiffStatus) -> Result<(), sqlx::Error>;
         }
     }

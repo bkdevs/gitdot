@@ -276,12 +276,6 @@ where
                 ReviewError::ReviewNotFound(format!("{}/{}/review/{}", owner, repo, review_number))
             })?;
 
-        if review.author_id != request.pusher_id {
-            return Err(ReviewError::Unauthorized(
-                "only the review author can update a review".to_string(),
-            ));
-        }
-
         let target_sha = self
             .git_client
             .resolve_ref_sha(owner, repo, &get_target_ref(&request.target_branch))
@@ -688,20 +682,6 @@ where
             ));
         }
 
-        let reviewers = review
-            .reviewers
-            .as_ref()
-            .map(|r| r.as_slice())
-            .unwrap_or(&[]);
-        if !reviewers
-            .iter()
-            .any(|r| r.reviewer_id == request.reviewer_id)
-        {
-            return Err(ReviewError::Unauthorized(
-                "Only assigned reviewers can submit a review".to_string(),
-            ));
-        }
-
         let diffs = review.diffs.as_ref().map(|d| d.as_slice()).unwrap_or(&[]);
         let diff = diffs
             .iter()
@@ -772,18 +752,6 @@ where
         &self,
         request: UpdateReviewCommentRequest,
     ) -> Result<ReviewCommentResponse, ReviewError> {
-        let comment = self
-            .review_repo
-            .get_comment(request.comment_id)
-            .await?
-            .ok_or_else(|| ReviewError::CommentNotFound(request.comment_id.to_string()))?;
-
-        if comment.author_id != request.user_id {
-            return Err(ReviewError::Unauthorized(
-                "Only the comment author can update a comment".to_string(),
-            ));
-        }
-
         let updated = self
             .review_repo
             .update_comment(request.comment_id, &request.body)
@@ -796,29 +764,6 @@ where
         &self,
         request: ResolveReviewCommentRequest,
     ) -> Result<ReviewCommentResponse, ReviewError> {
-        let review = self
-            .review_repo
-            .get_review(
-                request.owner.as_ref(),
-                request.repo.as_ref(),
-                request.number,
-            )
-            .await?
-            .ok_or_else(|| {
-                ReviewError::ReviewNotFound(format!(
-                    "{}/{}/review/{}",
-                    request.owner.as_ref(),
-                    request.repo.as_ref(),
-                    request.number
-                ))
-            })?;
-
-        if review.author_id != request.user_id {
-            return Err(ReviewError::Unauthorized(
-                "Only the review author can resolve comments".to_string(),
-            ));
-        }
-
         let comment = self
             .review_repo
             .get_comment(request.comment_id)

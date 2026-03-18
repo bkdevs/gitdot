@@ -3,7 +3,7 @@ use axum::{
     http::StatusCode,
 };
 
-use gitdot_core::dto::ProcessReviewRequest;
+use gitdot_core::dto::{ProcessReviewRequest, ReviewAuthorizationRequest};
 
 use crate::{
     app::{AppError, AppResponse, AppState},
@@ -28,6 +28,14 @@ pub async fn process_review(
         let review = state.review_service.create_review(review_request).await?;
         (ReviewAction::Created, review.number)
     } else {
+        let review_number = review_request.review_number.unwrap() as i32;
+        let auth_request =
+            ReviewAuthorizationRequest::new(request.pusher_id, &owner, &repo, review_number)?;
+        state
+            .authorization_service
+            .verify_authorized_for_review(auth_request)
+            .await?;
+
         let review = state.review_service.update_review(review_request).await?;
         (ReviewAction::Updated, review.number)
     };
