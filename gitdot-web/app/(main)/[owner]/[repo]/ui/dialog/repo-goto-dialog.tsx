@@ -64,7 +64,7 @@ export function RepoGotoDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent
-        className="max-w-60! top-auto! left-auto! bottom-10! right-2! translate-x-0! translate-y-0! p-3 pt-4"
+        className="max-w-60! w-full p-3 pt-4 top-[45vh]!"
         aria-describedby={undefined}
         showOverlay={false}
       >
