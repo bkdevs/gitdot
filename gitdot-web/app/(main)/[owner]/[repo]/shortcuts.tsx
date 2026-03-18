@@ -102,6 +102,10 @@ export function RepoShortcuts() {
 
   const map = useMemo<ShortcutMap>(() => {
     return {
+      g: {
+        name: "GoTo",
+        execute: () => window.dispatchEvent(new Event("openGotoDialog")),
+      },
       p: {
         name: "FuzzyFile",
         execute: () => window.dispatchEvent(new Event("openFileSearch")),
