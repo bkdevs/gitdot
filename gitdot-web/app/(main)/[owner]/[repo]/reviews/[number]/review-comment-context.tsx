@@ -14,6 +14,7 @@ export interface DraftComment {
   body: string;
   created_at: string;
   resolved: boolean;
+  revision_number: number | null;
 }
 
 export interface CommentInput {

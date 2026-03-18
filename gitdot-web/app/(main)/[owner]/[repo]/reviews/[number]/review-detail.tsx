@@ -21,7 +21,10 @@ import {
 } from "./review-comment-context";
 import { Reviewers } from "./reviewers";
 
-function serverCommentToDraft(c: ReviewCommentResource): DraftComment | null {
+function serverCommentToDraft(
+  c: ReviewCommentResource,
+  revisionMap: Map<string, number>,
+): DraftComment | null {
   if (!c.file_path || c.line_number_start === null || !c.side) return null;
   return {
     id: c.id,
@@ -35,6 +38,7 @@ function serverCommentToDraft(c: ReviewCommentResource): DraftComment | null {
     body: c.body,
     created_at: c.created_at,
     resolved: c.resolved,
+    revision_number: revisionMap.get(c.revision_id) ?? null,
   };
 }
 
@@ -149,6 +153,7 @@ export function ReviewDetail({
         body,
         created_at: new Date().toISOString(),
         resolved: false,
+        revision_number: null,
       },
     ]);
   }
@@ -372,19 +377,20 @@ export function ReviewDetail({
 
                 <ReviewCommentContext.Provider
                   value={{
-                    comments: [
-                      ...review.comments
-                        .filter(
-                          (c) =>
-                            c.diff_id === selectedDiff.id &&
-                            c.revision_id === selectedDiff.revisions[0]?.id,
-                        )
-                        .map(serverCommentToDraft)
-                        .filter((c): c is DraftComment => c !== null),
-                      ...draftComments.filter(
-                        (c) => c.diff_id === selectedDiff.id,
-                      ),
-                    ],
+                    comments: (() => {
+                      const revisionMap = new Map(
+                        selectedDiff.revisions.map((r) => [r.id, r.number]),
+                      );
+                      return [
+                        ...review.comments
+                          .filter((c) => c.diff_id === selectedDiff.id)
+                          .map((c) => serverCommentToDraft(c, revisionMap))
+                          .filter((c): c is DraftComment => c !== null),
+                        ...draftComments.filter(
+                          (c) => c.diff_id === selectedDiff.id,
+                        ),
+                      ];
+                    })(),
                     addComment,
                     canComment,
                     isReviewAuthor,

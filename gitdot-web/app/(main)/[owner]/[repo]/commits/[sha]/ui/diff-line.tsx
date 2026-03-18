@@ -333,6 +333,11 @@ function CommentBubble({
         <span className="text-muted-foreground">
           {timeAgo(new Date(comment.created_at))}
         </span>
+        {comment.revision_number !== null && (
+          <span className="text-muted-foreground/60">
+            rev {comment.revision_number}
+          </span>
+        )}
         {canReply && (
           <button
             type="button"
