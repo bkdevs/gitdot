@@ -28,7 +28,9 @@ export function CommitsClient() {
             <Link
               key={commit.sha}
               href={`/${owner}/${repo}/commits/${commit.sha.substring(0, 7)}`}
-              className="flex w-full border-b hover:bg-accent/50 select-none cursor-pointer py-2 px-2"
+              data-page-item
+              tabIndex={-1}
+              className="flex w-full border-b hover:bg-accent/50 focus:bg-accent/50 select-none cursor-pointer py-2 px-2 focus:outline-none"
               prefetch={true}
             >
               <div className="flex flex-col w-full justify-start items-start min-w-0">

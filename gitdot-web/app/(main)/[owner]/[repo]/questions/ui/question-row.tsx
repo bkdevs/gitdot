@@ -13,7 +13,11 @@ export function QuestionRow({
   question: QuestionResource;
 }) {
   return (
-    <div className="flex flex-row w-full border-b hover:bg-accent/50 select-none cursor-default py-2 h-18">
+    <div
+      data-page-item
+      tabIndex={-1}
+      className="flex flex-row w-full border-b hover:bg-accent/50 focus:bg-accent/50 select-none cursor-default py-2 h-18 focus:outline-none"
+    >
       <VoteBox
         targetType="question"
         owner={owner}

@@ -14,7 +14,9 @@ export function ReviewRow({
   return (
     <Link
       href={`/${owner}/${repo}/reviews/${review.number}`}
-      className="flex flex-row w-full border-b hover:bg-accent/50 select-none cursor-default py-2 h-18 px-4"
+      data-page-item
+      tabIndex={-1}
+      className="flex flex-row w-full border-b hover:bg-accent/50 focus:bg-accent/50 select-none cursor-default py-2 h-18 px-4 focus:outline-none"
       prefetch={true}
     >
       <div className="flex flex-col w-full justify-start items-start">

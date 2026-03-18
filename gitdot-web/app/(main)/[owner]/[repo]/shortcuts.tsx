@@ -29,6 +29,33 @@ export function RepoShortcuts() {
     return true;
   }, [owner, repo, pathname, router]);
 
+  const navPush = useCallback(() => {
+    // take focus or first element if no focus present
+    const el = document.activeElement?.matches("[data-page-item]")
+      ? (document.activeElement as HTMLElement)
+      : document.querySelector<HTMLElement>("[data-page-item]");
+
+    if (!el) return;
+
+    if (el instanceof HTMLAnchorElement) {
+      el.click();
+    } else {
+      el.querySelector<HTMLAnchorElement>("a")?.click();
+    }
+  }, []);
+
+  // register a global mouseover that focuses the hovered data-page-item
+  useEffect(() => {
+    const handleMouseOver = (e: MouseEvent) => {
+      const el = (e.target as HTMLElement).closest<HTMLElement>(
+        "[data-page-item]",
+      );
+      el?.focus();
+    };
+    document.addEventListener("mouseover", handleMouseOver);
+    return () => document.removeEventListener("mouseover", handleMouseOver);
+  }, []);
+
   // override the browser back button to act like nav pop rather than back / forth
   useEffect(() => {
     history.pushState({ navIntercepted: true }, "");
@@ -50,6 +77,8 @@ export function RepoShortcuts() {
       },
       h: { name: "NavPop", execute: () => navPop() },
       Escape: { name: "NavPop", execute: () => navPop() },
+      l: { name: "NavPush", execute: navPush },
+      Enter: { name: "NavPush", execute: navPush },
       j: {
         name: "NavDown",
         execute: () => {
@@ -81,7 +110,7 @@ export function RepoShortcuts() {
         },
       },
     };
-  }, [navPop]);
+  }, [navPop, navPush]);
 
   useShortcuts(map);
   return null;

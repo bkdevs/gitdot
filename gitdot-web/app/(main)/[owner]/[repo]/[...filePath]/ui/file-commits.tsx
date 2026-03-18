@@ -29,7 +29,9 @@ function FileCommit({
     <Link
       href={href}
       prefetch={true}
-      className={`flex w-full border-b hover:bg-accent/50 select-none cursor-default py-2 px-2 ${
+      data-page-item
+      tabIndex={-1}
+      className={`flex w-full border-b hover:bg-accent/50 focus:bg-accent/50 select-none cursor-default py-2 px-2 focus:outline-none ${
         isSelected ? "bg-sidebar" : ""
       }`}
     >
