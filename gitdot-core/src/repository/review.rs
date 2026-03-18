@@ -2,7 +2,9 @@ use async_trait::async_trait;
 use sqlx::{Error, PgPool};
 use uuid::Uuid;
 
-use crate::model::{CommentSide, Diff, DiffStatus, Review, Reviewer, Revision, Verdict};
+use crate::model::{
+    CommentSide, Diff, DiffStatus, Review, ReviewComment, Reviewer, Revision, Verdict,
+};
 
 const REVIEW_DETAILS_QUERY: &str = r#"
 SELECT
@@ -218,6 +220,10 @@ pub trait ReviewRepository: Send + Sync + Clone + 'static {
         line_number_end: Option<i32>,
         side: Option<CommentSide>,
     ) -> Result<(), Error>;
+
+    async fn get_comment(&self, comment_id: Uuid) -> Result<Option<ReviewComment>, Error>;
+
+    async fn update_comment(&self, comment_id: Uuid, body: &str) -> Result<ReviewComment, Error>;
 
     async fn update_diff_status(&self, diff_id: Uuid, status: DiffStatus) -> Result<(), Error>;
 }
@@ -581,6 +587,44 @@ impl ReviewRepository for ReviewRepositoryImpl {
         .await?;
 
         Ok(())
+    }
+
+    async fn get_comment(&self, comment_id: Uuid) -> Result<Option<ReviewComment>, Error> {
+        sqlx::query_as::<_, ReviewComment>(
+            r#"
+            SELECT
+                c.id, c.review_id, c.diff_id, c.revision_id, c.author_id, c.parent_id,
+                c.body, c.file_path, c.line_number_start, c.line_number_end, c.side,
+                c.resolved, c.created_at, c.updated_at,
+                (SELECT json_build_object('id', u.id, 'name', u.name, 'email', u.email, 'created_at', u.created_at)
+                 FROM users u WHERE u.id = c.author_id) AS author
+            FROM review_comments c
+            WHERE c.id = $1
+            "#,
+        )
+        .bind(comment_id)
+        .fetch_optional(&self.pool)
+        .await
+    }
+
+    async fn update_comment(&self, comment_id: Uuid, body: &str) -> Result<ReviewComment, Error> {
+        sqlx::query_as::<_, ReviewComment>(
+            r#"
+            UPDATE review_comments
+            SET body = $2, updated_at = NOW()
+            WHERE id = $1
+            RETURNING
+                id, review_id, diff_id, revision_id, author_id, parent_id,
+                body, file_path, line_number_start, line_number_end, side,
+                resolved, created_at, updated_at,
+                (SELECT json_build_object('id', u.id, 'name', u.name, 'email', u.email, 'created_at', u.created_at)
+                 FROM users u WHERE u.id = author_id) AS author
+            "#,
+        )
+        .bind(comment_id)
+        .bind(body)
+        .fetch_one(&self.pool)
+        .await
     }
 
     async fn update_diff_status(&self, diff_id: Uuid, status: DiffStatus) -> Result<(), Error> {

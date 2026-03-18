@@ -319,7 +319,7 @@ mod tests {
         model::{
             Answer, Comment, CommentSide, Diff, DiffStatus, Organization, OrganizationMember,
             OrganizationRole, Question, Repository, RepositoryOwnerType, RepositoryVisibility,
-            Review, Reviewer, Revision, User, Verdict, VoteResult, VoteTarget,
+            Review, ReviewComment, Reviewer, Revision, User, Verdict, VoteResult, VoteTarget,
         },
         repository::{
             OrganizationRepository, QuestionRepository, RepositoryRepository, ReviewRepository,
@@ -422,6 +422,8 @@ mod tests {
             async fn update_revision_sha(&self, revision_id: Uuid, commit_hash: &str, parent_hash: &str) -> Result<(), sqlx::Error>;
             async fn create_verdict(&self, diff_id: Uuid, revision_id: Uuid, reviewer_id: Uuid, verdict: Verdict) -> Result<(), sqlx::Error>;
             async fn create_comment(&self, review_id: Uuid, diff_id: Uuid, revision_id: Uuid, author_id: Uuid, body: &str, parent_id: Option<Uuid>, file_path: Option<String>, line_number_start: Option<i32>, line_number_end: Option<i32>, side: Option<CommentSide>) -> Result<(), sqlx::Error>;
+            async fn get_comment(&self, comment_id: Uuid) -> Result<Option<ReviewComment>, sqlx::Error>;
+            async fn update_comment(&self, comment_id: Uuid, body: &str) -> Result<ReviewComment, sqlx::Error>;
             async fn update_diff_status(&self, diff_id: Uuid, status: DiffStatus) -> Result<(), sqlx::Error>;
         }
     }

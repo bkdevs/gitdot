@@ -4,8 +4,9 @@ use crate::{
     client::{DiffClient, DifftClient, Git2Client, GitClient},
     dto::{
         AddReviewerRequest, GetReviewDiffRequest, GetReviewRequest, ListReviewsRequest,
-        ProcessReviewRequest, PublishReviewRequest, RemoveReviewerRequest, ReviewDiffResponse,
-        ReviewResponse, ReviewerResponse, SubmitAction, SubmitReviewRequest,
+        ProcessReviewRequest, PublishReviewRequest, RemoveReviewerRequest, ReviewCommentResponse,
+        ReviewDiffResponse, ReviewResponse, ReviewerResponse, SubmitAction, SubmitReviewRequest,
+        UpdateReviewCommentRequest,
     },
     error::ReviewError,
     model::{DiffStatus, ReviewStatus, Verdict},
@@ -91,6 +92,11 @@ pub trait ReviewService: Send + Sync + 'static {
         &self,
         request: SubmitReviewRequest,
     ) -> Result<ReviewResponse, ReviewError>;
+
+    async fn update_review_comment(
+        &self,
+        request: UpdateReviewCommentRequest,
+    ) -> Result<ReviewCommentResponse, ReviewError>;
 }
 
 #[derive(Debug, Clone)]
@@ -753,6 +759,32 @@ where
             .ok_or_else(|| {
                 ReviewError::ReviewNotFound(format!("{}/{}/review/{}", owner, repo, request.number))
             })?;
+
+        Ok(updated.into())
+    }
+
+    async fn update_review_comment(
+        &self,
+        request: UpdateReviewCommentRequest,
+    ) -> Result<ReviewCommentResponse, ReviewError> {
+        let comment = self
+            .review_repo
+            .get_comment(request.comment_id)
+            .await?
+            .ok_or_else(|| {
+                ReviewError::CommentNotFound(request.comment_id.to_string())
+            })?;
+
+        if comment.author_id != request.user_id {
+            return Err(ReviewError::Unauthorized(
+                "Only the comment author can update a comment".to_string(),
+            ));
+        }
+
+        let updated = self
+            .review_repo
+            .update_comment(request.comment_id, &request.body)
+            .await?;
 
         Ok(updated.into())
     }

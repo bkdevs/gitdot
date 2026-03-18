@@ -5,10 +5,11 @@ mod list_reviews;
 mod publish_review;
 mod remove_reviewer;
 mod submit_review;
+mod update_review_comment;
 
 use axum::{
     Router,
-    routing::{delete, get, post},
+    routing::{delete, get, patch, post},
 };
 
 use crate::app::AppState;
@@ -20,6 +21,7 @@ use list_reviews::list_reviews;
 use publish_review::publish_review;
 use remove_reviewer::remove_reviewer;
 use submit_review::submit_review;
+use update_review_comment::update_review_comment;
 
 pub fn create_review_router() -> Router<AppState> {
     Router::new()
@@ -47,5 +49,9 @@ pub fn create_review_router() -> Router<AppState> {
         .route(
             "/repository/{owner}/{repo}/review/{number}/diff/{position}/submit",
             post(submit_review),
+        )
+        .route(
+            "/repository/{owner}/{repo}/review/{number}/comment/{comment_id}",
+            patch(update_review_comment),
         )
 }
