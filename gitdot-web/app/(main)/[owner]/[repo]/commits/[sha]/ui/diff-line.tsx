@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import {
+  type DraftComment,
   useDiffFile,
   useReviewComments,
 } from "@/(main)/[owner]/[repo]/reviews/[number]/review-comment-context";
@@ -62,17 +63,48 @@ export function DiffLine({
       filePath={filePath}
       comments={lineComments}
       isActiveInput={isActiveInput}
+      activeReplyToId={
+        isActiveInput ? (ctx.activeInput?.replyToId ?? null) : null
+      }
       canComment={ctx.canComment}
       onClickAdd={() => ctx.setActiveInput({ filePath, lineNumber, side })}
-      onSubmit={(body) => {
-        ctx.addComment(filePath, lineNumber, side, body);
+      onSubmit={(body, parentId) => {
+        ctx.addComment(filePath, lineNumber, side, body, parentId);
         ctx.setActiveInput(null);
       }}
+      onClickReply={(commentId) =>
+        ctx.setActiveInput({ filePath, lineNumber, side, replyToId: commentId })
+      }
       onCancel={() => ctx.setActiveInput(null)}
     >
       {children}
     </DiffLineWithComments>
   );
+}
+
+interface CommentThread {
+  root: DraftComment;
+  replies: DraftComment[];
+}
+
+function groupIntoThreads(comments: DraftComment[]): CommentThread[] {
+  const topLevel: DraftComment[] = [];
+  const repliesByParent = new Map<string, DraftComment[]>();
+
+  for (const c of comments) {
+    if (c.parent_id) {
+      const list = repliesByParent.get(c.parent_id) ?? [];
+      list.push(c);
+      repliesByParent.set(c.parent_id, list);
+    } else {
+      topLevel.push(c);
+    }
+  }
+
+  return topLevel.map((root) => ({
+    root,
+    replies: root.id ? (repliesByParent.get(root.id) ?? []) : [],
+  }));
 }
 
 function DiffLineWithComments({
@@ -81,9 +113,11 @@ function DiffLineWithComments({
   lineType,
   comments,
   isActiveInput,
+  activeReplyToId,
   canComment,
   onClickAdd,
   onSubmit,
+  onClickReply,
   onCancel,
 }: {
   children: React.ReactNode;
@@ -91,15 +125,19 @@ function DiffLineWithComments({
   lineType: "normal" | "added" | "removed";
   side: "old" | "new";
   filePath: string;
-  comments: { author_name: string; body: string; created_at: string }[];
+  comments: DraftComment[];
   isActiveInput: boolean;
+  activeReplyToId: string | null;
   canComment: boolean;
   onClickAdd: () => void;
-  onSubmit: (body: string) => void;
+  onSubmit: (body: string, parentId?: string) => void;
+  onClickReply: (commentId: string) => void;
   onCancel: () => void;
 }) {
   const [inputValue, setInputValue] = useState("");
-  const hasComments = comments.length > 0 || isActiveInput;
+  const threads = groupIntoThreads(comments);
+  const isNewCommentInput = isActiveInput && !activeReplyToId;
+  const hasComments = threads.length > 0 || isNewCommentInput;
 
   return (
     <div className="group/line flex flex-col w-full">
@@ -126,46 +164,177 @@ function DiffLineWithComments({
       </span>
 
       {hasComments && (
-        <div className="w-full bg-background border-y border-border px-3 py-2 flex flex-col gap-1.5 font-sans text-xs">
-          {comments.map((c, i) => (
-            <div key={`${c.created_at}-${i}`} className="flex flex-col gap-0.5">
-              <div className="flex items-center gap-2">
-                <span className="font-medium text-foreground">
-                  {c.author_name}
-                </span>
-                <span className="text-muted-foreground">
-                  {timeAgo(new Date(c.created_at))}
-                </span>
-              </div>
-              <p className="text-muted-foreground">{c.body}</p>
-            </div>
+        <div className="w-full bg-background border-y border-border px-3 py-2 flex flex-col gap-2 font-sans text-xs">
+          {threads.map((thread) => (
+            <CommentThreadView
+              key={thread.root.id ?? thread.root.created_at}
+              thread={thread}
+              canComment={canComment}
+              isReplyActive={activeReplyToId === thread.root.id}
+              onClickReply={() => {
+                if (thread.root.id) onClickReply(thread.root.id);
+              }}
+              onSubmitReply={(body) => {
+                if (thread.root.id) onSubmit(body, thread.root.id);
+              }}
+              onCancel={onCancel}
+            />
           ))}
 
-          {isActiveInput && (
-            <input
-              className="w-full bg-transparent border border-border rounded px-2 py-1 text-sm outline-none focus:border-ring font-sans"
-              type="text"
-              placeholder="Write a comment..."
-              autoFocus
+          {isNewCommentInput && (
+            <CommentInputField
               value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onBlur={() => {
-                setInputValue("");
-                onCancel();
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Escape") {
-                  setInputValue("");
-                  onCancel();
-                } else if (e.key === "Enter" && inputValue.trim()) {
+              onChange={setInputValue}
+              onSubmit={() => {
+                if (inputValue.trim()) {
                   onSubmit(inputValue.trim());
                   setInputValue("");
                 }
               }}
+              onCancel={() => {
+                setInputValue("");
+                onCancel();
+              }}
+              placeholder="Write a comment..."
+              autoFocus
             />
           )}
         </div>
       )}
     </div>
+  );
+}
+
+function CommentThreadView({
+  thread,
+  canComment,
+  isReplyActive,
+  onClickReply,
+  onSubmitReply,
+  onCancel,
+}: {
+  thread: CommentThread;
+  canComment: boolean;
+  isReplyActive: boolean;
+  onClickReply: () => void;
+  onSubmitReply: (body: string) => void;
+  onCancel: () => void;
+}) {
+  const [replyValue, setReplyValue] = useState("");
+
+  return (
+    <div className="flex flex-col gap-1">
+      <CommentBubble
+        comment={thread.root}
+        canReply={canComment && thread.root.id !== null}
+        onClickReply={onClickReply}
+      />
+
+      {thread.replies.length > 0 && (
+        <div className="ml-4 border-l border-border pl-3 flex flex-col gap-1">
+          {thread.replies.map((reply, i) => (
+            <CommentBubble
+              key={reply.id ?? `${reply.created_at}-${i}`}
+              comment={reply}
+              canReply={false}
+              onClickReply={() => {}}
+            />
+          ))}
+        </div>
+      )}
+
+      {isReplyActive && (
+        <div className="ml-4 pl-3">
+          <CommentInputField
+            value={replyValue}
+            onChange={setReplyValue}
+            onSubmit={() => {
+              if (replyValue.trim()) {
+                onSubmitReply(replyValue.trim());
+                setReplyValue("");
+              }
+            }}
+            onCancel={() => {
+              setReplyValue("");
+              onCancel();
+            }}
+            placeholder="Write a reply..."
+            autoFocus
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CommentBubble({
+  comment,
+  canReply,
+  onClickReply,
+}: {
+  comment: DraftComment;
+  canReply: boolean;
+  onClickReply: () => void;
+}) {
+  return (
+    <div className="flex flex-col gap-0.5 group/comment">
+      <div className="flex items-center gap-2">
+        <span className="font-medium text-foreground">
+          {comment.author_name}
+        </span>
+        <span className="text-muted-foreground">
+          {timeAgo(new Date(comment.created_at))}
+        </span>
+        {canReply && (
+          <button
+            type="button"
+            className="text-muted-foreground hover:text-foreground opacity-0 group-hover/comment:opacity-100 transition-opacity cursor-pointer"
+            onClick={onClickReply}
+          >
+            reply
+          </button>
+        )}
+      </div>
+      <p className="text-muted-foreground">{comment.body}</p>
+    </div>
+  );
+}
+
+function CommentInputField({
+  value,
+  onChange,
+  onSubmit,
+  onCancel,
+  placeholder,
+  autoFocus,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  onSubmit: () => void;
+  onCancel: () => void;
+  placeholder: string;
+  autoFocus?: boolean;
+}) {
+  return (
+    <input
+      className="w-full bg-transparent border border-border rounded px-2 py-1 text-sm outline-none focus:border-ring font-sans"
+      type="text"
+      placeholder={placeholder}
+      autoFocus={autoFocus}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      onBlur={() => {
+        onChange("");
+        onCancel();
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Escape") {
+          onChange("");
+          onCancel();
+        } else if (e.key === "Enter" && value.trim()) {
+          onSubmit();
+        }
+      }}
+    />
   );
 }

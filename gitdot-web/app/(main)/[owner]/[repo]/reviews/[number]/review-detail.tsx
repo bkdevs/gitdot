@@ -20,6 +20,8 @@ import { Reviewers } from "./reviewers";
 function serverCommentToDraft(c: ReviewCommentResource): DraftComment | null {
   if (!c.file_path || c.line_number_start === null || !c.side) return null;
   return {
+    id: c.id,
+    parent_id: c.parent_id,
     diff_id: c.diff_id,
     revision_id: c.revision_id,
     file_path: c.file_path,
@@ -124,11 +126,14 @@ export function ReviewDetail({
     lineNumber: number,
     side: "old" | "new",
     body: string,
+    parentId?: string,
   ) {
     if (!user || !canComment || !selectedDiff) return;
     setDraftComments((prev) => [
       ...prev,
       {
+        id: null,
+        parent_id: parentId ?? null,
         diff_id: selectedDiff.id,
         revision_id: selectedDiff.revisions[0]?.id ?? null,
         file_path: filePath,
@@ -179,6 +184,7 @@ export function ReviewDetail({
       .filter((c) => c.diff_id === selectedDiff.id)
       .map((c) => ({
         body: c.body,
+        parent_id: c.parent_id,
         file_path: c.file_path,
         line_number_start: c.line_number,
         line_number_end: null,

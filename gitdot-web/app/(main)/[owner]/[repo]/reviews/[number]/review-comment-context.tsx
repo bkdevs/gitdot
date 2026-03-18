@@ -3,6 +3,8 @@
 import { createContext, useContext } from "react";
 
 export interface DraftComment {
+  id: string | null;
+  parent_id: string | null;
   diff_id: string;
   revision_id: string | null;
   file_path: string;
@@ -17,6 +19,7 @@ export interface CommentInput {
   filePath: string;
   lineNumber: number;
   side: "old" | "new";
+  replyToId?: string;
 }
 
 interface ReviewCommentContextValue {
@@ -26,6 +29,7 @@ interface ReviewCommentContextValue {
     lineNumber: number,
     side: "old" | "new",
     body: string,
+    parentId?: string,
   ) => void;
   canComment: boolean;
   activeInput: CommentInput | null;
