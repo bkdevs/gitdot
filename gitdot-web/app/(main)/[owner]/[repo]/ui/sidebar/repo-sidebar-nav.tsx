@@ -46,6 +46,8 @@ export function RepoSidebarNav({
               active ? "bg-sidebar" : ""
             }`}
             prefetch={true}
+            data-sidebar-item
+            data-sidebar-item-active={active ? "true" : undefined}
           >
             <span className="ml-2">{item.label}</span>
           </Link>

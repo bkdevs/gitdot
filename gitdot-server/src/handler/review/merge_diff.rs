@@ -1,5 +1,7 @@
-use axum::extract::{Path, State};
-use axum::http::StatusCode;
+use axum::{
+    extract::{Path, State},
+    http::StatusCode,
+};
 
 use gitdot_api::endpoint::merge_diff as api;
 use gitdot_core::dto::{MergeDiffRequest, ReviewAuthorizationRequest};

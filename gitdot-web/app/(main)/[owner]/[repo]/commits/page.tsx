@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { useParams } from "next/navigation";
 import { Fragment, Suspense, use } from "react";
 import { groupCommitsByDate } from "@/(main)/[owner]/[repo]/util";
 import Link from "@/ui/link";
@@ -8,8 +8,7 @@ import { formatDateKey, formatTime } from "@/util";
 import { useRepoContext } from "../context";
 
 export function CommitsClient() {
-  const pathname = usePathname();
-  const [owner, repo] = pathname.split("/").filter(Boolean);
+  const { owner, repo } = useParams<{ owner: string; repo: string }>();
 
   const commits = use(useRepoContext().commits);
   if (!commits) return null;

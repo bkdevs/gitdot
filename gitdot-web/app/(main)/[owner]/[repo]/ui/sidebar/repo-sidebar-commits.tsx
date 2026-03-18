@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { useParams } from "next/navigation";
 import { Fragment, use } from "react";
 import Link from "@/ui/link";
 import { formatDateKey, formatTime } from "@/util";
@@ -8,8 +8,11 @@ import { useRepoContext } from "../../context";
 import { groupCommitsByDate } from "../../util/commit";
 
 export function RepoSidebarCommits() {
-  const pathname = usePathname();
-  const [owner, repo, _, currentSha] = pathname.split("/").filter(Boolean);
+  const { owner, repo, sha } = useParams<{
+    owner: string;
+    repo: string;
+    sha: string | undefined;
+  }>();
 
   const commits = use(useRepoContext().commits);
   if (!commits) return null;
@@ -25,7 +28,7 @@ export function RepoSidebarCommits() {
             </h3>
           </div>
           {dateCommits.map((commit) => {
-            const isActive = currentSha === commit.sha.substring(0, 7);
+            const isActive = sha === commit.sha.substring(0, 7);
             const author = commit.author.name;
             return (
               <Link
@@ -35,6 +38,8 @@ export function RepoSidebarCommits() {
                   isActive && "bg-sidebar"
                 }`}
                 prefetch={true}
+                data-sidebar-item
+                data-sidebar-item-active={isActive ? "true" : undefined}
               >
                 <div className="flex flex-col w-full justify-start items-start min-w-0">
                   <div className="text-sm truncate mb-0.5 w-full">

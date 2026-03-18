@@ -1,50 +1,51 @@
 "use client";
 
-import { useParams, usePathname, useRouter } from "next/navigation";
 import { useMemo } from "react";
+// import { useParams, useRouter } from "next/navigation";
 import { type ShortcutMap, useShortcuts } from "@/(main)/context/shortcuts";
 
-const NAV_PATHS = ["", "files", "commits", "questions", "reviews", "builds"];
-
 export function RepoShortcuts() {
-  const router = useRouter();
-  const { owner, repo } = useParams<{ owner: string; repo: string }>();
-  const pathname = usePathname();
+  // const router = useRouter();
+  // const { owner, repo } = useParams<{ owner: string; repo: string }>();
 
   const map = useMemo<ShortcutMap>(() => {
-    const rel = pathname.replace(`/${owner}/${repo}`, "") || "";
-    const idx = Math.max(
-      0,
-      NAV_PATHS.findIndex((p) =>
-        p === ""
-          ? rel === "" || rel === "/"
-          : rel === `/${p}` || rel.startsWith(`/${p}/`),
-      ),
-    );
-    const nav = (i: number) => {
-      const p = NAV_PATHS[i];
-      router.push(p ? `/${owner}/${repo}/${p}` : `/${owner}/${repo}`);
-    };
     return {
-      g: {
-        name: "navigate-to-home",
-        execute: () => router.push(`/${owner}/${repo}`),
-      },
-      c: {
-        name: "navigate-to-commits",
-        execute: () => router.push(`/${owner}/${repo}/commits`),
-      },
       p: {
-        name: "open-file-search",
+        name: "FuzzyFile",
         execute: () => window.dispatchEvent(new Event("openFileSearch")),
       },
-      j: { name: "nav-down", execute: () => nav((idx + 1) % NAV_PATHS.length) },
+      j: {
+        name: "NavDown",
+        execute: () => {
+          const items = Array.from(
+            document.querySelectorAll<HTMLElement>("[data-sidebar-item]"),
+          );
+          if (!items.length) return;
+          const activeIdx = items.findIndex(
+            (el) => el.dataset.sidebarItemActive === "true",
+          );
+          if (activeIdx === -1) return;
+
+          items[(activeIdx + 1) % items.length].click();
+        },
+      },
       k: {
-        name: "nav-up",
-        execute: () => nav((idx - 1 + NAV_PATHS.length) % NAV_PATHS.length),
+        name: "NavUp",
+        execute: () => {
+          const items = Array.from(
+            document.querySelectorAll<HTMLElement>("[data-sidebar-item]"),
+          );
+          if (!items.length) return;
+          const activeIdx = items.findIndex(
+            (el) => el.dataset.sidebarItemActive === "true",
+          );
+          if (activeIdx === -1) return;
+
+          items[(activeIdx - 1 + items.length) % items.length].click();
+        },
       },
     };
-  }, [owner, repo, pathname, router]);
+  }, []);
 
   useShortcuts(map);
   return null;

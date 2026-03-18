@@ -15,6 +15,7 @@ function FileRow({
   isFolder: boolean;
   isActive: boolean;
 }) {
+  const navigable = filePath !== "..";
   return (
     <Link
       href={href}
@@ -22,6 +23,8 @@ function FileRow({
         isActive && "bg-sidebar"
       }`}
       prefetch={true}
+      data-sidebar-item={navigable ? "" : undefined}
+      data-sidebar-item-active={navigable && isActive ? "true" : undefined}
     >
       {isFolder ? (
         isActive ? (
