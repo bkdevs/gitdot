@@ -54,7 +54,7 @@ export async function getReviewDiff(
   if (compareTo !== undefined) params.compare_to = compareTo;
   const query = toQueryString(params);
   const response = await authFetch(
-    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/review/${number}/diff/${position}${query}`,
+    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/review/${number}/diff/${position}${query ? `?${query}` : ""}`,
   );
 
   return await handleResponse(response, GetReviewDiffResponse);

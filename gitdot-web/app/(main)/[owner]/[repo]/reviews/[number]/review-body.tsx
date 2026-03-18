@@ -8,9 +8,10 @@ import { DiffFileProvider } from "./review-comment-context";
 export function ReviewBody({
   diffEntries,
 }: {
-  diffEntries: Promise<DiffEntry[]>;
+  diffEntries: Promise<DiffEntry[]> | DiffEntry[];
 }) {
-  const entries = use(diffEntries);
+  const entries =
+    diffEntries instanceof Promise ? use(diffEntries) : diffEntries;
 
   return (
     <div className="flex flex-col">

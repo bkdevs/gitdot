@@ -41,8 +41,17 @@ export async function renderReviewDiffAction(
   repo: string,
   number: number,
   position: number,
+  revision?: number,
+  compareTo?: number,
 ): Promise<DiffEntry[]> {
-  const result = await getReviewDiff(owner, repo, number, position);
+  const result = await getReviewDiff(
+    owner,
+    repo,
+    number,
+    position,
+    revision,
+    compareTo,
+  );
   if (!result) return [];
   return renderDiffs(result.files);
 }

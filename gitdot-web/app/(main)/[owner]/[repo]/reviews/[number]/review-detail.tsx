@@ -6,15 +6,26 @@ import type {
   ReviewerResource,
   ReviewResource,
 } from "gitdot-api";
-import { useRef, useState } from "react";
+import { Suspense, useRef, useState, useTransition } from "react";
 import { useUserContext } from "@/(main)/context/user";
+import type { DiffEntry } from "@/actions";
+import { renderReviewDiffAction } from "@/actions";
 import {
   publishReviewAction,
   resolveReviewCommentAction,
   submitReviewAction,
 } from "@/actions/review";
 import { Button } from "@/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "@/ui/dropdown-menu";
+import { Loading } from "@/ui/loading";
 import { cn, timeAgo } from "@/util";
+import { ReviewBody } from "./review-body";
 import {
   type DraftComment,
   ReviewCommentContext,
@@ -126,6 +137,12 @@ export function ReviewDetail({
     lineNumber: number;
     side: "old" | "new";
   } | null>(null);
+  const [leftRevision, setLeftRevision] = useState<"base" | number>("base");
+  const [rightRevision, setRightRevision] = useState<number | null>(null);
+  const [dynamicDiffEntries, setDynamicDiffEntries] = useState<
+    DiffEntry[] | null
+  >(null);
+  const [isLoadingDiff, startDiffTransition] = useTransition();
 
   const isReviewer = review.reviewers.some((r) => r.reviewer_id === user?.id);
   const isReviewAuthor = user?.id === review.author_id;
@@ -156,6 +173,31 @@ export function ReviewDetail({
         revision_number: null,
       },
     ]);
+  }
+
+  function handleRevisionChange(newLeft: "base" | number, newRight: number) {
+    if (!selectedDiff) return;
+    setLeftRevision(newLeft);
+    setRightRevision(newRight);
+
+    const latestRevNum = selectedDiff.revisions[0]?.number;
+    const isDefault = newLeft === "base" && newRight === latestRevNum;
+    if (isDefault) {
+      setDynamicDiffEntries(null);
+      return;
+    }
+
+    startDiffTransition(async () => {
+      const entries = await renderReviewDiffAction(
+        owner,
+        repo,
+        number,
+        selectedDiff.position,
+        newRight,
+        newLeft === "base" ? undefined : newLeft,
+      );
+      setDynamicDiffEntries(entries);
+    });
   }
 
   const titleRef = useRef<HTMLInputElement>(null);
@@ -296,7 +338,12 @@ export function ReviewDetail({
                       ? "bg-accent"
                       : "hover:bg-accent/50",
                   )}
-                  onClick={() => setSelectedDiffIndex(index)}
+                  onClick={() => {
+                    setSelectedDiffIndex(index);
+                    setLeftRevision("base");
+                    setRightRevision(null);
+                    setDynamicDiffEntries(null);
+                  }}
                 >
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-muted-foreground">
@@ -361,6 +408,18 @@ export function ReviewDetail({
                       </>
                     )}
                   </div>
+
+                  {selectedDiff.revisions.length > 0 && (
+                    <RevisionSelector
+                      revisions={selectedDiff.revisions}
+                      leftRevision={leftRevision}
+                      rightRevision={
+                        rightRevision ?? selectedDiff.revisions[0].number
+                      }
+                      isLoading={isLoadingDiff}
+                      onChange={handleRevisionChange}
+                    />
+                  )}
                 </div>
 
                 {review.reviewers.length > 0 && (
@@ -407,7 +466,13 @@ export function ReviewDetail({
                     setActiveInput,
                   }}
                 >
-                  {diffContents[selectedDiff.position]}
+                  {dynamicDiffEntries ? (
+                    <Suspense fallback={<Loading />}>
+                      <ReviewBody diffEntries={dynamicDiffEntries} />
+                    </Suspense>
+                  ) : (
+                    diffContents[selectedDiff.position]
+                  )}
                 </ReviewCommentContext.Provider>
               </div>
             ) : (
@@ -485,6 +550,75 @@ export function ReviewDetail({
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+function RevisionSelector({
+  revisions,
+  leftRevision,
+  rightRevision,
+  isLoading,
+  onChange,
+}: {
+  revisions: { number: number; commit_hash: string }[];
+  leftRevision: "base" | number;
+  rightRevision: number;
+  isLoading: boolean;
+  onChange: (left: "base" | number, right: number) => void;
+}) {
+  // Revisions are sorted desc (latest first), show asc for the selector
+  const sorted = [...revisions].sort((a, b) => a.number - b.number);
+
+  return (
+    <div
+      className={cn(
+        "flex items-center gap-2 text-xs",
+        isLoading && "opacity-50",
+      )}
+    >
+      <DropdownMenu>
+        <DropdownMenuTrigger className="flex items-center gap-1 px-2 py-1 border border-border rounded hover:bg-accent cursor-pointer text-muted-foreground">
+          {leftRevision === "base" ? "Base" : `Rev ${leftRevision}`}
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuRadioGroup
+            value={String(leftRevision)}
+            onValueChange={(v) =>
+              onChange(v === "base" ? "base" : Number(v), rightRevision)
+            }
+          >
+            <DropdownMenuRadioItem value="base">Base</DropdownMenuRadioItem>
+            {sorted
+              .filter((r) => r.number < rightRevision)
+              .map((r) => (
+                <DropdownMenuRadioItem key={r.number} value={String(r.number)}>
+                  Rev {r.number}
+                </DropdownMenuRadioItem>
+              ))}
+          </DropdownMenuRadioGroup>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <span className="text-muted-foreground">→</span>
+
+      <DropdownMenu>
+        <DropdownMenuTrigger className="flex items-center gap-1 px-2 py-1 border border-border rounded hover:bg-accent cursor-pointer text-muted-foreground">
+          Rev {rightRevision}
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuRadioGroup
+            value={String(rightRevision)}
+            onValueChange={(v) => onChange(leftRevision, Number(v))}
+          >
+            {sorted.map((r) => (
+              <DropdownMenuRadioItem key={r.number} value={String(r.number)}>
+                Rev {r.number}
+              </DropdownMenuRadioItem>
+            ))}
+          </DropdownMenuRadioGroup>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 }
