@@ -59,8 +59,6 @@ export function ShortcutsProvider({ children }: { children: React.ReactNode }) {
     function handleKeyDown(event: KeyboardEvent) {
       if (event.ctrlKey || event.altKey || event.metaKey) return;
       if (isInputFocused()) return;
-      if (event.key.length !== 1) return;
-
       const command = merged.current[event.key];
       if (command) {
         event.preventDefault();

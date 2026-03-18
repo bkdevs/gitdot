@@ -9,6 +9,10 @@ const navItems = [
   { path: "builds", label: "/builds" },
 ];
 
+export const NAV_SECTIONS = new Set(
+  [...navItems.map((i) => i.path), "settings"].filter(Boolean),
+);
+
 export function RepoSidebarNav({
   owner,
   repo,
