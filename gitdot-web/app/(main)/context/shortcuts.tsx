@@ -6,7 +6,9 @@ import {
   useContext,
   useEffect,
   useRef,
+  useState,
 } from "react";
+import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
 
 export interface Shortcut {
   name: string;
@@ -49,7 +51,15 @@ function mergeShortcuts(
   return merged;
 }
 
+const helpShortcut: Shortcut = {
+  name: "Help",
+  description: "Keyboard shortcuts",
+  keys: ["?"],
+  execute: () => {},
+};
+
 export function ShortcutsProvider({ children }: { children: React.ReactNode }) {
+  const [dialogOpen, setDialogOpen] = useState(false);
   const registryRef = useRef<Map<number, Shortcut[]>>(new Map());
   const counterRef = useRef(0);
   const merged = useRef<Map<string, Shortcut>>(new Map());
@@ -78,6 +88,12 @@ export function ShortcutsProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
+      if (event.key === "?") {
+        event.preventDefault();
+        setDialogOpen(true);
+        return;
+      }
+
       const shortcut = merged.current.get(event.key);
       if (!shortcut) return;
 
@@ -88,7 +104,42 @@ export function ShortcutsProvider({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  return <ShortcutsContext value={{ register }}>{children}</ShortcutsContext>;
+  const allShortcuts = [...registryRef.current.values()]
+    .flat()
+    .concat(helpShortcut);
+
+  return (
+    <ShortcutsContext value={{ register }}>
+      {children}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent
+          className="max-w-lg! w-full p-0! top-[40vh]!"
+          aria-describedby={undefined}
+        >
+          <DialogTitle className="font-mono text-xs font-normal text-muted-foreground flex w-full px-2 pt-1">
+            Shortcuts
+          </DialogTitle>
+          <div className="grid grid-cols-2 gap-x-8 gap-y-4 font-mono px-4 pb-4">
+            {allShortcuts.map((s) => (
+              <div key={s.name}>
+                <div className="flex items-baseline gap-1">
+                  {s.keys.map((k, i) => (
+                    <kbd key={k} className="text-sm bg-muted px-1 rounded-xs">
+                      {k}
+                      {i < s.keys.length - 1 ? "," : ""}
+                    </kbd>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground mt-0.5 pl-0.5">
+                  {s.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </ShortcutsContext>
+  );
 }
 
 export function useShortcuts(shortcuts: Shortcut[]): void {

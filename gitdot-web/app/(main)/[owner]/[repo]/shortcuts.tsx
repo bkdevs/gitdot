@@ -103,32 +103,8 @@ export function RepoShortcuts() {
   const shortcuts = useMemo<Shortcut[]>(
     () => [
       {
-        name: "GoTo",
-        description: "Open go-to menu",
-        keys: ["g"],
-        execute: () => window.dispatchEvent(new Event("openGotoDialog")),
-      },
-      {
-        name: "FuzzyFile",
-        description: "Open file search",
-        keys: ["p"],
-        execute: () => window.dispatchEvent(new Event("openFileSearch")),
-      },
-      {
-        name: "NavPop",
-        description: "Navigate back",
-        keys: ["h", "Escape"],
-        execute: () => navPop(),
-      },
-      {
-        name: "NavPush",
-        description: "Navigate into selected item",
-        keys: ["l", "Enter"],
-        execute: navPush,
-      },
-      {
         name: "NavDown",
-        description: "Go to next sidebar section",
+        description: "Next sidebar item",
         keys: ["j"],
         execute: () => {
           const items = Array.from(
@@ -144,7 +120,7 @@ export function RepoShortcuts() {
       },
       {
         name: "NavUp",
-        description: "Go to previous sidebar section",
+        description: "Previous sidebar item",
         keys: ["k"],
         execute: () => {
           const items = Array.from(
@@ -160,7 +136,7 @@ export function RepoShortcuts() {
       },
       {
         name: "ItemDown",
-        description: "Focus next item in list",
+        description: "Next page item",
         keys: ["J"],
         execute: () => {
           const items = Array.from(
@@ -174,7 +150,7 @@ export function RepoShortcuts() {
       },
       {
         name: "ItemUp",
-        description: "Focus previous item in list",
+        description: "Previous page item",
         keys: ["K"],
         execute: () => {
           const items = Array.from(
@@ -188,6 +164,30 @@ export function RepoShortcuts() {
               : (activeIdx - 1 + items.length) % items.length;
           items[prev].focus();
         },
+      },
+      {
+        name: "NavPop",
+        description: "Go up: cd ..",
+        keys: ["h", "Escape"],
+        execute: () => navPop(),
+      },
+      {
+        name: "NavPush",
+        description: "Go down: cd dir",
+        keys: ["l", "Enter"],
+        execute: navPush,
+      },
+      {
+        name: "GoTo",
+        description: "Goto dialog",
+        keys: ["g"],
+        execute: () => window.dispatchEvent(new Event("openGotoDialog")),
+      },
+      {
+        name: "FuzzyFile",
+        description: "File dialog",
+        keys: ["p"],
+        execute: () => window.dispatchEvent(new Event("openFileSearch")),
       },
     ],
     [navPop, navPush],
