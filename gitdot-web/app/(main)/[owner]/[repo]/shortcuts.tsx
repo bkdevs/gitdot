@@ -2,7 +2,7 @@
 
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef } from "react";
-import { type ShortcutMap, useShortcuts } from "@/(main)/context/shortcuts";
+import { type Shortcut, useShortcuts } from "@/(main)/context/shortcuts";
 import { NAV_SECTIONS } from "./ui/sidebar/repo-sidebar-nav";
 
 export function RepoShortcuts() {
@@ -100,23 +100,36 @@ export function RepoShortcuts() {
     return () => window.removeEventListener("popstate", handlePopState);
   }, [navPop]);
 
-  const map = useMemo<ShortcutMap>(() => {
-    return {
-      g: {
+  const shortcuts = useMemo<Shortcut[]>(
+    () => [
+      {
         name: "GoTo",
+        description: "Open go-to menu",
+        keys: ["g"],
         execute: () => window.dispatchEvent(new Event("openGotoDialog")),
       },
-      p: {
+      {
         name: "FuzzyFile",
+        description: "Open file search",
+        keys: ["p"],
         execute: () => window.dispatchEvent(new Event("openFileSearch")),
       },
-      h: { name: "NavPop", execute: () => navPop() },
-      Escape: { name: "NavPop", execute: () => navPop() },
-      l: { name: "NavPush", execute: navPush },
-      Enter: { name: "NavPush", execute: navPush },
-
-      j: {
+      {
+        name: "NavPop",
+        description: "Navigate back",
+        keys: ["h", "Escape"],
+        execute: () => navPop(),
+      },
+      {
+        name: "NavPush",
+        description: "Navigate into selected item",
+        keys: ["l", "Enter"],
+        execute: navPush,
+      },
+      {
         name: "NavDown",
+        description: "Go to next sidebar section",
+        keys: ["j"],
         execute: () => {
           const items = Array.from(
             document.querySelectorAll<HTMLElement>("[data-sidebar-item]"),
@@ -126,12 +139,13 @@ export function RepoShortcuts() {
             (el) => el.dataset.sidebarItemActive === "true",
           );
           if (activeIdx === -1) return;
-
           items[(activeIdx + 1) % items.length].click();
         },
       },
-      k: {
+      {
         name: "NavUp",
+        description: "Go to previous sidebar section",
+        keys: ["k"],
         execute: () => {
           const items = Array.from(
             document.querySelectorAll<HTMLElement>("[data-sidebar-item]"),
@@ -141,30 +155,33 @@ export function RepoShortcuts() {
             (el) => el.dataset.sidebarItemActive === "true",
           );
           if (activeIdx === -1) return;
-
           items[(activeIdx - 1 + items.length) % items.length].click();
         },
       },
-      J: {
+      {
         name: "ItemDown",
+        description: "Focus next item in list",
+        keys: ["J"],
         execute: () => {
           const items = Array.from(
             document.querySelectorAll<HTMLElement>("[data-page-item]"),
           );
           if (!items.length) return;
-          const activeIdx = items.findIndex((el) => el === document.activeElement);
+          const activeIdx = items.indexOf(document.activeElement);
           const next = activeIdx === -1 ? 0 : (activeIdx + 1) % items.length;
           items[next].focus();
         },
       },
-      K: {
+      {
         name: "ItemUp",
+        description: "Focus previous item in list",
+        keys: ["K"],
         execute: () => {
           const items = Array.from(
             document.querySelectorAll<HTMLElement>("[data-page-item]"),
           );
           if (!items.length) return;
-          const activeIdx = items.findIndex((el) => el === document.activeElement);
+          const activeIdx = items.indexOf(document.activeElement);
           const prev =
             activeIdx === -1
               ? items.length - 1
@@ -172,9 +189,10 @@ export function RepoShortcuts() {
           items[prev].focus();
         },
       },
-    };
-  }, [navPop, navPush]);
+    ],
+    [navPop, navPush],
+  );
 
-  useShortcuts(map);
+  useShortcuts(shortcuts);
   return null;
 }

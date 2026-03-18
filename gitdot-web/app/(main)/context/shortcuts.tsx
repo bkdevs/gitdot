@@ -8,17 +8,15 @@ import {
   useRef,
 } from "react";
 
-export type ShortcutKey = string;
-
-export interface ShortcutCommand {
+export interface Shortcut {
   name: string;
+  description: string;
+  keys: string[];
   execute: () => void;
 }
 
-export type ShortcutMap = Record<ShortcutKey, ShortcutCommand>;
-
 interface ShortcutsContext {
-  register: (map: ShortcutMap) => () => void;
+  register: (shortcuts: Shortcut[]) => () => void;
 }
 const ShortcutsContext = createContext<ShortcutsContext | null>(null);
 
@@ -37,27 +35,33 @@ function isRadixModalOpen(): boolean {
   );
 }
 
-function mergeMaps(registry: Map<number, ShortcutMap>): ShortcutMap {
-  const merged: ShortcutMap = {};
+function mergeShortcuts(
+  registry: Map<number, Shortcut[]>,
+): Map<string, Shortcut> {
+  const merged = new Map<string, Shortcut>();
   for (const id of [...registry.keys()].sort((a, b) => a - b)) {
-    Object.assign(merged, registry.get(id));
+    for (const shortcut of registry.get(id) ?? []) {
+      for (const key of shortcut.keys) {
+        merged.set(key, shortcut);
+      }
+    }
   }
   return merged;
 }
 
 export function ShortcutsProvider({ children }: { children: React.ReactNode }) {
-  const registryRef = useRef<Map<number, ShortcutMap>>(new Map());
+  const registryRef = useRef<Map<number, Shortcut[]>>(new Map());
   const counterRef = useRef(0);
-  const merged = useRef<ShortcutMap>({});
+  const merged = useRef<Map<string, Shortcut>>(new Map());
 
-  const register = useCallback((map: ShortcutMap): (() => void) => {
+  const register = useCallback((shortcuts: Shortcut[]): (() => void) => {
     const id = ++counterRef.current;
-    registryRef.current.set(id, map);
-    merged.current = mergeMaps(registryRef.current);
+    registryRef.current.set(id, shortcuts);
+    merged.current = mergeShortcuts(registryRef.current);
 
     return () => {
       registryRef.current.delete(id);
-      merged.current = mergeMaps(registryRef.current);
+      merged.current = mergeShortcuts(registryRef.current);
     };
   }, []);
 
@@ -74,11 +78,11 @@ export function ShortcutsProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      const command = merged.current[event.key];
-      if (!command) return;
+      const shortcut = merged.current.get(event.key);
+      if (!shortcut) return;
 
       event.preventDefault();
-      command.execute();
+      shortcut.execute();
     }
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
@@ -87,7 +91,7 @@ export function ShortcutsProvider({ children }: { children: React.ReactNode }) {
   return <ShortcutsContext value={{ register }}>{children}</ShortcutsContext>;
 }
 
-export function useShortcuts(map: ShortcutMap): void {
+export function useShortcuts(shortcuts: Shortcut[]): void {
   const ctx = useContext(ShortcutsContext);
   if (!ctx) {
     throw new Error("useShortcuts must be used within ShortcutsProvider");
@@ -95,7 +99,7 @@ export function useShortcuts(map: ShortcutMap): void {
 
   const { register } = ctx;
   useEffect(() => {
-    const unregister = register(map);
+    const unregister = register(shortcuts);
     return unregister;
-  }, [register, map]);
+  }, [register, shortcuts]);
 }
