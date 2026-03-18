@@ -42,6 +42,37 @@ impl ReviewCommand {
     }
 }
 
+async fn get_remote_owner_repo() -> anyhow::Result<(String, String)> {
+    let output = Command::new("git")
+        .args(["remote", "get-url", "origin"])
+        .output()
+        .await
+        .context("Failed to get git remote URL")?;
+
+    if !output.status.success() {
+        bail!("No 'origin' remote found");
+    }
+
+    let url = String::from_utf8(output.stdout)?.trim().to_string();
+    let path = if let Some(rest) = url.strip_prefix("git@") {
+        rest.split_once(':')
+            .map(|(_, path)| path.to_string())
+            .context("Invalid SSH remote URL")?
+    } else {
+        let segments: Vec<&str> = url.trim_end_matches('/').rsplit('/').take(2).collect();
+        if segments.len() < 2 {
+            bail!("Could not parse owner/repo from remote URL: {}", url);
+        }
+        format!("{}/{}", segments[1], segments[0])
+    };
+    let path = path.strip_suffix(".git").unwrap_or(&path);
+    let (owner, repo) = path
+        .split_once('/')
+        .context("Could not parse owner/repo from remote URL")?;
+
+    Ok((owner.to_string(), repo.to_string()))
+}
+
 async fn get_default_branch() -> anyhow::Result<String> {
     let output = Command::new("git")
         .args(["symbolic-ref", "--short", "refs/remotes/origin/HEAD"])

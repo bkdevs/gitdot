@@ -4,20 +4,20 @@ use anyhow::{Context, bail};
 
 use gitdot_api::endpoint::list_user_reviews::ListUserReviewsRequest;
 
-use super::{pull_rebase_default_branch, push_for_review};
+use super::{get_remote_owner_repo, pull_rebase_default_branch, push_for_review};
 use crate::{client::GitdotClient, config::UserConfig};
 
 pub async fn update_review(config: UserConfig) -> anyhow::Result<()> {
     // TODO: init client with token from store
-    // TODO: filter by in_progress reviews that are within the current repo
     let client = GitdotClient::from_user_config(&config);
+    let (owner, repo) = get_remote_owner_repo().await?;
     let reviews = client
         .list_user_reviews(
             &config.user_name,
             ListUserReviewsRequest {
-                status: None,
-                owner: None,
-                repo: None,
+                status: Some("in_progress".to_string()),
+                owner: Some(owner),
+                repo: Some(repo),
             },
         )
         .await?;
