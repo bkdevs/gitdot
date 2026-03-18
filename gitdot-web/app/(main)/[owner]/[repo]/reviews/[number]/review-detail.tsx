@@ -501,54 +501,61 @@ export function ReviewDetail({
           repo={repo}
           number={number}
           reviewers={review.reviewers}
+          isReviewAuthor={isReviewAuthor}
         />
 
-        {isReviewer && review.status === "in_progress" && selectedDiff && (
-          <div className="flex flex-col gap-2">
-            <h2 className="text-sm font-medium">Submit review</h2>
-            <Button
-              variant="default"
-              size="sm"
-              className="w-full"
-              disabled={isSubmitting}
-              onClick={() => handleSubmit("approve")}
-            >
-              Approve
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full"
-              disabled={isSubmitting}
-              onClick={() => handleSubmit("request_changes")}
-            >
-              Request changes
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-full"
-              disabled={isSubmitting}
-              onClick={() => handleSubmit("comment")}
-            >
-              Comment
-            </Button>
-            {draftComments.filter((c) => c.diff_id === selectedDiff.id).length >
-              0 && (
-              <p className="text-xs text-muted-foreground">
-                {
-                  draftComments.filter((c) => c.diff_id === selectedDiff.id)
-                    .length
-                }{" "}
-                pending{" "}
-                {draftComments.filter((c) => c.diff_id === selectedDiff.id)
-                  .length === 1
-                  ? "comment"
-                  : "comments"}
-              </p>
-            )}
-          </div>
-        )}
+        {(isReviewer || isReviewAuthor) &&
+          review.status === "in_progress" &&
+          selectedDiff && (
+            <div className="flex flex-col gap-2">
+              <h2 className="text-sm font-medium">Submit review</h2>
+              {isReviewer && (
+                <>
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="w-full"
+                    disabled={isSubmitting}
+                    onClick={() => handleSubmit("approve")}
+                  >
+                    Approve
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    disabled={isSubmitting}
+                    onClick={() => handleSubmit("request_changes")}
+                  >
+                    Request changes
+                  </Button>
+                </>
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full"
+                disabled={isSubmitting}
+                onClick={() => handleSubmit("comment")}
+              >
+                Comment
+              </Button>
+              {draftComments.filter((c) => c.diff_id === selectedDiff.id)
+                .length > 0 && (
+                <p className="text-xs text-muted-foreground">
+                  {
+                    draftComments.filter((c) => c.diff_id === selectedDiff.id)
+                      .length
+                  }{" "}
+                  pending{" "}
+                  {draftComments.filter((c) => c.diff_id === selectedDiff.id)
+                    .length === 1
+                    ? "comment"
+                    : "comments"}
+                </p>
+              )}
+            </div>
+          )}
       </div>
     </div>
   );

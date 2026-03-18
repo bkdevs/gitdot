@@ -15,11 +15,13 @@ export function Reviewers({
   repo,
   number,
   reviewers: initialReviewers,
+  isReviewAuthor,
 }: {
   owner: string;
   repo: string;
   number: number;
   reviewers: ReviewerResource[];
+  isReviewAuthor: boolean;
 }) {
   const [reviewers, setReviewers] =
     useState<ReviewerResource[]>(initialReviewers);
@@ -64,16 +66,18 @@ export function Reviewers({
               <div className="flex items-center gap-2">
                 <span>{reviewer.user?.name ?? "Unknown"}</span>
               </div>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                disabled={removing === reviewer.user?.name}
-                onClick={() =>
-                  reviewer.user?.name && handleRemove(reviewer.user.name)
-                }
-              >
-                ×
-              </Button>
+              {isReviewAuthor && (
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  disabled={removing === reviewer.user?.name}
+                  onClick={() =>
+                    reviewer.user?.name && handleRemove(reviewer.user.name)
+                  }
+                >
+                  ×
+                </Button>
+              )}
             </div>
           ))}
         </div>
@@ -81,20 +85,29 @@ export function Reviewers({
         <p className="text-sm text-muted-foreground">No reviewers yet</p>
       )}
 
-      <form action={addAction} className="flex gap-2">
-        <Input
-          name="user_name"
-          placeholder="Username"
-          className="h-8 text-sm"
-          required
-        />
-        <Button type="submit" variant="outline" size="sm" disabled={isAdding}>
-          {isAdding ? "Adding..." : "Add"}
-        </Button>
-      </form>
+      {isReviewAuthor && (
+        <>
+          <form action={addAction} className="flex gap-2">
+            <Input
+              name="user_name"
+              placeholder="Username"
+              className="h-8 text-sm"
+              required
+            />
+            <Button
+              type="submit"
+              variant="outline"
+              size="sm"
+              disabled={isAdding}
+            >
+              {isAdding ? "Adding..." : "Add"}
+            </Button>
+          </form>
 
-      {addState && "error" in addState && (
-        <p className="text-xs text-destructive">{addState.error}</p>
+          {addState && "error" in addState && (
+            <p className="text-xs text-destructive">{addState.error}</p>
+          )}
+        </>
       )}
     </div>
   );
