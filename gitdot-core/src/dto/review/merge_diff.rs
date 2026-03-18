@@ -1,0 +1,29 @@
+use crate::error::ReviewError;
+
+use super::super::common::{OwnerName, RepositoryName};
+
+#[derive(Debug, Clone)]
+pub struct MergeDiffRequest {
+    pub owner: OwnerName,
+    pub repo: RepositoryName,
+    pub number: i32,
+    pub position: i32,
+}
+
+impl MergeDiffRequest {
+    pub fn new(
+        owner: &str,
+        repo: &str,
+        number: i32,
+        position: i32,
+    ) -> Result<Self, ReviewError> {
+        Ok(Self {
+            owner: OwnerName::try_new(owner)
+                .map_err(|e| ReviewError::InvalidOwnerName(e.to_string()))?,
+            repo: RepositoryName::try_new(repo)
+                .map_err(|e| ReviewError::InvalidRepositoryName(e.to_string()))?,
+            number,
+            position,
+        })
+    }
+}

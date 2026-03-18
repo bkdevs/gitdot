@@ -476,6 +476,7 @@ mod tests {
             async fn update_comment(&self, comment_id: Uuid, body: &str) -> Result<ReviewComment, sqlx::Error>;
             async fn resolve_comment(&self, comment_id: Uuid, resolved: bool) -> Result<(), sqlx::Error>;
             async fn update_diff_status(&self, diff_id: Uuid, status: DiffStatus) -> Result<(), sqlx::Error>;
+            async fn close_review(&self, review_id: Uuid) -> Result<(), sqlx::Error>;
         }
     }
 

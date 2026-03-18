@@ -46,6 +46,9 @@ pub enum ReviewError {
     #[error("Invalid comment: {0}")]
     InvalidComment(String),
 
+    #[error("Diff is not mergeable: {0}")]
+    DiffNotMergeable(String),
+
     #[error("No commits found between target branch and pushed ref")]
     CommitsNotFound,
 

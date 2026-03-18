@@ -2,6 +2,7 @@ pub mod add_reviewer;
 pub mod get_review;
 pub mod get_review_diff;
 pub mod list_reviews;
+pub mod merge_diff;
 pub mod publish_review;
 pub mod remove_reviewer;
 pub mod resolve_review_comment;

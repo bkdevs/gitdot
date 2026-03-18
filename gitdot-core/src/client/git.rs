@@ -124,6 +124,14 @@ pub trait GitClient: Send + Sync + Clone + 'static {
         sha: &str,
     ) -> Result<String, GitError>;
 
+    async fn cherry_pick_commit(
+        &self,
+        owner: &str,
+        repo: &str,
+        commit_sha: &str,
+        new_parent_sha: &str,
+    ) -> Result<String, GitError>;
+
     async fn install_hook(
         &self,
         owner: &str,
@@ -877,6 +885,50 @@ impl GitClient for Git2Client {
 
             let patch_id = git2::Oid::hash_object(git2::ObjectType::Blob, &patch_bytes)?;
             Ok(patch_id.to_string())
+        })
+        .await?
+    }
+
+    async fn cherry_pick_commit(
+        &self,
+        owner: &str,
+        repo: &str,
+        commit_sha: &str,
+        new_parent_sha: &str,
+    ) -> Result<String, GitError> {
+        let commit_sha = commit_sha.to_string();
+        let new_parent_sha = new_parent_sha.to_string();
+        let repository = self.open_repository(owner, repo)?;
+
+        task::spawn_blocking(move || {
+            let commit_oid = git2::Oid::from_str(&commit_sha)?;
+            let parent_oid = git2::Oid::from_str(&new_parent_sha)?;
+
+            let commit = repository.find_commit(commit_oid)?;
+            let new_parent = repository.find_commit(parent_oid)?;
+
+            let mut index = repository.cherrypick_commit(&commit, &new_parent, 0, None)?;
+
+            if index.has_conflicts() {
+                return Err(GitError::MergeConflict(format!(
+                    "conflict when rebasing commit {}",
+                    &commit_sha[..8]
+                )));
+            }
+
+            let tree_oid = index.write_tree_to(&repository)?;
+            let tree = repository.find_tree(tree_oid)?;
+
+            let new_oid = repository.commit(
+                None,
+                &commit.author(),
+                &commit.committer(),
+                commit.message().unwrap_or(""),
+                &tree,
+                &[&new_parent],
+            )?;
+
+            Ok(new_oid.to_string())
         })
         .await?
     }

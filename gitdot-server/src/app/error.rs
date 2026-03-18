@@ -211,6 +211,7 @@ impl IntoResponse for AppError {
                     ReviewError::RevisionNotFound(_) => StatusCode::NOT_FOUND,
                     ReviewError::CommentNotFound(_) => StatusCode::NOT_FOUND,
                     ReviewError::InvalidComment(_) => StatusCode::BAD_REQUEST,
+                    ReviewError::DiffNotMergeable(_) => StatusCode::CONFLICT,
                     ReviewError::CommitsNotFound => StatusCode::BAD_REQUEST,
                     ReviewError::Unauthorized(_) => StatusCode::FORBIDDEN,
                     ReviewError::GitError(_) => StatusCode::INTERNAL_SERVER_ERROR,

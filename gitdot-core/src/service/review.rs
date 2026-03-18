@@ -4,7 +4,7 @@ use crate::{
     client::{DiffClient, DifftClient, Git2Client, GitClient},
     dto::{
         AddReviewerRequest, GetReviewDiffRequest, GetReviewRequest, ListReviewsRequest,
-        ProcessReviewRequest, PublishReviewRequest, RemoveReviewerRequest,
+        MergeDiffRequest, ProcessReviewRequest, PublishReviewRequest, RemoveReviewerRequest,
         ResolveReviewCommentRequest, ReviewCommentResponse, ReviewDiffResponse, ReviewResponse,
         ReviewerResponse, SubmitAction, SubmitReviewRequest, UpdateReviewCommentRequest,
     },
@@ -102,6 +102,8 @@ pub trait ReviewService: Send + Sync + 'static {
         &self,
         request: ResolveReviewCommentRequest,
     ) -> Result<ReviewCommentResponse, ReviewError>;
+
+    async fn merge_diff(&self, request: MergeDiffRequest) -> Result<ReviewResponse, ReviewError>;
 }
 
 #[derive(Debug, Clone)]
@@ -785,6 +787,141 @@ where
             .get_comment(request.comment_id)
             .await?
             .ok_or_else(|| ReviewError::CommentNotFound(request.comment_id.to_string()))?;
+
+        Ok(updated.into())
+    }
+
+    async fn merge_diff(&self, request: MergeDiffRequest) -> Result<ReviewResponse, ReviewError> {
+        let owner = request.owner.as_ref();
+        let repo = request.repo.as_ref();
+
+        let review = self
+            .review_repo
+            .get_review(owner, repo, request.number)
+            .await?
+            .ok_or_else(|| {
+                ReviewError::ReviewNotFound(format!("{}/{}/review/{}", owner, repo, request.number))
+            })?;
+
+        if review.status != ReviewStatus::InProgress {
+            return Err(ReviewError::DiffNotMergeable(
+                "review must be in progress to merge diffs".to_string(),
+            ));
+        }
+
+        let diffs = review.diffs.unwrap_or_default();
+        let diffs_to_merge: Vec<_> = diffs
+            .iter()
+            .filter(|d| d.position <= request.position && d.status != DiffStatus::Merged)
+            .collect();
+
+        if diffs_to_merge.is_empty() {
+            return Err(ReviewError::DiffNotFound(format!(
+                "no open diffs found at or before position {}",
+                request.position
+            )));
+        }
+
+        for diff in &diffs_to_merge {
+            if diff.status != DiffStatus::Approved {
+                return Err(ReviewError::DiffNotMergeable(format!(
+                    "diff at position {} has status '{}', expected 'approved'",
+                    diff.position,
+                    serde_json::to_string(&diff.status)
+                        .unwrap_or_default()
+                        .trim_matches('"')
+                )));
+            }
+        }
+
+        let mut diff_revisions = Vec::new();
+        for diff in &diffs_to_merge {
+            let revisions = diff.revisions.as_ref().cloned().unwrap_or_default();
+            let revision = revisions.first().ok_or_else(|| {
+                ReviewError::RevisionNotFound(format!(
+                    "diff at position {} has no revisions",
+                    diff.position
+                ))
+            })?;
+            diff_revisions.push((diff, revision.clone()));
+        }
+        let first_revision = &diff_revisions.first().unwrap().1;
+
+        let target_sha = self
+            .git_client
+            .resolve_ref_sha(owner, repo, &get_target_ref(&review.target_branch))
+            .await?;
+        let merge_commit_sha = if target_sha == first_revision.parent_hash {
+            // Fast-forward: target hasn't moved, use the last diff's commit directly
+            diff_revisions.last().unwrap().1.commit_hash.clone()
+        } else {
+            // Target has advanced — attempt to rebase each diff onto the new target
+            let mut new_parent_sha = target_sha;
+            for (diff, revision) in &diff_revisions {
+                let new_sha = self
+                    .git_client
+                    .cherry_pick_commit(owner, repo, &revision.commit_hash, &new_parent_sha)
+                    .await
+                    .map_err(|e| match e {
+                        crate::error::GitError::MergeConflict(_) => {
+                            ReviewError::DiffNotMergeable(format!(
+                                "conflict rebasing diff at position {} onto target branch; \
+                                 update the review to resolve conflicts before merging",
+                                diff.position
+                            ))
+                        }
+                        other => ReviewError::GitError(other),
+                    })?;
+
+                self.review_repo
+                    .update_revision_sha(revision.id, &new_sha, &new_parent_sha)
+                    .await?;
+
+                self.git_client
+                    .update_ref(
+                        owner,
+                        repo,
+                        &get_current_ref(review.number, diff.position),
+                        &new_sha,
+                    )
+                    .await?;
+
+                new_parent_sha = new_sha;
+            }
+            new_parent_sha
+        };
+
+        self.git_client
+            .update_ref(
+                owner,
+                repo,
+                &get_target_ref(&review.target_branch),
+                &merge_commit_sha,
+            )
+            .await?;
+
+        for (diff, _) in &diff_revisions {
+            self.review_repo
+                .update_diff_status(diff.id, DiffStatus::Merged)
+                .await?;
+        }
+
+        let all_merged = diffs
+            .iter()
+            .all(|d| d.status == DiffStatus::Merged || d.position <= request.position);
+        if all_merged {
+            self.review_repo.close_review(review.id).await?;
+        }
+
+        self.review_repo.touch_review(review.id).await?;
+
+        let updated = self
+            .review_repo
+            .get_review(owner, repo, request.number)
+            .await?
+            .ok_or_else(|| {
+                ReviewError::ReviewNotFound(format!("{}/{}/review/{}", owner, repo, request.number))
+            })?;
 
         Ok(updated.into())
     }

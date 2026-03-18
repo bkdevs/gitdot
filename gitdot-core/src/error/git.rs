@@ -5,6 +5,9 @@ pub enum GitError {
     #[error("Not found: {0}")]
     NotFound(String),
 
+    #[error("Merge conflict: {0}")]
+    MergeConflict(String),
+
     #[error("IO error: {0}")]
     IoError(#[from] std::io::Error),
 
