@@ -31,6 +31,12 @@ function isInputFocused(): boolean {
   return false;
 }
 
+function isRadixModalOpen(): boolean {
+  return !!document.querySelector(
+    ['[aria-modal="true"]', '[role="dialog"][data-state="open"]'].join(","),
+  );
+}
+
 function mergeMaps(registry: Map<number, ShortcutMap>): ShortcutMap {
   const merged: ShortcutMap = {};
   for (const id of [...registry.keys()].sort((a, b) => a - b)) {
@@ -57,13 +63,22 @@ export function ShortcutsProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
-      if (event.ctrlKey || event.altKey || event.metaKey) return;
-      if (isInputFocused()) return;
-      const command = merged.current[event.key];
-      if (command) {
-        event.preventDefault();
-        command.execute();
+      if (
+        event.ctrlKey ||
+        event.altKey ||
+        event.metaKey ||
+        event.defaultPrevented ||
+        isInputFocused() ||
+        isRadixModalOpen()
+      ) {
+        return;
       }
+
+      const command = merged.current[event.key];
+      if (!command) return;
+
+      event.preventDefault();
+      command.execute();
     }
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
