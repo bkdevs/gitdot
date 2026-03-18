@@ -80,8 +80,8 @@ async fn pull_rebase_default_branch() -> anyhow::Result<String> {
 
     let status = Command::new("git")
         .args(["pull", "origin", &default_branch, "--rebase"])
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
         .status()
         .await
         .context("Failed to run git pull")?;
