@@ -400,7 +400,7 @@ impl ReviewRepository for ReviewRepositoryImpl {
             r#"
             INSERT INTO revisions (diff_id, number, commit_hash, parent_hash)
             VALUES ($1, $2, $3, $4)
-            RETURNING id, diff_id, number, commit_hash, parent_hash, created_at
+            RETURNING id, diff_id, number, commit_hash, parent_hash, created_at, NULL AS verdicts
             "#,
         )
         .bind(diff_id)
