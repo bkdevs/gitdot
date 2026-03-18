@@ -76,6 +76,15 @@ export function ShortcutsProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
+    function handleOpenShortcuts() {
+      setDialogOpen(true);
+    }
+    window.addEventListener("openShortcuts", handleOpenShortcuts);
+    return () =>
+      window.removeEventListener("openShortcuts", handleOpenShortcuts);
+  }, []);
+
+  useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
       if (
         event.ctrlKey ||

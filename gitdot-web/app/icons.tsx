@@ -1,3 +1,18 @@
+import { cn } from "@/util";
+
+export function QuestionMark({ className }: { className?: string }) {
+  return (
+    <span
+      className={cn(
+        className,
+        "inline-flex items-center justify-center text-[15px] leading-none",
+      )}
+    >
+      ?
+    </span>
+  );
+}
+
 /**
  * right angle triangle pointing up
  */
