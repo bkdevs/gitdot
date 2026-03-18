@@ -10,6 +10,7 @@ import type {
 import { refresh } from "next/cache";
 import {
   addReviewer,
+  mergeDiff,
   publishReview,
   removeReviewer,
   resolveReviewComment,
@@ -93,6 +94,25 @@ export async function submitReviewAction(
   const result = await submitReview(owner, repo, number, position, request);
   if (!result) {
     return { error: "submitReview call failed" };
+  }
+
+  refresh();
+  return { review: result };
+}
+
+export type MergeDiffActionResult =
+  | { review: ReviewResource }
+  | { error: string };
+
+export async function mergeDiffAction(
+  owner: string,
+  repo: string,
+  number: number,
+  position: number,
+): Promise<MergeDiffActionResult> {
+  const result = await mergeDiff(owner, repo, number, position);
+  if (!result) {
+    return { error: "mergeDiff call failed" };
   }
 
   refresh();

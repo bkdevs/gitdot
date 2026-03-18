@@ -11,6 +11,7 @@ import { useUserContext } from "@/(main)/context/user";
 import type { DiffEntry } from "@/actions";
 import { renderReviewDiffAction } from "@/actions";
 import {
+  mergeDiffAction,
   publishReviewAction,
   resolveReviewCommentAction,
   submitReviewAction,
@@ -131,6 +132,7 @@ export function ReviewDetail({
     review.diffs[selectedDiffIndex];
   const [isPublishing, setIsPublishing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isMerging, setIsMerging] = useState(false);
   const [draftComments, setDraftComments] = useState<DraftComment[]>([]);
   const [activeInput, setActiveInput] = useState<{
     filePath: string;
@@ -262,6 +264,12 @@ export function ReviewDetail({
     setIsSubmitting(false);
   }
 
+  async function handleMergeDiff(position: number) {
+    setIsMerging(true);
+    await mergeDiffAction(owner, repo, number, position);
+    setIsMerging(false);
+  }
+
   return (
     <div className="w-full flex">
       <div className="flex flex-col flex-1 min-w-0 pb-20">
@@ -313,54 +321,38 @@ export function ReviewDetail({
               {review.diffs.length}{" "}
               {review.diffs.length === 1 ? "diff" : "diffs"}
             </div>
-            {review.diffs.map((diff, index) => {
-              const verdicts = getLatestVerdicts(diff);
-              const allApproved =
-                review.reviewers.length > 0 &&
-                review.reviewers.every((r) =>
-                  verdicts.some(
-                    (v) =>
-                      v.reviewer_id === r.reviewer_id &&
-                      v.verdict === "approved",
-                  ),
-                );
-              const hasChangesRequested = verdicts.some(
-                (v) => v.verdict === "changes_requested",
-              );
-
-              return (
-                <button
-                  key={diff.id}
-                  type="button"
-                  className={cn(
-                    "w-full text-left px-4 py-2 border-border border-b transition-colors",
-                    index === selectedDiffIndex
-                      ? "bg-accent"
-                      : "hover:bg-accent/50",
-                  )}
-                  onClick={() => {
-                    setSelectedDiffIndex(index);
-                    setLeftRevision("base");
-                    setRightRevision(null);
-                    setDynamicDiffEntries(null);
-                  }}
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-muted-foreground">
-                      #{diff.position}
-                    </span>
-                    <span className="text-sm truncate flex-1">
-                      {diff.title}
-                    </span>
-                    {allApproved ? (
-                      <span className="size-2 rounded-full bg-green-500 shrink-0" />
-                    ) : hasChangesRequested ? (
-                      <span className="size-2 rounded-full bg-orange-500 shrink-0" />
-                    ) : null}
-                  </div>
-                </button>
-              );
-            })}
+            {review.diffs.map((diff, index) => (
+              <button
+                key={diff.id}
+                type="button"
+                className={cn(
+                  "w-full text-left px-4 py-2 border-border border-b transition-colors",
+                  index === selectedDiffIndex
+                    ? "bg-accent"
+                    : "hover:bg-accent/50",
+                )}
+                onClick={() => {
+                  setSelectedDiffIndex(index);
+                  setLeftRevision("base");
+                  setRightRevision(null);
+                  setDynamicDiffEntries(null);
+                }}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">
+                    #{diff.position}
+                  </span>
+                  <span className="text-sm truncate flex-1">{diff.title}</span>
+                  {diff.status === "merged" ? (
+                    <span className="size-2 rounded-full bg-purple-500 shrink-0" />
+                  ) : diff.status === "approved" ? (
+                    <span className="size-2 rounded-full bg-green-500 shrink-0" />
+                  ) : diff.status === "changes_requested" ? (
+                    <span className="size-2 rounded-full bg-orange-500 shrink-0" />
+                  ) : null}
+                </div>
+              </button>
+            ))}
           </div>
 
           <div className="flex-1 min-w-0">
@@ -407,6 +399,29 @@ export function ReviewDetail({
                         </span>
                       </>
                     )}
+                    {isReviewAuthor &&
+                      review.status === "in_progress" &&
+                      selectedDiff.status !== "merged" && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="ml-auto shrink-0 text-xs h-6 px-2"
+                          disabled={
+                            !review.diffs
+                              .filter(
+                                (d) => d.position <= selectedDiff.position,
+                              )
+                              .every(
+                                (d) =>
+                                  d.status === "approved" ||
+                                  d.status === "merged",
+                              ) || isMerging
+                          }
+                          onClick={() => handleMergeDiff(selectedDiff.position)}
+                        >
+                          {isMerging ? "Merging..." : "Stack merge"}
+                        </Button>
+                      )}
                   </div>
 
                   {selectedDiff.revisions.length > 0 && (
