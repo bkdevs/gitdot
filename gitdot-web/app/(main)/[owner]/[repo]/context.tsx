@@ -36,7 +36,9 @@ export function RepoClient({
   );
   const commitsPromise = useMemo(
     () =>
-      firstNonNull(dbPromises.commits, serverPromises.commits).then(sortCommits),
+      firstNonNull(dbPromises.commits, serverPromises.commits).then(
+        sortCommits,
+      ),
     [dbPromises, serverPromises],
   );
   const blobsPromise = useMemo(

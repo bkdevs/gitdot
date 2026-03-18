@@ -5,6 +5,7 @@ import { Suspense, use } from "react";
 import Link from "@/ui/link";
 import { timeAgoFull } from "@/util";
 import { useRepoContext } from "../context";
+import { CommitsHeader } from "./ui/commits-header";
 
 export function CommitsClient() {
   const { owner, repo } = useParams<{ owner: string; repo: string }>();
@@ -14,6 +15,7 @@ export function CommitsClient() {
 
   return (
     <div className="flex flex-col">
+      <CommitsHeader />
       {commits.map((commit) => (
         <Link
           key={commit.sha}

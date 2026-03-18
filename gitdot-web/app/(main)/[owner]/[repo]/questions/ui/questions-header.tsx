@@ -99,7 +99,7 @@ function SortDropdown({
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className="flex flex-row h-full items-center border-border border-l px-2 text-xs text-muted-foreground min-w-32 w-32"
+          className="flex flex-row h-full items-center border-border border-l px-2 text-xs text-muted-foreground min-w-32 w-32 hover:bg-sidebar"
         >
           {SORT_LABELS[sort]}
           <ChevronDown className="size-3 ml-auto" />
