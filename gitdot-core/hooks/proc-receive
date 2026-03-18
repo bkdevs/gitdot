@@ -1,94 +1,82 @@
-#!/usr/bin/env python3
+#!/bin/bash
 
 # proc-receive script
 # https://git-scm.com/docs/githooks/2.30.1#proc-receive
 
-import json
-import os
-import sys
-import urllib.request
+set -e
 
+read_pkt_line() {
+    local hex_len
+    hex_len=$(dd bs=1 count=4 2>/dev/null) || return 1
+    if [ ${#hex_len} -lt 4 ]; then
+        return 1
+    fi
+    if [ "$hex_len" = "0000" ]; then
+        return 1
+    fi
+    local length=$((16#$hex_len - 4))
+    if [ "$length" -le 0 ]; then
+        return 1
+    fi
+    local data
+    data=$(dd bs=1 count="$length" 2>/dev/null) || return 1
+    echo "${data%$'\n'}"
+}
 
-def read_pkt_line():
-    raw = sys.stdin.buffer.read(4)
-    if not raw or len(raw) < 4:
-        return None
-    hex_len = raw.decode("ascii")
-    if hex_len == "0000":
-        return None
-    length = int(hex_len, base=16) - 4
-    data = sys.stdin.buffer.read(length)
-    return data.rstrip(b"\n").decode("utf-8", errors="replace")
+write_pkt_line() {
+    local data="$1"
+    local length=$((${#data} + 1 + 4))
+    printf '%04x%s\n' "$length" "$data"
+}
 
-
-def write_pkt_line(data):
-    encoded = data.encode("utf-8") + b"\n"
-    length = len(encoded) + 4
-    packet = f"{length:04x}".encode("ascii") + encoded
-    sys.stdout.buffer.write(packet)
-    sys.stdout.buffer.flush()
-
-
-def write_flush():
-    sys.stdout.buffer.write(b"0000")
-    sys.stdout.buffer.flush()
-
+write_flush() {
+    printf '0000'
+}
 
 # Step 1: Read version from Git
-read_pkt_line()
+read_pkt_line > /dev/null 2>&1 || true
 
 # Step 2: Send our version back
-write_pkt_line("version=1")
-write_flush()
+write_pkt_line "version=1"
+write_flush
 
 # Step 3: Consume the flush after capability exchange
-read_pkt_line()
+read_pkt_line > /dev/null 2>&1 || true
 
 # Step 4: Read ref updates
-updates = []
-while True:
-    line = read_pkt_line()
-    if line is None:
-        break
-    updates.append(line)
+updates=()
+while true; do
+    line=$(read_pkt_line) || break
+    updates+=("$line")
+done
 
-# Step 5: Process updates and send results
-abs_git_dir = os.path.realpath(os.environ["GIT_DIR"])
-repo = os.path.basename(abs_git_dir).removesuffix(".git")
-owner = os.path.basename(os.path.dirname(abs_git_dir))
-pusher_id = os.environ["GITDOT_PUSHER_ID"]
-for update in updates:
-    parts = update.split(" ")
-    old_oid, new_oid, ref = parts[0], parts[1], parts[2]
+# Step 5: Process updates
+abs_git_dir=$(realpath "$GIT_DIR")
+repo=$(basename "$abs_git_dir" .git)
+owner=$(basename "$(dirname "$abs_git_dir")")
+pusher_id="$GITDOT_PUSHER_ID"
 
-    if ref.startswith("refs/for/"):
-        payload = json.dumps(
-            {
-                "ref_name": ref,
-                "new_sha": new_oid,
-                "pusher_id": pusher_id,
-            }
-        ).encode("utf-8")
+for update in "${updates[@]}"; do
+    read -r old_oid new_oid ref <<< "$update"
 
-        url = f"http://127.0.0.1:8080/internal/{owner}/{repo}/process-review"
-        req = urllib.request.Request(
-            url, data=payload, headers={"Content-Type": "application/json"}
-        )
-        try:
-            with urllib.request.urlopen(req) as resp:
-                result = json.loads(resp.read())
+    if [[ "$ref" == refs/for/* ]]; then
+        payload=$(printf '{"ref_name":"%s","new_sha":"%s","pusher_id":"%s"}' "$ref" "$new_oid" "$pusher_id")
+        url="http://127.0.0.1:8080/internal/${owner}/${repo}/process-review"
 
-            review_number = result["review_number"]
-            action = result["action"]
-            print(
-                f"review #{review_number} {action} at https://gitdot.io/{owner}/{repo}/reviews/{review_number}",
-                file=sys.stderr,
-            )
-            write_pkt_line(f"ok {ref}")
-        except Exception:
-            write_pkt_line(f"ng {ref} failed to process review")
-    else:
-        write_pkt_line(f"ng {ref} not-handled")
+        response=$(curl -s -f -X POST -H "Content-Type: application/json" -d "$payload" "$url" 2>&1) || {
+            write_pkt_line "ng $ref failed to process review"
+            continue
+        }
 
-write_flush()
-sys.exit(0)
+        review_number=$(echo "$response" | grep -o '"review_number":[0-9]*' | grep -o '[0-9]*')
+        action=$(echo "$response" | grep -o '"action":"[^"]*"' | cut -d'"' -f4)
+        echo "review #${review_number} ${action} at https://gitdot.io/${owner}/${repo}/reviews/${review_number}" >&2
+
+        write_pkt_line "ok $ref"
+    else
+        write_pkt_line "ng $ref not-handled"
+    fi
+done
+
+write_flush
+exit 0
