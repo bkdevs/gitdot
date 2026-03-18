@@ -189,6 +189,18 @@ export function RepoShortcuts() {
         keys: ["p"],
         execute: () => window.dispatchEvent(new Event("openFileSearch")),
       },
+      {
+        name: "ToggleLeftSidebar",
+        description: "Left sidebar",
+        keys: ["["],
+        execute: () => window.dispatchEvent(new Event("toggleLeftSidebar")),
+      },
+      {
+        name: "ToggleRightSidebar",
+        description: "Right sidebar",
+        keys: ["]"],
+        execute: () => window.dispatchEvent(new Event("toggleRightSidebar")),
+      },
     ],
     [navPop, navPush],
   );

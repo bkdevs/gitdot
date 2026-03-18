@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { Suspense } from "react";
+import { useLeftSidebar } from "@/(main)/hooks/use-sidebar";
 import { Loading } from "@/ui/loading";
 import { Sidebar, SidebarContent } from "@/ui/sidebar";
 import { RepoSidebarCommits } from "./sidebar/repo-sidebar-commits";
@@ -21,6 +22,9 @@ export function RepoSidebar({
 }) {
   const pathname = usePathname();
   const path = pathname.replace(`/${owner}/${repo}`, "") || "/";
+
+  const open = useLeftSidebar();
+  if (!open) return null;
 
   const getSidebarContent = () => {
     if (/^\/commits\/[^/]+/.test(path)) {

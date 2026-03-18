@@ -2,6 +2,7 @@
 
 import type { RepositoryCommitsResource } from "gitdot-api";
 import { usePathname, useSearchParams } from "next/navigation";
+import { useRightSidebar } from "@/(main)/hooks/use-sidebar";
 import Link from "@/ui/link";
 import { timeAgo } from "@/util";
 
@@ -60,6 +61,9 @@ export function FileCommits({
 }) {
   const pathname = usePathname();
   const params = useSearchParams();
+
+  const open = useRightSidebar();
+  if (!open) return null;
 
   const getCommitHref = (sha: string) => {
     const isLatest = sha === commits.commits[0]?.sha;
