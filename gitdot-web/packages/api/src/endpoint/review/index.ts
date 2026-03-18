@@ -4,4 +4,5 @@ export * from "./get-review-diff";
 export * from "./list-reviews";
 export * from "./publish-review";
 export * from "./remove-reviewer";
+export * from "./resolve-review-comment";
 export * from "./submit-review";

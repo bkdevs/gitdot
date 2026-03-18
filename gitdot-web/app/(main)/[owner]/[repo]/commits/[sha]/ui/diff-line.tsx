@@ -67,6 +67,7 @@ export function DiffLine({
         isActiveInput ? (ctx.activeInput?.replyToId ?? null) : null
       }
       canComment={ctx.canComment}
+      isReviewAuthor={ctx.isReviewAuthor}
       onClickAdd={() => ctx.setActiveInput({ filePath, lineNumber, side })}
       onSubmit={(body, parentId) => {
         ctx.addComment(filePath, lineNumber, side, body, parentId);
@@ -75,6 +76,7 @@ export function DiffLine({
       onClickReply={(commentId) =>
         ctx.setActiveInput({ filePath, lineNumber, side, replyToId: commentId })
       }
+      onResolve={(commentId, resolved) => ctx.onResolve(commentId, resolved)}
       onCancel={() => ctx.setActiveInput(null)}
     >
       {children}
@@ -115,9 +117,11 @@ function DiffLineWithComments({
   isActiveInput,
   activeReplyToId,
   canComment,
+  isReviewAuthor,
   onClickAdd,
   onSubmit,
   onClickReply,
+  onResolve,
   onCancel,
 }: {
   children: React.ReactNode;
@@ -129,9 +133,11 @@ function DiffLineWithComments({
   isActiveInput: boolean;
   activeReplyToId: string | null;
   canComment: boolean;
+  isReviewAuthor: boolean;
   onClickAdd: () => void;
   onSubmit: (body: string, parentId?: string) => void;
   onClickReply: (commentId: string) => void;
+  onResolve: (commentId: string, resolved: boolean) => void;
   onCancel: () => void;
 }) {
   const [inputValue, setInputValue] = useState("");
@@ -170,6 +176,7 @@ function DiffLineWithComments({
               key={thread.root.id ?? thread.root.created_at}
               thread={thread}
               canComment={canComment}
+              isReviewAuthor={isReviewAuthor}
               isReplyActive={activeReplyToId === thread.root.id}
               onClickReply={() => {
                 if (thread.root.id) onClickReply(thread.root.id);
@@ -177,6 +184,7 @@ function DiffLineWithComments({
               onSubmitReply={(body) => {
                 if (thread.root.id) onSubmit(body, thread.root.id);
               }}
+              onResolve={onResolve}
               onCancel={onCancel}
             />
           ))}
@@ -208,27 +216,67 @@ function DiffLineWithComments({
 function CommentThreadView({
   thread,
   canComment,
+  isReviewAuthor,
   isReplyActive,
   onClickReply,
   onSubmitReply,
+  onResolve,
   onCancel,
 }: {
   thread: CommentThread;
   canComment: boolean;
+  isReviewAuthor: boolean;
   isReplyActive: boolean;
   onClickReply: () => void;
   onSubmitReply: (body: string) => void;
+  onResolve: (commentId: string, resolved: boolean) => void;
   onCancel: () => void;
 }) {
   const [replyValue, setReplyValue] = useState("");
+  const [expanded, setExpanded] = useState(false);
+  const isResolved = thread.root.resolved;
+
+  if (isResolved && !expanded) {
+    return (
+      <div className="flex items-center gap-2 text-muted-foreground">
+        <button
+          type="button"
+          className="hover:text-foreground cursor-pointer"
+          onClick={() => setExpanded(true)}
+        >
+          {thread.root.author_name} — resolved
+        </button>
+        {isReviewAuthor && thread.root.id && (
+          <button
+            type="button"
+            className="ml-auto hover:text-foreground cursor-pointer shrink-0"
+            onClick={() => onResolve(thread.root.id as string, false)}
+          >
+            Unresolve
+          </button>
+        )}
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-col gap-1">
-      <CommentBubble
-        comment={thread.root}
-        canReply={canComment && thread.root.id !== null}
-        onClickReply={onClickReply}
-      />
+    <div className={cn("flex flex-col gap-1", isResolved && "opacity-50")}>
+      <div className="flex items-center gap-2">
+        <CommentBubble
+          comment={thread.root}
+          canReply={canComment && thread.root.id !== null && !isResolved}
+          onClickReply={onClickReply}
+        />
+        {isReviewAuthor && thread.root.id && (
+          <button
+            type="button"
+            className="ml-auto text-muted-foreground hover:text-foreground text-xs cursor-pointer shrink-0"
+            onClick={() => onResolve(thread.root.id as string, !isResolved)}
+          >
+            {isResolved ? "Unresolve" : "Resolve"}
+          </button>
+        )}
+      </div>
 
       {thread.replies.length > 0 && (
         <div className="ml-4 border-l border-border pl-3 flex flex-col gap-1">
@@ -277,7 +325,7 @@ function CommentBubble({
   onClickReply: () => void;
 }) {
   return (
-    <div className="flex flex-col gap-0.5 group/comment">
+    <div className="flex flex-col gap-0.5 group/comment flex-1 min-w-0">
       <div className="flex items-center gap-2">
         <span className="font-medium text-foreground">
           {comment.author_name}

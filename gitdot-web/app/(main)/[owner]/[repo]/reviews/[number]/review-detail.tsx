@@ -8,7 +8,11 @@ import type {
 } from "gitdot-api";
 import { useRef, useState } from "react";
 import { useUserContext } from "@/(main)/context/user";
-import { publishReviewAction, submitReviewAction } from "@/actions/review";
+import {
+  publishReviewAction,
+  resolveReviewCommentAction,
+  submitReviewAction,
+} from "@/actions/review";
 import { Button } from "@/ui/button";
 import { cn, timeAgo } from "@/util";
 import {
@@ -30,6 +34,7 @@ function serverCommentToDraft(c: ReviewCommentResource): DraftComment | null {
     author_name: c.author?.name ?? "Unknown",
     body: c.body,
     created_at: c.created_at,
+    resolved: c.resolved,
   };
 }
 
@@ -119,7 +124,8 @@ export function ReviewDetail({
   } | null>(null);
 
   const isReviewer = review.reviewers.some((r) => r.reviewer_id === user?.id);
-  const canComment = user?.id === review.author_id || isReviewer;
+  const isReviewAuthor = user?.id === review.author_id;
+  const canComment = isReviewAuthor || isReviewer;
 
   function addComment(
     filePath: string,
@@ -142,6 +148,7 @@ export function ReviewDetail({
         author_name: user.name,
         body,
         created_at: new Date().toISOString(),
+        resolved: false,
       },
     ]);
   }
@@ -380,6 +387,16 @@ export function ReviewDetail({
                     ],
                     addComment,
                     canComment,
+                    isReviewAuthor,
+                    onResolve: (commentId, resolved) => {
+                      resolveReviewCommentAction(
+                        owner,
+                        repo,
+                        number,
+                        commentId,
+                        resolved,
+                      );
+                    },
                     activeInput,
                     setActiveInput,
                   }}

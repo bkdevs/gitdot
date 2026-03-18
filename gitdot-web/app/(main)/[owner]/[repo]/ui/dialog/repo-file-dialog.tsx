@@ -53,7 +53,8 @@ function RepoFileDialogInner({
   useEffect(() => {
     const handleOpenFileSearch = () => setOpen(true);
     window.addEventListener("openFileSearch", handleOpenFileSearch);
-    return () => window.removeEventListener("openFileSearch", handleOpenFileSearch);
+    return () =>
+      window.removeEventListener("openFileSearch", handleOpenFileSearch);
   }, []);
 
   const filteredFiles = useMemo(() => {

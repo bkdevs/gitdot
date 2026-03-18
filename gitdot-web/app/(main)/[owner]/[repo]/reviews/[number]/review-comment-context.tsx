@@ -13,6 +13,7 @@ export interface DraftComment {
   author_name: string;
   body: string;
   created_at: string;
+  resolved: boolean;
 }
 
 export interface CommentInput {
@@ -32,6 +33,8 @@ interface ReviewCommentContextValue {
     parentId?: string,
   ) => void;
   canComment: boolean;
+  isReviewAuthor: boolean;
+  onResolve: (commentId: string, resolved: boolean) => void;
   activeInput: CommentInput | null;
   setActiveInput: (input: CommentInput | null) => void;
 }

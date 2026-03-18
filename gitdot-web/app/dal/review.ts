@@ -3,6 +3,7 @@ import "server-only";
 import type { PublishReviewRequest, SubmitReviewRequest } from "gitdot-api";
 import {
   GetReviewDiffResponse,
+  ReviewCommentResource,
   ReviewerResource,
   ReviewResource,
 } from "gitdot-api";
@@ -113,4 +114,19 @@ export async function submitReview(
   );
 
   return await handleResponse(response, ReviewResource);
+}
+
+export async function resolveReviewComment(
+  owner: string,
+  repo: string,
+  number: number,
+  commentId: string,
+  resolved: boolean,
+): Promise<ReviewCommentResource | null> {
+  const response = await authPost(
+    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/review/${number}/comment/${commentId}/resolve`,
+    { resolved },
+  );
+
+  return await handleResponse(response, ReviewCommentResource);
 }

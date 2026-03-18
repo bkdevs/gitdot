@@ -2,6 +2,7 @@
 
 import type {
   PublishReviewRequest,
+  ReviewCommentResource,
   ReviewerResource,
   ReviewResource,
   SubmitReviewRequest,
@@ -11,6 +12,7 @@ import {
   addReviewer,
   publishReview,
   removeReviewer,
+  resolveReviewComment,
   submitReview,
 } from "@/dal";
 
@@ -95,4 +97,30 @@ export async function submitReviewAction(
 
   refresh();
   return { review: result };
+}
+
+export type ResolveReviewCommentActionResult =
+  | { comment: ReviewCommentResource }
+  | { error: string };
+
+export async function resolveReviewCommentAction(
+  owner: string,
+  repo: string,
+  number: number,
+  commentId: string,
+  resolved: boolean,
+): Promise<ResolveReviewCommentActionResult> {
+  const result = await resolveReviewComment(
+    owner,
+    repo,
+    number,
+    commentId,
+    resolved,
+  );
+  if (!result) {
+    return { error: "resolveReviewComment call failed" };
+  }
+
+  refresh();
+  return { comment: result };
 }
