@@ -43,7 +43,7 @@ export function BuildRow({
       href={`/${owner}/${repo}/builds/${build.number}`}
       data-page-item
       tabIndex={-1}
-      className="flex flex-row w-full border-b hover:bg-accent/50 focus:bg-accent/50 select-none px-2 pt-2 pb-1.5 h-18 focus:outline-none"
+      className="flex flex-row w-full border-b focus:bg-accent/50 select-none px-2 pt-2 pb-1.5 h-18 focus:outline-none"
     >
       <div className="flex flex-col">
         <div className="text-xs flex items-center gap-1">

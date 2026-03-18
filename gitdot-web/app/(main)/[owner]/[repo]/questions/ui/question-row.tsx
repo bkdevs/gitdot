@@ -16,7 +16,7 @@ export function QuestionRow({
     <div
       data-page-item
       tabIndex={-1}
-      className="flex flex-row w-full border-b hover:bg-accent/50 focus:bg-accent/50 select-none cursor-default py-2 h-18 focus:outline-none"
+      className="flex flex-row w-full border-b focus:bg-accent/50 select-none cursor-default py-2 h-18 focus:outline-none"
     >
       <VoteBox
         targetType="question"

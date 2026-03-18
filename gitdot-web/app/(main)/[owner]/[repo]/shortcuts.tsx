@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, usePathname, useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { type ShortcutMap, useShortcuts } from "@/(main)/context/shortcuts";
 import { NAV_SECTIONS } from "./ui/sidebar/repo-sidebar-nav";
 
@@ -44,16 +44,32 @@ export function RepoShortcuts() {
     }
   }, []);
 
+  const mouseMoved = useRef(false);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: pathname triggers the reset intentionally
+  useEffect(() => {
+    mouseMoved.current = false;
+  }, [pathname]);
+
   // register a global mouseover that focuses the hovered data-page-item
   useEffect(() => {
+    const handleMouseMove = () => {
+      mouseMoved.current = true;
+    };
     const handleMouseOver = (e: MouseEvent) => {
+      if (!mouseMoved.current) return;
       const el = (e.target as HTMLElement).closest<HTMLElement>(
         "[data-page-item]",
       );
       el?.focus();
     };
+
+    document.addEventListener("mousemove", handleMouseMove);
     document.addEventListener("mouseover", handleMouseOver);
-    return () => document.removeEventListener("mouseover", handleMouseOver);
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseover", handleMouseOver);
+    };
   }, []);
 
   // override the browser back button to act like nav pop rather than back / forth

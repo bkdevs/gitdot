@@ -44,7 +44,7 @@ function FolderEntryRow({
     <Link
       data-page-item
       tabIndex={-1}
-      className="grid grid-cols-[1fr_300px_150px] w-full pl-2 h-9 items-center border-b hover:bg-accent/50 focus:bg-accent/50 select-none cursor-default text-sm focus:outline-none"
+      className="grid grid-cols-[1fr_300px_150px] w-full pl-2 h-9 items-center border-b focus:bg-accent/50 select-none cursor-default text-sm focus:outline-none"
       href={href}
       prefetch={true}
     >
