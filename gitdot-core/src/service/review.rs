@@ -4,9 +4,9 @@ use crate::{
     client::{DiffClient, DifftClient, Git2Client, GitClient},
     dto::{
         AddReviewerRequest, GetReviewDiffRequest, GetReviewRequest, ListReviewsRequest,
-        ProcessReviewRequest, PublishReviewRequest, RemoveReviewerRequest, ReviewCommentResponse,
-        ReviewDiffResponse, ReviewResponse, ReviewerResponse, SubmitAction, SubmitReviewRequest,
-        UpdateReviewCommentRequest,
+        ProcessReviewRequest, PublishReviewRequest, RemoveReviewerRequest,
+        ResolveReviewCommentRequest, ReviewCommentResponse, ReviewDiffResponse, ReviewResponse,
+        ReviewerResponse, SubmitAction, SubmitReviewRequest, UpdateReviewCommentRequest,
     },
     error::ReviewError,
     model::{DiffStatus, ReviewStatus, Verdict},
@@ -96,6 +96,11 @@ pub trait ReviewService: Send + Sync + 'static {
     async fn update_review_comment(
         &self,
         request: UpdateReviewCommentRequest,
+    ) -> Result<ReviewCommentResponse, ReviewError>;
+
+    async fn resolve_review_comment(
+        &self,
+        request: ResolveReviewCommentRequest,
     ) -> Result<ReviewCommentResponse, ReviewError>;
 }
 
@@ -771,9 +776,7 @@ where
             .review_repo
             .get_comment(request.comment_id)
             .await?
-            .ok_or_else(|| {
-                ReviewError::CommentNotFound(request.comment_id.to_string())
-            })?;
+            .ok_or_else(|| ReviewError::CommentNotFound(request.comment_id.to_string()))?;
 
         if comment.author_id != request.user_id {
             return Err(ReviewError::Unauthorized(
@@ -785,6 +788,58 @@ where
             .review_repo
             .update_comment(request.comment_id, &request.body)
             .await?;
+
+        Ok(updated.into())
+    }
+
+    async fn resolve_review_comment(
+        &self,
+        request: ResolveReviewCommentRequest,
+    ) -> Result<ReviewCommentResponse, ReviewError> {
+        let review = self
+            .review_repo
+            .get_review(
+                request.owner.as_ref(),
+                request.repo.as_ref(),
+                request.number,
+            )
+            .await?
+            .ok_or_else(|| {
+                ReviewError::ReviewNotFound(format!(
+                    "{}/{}/review/{}",
+                    request.owner.as_ref(),
+                    request.repo.as_ref(),
+                    request.number
+                ))
+            })?;
+
+        if review.author_id != request.user_id {
+            return Err(ReviewError::Unauthorized(
+                "Only the review author can resolve comments".to_string(),
+            ));
+        }
+
+        let comment = self
+            .review_repo
+            .get_comment(request.comment_id)
+            .await?
+            .ok_or_else(|| ReviewError::CommentNotFound(request.comment_id.to_string()))?;
+
+        if comment.parent_id.is_some() {
+            return Err(ReviewError::InvalidComment(
+                "Cannot resolve a reply directly, resolve the parent comment instead".to_string(),
+            ));
+        }
+
+        self.review_repo
+            .resolve_comment(request.comment_id, request.resolved)
+            .await?;
+
+        let updated = self
+            .review_repo
+            .get_comment(request.comment_id)
+            .await?
+            .ok_or_else(|| ReviewError::CommentNotFound(request.comment_id.to_string()))?;
 
         Ok(updated.into())
     }

@@ -424,6 +424,7 @@ mod tests {
             async fn create_comment(&self, review_id: Uuid, diff_id: Uuid, revision_id: Uuid, author_id: Uuid, body: &str, parent_id: Option<Uuid>, file_path: Option<String>, line_number_start: Option<i32>, line_number_end: Option<i32>, side: Option<CommentSide>) -> Result<(), sqlx::Error>;
             async fn get_comment(&self, comment_id: Uuid) -> Result<Option<ReviewComment>, sqlx::Error>;
             async fn update_comment(&self, comment_id: Uuid, body: &str) -> Result<ReviewComment, sqlx::Error>;
+            async fn resolve_comment(&self, comment_id: Uuid, resolved: bool) -> Result<(), Error>;
             async fn update_diff_status(&self, diff_id: Uuid, status: DiffStatus) -> Result<(), sqlx::Error>;
         }
     }

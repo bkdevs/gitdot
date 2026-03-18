@@ -225,6 +225,8 @@ pub trait ReviewRepository: Send + Sync + Clone + 'static {
 
     async fn update_comment(&self, comment_id: Uuid, body: &str) -> Result<ReviewComment, Error>;
 
+    async fn resolve_comment(&self, comment_id: Uuid, resolved: bool) -> Result<(), Error>;
+
     async fn update_diff_status(&self, diff_id: Uuid, status: DiffStatus) -> Result<(), Error>;
 }
 
@@ -625,6 +627,22 @@ impl ReviewRepository for ReviewRepositoryImpl {
         .bind(body)
         .fetch_one(&self.pool)
         .await
+    }
+
+    async fn resolve_comment(&self, comment_id: Uuid, resolved: bool) -> Result<(), Error> {
+        sqlx::query(
+            r#"
+            UPDATE review_comments
+            SET resolved = $2, updated_at = NOW()
+            WHERE id = $1 OR parent_id = $1
+            "#,
+        )
+        .bind(comment_id)
+        .bind(resolved)
+        .execute(&self.pool)
+        .await?;
+
+        Ok(())
     }
 
     async fn update_diff_status(&self, diff_id: Uuid, status: DiffStatus) -> Result<(), Error> {

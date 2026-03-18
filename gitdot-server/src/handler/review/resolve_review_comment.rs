@@ -5,8 +5,8 @@ use axum::{
 };
 use uuid::Uuid;
 
-use gitdot_api::endpoint::update_review_comment as api;
-use gitdot_core::dto::UpdateReviewCommentRequest;
+use gitdot_api::endpoint::review::resolve_review_comment as api;
+use gitdot_core::dto::ResolveReviewCommentRequest;
 
 use crate::{
     app::{AppError, AppResponse, AppState},
@@ -15,24 +15,24 @@ use crate::{
 };
 
 #[axum::debug_handler]
-pub async fn update_review_comment(
+pub async fn resolve_review_comment(
     auth_user: Principal<User>,
     State(state): State<AppState>,
     Path((owner, repo, number, comment_id)): Path<(String, String, i32, Uuid)>,
-    Json(request): Json<api::UpdateReviewCommentRequest>,
-) -> Result<AppResponse<api::UpdateReviewCommentResponse>, AppError> {
-    let request = UpdateReviewCommentRequest::new(
+    Json(request): Json<api::ResolveReviewCommentRequest>,
+) -> Result<AppResponse<api::ResolveReviewCommentResponse>, AppError> {
+    let request = ResolveReviewCommentRequest::new(
         &owner,
         &repo,
         number,
         comment_id,
         auth_user.id,
-        request.body,
+        request.resolved,
     )?;
 
     state
         .review_service
-        .update_review_comment(request)
+        .resolve_review_comment(request)
         .await
         .map_err(AppError::from)
         .map(|response| AppResponse::new(StatusCode::OK, response.into_api()))

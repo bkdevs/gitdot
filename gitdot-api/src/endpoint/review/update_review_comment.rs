@@ -5,8 +5,7 @@ use crate::{endpoint::Endpoint, resource::review::ReviewCommentResource};
 pub struct UpdateReviewComment;
 
 impl Endpoint for UpdateReviewComment {
-    const PATH: &'static str =
-        "/repository/{owner}/{repo}/review/{number}/comment/{comment_id}";
+    const PATH: &'static str = "/repository/{owner}/{repo}/review/{number}/comment/{comment_id}";
     const METHOD: http::Method = http::Method::PATCH;
 
     type Request = UpdateReviewCommentRequest;
