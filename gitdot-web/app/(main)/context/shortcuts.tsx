@@ -53,7 +53,7 @@ function mergeShortcuts(
 
 const helpShortcut: Shortcut = {
   name: "Help",
-  description: "Keyboard shortcuts",
+  description: "Shortcuts",
   keys: ["?"],
   execute: () => {},
 };
@@ -124,14 +124,22 @@ export function ShortcutsProvider({ children }: { children: React.ReactNode }) {
         <DialogContent
           className="max-w-lg! w-full p-0! top-[40vh]!"
           aria-describedby={undefined}
+          showOverlay={false}
         >
-          <DialogTitle className="font-mono text-xs font-normal text-muted-foreground flex w-full px-2 pt-1">
-            Shortcuts
+          <DialogTitle className="absolute -top-2 left-2 bg-background px-1 font-mono text-xs">
+            shortcuts
           </DialogTitle>
-          <div className="grid grid-cols-2 gap-x-8 gap-y-4 font-mono px-4 pb-4">
+          <div className="grid grid-cols-2 gap-x-8 gap-y-4 font-mono p-4">
             {allShortcuts.map((s) => (
-              <div key={s.name}>
-                <div className="flex items-baseline gap-1">
+              <div
+                key={s.name}
+                className="flex items-baseline justify-between gap-2"
+              >
+                <div>
+                  <span className="text-sm">{s.name}</span>
+                  <p className="text-xs">{s.description}</p>
+                </div>
+                <div className="flex items-baseline gap-1 shrink-0">
                   {s.keys.map((k, i) => (
                     <kbd key={k} className="text-sm bg-muted px-1 rounded-xs">
                       {k}
@@ -139,9 +147,6 @@ export function ShortcutsProvider({ children }: { children: React.ReactNode }) {
                     </kbd>
                   ))}
                 </div>
-                <p className="text-xs text-muted-foreground mt-0.5 pl-0.5">
-                  {s.description}
-                </p>
               </div>
             ))}
           </div>
