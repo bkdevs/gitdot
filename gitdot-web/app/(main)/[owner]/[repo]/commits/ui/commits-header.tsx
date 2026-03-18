@@ -1,15 +1,15 @@
 "use client";
 
-import { ChevronDown, Plus } from "lucide-react";
-import { useState } from "react";
 import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuCheckboxItem,
+    DropdownMenuContent,
+    DropdownMenuLabel,
+    DropdownMenuTrigger,
 } from "@/ui/dropdown-menu";
 import { cn } from "@/util";
+import { ChevronDown } from "lucide-react";
+import { useState } from "react";
 
 const MOCK_AUTHORS = ["Alice", "Bob", "Charlie"];
 const MOCK_TAGS = ["Frontend", "Backend"];
@@ -39,13 +39,6 @@ export function CommitsHeader() {
       ))}
       <div className="ml-auto h-full flex flex-row">
         <DateRangeDropdown />
-        <button
-          type="button"
-          className="flex flex-row h-full items-center px-2 border-border border-l bg-primary text-xs text-primary-foreground hover:bg-primary/80 outline-0! ring-0!"
-        >
-          <Plus className="size-3 mr-1.5" />
-          New tag
-        </button>
       </div>
     </div>
   );
