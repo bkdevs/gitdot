@@ -145,6 +145,33 @@ export function RepoShortcuts() {
           items[(activeIdx - 1 + items.length) % items.length].click();
         },
       },
+      J: {
+        name: "ItemDown",
+        execute: () => {
+          const items = Array.from(
+            document.querySelectorAll<HTMLElement>("[data-page-item]"),
+          );
+          if (!items.length) return;
+          const activeIdx = items.findIndex((el) => el === document.activeElement);
+          const next = activeIdx === -1 ? 0 : (activeIdx + 1) % items.length;
+          items[next].focus();
+        },
+      },
+      K: {
+        name: "ItemUp",
+        execute: () => {
+          const items = Array.from(
+            document.querySelectorAll<HTMLElement>("[data-page-item]"),
+          );
+          if (!items.length) return;
+          const activeIdx = items.findIndex((el) => el === document.activeElement);
+          const prev =
+            activeIdx === -1
+              ? items.length - 1
+              : (activeIdx - 1 + items.length) % items.length;
+          items[prev].focus();
+        },
+      },
     };
   }, [navPop, navPush]);
 
