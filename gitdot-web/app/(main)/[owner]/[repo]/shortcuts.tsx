@@ -110,6 +110,7 @@ export function RepoShortcuts() {
       Escape: { name: "NavPop", execute: () => navPop() },
       l: { name: "NavPush", execute: navPush },
       Enter: { name: "NavPush", execute: navPush },
+
       j: {
         name: "NavDown",
         execute: () => {
