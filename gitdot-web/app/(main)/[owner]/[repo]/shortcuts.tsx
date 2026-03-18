@@ -30,25 +30,40 @@ export function RepoShortcuts() {
   }, [owner, repo, pathname, router]);
 
   const navPush = useCallback(() => {
-    // take focus or first element if no focus present
-    const el = document.activeElement?.matches("[data-page-item]")
-      ? (document.activeElement as HTMLElement)
-      : document.querySelector<HTMLElement>("[data-page-item]");
-
-    if (!el) return;
-
+    const el = document.activeElement;
+    if (!el?.matches("[data-page-item]")) return;
     if (el instanceof HTMLAnchorElement) {
       el.click();
     } else {
-      el.querySelector<HTMLAnchorElement>("a")?.click();
+      (el as HTMLElement).querySelector<HTMLAnchorElement>("a")?.click();
     }
   }, []);
 
   const mouseMoved = useRef(false);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: pathname triggers the reset intentionally
+  // biome-ignore lint/correctness/useExhaustiveDependencies: pathname triggers reset intentionally
   useEffect(() => {
     mouseMoved.current = false;
+  }, [pathname]);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: pathname triggers autofocus intentionally
+  useEffect(() => {
+    const existing = document.querySelector<HTMLElement>("[data-page-item]");
+    if (existing) {
+      if (!mouseMoved.current) existing.focus();
+      return;
+    }
+
+    const observer = new MutationObserver(() => {
+      const el = document.querySelector<HTMLElement>("[data-page-item]");
+      if (!el) return;
+
+      observer.disconnect();
+      if (!mouseMoved.current) el.focus();
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => observer.disconnect();
   }, [pathname]);
 
   // register a global mouseover that focuses the hovered data-page-item
