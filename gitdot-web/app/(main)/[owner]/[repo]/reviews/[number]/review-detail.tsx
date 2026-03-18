@@ -2,6 +2,7 @@
 
 import type {
   DiffResource,
+  ReviewCommentResource,
   ReviewerResource,
   ReviewResource,
 } from "gitdot-api";
@@ -15,6 +16,20 @@ import {
   ReviewCommentContext,
 } from "./review-comment-context";
 import { Reviewers } from "./reviewers";
+
+function serverCommentToDraft(c: ReviewCommentResource): DraftComment | null {
+  if (!c.file_path || c.line_number_start === null || !c.side) return null;
+  return {
+    diff_id: c.diff_id,
+    revision_id: c.revision_id,
+    file_path: c.file_path,
+    line_number: c.line_number_start,
+    side: c.side as "old" | "new",
+    author_name: c.author?.name ?? "Unknown",
+    body: c.body,
+    created_at: c.created_at,
+  };
+}
 
 function getLatestVerdicts(diff: DiffResource) {
   const latestRevision = diff.revisions[0];
@@ -344,9 +359,19 @@ export function ReviewDetail({
 
                 <ReviewCommentContext.Provider
                   value={{
-                    comments: draftComments.filter(
-                      (c) => c.diff_id === selectedDiff.id,
-                    ),
+                    comments: [
+                      ...review.comments
+                        .filter(
+                          (c) =>
+                            c.diff_id === selectedDiff.id &&
+                            c.revision_id === selectedDiff.revisions[0]?.id,
+                        )
+                        .map(serverCommentToDraft)
+                        .filter((c): c is DraftComment => c !== null),
+                      ...draftComments.filter(
+                        (c) => c.diff_id === selectedDiff.id,
+                      ),
+                    ],
                     addComment,
                     canComment,
                     activeInput,
