@@ -457,7 +457,7 @@ impl ReviewRepository for ReviewRepositoryImpl {
         sqlx::query(
             r#"
             UPDATE reviews
-            SET status = 'inprogress',
+            SET status = 'in_progress',
                 title = $2,
                 description = $3,
                 updated_at = NOW()
