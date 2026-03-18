@@ -126,7 +126,9 @@ export function RepoShortcuts() {
             document.querySelectorAll<HTMLElement>("[data-page-item]"),
           );
           if (!items.length) return;
-          const activeIdx = items.indexOf(document.activeElement);
+          const activeEl = document.activeElement;
+          const activeIdx =
+            activeEl instanceof HTMLElement ? items.indexOf(activeEl) : -1;
           const next = activeIdx === -1 ? 0 : (activeIdx + 1) % items.length;
           items[next].focus();
         },
@@ -140,7 +142,9 @@ export function RepoShortcuts() {
             document.querySelectorAll<HTMLElement>("[data-page-item]"),
           );
           if (!items.length) return;
-          const activeIdx = items.indexOf(document.activeElement);
+          const activeEl = document.activeElement;
+          const activeIdx =
+            activeEl instanceof HTMLElement ? items.indexOf(activeEl) : -1;
           const prev =
             activeIdx === -1
               ? items.length - 1

@@ -13,11 +13,13 @@ export async function setRepoCookie(
   const value = encodeURIComponent(
     JSON.stringify({ sha, at: new Date().toISOString() }),
   );
+
+  const expires = Date.now() + MAX_AGE * 1000;
   await cookieStore.set({
     name: repoCookieName(owner, repo),
     value,
     path: "/",
-    maxAge: MAX_AGE,
+    expires,
     sameSite: "lax",
   });
 }
