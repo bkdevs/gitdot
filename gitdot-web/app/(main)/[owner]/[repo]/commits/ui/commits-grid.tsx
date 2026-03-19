@@ -40,6 +40,7 @@ export function CommitsGrid({
     endDate,
     setStartDate,
     setEndDate,
+    setHoverActive,
   );
 
   const { weeks, months } = buildGrid(commits);
@@ -88,21 +89,25 @@ export function CommitsGrid({
                 <button
                   key={`cell-${day.date}`}
                   type="button"
-                  className={cn(
-                    "appearance-none border-none p-0 transition-opacity",
-                    cellColor(day.commitCount, thresholds),
-                    selected
-                      ? "opacity-100! ring-1 ring-inset ring-foreground"
-                      : cn(dimmed && "opacity-40", "hover:opacity-100!"),
-                  )}
-                  style={{
-                    gridRow: row + 1,
-                    gridColumn: col + 1,
-                  }}
+                  className="group appearance-none border-none bg-transparent -m-px p-px"
+                  style={{ gridRow: row + 1, gridColumn: col + 1 }}
                   title={`${day.date}: ${day.commitCount} commits`}
                   onMouseDown={(e) => onCellMouseDown(day.date, e)}
                   onMouseEnter={() => onCellMouseEnter(day.date)}
-                />
+                >
+                  <div
+                    className={cn(
+                      "w-full h-full transition-opacity",
+                      cellColor(day.commitCount, thresholds),
+                      selected
+                        ? "opacity-100! ring-1 ring-inset ring-foreground"
+                        : cn(
+                            dimmed && "opacity-40",
+                            "group-hover:opacity-100!",
+                          ),
+                    )}
+                  />
+                </button>
               );
             }),
           )}
@@ -143,6 +148,7 @@ function useDragSelect(
   endDate: string | null,
   setStartDate: (d: string | null) => void,
   setEndDate: (d: string | null) => void,
+  setHoverActive: (active: boolean) => void,
 ) {
   const isDraggingRef = useRef(false);
   const pendingStartRef = useRef<string | null>(null);
@@ -152,13 +158,14 @@ function useDragSelect(
       if (pendingStartRef.current !== null) {
         setStartDate(null);
         setEndDate(null);
+        setHoverActive(false);
       }
       isDraggingRef.current = false;
       pendingStartRef.current = null;
     };
     window.addEventListener("mouseup", onMouseUp);
     return () => window.removeEventListener("mouseup", onMouseUp);
-  }, [setStartDate, setEndDate]);
+  }, [setStartDate, setEndDate, setHoverActive]);
 
   const onCellMouseDown = (date: string, e: React.MouseEvent) => {
     e.preventDefault();
@@ -172,6 +179,7 @@ function useDragSelect(
   };
 
   const onCellMouseEnter = (date: string) => {
+    setHoverActive(true);
     if (!isDraggingRef.current) return;
     if (pendingStartRef.current !== null) {
       setStartDate(pendingStartRef.current);
