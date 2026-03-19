@@ -4,6 +4,10 @@ export function addDays(date: Date, days: number): Date {
   return new Date(date.getTime() + days * MS_PER_DAY);
 }
 
+export function subtractDays(date: Date, days: number): Date {
+  return new Date(date.getTime() - days * MS_PER_DAY);
+}
+
 export function dateOnly(value: string): Date;
 export function dateOnly(value: Date): Date;
 export function dateOnly(value: string | Date): Date {

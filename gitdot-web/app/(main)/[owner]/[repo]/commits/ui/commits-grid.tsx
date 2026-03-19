@@ -1,5 +1,5 @@
 import type { RepositoryCommitResource } from "gitdot-api";
-import { addDays, cn, dateOnly } from "@/util";
+import { addDays, cn, dateOnly, subtractDays } from "@/util";
 
 const NUM_WEEKS = 53;
 const NUM_DAYS = 7;
@@ -31,6 +31,7 @@ export function CommitsGrid({
   commits: RepositoryCommitResource[];
 }) {
   const { weeks, months } = buildGrid(commits);
+  const todayDow = new Date().getDay();
 
   return (
     <div className="flex flex-col w-full h-45 border-b border-border">
@@ -44,7 +45,10 @@ export function CommitsGrid({
             <span
               // biome-ignore lint/suspicious/noArrayIndexKey: day-of-week labels have intentional duplicates
               key={`${d}-${i}`}
-              className="text-[10px] text-muted-foreground flex items-center justify-center w-full"
+              className={cn(
+                "text-[10px] flex items-center justify-center w-full",
+                i === todayDow ? "text-foreground" : "text-muted-foreground",
+              )}
               style={{ height: CELL_HEIGHT }}
             >
               {d}
@@ -81,11 +85,15 @@ export function CommitsGrid({
           className="grid w-full pl-1 pb-1"
           style={{ gridTemplateColumns: `repeat(${NUM_WEEKS}, 1fr)` }}
         >
-          {months.map((m) => (
+          {months.map((m, i) => (
             <span
               key={`${m.label}-${m.startingWeek}`}
-              className="text-[10px] text-muted-foreground"
+              className={cn(
+                "text-[10px]",
+                i === 0 ? "text-foreground" : "text-muted-foreground",
+              )}
               style={{
+                gridRow: 1,
                 gridColumn: `${m.startingWeek + 1} / span ${m.numWeeks}`,
               }}
             >
@@ -106,29 +114,25 @@ function buildGrid(commits: RepositoryCommitResource[]): {
   const countMap = new Map<string, number>();
   const _today = dateOnly(new Date());
   for (let i = 0; i < 365; i++) {
-    const d = addDays(_today, -i);
+    const d = subtractDays(_today, i);
     const dateStr = d.toISOString().slice(0, 10);
     countMap.set(dateStr, Math.floor(Math.random() * 12));
   }
 
   const today = dateOnly(new Date());
-  const todayDow = today.getDay();
-
-  const startOfThisWeek = addDays(today, -todayDow);
-  const earliest = addDays(startOfThisWeek, -52 * 7);
+  const thisWeekStart = subtractDays(today, today.getDay());
 
   const weeks: Week[] = [];
   const months: Month[] = [];
   let prevMonth = -1;
 
   for (let col = 0; col < NUM_WEEKS; col++) {
+    const weekStart: Date = subtractDays(thisWeekStart, col * 7);
     const week: Day[] = [];
+
     for (let row = 0; row < NUM_DAYS; row++) {
-      const d = addDays(earliest, col * 7 + row);
-      if (d > today) {
-        // do not include any divs for the future days in the current week
-        break;
-      }
+      const d = addDays(weekStart, row);
+      if (d > today) break;
 
       const dateStr = d.toISOString().slice(0, 10);
       week.push({
@@ -138,18 +142,16 @@ function buildGrid(commits: RepositoryCommitResource[]): {
     }
     weeks.push(week);
 
-    const date = addDays(earliest, col * 7);
-    if (date.getMonth() !== prevMonth) {
+    if (weekStart.getMonth() !== prevMonth) {
       months.push({
-        label: date.toLocaleString("en-US", { month: "short" }),
+        label: weekStart.toLocaleString("en-US", { month: "short" }),
         startingWeek: col,
         numWeeks: 0,
       });
-      prevMonth = date.getMonth();
+      prevMonth = weekStart.getMonth();
     }
   }
 
-  // calculate how many weeks each month spanned
   for (let i = 0; i < months.length; i++) {
     const next = months[i + 1];
     months[i].numWeeks = next
@@ -161,7 +163,7 @@ function buildGrid(commits: RepositoryCommitResource[]): {
 }
 
 function colorForCount(count: number): string {
-  if (count === 0) return "bg-neutral-100 dark:bg-neutral-800";
+  if (count === 0) return "bg-[oklch(95%_0_0)] dark:bg-neutral-800";
   if (count <= 2) return "bg-green-200 dark:bg-green-900";
   if (count <= 5) return "bg-green-400 dark:bg-green-700";
   if (count <= 9) return "bg-green-500 dark:bg-green-600";
