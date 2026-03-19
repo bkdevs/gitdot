@@ -170,7 +170,9 @@ function useDragSelect(
   const onCellMouseDown = (date: string, e: React.MouseEvent) => {
     e.preventDefault();
     isDraggingRef.current = true;
-    if (startDate && endDate) {
+    const isRange = startDate !== endDate;
+    const isSameDate = startDate === date;
+    if (startDate && endDate && (isRange || isSameDate)) {
       pendingStartRef.current = date;
     } else {
       setStartDate(date);
