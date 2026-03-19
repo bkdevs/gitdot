@@ -9,10 +9,11 @@ use crate::{
         ReviewerResponse, SubmitAction, SubmitReviewRequest, UpdateReviewCommentRequest,
     },
     error::ReviewError,
-    model::{DiffStatus, ReviewStatus, Verdict},
+    model::{DiffStatus, OrganizationRole, ReviewStatus, Verdict},
     repository::{
-        RepositoryRepository, RepositoryRepositoryImpl, ReviewRepository, ReviewRepositoryImpl,
-        UserRepository, UserRepositoryImpl,
+        OrganizationRepository, OrganizationRepositoryImpl, RepositoryRepository,
+        RepositoryRepositoryImpl, ReviewRepository, ReviewRepositoryImpl, UserRepository,
+        UserRepositoryImpl,
     },
     util::review::{get_current_ref, get_head_ref, get_revision_ref, get_target_ref},
 };
@@ -107,17 +108,19 @@ pub trait ReviewService: Send + Sync + 'static {
 }
 
 #[derive(Debug, Clone)]
-pub struct ReviewServiceImpl<V, R, U, G, D>
+pub struct ReviewServiceImpl<V, R, U, O, G, D>
 where
     V: ReviewRepository,
     R: RepositoryRepository,
     U: UserRepository,
+    O: OrganizationRepository,
     G: GitClient,
     D: DiffClient,
 {
     review_repo: V,
     repo_repo: R,
     user_repo: U,
+    org_repo: O,
     git_client: G,
     diff_client: D,
 }
@@ -127,6 +130,7 @@ impl
         ReviewRepositoryImpl,
         RepositoryRepositoryImpl,
         UserRepositoryImpl,
+        OrganizationRepositoryImpl,
         Git2Client,
         DifftClient,
     >
@@ -135,6 +139,7 @@ impl
         review_repo: ReviewRepositoryImpl,
         repo_repo: RepositoryRepositoryImpl,
         user_repo: UserRepositoryImpl,
+        org_repo: OrganizationRepositoryImpl,
         git_client: Git2Client,
         diff_client: DifftClient,
     ) -> Self {
@@ -142,6 +147,7 @@ impl
             review_repo,
             repo_repo,
             user_repo,
+            org_repo,
             git_client,
             diff_client,
         }
@@ -150,11 +156,12 @@ impl
 
 #[crate::instrument_all]
 #[async_trait]
-impl<V, R, U, G, D> ReviewService for ReviewServiceImpl<V, R, U, G, D>
+impl<V, R, U, O, G, D> ReviewService for ReviewServiceImpl<V, R, U, O, G, D>
 where
     V: ReviewRepository,
     R: RepositoryRepository,
     U: UserRepository,
+    O: OrganizationRepository,
     G: GitClient,
     D: DiffClient,
 {
@@ -178,7 +185,11 @@ where
     ) -> Result<Vec<ReviewResponse>, ReviewError> {
         let reviews = self
             .review_repo
-            .list_reviews(request.owner.as_ref(), request.repo.as_ref(), request.viewer_id)
+            .list_reviews(
+                request.owner.as_ref(),
+                request.repo.as_ref(),
+                request.viewer_id,
+            )
             .await?;
 
         Ok(reviews.into_iter().map(ReviewResponse::from).collect())
@@ -466,6 +477,15 @@ where
             return Err(ReviewError::CannotReviewOwnReview(
                 request.user_name.to_string(),
             ));
+        }
+
+        let role = self
+            .org_repo
+            .get_member_role(request.owner.as_ref(), user.id)
+            .await?;
+        // TODO: temporarily blocking to add reviewer to a personal repository review
+        if role != Some(OrganizationRole::Admin) {
+            return Err(ReviewError::NotOrgAdmin(request.user_name.to_string()));
         }
 
         let reviewer = self

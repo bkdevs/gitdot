@@ -49,6 +49,9 @@ pub enum ReviewError {
     #[error("Diff is not mergeable: {0}")]
     DiffNotMergeable(String),
 
+    #[error("User is not an org admin: {0}")]
+    NotOrgAdmin(String),
+
     #[error("No commits found between target branch and pushed ref")]
     CommitsNotFound,
 

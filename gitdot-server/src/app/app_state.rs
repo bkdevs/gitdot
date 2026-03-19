@@ -134,6 +134,7 @@ impl AppState {
                 review_repo.clone(),
                 repo_repo.clone(),
                 user_repo.clone(),
+                org_repo.clone(),
                 git_client.clone(),
                 diff_client.clone(),
             )),

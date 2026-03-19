@@ -138,7 +138,12 @@ pub trait ReviewRepository: Send + Sync + Clone + 'static {
         number: i32,
     ) -> Result<Option<Review>, Error>;
 
-    async fn list_reviews(&self, owner: &str, repo: &str, viewer_id: Option<Uuid>) -> Result<Vec<Review>, Error>;
+    async fn list_reviews(
+        &self,
+        owner: &str,
+        repo: &str,
+        viewer_id: Option<Uuid>,
+    ) -> Result<Vec<Review>, Error>;
 
     async fn get_reviews_by_user(
         &self,
@@ -265,7 +270,12 @@ impl ReviewRepository for ReviewRepositoryImpl {
             .await
     }
 
-    async fn list_reviews(&self, owner: &str, repo: &str, viewer_id: Option<Uuid>) -> Result<Vec<Review>, Error> {
+    async fn list_reviews(
+        &self,
+        owner: &str,
+        repo: &str,
+        viewer_id: Option<Uuid>,
+    ) -> Result<Vec<Review>, Error> {
         sqlx::query_as::<_, Review>(
             r#"
             SELECT
