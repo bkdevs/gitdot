@@ -635,14 +635,12 @@ where
             .get_repo_diff_files(owner, repo, Some(&left_sha), right_sha)
             .await?;
 
-        let mut files = Vec::new();
-        for (left, right) in diff_files {
-            let diff = self
-                .diff_client
-                .diff_files(left.as_ref(), right.as_ref())
-                .await?;
-            files.push(diff);
-        }
+        let files = futures::future::try_join_all(
+            diff_files
+                .iter()
+                .map(|(left, right)| self.diff_client.diff_files(left.as_ref(), right.as_ref())),
+        )
+        .await?;
 
         Ok(ReviewDiffResponse { files })
     }
