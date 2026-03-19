@@ -262,12 +262,17 @@ where
             diffs_per_commit.push(diffs);
         }
 
+        let mut review_numbers: Vec<Option<i32>> = Vec::new();
+        let mut diff_positions: Vec<Option<i32>> = Vec::new();
+
         for commit in git_commits {
             author_ids.push(email_to_id.get(&commit.author.email).copied());
             git_author_names.push(commit.author.name.clone());
             git_author_emails.push(commit.author.email.clone());
             repo_ids.push(repo_id);
             ref_names.push(request.ref_name.clone());
+            review_numbers.push(request.review_number);
+            diff_positions.push(request.diff_positions.get(&commit.sha).copied());
             shas.push(commit.sha);
             parent_shas.push(
                 commit
@@ -291,6 +296,8 @@ where
                 &messages,
                 &created_ats,
                 &diffs_per_commit,
+                &review_numbers,
+                &diff_positions,
             )
             .await?;
         Ok(commits.into_iter().map(|c| c.into()).collect())

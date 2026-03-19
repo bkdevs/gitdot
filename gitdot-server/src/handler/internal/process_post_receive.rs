@@ -29,6 +29,8 @@ pub async fn process_post_receive(
         request.old_sha.clone(),
         request.new_sha.clone(),
         request.ref_name.clone(),
+        None,
+        Default::default(),
     )?;
     let build_request = CreateBuildRequest::new(
         &owner,

@@ -28,6 +28,8 @@ pub trait CommitRepository: Send + Sync + Clone + 'static {
         messages: &[String],
         created_ats: &[DateTime<Utc>],
         diffs: &[Vec<CommitDiff>],
+        review_numbers: &[Option<i32>],
+        diff_positions: &[Option<i32>],
     ) -> Result<Vec<Commit>, Error>;
 }
 
@@ -94,6 +96,8 @@ impl CommitRepository for CommitRepositoryImpl {
         messages: &[String],
         created_ats: &[DateTime<Utc>],
         diffs: &[Vec<CommitDiff>],
+        review_numbers: &[Option<i32>],
+        diff_positions: &[Option<i32>],
     ) -> Result<Vec<Commit>, Error> {
         if shas.is_empty() {
             return Ok(Vec::new());
@@ -106,8 +110,9 @@ impl CommitRepository for CommitRepositoryImpl {
 
         let rows = sqlx::query_as::<_, Commit>(
             r#"
-            INSERT INTO commits (author_id, git_author_name, git_author_email, repo_id, ref_name, sha, parent_sha, message, created_at, diffs)
-            SELECT * FROM UNNEST($1::uuid[], $2::text[], $3::text[], $4::uuid[], $5::varchar[], $6::varchar[], $7::varchar[], $8::text[], $9::timestamptz[], $10::jsonb[])
+            INSERT INTO commits (author_id, git_author_name, git_author_email, repo_id, ref_name, sha, parent_sha, message, created_at, diffs, review_number, diff_position)
+            SELECT * FROM UNNEST($1::uuid[], $2::text[], $3::text[], $4::uuid[], $5::varchar[], $6::varchar[], $7::varchar[], $8::text[], $9::timestamptz[], $10::jsonb[], $11::int[], $12::int[])
+            ON CONFLICT (repo_id, sha) DO NOTHING
             RETURNING *
             "#,
         )
@@ -121,6 +126,8 @@ impl CommitRepository for CommitRepositoryImpl {
         .bind(messages)
         .bind(created_ats)
         .bind(diffs_json)
+        .bind(review_numbers)
+        .bind(diff_positions)
         .fetch_all(&self.pool)
         .await?;
 
