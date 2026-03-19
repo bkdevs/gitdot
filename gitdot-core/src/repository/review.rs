@@ -3,7 +3,7 @@ use sqlx::{Error, PgPool};
 use uuid::Uuid;
 
 use crate::model::{
-    CommentSide, Diff, DiffStatus, Review, ReviewComment, Reviewer, Revision, Verdict,
+    CommentSide, Diff, DiffStatus, Review, ReviewComment, ReviewStatus, Reviewer, Revision, Verdict,
 };
 
 const REVIEW_DETAILS_QUERY: &str = r#"
@@ -161,6 +161,14 @@ pub trait ReviewRepository: Send + Sync + Clone + 'static {
         target_branch: &str,
     ) -> Result<Review, Error>;
 
+    async fn update_review(
+        &self,
+        review_id: Uuid,
+        status: Option<ReviewStatus>,
+        title: Option<String>,
+        description: Option<String>,
+    ) -> Result<(), Error>;
+
     async fn create_diff(
         &self,
         review_id: Uuid,
@@ -168,6 +176,14 @@ pub trait ReviewRepository: Send + Sync + Clone + 'static {
         title: &str,
         description: &str,
     ) -> Result<Diff, Error>;
+
+    async fn update_diff(
+        &self,
+        diff_id: Uuid,
+        status: Option<DiffStatus>,
+        title: Option<String>,
+        description: Option<String>,
+    ) -> Result<(), Error>;
 
     async fn create_revision(
         &self,
@@ -177,6 +193,13 @@ pub trait ReviewRepository: Send + Sync + Clone + 'static {
         parent_hash: &str,
     ) -> Result<Revision, Error>;
 
+    async fn update_revision_sha(
+        &self,
+        revision_id: Uuid,
+        commit_hash: &str,
+        parent_hash: &str,
+    ) -> Result<(), Error>;
+
     async fn add_reviewer(
         &self,
         review_id: Uuid,
@@ -184,25 +207,6 @@ pub trait ReviewRepository: Send + Sync + Clone + 'static {
     ) -> Result<Option<Reviewer>, Error>;
 
     async fn remove_reviewer(&self, review_id: Uuid, reviewer_id: Uuid) -> Result<bool, Error>;
-
-    async fn publish_review(
-        &self,
-        review_id: Uuid,
-        title: &str,
-        description: &str,
-    ) -> Result<(), Error>;
-
-    async fn update_diff(&self, diff_id: Uuid, title: &str, description: &str)
-    -> Result<(), Error>;
-
-    async fn touch_review(&self, review_id: Uuid) -> Result<(), Error>;
-
-    async fn update_revision_sha(
-        &self,
-        revision_id: Uuid,
-        commit_hash: &str,
-        parent_hash: &str,
-    ) -> Result<(), Error>;
 
     async fn create_verdict(
         &self,
@@ -231,10 +235,6 @@ pub trait ReviewRepository: Send + Sync + Clone + 'static {
     async fn update_comment(&self, comment_id: Uuid, body: &str) -> Result<ReviewComment, Error>;
 
     async fn resolve_comment(&self, comment_id: Uuid, resolved: bool) -> Result<(), Error>;
-
-    async fn update_diff_status(&self, diff_id: Uuid, status: DiffStatus) -> Result<(), Error>;
-
-    async fn close_review(&self, review_id: Uuid) -> Result<(), Error>;
 }
 
 #[derive(Debug, Clone)]
@@ -376,6 +376,33 @@ impl ReviewRepository for ReviewRepositoryImpl {
         .await
     }
 
+    async fn update_review(
+        &self,
+        review_id: Uuid,
+        status: Option<ReviewStatus>,
+        title: Option<String>,
+        description: Option<String>,
+    ) -> Result<(), Error> {
+        sqlx::query(
+            r#"
+            UPDATE reviews
+            SET status = COALESCE($2, status),
+                title = COALESCE($3, title),
+                description = COALESCE($4, description),
+                updated_at = NOW()
+            WHERE id = $1
+            "#,
+        )
+        .bind(review_id)
+        .bind(status)
+        .bind(title)
+        .bind(description)
+        .execute(&self.pool)
+        .await?;
+
+        Ok(())
+    }
+
     async fn create_diff(
         &self,
         review_id: Uuid,
@@ -401,6 +428,33 @@ impl ReviewRepository for ReviewRepositoryImpl {
         .await
     }
 
+    async fn update_diff(
+        &self,
+        diff_id: Uuid,
+        status: Option<DiffStatus>,
+        title: Option<String>,
+        description: Option<String>,
+    ) -> Result<(), Error> {
+        sqlx::query(
+            r#"
+            UPDATE diffs
+            SET status = COALESCE($2, status),
+                title = COALESCE($3, title),
+                description = COALESCE($4, description),
+                updated_at = NOW()
+            WHERE id = $1
+            "#,
+        )
+        .bind(diff_id)
+        .bind(status)
+        .bind(title)
+        .bind(description)
+        .execute(&self.pool)
+        .await?;
+
+        Ok(())
+    }
+
     async fn create_revision(
         &self,
         diff_id: Uuid,
@@ -421,6 +475,29 @@ impl ReviewRepository for ReviewRepositoryImpl {
         .bind(parent_hash)
         .fetch_one(&self.pool)
         .await
+    }
+
+    async fn update_revision_sha(
+        &self,
+        revision_id: Uuid,
+        commit_hash: &str,
+        parent_hash: &str,
+    ) -> Result<(), Error> {
+        sqlx::query(
+            r#"
+            UPDATE revisions
+            SET commit_hash = $2,
+                parent_hash = $3
+            WHERE id = $1
+            "#,
+        )
+        .bind(revision_id)
+        .bind(commit_hash)
+        .bind(parent_hash)
+        .execute(&self.pool)
+        .await?;
+
+        Ok(())
     }
 
     async fn add_reviewer(
@@ -458,93 +535,6 @@ impl ReviewRepository for ReviewRepositoryImpl {
         .await?;
 
         Ok(result.rows_affected() > 0)
-    }
-
-    async fn publish_review(
-        &self,
-        review_id: Uuid,
-        title: &str,
-        description: &str,
-    ) -> Result<(), Error> {
-        sqlx::query(
-            r#"
-            UPDATE reviews
-            SET status = 'in_progress',
-                title = $2,
-                description = $3,
-                updated_at = NOW()
-            WHERE id = $1
-            "#,
-        )
-        .bind(review_id)
-        .bind(title)
-        .bind(description)
-        .execute(&self.pool)
-        .await?;
-
-        Ok(())
-    }
-
-    async fn update_diff(
-        &self,
-        diff_id: Uuid,
-        title: &str,
-        description: &str,
-    ) -> Result<(), Error> {
-        sqlx::query(
-            r#"
-            UPDATE diffs
-            SET title = $2,
-                description = $3,
-                updated_at = NOW()
-            WHERE id = $1
-            "#,
-        )
-        .bind(diff_id)
-        .bind(title)
-        .bind(description)
-        .execute(&self.pool)
-        .await?;
-
-        Ok(())
-    }
-
-    async fn touch_review(&self, review_id: Uuid) -> Result<(), Error> {
-        sqlx::query(
-            r#"
-            UPDATE reviews
-            SET updated_at = NOW()
-            WHERE id = $1
-            "#,
-        )
-        .bind(review_id)
-        .execute(&self.pool)
-        .await?;
-
-        Ok(())
-    }
-
-    async fn update_revision_sha(
-        &self,
-        revision_id: Uuid,
-        commit_hash: &str,
-        parent_hash: &str,
-    ) -> Result<(), Error> {
-        sqlx::query(
-            r#"
-            UPDATE revisions
-            SET commit_hash = $2,
-                parent_hash = $3
-            WHERE id = $1
-            "#,
-        )
-        .bind(revision_id)
-        .bind(commit_hash)
-        .bind(parent_hash)
-        .execute(&self.pool)
-        .await?;
-
-        Ok(())
     }
 
     async fn create_verdict(
@@ -653,39 +643,6 @@ impl ReviewRepository for ReviewRepositoryImpl {
         )
         .bind(comment_id)
         .bind(resolved)
-        .execute(&self.pool)
-        .await?;
-
-        Ok(())
-    }
-
-    async fn update_diff_status(&self, diff_id: Uuid, status: DiffStatus) -> Result<(), Error> {
-        sqlx::query(
-            r#"
-            UPDATE diffs
-            SET status = $2,
-                updated_at = NOW()
-            WHERE id = $1
-            "#,
-        )
-        .bind(diff_id)
-        .bind(status)
-        .execute(&self.pool)
-        .await?;
-
-        Ok(())
-    }
-
-    async fn close_review(&self, review_id: Uuid) -> Result<(), Error> {
-        sqlx::query(
-            r#"
-            UPDATE reviews
-            SET status = 'closed',
-                updated_at = NOW()
-            WHERE id = $1
-            "#,
-        )
-        .bind(review_id)
         .execute(&self.pool)
         .await?;
 

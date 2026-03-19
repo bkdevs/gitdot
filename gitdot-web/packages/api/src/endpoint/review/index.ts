@@ -7,3 +7,4 @@ export * from "./publish-review";
 export * from "./remove-reviewer";
 export * from "./resolve-review-comment";
 export * from "./submit-review";
+export * from "./update-review";

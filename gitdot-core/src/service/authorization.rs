@@ -369,7 +369,8 @@ mod tests {
         model::{
             Answer, Comment, CommentSide, Diff, DiffStatus, Organization, OrganizationMember,
             OrganizationRole, Question, Repository, RepositoryOwnerType, RepositoryVisibility,
-            Review, ReviewComment, Reviewer, Revision, User, Verdict, VoteResult, VoteTarget,
+            Review, ReviewComment, ReviewStatus, Reviewer, Revision, User, Verdict, VoteResult,
+            VoteTarget,
         },
         repository::{
             OrganizationRepository, QuestionRepository, RepositoryRepository, ReviewRepository,
@@ -462,21 +463,18 @@ mod tests {
             async fn list_reviews(&self, owner: &str, repo: &str, viewer_id: Option<Uuid>) -> Result<Vec<Review>, sqlx::Error>;
             async fn get_reviews_by_user(&self, user_name: &str, viewer_id: Option<Uuid>, status: Option<String>, owner: Option<String>, repo: Option<String>) -> Result<Vec<Review>, sqlx::Error>;
             async fn create_review(&self, repository_id: Uuid, author_id: Uuid, target_branch: &str) -> Result<Review, sqlx::Error>;
+            async fn update_review(&self, review_id: Uuid, status: Option<ReviewStatus>, title: Option<String>, description: Option<String>) -> Result<(), sqlx::Error>;
             async fn create_diff(&self, review_id: Uuid, position: i32, title: &str, description: &str) -> Result<Diff, sqlx::Error>;
+            async fn update_diff(&self, diff_id: Uuid, status: Option<DiffStatus>, title: Option<String>, description: Option<String>) -> Result<(), sqlx::Error>;
             async fn create_revision(&self, diff_id: Uuid, number: i32, commit_hash: &str, parent_hash: &str) -> Result<Revision, sqlx::Error>;
+            async fn update_revision_sha(&self, revision_id: Uuid, commit_hash: &str, parent_hash: &str) -> Result<(), sqlx::Error>;
             async fn add_reviewer(&self, review_id: Uuid, reviewer_id: Uuid) -> Result<Option<Reviewer>, sqlx::Error>;
             async fn remove_reviewer(&self, review_id: Uuid, reviewer_id: Uuid) -> Result<bool, sqlx::Error>;
-            async fn publish_review(&self, review_id: Uuid, title: &str, description: &str) -> Result<(), sqlx::Error>;
-            async fn update_diff(&self, diff_id: Uuid, title: &str, description: &str) -> Result<(), sqlx::Error>;
-            async fn touch_review(&self, review_id: Uuid) -> Result<(), sqlx::Error>;
-            async fn update_revision_sha(&self, revision_id: Uuid, commit_hash: &str, parent_hash: &str) -> Result<(), sqlx::Error>;
             async fn create_verdict(&self, diff_id: Uuid, revision_id: Uuid, reviewer_id: Uuid, verdict: Verdict) -> Result<(), sqlx::Error>;
             async fn create_comment(&self, review_id: Uuid, diff_id: Uuid, revision_id: Uuid, author_id: Uuid, body: &str, parent_id: Option<Uuid>, file_path: Option<String>, line_number_start: Option<i32>, line_number_end: Option<i32>, side: Option<CommentSide>) -> Result<(), sqlx::Error>;
             async fn get_comment(&self, comment_id: Uuid) -> Result<Option<ReviewComment>, sqlx::Error>;
             async fn update_comment(&self, comment_id: Uuid, body: &str) -> Result<ReviewComment, sqlx::Error>;
             async fn resolve_comment(&self, comment_id: Uuid, resolved: bool) -> Result<(), sqlx::Error>;
-            async fn update_diff_status(&self, diff_id: Uuid, status: DiffStatus) -> Result<(), sqlx::Error>;
-            async fn close_review(&self, review_id: Uuid) -> Result<(), sqlx::Error>;
         }
     }
 

@@ -7,6 +7,7 @@ use crate::{
         MergeDiffRequest, ProcessReviewRequest, PublishReviewRequest, RemoveReviewerRequest,
         ResolveReviewCommentRequest, ReviewCommentResponse, ReviewDiffResponse, ReviewResponse,
         ReviewerResponse, SubmitAction, SubmitReviewRequest, UpdateReviewCommentRequest,
+        UpdateReviewRequest,
     },
     error::ReviewError,
     model::{DiffStatus, OrganizationRole, ReviewStatus, Verdict},
@@ -67,7 +68,7 @@ pub trait ReviewService: Send + Sync + 'static {
     ///      initial revision, same as in `create_review`.
     /// 4. Force-update `refs/reviews/<number>/head` to the pushed SHA.
     /// 5. Touch the review's `updated_at`.
-    async fn update_review(
+    async fn process_review_update(
         &self,
         request: ProcessReviewRequest,
     ) -> Result<ReviewResponse, ReviewError>;
@@ -105,6 +106,11 @@ pub trait ReviewService: Send + Sync + 'static {
     ) -> Result<ReviewCommentResponse, ReviewError>;
 
     async fn merge_diff(&self, request: MergeDiffRequest) -> Result<ReviewResponse, ReviewError>;
+
+    async fn update_review(
+        &self,
+        request: UpdateReviewRequest,
+    ) -> Result<ReviewResponse, ReviewError>;
 }
 
 #[derive(Debug, Clone)]
@@ -270,7 +276,7 @@ where
         Ok(review.into())
     }
 
-    async fn update_review(
+    async fn process_review_update(
         &self,
         request: ProcessReviewRequest,
     ) -> Result<ReviewResponse, ReviewError> {
@@ -386,7 +392,7 @@ where
                         .await?;
 
                     self.review_repo
-                        .update_diff_status(existing_diff.id, DiffStatus::Open)
+                        .update_diff(existing_diff.id, Some(DiffStatus::Open), None, None)
                         .await?;
                 }
             } else {
@@ -433,7 +439,9 @@ where
             .update_ref(owner, repo, &get_head_ref(review_number), &request.new_sha)
             .await?;
 
-        self.review_repo.touch_review(review.id).await?;
+        self.review_repo
+            .update_review(review.id, None, None, None)
+            .await?;
 
         let updated = self
             .review_repo
@@ -561,25 +569,30 @@ where
             )));
         }
 
-        let title = request.title.as_deref().unwrap_or(&review.title);
-        let description = request
-            .description
-            .as_deref()
-            .unwrap_or(&review.description);
+        let title = request.title.unwrap_or(review.title);
+        let description = request.description.unwrap_or(review.description);
         self.review_repo
-            .publish_review(review.id, title, description)
+            .update_review(
+                review.id,
+                Some(ReviewStatus::InProgress),
+                Some(title),
+                Some(description),
+            )
             .await?;
 
         let diffs = review.diffs.unwrap_or_default();
         for diff_update in &request.diffs {
             if let Some(diff) = diffs.iter().find(|d| d.position == diff_update.position) {
-                let diff_title = diff_update.title.as_deref().unwrap_or(&diff.title);
-                let diff_desc = diff_update
-                    .description
-                    .as_deref()
-                    .unwrap_or(&diff.description);
                 self.review_repo
-                    .update_diff(diff.id, diff_title, diff_desc)
+                    .update_diff(
+                        diff.id,
+                        None,
+                        diff_update.title.clone().or_else(|| Some(diff.title.clone())),
+                        diff_update
+                            .description
+                            .clone()
+                            .or_else(|| Some(diff.description.clone())),
+                    )
                     .await?;
             }
         }
@@ -735,7 +748,7 @@ where
                     SubmitAction::Comment => unreachable!(),
                 };
                 self.review_repo
-                    .update_diff_status(diff.id, new_status)
+                    .update_diff(diff.id, Some(new_status), None, None)
                     .await?;
             }
         }
@@ -757,7 +770,9 @@ where
                 .await?;
         }
 
-        self.review_repo.touch_review(review.id).await?;
+        self.review_repo
+            .update_review(review.id, None, None, None)
+            .await?;
 
         let updated = self
             .review_repo
@@ -922,18 +937,61 @@ where
 
         for (diff, _) in &diff_revisions {
             self.review_repo
-                .update_diff_status(diff.id, DiffStatus::Merged)
+                .update_diff(diff.id, Some(DiffStatus::Merged), None, None)
                 .await?;
         }
 
         let all_merged = diffs
             .iter()
             .all(|d| d.status == DiffStatus::Merged || d.position <= request.position);
-        if all_merged {
-            self.review_repo.close_review(review.id).await?;
-        }
 
-        self.review_repo.touch_review(review.id).await?;
+        self.review_repo
+            .update_review(
+                review.id,
+                if all_merged {
+                    Some(ReviewStatus::Closed)
+                } else {
+                    None
+                },
+                None,
+                None,
+            )
+            .await?;
+
+        let updated = self
+            .review_repo
+            .get_review(owner, repo, request.number)
+            .await?
+            .ok_or_else(|| {
+                ReviewError::ReviewNotFound(format!("{}/{}/review/{}", owner, repo, request.number))
+            })?;
+
+        Ok(updated.into())
+    }
+
+    async fn update_review(
+        &self,
+        request: UpdateReviewRequest,
+    ) -> Result<ReviewResponse, ReviewError> {
+        let owner = request.owner.as_ref();
+        let repo = request.repo.as_ref();
+
+        let review = self
+            .review_repo
+            .get_review(owner, repo, request.number)
+            .await?
+            .ok_or_else(|| {
+                ReviewError::ReviewNotFound(format!("{}/{}/review/{}", owner, repo, request.number))
+            })?;
+
+        self.review_repo
+            .update_review(
+                review.id,
+                None,
+                request.title,
+                request.description,
+            )
+            .await?;
 
         let updated = self
             .review_repo
