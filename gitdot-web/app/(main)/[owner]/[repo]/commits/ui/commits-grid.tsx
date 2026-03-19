@@ -97,7 +97,7 @@ export function CommitsGrid({
                 >
                   <div
                     className={cn(
-                      "w-full h-full transition-opacity",
+                      "w-full h-full transition-opacity duration-300 group-hover:duration-0",
                       cellColor(day.commitCount, thresholds),
                       selected
                         ? "opacity-100! ring-1 ring-inset ring-foreground"
@@ -179,7 +179,6 @@ function useDragSelect(
   };
 
   const onCellMouseEnter = (date: string) => {
-    setHoverActive(true);
     if (!isDraggingRef.current) return;
     if (pendingStartRef.current !== null) {
       setStartDate(pendingStartRef.current);
