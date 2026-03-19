@@ -3,7 +3,7 @@ import { addDays, cn, dateOnly } from "@/util";
 
 const NUM_WEEKS = 53;
 const NUM_DAYS = 7;
-const CELL_HEIGHT = 18;
+const CELL_HEIGHT = 20;
 const GAP_HEIGHT = 2;
 
 type Day = {
@@ -33,8 +33,8 @@ export function CommitsGrid({
   const { weeks, months } = buildGrid(commits);
 
   return (
-    <div className="flex flex-col gap-1 w-full h-45 p-3 border-b border-border">
-      <div className="flex flex-row items-stretch flex-1 gap-2">
+    <div className="flex flex-col gap-1 w-full h-45 p-2 border-b border-border">
+      <div className="flex flex-row items-stretch flex-1">
         {/* render both the cells and month labels as one css grid */}
         <div
           className="grid w-full"
@@ -48,7 +48,7 @@ export function CommitsGrid({
             week.map((day, row) => (
               <div
                 key={`cell-${day.date}`}
-                className={cn("rounded-xs", colorForCount(day.commitCount))}
+                className={cn(colorForCount(day.commitCount))}
                 style={{ gridRow: row + 1, gridColumn: col + 1 }}
                 title={`${day.date}: ${day.commitCount} commits`}
               />
@@ -69,7 +69,7 @@ export function CommitsGrid({
         </div>
 
         {/* render the day labels as an aligned flex column */}
-        <div className="flex flex-col pl-1" style={{ gap: GAP_HEIGHT }}>
+        <div className="flex flex-col pl-2" style={{ gap: GAP_HEIGHT }}>
           {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
             <span
               // biome-ignore lint/suspicious/noArrayIndexKey: day-of-week labels have intentional duplicates
@@ -90,10 +90,13 @@ function buildGrid(commits: RepositoryCommitResource[]): {
   weeks: Week[];
   months: Month[];
 } {
+  // DEBUG: fake data
   const countMap = new Map<string, number>();
-  for (const commit of commits) {
-    const date = commit.date.slice(0, 10);
-    countMap.set(date, (countMap.get(date) ?? 0) + 1);
+  const _today = dateOnly(new Date());
+  for (let i = 0; i < 365; i++) {
+    const d = addDays(_today, -i);
+    const dateStr = d.toISOString().slice(0, 10);
+    countMap.set(dateStr, Math.floor(Math.random() * 12));
   }
 
   const today = dateOnly(new Date());
