@@ -1,3 +1,5 @@
+use chrono::{DateTime, Utc};
+
 use crate::{
     dto::{OwnerName, RepositoryName},
     error::CommitError,
@@ -8,8 +10,8 @@ pub struct GetCommitsRequest {
     pub owner: OwnerName,
     pub repo: RepositoryName,
     pub ref_name: String,
-    pub page: u32,
-    pub per_page: u32,
+    pub from: DateTime<Utc>,
+    pub to: DateTime<Utc>,
 }
 
 impl GetCommitsRequest {
@@ -17,8 +19,8 @@ impl GetCommitsRequest {
         owner: &str,
         repo: &str,
         ref_name: String,
-        page: u32,
-        per_page: u32,
+        from: DateTime<Utc>,
+        to: DateTime<Utc>,
     ) -> Result<Self, CommitError> {
         Ok(Self {
             owner: OwnerName::try_new(owner)
@@ -26,8 +28,8 @@ impl GetCommitsRequest {
             repo: RepositoryName::try_new(repo)
                 .map_err(|e| CommitError::InvalidRepositoryName(e.to_string()))?,
             ref_name,
-            page,
-            per_page,
+            from,
+            to,
         })
     }
 }

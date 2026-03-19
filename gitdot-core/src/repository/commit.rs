@@ -12,8 +12,8 @@ pub trait CommitRepository: Send + Sync + Clone + 'static {
     async fn get_commits(
         &self,
         repo_id: Uuid,
-        page: u32,
-        per_page: u32,
+        from: DateTime<Utc>,
+        to: DateTime<Utc>,
     ) -> Result<Vec<Commit>, Error>;
 
     async fn create_bulk(
@@ -65,21 +65,19 @@ impl CommitRepository for CommitRepositoryImpl {
     async fn get_commits(
         &self,
         repo_id: Uuid,
-        page: u32,
-        per_page: u32,
+        from: DateTime<Utc>,
+        to: DateTime<Utc>,
     ) -> Result<Vec<Commit>, Error> {
-        let offset = (page.saturating_sub(1)) * per_page;
         sqlx::query_as::<_, Commit>(
             r#"
             SELECT * FROM commits
-            WHERE repo_id = $1
+            WHERE repo_id = $1 AND created_at >= $2 AND created_at <= $3
             ORDER BY created_at DESC
-            LIMIT $2 OFFSET $3
             "#,
         )
         .bind(repo_id)
-        .bind(per_page as i64)
-        .bind(offset as i64)
+        .bind(from)
+        .bind(to)
         .fetch_all(&self.pool)
         .await
     }

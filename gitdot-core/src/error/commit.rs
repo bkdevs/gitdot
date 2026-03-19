@@ -10,6 +10,9 @@ pub enum CommitError {
     #[error("Invalid repository name: {0}")]
     InvalidRepositoryName(String),
 
+    #[error("Invalid date range: {0}")]
+    InvalidDateRange(String),
+
     #[error("Commit not found: {0}")]
     NotFound(String),
 

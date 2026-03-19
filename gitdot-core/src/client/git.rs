@@ -647,7 +647,7 @@ impl GitClient for Git2Client {
                 commits.pop();
             }
 
-            Ok(RepositoryCommitsResponse { commits, has_next })
+            Ok(RepositoryCommitsResponse { commits })
         })
         .await?
     }

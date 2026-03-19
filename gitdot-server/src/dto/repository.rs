@@ -29,7 +29,6 @@ impl IntoApi for RepositoryCommitsResponse {
     fn into_api(self) -> Self::ApiType {
         api::RepositoryCommitsResource {
             commits: self.commits.into_api(),
-            has_next: self.has_next,
         }
     }
 }
@@ -39,7 +38,6 @@ impl IntoApi for CommitsResponse {
     fn into_api(self) -> Self::ApiType {
         api::RepositoryCommitsResource {
             commits: self.commits.into_iter().map(|c| c.into_api()).collect(),
-            has_next: self.has_next,
         }
     }
 }

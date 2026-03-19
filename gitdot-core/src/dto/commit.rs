@@ -35,7 +35,6 @@ pub struct CommitResponse {
 #[derive(Debug, Clone)]
 pub struct CommitsResponse {
     pub commits: Vec<CommitResponse>,
-    pub has_next: bool,
 }
 
 #[derive(Debug, Clone)]

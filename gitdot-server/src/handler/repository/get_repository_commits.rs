@@ -2,9 +2,13 @@ use axum::{
     extract::{Path, Query, State},
     http::StatusCode,
 };
+use chrono::Utc;
 
 use gitdot_api::endpoint::get_repository_commits as api;
-use gitdot_core::dto::{GetCommitsRequest, RepositoryAuthorizationRequest, RepositoryPermission};
+use gitdot_core::{
+    dto::{GetCommitsRequest, RepositoryAuthorizationRequest, RepositoryPermission},
+    error::CommitError,
+};
 
 use crate::{
     app::{AppError, AppResponse, AppState},
@@ -32,6 +36,12 @@ pub async fn get_repository_commits(
         .verify_authorized_for_repository(request)
         .await?;
 
+    if params.to.is_some() && params.from.is_none() {
+        return Err(AppError::Commit(CommitError::InvalidDateRange(
+            "`to` requires `from` to be set".into(),
+        )));
+    }
+
     if let Some(client_sha) = client_cookies.sha {
         let latest_sha = state
             .repo_service
@@ -43,8 +53,11 @@ pub async fn get_repository_commits(
         }
     }
 
-    let request =
-        GetCommitsRequest::new(&owner, &repo, params.ref_name, params.page, params.per_page)?;
+    let now = Utc::now();
+    let from = params.from.unwrap_or_else(|| now - chrono::Duration::days(30));
+    let to = params.to.unwrap_or(now);
+
+    let request = GetCommitsRequest::new(&owner, &repo, params.ref_name, from, to)?;
     state
         .commit_service
         .get_commits(request)

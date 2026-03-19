@@ -49,7 +49,6 @@ impl From<Repository> for RepositoryResponse {
 #[derive(Debug, Clone)]
 pub struct RepositoryCommitsResponse {
     pub commits: Vec<RepositoryCommitResponse>,
-    pub has_next: bool,
 }
 
 #[derive(Debug, Clone)]

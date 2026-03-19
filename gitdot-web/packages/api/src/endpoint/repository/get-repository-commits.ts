@@ -4,8 +4,8 @@ import type { Endpoint } from "../endpoint";
 
 export const GetRepositoryCommitsRequest = z.object({
   ref_name: z.string(),
-  page: z.number().int(),
-  per_page: z.number().int(),
+  from: z.string().datetime().optional(),
+  to: z.string().datetime().optional(),
 });
 export type GetRepositoryCommitsRequest = z.infer<
   typeof GetRepositoryCommitsRequest

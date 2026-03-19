@@ -1,6 +1,7 @@
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-use super::{default_page, default_per_page, default_ref};
+use super::default_ref;
 use crate::{endpoint::Endpoint, resource::repository::RepositoryCommitsResource};
 
 pub struct GetRepositoryCommits;
@@ -17,10 +18,8 @@ impl Endpoint for GetRepositoryCommits {
 pub struct GetRepositoryCommitsRequest {
     #[serde(default = "default_ref")]
     pub ref_name: String,
-    #[serde(default = "default_page")]
-    pub page: u32,
-    #[serde(default = "default_per_page")]
-    pub per_page: u32,
+    pub from: Option<DateTime<Utc>>,
+    pub to: Option<DateTime<Utc>>,
 }
 
 pub type GetRepositoryCommitsResponse = RepositoryCommitsResource;

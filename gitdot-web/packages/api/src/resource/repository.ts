@@ -84,7 +84,6 @@ export type RepositoryCommitResource = z.infer<typeof RepositoryCommitResource>;
 
 export const RepositoryCommitsResource = z.object({
   commits: z.array(RepositoryCommitResource),
-  has_next: z.boolean(),
 });
 export type RepositoryCommitsResource = z.infer<
   typeof RepositoryCommitsResource

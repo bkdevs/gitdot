@@ -13,6 +13,7 @@ import {
   getRepositoryCommits,
   getRepositoryPaths,
 } from "@/dal/repository";
+import { subtractDays } from "@/util/date";
 import { RepoProvider } from "./types";
 
 export class ApiProvider extends RepoProvider {
@@ -29,7 +30,9 @@ export class ApiProvider extends RepoProvider {
   }
 
   async getCommits(): Promise<RepositoryCommitResource[] | null> {
-    const result = await getRepositoryCommits(this.owner, this.repo);
+    const result = await getRepositoryCommits(this.owner, this.repo, {
+      from: subtractDays(new Date(), 365).toISOString(),
+    });
     return result ? result.commits : null;
   }
 

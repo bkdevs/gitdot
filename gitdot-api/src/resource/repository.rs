@@ -66,7 +66,6 @@ pub enum RepositoryBlobResource {
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RepositoryCommitsResource {
     pub commits: Vec<RepositoryCommitResource>,
-    pub has_next: bool,
 }
 
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

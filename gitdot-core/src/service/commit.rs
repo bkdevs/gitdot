@@ -172,15 +172,14 @@ where
         tracing::debug!(
             repo_id = %repository.id,
             ref_name = %request.ref_name,
-            page = request.page,
-            per_page = request.per_page,
+            from = %request.from,
+            to = %request.to,
             "get_commits: querying db",
         );
 
-        let fetch_count = request.per_page + 1;
-        let mut commits = self
+        let commits = self
             .commit_repo
-            .get_commits(repository.id, request.page, fetch_count)
+            .get_commits(repository.id, request.from, request.to)
             .await?;
 
         tracing::debug!(
@@ -189,12 +188,8 @@ where
             commits.len()
         );
 
-        let has_next = commits.len() > request.per_page as usize;
-        commits.truncate(request.per_page as usize);
-
         Ok(CommitsResponse {
             commits: commits.into_iter().map(Into::into).collect(),
-            has_next,
         })
     }
 

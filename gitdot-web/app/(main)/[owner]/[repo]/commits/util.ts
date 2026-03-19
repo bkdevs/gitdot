@@ -74,12 +74,13 @@ export function buildGrid(commits: RepositoryCommitResource[]): {
 }
 
 export function computeThresholds(weeks: Week[]): Thresholds {
-  const counts = weeks
+  const nonZero = weeks
     .flatMap((w) => w.map((d) => d.commitCount))
+    .filter((c) => c > 0)
     .sort((a, b) => a - b);
-  if (counts.every((c) => c === 0)) return [1, 2, 3];
+  if (nonZero.length === 0) return [1, 2, 3];
 
-  const q = (p: number) => counts[Math.floor(p * (counts.length - 1))];
+  const q = (p: number) => nonZero[Math.floor(p * (nonZero.length - 1))];
   return [q(0.25), q(0.5), q(0.75)];
 }
 
