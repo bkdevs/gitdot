@@ -21,9 +21,9 @@ type Month = {
 
 /**
  * renders a calendar view of commits, few notes:
- *   - uses css-rendering only
- *   - fixed to showing the last year of commits
- *   - cell height is fixed but width is determined by the size of the outer container
+ * - uses css-rendering only
+ * - fixed to showing the last year of commits
+ * - cell height is fixed but width is determined by the size of the outer container
  */
 export function CommitsGrid({
   commits,
