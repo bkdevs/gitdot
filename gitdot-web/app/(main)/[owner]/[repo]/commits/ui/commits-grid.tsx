@@ -34,10 +34,10 @@ export function CommitsGrid({
 
   return (
     <div className="flex flex-col w-full h-45 border-b border-border">
+      {/* day labels and the grid are in the same row */}
       <div className="flex flex-row items-start flex-1 h-full">
-        {/* render the day labels as an aligned flex column */}
         <div
-          className="flex flex-col py-1 w-6 h-full border-r border-border"
+          className="flex flex-col py-1 w-5 h-full border-r border-border"
           style={{ gap: GAP_HEIGHT }}
         >
           {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
@@ -53,7 +53,7 @@ export function CommitsGrid({
         </div>
 
         <div
-          className="grid w-full pt-1 px-1"
+          className="grid w-full py-1 px-1"
           style={{
             gap: GAP_HEIGHT,
             gridTemplateColumns: `repeat(${NUM_WEEKS}, 1fr)`,
@@ -73,10 +73,10 @@ export function CommitsGrid({
         </div>
       </div>
 
-      {/* month labels row — border spans full container width */}
+      {/* month labels are in a row below, with a spacer to continue the day label border */}
       <div className="flex flex-row border-t border-border">
-        {/* spacer to */}
-        <div className="w-6 mr-1 shrink-0 border-r border-border" />
+        <div className="w-5 shrink-0 border-r border-border" />
+
         <div
           className="grid w-full pl-1 pb-1"
           style={{ gridTemplateColumns: `repeat(${NUM_WEEKS}, 1fr)` }}
@@ -84,7 +84,7 @@ export function CommitsGrid({
           {months.map((m) => (
             <span
               key={`${m.label}-${m.startingWeek}`}
-              className="text-[10px] pl-[0.5] text-muted-foreground"
+              className="text-[10px] text-muted-foreground"
               style={{
                 gridColumn: `${m.startingWeek + 1} / span ${m.numWeeks}`,
               }}
