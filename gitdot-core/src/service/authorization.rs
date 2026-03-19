@@ -492,6 +492,7 @@ mod tests {
             owner_type,
             visibility,
             created_at: chrono::Utc::now(),
+            settings: None,
         }
     }
 

@@ -4,6 +4,7 @@ use sqlx::{FromRow, Type};
 use uuid::Uuid;
 
 use crate::error::RepositoryError;
+use crate::model::RepoSettings;
 
 #[derive(Debug, Clone, FromRow)]
 pub struct Repository {
@@ -14,6 +15,9 @@ pub struct Repository {
     pub owner_type: RepositoryOwnerType,
     pub visibility: RepositoryVisibility,
     pub created_at: DateTime<Utc>,
+
+    #[sqlx(json(nullable))]
+    pub settings: Option<RepoSettings>,
 }
 
 impl Repository {
