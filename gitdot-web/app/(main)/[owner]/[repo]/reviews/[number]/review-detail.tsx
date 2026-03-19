@@ -15,6 +15,7 @@ import {
   publishReviewAction,
   resolveReviewCommentAction,
   submitReviewAction,
+  updateDiffAction,
   updateReviewAction,
 } from "@/actions/review";
 import { Button } from "@/ui/button";
@@ -148,8 +149,10 @@ export function ReviewDetail({
   const [isLoadingDiff, startDiffTransition] = useTransition();
   const [editingTitle, setEditingTitle] = useState(false);
   const [editingDescription, setEditingDescription] = useState(false);
+  const [editingDiffDescription, setEditingDiffDescription] = useState(false);
   const editTitleRef = useRef<HTMLInputElement>(null);
   const editDescriptionRef = useRef<HTMLTextAreaElement>(null);
+  const editDiffDescriptionRef = useRef<HTMLTextAreaElement>(null);
 
   const isReviewer = review.reviewers.some((r) => r.reviewer_id === user?.id);
   const isReviewAuthor = user?.id === review.author_id;
@@ -291,6 +294,17 @@ export function ReviewDetail({
     }
   }
 
+  async function handleSaveDiffDescription() {
+    if (!selectedDiff) return;
+    const value = editDiffDescriptionRef.current?.value?.trim();
+    setEditingDiffDescription(false);
+    if (value !== undefined && value !== selectedDiff.description) {
+      await updateDiffAction(owner, repo, number, selectedDiff.position, {
+        description: value,
+      });
+    }
+  }
+
   return (
     <div className="w-full flex">
       <div className="flex flex-col flex-1 min-w-0 pb-20">
@@ -402,6 +416,7 @@ export function ReviewDetail({
                   setLeftRevision("base");
                   setRightRevision(null);
                   setDynamicDiffEntries(null);
+                  setEditingDiffDescription(false);
                 }}
               >
                 <div className="flex items-center gap-2">
@@ -440,6 +455,30 @@ export function ReviewDetail({
                       placeholder="Add a description..."
                       className="text-sm text-muted-foreground bg-transparent border border-border rounded-md p-2 outline-none focus:border-ring resize-none min-h-30"
                     />
+                  ) : editingDiffDescription ? (
+                    <textarea
+                      ref={editDiffDescriptionRef}
+                      key={`edit-${selectedDiff.id}`}
+                      defaultValue={selectedDiff.description}
+                      placeholder="Add a description..."
+                      className="text-sm text-muted-foreground bg-transparent border border-border rounded-md p-2 outline-none focus:border-ring resize-none min-h-30"
+                      autoFocus
+                      onBlur={handleSaveDiffDescription}
+                      onKeyDown={(e) => {
+                        if (e.key === "Escape")
+                          setEditingDiffDescription(false);
+                      }}
+                    />
+                  ) : isReviewAuthor ? (
+                    <p
+                      className="text-sm text-muted-foreground cursor-pointer hover:underline"
+                      onClick={() => setEditingDiffDescription(true)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") setEditingDiffDescription(true);
+                      }}
+                    >
+                      {selectedDiff.description || "Add a description..."}
+                    </p>
                   ) : (
                     selectedDiff.description && (
                       <p className="text-sm text-muted-foreground">

@@ -6,6 +6,7 @@ import type {
   ReviewerResource,
   ReviewResource,
   SubmitReviewRequest,
+  UpdateDiffRequest,
   UpdateReviewRequest,
 } from "gitdot-api";
 import { refresh } from "next/cache";
@@ -16,6 +17,7 @@ import {
   removeReviewer,
   resolveReviewComment,
   submitReview,
+  updateDiff,
   updateReview,
 } from "@/dal";
 
@@ -61,6 +63,26 @@ export async function removeReviewerAction(
 
   refresh();
   return { success: true };
+}
+
+export type UpdateDiffActionResult =
+  | { review: ReviewResource }
+  | { error: string };
+
+export async function updateDiffAction(
+  owner: string,
+  repo: string,
+  number: number,
+  position: number,
+  request: UpdateDiffRequest,
+): Promise<UpdateDiffActionResult> {
+  const result = await updateDiff(owner, repo, number, position, request);
+  if (!result) {
+    return { error: "updateDiff call failed" };
+  }
+
+  refresh();
+  return { review: result };
 }
 
 export type UpdateReviewActionResult =

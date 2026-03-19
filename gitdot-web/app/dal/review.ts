@@ -3,6 +3,7 @@ import "server-only";
 import type {
   PublishReviewRequest,
   SubmitReviewRequest,
+  UpdateDiffRequest,
   UpdateReviewRequest,
 } from "gitdot-api";
 import {
@@ -90,6 +91,21 @@ export async function removeReviewer(
   );
 
   await handleEmptyResponse(response);
+}
+
+export async function updateDiff(
+  owner: string,
+  repo: string,
+  number: number,
+  position: number,
+  request: UpdateDiffRequest,
+): Promise<ReviewResource | null> {
+  const response = await authPatch(
+    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/review/${number}/diff/${position}`,
+    request,
+  );
+
+  return await handleResponse(response, ReviewResource);
 }
 
 export async function updateReview(
