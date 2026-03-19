@@ -6,6 +6,7 @@ import type {
   ReviewerResource,
   ReviewResource,
   SubmitReviewRequest,
+  UpdateReviewRequest,
 } from "gitdot-api";
 import { refresh } from "next/cache";
 import {
@@ -15,6 +16,7 @@ import {
   removeReviewer,
   resolveReviewComment,
   submitReview,
+  updateReview,
 } from "@/dal";
 
 export type AddReviewerActionResult =
@@ -59,6 +61,25 @@ export async function removeReviewerAction(
 
   refresh();
   return { success: true };
+}
+
+export type UpdateReviewActionResult =
+  | { review: ReviewResource }
+  | { error: string };
+
+export async function updateReviewAction(
+  owner: string,
+  repo: string,
+  number: number,
+  request: UpdateReviewRequest,
+): Promise<UpdateReviewActionResult> {
+  const result = await updateReview(owner, repo, number, request);
+  if (!result) {
+    return { error: "updateReview call failed" };
+  }
+
+  refresh();
+  return { review: result };
 }
 
 export type PublishReviewActionResult =

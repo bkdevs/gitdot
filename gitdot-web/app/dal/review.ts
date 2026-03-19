@@ -1,6 +1,10 @@
 import "server-only";
 
-import type { PublishReviewRequest, SubmitReviewRequest } from "gitdot-api";
+import type {
+  PublishReviewRequest,
+  SubmitReviewRequest,
+  UpdateReviewRequest,
+} from "gitdot-api";
 import {
   GetReviewDiffResponse,
   ReviewCommentResource,
@@ -12,6 +16,7 @@ import { toQueryString } from "@/util";
 import {
   authDelete,
   authFetch,
+  authPatch,
   authPost,
   GITDOT_SERVER_URL,
   handleEmptyResponse,
@@ -85,6 +90,20 @@ export async function removeReviewer(
   );
 
   await handleEmptyResponse(response);
+}
+
+export async function updateReview(
+  owner: string,
+  repo: string,
+  number: number,
+  request: UpdateReviewRequest,
+): Promise<ReviewResource | null> {
+  const response = await authPatch(
+    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/review/${number}`,
+    request,
+  );
+
+  return await handleResponse(response, ReviewResource);
 }
 
 export async function publishReview(

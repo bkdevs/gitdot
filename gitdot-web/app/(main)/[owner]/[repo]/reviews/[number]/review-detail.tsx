@@ -15,6 +15,7 @@ import {
   publishReviewAction,
   resolveReviewCommentAction,
   submitReviewAction,
+  updateReviewAction,
 } from "@/actions/review";
 import { Button } from "@/ui/button";
 import {
@@ -145,6 +146,10 @@ export function ReviewDetail({
     DiffEntry[] | null
   >(null);
   const [isLoadingDiff, startDiffTransition] = useTransition();
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [editingDescription, setEditingDescription] = useState(false);
+  const editTitleRef = useRef<HTMLInputElement>(null);
+  const editDescriptionRef = useRef<HTMLTextAreaElement>(null);
 
   const isReviewer = review.reviewers.some((r) => r.reviewer_id === user?.id);
   const isReviewAuthor = user?.id === review.author_id;
@@ -270,6 +275,22 @@ export function ReviewDetail({
     setIsMerging(false);
   }
 
+  async function handleSaveTitle() {
+    const value = editTitleRef.current?.value?.trim();
+    setEditingTitle(false);
+    if (value && value !== review.title) {
+      await updateReviewAction(owner, repo, number, { title: value });
+    }
+  }
+
+  async function handleSaveDescription() {
+    const value = editDescriptionRef.current?.value?.trim();
+    setEditingDescription(false);
+    if (value !== undefined && value !== review.description) {
+      await updateReviewAction(owner, repo, number, { description: value });
+    }
+  }
+
   return (
     <div className="w-full flex">
       <div className="flex flex-col flex-1 min-w-0 pb-20">
@@ -282,8 +303,31 @@ export function ReviewDetail({
                 defaultValue={review.title || `Review #${review.number}`}
                 className="text-lg font-medium bg-transparent border-b border-border outline-none focus:border-ring"
               />
+            ) : editingTitle ? (
+              <input
+                ref={editTitleRef}
+                type="text"
+                defaultValue={review.title || `Review #${review.number}`}
+                className="text-lg font-medium bg-transparent border-b border-border outline-none focus:border-ring"
+                autoFocus
+                onBlur={handleSaveTitle}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleSaveTitle();
+                  if (e.key === "Escape") setEditingTitle(false);
+                }}
+              />
             ) : (
-              <h1 className="text-lg font-medium">
+              <h1
+                className={cn(
+                  "text-lg font-medium",
+                  isReviewAuthor && "cursor-pointer hover:underline",
+                )}
+                onClick={() => isReviewAuthor && setEditingTitle(true)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && isReviewAuthor)
+                    setEditingTitle(true);
+                }}
+              >
                 {review.title || `Review #${review.number}`}
               </h1>
             )}
@@ -305,6 +349,28 @@ export function ReviewDetail({
                 placeholder="Add a description..."
                 className="text-sm mt-2 bg-transparent border border-border rounded-md p-2 outline-none focus:border-ring resize-none min-h-30"
               />
+            ) : editingDescription ? (
+              <textarea
+                ref={editDescriptionRef}
+                defaultValue={review.description}
+                placeholder="Add a description..."
+                className="text-sm mt-2 bg-transparent border border-border rounded-md p-2 outline-none focus:border-ring resize-none min-h-30"
+                autoFocus
+                onBlur={handleSaveDescription}
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") setEditingDescription(false);
+                }}
+              />
+            ) : isReviewAuthor ? (
+              <p
+                className="text-sm mt-2 cursor-pointer hover:underline"
+                onClick={() => setEditingDescription(true)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") setEditingDescription(true);
+                }}
+              >
+                {review.description || "Add a description..."}
+              </p>
             ) : (
               review.description && (
                 <p className="text-sm mt-2">{review.description}</p>
