@@ -9,10 +9,19 @@ import {
   DropdownMenuTrigger,
 } from "@/ui/dropdown-menu";
 import { cn } from "@/util";
+import { formatDate } from "@/util/date";
 
 const MOCK_TAGS = ["Frontend", "Backend"];
 
-export function CommitsHeader() {
+export function CommitsHeader({
+  startDate,
+  endDate,
+  commitCount,
+}: {
+  startDate: string | null;
+  endDate: string | null;
+  commitCount: number;
+}) {
   const [activeTags, setActiveTags] = useState<Set<string>>(new Set());
 
   function toggleTag(tag: string) {
@@ -35,7 +44,11 @@ export function CommitsHeader() {
         />
       ))}
       <div className="ml-auto h-full flex flex-row">
-        <DateRangeDropdown />
+        <DateRange
+          startDate={startDate}
+          endDate={endDate}
+          commitCount={commitCount}
+        />
       </div>
     </div>
   );
@@ -63,16 +76,29 @@ function TagButton({
     </button>
   );
 }
-function DateRangeDropdown() {
+
+function DateRange({
+  startDate,
+  endDate,
+  commitCount,
+}: {
+  startDate: string | null;
+  endDate: string | null;
+  commitCount: number;
+}) {
+  const end = endDate ? new Date(endDate) : new Date();
+  const start = startDate ? new Date(startDate) : new Date(new Date().setFullYear(end.getFullYear() - 1));
+  const rangeLabel = `${formatDate(end)} — ${formatDate(start)}`;
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className="flex flex-row h-full items-center border-border border-l px-2 text-xs text-muted-foreground hover:bg-sidebar"
+          className="flex flex-row h-full items-center px-2 text-xs text-muted-foreground transition-colors hover:text-foreground cursor-pointer select-none"
         >
-          Jan 1, 2025 - Mar 18, 2026
-          <ChevronDown className="size-3 ml-1.5" />
+          {rangeLabel} ({commitCount} commits)
+          <ChevronDown className="size-3 ml-1" />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">

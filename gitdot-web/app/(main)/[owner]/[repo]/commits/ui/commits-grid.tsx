@@ -61,7 +61,7 @@ export function CommitsGrid({
               // biome-ignore lint/suspicious/noArrayIndexKey: day-of-week labels have intentional duplicates
               key={`${d}-${i}`}
               className={cn(
-                "text-[10px] flex items-center justify-center w-full",
+                "text-[10px] flex items-center justify-center w-full select-none",
                 i === dayOfWeek ? "text-foreground" : "text-muted-foreground",
               )}
               style={{ height: CELL_HEIGHT }}
@@ -128,7 +128,7 @@ export function CommitsGrid({
               key={`${m.label}-${m.startingWeek}`}
               type="button"
               className={cn(
-                "text-[10px] text-left transition-colors hover:text-foreground cursor-pointer appearance-none bg-transparent border-none p-0",
+                "text-[10px] text-left transition-colors hover:text-foreground cursor-pointer appearance-none bg-transparent border-none p-0 select-none",
                 i === 0 ? "text-foreground" : "text-muted-foreground",
               )}
               style={{

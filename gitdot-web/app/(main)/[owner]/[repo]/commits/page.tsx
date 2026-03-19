@@ -23,7 +23,11 @@ export function CommitsClient() {
 
   return (
     <div className="flex flex-col h-full">
-      <CommitsHeader />
+      <CommitsHeader
+        startDate={startDate}
+        endDate={endDate}
+        commitCount={filteredCommits.length}
+      />
       <CommitsGrid
         commits={commits}
         startDate={startDate}
