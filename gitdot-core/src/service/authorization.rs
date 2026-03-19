@@ -394,6 +394,7 @@ mod tests {
             async fn get_member_role(&self, org_name: &str, user_id: Uuid) -> Result<Option<OrganizationRole>, sqlx::Error>;
             async fn list(&self) -> Result<Vec<Organization>, sqlx::Error>;
             async fn list_by_user_id(&self, user_id: Uuid) -> Result<Vec<Organization>, sqlx::Error>;
+            async fn list_members(&self, org_name: &str, role: Option<OrganizationRole>) -> Result<Vec<OrganizationMember>, sqlx::Error>;
         }
     }
 

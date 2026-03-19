@@ -28,6 +28,12 @@ pub trait OrganizationRepository: Send + Sync + Clone + 'static {
     async fn list(&self) -> Result<Vec<Organization>, Error>;
 
     async fn list_by_user_id(&self, user_id: Uuid) -> Result<Vec<Organization>, Error>;
+
+    async fn list_members(
+        &self,
+        org_name: &str,
+        role: Option<OrganizationRole>,
+    ) -> Result<Vec<OrganizationMember>, Error>;
 }
 
 #[derive(Debug, Clone)]
@@ -160,6 +166,27 @@ impl OrganizationRepository for OrganizationRepositoryImpl {
             "#,
         )
         .bind(user_id)
+        .fetch_all(&self.pool)
+        .await
+    }
+
+    async fn list_members(
+        &self,
+        org_name: &str,
+        role: Option<OrganizationRole>,
+    ) -> Result<Vec<OrganizationMember>, Error> {
+        sqlx::query_as::<_, OrganizationMember>(
+            r#"
+            SELECT om.id, om.user_id, om.organization_id, om.role, om.created_at
+            FROM organization_members om
+            JOIN organizations o ON om.organization_id = o.id
+            WHERE o.name = $1
+            AND ($2::organization_role IS NULL OR om.role = $2)
+            ORDER BY om.created_at DESC
+            "#,
+        )
+        .bind(org_name)
+        .bind(role)
         .fetch_all(&self.pool)
         .await
     }

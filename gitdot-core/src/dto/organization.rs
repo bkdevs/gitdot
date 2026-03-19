@@ -1,6 +1,7 @@
 mod add_member;
 mod create_organization;
 mod get_organization;
+mod list_members;
 mod list_organization_repositories;
 
 use chrono::{DateTime, Utc};
@@ -11,6 +12,7 @@ use crate::model::Organization;
 pub use add_member::{AddMemberRequest, OrganizationMemberResponse};
 pub use create_organization::CreateOrganizationRequest;
 pub use get_organization::GetOrganizationRequest;
+pub use list_members::ListMembersRequest;
 pub use list_organization_repositories::ListOrganizationRepositoriesRequest;
 
 #[derive(Debug, Clone)]

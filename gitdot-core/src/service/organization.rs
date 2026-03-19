@@ -2,7 +2,7 @@ use async_trait::async_trait;
 
 use crate::{
     dto::{
-        AddMemberRequest, CreateOrganizationRequest, GetOrganizationRequest,
+        AddMemberRequest, CreateOrganizationRequest, GetOrganizationRequest, ListMembersRequest,
         ListOrganizationRepositoriesRequest, OrganizationMemberResponse, OrganizationResponse,
         RepositoryResponse,
     },
@@ -36,6 +36,11 @@ pub trait OrganizationService: Send + Sync + 'static {
     ) -> Result<Vec<RepositoryResponse>, OrganizationError>;
 
     async fn list_organizations(&self) -> Result<Vec<OrganizationResponse>, OrganizationError>;
+
+    async fn list_members(
+        &self,
+        request: ListMembersRequest,
+    ) -> Result<Vec<OrganizationMemberResponse>, OrganizationError>;
 }
 
 #[derive(Debug, Clone)]
@@ -162,5 +167,19 @@ where
         };
 
         Ok(repositories.into_iter().map(|r| r.into()).collect())
+    }
+
+    async fn list_members(
+        &self,
+        request: ListMembersRequest,
+    ) -> Result<Vec<OrganizationMemberResponse>, OrganizationError> {
+        let org_name = request.org_name.to_string();
+        self.org_repo
+            .get(&org_name)
+            .await?
+            .ok_or_else(|| OrganizationError::NotFound(org_name.clone()))?;
+
+        let members = self.org_repo.list_members(&org_name, request.role).await?;
+        Ok(members.into_iter().map(|m| m.into()).collect())
     }
 }
