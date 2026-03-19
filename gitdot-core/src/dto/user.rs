@@ -9,7 +9,7 @@ mod update_current_user;
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
-use crate::model::User;
+use crate::model::{User, UserSettings};
 
 pub use get_current_user::GetCurrentUserRequest;
 pub use get_user::GetUserRequest;
@@ -25,6 +25,7 @@ pub struct UserResponse {
     pub name: String,
     pub email: String,
     pub created_at: DateTime<Utc>,
+    pub settings: Option<UserSettings>,
 }
 
 impl From<User> for UserResponse {
@@ -34,6 +35,7 @@ impl From<User> for UserResponse {
             name: user.name,
             email: user.email,
             created_at: user.created_at,
+            settings: user.settings,
         }
     }
 }

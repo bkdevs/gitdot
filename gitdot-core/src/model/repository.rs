@@ -3,8 +3,7 @@ use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, Type};
 use uuid::Uuid;
 
-use crate::error::RepositoryError;
-use crate::model::RepoSettings;
+use crate::{error::RepositoryError, model::CommitFilter};
 
 #[derive(Debug, Clone, FromRow)]
 pub struct Repository {
@@ -18,6 +17,11 @@ pub struct Repository {
 
     #[sqlx(json(nullable))]
     pub settings: Option<RepoSettings>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RepoSettings {
+    pub commit_filters: Option<Vec<CommitFilter>>,
 }
 
 impl Repository {

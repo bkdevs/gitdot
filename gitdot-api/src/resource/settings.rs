@@ -1,8 +1,8 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CommitFilter {
+#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct CommitFilterResource {
     pub authors: Option<Vec<String>>,
     pub tags: Option<Vec<String>>,
     pub included_paths: Option<Vec<String>>,

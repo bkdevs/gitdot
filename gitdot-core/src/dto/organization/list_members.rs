@@ -1,8 +1,4 @@
-use crate::{
-    dto::OwnerName,
-    error::OrganizationError,
-    model::OrganizationRole,
-};
+use crate::{dto::OwnerName, error::OrganizationError, model::OrganizationRole};
 
 #[derive(Debug, Clone)]
 pub struct ListMembersRequest {

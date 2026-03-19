@@ -6,6 +6,7 @@ pub mod question;
 pub mod repository;
 pub mod review;
 pub mod runner;
+pub mod settings;
 pub mod task;
 pub mod user;
 
@@ -19,6 +20,7 @@ pub use question::*;
 pub use repository::*;
 pub use review::*;
 pub use runner::*;
+pub use settings::*;
 pub use task::*;
 pub use user::*;
 

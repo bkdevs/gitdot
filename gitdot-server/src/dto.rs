@@ -8,6 +8,7 @@ mod question;
 mod repository;
 mod review;
 mod runner;
+mod settings;
 mod task;
 mod user;
 

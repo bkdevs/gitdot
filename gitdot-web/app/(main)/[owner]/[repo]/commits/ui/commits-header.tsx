@@ -87,7 +87,9 @@ function DateRange({
   commitCount: number;
 }) {
   const end = endDate ? new Date(endDate) : new Date();
-  const start = startDate ? new Date(startDate) : new Date(new Date().setFullYear(end.getFullYear() - 1));
+  const start = startDate
+    ? new Date(startDate)
+    : new Date(new Date().setFullYear(end.getFullYear() - 1));
   const rangeLabel = `${formatDate(end)} — ${formatDate(start)}`;
 
   return (
