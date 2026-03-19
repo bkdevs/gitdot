@@ -2319,6 +2319,7 @@ dependencies = [
  "chrono",
  "dotenvy",
  "ed25519-dalek",
+ "flate2",
  "futures",
  "git2",
  "gitdot-api",

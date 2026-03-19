@@ -21,6 +21,7 @@ base64ct = { workspace = true }
 chrono = { workspace = true }
 dotenvy = "0.15.7"
 ed25519-dalek = { workspace = true }
+flate2 = { workspace = true }
 futures = { workspace = true }
 git2 = { workspace = true }
 gitdot-api = { workspace = true }

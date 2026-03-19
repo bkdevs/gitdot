@@ -1,12 +1,12 @@
 use axum::{
     body::Body,
     extract::{Path, State},
+    http::HeaderMap,
 };
-use futures::TryStreamExt;
-use tokio_util::io::StreamReader;
 
 use gitdot_core::dto::{ReceivePackRequest, RepositoryAuthorizationRequest, RepositoryPermission};
 
+use super::create_body_reader;
 use crate::{
     app::{AppError, AppState},
     dto::GitHttpServerResponse,
@@ -19,6 +19,7 @@ pub async fn git_receive_pack(
     State(state): State<AppState>,
     Path((owner, repo)): Path<(String, String)>,
     ContentType(content_type): ContentType,
+    headers: HeaderMap,
     body: Body,
 ) -> Result<GitHttpServerResponse, AppError> {
     let auth_request = RepositoryAuthorizationRequest::new(
@@ -32,16 +33,13 @@ pub async fn git_receive_pack(
         .verify_authorized_for_repository(auth_request)
         .await?;
 
-    let body_reader = StreamReader::new(
-        body.into_data_stream()
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e)),
-    );
+    let body_reader = create_body_reader(&headers, body).await;
     let request = ReceivePackRequest::new(
         Some(auth_user.id),
         &owner,
         &repo,
         &content_type,
-        Box::new(body_reader),
+        body_reader,
     )?;
     let response = state.git_http_service.receive_pack(request).await?;
     Ok(response.into())
