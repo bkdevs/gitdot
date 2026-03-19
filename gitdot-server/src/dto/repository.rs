@@ -58,6 +58,8 @@ impl IntoApi for CommitResponse {
                 name: self.git_author_name,
                 email: self.git_author_email,
             },
+            review_number: self.review_number,
+            diff_position: self.diff_position,
             diffs: self.diffs.into_iter().map(|d| d.into_api()).collect(),
         }
     }
@@ -74,6 +76,8 @@ impl IntoApi for RepositoryCommitResponse {
             message: self.message,
             date: self.date,
             author: self.author.into_api(),
+            review_number: None,
+            diff_position: None,
             diffs: vec![],
         }
     }

@@ -76,6 +76,10 @@ pub struct RepositoryCommitResource {
     pub message: String,
     pub date: DateTime<Utc>,
     pub author: CommitAuthorResource,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub review_number: Option<i32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub diff_position: Option<i32>,
     pub diffs: Vec<RepositoryDiffStatResource>,
 }
 

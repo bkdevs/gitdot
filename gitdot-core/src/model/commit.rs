@@ -18,6 +18,9 @@ pub struct Commit {
     pub message: String,
     pub created_at: DateTime<Utc>,
 
+    pub review_number: Option<i32>,
+    pub diff_position: Option<i32>,
+
     #[sqlx(json)]
     pub diffs: Vec<CommitDiff>,
 }

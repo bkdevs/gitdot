@@ -27,6 +27,8 @@ pub struct CommitResponse {
     pub parent_sha: String,
     pub message: String,
     pub created_at: DateTime<Utc>,
+    pub review_number: Option<i32>,
+    pub diff_position: Option<i32>,
     pub diffs: Vec<CommitDiff>,
 }
 
@@ -56,6 +58,8 @@ impl From<Commit> for CommitResponse {
             parent_sha: commit.parent_sha,
             message: commit.message,
             created_at: commit.created_at,
+            review_number: commit.review_number,
+            diff_position: commit.diff_position,
             diffs: commit.diffs,
         }
     }

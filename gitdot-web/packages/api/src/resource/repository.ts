@@ -76,6 +76,8 @@ export const RepositoryCommitResource = z.object({
   message: z.string(),
   date: z.iso.datetime(),
   author: CommitAuthorResource,
+  review_number: z.number().int().optional(),
+  diff_position: z.number().int().optional(),
   diffs: z.array(RepositoryDiffStatResource),
 });
 export type RepositoryCommitResource = z.infer<typeof RepositoryCommitResource>;
