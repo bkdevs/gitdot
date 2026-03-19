@@ -110,13 +110,10 @@ function buildGrid(commits: RepositoryCommitResource[]): {
   weeks: Week[];
   months: Month[];
 } {
-  // DEBUG: fake data
   const countMap = new Map<string, number>();
-  const _today = dateOnly(new Date());
-  for (let i = 0; i < 365; i++) {
-    const d = subtractDays(_today, i);
-    const dateStr = d.toISOString().slice(0, 10);
-    countMap.set(dateStr, Math.floor(Math.random() * 12));
+  for (const commit of commits) {
+    const date = commit.date.slice(0, 10);
+    countMap.set(date, (countMap.get(date) ?? 0) + 1);
   }
 
   const today = dateOnly(new Date());
@@ -163,9 +160,9 @@ function buildGrid(commits: RepositoryCommitResource[]): {
 }
 
 function colorForCount(count: number): string {
-  if (count === 0) return "bg-[oklch(95%_0_0)] dark:bg-neutral-800";
-  if (count <= 2) return "bg-green-200 dark:bg-green-900";
-  if (count <= 5) return "bg-green-400 dark:bg-green-700";
-  if (count <= 9) return "bg-green-500 dark:bg-green-600";
-  return "bg-green-700 dark:bg-green-400";
+  if (count === 0) return "bg-commit-grid-empty";
+  if (count <= 2) return "bg-commit-grid-low";
+  if (count <= 5) return "bg-commit-grid-med";
+  if (count <= 9) return "bg-commit-grid-high";
+  return "bg-commit-grid-max";
 }

@@ -47,6 +47,11 @@
   --color-upvote: var(--upvote);
   --color-downvote: var(--downvote);
   --color-vote: var(--vote);
+  --color-commit-grid-empty: var(--commit-grid-empty);
+  --color-commit-grid-low:   var(--commit-grid-low);
+  --color-commit-grid-med:   var(--commit-grid-med);
+  --color-commit-grid-high:  var(--commit-grid-high);
+  --color-commit-grid-max:   var(--commit-grid-max);
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -90,6 +95,19 @@
   --upvote: oklch(72.75% 0.198 51.769);
   --downvote: oklch(0.208 0.042 265.755);
   --vote: oklch(77.7% 0.023 257.417);
+  --commit-grid-empty: oklch(95% 0 0);
+  --commit-grid-low:   oklch(92.5% 0.084 155.995);
+  --commit-grid-med:   oklch(79.2% 0.209 151.711);
+  --commit-grid-high:  oklch(72.3% 0.219 149.579);
+  --commit-grid-max:   oklch(52.7% 0.154 150.069);
+}
+
+.dark {
+  --commit-grid-empty: oklch(26.9% 0 0);
+  --commit-grid-low:   oklch(39.3% 0.095 152.535);
+  --commit-grid-med:   oklch(52.7% 0.154 150.069);
+  --commit-grid-high:  oklch(62.7% 0.194 149.214);
+  --commit-grid-max:   oklch(79.2% 0.209 151.711);
 }
 
 /* TODO: dark mode disabled for now

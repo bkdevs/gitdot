@@ -13,7 +13,7 @@ export function CommitsList({
   const { owner, repo } = useParams<{ owner: string; repo: string }>();
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col flex-1 min-h-0 overflow-y-auto scrollbar-thin">
       {commits.map((commit) => (
         <Link
           key={commit.sha}
