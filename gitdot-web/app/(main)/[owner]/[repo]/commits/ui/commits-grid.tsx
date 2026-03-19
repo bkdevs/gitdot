@@ -1,27 +1,10 @@
-import { addDays, cn, dateOnly } from "@/util";
 import type { RepositoryCommitResource } from "gitdot-api";
+import { addDays, cn, dateOnly } from "@/util";
 
 const NUM_WEEKS = 53;
 const NUM_DAYS = 7;
-
 const CELL_HEIGHT = 18;
 const GAP_HEIGHT = 2;
-
-const DAY_LABELS = ["S", "M", "T", "W", "T", "F", "S"];
-const MONTH_LABELS = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
 
 type Day = {
   date: string;
@@ -37,11 +20,11 @@ type Month = {
 };
 
 /**
-* renders a calendar view of commits, few notes:
-*   - uses css-rendering only
-*   - fixed to showing the last year of commits
-*   - cell height is fixed but width is determined by the size of the outer container
-*/
+ * renders a calendar view of commits, few notes:
+ *   - uses css-rendering only
+ *   - fixed to showing the last year of commits
+ *   - cell height is fixed but width is determined by the size of the outer container
+ */
 export function CommitsGrid({
   commits,
 }: {
@@ -64,10 +47,10 @@ export function CommitsGrid({
           {weeks.flatMap((week, col) =>
             week.map((day, row) => (
               <div
-              key={`${col}-${row}`}
-              className={cn("rounded-xs", colorForCount(day.commitCount))}
-              style={{ gridRow: row + 1, gridColumn: col + 1 }}
-              title={`${day.date}: ${day.commitCount} commits`}
+                key={`cell-${day.date}`}
+                className={cn("rounded-xs", colorForCount(day.commitCount))}
+                style={{ gridRow: row + 1, gridColumn: col + 1 }}
+                title={`${day.date}: ${day.commitCount} commits`}
               />
             )),
           )}
@@ -86,14 +69,11 @@ export function CommitsGrid({
         </div>
 
         {/* render the day labels as an aligned flex column */}
-        <div
-          className="flex flex-col pl-1"
-          style={{ gap: GAP_HEIGHT }}
-        >
-          {DAY_LABELS.map((d, i) => (
+        <div className="flex flex-col pl-1" style={{ gap: GAP_HEIGHT }}>
+          {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
             <span
-              // biome-ignore lint/suspicious/noArrayIndexKey: stable day-of-week index
-              key={i}
+              // biome-ignore lint/suspicious/noArrayIndexKey: day-of-week labels have intentional duplicates
+              key={`${d}-${i}`}
               className="text-[10px] text-muted-foreground flex items-center"
               style={{ height: CELL_HEIGHT }}
             >
@@ -143,17 +123,23 @@ function buildGrid(commits: RepositoryCommitResource[]): {
     }
     weeks.push(week);
 
-    const m = addDays(earliest, col * 7).getMonth();
-    if (m !== prevMonth) {
-      months.push({ label: MONTH_LABELS[m], startingWeek: col, numWeeks: 0 });
-      prevMonth = m;
+    const date = addDays(earliest, col * 7);
+    if (date.getMonth() !== prevMonth) {
+      months.push({
+        label: date.toLocaleString("en-US", { month: "short" }),
+        startingWeek: col,
+        numWeeks: 0,
+      });
+      prevMonth = date.getMonth();
     }
   }
 
   // calculate how many weeks each month spanned
   for (let i = 0; i < months.length; i++) {
     const next = months[i + 1];
-    months[i].numWeeks = next ? next.startingWeek - months[i].startingWeek : NUM_WEEKS - months[i].startingWeek;
+    months[i].numWeeks = next
+      ? next.startingWeek - months[i].startingWeek
+      : NUM_WEEKS - months[i].startingWeek;
   }
 
   return { weeks, months };

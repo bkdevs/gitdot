@@ -1,17 +1,15 @@
 "use client";
 
-import {
-    DropdownMenu,
-    DropdownMenuCheckboxItem,
-    DropdownMenuContent,
-    DropdownMenuLabel,
-    DropdownMenuTrigger,
-} from "@/ui/dropdown-menu";
-import { cn } from "@/util";
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/ui/dropdown-menu";
+import { cn } from "@/util";
 
-const MOCK_AUTHORS = ["Alice", "Bob", "Charlie"];
 const MOCK_TAGS = ["Frontend", "Backend"];
 
 export function CommitsHeader() {

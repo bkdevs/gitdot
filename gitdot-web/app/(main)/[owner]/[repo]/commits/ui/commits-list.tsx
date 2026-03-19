@@ -1,11 +1,15 @@
 "use client";
 
+import type { RepositoryCommitResource } from "gitdot-api";
+import { useParams } from "next/navigation";
 import Link from "@/ui/link";
 import { timeAgoFull } from "@/util";
-import { RepositoryCommitResource } from "gitdot-api";
-import { useParams } from "next/navigation";
 
-export function CommitsList({ commits }: { commits: RepositoryCommitResource[]}) {
+export function CommitsList({
+  commits,
+}: {
+  commits: RepositoryCommitResource[];
+}) {
   const { owner, repo } = useParams<{ owner: string; repo: string }>();
 
   return (

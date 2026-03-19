@@ -8,7 +8,7 @@ export function dateOnly(value: string): Date;
 export function dateOnly(value: Date): Date;
 export function dateOnly(value: string | Date): Date {
   if (typeof value === "string") {
-    const d = new Date(value.slice(0, 10) + "T00:00:00");
+    const d = new Date(`${value.slice(0, 10)}T00:00:00`);
     return d;
   }
   const d = new Date(value);
