@@ -4,7 +4,6 @@ export function repoCookieName(owner: string, repo: string) {
   return `gd_sha_${owner}_${repo}`;
 }
 
-// Client-side: call from a "use client" component
 export async function setRepoCookie(
   owner: string,
   repo: string,
@@ -34,7 +33,6 @@ export function repoCookieHeaders(
   };
 }
 
-// Server-side: call from DAL / server components
 export async function getRepoCookie(
   owner: string,
   repo: string,

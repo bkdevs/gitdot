@@ -1,5 +1,5 @@
-import type { RepositoryCommitResource } from "gitdot-api";
 import { cn } from "@/util";
+import type { RepositoryCommitResource } from "gitdot-api";
 
 const NUM_WEEKS = 53;
 const NUM_DAYS = 7;
@@ -13,6 +13,7 @@ type DayCell = {
 type MonthLabel = {
   label: string;
   colIndex: number;
+  span: number;
 };
 
 const MONTH_NAMES = [
@@ -30,7 +31,6 @@ const MONTH_NAMES = [
   "Dec",
 ];
 
-const DAY_LABELS = ["S", "M", "T", "W", "T", "F", "S"];
 
 function buildCommitGrid(commits: RepositoryCommitResource[]): {
   weeks: DayCell[][];
@@ -75,9 +75,14 @@ function buildCommitGrid(commits: RepositoryCommitResource[]): {
     month.setDate(earliest.getDate() + col * 7);
     const m = month.getMonth();
     if (m !== prevMonth) {
-      months.push({ label: MONTH_NAMES[m], colIndex: col });
+      months.push({ label: MONTH_NAMES[m], colIndex: col, span: 0 });
       prevMonth = m;
     }
+  }
+
+  for (let i = 0; i < months.length; i++) {
+    const next = months[i + 1];
+    months[i].span = next ? next.colIndex - months[i].colIndex : NUM_WEEKS - months[i].colIndex;
   }
 
   return { weeks, months };
@@ -92,54 +97,60 @@ function colorForCount(count: number): string {
 }
 
 const ROW_SIZE = 18;
-const ROW_STEP = ROW_SIZE + 2; // gap is 2px
+const GAP_SIZE = 2;
 
-function GraphGrid({ weeks }: { weeks: DayCell[][] }) {
+function CommitGrid({
+  weeks,
+  months,
+}: { weeks: DayCell[][]; months: MonthLabel[] }) {
   return (
     <div
-      className="grid w-full gap-[2px]"
+      className="grid w-full"
       style={{
-        gridTemplateRows: `repeat(${NUM_DAYS}, ${ROW_SIZE}px)`,
+        gap: GAP_SIZE,
         gridTemplateColumns: `repeat(${NUM_WEEKS}, 1fr)`,
-        gridAutoFlow: "column",
+        gridTemplateRows: `repeat(${NUM_DAYS}, ${ROW_SIZE}px) auto`,
       }}
     >
-      {weeks.flat().map((cell, i) => (
-        <div
-          // biome-ignore lint/suspicious/noArrayIndexKey: stable index grid
-          key={i}
-          className={cn(
-            "rounded-[2px]",
-            cell.inRange ? colorForCount(cell.count) : "bg-transparent",
-          )}
-          title={
-            cell.inRange ? `${cell.date}: ${cell.count} commits` : undefined
-          }
-        />
-      ))}
-    </div>
-  );
-}
-
-function MonthLabels({ months }: { months: MonthLabel[] }) {
-  return (
-    <div className="relative w-full h-[14px]">
       {months.map((m) => (
         <span
           key={`${m.label}-${m.colIndex}`}
-          className="absolute text-[10px] text-muted-foreground"
-          style={{ left: `${(m.colIndex / NUM_WEEKS) * 100}%` }}
+          className="text-[10px] pl-[0.5] text-muted-foreground"
+          style={{
+            gridRow: NUM_DAYS + 1,
+            gridColumn: `${m.colIndex + 1} / span ${m.span}`,
+          }}
         >
           {m.label}
         </span>
       ))}
+      {weeks.flatMap((week, col) =>
+        week.map((cell, row) => (
+          <div
+            key={`${col}-${row}`}
+            className={cn(
+              "rounded-[2px]",
+              cell.inRange ? colorForCount(cell.count) : "bg-transparent",
+            )}
+            style={{ gridRow: row + 1, gridColumn: col + 1 }}
+            title={
+              cell.inRange ? `${cell.date}: ${cell.count} commits` : undefined
+            }
+          />
+        )),
+      )}
     </div>
   );
 }
 
+const DAY_LABELS = ["S", "M", "T", "W", "T", "F", "S"];
+
 function DayLabels() {
   return (
-    <div className="flex flex-col gap-[2px] pl-1">
+    <div
+      className="flex flex-col pl-1"
+      style={{ gap: GAP_SIZE }}
+    >
       {DAY_LABELS.map((d, i) => (
         <span
           // biome-ignore lint/suspicious/noArrayIndexKey: stable day-of-week index
@@ -162,12 +173,11 @@ export function CommitsGraph({
   const { weeks, months } = buildCommitGrid(commits);
 
   return (
-    <div className="w-full flex flex-col gap-1 h-45 p-3 border-b border-border">
+    <div className="flex flex-col gap-1 w-full h-45 p-3 border-b border-border">
       <div className="flex flex-row items-stretch flex-1 gap-2">
-        <GraphGrid weeks={weeks} />
+        <CommitGrid weeks={weeks} months={months} />
         <DayLabels />
       </div>
-      <MonthLabels months={months} />
     </div>
   );
 }
