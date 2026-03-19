@@ -33,15 +33,31 @@ export function CommitsGrid({
   const { weeks, months } = buildGrid(commits);
 
   return (
-    <div className="flex flex-col gap-1 w-full h-45 p-2 border-b border-border">
-      <div className="flex flex-row items-stretch flex-1">
-        {/* render both the cells and month labels as one css grid */}
+    <div className="flex flex-col w-full h-45 border-b border-border">
+      <div className="flex flex-row items-start flex-1 h-full">
+        {/* render the day labels as an aligned flex column */}
         <div
-          className="grid w-full"
+          className="flex flex-col py-1 w-6 h-full border-r border-border"
+          style={{ gap: GAP_HEIGHT }}
+        >
+          {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
+            <span
+              // biome-ignore lint/suspicious/noArrayIndexKey: day-of-week labels have intentional duplicates
+              key={`${d}-${i}`}
+              className="text-[10px] text-muted-foreground flex items-center justify-center w-full"
+              style={{ height: CELL_HEIGHT }}
+            >
+              {d}
+            </span>
+          ))}
+        </div>
+
+        <div
+          className="grid w-full pt-1 px-1"
           style={{
             gap: GAP_HEIGHT,
             gridTemplateColumns: `repeat(${NUM_WEEKS}, 1fr)`,
-            gridTemplateRows: `repeat(${NUM_DAYS}, ${CELL_HEIGHT}px) auto`,
+            gridTemplateRows: `repeat(${NUM_DAYS}, ${CELL_HEIGHT}px)`,
           }}
         >
           {weeks.flatMap((week, col) =>
@@ -54,30 +70,26 @@ export function CommitsGrid({
               />
             )),
           )}
+        </div>
+      </div>
+
+      {/* month labels row — border spans full container width */}
+      <div className="flex flex-row border-t border-border">
+        {/* spacer to */}
+        <div className="w-6 mr-1 shrink-0 border-r border-border" />
+        <div
+          className="grid w-full pl-1 pb-1"
+          style={{ gridTemplateColumns: `repeat(${NUM_WEEKS}, 1fr)` }}
+        >
           {months.map((m) => (
             <span
               key={`${m.label}-${m.startingWeek}`}
               className="text-[10px] pl-[0.5] text-muted-foreground"
               style={{
-                gridRow: NUM_DAYS + 1,
                 gridColumn: `${m.startingWeek + 1} / span ${m.numWeeks}`,
               }}
             >
               {m.label}
-            </span>
-          ))}
-        </div>
-
-        {/* render the day labels as an aligned flex column */}
-        <div className="flex flex-col pl-2" style={{ gap: GAP_HEIGHT }}>
-          {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
-            <span
-              // biome-ignore lint/suspicious/noArrayIndexKey: day-of-week labels have intentional duplicates
-              key={`${d}-${i}`}
-              className="text-[10px] text-muted-foreground flex items-center"
-              style={{ height: CELL_HEIGHT }}
-            >
-              {d}
             </span>
           ))}
         </div>
