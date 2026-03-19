@@ -6,8 +6,8 @@ use crate::{
         AddReviewerRequest, GetReviewDiffRequest, GetReviewRequest, ListReviewsRequest,
         MergeDiffRequest, ProcessReviewRequest, PublishReviewRequest, RemoveReviewerRequest,
         ResolveReviewCommentRequest, ReviewCommentResponse, ReviewDiffResponse, ReviewResponse,
-        ReviewerResponse, SubmitAction, SubmitReviewRequest, UpdateReviewCommentRequest,
-        UpdateReviewRequest,
+        ReviewerResponse, SubmitAction, SubmitReviewRequest, UpdateDiffRequest,
+        UpdateReviewCommentRequest, UpdateReviewRequest,
     },
     error::ReviewError,
     model::{DiffStatus, OrganizationRole, ReviewStatus, Verdict},
@@ -68,21 +68,20 @@ pub trait ReviewService: Send + Sync + 'static {
     ///      initial revision, same as in `create_review`.
     /// 4. Force-update `refs/reviews/<number>/head` to the pushed SHA.
     /// 5. Touch the review's `updated_at`.
+
     async fn process_review_update(
         &self,
         request: ProcessReviewRequest,
     ) -> Result<ReviewResponse, ReviewError>;
 
-    async fn add_reviewer(
-        &self,
-        request: AddReviewerRequest,
-    ) -> Result<ReviewerResponse, ReviewError>;
-
-    async fn remove_reviewer(&self, request: RemoveReviewerRequest) -> Result<(), ReviewError>;
-
     async fn publish_review(
         &self,
         request: PublishReviewRequest,
+    ) -> Result<ReviewResponse, ReviewError>;
+
+    async fn update_review(
+        &self,
+        request: UpdateReviewRequest,
     ) -> Result<ReviewResponse, ReviewError>;
 
     async fn get_review_diff(
@@ -95,6 +94,17 @@ pub trait ReviewService: Send + Sync + 'static {
         request: SubmitReviewRequest,
     ) -> Result<ReviewResponse, ReviewError>;
 
+    async fn merge_diff(&self, request: MergeDiffRequest) -> Result<ReviewResponse, ReviewError>;
+
+    async fn update_diff(&self, request: UpdateDiffRequest) -> Result<ReviewResponse, ReviewError>;
+
+    async fn add_reviewer(
+        &self,
+        request: AddReviewerRequest,
+    ) -> Result<ReviewerResponse, ReviewError>;
+
+    async fn remove_reviewer(&self, request: RemoveReviewerRequest) -> Result<(), ReviewError>;
+
     async fn update_review_comment(
         &self,
         request: UpdateReviewCommentRequest,
@@ -104,13 +114,6 @@ pub trait ReviewService: Send + Sync + 'static {
         &self,
         request: ResolveReviewCommentRequest,
     ) -> Result<ReviewCommentResponse, ReviewError>;
-
-    async fn merge_diff(&self, request: MergeDiffRequest) -> Result<ReviewResponse, ReviewError>;
-
-    async fn update_review(
-        &self,
-        request: UpdateReviewRequest,
-    ) -> Result<ReviewResponse, ReviewError>;
 }
 
 #[derive(Debug, Clone)]
@@ -454,91 +457,6 @@ where
         Ok(updated.into())
     }
 
-    async fn add_reviewer(
-        &self,
-        request: AddReviewerRequest,
-    ) -> Result<ReviewerResponse, ReviewError> {
-        let user = self
-            .user_repo
-            .get(request.user_name.as_ref())
-            .await?
-            .ok_or_else(|| ReviewError::UserNotFound(request.user_name.to_string()))?;
-
-        let review = self
-            .review_repo
-            .get_review(
-                request.owner.as_ref(),
-                request.repo.as_ref(),
-                request.number,
-            )
-            .await?
-            .ok_or_else(|| {
-                ReviewError::ReviewNotFound(format!(
-                    "{}/{}/review/{}",
-                    request.owner.as_ref(),
-                    request.repo.as_ref(),
-                    request.number
-                ))
-            })?;
-
-        if user.id == review.author_id {
-            return Err(ReviewError::CannotReviewOwnReview(
-                request.user_name.to_string(),
-            ));
-        }
-
-        let role = self
-            .org_repo
-            .get_member_role(request.owner.as_ref(), user.id)
-            .await?;
-        // TODO: temporarily blocking to add reviewer to a personal repository review
-        if role != Some(OrganizationRole::Admin) {
-            return Err(ReviewError::NotOrgAdmin(request.user_name.to_string()));
-        }
-
-        let reviewer = self
-            .review_repo
-            .add_reviewer(review.id, user.id)
-            .await?
-            .ok_or_else(|| ReviewError::ReviewerAlreadyExists(request.user_name.to_string()))?;
-
-        Ok(reviewer.into())
-    }
-
-    async fn remove_reviewer(&self, request: RemoveReviewerRequest) -> Result<(), ReviewError> {
-        let user = self
-            .user_repo
-            .get(request.reviewer_name.as_ref())
-            .await?
-            .ok_or_else(|| ReviewError::UserNotFound(request.reviewer_name.to_string()))?;
-
-        let review = self
-            .review_repo
-            .get_review(
-                request.owner.as_ref(),
-                request.repo.as_ref(),
-                request.number,
-            )
-            .await?
-            .ok_or_else(|| {
-                ReviewError::ReviewNotFound(format!(
-                    "{}/{}/review/{}",
-                    request.owner.as_ref(),
-                    request.repo.as_ref(),
-                    request.number
-                ))
-            })?;
-
-        let removed = self.review_repo.remove_reviewer(review.id, user.id).await?;
-        if !removed {
-            return Err(ReviewError::ReviewerNotFound(
-                request.reviewer_name.to_string(),
-            ));
-        }
-
-        Ok(())
-    }
-
     async fn publish_review(
         &self,
         request: PublishReviewRequest,
@@ -587,7 +505,10 @@ where
                     .update_diff(
                         diff.id,
                         None,
-                        diff_update.title.clone().or_else(|| Some(diff.title.clone())),
+                        diff_update
+                            .title
+                            .clone()
+                            .or_else(|| Some(diff.title.clone())),
                         diff_update
                             .description
                             .clone()
@@ -612,6 +533,36 @@ where
                     request.repo.as_ref(),
                     request.number
                 ))
+            })?;
+
+        Ok(updated.into())
+    }
+
+    async fn update_review(
+        &self,
+        request: UpdateReviewRequest,
+    ) -> Result<ReviewResponse, ReviewError> {
+        let owner = request.owner.as_ref();
+        let repo = request.repo.as_ref();
+
+        let review = self
+            .review_repo
+            .get_review(owner, repo, request.number)
+            .await?
+            .ok_or_else(|| {
+                ReviewError::ReviewNotFound(format!("{}/{}/review/{}", owner, repo, request.number))
+            })?;
+
+        self.review_repo
+            .update_review(review.id, None, request.title, request.description)
+            .await?;
+
+        let updated = self
+            .review_repo
+            .get_review(owner, repo, request.number)
+            .await?
+            .ok_or_else(|| {
+                ReviewError::ReviewNotFound(format!("{}/{}/review/{}", owner, repo, request.number))
             })?;
 
         Ok(updated.into())
@@ -785,47 +736,6 @@ where
         Ok(updated.into())
     }
 
-    async fn update_review_comment(
-        &self,
-        request: UpdateReviewCommentRequest,
-    ) -> Result<ReviewCommentResponse, ReviewError> {
-        let updated = self
-            .review_repo
-            .update_comment(request.comment_id, &request.body)
-            .await?;
-
-        Ok(updated.into())
-    }
-
-    async fn resolve_review_comment(
-        &self,
-        request: ResolveReviewCommentRequest,
-    ) -> Result<ReviewCommentResponse, ReviewError> {
-        let comment = self
-            .review_repo
-            .get_comment(request.comment_id)
-            .await?
-            .ok_or_else(|| ReviewError::CommentNotFound(request.comment_id.to_string()))?;
-
-        if comment.parent_id.is_some() {
-            return Err(ReviewError::InvalidComment(
-                "Cannot resolve a reply directly, resolve the parent comment instead".to_string(),
-            ));
-        }
-
-        self.review_repo
-            .resolve_comment(request.comment_id, request.resolved)
-            .await?;
-
-        let updated = self
-            .review_repo
-            .get_comment(request.comment_id)
-            .await?
-            .ok_or_else(|| ReviewError::CommentNotFound(request.comment_id.to_string()))?;
-
-        Ok(updated.into())
-    }
-
     async fn merge_diff(&self, request: MergeDiffRequest) -> Result<ReviewResponse, ReviewError> {
         let owner = request.owner.as_ref();
         let repo = request.repo.as_ref();
@@ -969,10 +879,7 @@ where
         Ok(updated.into())
     }
 
-    async fn update_review(
-        &self,
-        request: UpdateReviewRequest,
-    ) -> Result<ReviewResponse, ReviewError> {
+    async fn update_diff(&self, request: UpdateDiffRequest) -> Result<ReviewResponse, ReviewError> {
         let owner = request.owner.as_ref();
         let repo = request.repo.as_ref();
 
@@ -984,13 +891,29 @@ where
                 ReviewError::ReviewNotFound(format!("{}/{}/review/{}", owner, repo, request.number))
             })?;
 
+        let diffs = review.diffs.as_ref().ok_or_else(|| {
+            ReviewError::DiffNotFound(format!(
+                "{}/{}/review/{}/diff/{}",
+                owner, repo, request.number, request.position
+            ))
+        })?;
+
+        let diff = diffs
+            .iter()
+            .find(|d| d.position == request.position)
+            .ok_or_else(|| {
+                ReviewError::DiffNotFound(format!(
+                    "{}/{}/review/{}/diff/{}",
+                    owner, repo, request.number, request.position
+                ))
+            })?;
+
         self.review_repo
-            .update_review(
-                review.id,
-                None,
-                request.title,
-                request.description,
-            )
+            .update_diff(diff.id, None, request.title, request.description)
+            .await?;
+
+        self.review_repo
+            .update_review(review.id, None, None, None)
             .await?;
 
         let updated = self
@@ -1000,6 +923,132 @@ where
             .ok_or_else(|| {
                 ReviewError::ReviewNotFound(format!("{}/{}/review/{}", owner, repo, request.number))
             })?;
+
+        Ok(updated.into())
+    }
+
+    async fn add_reviewer(
+        &self,
+        request: AddReviewerRequest,
+    ) -> Result<ReviewerResponse, ReviewError> {
+        let user = self
+            .user_repo
+            .get(request.user_name.as_ref())
+            .await?
+            .ok_or_else(|| ReviewError::UserNotFound(request.user_name.to_string()))?;
+
+        let review = self
+            .review_repo
+            .get_review(
+                request.owner.as_ref(),
+                request.repo.as_ref(),
+                request.number,
+            )
+            .await?
+            .ok_or_else(|| {
+                ReviewError::ReviewNotFound(format!(
+                    "{}/{}/review/{}",
+                    request.owner.as_ref(),
+                    request.repo.as_ref(),
+                    request.number
+                ))
+            })?;
+
+        if user.id == review.author_id {
+            return Err(ReviewError::CannotReviewOwnReview(
+                request.user_name.to_string(),
+            ));
+        }
+
+        let role = self
+            .org_repo
+            .get_member_role(request.owner.as_ref(), user.id)
+            .await?;
+        // TODO: temporarily blocking to add reviewer to a personal repository review
+        if role != Some(OrganizationRole::Admin) {
+            return Err(ReviewError::NotOrgAdmin(request.user_name.to_string()));
+        }
+
+        let reviewer = self
+            .review_repo
+            .add_reviewer(review.id, user.id)
+            .await?
+            .ok_or_else(|| ReviewError::ReviewerAlreadyExists(request.user_name.to_string()))?;
+
+        Ok(reviewer.into())
+    }
+
+    async fn remove_reviewer(&self, request: RemoveReviewerRequest) -> Result<(), ReviewError> {
+        let user = self
+            .user_repo
+            .get(request.reviewer_name.as_ref())
+            .await?
+            .ok_or_else(|| ReviewError::UserNotFound(request.reviewer_name.to_string()))?;
+
+        let review = self
+            .review_repo
+            .get_review(
+                request.owner.as_ref(),
+                request.repo.as_ref(),
+                request.number,
+            )
+            .await?
+            .ok_or_else(|| {
+                ReviewError::ReviewNotFound(format!(
+                    "{}/{}/review/{}",
+                    request.owner.as_ref(),
+                    request.repo.as_ref(),
+                    request.number
+                ))
+            })?;
+
+        let removed = self.review_repo.remove_reviewer(review.id, user.id).await?;
+        if !removed {
+            return Err(ReviewError::ReviewerNotFound(
+                request.reviewer_name.to_string(),
+            ));
+        }
+
+        Ok(())
+    }
+
+    async fn update_review_comment(
+        &self,
+        request: UpdateReviewCommentRequest,
+    ) -> Result<ReviewCommentResponse, ReviewError> {
+        let updated = self
+            .review_repo
+            .update_comment(request.comment_id, &request.body)
+            .await?;
+
+        Ok(updated.into())
+    }
+
+    async fn resolve_review_comment(
+        &self,
+        request: ResolveReviewCommentRequest,
+    ) -> Result<ReviewCommentResponse, ReviewError> {
+        let comment = self
+            .review_repo
+            .get_comment(request.comment_id)
+            .await?
+            .ok_or_else(|| ReviewError::CommentNotFound(request.comment_id.to_string()))?;
+
+        if comment.parent_id.is_some() {
+            return Err(ReviewError::InvalidComment(
+                "Cannot resolve a reply directly, resolve the parent comment instead".to_string(),
+            ));
+        }
+
+        self.review_repo
+            .resolve_comment(request.comment_id, request.resolved)
+            .await?;
+
+        let updated = self
+            .review_repo
+            .get_comment(request.comment_id)
+            .await?
+            .ok_or_else(|| ReviewError::CommentNotFound(request.comment_id.to_string()))?;
 
         Ok(updated.into())
     }

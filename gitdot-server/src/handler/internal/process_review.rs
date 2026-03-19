@@ -36,7 +36,10 @@ pub async fn process_review(
             .verify_authorized_for_review(auth_request)
             .await?;
 
-        let review = state.review_service.process_review_update(review_request).await?;
+        let review = state
+            .review_service
+            .process_review_update(review_request)
+            .await?;
         (ReviewAction::Updated, review.number)
     };
 

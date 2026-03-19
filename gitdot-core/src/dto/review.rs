@@ -8,6 +8,7 @@ mod publish_review;
 mod remove_reviewer;
 mod resolve_review_comment;
 mod submit_review;
+mod update_diff;
 mod update_review;
 mod update_review_comment;
 
@@ -31,6 +32,7 @@ pub use publish_review::{DiffUpdateRequest, PublishReviewRequest};
 pub use remove_reviewer::RemoveReviewerRequest;
 pub use resolve_review_comment::ResolveReviewCommentRequest;
 pub use submit_review::{SubmitAction, SubmitComment, SubmitReviewRequest};
+pub use update_diff::UpdateDiffRequest;
 pub use update_review::UpdateReviewRequest;
 pub use update_review_comment::UpdateReviewCommentRequest;
 

@@ -7,5 +7,6 @@ pub mod publish_review;
 pub mod remove_reviewer;
 pub mod resolve_review_comment;
 pub mod submit_review;
+pub mod update_diff;
 pub mod update_review;
 pub mod update_review_comment;
