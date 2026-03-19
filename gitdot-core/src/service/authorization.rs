@@ -459,7 +459,7 @@ mod tests {
         #[async_trait]
         impl ReviewRepository for ReviewRepo {
             async fn get_review(&self, owner: &str, repo: &str, number: i32) -> Result<Option<Review>, sqlx::Error>;
-            async fn list_reviews(&self, owner: &str, repo: &str) -> Result<Vec<Review>, sqlx::Error>;
+            async fn list_reviews(&self, owner: &str, repo: &str, viewer_id: Option<Uuid>) -> Result<Vec<Review>, sqlx::Error>;
             async fn get_reviews_by_user(&self, user_name: &str, viewer_id: Option<Uuid>, status: Option<String>, owner: Option<String>, repo: Option<String>) -> Result<Vec<Review>, sqlx::Error>;
             async fn create_review(&self, repository_id: Uuid, author_id: Uuid, target_branch: &str) -> Result<Review, sqlx::Error>;
             async fn create_diff(&self, review_id: Uuid, position: i32, title: &str, description: &str) -> Result<Diff, sqlx::Error>;

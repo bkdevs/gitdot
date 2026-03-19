@@ -178,7 +178,7 @@ where
     ) -> Result<Vec<ReviewResponse>, ReviewError> {
         let reviews = self
             .review_repo
-            .list_reviews(request.owner.as_ref(), request.repo.as_ref())
+            .list_reviews(request.owner.as_ref(), request.repo.as_ref(), request.viewer_id)
             .await?;
 
         Ok(reviews.into_iter().map(ReviewResponse::from).collect())

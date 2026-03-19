@@ -26,7 +26,7 @@ pub async fn list_reviews(
         .verify_authorized_for_repository(auth_request)
         .await?;
 
-    let request = ListReviewsRequest::new(&owner, &repo)?;
+    let request = ListReviewsRequest::new(&owner, &repo, user_id)?;
     state
         .review_service
         .list_reviews(request)
