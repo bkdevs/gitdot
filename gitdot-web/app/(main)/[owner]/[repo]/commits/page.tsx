@@ -7,7 +7,7 @@ import { timeAgoFull } from "@/util";
 import { useRepoContext } from "../context";
 import { CommitsHeader } from "./ui/commits-header";
 import { CommitsList } from "./ui/commits-list";
-import { CommitsGraph } from "./ui/commits-graph";
+import { CommitsGrid } from "./ui/commits-grid";
 
 export function CommitsClient() {
   const { owner, repo } = useParams<{ owner: string; repo: string }>();
@@ -18,7 +18,7 @@ export function CommitsClient() {
   return (
     <div className="flex flex-col">
       <CommitsHeader />
-      <CommitsGraph commits={commits} />
+      <CommitsGrid commits={commits} />
       <CommitsList commits={commits} />
     </div>
   );

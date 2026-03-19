@@ -28,7 +28,6 @@ export function CommitsHeader() {
 
   return (
     <div className="flex flex-row w-full h-9 items-center border-b">
-      <AuthorDropdown />
       {MOCK_TAGS.map((tag) => (
         <TagButton
           key={tag}
@@ -66,30 +65,6 @@ function TagButton({
     </button>
   );
 }
-
-function AuthorDropdown() {
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <button
-          type="button"
-          className="flex flex-row items-center h-full border-border border-r px-2 text-xs text-muted-foreground hover:bg-sidebar"
-        >
-          Author: All
-          <ChevronDown className="size-3 ml-1.5" />
-        </button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start">
-        {MOCK_AUTHORS.map((author) => (
-          <DropdownMenuCheckboxItem key={author} className="text-xs">
-            {author}
-          </DropdownMenuCheckboxItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}
-
 function DateRangeDropdown() {
   return (
     <DropdownMenu>

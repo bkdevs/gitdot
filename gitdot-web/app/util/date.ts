@@ -1,3 +1,21 @@
+const MS_PER_DAY = 86400000;
+
+export function addDays(date: Date, days: number): Date {
+  return new Date(date.getTime() + days * MS_PER_DAY);
+}
+
+export function dateOnly(value: string): Date;
+export function dateOnly(value: Date): Date;
+export function dateOnly(value: string | Date): Date {
+  if (typeof value === "string") {
+    const d = new Date(value.slice(0, 10) + "T00:00:00");
+    return d;
+  }
+  const d = new Date(value);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
 export function timeAgo(date: Date) {
   const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
 
