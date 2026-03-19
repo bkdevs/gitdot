@@ -320,7 +320,7 @@ impl ReviewRepository for ReviewRepositoryImpl {
 
         let mut param_index = 3;
         if status.is_some() {
-            query.push_str(&format!(" AND r.status = ${}", param_index));
+            query.push_str(&format!(" AND r.status = ${}::review_status", param_index));
             param_index += 1;
         }
         if owner.is_some() {
