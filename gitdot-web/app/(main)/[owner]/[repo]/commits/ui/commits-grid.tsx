@@ -19,6 +19,9 @@ type Month = {
   numWeeks: number;
 };
 
+// [low, med, high] buckets
+type Thresholds = [number, number, number];
+
 /**
  * renders a calendar view of commits, few notes:
  * - uses css-rendering only
@@ -31,7 +34,8 @@ export function CommitsGrid({
   commits: RepositoryCommitResource[];
 }) {
   const { weeks, months } = buildGrid(commits);
-  const todayDow = new Date().getDay();
+  const thresholds = computeThresholds(weeks);
+  const dayOfWeek = new Date().getDay();
 
   return (
     <div className="flex flex-col w-full h-45 border-b border-border">
@@ -47,7 +51,7 @@ export function CommitsGrid({
               key={`${d}-${i}`}
               className={cn(
                 "text-[10px] flex items-center justify-center w-full",
-                i === todayDow ? "text-foreground" : "text-muted-foreground",
+                i === dayOfWeek ? "text-foreground" : "text-muted-foreground",
               )}
               style={{ height: CELL_HEIGHT }}
             >
@@ -68,7 +72,7 @@ export function CommitsGrid({
             week.map((day, row) => (
               <div
                 key={`cell-${day.date}`}
-                className={cn(colorForCount(day.commitCount))}
+                className={cn(cellColor(day.commitCount, thresholds))}
                 style={{ gridRow: row + 1, gridColumn: col + 1 }}
                 title={`${day.date}: ${day.commitCount} commits`}
               />
@@ -112,7 +116,7 @@ function buildGrid(commits: RepositoryCommitResource[]): {
 } {
   const countMap = new Map<string, number>();
   for (const commit of commits) {
-    const date = commit.date.slice(0, 10);
+    const date = commit.date.slice(0, 10); // iso date YYYY-MM-DD
     countMap.set(date, (countMap.get(date) ?? 0) + 1);
   }
 
@@ -159,10 +163,21 @@ function buildGrid(commits: RepositoryCommitResource[]): {
   return { weeks, months };
 }
 
-function colorForCount(count: number): string {
+function computeThresholds(weeks: Week[]): Thresholds {
+  const counts = weeks
+    .flatMap((w) => w.map((d) => d.commitCount))
+    .sort((a, b) => a - b);
+  if (counts.every((c) => c === 0)) return [1, 2, 3];
+
+  const q = (p: number) => counts[Math.floor(p * (counts.length - 1))];
+  return [q(0.25), q(0.5), q(0.75)];
+}
+
+function cellColor(count: number, thresholds: Thresholds): string {
+  const [low, med, high] = thresholds;
   if (count === 0) return "bg-commit-grid-empty";
-  if (count <= 2) return "bg-commit-grid-low";
-  if (count <= 5) return "bg-commit-grid-med";
-  if (count <= 9) return "bg-commit-grid-high";
+  if (count <= low) return "bg-commit-grid-low";
+  if (count <= med) return "bg-commit-grid-med";
+  if (count <= high) return "bg-commit-grid-high";
   return "bg-commit-grid-max";
 }
