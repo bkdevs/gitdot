@@ -1,26 +1,19 @@
-import type { RepositoryCommitResource } from "gitdot-api";
-import { addDays, cn, dateOnly, subtractDays } from "@/util";
+"use client";
 
-const NUM_WEEKS = 53;
-const NUM_DAYS = 7;
+import type { RepositoryCommitResource } from "gitdot-api";
+import { useEffect, useRef, useState } from "react";
+import { cn } from "@/util";
+import {
+  buildGrid,
+  computeThresholds,
+  isSelected,
+  NUM_DAYS,
+  NUM_WEEKS,
+  type Thresholds,
+} from "../util";
+
 const CELL_HEIGHT = 20;
 const GAP_HEIGHT = 2;
-
-type Day = {
-  date: string;
-  commitCount: number;
-};
-
-type Week = Day[];
-
-type Month = {
-  label: string;
-  startingWeek: number;
-  numWeeks: number;
-};
-
-// [low, med, high] buckets
-type Thresholds = [number, number, number];
 
 /**
  * renders a calendar view of commits, few notes:
@@ -30,12 +23,29 @@ type Thresholds = [number, number, number];
  */
 export function CommitsGrid({
   commits,
+  startDate,
+  endDate,
+  setStartDate,
+  setEndDate,
 }: {
   commits: RepositoryCommitResource[];
+  startDate: string | null;
+  endDate: string | null;
+  setStartDate: (date: string | null) => void;
+  setEndDate: (date: string | null) => void;
 }) {
+  const [hoverActive, setHoverActive] = useState(false);
+  const { onCellMouseDown, onCellMouseEnter } = useDragSelect(
+    startDate,
+    endDate,
+    setStartDate,
+    setEndDate,
+  );
+
   const { weeks, months } = buildGrid(commits);
   const thresholds = computeThresholds(weeks);
   const dayOfWeek = new Date().getDay();
+  const dimmed = hoverActive || !!(startDate && endDate);
 
   return (
     <div className="flex flex-col w-full h-45 border-b border-border">
@@ -60,6 +70,7 @@ export function CommitsGrid({
           ))}
         </div>
 
+        {/* biome-ignore lint/a11y/noStaticElementInteractions: mouse enter/leave are purely cosmetic, not interactive */}
         <div
           className="grid w-full py-1 px-1"
           style={{
@@ -67,16 +78,33 @@ export function CommitsGrid({
             gridTemplateColumns: `repeat(${NUM_WEEKS}, 1fr)`,
             gridTemplateRows: `repeat(${NUM_DAYS}, ${CELL_HEIGHT}px)`,
           }}
+          onMouseEnter={() => setHoverActive(true)}
+          onMouseLeave={() => setHoverActive(false)}
         >
           {weeks.flatMap((week, col) =>
-            week.map((day, row) => (
-              <div
-                key={`cell-${day.date}`}
-                className={cn(cellColor(day.commitCount, thresholds))}
-                style={{ gridRow: row + 1, gridColumn: col + 1 }}
-                title={`${day.date}: ${day.commitCount} commits`}
-              />
-            )),
+            week.map((day, row) => {
+              const selected = isSelected(day.date, startDate, endDate);
+              return (
+                <button
+                  key={`cell-${day.date}`}
+                  type="button"
+                  className={cn(
+                    "appearance-none border-none p-0 transition-opacity",
+                    cellColor(day.commitCount, thresholds),
+                    selected
+                      ? "opacity-100! ring-1 ring-inset ring-foreground"
+                      : cn(dimmed && "opacity-40", "hover:opacity-100!"),
+                  )}
+                  style={{
+                    gridRow: row + 1,
+                    gridColumn: col + 1,
+                  }}
+                  title={`${day.date}: ${day.commitCount} commits`}
+                  onMouseDown={(e) => onCellMouseDown(day.date, e)}
+                  onMouseEnter={() => onCellMouseEnter(day.date)}
+                />
+              );
+            }),
           )}
         </div>
       </div>
@@ -110,67 +138,49 @@ export function CommitsGrid({
   );
 }
 
-function buildGrid(commits: RepositoryCommitResource[]): {
-  weeks: Week[];
-  months: Month[];
-} {
-  const countMap = new Map<string, number>();
-  for (const commit of commits) {
-    const date = commit.date.slice(0, 10); // iso date YYYY-MM-DD
-    countMap.set(date, (countMap.get(date) ?? 0) + 1);
-  }
+function useDragSelect(
+  startDate: string | null,
+  endDate: string | null,
+  setStartDate: (d: string | null) => void,
+  setEndDate: (d: string | null) => void,
+) {
+  const isDraggingRef = useRef(false);
+  const pendingStartRef = useRef<string | null>(null);
 
-  const today = dateOnly(new Date());
-  const thisWeekStart = subtractDays(today, today.getDay());
+  useEffect(() => {
+    const onMouseUp = () => {
+      if (pendingStartRef.current !== null) {
+        setStartDate(null);
+        setEndDate(null);
+      }
+      isDraggingRef.current = false;
+      pendingStartRef.current = null;
+    };
+    window.addEventListener("mouseup", onMouseUp);
+    return () => window.removeEventListener("mouseup", onMouseUp);
+  }, [setStartDate, setEndDate]);
 
-  const weeks: Week[] = [];
-  const months: Month[] = [];
-  let prevMonth = -1;
-
-  for (let col = 0; col < NUM_WEEKS; col++) {
-    const weekStart: Date = subtractDays(thisWeekStart, col * 7);
-    const week: Day[] = [];
-
-    for (let row = 0; row < NUM_DAYS; row++) {
-      const d = addDays(weekStart, row);
-      if (d > today) break;
-
-      const dateStr = d.toISOString().slice(0, 10);
-      week.push({
-        date: dateStr,
-        commitCount: countMap.get(dateStr) ?? 0,
-      });
+  const onCellMouseDown = (date: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    isDraggingRef.current = true;
+    if (startDate && endDate) {
+      pendingStartRef.current = date;
+    } else {
+      setStartDate(date);
+      setEndDate(date);
     }
-    weeks.push(week);
+  };
 
-    if (weekStart.getMonth() !== prevMonth) {
-      months.push({
-        label: weekStart.toLocaleString("en-US", { month: "short" }),
-        startingWeek: col,
-        numWeeks: 0,
-      });
-      prevMonth = weekStart.getMonth();
+  const onCellMouseEnter = (date: string) => {
+    if (!isDraggingRef.current) return;
+    if (pendingStartRef.current !== null) {
+      setStartDate(pendingStartRef.current);
+      pendingStartRef.current = null;
     }
-  }
+    setEndDate(date);
+  };
 
-  for (let i = 0; i < months.length; i++) {
-    const next = months[i + 1];
-    months[i].numWeeks = next
-      ? next.startingWeek - months[i].startingWeek
-      : NUM_WEEKS - months[i].startingWeek;
-  }
-
-  return { weeks, months };
-}
-
-function computeThresholds(weeks: Week[]): Thresholds {
-  const counts = weeks
-    .flatMap((w) => w.map((d) => d.commitCount))
-    .sort((a, b) => a - b);
-  if (counts.every((c) => c === 0)) return [1, 2, 3];
-
-  const q = (p: number) => counts[Math.floor(p * (counts.length - 1))];
-  return [q(0.25), q(0.5), q(0.75)];
+  return { onCellMouseDown, onCellMouseEnter };
 }
 
 function cellColor(count: number, thresholds: Thresholds): string {
