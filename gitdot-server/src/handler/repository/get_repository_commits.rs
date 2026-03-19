@@ -54,7 +54,9 @@ pub async fn get_repository_commits(
     }
 
     let now = Utc::now();
-    let from = params.from.unwrap_or_else(|| now - chrono::Duration::days(30));
+    let from = params
+        .from
+        .unwrap_or_else(|| now - chrono::Duration::days(30));
     let to = params.to.unwrap_or(now);
 
     let request = GetCommitsRequest::new(&owner, &repo, params.ref_name, from, to)?;

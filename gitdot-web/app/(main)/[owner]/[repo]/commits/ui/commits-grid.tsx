@@ -123,19 +123,41 @@ export function CommitsGrid({
           style={{ gridTemplateColumns: `repeat(${NUM_WEEKS}, 1fr)` }}
         >
           {months.map((m, i) => (
-            <span
+            // clicking sets the range to be that month
+            <button
               key={`${m.label}-${m.startingWeek}`}
+              type="button"
               className={cn(
-                "text-[10px]",
+                "text-[10px] text-left transition-colors hover:text-foreground cursor-pointer appearance-none bg-transparent border-none p-0",
                 i === 0 ? "text-foreground" : "text-muted-foreground",
               )}
               style={{
                 gridRow: 1,
                 gridColumn: `${m.startingWeek + 1} / span ${m.numWeeks}`,
               }}
+              onClick={() => {
+                const monthWeeks = weeks.slice(
+                  m.startingWeek,
+                  m.startingWeek + m.numWeeks,
+                );
+                const days = monthWeeks.flat();
+                if (days.length === 0) return;
+
+                const sorted = days.map((d) => d.date).sort();
+                const first = sorted[0];
+                const last = sorted[sorted.length - 1];
+
+                if (startDate === first && endDate === last) {
+                  setStartDate(null);
+                  setEndDate(null);
+                } else {
+                  setStartDate(first);
+                  setEndDate(last);
+                }
+              }}
             >
               {m.label}
-            </span>
+            </button>
           ))}
         </div>
       </div>

@@ -16,7 +16,9 @@ export function CommitsClient() {
 
   const filteredCommits =
     startDate && endDate
-      ? commits.filter((c) => isSelected(c.date.slice(0, 10), startDate, endDate))
+      ? commits.filter((c) =>
+          isSelected(c.date.slice(0, 10), startDate, endDate),
+        )
       : commits;
 
   return (
