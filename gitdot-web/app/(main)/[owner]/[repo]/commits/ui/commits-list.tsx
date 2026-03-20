@@ -3,7 +3,7 @@
 import type { RepositoryCommitResource } from "gitdot-api";
 import { useParams } from "next/navigation";
 import Link from "@/ui/link";
-import { formatDateTime, pluralize } from "@/util";
+import { formatDateTime, pluralize, timeAgo, timeAgoFull } from "@/util";
 import { DiffStatBar } from "../[sha]/ui/diff-stat-bar";
 
 export function CommitsList({
@@ -25,10 +25,7 @@ function CommitRow({ commit }: { commit: RepositoryCommitResource }) {
 
   const filesChanged = commit.diffs.length;
   const linesAdded = commit.diffs.reduce((sum, d) => sum + d.lines_added, 0);
-  const linesRemoved = commit.diffs.reduce(
-    (sum, d) => sum + d.lines_removed,
-    0,
-  );
+  const linesRemoved = commit.diffs.reduce((sum, d) => sum + d.lines_removed, 0);
 
   return (
     <Link
@@ -39,42 +36,17 @@ function CommitRow({ commit }: { commit: RepositoryCommitResource }) {
       className="flex w-full border-b cursor-default focus:bg-accent/50 focus:outline-none select-none"
       prefetch={true}
     >
-      <div
-        className="grid w-full h-18 p-2 min-w-0"
-        style={{ gridTemplateColumns: "1fr 40rem" }}
-      >
-        <div className="flex flex-col justify-start items-start min-w-0">
-          <div className="text-xs text-muted-foreground flex items-center gap-1">
+      <div className="flex flex-row w-full h-18 justify-between items-start p-2 gap-2">
+        <div className="flex flex-col w-full h-full min-w-0">
+          <span className="text-xs text-muted-foreground">{formatDateTime(new Date(commit.date))}</span>
+          <div className="text-sm text-foreground truncate pb-1">{commit.message.split("\n")[0]}</div>
+          <div className="flex items-center text-muted-foreground text-xs gap-1">
             <span className="truncate min-w-0 underline transition-colors hover:text-foreground cursor-pointer">{commit.author.name}</span>
-            <span className="shrink-0">
-              {formatDateTime(new Date(commit.date))}
-            </span>
+            <span>{timeAgo(new Date(commit.date))}</span>
           </div>
-          <div className="text-sm truncate mb-0.5 w-full">{commit.message.split("\n")[0]}</div>
-          {filesChanged > 0 && (
-            <div className="text-xs text-muted-foreground">
-              {pluralize(filesChanged, "file")} changed,{" "}
-              {pluralize(linesAdded, "line")} added,{" "}
-              {pluralize(linesRemoved, "line")} removed
-            </div>
-          )}
         </div>
-        <div className="flex flex-col h-full items-end justify-start gap-0.5 overflow-hidden">
-          {commit.diffs.map((diff) => (
-            <span
-              key={diff.path}
-              className="font-mono text-xs text-muted-foreground flex items-center w-full"
-            >
-              <span className="truncate flex-1 mr-2">{diff.path}</span>
-              <span className="text-muted-foreground w-6 text-right mr-1.5 shrink-0">
-                {diff.lines_added + diff.lines_removed}
-              </span>
-              <DiffStatBar
-                added={diff.lines_added}
-                removed={diff.lines_removed}
-              />
-            </span>
-          ))}
+        <div className="flex flex-col shrink-0">
+          <span className="text-xs shrink-0"><DiffStatBar added={linesAdded} removed={linesRemoved} linesPerBar={10} /></span>
         </div>
       </div>
     </Link>

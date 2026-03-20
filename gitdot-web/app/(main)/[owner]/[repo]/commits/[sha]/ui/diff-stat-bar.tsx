@@ -1,14 +1,14 @@
 export function DiffStatBar({
   added,
   removed,
+  linesPerBar = 5,
 }: {
   added: number;
   removed: number;
+  linesPerBar?: number;
 }) {
   const total = added + removed;
   if (total === 0) return null;
-
-  const linesPerBar = 5;
   const hasAdded = added > 0;
   const hasRemoved = removed > 0;
   const minBars = hasAdded && hasRemoved ? 2 : 1;
