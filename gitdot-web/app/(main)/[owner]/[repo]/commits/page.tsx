@@ -43,6 +43,8 @@ export function CommitsClient() {
         filters={filters}
         activeFilter={activeFilter}
         setActiveFilter={setActiveFilter}
+        setStartDate={setStartDate}
+        setEndDate={setEndDate}
       />
       <CommitsGrid
         commits={filteredCommits}
