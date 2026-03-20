@@ -6,6 +6,7 @@ mod list_user_organizations;
 mod list_user_repositories;
 mod list_user_reviews;
 mod update_current_user;
+mod update_current_user_settings;
 
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
@@ -22,6 +23,7 @@ pub use list_user_organizations::ListUserOrganizationsRequest;
 pub use list_user_repositories::ListUserRepositoriesRequest;
 pub use list_user_reviews::ListUserReviewsRequest;
 pub use update_current_user::UpdateCurrentUserRequest;
+pub use update_current_user_settings::UpdateCurrentUserSettingsRequest;
 
 #[derive(Debug, Clone)]
 pub struct UserResponse {

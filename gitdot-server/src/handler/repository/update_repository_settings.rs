@@ -12,7 +12,7 @@ use gitdot_core::{
 
 use crate::{
     app::{AppError, AppResponse, AppState},
-    dto::IntoApi,
+    dto::{FromApi, IntoApi},
     extract::{Principal, User},
 };
 
@@ -34,21 +34,7 @@ pub async fn update_repository_settings(
         .verify_authorized_for_repository(auth_request)
         .await?;
 
-    let commit_filters: Option<Vec<CommitFilter>> = body.commit_filters.map(|filters| {
-        filters
-            .into_iter()
-            .map(|f| CommitFilter {
-                name: f.name,
-                authors: f.authors,
-                tags: f.tags,
-                included_paths: f.included_paths,
-                excluded_paths: f.excluded_paths,
-                created_at: f.created_at,
-                updated_at: f.updated_at,
-            })
-            .collect()
-    });
-
+    let commit_filters = <Option<Vec<CommitFilter>>>::from_api(body.commit_filters);
     let request = UpdateRepositorySettingsRequest::new(&owner, &repo, commit_filters)?;
     state
         .repo_service

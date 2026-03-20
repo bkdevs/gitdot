@@ -1,13 +1,19 @@
 "use server";
 
-import type { RepositoryResource } from "gitdot-api";
+import type {
+  CommitFilterResource,
+  RepositoryResource,
+  RepositorySettingsResource,
+} from "gitdot-api";
 import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 import {
   ApiError,
   createRepository,
   deleteRepository,
+  getRepositorySettings,
   migrateGitHubRepositories,
+  updateRepositorySettings,
 } from "@/dal";
 
 export type CreateRepositoryActionResult =
@@ -55,6 +61,33 @@ export async function deleteRepositoryAction(
 
   redirect(`/${owner}`);
   return { success: true };
+}
+
+export type CreateCommitFilterActionResult =
+  | { settings: RepositorySettingsResource }
+  | { error: string };
+
+export async function createCommitFilter(
+  owner: string,
+  repo: string,
+  filter: CommitFilterResource,
+): Promise<CreateCommitFilterActionResult> {
+  if (!filter.name?.trim()) {
+    return { error: "Filter name is required" };
+  }
+
+  const existing = await getRepositorySettings(owner, repo);
+  const commit_filters = [...(existing?.commit_filters ?? []), filter];
+
+  const result = await updateRepositorySettings(owner, repo, {
+    commit_filters,
+  });
+  if (!result) {
+    return { error: "Failed to create commit filter" };
+  }
+
+  refresh();
+  return { settings: result };
 }
 
 export type MigrateGitHubRepositoriesActionResult =

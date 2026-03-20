@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use sqlx::{Error, PgPool};
+use sqlx::{Error, PgPool, Row as _};
 use uuid::Uuid;
 
 use crate::model::{User, UserSettings};
@@ -15,6 +15,12 @@ pub trait UserRepository: Send + Sync + Clone + 'static {
     async fn get_by_emails(&self, emails: &[String]) -> Result<Vec<User>, Error>;
 
     async fn get_settings(&self, id: Uuid) -> Result<Option<UserSettings>, Error>;
+
+    async fn update_settings(
+        &self,
+        id: Uuid,
+        settings: serde_json::Value,
+    ) -> Result<Option<UserSettings>, Error>;
 
     async fn is_name_taken(&self, name: &str) -> Result<bool, Error>;
 
@@ -93,6 +99,27 @@ impl UserRepository for UserRepositoryImpl {
         .await?;
 
         Ok(user.and_then(|u| u.settings))
+    }
+
+    async fn update_settings(
+        &self,
+        id: Uuid,
+        settings: serde_json::Value,
+    ) -> Result<Option<UserSettings>, Error> {
+        let row = sqlx::query(
+            "UPDATE users SET settings = COALESCE(settings, '{}'::jsonb) || $2::jsonb WHERE id = $1 RETURNING settings",
+        )
+        .bind(id)
+        .bind(settings)
+        .fetch_optional(&self.pool)
+        .await?;
+
+        let Some(row) = row else { return Ok(None) };
+        let json: Option<serde_json::Value> = row.try_get("settings")?;
+        Ok(Some(
+            json.and_then(|v| serde_json::from_value(v).ok())
+                .unwrap_or_default(),
+        ))
     }
 
     async fn is_name_taken(&self, name: &str) -> Result<bool, Error> {

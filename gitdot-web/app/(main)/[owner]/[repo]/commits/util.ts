@@ -1,4 +1,7 @@
-import type { RepositoryCommitResource } from "gitdot-api";
+import type {
+  CommitFilterResource,
+  RepositoryCommitResource,
+} from "gitdot-api";
 import { addDays, dateOnly, subtractDays } from "@/util";
 
 export const NUM_WEEKS = 53;
@@ -93,4 +96,53 @@ export function isSelected(
   const lo = start <= end ? start : end;
   const hi = start <= end ? end : start;
   return date >= lo && date <= hi;
+}
+
+export function filterCommits(
+  filter: CommitFilterResource,
+  commits: RepositoryCommitResource[],
+  start: string | null = null,
+  end: string | null = null,
+): RepositoryCommitResource[] {
+  return commits.filter((commit) => filterCommit(filter, commit, start, end));
+}
+
+function filterCommit(
+  filter: CommitFilterResource,
+  commit: RepositoryCommitResource,
+  start: string | null,
+  end: string | null,
+): boolean {
+  if (!isSelected(commit.date.slice(0, 10), start, end) && start && end)
+    return false;
+
+  if (filter.authors && filter.authors.length > 0) {
+    const match = filter.authors.some(
+      (a) => commit.author.name === a || commit.author.email === a,
+    );
+    if (!match) return false;
+  }
+
+  if (filter.tags && filter.tags.length > 0) {
+    const match = filter.tags.some((tag) => commit.message.includes(tag));
+    if (!match) return false;
+  }
+
+  const { included_paths, excluded_paths } = filter;
+  if (included_paths && included_paths.length > 0) {
+    const includeRegexes = included_paths.map((p) => new RegExp(p));
+    const hasInclude = commit.diffs.some((diff) =>
+      includeRegexes.some((re) => re.test(diff.path)),
+    );
+    if (!hasInclude) return false;
+  }
+  if (excluded_paths && excluded_paths.length > 0) {
+    const excludeRegexes = excluded_paths.map((p) => new RegExp(p));
+    const hasExclude = commit.diffs.some((diff) =>
+      excludeRegexes.some((re) => re.test(diff.path)),
+    );
+    if (hasExclude) return false;
+  }
+
+  return true;
 }

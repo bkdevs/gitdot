@@ -1,23 +1,59 @@
 "use client";
 
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import type { CommitFilterResource } from "gitdot-api";
+import { useParams } from "next/navigation";
 import { useState } from "react";
+import { createCommitFilter } from "@/actions/repository";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
 
-export function NewFilterDialog({
+function parseList(s: string): string[] | undefined {
+  const items = s
+    .split(",")
+    .map((x) => x.trim())
+    .filter(Boolean);
+  return items.length > 0 ? items : undefined;
+}
+
+export function NewCommitFilterDialog({
   open,
   setOpen,
 }: {
   open: boolean;
   setOpen: (open: boolean) => void;
 }) {
+  const params = useParams<{ owner: string; repo: string }>();
   const [name, setName] = useState("");
   const [authors, setAuthors] = useState("");
   const [tags, setTags] = useState("");
   const [includedPaths, setIncludedPaths] = useState("");
   const [excludedPaths, setExcludedPaths] = useState("");
+  const [isPending, setIsPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  function handleCreate() {
+  async function handleCreate() {
+    setIsPending(true);
+    setError(null);
+
+    const now = new Date().toISOString();
+    const filter: CommitFilterResource = {
+      name: name.trim(),
+      authors: parseList(authors),
+      tags: parseList(tags),
+      included_paths: parseList(includedPaths),
+      excluded_paths: parseList(excludedPaths),
+      created_at: now,
+      updated_at: now,
+    };
+
+    const result = await createCommitFilter(params.owner, params.repo, filter);
+    setIsPending(false);
+
+    if ("error" in result) {
+      setError(result.error);
+      return;
+    }
+
     setOpen(false);
     setName("");
     setAuthors("");
@@ -102,6 +138,9 @@ export function NewFilterDialog({
               className="w-full px-2 pb-2 text-sm bg-background outline-none"
             />
           </label>
+          {error && (
+            <p className="text-xs text-destructive px-2 py-1">{error}</p>
+          )}
           <div className="flex items-center justify-end h-9">
             <button
               type="button"
@@ -112,7 +151,7 @@ export function NewFilterDialog({
             </button>
             <button
               type="button"
-              disabled={name.trim() === ""}
+              disabled={name.trim() === "" || isPending}
               className="px-3 py-1.5 h-9 text-xs bg-primary text-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={handleCreate}
             >

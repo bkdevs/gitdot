@@ -15,6 +15,25 @@ mod user;
 pub use git_http::*;
 pub use internal::*;
 
+pub trait FromApi: Sized {
+    type ApiType;
+    fn from_api(api: Self::ApiType) -> Self;
+}
+
+impl<T: FromApi> FromApi for Vec<T> {
+    type ApiType = Vec<T::ApiType>;
+    fn from_api(api: Vec<T::ApiType>) -> Self {
+        api.into_iter().map(T::from_api).collect()
+    }
+}
+
+impl<T: FromApi> FromApi for Option<T> {
+    type ApiType = Option<T::ApiType>;
+    fn from_api(api: Option<T::ApiType>) -> Self {
+        api.map(T::from_api)
+    }
+}
+
 pub trait IntoApi {
     type ApiType;
     fn into_api(self) -> Self::ApiType;

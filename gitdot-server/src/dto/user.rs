@@ -1,7 +1,21 @@
-use gitdot_api::resource::user as api;
-use gitdot_core::dto::{UserRepoSettingsResponse, UserResponse, UserSettingsResponse};
+use gitdot_api::{
+    endpoint::user::update_current_user_settings as api_endpoint, resource::user as api,
+};
+use gitdot_core::{
+    dto::{UserRepoSettingsResponse, UserResponse, UserSettingsResponse},
+    model::UserRepoSettings,
+};
 
-use super::IntoApi;
+use super::{FromApi, IntoApi};
+
+impl FromApi for UserRepoSettings {
+    type ApiType = api_endpoint::UpdateUserRepoSettingsRequest;
+    fn from_api(r: Self::ApiType) -> Self {
+        UserRepoSettings {
+            commit_filters: <Option<Vec<_>>>::from_api(r.commit_filters),
+        }
+    }
+}
 
 impl IntoApi for UserRepoSettingsResponse {
     type ApiType = api::UserRepoSettingsResource;

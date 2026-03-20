@@ -5,9 +5,10 @@ use crate::{
         GetCurrentUserRequest, GetCurrentUserSettingsRequest, GetUserRequest, HasUserRequest,
         ListUserOrganizationsRequest, ListUserRepositoriesRequest, ListUserReviewsRequest,
         OrganizationResponse, RepositoryResponse, ReviewResponse, UpdateCurrentUserRequest,
-        UserResponse, UserSettingsResponse,
+        UpdateCurrentUserSettingsRequest, UserResponse, UserSettingsResponse,
     },
     error::UserError,
+    model::UserSettings,
     repository::{
         OrganizationRepository, OrganizationRepositoryImpl, RepositoryRepository,
         RepositoryRepositoryImpl, ReviewRepository, ReviewRepositoryImpl, UserRepository,
@@ -50,6 +51,11 @@ pub trait UserService: Send + Sync + 'static {
     async fn get_current_user_settings(
         &self,
         request: GetCurrentUserSettingsRequest,
+    ) -> Result<UserSettingsResponse, UserError>;
+
+    async fn update_current_user_settings(
+        &self,
+        request: UpdateCurrentUserSettingsRequest,
     ) -> Result<UserSettingsResponse, UserError>;
 }
 
@@ -210,5 +216,22 @@ where
     ) -> Result<UserSettingsResponse, UserError> {
         let settings = self.user_repo.get_settings(request.user_id).await?;
         Ok(settings.unwrap_or_default().into())
+    }
+
+    async fn update_current_user_settings(
+        &self,
+        request: UpdateCurrentUserSettingsRequest,
+    ) -> Result<UserSettingsResponse, UserError> {
+        let patch = UserSettings {
+            repos: request.repos.unwrap_or_default(),
+        };
+        let patch_json =
+            serde_json::to_value(&patch).expect("UserSettings serialization is infallible");
+        let settings = self
+            .user_repo
+            .update_settings(request.user_id, patch_json)
+            .await?
+            .ok_or_else(|| UserError::NotFound(request.user_id.to_string()))?;
+        Ok(settings.into())
     }
 }

@@ -11,7 +11,7 @@ import {
 } from "@/ui/dropdown-menu";
 import { cn } from "@/util";
 import { formatDate } from "@/util/date";
-import { NewFilterDialog } from "./new-filter-dialog";
+import { NewCommitFilterDialog } from "./new-commit-filter-dialog";
 
 export function CommitsHeader({
   startDate,
@@ -39,7 +39,7 @@ export function CommitsHeader({
         />
       ))}
 
-      <NewFilterButton />
+      <NewCommitFilterButton />
       <div className="ml-auto h-full flex flex-row">
         <DateRange
           startDate={startDate}
@@ -74,7 +74,7 @@ function CommitFilter({
   );
 }
 
-function NewFilterButton() {
+function NewCommitFilterButton() {
   const [open, setOpen] = useState(false);
 
   return (
@@ -87,7 +87,7 @@ function NewFilterButton() {
         <Plus className="size-3 mr-1" />
         New filter
       </button>
-      <NewFilterDialog open={open} setOpen={setOpen} />
+      <NewCommitFilterDialog open={open} setOpen={setOpen} />
     </>
   );
 }

@@ -7,7 +7,7 @@ import { CommitsShortcuts } from "./shortcuts";
 import { CommitsGrid } from "./ui/commits-grid";
 import { CommitsHeader } from "./ui/commits-header";
 import { CommitsList } from "./ui/commits-list";
-import { isSelected } from "./util";
+import { filterCommits } from "./util";
 
 const ALL_COMMITS_FILTER: CommitFilterResource = {
   name: "All commits",
@@ -17,21 +17,20 @@ const ALL_COMMITS_FILTER: CommitFilterResource = {
 
 export function CommitsClient() {
   const commits = use(useRepoContext().commits);
+  const settings = use(useRepoContext().settings);
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
-  const filters: CommitFilterResource[] = [ALL_COMMITS_FILTER];
-  const [activeFilter, setActiveFilter] = useState<CommitFilterResource>(
-    filters[0],
-  );
+  const filters = [ALL_COMMITS_FILTER, ...(settings?.commit_filters ?? [])];
+  const [activeFilter, setActiveFilter] = useState(filters[0]);
 
   if (!commits) return null;
 
-  const filteredCommits =
-    startDate && endDate
-      ? commits.filter((c) =>
-          isSelected(c.date.slice(0, 10), startDate, endDate),
-        )
-      : commits;
+  const filteredCommits = filterCommits(
+    activeFilter,
+    commits,
+    startDate,
+    endDate,
+  );
 
   return (
     <div className="flex flex-col h-full">

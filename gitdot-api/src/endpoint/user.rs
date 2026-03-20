@@ -6,3 +6,4 @@ pub mod list_user_organizations;
 pub mod list_user_repositories;
 pub mod list_user_reviews;
 pub mod update_current_user;
+pub mod update_current_user_settings;
