@@ -22,11 +22,14 @@ pub struct ReviewArgs {
 #[derive(Subcommand, Debug)]
 pub enum ReviewCommand {
     /// Create a review
-    Create,
+    New,
+
     /// Checkout a commit from the review
     Checkout,
+
     /// Amend changes into the checked-out commit and rebase
     Amend,
+
     /// Update an existing review
     Update,
 }
@@ -34,7 +37,7 @@ pub enum ReviewCommand {
 impl ReviewCommand {
     pub async fn execute(&self, config: UserConfig) -> anyhow::Result<()> {
         match self {
-            ReviewCommand::Create {} => create::create_review(config).await,
+            ReviewCommand::New {} => create::create_review(config).await,
             ReviewCommand::Checkout {} => checkout::checkout_review(config).await,
             ReviewCommand::Amend {} => amend::amend_review(config).await,
             ReviewCommand::Update {} => update::update_review(config).await,
