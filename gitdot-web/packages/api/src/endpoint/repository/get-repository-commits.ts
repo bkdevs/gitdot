@@ -3,9 +3,9 @@ import { RepositoryCommitsResource } from "../../resource";
 import type { Endpoint } from "../endpoint";
 
 export const GetRepositoryCommitsRequest = z.object({
-  ref_name: z.string(),
-  from: z.string().datetime().optional(),
-  to: z.string().datetime().optional(),
+  ref_name: z.string().optional(),
+  from: z.iso.datetime().optional(),
+  to: z.iso.datetime().optional(),
 });
 export type GetRepositoryCommitsRequest = z.infer<
   typeof GetRepositoryCommitsRequest

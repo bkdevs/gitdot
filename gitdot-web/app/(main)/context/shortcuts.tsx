@@ -51,6 +51,17 @@ function eventKey(event: KeyboardEvent): string {
   return parts.join("+");
 }
 
+function displayKey(key: string): React.ReactNode {
+  const parts = key.replace(/\bEscape\b/g, "Esc").split(/(\bShift\b)/);
+  return parts.map((part, i) =>
+    part === "Shift" ? (
+      <span key={i} className="font-sans text-xs">⇧</span>
+    ) : (
+      part
+    ),
+  );
+}
+
 function isRadixModalOpen(): boolean {
   return !!document.querySelector(
     ['[aria-modal="true"]', '[role="dialog"][data-state="open"]'].join(","),
@@ -122,13 +133,14 @@ export function ShortcutsProvider({ children }: { children: React.ReactNode }) {
       event.preventDefault();
       shortcut.execute();
     }
+
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  const allShortcuts = [...registryRef.current.values()]
-    .flat()
-    .concat(helpShortcut);
+  const allShortcuts = [...new Set(merged.current.values())].concat(
+    helpShortcut,
+  );
 
   return (
     <ShortcutsContext value={{ register }}>
@@ -146,20 +158,22 @@ export function ShortcutsProvider({ children }: { children: React.ReactNode }) {
             {allShortcuts.map((s) => (
               <div
                 key={s.name}
-                className="flex items-baseline justify-between gap-2"
+                className="flex flex-col"
               >
-                <div>
+                <div className="flex flex-row justify-between">
                   <span className="text-sm">{s.name}</span>
-                  <p className="text-xs">{s.description}</p>
+                  <div className="flex items-baseline gap-1 shrink-0">
+                    {s.keys.map((k, i) => (
+                      <span key={k}>
+                        <kbd className="text-sm bg-muted px-1 rounded-xs">
+                          {displayKey(k)}
+                        </kbd>
+                        {i < s.keys.length - 1 ? "," : ""}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-                <div className="flex items-baseline gap-1 shrink-0">
-                  {s.keys.map((k, i) => (
-                    <kbd key={k} className="text-sm bg-muted px-1 rounded-xs">
-                      {k}
-                      {i < s.keys.length - 1 ? "," : ""}
-                    </kbd>
-                  ))}
-                </div>
+                <p className="text-xs -mt-1.5">{s.description}</p>
               </div>
             ))}
           </div>

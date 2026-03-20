@@ -4,6 +4,7 @@ import { use } from "react";
 import { useRepoContext } from "../../context";
 import type { LineSelection } from "../util";
 import { FileBody } from "./file-body";
+import { FileViewerShortcuts } from "./file-viewer-shortcuts";
 import { FolderViewer } from "./folder-viewer";
 
 export function FileBlobClient({
@@ -34,10 +35,11 @@ export function FileBlobClient({
 
   return (
     <div className="flex w-full h-full min-h-0 overflow-hidden">
-      <div className="flex-1 min-w-0 overflow-auto scrollbar-thin">
+      <div data-page-scroll className="flex-1 min-w-0 overflow-auto scrollbar-thin">
         <FileBody selectedLines={selectedLines} hast={hast} />
       </div>
       {historySlot}
+      <FileViewerShortcuts />
     </div>
   );
 }
