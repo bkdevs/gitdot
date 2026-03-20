@@ -3,8 +3,9 @@
 import type { RepositoryCommitResource } from "gitdot-api";
 import { useParams } from "next/navigation";
 import Link from "@/ui/link";
-import { formatDateTime, pluralize, timeAgo, timeAgoFull } from "@/util";
-import { DiffStatBar } from "../[sha]/ui/diff-stat-bar";
+import { formatDateTime, timeAgo } from "@/util";
+
+import { CommitPathSummary } from "./commit-path-summary";
 
 export function CommitsList({
   commits,
@@ -23,9 +24,6 @@ export function CommitsList({
 function CommitRow({ commit }: { commit: RepositoryCommitResource }) {
   const { owner, repo } = useParams<{ owner: string; repo: string }>();
 
-  const filesChanged = commit.diffs.length;
-  const linesAdded = commit.diffs.reduce((sum, d) => sum + d.lines_added, 0);
-  const linesRemoved = commit.diffs.reduce((sum, d) => sum + d.lines_removed, 0);
 
   return (
     <Link
@@ -45,8 +43,8 @@ function CommitRow({ commit }: { commit: RepositoryCommitResource }) {
             <span>{timeAgo(new Date(commit.date))}</span>
           </div>
         </div>
-        <div className="flex flex-col shrink-0">
-          <span className="text-xs shrink-0"><DiffStatBar added={linesAdded} removed={linesRemoved} linesPerBar={10} /></span>
+        <div className="flex flex-col shrink-0 items-end gap-1">
+          <CommitPathSummary diffs={commit.diffs} totalFiles={commit.diffs.length} />
         </div>
       </div>
     </Link>
