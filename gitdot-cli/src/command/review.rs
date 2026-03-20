@@ -3,9 +3,7 @@ mod checkout;
 mod create;
 mod update;
 
-use std::path::PathBuf;
-
-use std::process::Stdio;
+use std::{path::PathBuf, process::Stdio};
 
 use anyhow::{Context, bail};
 use clap::{Args, Subcommand};
