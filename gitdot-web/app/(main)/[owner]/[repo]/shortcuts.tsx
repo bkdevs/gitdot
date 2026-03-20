@@ -88,7 +88,7 @@ export function RepoShortcuts() {
       {
         name: "NavDown",
         description: "Next sidebar item",
-        keys: ["j"],
+        keys: ["J", "Tab"],
         execute: () => {
           const items = Array.from(
             document.querySelectorAll<HTMLElement>("[data-sidebar-item]"),
@@ -104,7 +104,7 @@ export function RepoShortcuts() {
       {
         name: "NavUp",
         description: "Previous sidebar item",
-        keys: ["k"],
+        keys: ["K", "Shift+Tab"],
         execute: () => {
           const items = Array.from(
             document.querySelectorAll<HTMLElement>("[data-sidebar-item]"),
@@ -120,7 +120,7 @@ export function RepoShortcuts() {
       {
         name: "ItemDown",
         description: "Next page item",
-        keys: ["J"],
+        keys: ["j"],
         execute: () => {
           const items = Array.from(
             document.querySelectorAll<HTMLElement>("[data-page-item]"),
@@ -136,7 +136,7 @@ export function RepoShortcuts() {
       {
         name: "ItemUp",
         description: "Previous page item",
-        keys: ["K"],
+        keys: ["k"],
         execute: () => {
           const items = Array.from(
             document.querySelectorAll<HTMLElement>("[data-page-item]"),

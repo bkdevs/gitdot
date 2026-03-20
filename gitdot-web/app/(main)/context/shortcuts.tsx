@@ -31,6 +31,26 @@ function isInputFocused(): boolean {
   return false;
 }
 
+// "Mod" = Cmd on Mac, Ctrl on Windows/Linux — the primary shortcut modifier.
+// "Ctrl" = always Ctrl (only distinct from Mod on Mac).
+const IS_MAC =
+  typeof navigator !== "undefined" &&
+  /mac/i.test(
+    (navigator as Navigator & { userAgentData?: { platform: string } })
+      .userAgentData?.platform ?? navigator.userAgent,
+  );
+
+function eventKey(event: KeyboardEvent): string {
+  const parts: string[] = [];
+  if (IS_MAC ? event.metaKey : event.ctrlKey) parts.push("Mod");
+  if (IS_MAC && event.ctrlKey) parts.push("Ctrl");
+  if (event.altKey) parts.push("Alt");
+  
+  if (event.shiftKey && event.key.length > 1) parts.push("Shift");
+  parts.push(event.key);
+  return parts.join("+");
+}
+
 function isRadixModalOpen(): boolean {
   return !!document.querySelector(
     ['[aria-modal="true"]', '[role="dialog"][data-state="open"]'].join(","),
@@ -87,9 +107,6 @@ export function ShortcutsProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
       if (
-        event.ctrlKey ||
-        event.altKey ||
-        event.metaKey ||
         event.defaultPrevented ||
         isInputFocused() ||
         isRadixModalOpen()
@@ -103,7 +120,7 @@ export function ShortcutsProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      const shortcut = merged.current.get(event.key);
+      const shortcut = merged.current.get(eventKey(event));
       if (!shortcut) return;
 
       event.preventDefault();
