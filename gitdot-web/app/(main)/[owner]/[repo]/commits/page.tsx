@@ -5,6 +5,7 @@ import { useRepoContext } from "../context";
 import { CommitsGrid } from "./ui/commits-grid";
 import { CommitsHeader } from "./ui/commits-header";
 import { CommitsList } from "./ui/commits-list";
+import { CommitsShortcuts } from "./shortcuts";
 import { isSelected } from "./util";
 
 export function CommitsClient() {
@@ -23,6 +24,7 @@ export function CommitsClient() {
 
   return (
     <div className="flex flex-col h-full">
+      <CommitsShortcuts setStartDate={setStartDate} setEndDate={setEndDate} />
       <CommitsHeader
         startDate={startDate}
         endDate={endDate}
