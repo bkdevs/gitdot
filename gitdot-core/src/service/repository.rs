@@ -375,11 +375,9 @@ where
         let patch = RepositorySettings {
             commit_filters: request.commit_filters,
         };
-        let patch_json =
-            serde_json::to_value(&patch).expect("RepositorySettings serialization is infallible");
         let settings = self
             .repo_repo
-            .update_settings(owner, repo, patch_json)
+            .update_settings(owner, repo, patch)
             .await?
             .ok_or_else(|| RepositoryError::NotFound(format!("{}/{}", owner, repo)))?;
         Ok(RepositorySettingsResponse {

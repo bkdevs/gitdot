@@ -7,7 +7,7 @@ import { CommitsShortcuts } from "./shortcuts";
 import { CommitsGrid } from "./ui/commits-grid";
 import { CommitsHeader } from "./ui/commits-header";
 import { CommitsList } from "./ui/commits-list";
-import { filterCommits } from "./util";
+import { filterCommits, inRange } from "./util";
 
 const ALL_COMMITS_FILTER: CommitFilterResource = {
   name: "All commits",
@@ -25,12 +25,13 @@ export function CommitsClient() {
 
   if (!commits) return null;
 
-  const filteredCommits = filterCommits(
-    activeFilter,
-    commits,
-    startDate,
-    endDate,
-  );
+  const filteredCommits = filterCommits(activeFilter, commits);
+  const commitsInRange =
+    startDate && endDate
+      ? filteredCommits.filter((commit) =>
+          inRange(commit.date.slice(0, 10), startDate, endDate),
+        )
+      : filteredCommits;
 
   return (
     <div className="flex flex-col h-full">
@@ -38,19 +39,19 @@ export function CommitsClient() {
       <CommitsHeader
         startDate={startDate}
         endDate={endDate}
-        commitCount={filteredCommits.length}
+        commitCount={commitsInRange.length}
         filters={filters}
         activeFilter={activeFilter}
         setActiveFilter={setActiveFilter}
       />
       <CommitsGrid
-        commits={commits}
+        commits={filteredCommits}
         startDate={startDate}
         endDate={endDate}
         setStartDate={setStartDate}
         setEndDate={setEndDate}
       />
-      <CommitsList commits={filteredCommits} />
+      <CommitsList commits={commitsInRange} />
     </div>
   );
 }

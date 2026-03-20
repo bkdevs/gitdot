@@ -4,7 +4,7 @@ import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import type { CommitFilterResource } from "gitdot-api";
 import { useParams } from "next/navigation";
 import { useState } from "react";
-import { createCommitFilter } from "@/actions/repository";
+import { createCommitFilterAction } from "@/actions/repository";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
 
 function parseList(s: string): string[] | undefined {
@@ -46,7 +46,11 @@ export function NewCommitFilterDialog({
       updated_at: now,
     };
 
-    const result = await createCommitFilter(params.owner, params.repo, filter);
+    const result = await createCommitFilterAction(
+      params.owner,
+      params.repo,
+      filter,
+    );
     setIsPending(false);
 
     if ("error" in result) {

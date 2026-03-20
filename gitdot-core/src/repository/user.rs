@@ -19,7 +19,7 @@ pub trait UserRepository: Send + Sync + Clone + 'static {
     async fn update_settings(
         &self,
         id: Uuid,
-        settings: serde_json::Value,
+        settings: UserSettings,
     ) -> Result<Option<UserSettings>, Error>;
 
     async fn is_name_taken(&self, name: &str) -> Result<bool, Error>;
@@ -104,8 +104,9 @@ impl UserRepository for UserRepositoryImpl {
     async fn update_settings(
         &self,
         id: Uuid,
-        settings: serde_json::Value,
+        settings: UserSettings,
     ) -> Result<Option<UserSettings>, Error> {
+        let settings = serde_json::to_value(&settings).unwrap();
         let row = sqlx::query(
             "UPDATE users SET settings = COALESCE(settings, '{}'::jsonb) || $2::jsonb WHERE id = $1 RETURNING settings",
         )

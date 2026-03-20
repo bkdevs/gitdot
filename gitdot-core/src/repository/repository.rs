@@ -33,7 +33,7 @@ pub trait RepositoryRepository: Send + Sync + Clone + 'static {
         &self,
         owner: &str,
         repo: &str,
-        settings: serde_json::Value,
+        settings: RepositorySettings,
     ) -> Result<Option<RepositorySettings>, Error>;
 }
 
@@ -159,8 +159,9 @@ impl RepositoryRepository for RepositoryRepositoryImpl {
         &self,
         owner: &str,
         repo: &str,
-        settings: serde_json::Value,
+        settings: RepositorySettings,
     ) -> Result<Option<RepositorySettings>, Error> {
+        let settings = serde_json::to_value(&settings).unwrap();
         let row = sqlx::query(
             "UPDATE repositories SET settings = COALESCE(settings, '{}'::jsonb) || $3::jsonb WHERE owner_name = $1 AND name = $2 RETURNING settings",
         )

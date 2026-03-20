@@ -225,11 +225,9 @@ where
         let patch = UserSettings {
             repos: request.repos.unwrap_or_default(),
         };
-        let patch_json =
-            serde_json::to_value(&patch).expect("UserSettings serialization is infallible");
         let settings = self
             .user_repo
-            .update_settings(request.user_id, patch_json)
+            .update_settings(request.user_id, patch)
             .await?
             .ok_or_else(|| UserError::NotFound(request.user_id.to_string()))?;
         Ok(settings.into())

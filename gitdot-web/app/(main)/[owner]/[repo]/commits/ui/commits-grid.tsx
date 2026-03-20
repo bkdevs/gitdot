@@ -6,7 +6,7 @@ import { cn } from "@/util";
 import {
   buildGrid,
   computeThresholds,
-  isSelected,
+  inRange,
   NUM_DAYS,
   NUM_WEEKS,
   type Thresholds,
@@ -83,33 +83,27 @@ export function CommitsGrid({
           onMouseLeave={() => setHoverActive(false)}
         >
           {weeks.flatMap((week, col) =>
-            week.map((day, row) => {
-              const selected = isSelected(day.date, startDate, endDate);
-              return (
-                <button
-                  key={`cell-${day.date}`}
-                  type="button"
-                  className="group appearance-none border-none bg-transparent -m-px p-px"
-                  style={{ gridRow: row + 1, gridColumn: col + 1 }}
-                  title={`${day.date}: ${day.commitCount} commits`}
-                  onMouseDown={(e) => onCellMouseDown(day.date, e)}
-                  onMouseEnter={() => onCellMouseEnter(day.date)}
-                >
-                  <div
-                    className={cn(
-                      "w-full h-full transition-opacity duration-300 group-hover:duration-0",
-                      cellColor(day.commitCount, thresholds),
-                      selected
-                        ? "opacity-100! ring-1 ring-inset ring-foreground"
-                        : cn(
-                            dimmed && "opacity-40",
-                            "group-hover:opacity-100!",
-                          ),
-                    )}
-                  />
-                </button>
-              );
-            }),
+            week.map((day, row) => (
+              <button
+                key={`cell-${day.date}`}
+                type="button"
+                className="group appearance-none border-none bg-transparent -m-px p-px"
+                style={{ gridRow: row + 1, gridColumn: col + 1 }}
+                title={`${day.date}: ${day.commitCount} commits`}
+                onMouseDown={(e) => onCellMouseDown(day.date, e)}
+                onMouseEnter={() => onCellMouseEnter(day.date)}
+              >
+                <div
+                  className={cn(
+                    "w-full h-full transition-opacity duration-300 group-hover:duration-0",
+                    cellColor(day.commitCount, thresholds),
+                    inRange(day.date, startDate, endDate)
+                      ? "opacity-100! ring-1 ring-inset ring-foreground"
+                      : cn(dimmed && "opacity-40", "group-hover:opacity-100!"),
+                  )}
+                />
+              </button>
+            )),
           )}
         </div>
       </div>

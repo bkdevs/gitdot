@@ -67,7 +67,7 @@ export type CreateCommitFilterActionResult =
   | { settings: RepositorySettingsResource }
   | { error: string };
 
-export async function createCommitFilter(
+export async function createCommitFilterAction(
   owner: string,
   repo: string,
   filter: CommitFilterResource,

@@ -87,35 +87,17 @@ export function computeThresholds(weeks: Week[]): Thresholds {
   return [q(0.25), q(0.5), q(0.75)];
 }
 
-export function isSelected(
-  date: string,
-  start: string | null,
-  end: string | null,
-): boolean {
-  if (!start || !end) return false;
-  const lo = start <= end ? start : end;
-  const hi = start <= end ? end : start;
-  return date >= lo && date <= hi;
-}
-
 export function filterCommits(
   filter: CommitFilterResource,
   commits: RepositoryCommitResource[],
-  start: string | null = null,
-  end: string | null = null,
 ): RepositoryCommitResource[] {
-  return commits.filter((commit) => filterCommit(filter, commit, start, end));
+  return commits.filter((commit) => filterCommit(filter, commit));
 }
 
 function filterCommit(
   filter: CommitFilterResource,
   commit: RepositoryCommitResource,
-  start: string | null,
-  end: string | null,
 ): boolean {
-  if (!isSelected(commit.date.slice(0, 10), start, end) && start && end)
-    return false;
-
   if (filter.authors && filter.authors.length > 0) {
     const match = filter.authors.some(
       (a) => commit.author.name === a || commit.author.email === a,
@@ -145,4 +127,15 @@ function filterCommit(
   }
 
   return true;
+}
+
+export function inRange(
+  date: string,
+  start: string | null,
+  end: string | null,
+): boolean {
+  if (!start || !end) return false;
+  const lo = start <= end ? start : end;
+  const hi = start <= end ? end : start;
+  return date >= lo && date <= hi;
 }
