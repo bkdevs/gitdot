@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+
 @plugin "tailwind-scrollbar";
 
 @custom-variant dark {
@@ -193,4 +194,13 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+@keyframes diff-path-underline {
+  0% { text-decoration-line: underline; text-decoration-color: currentColor; }
+  100% { text-decoration-line: underline; text-decoration-color: transparent; }
+}
+
+[data-diff-path-flash] {
+  animation: diff-path-underline 0.3s ease-out;
 }

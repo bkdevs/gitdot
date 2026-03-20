@@ -4,7 +4,6 @@ import { use } from "react";
 import { useRepoContext } from "../../context";
 import type { LineSelection } from "../util";
 import { FileBody } from "./file-body";
-import { FileViewerShortcuts } from "./file-viewer-shortcuts";
 import { FolderViewer } from "./folder-viewer";
 
 export function FileBlobClient({
@@ -39,7 +38,6 @@ export function FileBlobClient({
         <FileBody selectedLines={selectedLines} hast={hast} />
       </div>
       {historySlot}
-      <FileViewerShortcuts />
     </div>
   );
 }

@@ -20,7 +20,7 @@ export function DiffBody({
   const [open, setOpen] = useState(true);
 
   return (
-    <>
+    <div data-diff-file>
       <DiffHeader open={open} setOpen={setOpen} diff={diff} />
       {open && (
         <div className="w-full border-b border-border">
@@ -37,6 +37,6 @@ export function DiffBody({
           )}
         </div>
       )}
-    </>
+    </div>
   );
 }

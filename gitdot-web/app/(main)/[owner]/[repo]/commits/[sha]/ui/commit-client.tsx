@@ -6,6 +6,7 @@ import type { DiffEntry } from "@/actions";
 import { Loading } from "@/ui/loading";
 import { CommitBody } from "./commit-body";
 import { CommitHeader } from "./commit-header";
+import { CommitShortcuts } from "../shortcuts";
 
 export function CommitClient({
   sha,
@@ -20,11 +21,12 @@ export function CommitClient({
   if (!commit) return null;
 
   return (
-    <div className="flex flex-col w-full">
+    <div data-commit-top className="flex flex-col w-full">
       <CommitHeader commit={commit} stats={commit.diffs} />
       <Suspense fallback={<Loading />}>
         <CommitBody diffEntries={diffEntries} />
       </Suspense>
+      <CommitShortcuts />
     </div>
   );
 }
