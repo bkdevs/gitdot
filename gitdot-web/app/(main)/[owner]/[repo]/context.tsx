@@ -4,7 +4,7 @@ import type { Root } from "hast";
 import { createContext, useContext, useEffect, useMemo } from "react";
 import { setRepoCookie } from "@/cookie";
 import { openIdb } from "@/db";
-import { DbProvider } from "@/provider";
+import { DatabaseProvider } from "@/provider";
 import { firstNonNull } from "@/util";
 import { useRenderBlobs } from "./hooks/use-render-blobs";
 import { type RepoPromises, RepoResources } from "./resources";
@@ -28,7 +28,7 @@ export function RepoClient({
 }) {
   const idb = useMemo(() => openIdb(), []);
   const dbPromises = useMemo(
-    () => new DbProvider(owner, repo).fetch(RepoResources),
+    () => new DatabaseProvider(owner, repo).fetch(RepoResources),
     [owner, repo],
   );
 

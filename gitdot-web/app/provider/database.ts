@@ -7,7 +7,7 @@ import type {
 import { openIdb } from "@/db";
 import { RepoProvider } from "./types";
 
-export class DbProvider extends RepoProvider {
+export class DatabaseProvider extends RepoProvider {
   private db = openIdb();
 
   async getPaths() {
