@@ -22,8 +22,9 @@ pub enum Args {
     /// Manage authentication credentials
     Auth(AuthArgs),
 
-    #[cfg(feature = "main")]
     /// Create and manage code reviews
+    #[cfg(feature = "main")]
+    #[command(alias = "r")]
     Review(ReviewArgs),
 
     #[cfg(feature = "main")]
