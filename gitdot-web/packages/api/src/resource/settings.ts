@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const CommitFilterResource = z.object({
+  name: z.string(),
   authors: z.array(z.string()).optional(),
   tags: z.array(z.string()).optional(),
   included_paths: z.array(z.string()).optional(),

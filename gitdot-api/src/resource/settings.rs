@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct CommitFilterResource {
+    pub name: String,
     pub authors: Option<Vec<String>>,
     pub tags: Option<Vec<String>>,
     pub included_paths: Option<Vec<String>>,

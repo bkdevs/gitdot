@@ -7,6 +7,7 @@ impl IntoApi for CommitFilter {
     type ApiType = api::CommitFilterResource;
     fn into_api(self) -> Self::ApiType {
         api::CommitFilterResource {
+            name: self.name,
             authors: self.authors,
             tags: self.tags,
             included_paths: self.included_paths,

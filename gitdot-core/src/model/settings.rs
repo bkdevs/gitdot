@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CommitFilter {
+    pub name: String,
     pub authors: Option<Vec<String>>,
     pub tags: Option<Vec<String>>,
     pub included_paths: Option<Vec<String>>,
