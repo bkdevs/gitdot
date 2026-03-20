@@ -410,6 +410,7 @@ mod tests {
             async fn get_by_id(&self, id: Uuid) -> Result<Option<Repository>, sqlx::Error>;
             async fn list_by_owner(&self, owner_name: &str) -> Result<Vec<Repository>, sqlx::Error>;
             async fn delete(&self, id: Uuid) -> Result<(), sqlx::Error>;
+            async fn get_settings(&self, owner: &str, repo: &str) -> Result<Option<Repository>, sqlx::Error>;
         }
     }
 

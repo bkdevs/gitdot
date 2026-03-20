@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { CommitFilterResource } from "./settings";
+
 export const SyntaxHighlight = z.enum([
   "delimiter",
   "normal",
@@ -144,3 +146,10 @@ export const RepositoryResource = z.object({
   created_at: z.iso.datetime(),
 });
 export type RepositoryResource = z.infer<typeof RepositoryResource>;
+
+export const RepositorySettingsResource = z.object({
+  commit_filters: z.array(CommitFilterResource).optional(),
+});
+export type RepositorySettingsResource = z.infer<
+  typeof RepositorySettingsResource
+>;

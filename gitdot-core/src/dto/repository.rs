@@ -6,6 +6,7 @@ mod get_repository_commit;
 mod get_repository_file;
 mod get_repository_file_commits;
 mod get_repository_paths;
+mod get_repository_settings;
 
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
@@ -24,6 +25,7 @@ pub use get_repository_file_commits::GetRepositoryFileCommitsRequest;
 pub use get_repository_paths::{
     GetRepositoryPathsRequest, PathType, RepositoryPath, RepositoryPathsResponse,
 };
+pub use get_repository_settings::{GetRepositorySettingsRequest, RepositorySettingsResponse};
 
 #[derive(Debug, Clone)]
 pub struct RepositoryResponse {

@@ -8,12 +8,12 @@ use crate::{
     dto::{
         CommitAuthorResponse, CreateRepositoryRequest, DeleteRepositoryRequest,
         GetRepositoryBlobRequest, GetRepositoryBlobsRequest, GetRepositoryFileCommitsRequest,
-        GetRepositoryPathsRequest, RepositoryBlobResponse, RepositoryBlobsResponse,
-        RepositoryCommitResponse, RepositoryCommitsResponse, RepositoryPathsResponse,
-        RepositoryResponse,
+        GetRepositoryPathsRequest, GetRepositorySettingsRequest, RepositoryBlobResponse,
+        RepositoryBlobsResponse, RepositoryCommitResponse, RepositoryCommitsResponse,
+        RepositoryPathsResponse, RepositoryResponse, RepositorySettingsResponse,
     },
     error::RepositoryError,
-    model::RepositoryOwnerType,
+    model::{RepositoryOwnerType, RepositorySettings},
     repository::{
         OrganizationRepository, OrganizationRepositoryImpl, RepositoryRepository,
         RepositoryRepositoryImpl, UserRepository, UserRepositoryImpl,
@@ -61,6 +61,11 @@ pub trait RepositoryService: Send + Sync + 'static {
         repo: &str,
         ref_name: &str,
     ) -> Result<String, RepositoryError>;
+
+    async fn get_repository_settings(
+        &self,
+        request: GetRepositorySettingsRequest,
+    ) -> Result<RepositorySettingsResponse, RepositoryError>;
 }
 
 #[derive(Debug, Clone)]
@@ -337,5 +342,24 @@ where
             .resolve_ref_sha(owner, repo, ref_name)
             .await
             .map_err(Into::into)
+    }
+
+    async fn get_repository_settings(
+        &self,
+        request: GetRepositorySettingsRequest,
+    ) -> Result<RepositorySettingsResponse, RepositoryError> {
+        let owner = request.owner.as_ref();
+        let repo = request.repo.as_ref();
+        let repository = self
+            .repo_repo
+            .get_settings(owner, repo)
+            .await?
+            .ok_or_else(|| RepositoryError::NotFound(format!("{}/{}", owner, repo)))?;
+        let settings = repository.settings.unwrap_or(RepositorySettings {
+            commit_filters: None,
+        });
+        Ok(RepositorySettingsResponse {
+            commit_filters: settings.commit_filters,
+        })
     }
 }

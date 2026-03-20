@@ -22,6 +22,8 @@ pub trait RepositoryRepository: Send + Sync + Clone + 'static {
     async fn list_by_owner(&self, owner_name: &str) -> Result<Vec<Repository>, Error>;
 
     async fn delete(&self, id: Uuid) -> Result<(), Error>;
+
+    async fn get_settings(&self, owner: &str, repo: &str) -> Result<Option<Repository>, Error>;
 }
 
 #[derive(Debug, Clone)]
@@ -118,5 +120,21 @@ impl RepositoryRepository for RepositoryRepositoryImpl {
             .await?;
 
         Ok(())
+    }
+
+    async fn get_settings(&self, owner: &str, repo: &str) -> Result<Option<Repository>, Error> {
+        let repository = sqlx::query_as::<_, Repository>(
+            r#"
+            SELECT id, name, owner_id, owner_name, owner_type, visibility, created_at, settings
+            FROM repositories
+            WHERE owner_name = $1 AND name = $2
+            "#,
+        )
+        .bind(owner)
+        .bind(repo)
+        .fetch_optional(&self.pool)
+        .await?;
+
+        Ok(repository)
     }
 }

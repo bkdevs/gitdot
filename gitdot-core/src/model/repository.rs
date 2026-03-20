@@ -15,13 +15,8 @@ pub struct Repository {
     pub visibility: RepositoryVisibility,
     pub created_at: DateTime<Utc>,
 
-    #[sqlx(json(nullable))]
-    pub settings: Option<RepoSettings>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RepoSettings {
-    pub commit_filters: Option<Vec<CommitFilter>>,
+    #[sqlx(json(nullable), default)]
+    pub settings: Option<RepositorySettings>,
 }
 
 impl Repository {
@@ -97,4 +92,9 @@ impl Into<String> for RepositoryVisibility {
             RepositoryVisibility::Private => "private".to_string(),
         }
     }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RepositorySettings {
+    pub commit_filters: Option<Vec<CommitFilter>>,
 }

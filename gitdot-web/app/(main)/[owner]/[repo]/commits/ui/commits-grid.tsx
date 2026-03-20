@@ -53,7 +53,7 @@ export function CommitsGrid({
       {/* day labels and the grid are in the same row */}
       <div className="flex flex-row items-start flex-1 h-full">
         <div
-          className="flex flex-col py-1 w-5 h-full border-r border-border"
+          className="flex flex-col pt-1.5 w-5 h-full border-r border-border"
           style={{ gap: GAP_HEIGHT }}
         >
           {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
@@ -73,7 +73,7 @@ export function CommitsGrid({
 
         {/* biome-ignore lint/a11y/noStaticElementInteractions: mouse enter/leave are purely cosmetic, not interactive */}
         <div
-          className="grid w-full py-1 px-1"
+          className="grid w-full pt-1.5 pb-1 px-1.5"
           style={{
             gap: GAP_HEIGHT,
             gridTemplateColumns: `repeat(${NUM_WEEKS}, 1fr)`,
@@ -116,7 +116,7 @@ export function CommitsGrid({
 
       {/* month labels are in a row below, with a spacer to continue the day label border */}
       <div className="flex flex-row border-t border-border">
-        <div className="w-5 shrink-0 border-r border-border" />
+        <div className="w-5 h-4 shrink-0 border-r border-border" />
 
         <div
           className="grid w-full pl-1 pb-1"

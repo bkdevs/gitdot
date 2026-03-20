@@ -5,6 +5,7 @@ use gitdot_core::{
         RepositoryBlobResponse, RepositoryBlobsResponse, RepositoryCommitResponse,
         RepositoryCommitsResponse, RepositoryDiffFileResponse, RepositoryFileResponse,
         RepositoryFolderResponse, RepositoryPath, RepositoryPathsResponse, RepositoryResponse,
+        RepositorySettingsResponse,
     },
     model::CommitDiff,
 };
@@ -188,6 +189,17 @@ impl IntoApi for CommitDiffResponse {
             sha: self.sha,
             parent_sha: self.parent_sha,
             files: self.files.into_iter().map(|f| f.into_api()).collect(),
+        }
+    }
+}
+
+impl IntoApi for RepositorySettingsResponse {
+    type ApiType = api::RepositorySettingsResource;
+    fn into_api(self) -> Self::ApiType {
+        api::RepositorySettingsResource {
+            commit_filters: self
+                .commit_filters
+                .map(|filters| filters.into_iter().map(|f| f.into_api()).collect()),
         }
     }
 }

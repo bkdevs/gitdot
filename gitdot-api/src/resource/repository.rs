@@ -2,6 +2,8 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+use crate::resource::settings::CommitFilterResource;
+
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RepositoryResource {
     pub id: Uuid,
@@ -150,4 +152,10 @@ pub struct RepositoryCommitDiffResource {
     pub sha: String,
     pub parent_sha: String,
     pub files: Vec<RepositoryDiffFileResource>,
+}
+
+#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RepositorySettingsResource {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub commit_filters: Option<Vec<CommitFilterResource>>,
 }
