@@ -14,7 +14,7 @@ export function DiffStatBar({
   const minBars = hasAdded && hasRemoved ? 2 : 1;
   const barCount = Math.max(
     minBars,
-    Math.min(Math.ceil(total / linesPerBar), 10),
+    Math.min(Math.ceil(total / linesPerBar), 8),
   );
 
   let addedBars = Math.round((added / total) * barCount);

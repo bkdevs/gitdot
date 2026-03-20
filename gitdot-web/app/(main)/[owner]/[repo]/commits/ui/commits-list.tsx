@@ -24,7 +24,6 @@ export function CommitsList({
 function CommitRow({ commit }: { commit: RepositoryCommitResource }) {
   const { owner, repo } = useParams<{ owner: string; repo: string }>();
 
-
   return (
     <Link
       key={commit.sha}
@@ -36,15 +35,24 @@ function CommitRow({ commit }: { commit: RepositoryCommitResource }) {
     >
       <div className="flex flex-row w-full h-18 justify-between items-start p-2 gap-2">
         <div className="flex flex-col w-full h-full min-w-0">
-          <span className="text-xs text-muted-foreground">{formatDateTime(new Date(commit.date))}</span>
-          <div className="text-sm text-foreground truncate pb-1">{commit.message.split("\n")[0]}</div>
+          <span className="text-xs text-muted-foreground">
+            {formatDateTime(new Date(commit.date))}
+          </span>
+          <div className="text-sm text-foreground truncate pb-1">
+            {commit.message.split("\n")[0]}
+          </div>
           <div className="flex items-center text-muted-foreground text-xs gap-1">
-            <span className="truncate min-w-0 underline transition-colors hover:text-foreground cursor-pointer">{commit.author.name}</span>
+            <span className="truncate min-w-0 underline transition-colors hover:text-foreground cursor-pointer">
+              {commit.author.name}
+            </span>
             <span>{timeAgo(new Date(commit.date))}</span>
           </div>
         </div>
         <div className="flex flex-col shrink-0 items-end gap-1">
-          <CommitPathSummary diffs={commit.diffs} totalFiles={commit.diffs.length} />
+          <CommitPathSummary
+            diffs={commit.diffs}
+            totalFiles={commit.diffs.length}
+          />
         </div>
       </div>
     </Link>
