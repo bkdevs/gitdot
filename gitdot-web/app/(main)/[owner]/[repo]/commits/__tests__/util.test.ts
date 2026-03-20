@@ -1,10 +1,11 @@
-import { computePrimaryPaths, type FileDiff } from "../util";
+import type { RepositoryDiffStatResource } from "gitdot-api";
+import { computePrimaryPaths } from "../util";
 
-function d(path: string, added = 10, removed = 0): FileDiff {
+function d(path: string, added = 10, removed = 0): RepositoryDiffStatResource {
   return { path, lines_added: added, lines_removed: removed };
 }
 
-function paths(diffs: FileDiff[], n?: number) {
+function paths(diffs: RepositoryDiffStatResource[], n?: number) {
   return computePrimaryPaths(diffs, n).map((r) => r.path);
 }
 

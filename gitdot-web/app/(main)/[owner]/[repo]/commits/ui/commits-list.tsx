@@ -1,7 +1,9 @@
 "use client";
 
+import { useVirtualizer } from "@tanstack/react-virtual";
 import type { RepositoryCommitResource } from "gitdot-api";
 import { useParams } from "next/navigation";
+import { memo, useRef } from "react";
 import Link from "@/ui/link";
 import { formatDateTime, timeAgo } from "@/util";
 
@@ -12,16 +14,42 @@ export function CommitsList({
 }: {
   commits: RepositoryCommitResource[];
 }) {
+  const parentRef = useRef<HTMLDivElement>(null);
+  const virtualizer = useVirtualizer({
+    count: commits.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 73, // h-18 + border-b
+    overscan: 10,
+  });
+
   return (
-    <div className="flex flex-col flex-1 min-h-0 overflow-y-auto scrollbar-thin">
-      {commits.map((commit) => (
-        <CommitRow key={commit.sha} commit={commit} />
-      ))}
+    <div ref={parentRef} className="flex-1 overflow-y-auto scrollbar-thin">
+      <div style={{ height: virtualizer.getTotalSize(), position: "relative" }}>
+        {virtualizer.getVirtualItems().map((virtualItem) => (
+          <div
+            key={virtualItem.key}
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: `${virtualItem.size}px`,
+              transform: `translateY(${virtualItem.start}px)`,
+            }}
+          >
+            <CommitRow commit={commits[virtualItem.index]} />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
 
-function CommitRow({ commit }: { commit: RepositoryCommitResource }) {
+const CommitRow = memo(function CommitRow({
+  commit,
+}: {
+  commit: RepositoryCommitResource;
+}) {
   const { owner, repo } = useParams<{ owner: string; repo: string }>();
 
   return (
@@ -57,4 +85,4 @@ function CommitRow({ commit }: { commit: RepositoryCommitResource }) {
       </div>
     </Link>
   );
-}
+});

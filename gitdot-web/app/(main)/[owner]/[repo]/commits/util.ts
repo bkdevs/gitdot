@@ -1,6 +1,7 @@
 import type {
   CommitFilterResource,
   RepositoryCommitResource,
+  RepositoryDiffStatResource,
 } from "gitdot-api";
 import { addDays, dateOnly, subtractDays } from "@/util";
 
@@ -159,20 +160,16 @@ function truncateFromRoot(path: string, maxLen: number): string {
   return parts.join("/");
 }
 
-export type FileDiff = {
-  path: string;
-  lines_added: number;
-  lines_removed: number;
-};
-
 type PathGroup = {
   key: string;
   depth: number;
-  diffs: FileDiff[];
+  diffs: RepositoryDiffStatResource[];
 };
 
 /**
- * Summarise `diffs` into up to `n` labelled path groups.
+ * TODO: claude-coded, revisit logic in depth to make things better
+ *
+ * summarise `diffs` into up to `n` labelled path groups.
  *
  * Strategy: start with depth-1 grouping, then iteratively split the group
  * with the most files one level deeper until we have `n` distinct groups (or
@@ -180,12 +177,12 @@ type PathGroup = {
  * `parent/filename` when it fits; multi-file entries show the directory key.
  */
 export function computePrimaryPaths(
-  diffs: FileDiff[],
+  diffs: RepositoryDiffStatResource[],
   n = 3,
 ): Array<{ path: string; added: number; removed: number }> {
   if (diffs.length === 0) return [];
 
-  // Seed: group every file by its first directory segment.
+  // seed: group every file by its first directory segment.
   const seed = new Map<string, PathGroup>();
   for (const diff of diffs) {
     const key = diff.path.split("/").slice(0, -1).slice(0, 1).join("/") || "./";
@@ -194,7 +191,7 @@ export function computePrimaryPaths(
   }
   let groups = Array.from(seed.values());
 
-  // Iteratively split the largest group that still has sub-directories.
+  // iteratively split the largest group that still has sub-directories.
   const target = Math.min(n, diffs.length);
   while (groups.length < target) {
     const splittable = groups.filter((g) =>
@@ -218,7 +215,7 @@ export function computePrimaryPaths(
       .concat(Array.from(sub.values()));
   }
 
-  // Aggregate churn, sort by total churn, take top n.
+  // aggregate and sort by lines changed
   const sorted = groups
     .map((g) => ({
       key: g.key,
@@ -235,13 +232,13 @@ export function computePrimaryPaths(
       return { key: truncated, added, removed, files, singlePath };
     });
 
-  // For single-file groups compute a compact `parent/filename` form.
+  // prettify names, make single files go up to include parent folder if possible
   const candidates = sorted.map(
     ({ key, added, removed, files, singlePath }) => {
       let compact: string | undefined;
       if (files === 1 && singlePath) {
         const parts = singlePath.split("/");
-        const filename = parts.at(-1)!;
+        const filename = parts.at(-1) ?? "";
         const withParent =
           parts.length >= 2 ? `${parts.at(-2)}/${filename}` : filename;
         const c = withParent.length <= MAX_PATH_LEN ? withParent : filename;
@@ -251,7 +248,7 @@ export function computePrimaryPaths(
     },
   );
 
-  // Deduplicate compact forms — fall back to the dir key on collision.
+  // deduplicate compact forms — fall back to the dir key on collision.
   const counts = new Map<string, number>();
   for (const { compact } of candidates) {
     if (compact) counts.set(compact, (counts.get(compact) ?? 0) + 1);
