@@ -1,8 +1,8 @@
 use async_trait::async_trait;
-use sqlx::{Error, PgPool};
+use sqlx::{Error, PgPool, Row};
 use uuid::Uuid;
 
-use crate::model::{Repository, RepositoryOwnerType, RepositoryVisibility};
+use crate::model::{Repository, RepositoryOwnerType, RepositorySettings, RepositoryVisibility};
 
 #[async_trait]
 pub trait RepositoryRepository: Send + Sync + Clone + 'static {
@@ -23,7 +23,18 @@ pub trait RepositoryRepository: Send + Sync + Clone + 'static {
 
     async fn delete(&self, id: Uuid) -> Result<(), Error>;
 
-    async fn get_settings(&self, owner: &str, repo: &str) -> Result<Option<Repository>, Error>;
+    async fn get_settings(
+        &self,
+        owner: &str,
+        repo: &str,
+    ) -> Result<Option<RepositorySettings>, Error>;
+
+    async fn update_settings(
+        &self,
+        owner: &str,
+        repo: &str,
+        settings: serde_json::Value,
+    ) -> Result<Option<RepositorySettings>, Error>;
 }
 
 #[derive(Debug, Clone)]
@@ -122,19 +133,50 @@ impl RepositoryRepository for RepositoryRepositoryImpl {
         Ok(())
     }
 
-    async fn get_settings(&self, owner: &str, repo: &str) -> Result<Option<Repository>, Error> {
-        let repository = sqlx::query_as::<_, Repository>(
-            r#"
-            SELECT id, name, owner_id, owner_name, owner_type, visibility, created_at, settings
-            FROM repositories
-            WHERE owner_name = $1 AND name = $2
-            "#,
+    async fn get_settings(
+        &self,
+        owner: &str,
+        repo: &str,
+    ) -> Result<Option<RepositorySettings>, Error> {
+        let row =
+            sqlx::query("SELECT settings FROM repositories WHERE owner_name = $1 AND name = $2")
+                .bind(owner)
+                .bind(repo)
+                .fetch_optional(&self.pool)
+                .await?;
+
+        let Some(row) = row else { return Ok(None) };
+        let json: Option<serde_json::Value> = row.try_get("settings")?;
+        Ok(Some(
+            json.and_then(|v| serde_json::from_value(v).ok())
+                .unwrap_or(RepositorySettings {
+                    commit_filters: None,
+                }),
+        ))
+    }
+
+    async fn update_settings(
+        &self,
+        owner: &str,
+        repo: &str,
+        settings: serde_json::Value,
+    ) -> Result<Option<RepositorySettings>, Error> {
+        let row = sqlx::query(
+            "UPDATE repositories SET settings = COALESCE(settings, '{}'::jsonb) || $3::jsonb WHERE owner_name = $1 AND name = $2 RETURNING settings",
         )
         .bind(owner)
         .bind(repo)
+        .bind(settings)
         .fetch_optional(&self.pool)
         .await?;
 
-        Ok(repository)
+        let Some(row) = row else { return Ok(None) };
+        let json: Option<serde_json::Value> = row.try_get("settings")?;
+        Ok(Some(
+            json.and_then(|v| serde_json::from_value(v).ok())
+                .unwrap_or(RepositorySettings {
+                    commit_filters: None,
+                }),
+        ))
     }
 }

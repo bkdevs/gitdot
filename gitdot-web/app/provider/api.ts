@@ -5,6 +5,7 @@ import type {
   RepositoryBlobsResource,
   RepositoryCommitResource,
   RepositoryPathsResource,
+  RepositorySettingsResource,
 } from "gitdot-api";
 import {
   getRepositoryBlob,
@@ -12,6 +13,7 @@ import {
   getRepositoryCommit,
   getRepositoryCommits,
   getRepositoryPaths,
+  getRepositorySettings,
 } from "@/dal/repository";
 import { subtractDays } from "@/util/date";
 import { RepoProvider } from "./types";
@@ -42,5 +44,9 @@ export class ApiProvider extends RepoProvider {
     return await getRepositoryBlobs(this.owner, this.repo, {
       paths: paths.entries.map((e) => e.path),
     });
+  }
+
+  async getSettings(): Promise<RepositorySettingsResource | null> {
+    return await getRepositorySettings(this.owner, this.repo);
   }
 }

@@ -3,6 +3,7 @@ import type {
   RepositoryBlobsResource,
   RepositoryCommitResource,
   RepositoryPathsResource,
+  RepositorySettingsResource,
 } from "gitdot-api";
 import type { Root } from "hast";
 
@@ -58,4 +59,15 @@ export interface Database {
   getHasts(owner: string, repo: string): Promise<Map<string, Root> | null>;
 
   putHast(owner: string, repo: string, path: string, hast: Root): Promise<void>;
+
+  getSettings(
+    owner: string,
+    repo: string,
+  ): Promise<RepositorySettingsResource | null>;
+
+  putSettings(
+    owner: string,
+    repo: string,
+    settings: RepositorySettingsResource,
+  ): Promise<void>;
 }

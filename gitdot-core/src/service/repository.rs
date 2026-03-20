@@ -11,6 +11,7 @@ use crate::{
         GetRepositoryPathsRequest, GetRepositorySettingsRequest, RepositoryBlobResponse,
         RepositoryBlobsResponse, RepositoryCommitResponse, RepositoryCommitsResponse,
         RepositoryPathsResponse, RepositoryResponse, RepositorySettingsResponse,
+        UpdateRepositorySettingsRequest,
     },
     error::RepositoryError,
     model::{RepositoryOwnerType, RepositorySettings},
@@ -65,6 +66,11 @@ pub trait RepositoryService: Send + Sync + 'static {
     async fn get_repository_settings(
         &self,
         request: GetRepositorySettingsRequest,
+    ) -> Result<RepositorySettingsResponse, RepositoryError>;
+
+    async fn update_repository_settings(
+        &self,
+        request: UpdateRepositorySettingsRequest,
     ) -> Result<RepositorySettingsResponse, RepositoryError>;
 }
 
@@ -350,14 +356,32 @@ where
     ) -> Result<RepositorySettingsResponse, RepositoryError> {
         let owner = request.owner.as_ref();
         let repo = request.repo.as_ref();
-        let repository = self
+        let settings = self
             .repo_repo
             .get_settings(owner, repo)
             .await?
             .ok_or_else(|| RepositoryError::NotFound(format!("{}/{}", owner, repo)))?;
-        let settings = repository.settings.unwrap_or(RepositorySettings {
-            commit_filters: None,
-        });
+        Ok(RepositorySettingsResponse {
+            commit_filters: settings.commit_filters,
+        })
+    }
+
+    async fn update_repository_settings(
+        &self,
+        request: UpdateRepositorySettingsRequest,
+    ) -> Result<RepositorySettingsResponse, RepositoryError> {
+        let owner = request.owner.as_ref();
+        let repo = request.repo.as_ref();
+        let patch = RepositorySettings {
+            commit_filters: request.commit_filters,
+        };
+        let patch_json =
+            serde_json::to_value(&patch).expect("RepositorySettings serialization is infallible");
+        let settings = self
+            .repo_repo
+            .update_settings(owner, repo, patch_json)
+            .await?
+            .ok_or_else(|| RepositoryError::NotFound(format!("{}/{}", owner, repo)))?;
         Ok(RepositorySettingsResponse {
             commit_filters: settings.commit_filters,
         })

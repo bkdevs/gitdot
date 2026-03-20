@@ -368,9 +368,9 @@ mod tests {
         error::AuthorizationError,
         model::{
             Answer, Comment, CommentSide, Diff, DiffStatus, Organization, OrganizationMember,
-            OrganizationRole, Question, Repository, RepositoryOwnerType, RepositoryVisibility,
-            Review, ReviewComment, ReviewStatus, Reviewer, Revision, User, UserSettings, Verdict,
-            VoteResult, VoteTarget,
+            OrganizationRole, Question, Repository, RepositoryOwnerType, RepositorySettings,
+            RepositoryVisibility, Review, ReviewComment, ReviewStatus, Reviewer, Revision, User,
+            UserSettings, Verdict, VoteResult, VoteTarget,
         },
         repository::{
             OrganizationRepository, QuestionRepository, RepositoryRepository, ReviewRepository,
@@ -410,7 +410,8 @@ mod tests {
             async fn get_by_id(&self, id: Uuid) -> Result<Option<Repository>, sqlx::Error>;
             async fn list_by_owner(&self, owner_name: &str) -> Result<Vec<Repository>, sqlx::Error>;
             async fn delete(&self, id: Uuid) -> Result<(), sqlx::Error>;
-            async fn get_settings(&self, owner: &str, repo: &str) -> Result<Option<Repository>, sqlx::Error>;
+            async fn get_settings(&self, owner: &str, repo: &str) -> Result<Option<RepositorySettings>, sqlx::Error>;
+            async fn update_settings(&self, owner: &str, repo: &str, settings: serde_json::Value) -> Result<Option<RepositorySettings>, sqlx::Error>;
         }
     }
 

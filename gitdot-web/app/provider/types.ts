@@ -3,6 +3,7 @@ import type {
   RepositoryBlobsResource,
   RepositoryCommitResource,
   RepositoryPathsResource,
+  RepositorySettingsResource,
 } from "gitdot-api";
 
 type ResourcesDef = Record<
@@ -45,4 +46,5 @@ export abstract class RepoProvider {
   abstract getCommit(sha: string): Promise<RepositoryCommitResource | null>;
   abstract getCommits(): Promise<RepositoryCommitResource[] | null>;
   abstract getBlobs(): Promise<RepositoryBlobsResource | null>;
+  abstract getSettings(): Promise<RepositorySettingsResource | null>;
 }

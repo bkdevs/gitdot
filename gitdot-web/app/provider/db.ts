@@ -31,4 +31,8 @@ export class DbProvider extends RepoProvider {
     const blobs = await this.db.getBlobs(this.owner, this.repo);
     return blobs ?? null;
   }
+
+  async getSettings() {
+    return this.db.getSettings(this.owner, this.repo);
+  }
 }

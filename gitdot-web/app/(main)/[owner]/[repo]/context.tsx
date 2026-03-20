@@ -10,7 +10,9 @@ import { useRenderBlobs } from "./hooks/use-render-blobs";
 import { type RepoPromises, RepoResources } from "./resources";
 import { sortCommits } from "./util/commit";
 
-type RepoContext = RepoPromises & { hasts: Promise<Map<string, Root>> };
+type RepoContext = RepoPromises & {
+  hasts: Promise<Map<string, Root>>;
+};
 const RepoContext = createContext<RepoContext | null>(null);
 
 export function RepoClient({
@@ -45,6 +47,10 @@ export function RepoClient({
     () => firstNonNull(dbPromises.blobs, serverPromises.blobs),
     [dbPromises, serverPromises],
   );
+  const settingsPromise = useMemo(
+    () => firstNonNull(dbPromises.settings, serverPromises.settings),
+    [dbPromises, serverPromises],
+  );
   const shikiPromise = useRenderBlobs(owner, repo, blobsPromise);
   const hastsPromise = useMemo(
     () => firstNonNull(idb.getHasts(owner, repo), shikiPromise),
@@ -59,6 +65,7 @@ export function RepoClient({
     });
     serverPromises.commits.then((c) => c && idb.putCommits(owner, repo, c));
     serverPromises.blobs.then((b) => b && idb.putBlobs(owner, repo, b));
+    serverPromises.settings.then((s) => s && idb.putSettings(owner, repo, s));
   }, [owner, repo, idb, serverPromises]);
 
   return (
@@ -67,6 +74,7 @@ export function RepoClient({
         paths: pathsPromise,
         commits: commitsPromise,
         blobs: blobsPromise,
+        settings: settingsPromise,
         hasts: hastsPromise.then((m) => m ?? new Map()),
       }}
     >
