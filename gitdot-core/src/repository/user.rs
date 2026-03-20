@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use sqlx::{Error, PgPool};
 use uuid::Uuid;
 
-use crate::model::User;
+use crate::model::{User, UserSettings};
 
 #[async_trait]
 pub trait UserRepository: Send + Sync + Clone + 'static {
@@ -13,6 +13,8 @@ pub trait UserRepository: Send + Sync + Clone + 'static {
     async fn get_by_id(&self, id: Uuid) -> Result<Option<User>, Error>;
 
     async fn get_by_emails(&self, emails: &[String]) -> Result<Vec<User>, Error>;
+
+    async fn get_settings(&self, id: Uuid) -> Result<Option<UserSettings>, Error>;
 
     async fn is_name_taken(&self, name: &str) -> Result<bool, Error>;
 
@@ -80,6 +82,17 @@ impl UserRepository for UserRepositoryImpl {
         .await?;
 
         Ok(users)
+    }
+
+    async fn get_settings(&self, id: Uuid) -> Result<Option<UserSettings>, Error> {
+        let user = sqlx::query_as::<_, User>(
+            "SELECT id, email, name, created_at, settings FROM users WHERE id = $1",
+        )
+        .bind(id)
+        .fetch_optional(&self.pool)
+        .await?;
+
+        Ok(user.and_then(|u| u.settings))
     }
 
     async fn is_name_taken(&self, name: &str) -> Result<bool, Error> {

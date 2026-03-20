@@ -369,8 +369,8 @@ mod tests {
         model::{
             Answer, Comment, CommentSide, Diff, DiffStatus, Organization, OrganizationMember,
             OrganizationRole, Question, Repository, RepositoryOwnerType, RepositoryVisibility,
-            Review, ReviewComment, ReviewStatus, Reviewer, Revision, User, Verdict, VoteResult,
-            VoteTarget,
+            Review, ReviewComment, ReviewStatus, Reviewer, Revision, User, UserSettings, Verdict,
+            VoteResult, VoteTarget,
         },
         repository::{
             OrganizationRepository, QuestionRepository, RepositoryRepository, ReviewRepository,
@@ -448,6 +448,7 @@ mod tests {
             async fn update(&self, id: Uuid, name: &str) -> Result<User, sqlx::Error>;
             async fn get_by_id(&self, id: Uuid) -> Result<Option<User>, sqlx::Error>;
             async fn get_by_emails(&self, emails: &[String]) -> Result<Vec<User>, sqlx::Error>;
+            async fn get_settings(&self, id: Uuid) -> Result<Option<UserSettings>, sqlx::Error>;
             async fn is_name_taken(&self, name: &str) -> Result<bool, sqlx::Error>;
             async fn is_email_taken(&self, email: &str) -> Result<bool, sqlx::Error>;
         }

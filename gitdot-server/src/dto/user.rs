@@ -1,12 +1,9 @@
 use gitdot_api::resource::user as api;
-use gitdot_core::{
-    dto::UserResponse,
-    model::{UserRepoSettings, UserSettings},
-};
+use gitdot_core::dto::{UserRepoSettingsResponse, UserResponse, UserSettingsResponse};
 
 use super::IntoApi;
 
-impl IntoApi for UserRepoSettings {
+impl IntoApi for UserRepoSettingsResponse {
     type ApiType = api::UserRepoSettingsResource;
     fn into_api(self) -> Self::ApiType {
         api::UserRepoSettingsResource {
@@ -15,7 +12,7 @@ impl IntoApi for UserRepoSettings {
     }
 }
 
-impl IntoApi for UserSettings {
+impl IntoApi for UserSettingsResponse {
     type ApiType = api::UserSettingsResource;
     fn into_api(self) -> Self::ApiType {
         api::UserSettingsResource {
@@ -36,7 +33,6 @@ impl IntoApi for UserResponse {
             name: self.name,
             email: self.email,
             created_at: self.created_at,
-            settings: self.settings.into_api(),
         }
     }
 }

@@ -2,9 +2,10 @@ use async_trait::async_trait;
 
 use crate::{
     dto::{
-        GetCurrentUserRequest, GetUserRequest, HasUserRequest, ListUserOrganizationsRequest,
-        ListUserRepositoriesRequest, ListUserReviewsRequest, OrganizationResponse,
-        RepositoryResponse, ReviewResponse, UpdateCurrentUserRequest, UserResponse,
+        GetCurrentUserRequest, GetCurrentUserSettingsRequest, GetUserRequest, HasUserRequest,
+        ListUserOrganizationsRequest, ListUserRepositoriesRequest, ListUserReviewsRequest,
+        OrganizationResponse, RepositoryResponse, ReviewResponse, UpdateCurrentUserRequest,
+        UserResponse, UserSettingsResponse,
     },
     error::UserError,
     repository::{
@@ -45,6 +46,11 @@ pub trait UserService: Send + Sync + 'static {
         &self,
         request: ListUserReviewsRequest,
     ) -> Result<Vec<ReviewResponse>, UserError>;
+
+    async fn get_current_user_settings(
+        &self,
+        request: GetCurrentUserSettingsRequest,
+    ) -> Result<UserSettingsResponse, UserError>;
 }
 
 #[derive(Debug, Clone)]
@@ -196,5 +202,13 @@ where
             .await?;
 
         Ok(reviews.into_iter().map(ReviewResponse::from).collect())
+    }
+
+    async fn get_current_user_settings(
+        &self,
+        request: GetCurrentUserSettingsRequest,
+    ) -> Result<UserSettingsResponse, UserError> {
+        let settings = self.user_repo.get_settings(request.user_id).await?;
+        Ok(settings.unwrap_or_default().into())
     }
 }

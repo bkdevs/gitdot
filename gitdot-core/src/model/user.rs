@@ -14,7 +14,7 @@ pub struct User {
     pub email: String,
     pub created_at: DateTime<Utc>,
 
-    #[sqlx(json(nullable))]
+    #[sqlx(json(nullable), default)]
     pub settings: Option<UserSettings>,
 }
 
