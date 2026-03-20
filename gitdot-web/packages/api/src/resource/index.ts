@@ -6,5 +6,6 @@ export * from "./question";
 export * from "./repository";
 export * from "./review";
 export * from "./runner";
+export * from "./settings";
 export * from "./task";
 export * from "./user";
