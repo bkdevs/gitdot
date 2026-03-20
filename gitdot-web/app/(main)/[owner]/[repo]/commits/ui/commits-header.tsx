@@ -1,6 +1,7 @@
 "use client";
 
-import { ChevronDown } from "lucide-react";
+import type { CommitFilterResource } from "gitdot-api";
+import { ChevronDown, Plus } from "lucide-react";
 import { useState } from "react";
 import {
   DropdownMenu,
@@ -10,39 +11,35 @@ import {
 } from "@/ui/dropdown-menu";
 import { cn } from "@/util";
 import { formatDate } from "@/util/date";
-
-const MOCK_TAGS = ["Frontend", "Backend"];
+import { NewFilterDialog } from "./new-filter-dialog";
 
 export function CommitsHeader({
   startDate,
   endDate,
   commitCount,
+  filters,
+  activeFilter,
+  setActiveFilter,
 }: {
   startDate: string | null;
   endDate: string | null;
   commitCount: number;
+  filters: CommitFilterResource[];
+  activeFilter: CommitFilterResource;
+  setActiveFilter: (filter: CommitFilterResource) => void;
 }) {
-  const [activeTags, setActiveTags] = useState<Set<string>>(new Set());
-
-  function toggleTag(tag: string) {
-    setActiveTags((prev) => {
-      const next = new Set(prev);
-      if (next.has(tag)) next.delete(tag);
-      else next.add(tag);
-      return next;
-    });
-  }
-
   return (
     <div className="flex flex-row w-full h-9 items-center border-b">
-      {MOCK_TAGS.map((tag) => (
-        <TagButton
-          key={tag}
-          label={tag}
-          isActive={activeTags.has(tag)}
-          onClick={() => toggleTag(tag)}
+      {filters.map((filter) => (
+        <CommitFilter
+          key={filter.name}
+          filter={filter}
+          isActive={activeFilter.name === filter.name}
+          onClick={() => setActiveFilter(filter)}
         />
       ))}
+
+      <NewFilterButton />
       <div className="ml-auto h-full flex flex-row">
         <DateRange
           startDate={startDate}
@@ -54,12 +51,12 @@ export function CommitsHeader({
   );
 }
 
-function TagButton({
-  label,
+function CommitFilter({
+  filter,
   isActive,
   onClick,
 }: {
-  label: string;
+  filter: Pick<CommitFilterResource, "name">;
   isActive: boolean;
   onClick: () => void;
 }) {
@@ -72,8 +69,26 @@ function TagButton({
       )}
       onClick={onClick}
     >
-      {label}
+      {filter.name}
     </button>
+  );
+}
+
+function NewFilterButton() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <button
+        type="button"
+        className="flex flex-row items-center h-full px-2 text-xs text-muted-foreground cursor-pointer transition-colors hover:text-foreground"
+        onClick={() => setOpen(true)}
+      >
+        <Plus className="size-3 mr-1" />
+        New filter
+      </button>
+      <NewFilterDialog open={open} setOpen={setOpen} />
+    </>
   );
 }
 
