@@ -4,9 +4,9 @@ import { Suspense, use } from "react";
 import { useRepoContext } from "@/(main)/[owner]/[repo]/context";
 import type { DiffEntry } from "@/actions";
 import { Loading } from "@/ui/loading";
+import { CommitShortcuts } from "../shortcuts";
 import { CommitBody } from "./commit-body";
 import { CommitHeader } from "./commit-header";
-import { CommitShortcuts } from "../shortcuts";
 
 export function CommitClient({
   sha,

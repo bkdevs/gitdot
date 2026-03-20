@@ -55,7 +55,9 @@ function displayKey(key: string): React.ReactNode {
   const parts = key.replace(/\bEscape\b/g, "Esc").split(/(\bShift\b)/);
   return parts.map((part, i) =>
     part === "Shift" ? (
-      <span key={i} className="font-sans text-xs">⇧</span>
+      <span key={i} className="font-sans text-xs">
+        ⇧
+      </span>
     ) : (
       part
     ),
@@ -156,10 +158,7 @@ export function ShortcutsProvider({ children }: { children: React.ReactNode }) {
           </DialogTitle>
           <div className="grid grid-cols-2 gap-x-8 gap-y-4 font-mono p-4">
             {allShortcuts.map((s) => (
-              <div
-                key={s.name}
-                className="flex flex-col"
-              >
+              <div key={s.name} className="flex flex-col">
                 <div className="flex flex-row justify-between">
                   <span className="text-sm">{s.name}</span>
                   <div className="flex items-baseline gap-1 shrink-0">

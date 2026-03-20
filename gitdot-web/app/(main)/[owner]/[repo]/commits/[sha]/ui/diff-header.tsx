@@ -38,7 +38,9 @@ export function DiffHeader({
           {rightPath}
         </span>
       ) : (
-        <span data-diff-path className="mr-auto">{path}</span>
+        <span data-diff-path className="mr-auto">
+          {path}
+        </span>
       )}
 
       <div className="flex flex-row items-center">

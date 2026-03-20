@@ -1,7 +1,13 @@
 "use client";
 
 import { useParams, usePathname, useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+} from "react";
 import { type Shortcut, useShortcuts } from "@/(main)/context/shortcuts";
 import { NAV_SECTIONS } from "./ui/sidebar/repo-sidebar-nav";
 
@@ -43,10 +49,36 @@ export function RepoShortcuts() {
   }, []);
 
   const mouseMoved = useRef(false);
+  const prevPathname = useRef(pathname);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: pathname triggers reset intentionally
+  // biome-ignore lint/correctness/useExhaustiveDependencies: run on pathname intentionally
   useEffect(() => {
     mouseMoved.current = false;
+  }, [pathname]);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: run on pathname intentionally
+  useLayoutEffect(() => {
+    const prev = prevPathname.current;
+    prevPathname.current = pathname;
+
+    const isPop = prev.startsWith(pathname + "/");
+    const base = `/${owner}/${repo}`;
+    const isFilesRoot =
+      pathname === `${base}/files` &&
+      prev.startsWith(`${base}/`) &&
+      !prev.slice(base.length + 1).includes("/");
+
+    if (!isPop && !isFilesRoot) return;
+
+    const items = Array.from(
+      document.querySelectorAll<HTMLElement>("[data-page-item]"),
+    );
+    const el = items.find((el) => {
+      const anchor =
+        el instanceof HTMLAnchorElement ? el : el.querySelector("a");
+      return anchor?.pathname === prev;
+    });
+    if (el) el.focus();
   }, [pathname]);
 
   // register a global mouseover that focuses the hovered data-page-item

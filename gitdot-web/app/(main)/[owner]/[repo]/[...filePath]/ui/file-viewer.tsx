@@ -31,7 +31,10 @@ export async function FileViewer({
 
   return (
     <div className="flex w-full h-full min-h-0 overflow-hidden">
-      <div data-page-scroll className="flex-1 min-w-0 overflow-auto scrollbar-thin">
+      <div
+        data-page-scroll
+        className="flex-1 min-w-0 overflow-auto scrollbar-thin"
+      >
         <FileBody selectedLines={selectedLines} hast={hast} />
       </div>
       <FileCommits
