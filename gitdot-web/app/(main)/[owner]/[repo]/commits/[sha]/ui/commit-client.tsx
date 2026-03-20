@@ -21,7 +21,7 @@ export function CommitClient({
   if (!commit) return null;
 
   return (
-    <div data-commit-top className="flex flex-col w-full">
+    <div data-diff-top className="flex flex-col w-full">
       <CommitHeader commit={commit} stats={commit.diffs} />
       <Suspense fallback={<Loading />}>
         <CommitBody diffEntries={diffEntries} />

@@ -61,7 +61,7 @@ export function RepoShortcuts() {
     const prev = prevPathname.current;
     prevPathname.current = pathname;
 
-    const isPop = prev.startsWith(pathname + "/");
+    const isPop = prev.startsWith(`${pathname}/`);
     const base = `/${owner}/${repo}`;
     const isFilesRoot =
       pathname === `${base}/files` &&

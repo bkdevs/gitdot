@@ -24,6 +24,7 @@ export function DiffHeader({
   return (
     <button
       type="button"
+      data-diff-toggle
       id={path}
       className={cn(
         "flex flex-row w-full h-9 shrink-0 items-center px-2 border-b border-border text-sm font-mono sticky top-0 z-10 select-none",

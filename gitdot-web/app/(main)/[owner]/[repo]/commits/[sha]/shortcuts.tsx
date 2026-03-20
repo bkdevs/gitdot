@@ -44,6 +44,19 @@ export function CommitShortcuts() {
           navigateTo(prev, files);
         },
       },
+      {
+        name: "ToggleFile",
+        description: "Collapse/expand file",
+        keys: ["Enter"],
+        execute: () => {
+          if (indexRef.current === 0) return;
+          const files = getDiffFiles();
+          const file = files[indexRef.current - 1];
+
+          if (!file) return;
+          file.querySelector<HTMLElement>("[data-diff-toggle]")?.click();
+        },
+      },
     ],
     [],
   );
@@ -71,7 +84,7 @@ function flashHeader(file: HTMLElement) {
 
 function navigateTo(index: number, files: HTMLElement[]) {
   if (index === 0) {
-    document.querySelector<HTMLElement>("[data-commit-top]")?.scrollIntoView();
+    document.querySelector<HTMLElement>("[data-diff-top]")?.scrollIntoView();
   } else {
     const target = files[index - 1];
     if (!target) return;

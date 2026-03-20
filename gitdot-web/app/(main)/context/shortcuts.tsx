@@ -55,6 +55,7 @@ function displayKey(key: string): React.ReactNode {
   const parts = key.replace(/\bEscape\b/g, "Esc").split(/(\bShift\b)/);
   return parts.map((part, i) =>
     part === "Shift" ? (
+      // biome-ignore lint/suspicious/noArrayIndexKey: deterministic split, order never changes
       <span key={i} className="font-sans text-xs">
         ⇧
       </span>
