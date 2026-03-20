@@ -45,7 +45,7 @@ function eventKey(event: KeyboardEvent): string {
   if (IS_MAC ? event.metaKey : event.ctrlKey) parts.push("Mod");
   if (IS_MAC && event.ctrlKey) parts.push("Ctrl");
   if (event.altKey) parts.push("Alt");
-  
+
   if (event.shiftKey && event.key.length > 1) parts.push("Shift");
   parts.push(event.key);
   return parts.join("+");
@@ -106,11 +106,7 @@ export function ShortcutsProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
-      if (
-        event.defaultPrevented ||
-        isInputFocused() ||
-        isRadixModalOpen()
-      ) {
+      if (event.defaultPrevented || isInputFocused() || isRadixModalOpen()) {
         return;
       }
 

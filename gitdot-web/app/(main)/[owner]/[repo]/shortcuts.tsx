@@ -61,12 +61,26 @@ export function RepoShortcuts() {
       );
       el?.focus();
     };
+    const handleMouseOut = (e: MouseEvent) => {
+      if (!mouseMoved.current) return;
+      const from = (e.target as HTMLElement).closest<HTMLElement>(
+        "[data-page-item]",
+      );
+      const to = (e.relatedTarget as HTMLElement | null)?.closest<HTMLElement>(
+        "[data-page-item]",
+      );
+      if (from && !to) {
+        (document.activeElement as HTMLElement | null)?.blur();
+      }
+    };
 
     document.addEventListener("mousemove", handleMouseMove);
     document.addEventListener("mouseover", handleMouseOver);
+    document.addEventListener("mouseout", handleMouseOut);
     return () => {
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseover", handleMouseOver);
+      document.removeEventListener("mouseout", handleMouseOut);
     };
   }, []);
 
