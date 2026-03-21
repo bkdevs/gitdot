@@ -9,7 +9,7 @@ import {
   useRef,
 } from "react";
 import { type Shortcut, useShortcuts } from "@/(main)/context/shortcuts";
-import { NAV_SECTIONS } from "./ui/sidebar/repo-sidebar-nav";
+import { NAV_SECTIONS } from "./sidebar/repo-sidebar-nav";
 
 export function RepoShortcuts() {
   const router = useRouter();

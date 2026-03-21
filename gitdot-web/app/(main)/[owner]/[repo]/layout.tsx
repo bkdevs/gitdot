@@ -2,9 +2,9 @@ import { getUserMetadata } from "@/lib/supabase";
 import { ApiProvider } from "@/provider/api";
 import { RepoClient } from "./context";
 import { RepoResources } from "./resources";
-import { RepoShortcuts } from "./shortcuts";
 import { RepoDialogs } from "./ui/dialog/repo-dialogs";
 import { RepoScroll } from "./ui/repo-scroll";
+import { RepoShortcuts } from "./ui/repo-shortcuts";
 import { RepoSidebar } from "./ui/repo-sidebar";
 
 export default async function Layout({
