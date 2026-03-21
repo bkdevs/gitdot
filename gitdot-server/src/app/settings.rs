@@ -13,7 +13,6 @@ pub struct Settings {
     pub oauth_device_verification_uri: String,
     pub s2_server_url: String,
 
-    #[cfg(feature = "otel")]
     pub vercel_oidc_url: String,
 }
 
@@ -35,7 +34,6 @@ impl Settings {
                 .expect("OAUTH_DEVICE_VERIFICATION_URI must be set"),
             s2_server_url: env::var("S2_SERVER_URL").expect("S2_SERVER_URL must be set"),
 
-            #[cfg(feature = "otel")]
             vercel_oidc_url: env::var("VERCEL_OIDC_URL").expect("VERCEL_OIDC_URL must be set"),
         })
     }

@@ -11,7 +11,7 @@ export async function createSpan(request: CreateSpanRequest): Promise<void> {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
+      "X-Vercel-OIDC-Token": token,
     },
     body: JSON.stringify(request),
   });

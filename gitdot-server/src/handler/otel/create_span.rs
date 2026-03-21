@@ -14,7 +14,7 @@ use tower_http::request_id::RequestId;
 
 use crate::{
     app::{AppError, AppResponse, AppState},
-    extract::{Principal, VercelOidc},
+    extract::{Service, Vercel},
 };
 
 #[derive(Deserialize)]
@@ -26,7 +26,7 @@ pub struct CreateSpanRequest {
 
 #[axum::debug_handler]
 pub async fn create_span(
-    _auth: Principal<VercelOidc>,
+    _service: Service<Vercel>,
     State(_state): State<AppState>,
     Extension(request_id): Extension<RequestId>,
     Json(request): Json<CreateSpanRequest>,

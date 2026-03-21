@@ -1,9 +1,9 @@
 mod auth;
 mod client_cookies;
 mod content_type;
+mod service;
 
-#[cfg(feature = "otel")]
-pub use auth::VercelOidc;
 pub use auth::{Principal, RunnerToken, TaskJwt, User, UserJwt};
 pub use client_cookies::ClientCookies;
 pub use content_type::ContentType;
+pub use service::{Service, Vercel};

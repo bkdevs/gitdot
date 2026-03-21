@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use axum::extract::FromRef;
+use jsonwebtoken::jwk::JwkSet;
 use sqlx::PgPool;
 
 use gitdot_core::{
@@ -48,7 +49,6 @@ pub struct AppState {
     pub runner_service: Arc<dyn RunnerService>,
     pub task_service: Arc<dyn TaskService>,
 
-    #[cfg(feature = "otel")]
     pub vercel_jwks: Arc<JwkSet>,
 }
 
@@ -82,9 +82,7 @@ impl AppState {
         let gitdot_private_key = secret_client.get_gitdot_private_key().await?;
         let s2_client = S2ClientImpl::new(&settings.s2_server_url, gitdot_private_key.clone());
 
-        #[cfg(feature = "otel")]
         let vercel_jwks = {
-            use jsonwebtoken::jwk::JwkSet;
             let jwks_url = format!("{}/.well-known/jwks", settings.vercel_oidc_url);
             reqwest::get(&jwks_url).await?.json::<JwkSet>().await?
         };
@@ -172,7 +170,6 @@ impl AppState {
                 repo_repo.clone(),
             )),
 
-            #[cfg(feature = "otel")]
             vercel_jwks: Arc::new(vercel_jwks),
         })
     }

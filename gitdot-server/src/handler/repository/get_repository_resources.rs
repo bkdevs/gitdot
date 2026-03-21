@@ -14,18 +14,19 @@ use gitdot_core::dto::{
 use crate::{
     app::{AppError, AppResponse, AppState},
     dto::IntoApi,
-    extract::{Principal, User},
+    extract::{Principal, Service, UserJwt, Vercel},
 };
 
 #[axum::debug_handler]
 pub async fn get_repository_resources(
-    auth_user: Option<Principal<User>>,
+    _service: Service<Vercel>,
+    user_auth: Option<Principal<UserJwt>>,
     State(state): State<AppState>,
     Path((owner, repo)): Path<(String, String)>,
     Json(_params): Json<api::GetRepositoryResourcesRequest>,
 ) -> Result<AppResponse<api::GetRepositoryResourcesResponse>, AppError> {
     let auth_request = RepositoryAuthorizationRequest::new(
-        auth_user.map(|u| u.id),
+        user_auth.map(|u| u.id),
         &owner,
         &repo,
         RepositoryPermission::Read,
@@ -43,10 +44,9 @@ pub async fn get_repository_resources(
         .map_err(AppError::from)?;
 
     let blob_paths: Vec<String> = paths.entries.iter().map(|e| e.path.clone()).collect();
-
     let blobs_request =
         GetRepositoryBlobsRequest::new(&repo, &owner, "HEAD".to_string(), blob_paths)?;
-    let settings_request = GetRepositorySettingsRequest::new(&owner, &repo)?;
+
     let now = Utc::now();
     let commits_request = GetCommitsRequest::new(
         &owner,
@@ -55,6 +55,8 @@ pub async fn get_repository_resources(
         now - chrono::Duration::days(365),
         now,
     )?;
+
+    let settings_request = GetRepositorySettingsRequest::new(&owner, &repo)?;
 
     let (blobs, commits, settings) = tokio::try_join!(
         async {

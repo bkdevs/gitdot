@@ -201,53 +201,6 @@ impl Authenticator for TaskJwt {
     }
 }
 
-#[cfg(feature = "otel")]
-pub struct VercelOidc;
-
-#[cfg(feature = "otel")]
-#[async_trait]
-impl Authenticator for VercelOidc {
-    async fn authenticate(
-        parts: &Parts,
-        app_state: &AppState,
-    ) -> Result<Principal<Self>, AuthorizationError> {
-        use jsonwebtoken::decode_header;
-
-        let header = extract_auth_header(parts)?;
-        let jwt = header
-            .strip_prefix("Bearer ")
-            .ok_or(AuthorizationError::InvalidHeaderFormat)?;
-
-        let jwt_header =
-            decode_header(jwt).map_err(|e| AuthorizationError::InvalidToken(e.to_string()))?;
-        let kid = jwt_header
-            .kid
-            .ok_or(AuthorizationError::InvalidToken("missing kid".to_string()))?;
-
-        let jwk = app_state
-            .vercel_jwks
-            .find(&kid)
-            .ok_or(AuthorizationError::InvalidToken(format!(
-                "no matching key for kid: {kid}"
-            )))?;
-
-        let key = DecodingKey::from_jwk(jwk)
-            .map_err(|e| AuthorizationError::InvalidPublicKey(e.to_string()))?;
-
-        let issuer = &app_state.settings.vercel_oidc_url;
-        let audience = issuer.replace("oidc.vercel.com", "vercel.com");
-
-        let mut validation = Validation::new(Algorithm::RS256);
-        validation.set_audience(&[&audience]);
-        validation.set_issuer(&[issuer]);
-
-        decode::<JwtClaims>(jwt, &key, &validation)
-            .map_err(|e| AuthorizationError::InvalidToken(e.to_string()))?;
-
-        Ok(Principal::new(Uuid::nil()))
-    }
-}
-
 fn extract_token(header: &str) -> Result<String, AuthorizationError> {
     let token = header
         .strip_prefix("Basic ")
