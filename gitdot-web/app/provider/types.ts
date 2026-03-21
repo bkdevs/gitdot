@@ -12,9 +12,7 @@ type ResourcesDef = Record<
 >;
 type ResourcesResult<T extends ResourcesDef> = {
   [K in keyof T]: ReturnType<T[K]>;
-} & {
-  promises: Map<string, Promise<unknown>>;
-};
+}
 
 export abstract class RepoProvider {
   protected owner: string;
@@ -26,19 +24,13 @@ export abstract class RepoProvider {
   }
 
   fetch<T extends ResourcesDef>(def: T): ResourcesResult<T> {
-    const promises = new Map<string, Promise<unknown>>();
-    const context: Record<string, Promise<unknown>> = {};
+    const promises: Record<string, Promise<unknown>> = {};
 
     for (const [key, factory] of Object.entries(def)) {
-      const promise = factory(this);
-      promises.set(key, promise);
-      context[key] = promise;
+      promises[key] = factory(this);
     }
 
-    return {
-      ...context,
-      promises,
-    } as ResourcesResult<T>;
+    return promises as ResourcesResult<T>;
   }
 
   abstract getPaths(): Promise<RepositoryPathsResource | null>;

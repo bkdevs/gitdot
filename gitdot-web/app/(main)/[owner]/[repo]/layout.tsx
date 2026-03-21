@@ -1,7 +1,6 @@
 import { getUserMetadata } from "@/lib/supabase";
 import { ApiProvider } from "@/provider/api";
 import { RepoClient } from "./context";
-import { RepoResources } from "./resources";
 import { RepoDialogs } from "./ui/dialog/repo-dialogs";
 import { RepoScroll } from "./ui/repo-scroll";
 import { RepoShortcuts } from "./ui/repo-shortcuts";
@@ -17,7 +16,13 @@ export default async function Layout({
   const { owner, repo } = await params;
   const { username, orgs } = await getUserMetadata();
 
-  const serverPromises = new ApiProvider(owner, repo).fetch(RepoResources);
+  const serverPromises = new ApiProvider(owner, repo).fetch({
+    paths: (p) => p.getPaths(),
+    commits: (p) => p.getCommits(),
+    blobs: (p) => p.getBlobs(),
+    settings: (p) => p.getSettings(),
+  });
+
   const isAdmin = username === owner || orgs.includes(`${owner}:admin`);
 
   return (
