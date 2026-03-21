@@ -1,28 +1,35 @@
-"use client";
+import { Suspense } from "react";
+import {
+  fetchResources,
+  type ResourceDefinition,
+  type ResourcePromisesType,
+  type ResourceRequestsType,
+} from "@/provider/server";
+import { PageClient } from "./page.client";
 
-import { Suspense, use } from "react";
-import { useRepoContext } from "./context";
-import { MarkdownBody } from "./ui/markdown/markdown-body";
+const resources = {
+  readme: (p) => p.getBlob("README.md"),
+} satisfies ResourceDefinition;
 
-function ReadmeContent() {
-  const { blobs } = useRepoContext();
-  const resolved = use(blobs);
-  const readme = resolved?.blobs.find((b) => b.path === "README.md");
+export type ResourcePromises = ResourcePromisesType<typeof resources>;
+export type ResourceRequests = ResourceRequestsType<typeof resources>;
 
-  if (!readme || readme.type !== "file") {
-    return <div className="p-2 text-sm">README.md not found</div>;
-  }
-  return (
-    <div className="p-4 max-w-4xl">
-      <MarkdownBody content={readme.content} />
-    </div>
-  );
-}
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ owner: string; repo: string }>;
+}) {
+  const { owner, repo } = await params;
+  const { requests, promises } = fetchResources(owner, repo, resources);
 
-export default function Page() {
   return (
     <Suspense>
-      <ReadmeContent />
+      <PageClient
+        owner={owner}
+        repo={repo}
+        requests={requests}
+        promises={promises}
+      />
     </Suspense>
   );
 }

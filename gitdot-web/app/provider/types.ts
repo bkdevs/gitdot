@@ -11,18 +11,18 @@ export type ResourceDefinition = Record<
   (provider: RepoProvider) => Promise<unknown>
 >;
 
-export type ResourceRequest = { method: string; args: unknown[] };
-export type ResourceRequests<T extends ResourceDefinition> = {
-  [K in keyof T]: ResourceRequest;
+export type ResourceRequestType = { method: string; args: unknown[] };
+export type ResourceRequestsType<T extends ResourceDefinition> = {
+  [K in keyof T]: ResourceRequestType;
 };
 
-export type ResourcePromises<T extends ResourceDefinition> = {
+export type ResourcePromisesType<T extends ResourceDefinition> = {
   [K in keyof T]: Promise<Awaited<ReturnType<T[K]>>>;
 };
 
-export type ResourceResult<T extends ResourceDefinition> = {
-  promises: ResourcePromises<T>;
-  requests: ResourceRequests<T>;
+export type ResourceResultType<T extends ResourceDefinition> = {
+  promises: ResourcePromisesType<T>;
+  requests: ResourceRequestsType<T>;
 };
 
 export abstract class RepoProvider {
@@ -43,12 +43,12 @@ export abstract class RepoProvider {
 }
 
 export abstract class ServerProvider extends RepoProvider {
-  fetch<T extends ResourceDefinition>(def: T): ResourceResult<T> {
+  fetch<T extends ResourceDefinition>(def: T): ResourceResultType<T> {
     const promises: Record<string, Promise<unknown>> = {};
-    const requests: Record<string, ResourceRequest> = {};
+    const requests: Record<string, ResourceRequestType> = {};
 
     for (const [key, factory] of Object.entries(def)) {
-      let request: ResourceRequest | null = null;
+      let request: ResourceRequestType | null = null;
 
       const proxy = new Proxy(this, {
         get(target, prop: string) {
@@ -77,13 +77,13 @@ export abstract class ServerProvider extends RepoProvider {
       requests[key] = request;
     }
 
-    return { promises, requests } as ResourceResult<T>;
+    return { promises, requests } as ResourceResultType<T>;
   }
 }
 
 export abstract class ClientProvider extends RepoProvider {
   replay(
-    requests: Record<string, ResourceRequest>,
+    requests: Record<string, ResourceRequestType>,
   ): Record<string, Promise<unknown>> {
     const results: Record<string, Promise<unknown>> = {};
     for (const [key, { method, args }] of Object.entries(requests)) {

@@ -7,9 +7,9 @@ import { openIdb } from "@/db";
 import { resolveResources } from "@/provider/client";
 import { racePromises } from "@/util";
 import { useRenderBlobs } from "./hooks/use-render-blobs";
-import type { Promises, Requests } from "./layout";
+import type { ResourcePromises, ResourceRequests } from "./layout";
 
-type RepoContext = Promises & {
+type RepoContext = ResourcePromises & {
   hasts: Promise<Map<string, Root>>;
 };
 const RepoContext = createContext<RepoContext | null>(null);
@@ -23,8 +23,8 @@ export function RepoClient({
 }: {
   owner: string;
   repo: string;
-  serverRequests: Requests;
-  serverPromises: Promises;
+  serverRequests: ResourceRequests;
+  serverPromises: ResourcePromises;
   children: React.ReactNode;
 }) {
   const idb = useMemo(() => openIdb(), []);

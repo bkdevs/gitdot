@@ -5,8 +5,8 @@ import { DatabaseProvider } from "./database";
 import type {
   ClientProvider,
   ResourceDefinition,
-  ResourcePromises,
-  ResourceRequests,
+  ResourcePromisesType,
+  ResourceRequestsType,
 } from "./types";
 
 export * from "./types";
@@ -14,9 +14,9 @@ export * from "./types";
 export function resolveResources<T extends ResourceDefinition>(
   owner: string,
   repo: string,
-  requests: ResourceRequests<T>,
-  promises: ResourcePromises<T>,
-): ResourcePromises<T> {
+  requests: ResourceRequestsType<T>,
+  promises: ResourcePromisesType<T>,
+): ResourcePromisesType<T> {
   const db = new DatabaseProvider(owner, repo);
 
   for (const key of Object.keys(requests)) {
@@ -30,9 +30,9 @@ export function resolveResources<T extends ResourceDefinition>(
 
 function raceRequests<T extends ResourceDefinition>(
   providers: ClientProvider[],
-  requests: ResourceRequests<T>,
-  promises: ResourcePromises<T>,
-): ResourcePromises<T> {
+  requests: ResourceRequestsType<T>,
+  promises: ResourcePromisesType<T>,
+): ResourcePromisesType<T> {
   const result: Record<string, Promise<unknown>> = {};
 
   for (const key of Object.keys(requests)) {
@@ -40,5 +40,5 @@ function raceRequests<T extends ResourceDefinition>(
     result[key] = racePromises(promises[key as keyof T], ...replayed);
   }
 
-  return result as ResourcePromises<T>;
+  return result as ResourcePromisesType<T>;
 }

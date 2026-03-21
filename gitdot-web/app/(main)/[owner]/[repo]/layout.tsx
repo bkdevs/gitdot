@@ -2,8 +2,8 @@ import { getUserMetadata } from "@/lib/supabase";
 import {
   fetchResources,
   type ResourceDefinition,
-  type ResourcePromises,
-  type ResourceRequests,
+  type ResourcePromisesType,
+  type ResourceRequestsType,
 } from "@/provider/server";
 import { RepoClient } from "./context";
 import { RepoDialogs } from "./ui/dialog/repo-dialogs";
@@ -19,8 +19,8 @@ const resources = {
 } satisfies ResourceDefinition;
 
 // works as server types can be imported by client-components but not server consts
-export type Promises = ResourcePromises<typeof resources>;
-export type Requests = ResourceRequests<typeof resources>;
+export type ResourcePromises = ResourcePromisesType<typeof resources>;
+export type ResourceRequests = ResourceRequestsType<typeof resources>;
 
 export default async function Layout({
   children,
