@@ -3,6 +3,8 @@
 import type {
   RepositoryBlobsResource,
   RepositoryCommitResource,
+  RepositoryPathsResource,
+  RepositorySettingsResource,
 } from "gitdot-api";
 import { openIdb } from "@/db";
 import { ClientProvider } from "./client";
@@ -12,6 +14,10 @@ export class DatabaseProvider extends ClientProvider {
 
   async getPaths() {
     return this.db.getPaths(this.owner, this.repo);
+  }
+
+  async putPaths(paths: RepositoryPathsResource) {
+    return this.db.putPaths(this.owner, this.repo, paths);
   }
 
   async getBlob(path: string) {
@@ -24,7 +30,14 @@ export class DatabaseProvider extends ClientProvider {
 
   async getCommits(): Promise<RepositoryCommitResource[] | null> {
     const commits = await this.db.getCommits(this.owner, this.repo);
-    return commits.length > 0 ? commits : null;
+    if (commits.length === 0) return null;
+    return commits.sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+    );
+  }
+
+  async putCommits(commits: RepositoryCommitResource[]) {
+    return this.db.putCommits(this.owner, this.repo, commits);
   }
 
   async getBlobs(): Promise<RepositoryBlobsResource | null> {
@@ -32,7 +45,27 @@ export class DatabaseProvider extends ClientProvider {
     return blobs ?? null;
   }
 
+  async putBlobs(blobs: RepositoryBlobsResource) {
+    return this.db.putBlobs(this.owner, this.repo, blobs);
+  }
+
   async getSettings() {
     return this.db.getSettings(this.owner, this.repo);
+  }
+
+  async putSettings(settings: RepositorySettingsResource) {
+    return this.db.putSettings(this.owner, this.repo, settings);
+  }
+
+  private writers: Record<string, (value: unknown) => void> = {
+    getPaths: (v) => this.putPaths(v as RepositoryPathsResource),
+    getCommits: (v) => this.putCommits(v as RepositoryCommitResource[]),
+    getBlobs: (v) => this.putBlobs(v as RepositoryBlobsResource),
+    getSettings: (v) => this.putSettings(v as RepositorySettingsResource),
+  };
+
+  write(method: string, value: unknown) {
+    if (!value) return;
+    this.writers[method]?.(value);
   }
 }
