@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import {
   fetchResources,
   type ResourceDefinition,
@@ -23,13 +22,11 @@ export default async function Page({
   const { requests, promises } = fetchResources(owner, repo, resources);
 
   return (
-    <Suspense>
-      <PageClient
-        owner={owner}
-        repo={repo}
-        requests={requests}
-        promises={promises}
-      />
-    </Suspense>
+    <PageClient
+      owner={owner}
+      repo={repo}
+      requests={requests}
+      promises={promises}
+    />
   );
 }

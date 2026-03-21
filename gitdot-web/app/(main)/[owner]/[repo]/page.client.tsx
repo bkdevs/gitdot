@@ -1,6 +1,6 @@
 "use client";
 
-import { use } from "react";
+import { Suspense, use } from "react";
 import { resolveResources } from "@/provider/client";
 import type { ResourcePromises, ResourceRequests } from "./page";
 import { MarkdownBody } from "./ui/markdown/markdown-body";
@@ -17,7 +17,15 @@ export function PageClient({
   promises: ResourcePromises;
 }) {
   const resolvedPromises = resolveResources(owner, repo, requests, promises);
-  const readme = use(resolvedPromises.readme);
+  return (
+    <Suspense>
+      <PageContent promises={resolvedPromises} />
+    </Suspense>
+  );
+}
+
+function PageContent({ promises }: { promises: ResourcePromises }) {
+  const readme = use(promises.readme);
 
   if (!readme || readme.type !== "file") {
     return <div className="p-2 text-sm">README.md not found</div>;
