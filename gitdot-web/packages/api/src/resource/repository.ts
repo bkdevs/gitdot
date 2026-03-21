@@ -153,3 +153,13 @@ export const RepositorySettingsResource = z.object({
 export type RepositorySettingsResource = z.infer<
   typeof RepositorySettingsResource
 >;
+
+export const RepositoryResourcesResource = z.object({
+  paths: RepositoryPathsResource,
+  commits: RepositoryCommitsResource,
+  blobs: RepositoryBlobsResource,
+  settings: RepositorySettingsResource,
+});
+export type RepositoryResourcesResource = z.infer<
+  typeof RepositoryResourcesResource
+>;

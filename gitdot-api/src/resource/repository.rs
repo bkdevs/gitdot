@@ -159,3 +159,11 @@ pub struct RepositorySettingsResource {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub commit_filters: Option<Vec<CommitFilterResource>>,
 }
+
+#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RepositoryResourcesResource {
+    pub paths: RepositoryPathsResource,
+    pub commits: RepositoryCommitsResource,
+    pub blobs: RepositoryBlobsResource,
+    pub settings: RepositorySettingsResource,
+}

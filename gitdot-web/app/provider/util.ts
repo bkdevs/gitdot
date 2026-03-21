@@ -1,9 +1,13 @@
 "use client";
 
 import { racePromises } from "@/util";
-import { ClientProvider } from "./client";
+import type { ClientProvider } from "./client";
 import { DatabaseProvider } from "./database";
-import { ResourceDefinition, ResourcePromises, ResourceRequests } from "./types";
+import type {
+  ResourceDefinition,
+  ResourcePromises,
+  ResourceRequests,
+} from "./types";
 
 export function fetchResources<T extends ResourceDefinition>(
   owner: string,

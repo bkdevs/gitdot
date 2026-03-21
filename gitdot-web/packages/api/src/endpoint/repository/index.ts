@@ -7,5 +7,6 @@ export * from "./get-repository-commit-diff";
 export * from "./get-repository-commits";
 export * from "./get-repository-file-commits";
 export * from "./get-repository-paths";
+export * from "./get-repository-resources";
 export * from "./get-repository-settings";
 export * from "./update-repository-settings";
