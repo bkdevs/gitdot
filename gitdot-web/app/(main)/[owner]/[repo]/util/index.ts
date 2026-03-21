@@ -1,4 +1,3 @@
-export * from "./commit";
 export * from "./diff";
 export * from "./fuzzy";
 export * from "./hast";

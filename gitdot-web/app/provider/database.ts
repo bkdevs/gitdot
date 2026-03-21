@@ -57,6 +57,8 @@ export class DatabaseProvider extends ClientProvider {
     return this.db.putSettings(this.owner, this.repo, settings);
   }
 
+  // TODO: this is a tad hacky (relying on the fact that provider get / put methods) are serialized as such
+  // we can do better if we discrminate resource types directly with a "type" field.
   private writers: Record<string, (value: unknown) => void> = {
     getPaths: (v) => this.putPaths(v as RepositoryPathsResource),
     getCommits: (v) => this.putCommits(v as RepositoryCommitResource[]),
