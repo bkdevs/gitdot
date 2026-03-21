@@ -4,7 +4,7 @@ import type { Root } from "hast";
 import { createContext, useContext, useEffect, useMemo } from "react";
 import { setRepoCookie } from "@/cookie";
 import { openIdb } from "@/db";
-import { fetchResources } from "@/provider";
+import { resolveResources } from "@/provider/client";
 import { racePromises } from "@/util";
 import { useRenderBlobs } from "./hooks/use-render-blobs";
 import type { Promises, Requests } from "./layout";
@@ -29,7 +29,7 @@ export function RepoClient({
 }) {
   const idb = useMemo(() => openIdb(), []);
   const racedPromises = useMemo(
-    () => fetchResources(owner, repo, serverRequests, serverPromises),
+    () => resolveResources(owner, repo, serverRequests, serverPromises),
     [owner, repo, serverRequests, serverPromises],
   );
 

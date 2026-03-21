@@ -1,10 +1,10 @@
 import { getUserMetadata } from "@/lib/supabase";
-import type {
-  ResourceDefinition,
-  ResourcePromises,
-  ResourceRequests,
-} from "@/provider";
-import { ApiProvider } from "@/provider/api";
+import {
+  fetchResources,
+  type ResourceDefinition,
+  type ResourcePromises,
+  type ResourceRequests,
+} from "@/provider/server";
 import { RepoClient } from "./context";
 import { RepoDialogs } from "./ui/dialog/repo-dialogs";
 import { RepoScroll } from "./ui/repo-scroll";
@@ -31,8 +31,7 @@ export default async function Layout({
 }>) {
   const { owner, repo } = await params;
   const { username, orgs } = await getUserMetadata();
-
-  const { requests, promises } = new ApiProvider(owner, repo).fetch(resources);
+  const { requests, promises } = fetchResources(owner, repo, resources);
   const isAdmin = username === owner || orgs.includes(`${owner}:admin`);
 
   return (
