@@ -30,7 +30,7 @@ export class DatabaseProvider extends ClientProvider {
 
   async getCommits(): Promise<RepositoryCommitResource[] | null> {
     const commits = await this.db.getCommits(this.owner, this.repo);
-    if (commits.length === 0) return null;
+    if (commits === null || commits.length === 0) return null;
     return commits.sort(
       (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
     );
