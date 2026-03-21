@@ -16,7 +16,7 @@ export default async function Layout({
   const { owner, repo } = await params;
   const { username, orgs } = await getUserMetadata();
 
-  const serverPromises = new ApiProvider(owner, repo).fetch({
+  const { requests, promises } = new ApiProvider(owner, repo).fetch({
     paths: (p) => p.getPaths(),
     commits: (p) => p.getCommits(),
     blobs: (p) => p.getBlobs(),
@@ -26,7 +26,7 @@ export default async function Layout({
   const isAdmin = username === owner || orgs.includes(`${owner}:admin`);
 
   return (
-    <RepoClient owner={owner} repo={repo} serverPromises={serverPromises}>
+    <RepoClient owner={owner} repo={repo} serverRequests={requests} serverPromises={promises}>
       <RepoShortcuts />
       <div className="flex md:hidden h-full w-full p-2 text-sm">
         Mobile support to come.

@@ -4,13 +4,12 @@ import type { Root } from "hast";
 import { createContext, useContext, useEffect, useMemo } from "react";
 import { setRepoCookie } from "@/cookie";
 import { openIdb } from "@/db";
-import { DatabaseProvider } from "@/provider";
+import { DatabaseProvider, ResourcePromises, type ResourceRequests } from "@/provider";
 import { firstNonNull } from "@/util";
 import { useRenderBlobs } from "./hooks/use-render-blobs";
-import { type RepoPromises, RepoResources } from "./resources";
 import { sortCommits } from "./util/commit";
 
-type RepoContext = RepoPromises & {
+type RepoContext = ResourcePromises & {
   hasts: Promise<Map<string, Root>>;
 };
 const RepoContext = createContext<RepoContext | null>(null);
@@ -18,18 +17,20 @@ const RepoContext = createContext<RepoContext | null>(null);
 export function RepoClient({
   owner,
   repo,
+  serverRequests,
   serverPromises,
   children,
 }: {
   owner: string;
   repo: string;
-  serverPromises: RepoPromises;
+  serverRequests: ResourceRequests;
+  serverPromises: ResourcePromises;
   children: React.ReactNode;
 }) {
   const idb = useMemo(() => openIdb(), []);
   const dbPromises = useMemo(
-    () => new DatabaseProvider(owner, repo).fetch(RepoResources),
-    [owner, repo],
+    () => new DatabaseProvider(owner, repo).replay(serverRequests),
+    [owner, repo, serverRequests],
   );
 
   const pathsPromise = useMemo(

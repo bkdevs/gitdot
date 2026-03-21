@@ -7,7 +7,7 @@ import type {
   RepositoryPathsResource,
   RepositorySettingsResource,
 } from "gitdot-api";
-import { RepoProvider } from "./types";
+import { ClientProvider } from "./client";
 
 type MemoryStore = {
   paths: RepositoryPathsResource | undefined;
@@ -18,7 +18,7 @@ type MemoryStore = {
   commit: Map<string, RepositoryCommitResource>;
 };
 
-export class MemoryProvider extends RepoProvider {
+export class MemoryProvider extends ClientProvider {
   private store: MemoryStore = {
     paths: undefined,
     blobs: undefined,

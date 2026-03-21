@@ -6,13 +6,24 @@ import type {
   RepositorySettingsResource,
 } from "gitdot-api";
 
-type ResourcesDef = Record<
+export type ResourceDefinition = Record<
   string,
   (provider: RepoProvider) => Promise<unknown>
 >;
-type ResourcesResult<T extends ResourcesDef> = {
-  [K in keyof T]: ReturnType<T[K]>;
-}
+
+export type ResourceRequest = { method: string; args: unknown[] };
+export type ResourceRequests<T extends ResourceDefinition> = {
+  [K in keyof T]: ResourceRequest;
+};
+
+export type ResourcePromises<T extends ResourceDefinition> = {
+  [K in keyof T]: Promise<Awaited<ReturnType<T[K]>>>;
+};
+
+export type ResourceResult<T extends ResourceDefinition> = {
+  promises: ResourcePromises<T>;
+  requests: ResourceRequests<T>;
+};
 
 export abstract class RepoProvider {
   protected owner: string;
@@ -21,16 +32,6 @@ export abstract class RepoProvider {
   constructor(owner: string, repo: string) {
     this.owner = owner;
     this.repo = repo;
-  }
-
-  fetch<T extends ResourcesDef>(def: T): ResourcesResult<T> {
-    const promises: Record<string, Promise<unknown>> = {};
-
-    for (const [key, factory] of Object.entries(def)) {
-      promises[key] = factory(this);
-    }
-
-    return promises as ResourcesResult<T>;
   }
 
   abstract getPaths(): Promise<RepositoryPathsResource | null>;

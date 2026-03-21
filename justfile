@@ -188,7 +188,7 @@ lint-s2-sdk: _ensure-nightly
 
 # Lint and format web
 lint-web:
-    cd gitdot-web && pnpm biome check . --write
+    cd gitdot-web && pnpm biome check . --write --unsafe
 
 # Type check all Rust crates
 check:

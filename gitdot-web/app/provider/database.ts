@@ -5,9 +5,9 @@ import type {
   RepositoryCommitResource,
 } from "gitdot-api";
 import { openIdb } from "@/db";
-import { RepoProvider } from "./types";
+import { ClientProvider } from "./client";
 
-export class DatabaseProvider extends RepoProvider {
+export class DatabaseProvider extends ClientProvider {
   private db = openIdb();
 
   async getPaths() {
