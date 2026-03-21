@@ -2,14 +2,16 @@ export function delay<T>(ms: number, value: T): Promise<T> {
   return new Promise((resolve) => setTimeout(() => resolve(value), ms));
 }
 
-export function firstNonNull<T>(
-  ...promises: Promise<T | null | undefined>[]
+export function racePromises<T>(
+  first: Promise<T>,
+  ...rest: Promise<unknown>[]
 ): Promise<T | null> {
   return new Promise((resolve) => {
-    let remaining = promises.length;
+    let remaining = 1 + rest.length;
     let resolved = false;
 
-    for (const p of promises) {
+    const all = [first, ...rest] as Promise<T | null | undefined>[];
+    for (const p of all) {
       Promise.resolve(p)
         .then((value) => {
           if (resolved) return;

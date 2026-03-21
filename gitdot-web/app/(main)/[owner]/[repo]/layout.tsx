@@ -1,10 +1,26 @@
 import { getUserMetadata } from "@/lib/supabase";
+import type {
+  ResourceDefinition,
+  ResourcePromises,
+  ResourceRequests,
+} from "@/provider";
 import { ApiProvider } from "@/provider/api";
 import { RepoClient } from "./context";
 import { RepoDialogs } from "./ui/dialog/repo-dialogs";
 import { RepoScroll } from "./ui/repo-scroll";
 import { RepoShortcuts } from "./ui/repo-shortcuts";
 import { RepoSidebar } from "./ui/repo-sidebar";
+
+const resources = {
+  paths: (p) => p.getPaths(),
+  commits: (p) => p.getCommits(),
+  blobs: (p) => p.getBlobs(),
+  settings: (p) => p.getSettings(),
+} satisfies ResourceDefinition;
+
+// works as server types can be imported by client-components but not server consts
+export type Promises = ResourcePromises<typeof resources>;
+export type Requests = ResourceRequests<typeof resources>;
 
 export default async function Layout({
   children,
@@ -16,17 +32,16 @@ export default async function Layout({
   const { owner, repo } = await params;
   const { username, orgs } = await getUserMetadata();
 
-  const { requests, promises } = new ApiProvider(owner, repo).fetch({
-    paths: (p) => p.getPaths(),
-    commits: (p) => p.getCommits(),
-    blobs: (p) => p.getBlobs(),
-    settings: (p) => p.getSettings(),
-  });
-
+  const { requests, promises } = new ApiProvider(owner, repo).fetch(resources);
   const isAdmin = username === owner || orgs.includes(`${owner}:admin`);
 
   return (
-    <RepoClient owner={owner} repo={repo} serverRequests={requests} serverPromises={promises}>
+    <RepoClient
+      owner={owner}
+      repo={repo}
+      serverRequests={requests}
+      serverPromises={promises}
+    >
       <RepoShortcuts />
       <div className="flex md:hidden h-full w-full p-2 text-sm">
         Mobile support to come.

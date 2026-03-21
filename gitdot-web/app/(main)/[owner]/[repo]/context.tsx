@@ -4,12 +4,13 @@ import type { Root } from "hast";
 import { createContext, useContext, useEffect, useMemo } from "react";
 import { setRepoCookie } from "@/cookie";
 import { openIdb } from "@/db";
-import { DatabaseProvider, ResourcePromises, type ResourceRequests } from "@/provider";
-import { firstNonNull } from "@/util";
+import { DatabaseProvider } from "@/provider";
+import { racePromises } from "@/util";
 import { useRenderBlobs } from "./hooks/use-render-blobs";
+import type { Promises, Requests } from "./layout";
 import { sortCommits } from "./util/commit";
 
-type RepoContext = ResourcePromises & {
+type RepoContext = Promises & {
   hasts: Promise<Map<string, Root>>;
 };
 const RepoContext = createContext<RepoContext | null>(null);
@@ -23,8 +24,8 @@ export function RepoClient({
 }: {
   owner: string;
   repo: string;
-  serverRequests: ResourceRequests;
-  serverPromises: ResourcePromises;
+  serverRequests: Requests;
+  serverPromises: Promises;
   children: React.ReactNode;
 }) {
   const idb = useMemo(() => openIdb(), []);
@@ -34,27 +35,27 @@ export function RepoClient({
   );
 
   const pathsPromise = useMemo(
-    () => firstNonNull(dbPromises.paths, serverPromises.paths),
+    () => racePromises(serverPromises.paths, dbPromises.paths),
     [dbPromises, serverPromises],
   );
   const commitsPromise = useMemo(
     () =>
-      firstNonNull(dbPromises.commits, serverPromises.commits).then(
+      racePromises(serverPromises.commits, dbPromises.commits).then(
         sortCommits,
       ),
     [dbPromises, serverPromises],
   );
   const blobsPromise = useMemo(
-    () => firstNonNull(dbPromises.blobs, serverPromises.blobs),
+    () => racePromises(serverPromises.blobs, dbPromises.blobs),
     [dbPromises, serverPromises],
   );
   const settingsPromise = useMemo(
-    () => firstNonNull(dbPromises.settings, serverPromises.settings),
+    () => racePromises(serverPromises.settings, dbPromises.settings),
     [dbPromises, serverPromises],
   );
   const shikiPromise = useRenderBlobs(owner, repo, blobsPromise);
   const hastsPromise = useMemo(
-    () => firstNonNull(idb.getHasts(owner, repo), shikiPromise),
+    () => racePromises(idb.getHasts(owner, repo), shikiPromise),
     [idb, owner, repo, shikiPromise],
   );
 
