@@ -8,7 +8,7 @@ use chrono::Utc;
 use gitdot_api::endpoint::repository::get_repository_resources as api;
 use gitdot_core::dto::{
     GetCommitsRequest, GetRepositoryBlobsRequest, GetRepositoryPathsRequest,
-    GetRepositorySettingsRequest, RepositoryAuthorizationRequest, RepositoryPermission,
+    RepositoryAuthorizationRequest, RepositoryPermission,
 };
 
 use crate::{
@@ -23,7 +23,7 @@ pub async fn get_repository_resources(
     auth_user: Option<Principal<User>>,
     State(state): State<AppState>,
     Path((owner, repo)): Path<(String, String)>,
-    Json(_params): Json<api::GetRepositoryResourcesRequest>,
+    Json(params): Json<api::GetRepositoryResourcesRequest>,
 ) -> Result<AppResponse<api::GetRepositoryResourcesResponse>, AppError> {
     let auth_request = RepositoryAuthorizationRequest::new(
         auth_user.map(|u| u.id),
@@ -35,6 +35,26 @@ pub async fn get_repository_resources(
         .authorization_service
         .verify_authorized_for_repository(auth_request)
         .await?;
+
+    let head_sha = state
+        .repo_service
+        .resolve_ref_sha(&owner, &repo, "HEAD")
+        .await
+        .map_err(AppError::from)?;
+
+    if params.last_commit.as_deref() == Some(head_sha.as_str()) {
+        return Ok(AppResponse::new(
+            StatusCode::OK,
+            api::GetRepositoryResourcesResponse {
+                last_commit: head_sha,
+                last_updated: params.last_updated,
+                paths: None,
+                commits: None,
+                blobs: None,
+            },
+        ));
+    }
+
     let paths_request = GetRepositoryPathsRequest::new(&repo, &owner, "HEAD".to_string())?;
     let paths = state
         .repo_service
@@ -51,13 +71,13 @@ pub async fn get_repository_resources(
         &owner,
         &repo,
         "HEAD".to_string(),
-        now - chrono::Duration::days(365),
+        params
+            .last_updated
+            .unwrap_or_else(|| now - chrono::Duration::days(365)),
         now,
     )?;
 
-    let settings_request = GetRepositorySettingsRequest::new(&owner, &repo)?;
-
-    let (blobs, commits, settings) = tokio::try_join!(
+    let (blobs, commits) = tokio::try_join!(
         async {
             state
                 .repo_service
@@ -72,25 +92,14 @@ pub async fn get_repository_resources(
                 .await
                 .map_err(AppError::from)
         },
-        async {
-            state
-                .repo_service
-                .get_repository_settings(settings_request)
-                .await
-                .map_err(AppError::from)
-        },
     )?;
 
-    let last_commit = paths.commit_sha.clone();
-    let last_updated = commits.commits.first().map(|c| c.created_at);
-
     let resource = api::GetRepositoryResourcesResponse {
-        paths: paths.into_api(),
-        commits: commits.into_api(),
-        blobs: blobs.into_api(),
-        settings: settings.into_api(),
-        last_commit,
-        last_updated,
+        last_commit: head_sha,
+        last_updated: Some(now),
+        paths: Some(paths.into_api()),
+        commits: Some(commits.into_api()),
+        blobs: Some(blobs.into_api()),
     };
     Ok(AppResponse::new(StatusCode::OK, resource))
 }

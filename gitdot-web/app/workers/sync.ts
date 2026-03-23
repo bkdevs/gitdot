@@ -75,21 +75,32 @@ async function process({ owner, repo }: MessageBody, port: MessagePort) {
   console.log(result);
 
   t = performance.now();
-  await Promise.all([
-    db.putPaths(owner, repo, result.paths),
-    db.putCommits(owner, repo, result.commits.commits),
-    db.putBlobs(owner, repo, result.blobs),
-    db.putSettings(owner, repo, result.settings),
+  const writes: Promise<void>[] = [
     db.putMetadata(owner, repo, {
       last_commit: result.last_commit,
       last_updated: result.last_updated ?? new Date().toISOString(),
     }),
-  ]);
+  ];
+  if (result.paths) writes.push(db.putPaths(owner, repo, result.paths));
+  if (result.blobs) writes.push(db.putBlobs(owner, repo, result.blobs));
+  if (result.commits) {
+    for (const c of result.commits.commits)
+      writes.push(db.putCommit(owner, repo, c));
+  }
+  await Promise.all(writes);
   console.log(`[sync-worker] idb write took ${performance.now() - t}ms`);
   port.postMessage({
     resourcesReady: true,
     hastsReady: false,
   } satisfies MessageResponse);
+
+  if (!result.blobs) {
+    port.postMessage({
+      resourcesReady: true,
+      hastsReady: true,
+    } satisfies MessageResponse);
+    return;
+  }
 
   t = performance.now();
   const fileBlobs = result.blobs.blobs.filter((b) => b.type === "file");

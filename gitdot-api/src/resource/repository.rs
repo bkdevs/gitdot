@@ -164,8 +164,10 @@ pub struct RepositorySettingsResource {
 pub struct RepositoryResourcesResource {
     pub last_commit: String,
     pub last_updated: Option<DateTime<Utc>>,
-    pub paths: RepositoryPathsResource,
-    pub commits: RepositoryCommitsResource,
-    pub blobs: RepositoryBlobsResource,
-    pub settings: RepositorySettingsResource,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub paths: Option<RepositoryPathsResource>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub commits: Option<RepositoryCommitsResource>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub blobs: Option<RepositoryBlobsResource>,
 }
