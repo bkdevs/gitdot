@@ -9,7 +9,7 @@ import { jsx, jsxs } from "react/jsx-runtime";
 import { openIdb } from "@/db";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
 import Link from "@/ui/link";
-import { useRepoContext } from "../../context";
+import { useRepoResources } from "../../resources";
 import { fuzzyMatch } from "../../util";
 
 export function RepoFileDialog({
@@ -19,7 +19,7 @@ export function RepoFileDialog({
   owner: string;
   repo: string;
 }) {
-  const { resourcesReady, hastsReady } = useRepoContext();
+  const { resourcesReady, hastsReady } = useRepoResources();
   const idb = useMemo(() => openIdb(), []);
   const [paths, setPaths] = useState<RepositoryPathsResource | null>(null);
   const [hasts, setHasts] = useState<Map<string, Root> | null>(null);

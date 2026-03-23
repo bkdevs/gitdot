@@ -41,6 +41,16 @@ self.onconnect = (event: MessageEvent) => {
   port.start();
 };
 
+// TODO: this is quite expensive, from one run
+// [sync-worker] fetching resources for pybbae/gitdot-laptop
+// sync.ts:60 [sync-worker] fetch took 1696.4000000953674ms
+// sync.ts:65 [sync-worker] json parse took 36.09999990463257ms
+// sync.ts:69 [sync-worker] zod parse took 8.099999904632568ms
+// sync.ts:79 [sync-worker] idb write took 220.19999980926514ms
+// sync.ts:97 [sync-worker] highlight + hast write took 6603.199999809265ms (1075 files)
+//
+// i'm unsure why highlight is so slow, but we should likely do all this on on a separate spawned child worker
+// a bit iffy with concurrency potentially for multiple repos
 async function process(
   { owner, repo, serverUrl }: MessageBody,
   port: MessagePort,

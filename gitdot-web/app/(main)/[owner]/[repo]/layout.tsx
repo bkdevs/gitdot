@@ -5,12 +5,11 @@ import type {
   RepositorySettingsResource,
 } from "gitdot-api";
 import { GITDOT_SERVER_URL } from "@/dal/util";
-import {
-  fetchResources,
-  type ResourcePromisesType,
-  type ResourceRequestsType,
+import type {
+  ResourcePromisesType,
+  ResourceRequestsType,
 } from "@/provider/server";
-import { RepoClient } from "./context";
+import { RepoResources } from "./resources";
 import { RepoDialogs } from "./ui/dialog/repo-dialogs";
 import { RepoShortcuts } from "./ui/shortcuts";
 
@@ -31,20 +30,12 @@ export default async function Layout({
   params: Promise<{ owner: string; repo: string }>;
 }>) {
   const { owner, repo } = await params;
-  const { requests, promises } = fetchResources(owner, repo, {
-    paths: (p) => p.getPaths(),
-    commits: (p) => p.getCommits(),
-    blobs: (p) => p.getBlobs(),
-    settings: (p) => p.getSettings(),
-  });
 
   return (
-    <RepoClient
+    <RepoResources
       owner={owner}
       repo={repo}
       serverUrl={GITDOT_SERVER_URL}
-      serverRequests={requests}
-      serverPromises={promises}
     >
       <RepoShortcuts />
       <div className="flex md:hidden h-full w-full p-2 text-sm">
@@ -54,6 +45,6 @@ export default async function Layout({
       <div className="hidden md:flex h-full">{children}</div>
 
       <RepoDialogs owner={owner} repo={repo} />
-    </RepoClient>
+    </RepoResources>
   );
 }
