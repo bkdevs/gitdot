@@ -1,7 +1,7 @@
 "use client";
 
-import { createSyncWorker } from "@/workers";
 import { createContext, useContext, useEffect, useState } from "react";
+import { createSyncWorker } from "@/workers";
 
 interface WorkerContext {
   sync: SharedWorker | null;

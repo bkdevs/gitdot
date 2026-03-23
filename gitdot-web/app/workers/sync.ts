@@ -50,13 +50,18 @@ self.onconnect = (event: MessageEvent) => {
 //
 // i'm unsure why highlight is so slow, but we should likely do all this on on a separate spawned child worker
 // a bit iffy with concurrency potentially for multiple repos
-async function process(
-  { owner, repo }: MessageBody,
-  port: MessagePort,
-) {
+async function process({ owner, repo }: MessageBody, port: MessagePort) {
+  const db = openIdb();
+  const metadata = await db.getMetadata(owner, repo);
+
   console.log(`[sync-worker] fetching resources for ${owner}/${repo}`);
+  const url = new URL(`/${owner}/${repo}/resources`, self.location.origin);
+  if (metadata) {
+    url.searchParams.set("last_commit", metadata.last_commit);
+    url.searchParams.set("last_updated", metadata.last_updated);
+  }
   let t = performance.now();
-  const response = await fetch(`/${owner}/${repo}/resources`);
+  const response = await fetch(url.toString());
   console.log(`[sync-worker] fetch took ${performance.now() - t}ms`);
 
   if (!response.ok) return;
@@ -69,13 +74,16 @@ async function process(
   console.log(`[sync-worker] zod parse took ${performance.now() - t}ms`);
   console.log(result);
 
-  const db = openIdb();
   t = performance.now();
   await Promise.all([
     db.putPaths(owner, repo, result.paths),
     db.putCommits(owner, repo, result.commits.commits),
     db.putBlobs(owner, repo, result.blobs),
     db.putSettings(owner, repo, result.settings),
+    db.putMetadata(owner, repo, {
+      last_commit: result.last_commit,
+      last_updated: result.last_updated ?? new Date().toISOString(),
+    }),
   ]);
   console.log(`[sync-worker] idb write took ${performance.now() - t}ms`);
   port.postMessage({

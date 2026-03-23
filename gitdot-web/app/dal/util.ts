@@ -1,7 +1,7 @@
 import "server-only";
 
-import type { ZodType } from "zod";
 import { getVercelOidcToken } from "@vercel/oidc";
+import type { ZodType } from "zod";
 import { getSession } from "@/lib/supabase";
 
 export const GITDOT_SERVER_URL =

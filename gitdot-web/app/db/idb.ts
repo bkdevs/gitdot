@@ -2,7 +2,7 @@
 
 import type { Root } from "hast";
 import { type IDBPDatabase, openDB } from "idb";
-import type { Database } from "./types";
+import type { Database, RepositoryMetadata } from "./types";
 
 const commitKey = (owner: string, repo: string, sha: string) =>
   `${owner}/${repo}/${sha}`;
@@ -15,7 +15,7 @@ const blobKey = (owner: string, repo: string, path: string) =>
 let dbPromise: Promise<IDBPDatabase> | null = null;
 function getDb(): Promise<IDBPDatabase> {
   if (!dbPromise) {
-    dbPromise = openDB("gitdot", 4, {
+    dbPromise = openDB("gitdot", 5, {
       upgrade(db) {
         if (!db.objectStoreNames.contains("commits"))
           db.createObjectStore("commits");
@@ -27,6 +27,8 @@ function getDb(): Promise<IDBPDatabase> {
           db.createObjectStore("hasts");
         if (!db.objectStoreNames.contains("settings"))
           db.createObjectStore("settings");
+        if (!db.objectStoreNames.contains("metadata"))
+          db.createObjectStore("metadata");
       },
     });
   }
@@ -168,6 +170,16 @@ export function openIdb(): Database {
     async putSettings(owner, repo, settings) {
       const db = await getDb();
       await db.put("settings", settings, repoKey(owner, repo));
+    },
+
+    async getMetadata(owner, repo) {
+      const db = await getDb();
+      return (await db.get("metadata", repoKey(owner, repo))) ?? null;
+    },
+
+    async putMetadata(owner, repo, metadata: RepositoryMetadata) {
+      const db = await getDb();
+      await db.put("metadata", metadata, repoKey(owner, repo));
     },
   };
 }

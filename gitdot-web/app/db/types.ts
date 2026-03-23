@@ -7,6 +7,11 @@ import type {
 } from "gitdot-api";
 import type { Root } from "hast";
 
+export type RepositoryMetadata = {
+  last_commit: string;
+  last_updated: string;
+};
+
 export interface Database {
   getPaths(
     owner: string,
@@ -71,5 +76,16 @@ export interface Database {
     owner: string,
     repo: string,
     settings: RepositorySettingsResource,
+  ): Promise<void>;
+
+  getMetadata(
+    owner: string,
+    repo: string,
+  ): Promise<RepositoryMetadata | null>;
+
+  putMetadata(
+    owner: string,
+    repo: string,
+    metadata: RepositoryMetadata,
   ): Promise<void>;
 }

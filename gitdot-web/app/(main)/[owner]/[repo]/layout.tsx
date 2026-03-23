@@ -31,10 +31,7 @@ export default async function Layout({
   const { owner, repo } = await params;
 
   return (
-    <RepoResources
-      owner={owner}
-      repo={repo}
-    >
+    <RepoResources owner={owner} repo={repo}>
       <RepoShortcuts />
       <div className="flex md:hidden h-full w-full p-2 text-sm">
         Mobile support to come.
