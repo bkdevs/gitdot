@@ -11,9 +11,6 @@ function useSidebarToggle(event: string) {
   return open;
 }
 
-export function useLeftSidebar() {
-  return useSidebarToggle("toggleLeftSidebar");
-}
 export function useRightSidebar() {
   return useSidebarToggle("toggleRightSidebar");
 }

@@ -4,7 +4,6 @@ import type {
   RepositoryPathsResource,
   RepositorySettingsResource,
 } from "gitdot-api";
-import { getUserMetadata } from "@/lib/supabase";
 import {
   fetchResources,
   type ResourcePromisesType,
@@ -31,14 +30,12 @@ export default async function Layout({
   params: Promise<{ owner: string; repo: string }>;
 }>) {
   const { owner, repo } = await params;
-  const { username, orgs } = await getUserMetadata();
   const { requests, promises } = fetchResources(owner, repo, {
     paths: (p) => p.getPaths(),
     commits: (p) => p.getCommits(),
     blobs: (p) => p.getBlobs(),
     settings: (p) => p.getSettings(),
   });
-  const isAdmin = username === owner || orgs.includes(`${owner}:admin`);
 
   return (
     <RepoClient
@@ -52,9 +49,7 @@ export default async function Layout({
         Mobile support to come.
       </div>
 
-      <div className="hidden md:flex h-full">
-        {children}
-      </div>
+      <div className="hidden md:flex h-full">{children}</div>
 
       <RepoDialogs owner={owner} repo={repo} />
     </RepoClient>

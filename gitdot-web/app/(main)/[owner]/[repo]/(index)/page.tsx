@@ -1,5 +1,5 @@
-import { fetchResources } from "@/provider/server";
 import type { RepositoryBlobResource } from "gitdot-api";
+import { fetchResources } from "@/provider/server";
 import { PageClient } from "./page.client";
 
 export type Resources = {

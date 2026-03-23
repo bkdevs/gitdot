@@ -6,7 +6,8 @@ import {
   type ResourceRequestsType,
   resolveResources,
 } from "@/provider/client";
-import { MarkdownBody } from "../ui/markdown/markdown-body";
+import { FolderViewer } from "../../[...filePath]/ui/folder-viewer";
+import { getFolderEntries } from "../../util";
 import type { Resources } from "./page";
 
 type ResourceRequests = ResourceRequestsType<Resources>;
@@ -26,20 +27,23 @@ export function PageClient({
   const resolvedPromises = resolveResources(owner, repo, requests, promises);
   return (
     <Suspense>
-      <PageContent promises={resolvedPromises} />
+      <PageContent owner={owner} repo={repo} promises={resolvedPromises} />
     </Suspense>
   );
 }
 
-function PageContent({ promises }: { promises: ResourcePromises }) {
-  const readme = use(promises.readme);
+function PageContent({
+  owner,
+  repo,
+  promises,
+}: {
+  owner: string;
+  repo: string;
+  promises: ResourcePromises;
+}) {
+  const paths = use(promises.paths);
+  if (!paths) return null;
 
-  if (!readme || readme.type !== "file") {
-    return <div className="p-2 text-sm">README.md not found</div>;
-  }
-  return (
-    <div className="p-4 max-w-4xl">
-      <MarkdownBody content={readme.content} />
-    </div>
-  );
+  const entries = getFolderEntries("", paths);
+  return <FolderViewer owner={owner} repo={repo} entries={entries} />;
 }

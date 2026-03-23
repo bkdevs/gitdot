@@ -1,3 +1,5 @@
+"use client";
+
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
@@ -13,27 +15,40 @@ function Sidebar({
   variant = "sidebar",
   className,
   children,
+  style,
   ...props
 }: React.ComponentProps<"div"> & {
   side?: "left" | "right";
   variant?: "sidebar" | "floating" | "inset";
 }) {
+  const [open, setOpen] = React.useState(true);
+  React.useEffect(() => {
+    const handler = () => setOpen((v) => !v);
+    window.addEventListener("toggleLeftSidebar", handler);
+    return () => window.removeEventListener("toggleLeftSidebar", handler);
+  }, []);
+
+  if (!open) return null;
+
   return (
-    <div
-      data-slot="sidebar"
-      data-sidebar="sidebar"
-      data-side={side}
-      data-variant={variant}
-      className={cn(
-        "bg-sidebar text-sidebar-foreground flex h-svh flex-col",
-        variant === "floating" || variant === "inset"
-          ? "rounded-lg border border-sidebar-border shadow-sm"
-          : "",
-        className,
-      )}
-      {...props}
-    >
-      {children}
+    <div className="flex-col h-full! border-r shrink-0">
+      <div
+        data-slot="sidebar"
+        data-sidebar="sidebar"
+        data-side={side}
+        data-variant={variant}
+        className={cn(
+          "bg-background text-sidebar-foreground flex h-full! flex-col",
+          variant === "floating" || variant === "inset"
+            ? "rounded-lg border border-sidebar-border shadow-sm"
+            : "",
+          className,
+        )}
+        style={{ width: "15rem", ...style }}
+        {...props}
+      >
+        {children}
+      </div>
     </div>
   );
 }

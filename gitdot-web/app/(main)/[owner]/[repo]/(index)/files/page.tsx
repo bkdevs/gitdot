@@ -1,25 +1,27 @@
-"use client";
+import type { RepositoryPathsResource } from "gitdot-api";
+import { fetchResources } from "@/provider/server";
+import { PageClient } from "./page.client";
 
-import { useParams } from "next/navigation";
-import { Suspense, use } from "react";
-import { useRepoContext } from "@/(main)/[owner]/[repo]/context";
-import { FolderViewer } from "../../[...filePath]/ui/folder-viewer";
-import { getFolderEntries } from "../../util";
+export type Resources = {
+  paths: RepositoryPathsResource | null;
+};
 
-function FilesClient() {
-  const { owner, repo } = useParams<{ owner: string; repo: string }>();
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ owner: string; repo: string }>;
+}) {
+  const { owner, repo } = await params;
+  const { requests, promises } = fetchResources(owner, repo, {
+    paths: (p) => p.getPaths(),
+  });
 
-  const paths = use(useRepoContext().paths);
-  if (!paths) return null;
-
-  const entries = getFolderEntries("", paths);
-  return <FolderViewer owner={owner} repo={repo} entries={entries} />;
-}
-
-export default function Page() {
   return (
-    <Suspense>
-      <FilesClient />
-    </Suspense>
+    <PageClient
+      owner={owner}
+      repo={repo}
+      requests={requests}
+      promises={promises}
+    />
   );
 }

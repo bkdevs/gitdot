@@ -3,7 +3,7 @@
 import "overlayscrollbars/overlayscrollbars.css";
 import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
 
-export function RepoScroll({ children }: { children: React.ReactNode }) {
+export function OverlayScroll({ children }: { children: React.ReactNode }) {
   return (
     <OverlayScrollbarsComponent
       defer

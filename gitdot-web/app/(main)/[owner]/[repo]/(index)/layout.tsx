@@ -1,5 +1,5 @@
 import { getUserMetadata } from "@/lib/supabase";
-import { RepoScroll } from "../ui/scroll";
+import { OverlayScroll } from "../../../../ui/scroll";
 import { RepoSidebar } from "./ui/sidebar";
 
 export default async function Layout({
@@ -16,7 +16,7 @@ export default async function Layout({
   return (
     <>
       <RepoSidebar owner={owner} repo={repo} showSettings={isAdmin} />
-      <RepoScroll>{children}</RepoScroll>
+      <OverlayScroll>{children}</OverlayScroll>
     </>
   );
 }

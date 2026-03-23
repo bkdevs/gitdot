@@ -1,11 +1,11 @@
 "use client";
 
+import { Suspense, use } from "react";
 import {
   type ResourcePromisesType,
   type ResourceRequestsType,
   resolveResources,
 } from "@/provider/client";
-import { Suspense, use } from "react";
 import type { Resources } from "./page";
 import { FileBody } from "./ui/file-body";
 import { FolderViewer } from "./ui/folder-viewer";
@@ -66,7 +66,7 @@ function PageContent({
 
   const hast = use(promises.hast);
   if (!hast) {
-    return <div>File failed to render.</div>
+    return <div>File failed to render.</div>;
   }
 
   return (

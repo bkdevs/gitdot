@@ -1,6 +1,5 @@
 "use client";
 
-import { type Shortcut, useShortcuts } from "@/(main)/context/shortcuts";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import {
   useCallback,
@@ -9,6 +8,7 @@ import {
   useMemo,
   useRef,
 } from "react";
+import { type Shortcut, useShortcuts } from "@/(main)/context/shortcuts";
 import { NAV_SECTIONS } from "../(index)/ui/sidebar";
 
 export function RepoShortcuts() {

@@ -1,9 +1,9 @@
+import type { RepositoryBlobResource } from "gitdot-api";
+import type { Root } from "hast";
+import { Suspense } from "react";
 import { getRepositoryBlob, getRepositoryFileCommits } from "@/dal";
 import { fetchResources } from "@/provider/server";
 import { Loading } from "@/ui/loading";
-import type { RepositoryBlobResource } from "gitdot-api";
-import { Root } from "hast";
-import { Suspense } from "react";
 import { PageClient } from "./page.client";
 import { FileHistoryLoader } from "./ui/file-history-loader";
 import { FileViewer } from "./ui/file-viewer";
@@ -34,7 +34,7 @@ export default async function Page({
   // TODO: add ref here + fix file history commits
   const { requests, promises } = fetchResources(owner, repo, {
     blob: (p) => p.getBlob(filePathString),
-    hast: (p) => p.getHast(filePathString)
+    hast: (p) => p.getHast(filePathString),
   });
 
   if (ref) {
