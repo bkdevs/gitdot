@@ -1,24 +1,25 @@
 /// <reference lib="webworker" />
-/// ==================================
+declare const self: SharedWorkerGlobalScope;
 
 import { GetRepositoryResourcesResponse } from "gitdot-api";
 import { openIdb } from "@/db/idb";
-
-declare const self: SharedWorkerGlobalScope;
+import { createHighlighter, inferLanguage } from "./util";
 
 interface MessageBody {
   owner: string;
   repo: string;
   serverUrl: string;
 }
+
 interface MessageResponse {
-  ready: true;
+  resourcesReady: boolean;
+  hastsReady: boolean;
 }
+
 interface Message {
   body: MessageBody;
   port: MessagePort;
 }
-/// ==================================
 
 const queue: Message[] = [];
 let ready = false;
@@ -45,6 +46,7 @@ async function process(
   port: MessagePort,
 ) {
   console.log(`[sync-worker] fetching resources for ${owner}/${repo}`);
+  let t = performance.now();
   const response = await fetch(
     `${serverUrl}/repository/${owner}/${repo}/resources`,
     {
@@ -55,25 +57,53 @@ async function process(
       body: JSON.stringify({}),
     },
   );
+  console.log(`[sync-worker] fetch took ${performance.now() - t}ms`);
 
-  console.log(`[sync-worker] response status: ${response.status}`);
-  const json = await response.json();
-  console.log("[sync-worker] response json", json);
   if (!response.ok) return;
+  t = performance.now();
+  const json = await response.json();
+  console.log(`[sync-worker] json parse took ${performance.now() - t}ms`);
+
+  t = performance.now();
   const result = GetRepositoryResourcesResponse.parse(json);
-  console.log("[sync-worker] result", result);
+  console.log(`[sync-worker] zod parse took ${performance.now() - t}ms`);
 
   const db = openIdb();
+  t = performance.now();
   await Promise.all([
     db.putPaths(owner, repo, result.paths),
     db.putCommits(owner, repo, result.commits.commits),
     db.putBlobs(owner, repo, result.blobs),
     db.putSettings(owner, repo, result.settings),
   ]);
-  console.log("[sync-worker] wrote resources to idb");
-  port.postMessage({ ready: true } satisfies MessageResponse);
+  console.log(`[sync-worker] idb write took ${performance.now() - t}ms`);
+  port.postMessage({
+    resourcesReady: true,
+    hastsReady: false,
+  } satisfies MessageResponse);
+
+  t = performance.now();
+  const fileBlobs = result.blobs.blobs.filter((b) => b.type === "file");
+  await Promise.all(
+    fileBlobs.map((blob) => {
+      const lang = inferLanguage(blob.path) ?? "plaintext";
+      const hast = highlighter.codeToHast(blob.content, {
+        lang,
+        theme: "vitesse-light",
+      });
+      return db.putHast(owner, repo, blob.path, hast);
+    }),
+  );
+  console.log(
+    `[sync-worker] highlight + hast write took ${performance.now() - t}ms (${fileBlobs.length} files)`,
+  );
+  port.postMessage({
+    resourcesReady: true,
+    hastsReady: true,
+  } satisfies MessageResponse);
 }
 
+const highlighter = await createHighlighter();
 ready = true;
 console.log("[sync-worker] ready");
 for (const { body, port } of queue) process(body, port);

@@ -10,8 +10,15 @@ import { racePromises } from "@/util";
 import { useRenderBlobs } from "./hooks/use-render-blobs";
 import type { ResourcePromises, ResourceRequests } from "./layout";
 
+interface RepositoryResourcesState {
+  resourcesReady: boolean;
+  hastsReady: boolean;
+}
+
 type RepoContext = ResourcePromises & {
   hasts: Promise<Map<string, Root>>;
+  resourcesReady: boolean;
+  hastsReady: boolean;
 };
 const RepoContext = createContext<RepoContext | null>(null);
 
@@ -50,13 +57,16 @@ export function RepoClient({
     });
   }, [owner, repo, serverPromises]);
 
-  const [syncReady, setSyncReady] = useState(false);
-  console.log(syncReady);
+  const [resourcesState, setResourcesState] =
+    useState<RepositoryResourcesState>({
+      resourcesReady: false,
+      hastsReady: false,
+    });
 
   useEffect(() => {
     if (!sync) return;
-    const handler = (e: MessageEvent<{ ready: boolean }>) => {
-      setSyncReady(e.data.ready);
+    const handler = (e: MessageEvent<RepositoryResourcesState>) => {
+      setResourcesState(e.data);
     };
 
     sync.port.addEventListener("message", handler);
@@ -72,6 +82,8 @@ export function RepoClient({
         blobs: racedPromises.blobs,
         settings: racedPromises.settings,
         hasts: hastsPromise.then((m) => m ?? new Map()),
+        resourcesReady: resourcesState.resourcesReady,
+        hastsReady: resourcesState.hastsReady,
       }}
     >
       {children}

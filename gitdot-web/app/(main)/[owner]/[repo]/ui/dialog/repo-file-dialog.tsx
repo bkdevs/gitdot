@@ -4,8 +4,9 @@ import type { RepositoryPathsResource } from "gitdot-api";
 import type { Root } from "hast";
 import { toJsxRuntime } from "hast-util-to-jsx-runtime";
 import type { JSX } from "react";
-import { Fragment, use, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { jsx, jsxs } from "react/jsx-runtime";
+import { openIdb } from "@/db";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
 import Link from "@/ui/link";
 import { useRepoContext } from "../../context";
@@ -18,22 +19,9 @@ export function RepoFileDialog({
   owner: string;
   repo: string;
 }) {
-  const paths = use(useRepoContext().paths);
-  if (!paths) return null;
-
-  return <RepoFileDialogInner owner={owner} repo={repo} paths={paths} />;
-}
-
-function RepoFileDialogInner({
-  owner,
-  repo,
-  paths,
-}: {
-  owner: string;
-  repo: string;
-  paths: RepositoryPathsResource;
-}) {
-  const { hasts: hastsPromise } = useRepoContext();
+  const { resourcesReady, hastsReady } = useRepoContext();
+  const idb = useMemo(() => openIdb(), []);
+  const [paths, setPaths] = useState<RepositoryPathsResource | null>(null);
   const [hasts, setHasts] = useState<Map<string, Root> | null>(null);
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -42,10 +30,19 @@ function RepoFileDialogInner({
   const [mouseMoved, setMouseMoved] = useState(false);
 
   useEffect(() => {
-    hastsPromise.then(setHasts);
-  }, [hastsPromise]);
+    if (!resourcesReady) return;
+    idb.getPaths(owner, repo).then(setPaths);
+  }, [resourcesReady, idb, owner, repo]);
 
-  const files = paths.entries.filter((entry) => entry.path_type === "blob");
+  useEffect(() => {
+    if (!hastsReady) return;
+    idb.getHasts(owner, repo).then(setHasts);
+  }, [hastsReady, idb, owner, repo]);
+
+  const files = useMemo(
+    () => paths?.entries.filter((entry) => entry.path_type === "blob") ?? [],
+    [paths],
+  );
 
   const initialMousePos = useRef<{ x: number; y: number } | null>(null);
   const selectedItemRef = useRef<HTMLAnchorElement | null>(null);
@@ -148,6 +145,7 @@ function RepoFileDialogInner({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [open, filteredFiles.length, selectedFile]);
 
+  if (!paths) return null;
   const selectedHast = selectedFile ? hasts?.get(selectedFile.path) : null;
 
   return (
