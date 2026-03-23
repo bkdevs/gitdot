@@ -8,20 +8,33 @@ use chrono::Utc;
 use gitdot_api::endpoint::repository::get_repository_resources as api;
 use gitdot_core::dto::{
     GetCommitsRequest, GetRepositoryBlobsRequest, GetRepositoryPathsRequest,
-    GetRepositorySettingsRequest,
+    GetRepositorySettingsRequest, RepositoryAuthorizationRequest, RepositoryPermission,
 };
 
 use crate::{
     app::{AppError, AppResponse, AppState},
     dto::IntoApi,
+    extract::{Principal, Service, User, Vercel},
 };
 
 #[axum::debug_handler]
 pub async fn get_repository_resources(
+    _service: Service<Vercel>,
+    auth_user: Option<Principal<User>>,
     State(state): State<AppState>,
     Path((owner, repo)): Path<(String, String)>,
     Json(_params): Json<api::GetRepositoryResourcesRequest>,
 ) -> Result<AppResponse<api::GetRepositoryResourcesResponse>, AppError> {
+    let auth_request = RepositoryAuthorizationRequest::new(
+        auth_user.map(|u| u.id),
+        &owner,
+        &repo,
+        RepositoryPermission::Read,
+    )?;
+    state
+        .authorization_service
+        .verify_authorized_for_repository(auth_request)
+        .await?;
     let paths_request = GetRepositoryPathsRequest::new(&repo, &owner, "HEAD".to_string())?;
     let paths = state
         .repo_service

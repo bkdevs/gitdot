@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { ZodType } from "zod";
+import { getVercelOidcToken } from "@vercel/oidc";
 import { getSession } from "@/lib/supabase";
 
 export const GITDOT_SERVER_URL =
@@ -11,12 +12,14 @@ export async function authFetch(
   options?: RequestInit,
 ): Promise<Response> {
   const session = await getSession();
+  const oidcToken = await getVercelOidcToken();
 
   return fetch(url, {
     ...options,
     headers: {
       ...options?.headers,
       ...(session && { Authorization: `Bearer ${session.access_token}` }),
+      "X-Vercel-OIDC-Token": oidcToken,
     },
   });
 }
