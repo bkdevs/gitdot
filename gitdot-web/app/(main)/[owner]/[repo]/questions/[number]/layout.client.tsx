@@ -1,8 +1,5 @@
 "use client";
 
-import { Undo2 } from "lucide-react";
-import { useParams } from "next/navigation";
-import { Suspense, use } from "react";
 import {
   type ResourcePromisesType,
   type ResourceRequestsType,
@@ -12,6 +9,9 @@ import Link from "@/ui/link";
 import { OverlayScroll } from "@/ui/scroll";
 import { Sidebar, SidebarContent } from "@/ui/sidebar";
 import { timeAgo } from "@/util";
+import { Undo2 } from "lucide-react";
+import { useParams } from "next/navigation";
+import { Suspense, use } from "react";
 import type { Resources } from "./layout";
 
 type ResourceRequests = ResourceRequestsType<Resources>;
@@ -36,18 +36,7 @@ export function LayoutClient({
       <Sidebar>
         <SidebarContent className="overflow-auto">
           <div className="flex flex-col w-full">
-            <Link
-              href={`/${owner}/${repo}/questions`}
-              className="sticky top-0 bg-background flex items-center justify-between border-b px-2 h-9 z-10 hover:bg-accent/50 cursor-default"
-            >
-              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                Questions
-              </h3>
-              <Undo2
-                size={14}
-                className="text-muted-foreground -translate-y-px"
-              />
-            </Link>
+            <QuestionSidebarHeader owner={owner} repo={repo} />
             <Suspense>
               <QuestionSidebarContent
                 owner={owner}
@@ -61,6 +50,29 @@ export function LayoutClient({
       <OverlayScroll>{children}</OverlayScroll>
     </>
   );
+}
+
+function QuestionSidebarHeader({
+  owner,
+  repo
+}: {
+  owner: string;
+  repo: string;
+}) {
+  return (
+    <Link
+      href={`/${owner}/${repo}/questions`}
+      className="sticky top-0 bg-background flex items-center justify-between border-b px-2 h-9 z-10 hover:bg-accent/50 cursor-default"
+    >
+      <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+        Questions
+      </h3>
+      <Undo2
+      size={14}
+      className="text-muted-foreground -translate-y-px"
+      />
+    </Link>
+  )
 }
 
 function QuestionSidebarContent({
