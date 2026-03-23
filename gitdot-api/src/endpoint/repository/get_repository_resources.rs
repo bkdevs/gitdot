@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::{endpoint::Endpoint, resource::repository::RepositoryResourcesResource};
@@ -13,6 +14,11 @@ impl Endpoint for GetRepositoryResources {
 }
 
 #[derive(ApiRequest, Debug, Serialize, Deserialize)]
-pub struct GetRepositoryResourcesRequest {}
+pub struct GetRepositoryResourcesRequest {
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub last_commit: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub last_updated: Option<DateTime<Utc>>,
+}
 
 pub type GetRepositoryResourcesResponse = RepositoryResourcesResource;

@@ -2,7 +2,10 @@ import { z } from "zod";
 import { RepositoryResourcesResource } from "../../resource";
 import type { Endpoint } from "../endpoint";
 
-export const GetRepositoryResourcesRequest = z.object({});
+export const GetRepositoryResourcesRequest = z.object({
+  last_commit: z.string().optional(),
+  last_updated: z.iso.datetime().optional(),
+});
 export type GetRepositoryResourcesRequest = z.infer<
   typeof GetRepositoryResourcesRequest
 >;

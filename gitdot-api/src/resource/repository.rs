@@ -162,6 +162,8 @@ pub struct RepositorySettingsResource {
 
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RepositoryResourcesResource {
+    pub last_commit: String,
+    pub last_updated: Option<DateTime<Utc>>,
     pub paths: RepositoryPathsResource,
     pub commits: RepositoryCommitsResource,
     pub blobs: RepositoryBlobsResource,

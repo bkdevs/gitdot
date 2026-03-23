@@ -68,11 +68,16 @@ pub async fn get_repository_resources(
         },
     )?;
 
+    let last_commit = paths.commit_sha.clone();
+    let last_updated = commits.commits.first().map(|c| c.created_at);
+
     let resource = api::GetRepositoryResourcesResponse {
         paths: paths.into_api(),
         commits: commits.into_api(),
         blobs: blobs.into_api(),
         settings: settings.into_api(),
+        last_commit,
+        last_updated,
     };
     Ok(AppResponse::new(StatusCode::OK, resource))
 }

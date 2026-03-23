@@ -4,12 +4,11 @@ import type {
   RepositoryPathsResource,
   RepositorySettingsResource,
 } from "gitdot-api";
-import { GITDOT_SERVER_URL } from "@/dal/util";
 import type {
   ResourcePromisesType,
   ResourceRequestsType,
 } from "@/provider/server";
-import { RepoResources } from "./resources";
+import { RepoResources } from "./resources/context";
 import { RepoDialogs } from "./ui/dialog/repo-dialogs";
 import { RepoShortcuts } from "./ui/shortcuts";
 
@@ -35,7 +34,6 @@ export default async function Layout({
     <RepoResources
       owner={owner}
       repo={repo}
-      serverUrl={GITDOT_SERVER_URL}
     >
       <RepoShortcuts />
       <div className="flex md:hidden h-full w-full p-2 text-sm">

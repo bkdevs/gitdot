@@ -155,6 +155,8 @@ export type RepositorySettingsResource = z.infer<
 >;
 
 export const RepositoryResourcesResource = z.object({
+  last_commit: z.string(),
+  last_updated: z.iso.datetime().optional(),
   paths: RepositoryPathsResource,
   commits: RepositoryCommitsResource,
   blobs: RepositoryBlobsResource,

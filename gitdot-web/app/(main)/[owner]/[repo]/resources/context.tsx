@@ -12,12 +12,10 @@ const RepoResourcesState = createContext<RepoResourcesState | null>(null);
 export function RepoResources({
   owner,
   repo,
-  serverUrl,
   children,
 }: {
   owner: string;
   repo: string;
-  serverUrl: string;
   children: React.ReactNode;
 }) {
   const { sync } = useWorkerContext();
@@ -32,9 +30,9 @@ export function RepoResources({
     };
 
     sync.port.addEventListener("message", handler);
-    sync.port.postMessage({ owner, repo, serverUrl });
+    sync.port.postMessage({ owner, repo });
     return () => sync.port.removeEventListener("message", handler);
-  }, [sync, owner, repo, serverUrl]);
+  }, [sync, owner, repo]);
 
   return (
     <RepoResourcesState

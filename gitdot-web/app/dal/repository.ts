@@ -7,6 +7,7 @@ import {
   type GetRepositoryCommitsRequest,
   type GetRepositoryFileCommitsRequest,
   type GetRepositoryPathsRequest,
+  type GetRepositoryResourcesRequest,
   RepositoryBlobResource,
   RepositoryBlobsResource,
   RepositoryCommitDiffResource,
@@ -14,6 +15,7 @@ import {
   RepositoryCommitsResource,
   RepositoryPathsResource,
   RepositoryResource,
+  RepositoryResourcesResource,
   RepositorySettingsResource,
   type UpdateRepositorySettingsRequest,
 } from "gitdot-api";
@@ -134,6 +136,18 @@ export async function getRepositorySettings(
     `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/settings`,
   );
   return await handleResponse(response, RepositorySettingsResource);
+}
+
+export async function getRepositoryResources(
+  owner: string,
+  repo: string,
+  request: GetRepositoryResourcesRequest = {},
+): Promise<RepositoryResourcesResource | null> {
+  const response = await authPost(
+    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/resources`,
+    request,
+  );
+  return await handleResponse(response, RepositoryResourcesResource);
 }
 
 export async function updateRepositorySettings(

@@ -9,7 +9,7 @@ import { jsx, jsxs } from "react/jsx-runtime";
 import { openIdb } from "@/db";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
 import Link from "@/ui/link";
-import { useRepoResources } from "../../resources";
+import { useRepoResources } from "../../resources/context";
 import { fuzzyMatch } from "../../util";
 
 export function RepoFileDialog({

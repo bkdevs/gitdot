@@ -8,7 +8,6 @@ import { createHighlighter, inferLanguage } from "./util";
 interface MessageBody {
   owner: string;
   repo: string;
-  serverUrl: string;
 }
 
 interface MessageResponse {
@@ -52,21 +51,12 @@ self.onconnect = (event: MessageEvent) => {
 // i'm unsure why highlight is so slow, but we should likely do all this on on a separate spawned child worker
 // a bit iffy with concurrency potentially for multiple repos
 async function process(
-  { owner, repo, serverUrl }: MessageBody,
+  { owner, repo }: MessageBody,
   port: MessagePort,
 ) {
   console.log(`[sync-worker] fetching resources for ${owner}/${repo}`);
   let t = performance.now();
-  const response = await fetch(
-    `${serverUrl}/repository/${owner}/${repo}/resources`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({}),
-    },
-  );
+  const response = await fetch(`/${owner}/${repo}/resources`);
   console.log(`[sync-worker] fetch took ${performance.now() - t}ms`);
 
   if (!response.ok) return;
@@ -77,6 +67,7 @@ async function process(
   t = performance.now();
   const result = GetRepositoryResourcesResponse.parse(json);
   console.log(`[sync-worker] zod parse took ${performance.now() - t}ms`);
+  console.log(result);
 
   const db = openIdb();
   t = performance.now();
