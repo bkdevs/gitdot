@@ -32,16 +32,26 @@ export function LayoutClient({
 }) {
   const resolvedPromises = useResolvePromises(owner, repo, requests, promises);
   return (
-    <Suspense>
-      <FileSidebar owner={owner} repo={repo} promises={resolvedPromises} />
+    <>
+      <Sidebar>
+        <SidebarContent className="overflow-auto">
+          <Suspense>
+            <FileSidebarContent
+              owner={owner}
+              repo={repo}
+              promises={resolvedPromises}
+            />
+          </Suspense>
+        </SidebarContent>
+      </Sidebar>
       <Suspense>
         <OverlayScroll>{children}</OverlayScroll>
       </Suspense>
-    </Suspense>
+    </>
   );
 }
 
-function FileSidebar({
+function FileSidebarContent({
   owner,
   repo,
   promises,
@@ -66,40 +76,34 @@ function FileSidebar({
   if (!paths) return null;
 
   return (
-    <Sidebar>
-      <SidebarContent className="overflow-auto">
-        <div className="flex flex-col w-full">
-          <FileRow
-            key=".."
-            filePath={".."}
-            href={
-              parentPath
-                ? `/${owner}/${repo}/${parentPath}`
-                : `/${owner}/${repo}/files`
-            }
-            isFolder={true}
-            isActive={false}
-          />
-          {contextFiles.map((file) => {
-            const filePath = file.path.split("/").pop();
-            if (!filePath) return null;
-            const fullPath = parentPath
-              ? `${parentPath}/${filePath}`
-              : filePath;
+    <div className="flex flex-col w-full">
+      <FileRow
+        key=".."
+        filePath={".."}
+        href={
+          parentPath
+            ? `/${owner}/${repo}/${parentPath}`
+            : `/${owner}/${repo}/files`
+        }
+        isFolder={true}
+        isActive={false}
+      />
+      {contextFiles.map((file) => {
+        const filePath = file.path.split("/").pop();
+        if (!filePath) return null;
+        const fullPath = parentPath ? `${parentPath}/${filePath}` : filePath;
 
-            return (
-              <FileRow
-                key={file.path}
-                filePath={filePath}
-                href={`/${owner}/${repo}/${parentPath}/${filePath}`}
-                isFolder={file.path_type === "tree"}
-                isActive={currentPath === fullPath}
-              />
-            );
-          })}
-        </div>
-      </SidebarContent>
-    </Sidebar>
+        return (
+          <FileRow
+            key={file.path}
+            filePath={filePath}
+            href={`/${owner}/${repo}/${parentPath}/${filePath}`}
+            isFolder={file.path_type === "tree"}
+            isActive={currentPath === fullPath}
+          />
+        );
+      })}
+    </div>
   );
 }
 

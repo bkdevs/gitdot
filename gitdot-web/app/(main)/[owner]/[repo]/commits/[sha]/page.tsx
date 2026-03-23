@@ -7,6 +7,8 @@ export type Resources = {
   commit: RepositoryCommitResource | null;
 };
 
+// TODO: this page is still somewhat laggy? not instant.
+// consider ajax, but trade-off is preload...
 export default async function Page({
   params,
 }: {
