@@ -6,6 +6,7 @@ import type {
   RepositoryPathsResource,
   RepositorySettingsResource,
 } from "gitdot-api";
+import type { Root } from "hast";
 import { openIdb } from "@/db";
 import { ClientProvider } from "./client";
 
@@ -21,7 +22,18 @@ export class DatabaseProvider extends ClientProvider {
   }
 
   async getBlob(path: string) {
-    return this.db.getBlob(this.owner, this.repo, path);
+    console.log(path);
+    const result = this.db.getBlob(this.owner, this.repo, path);
+    console.log(result);
+    return result;
+  }
+
+  async getHast(path: string): Promise<Root | null> {
+    return this.db.getHast(this.owner, this.repo, path);
+  }
+
+  async putHast(path: string, hast: Root): Promise<void> {
+    return this.db.putHast(this.owner, this.repo, path, hast);
   }
 
   async getCommit(sha: string) {

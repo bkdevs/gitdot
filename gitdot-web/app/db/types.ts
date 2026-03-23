@@ -56,6 +56,8 @@ export interface Database {
     blobs: RepositoryBlobsResource,
   ): Promise<void>;
 
+  getHast(owner: string, repo: string, path: string): Promise<Root | null>;
+
   getHasts(owner: string, repo: string): Promise<Map<string, Root> | null>;
 
   putHast(owner: string, repo: string, path: string, hast: Root): Promise<void>;

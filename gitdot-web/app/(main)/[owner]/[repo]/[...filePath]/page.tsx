@@ -2,6 +2,7 @@ import { getRepositoryBlob, getRepositoryFileCommits } from "@/dal";
 import { fetchResources } from "@/provider/server";
 import { Loading } from "@/ui/loading";
 import type { RepositoryBlobResource } from "gitdot-api";
+import { Root } from "hast";
 import { Suspense } from "react";
 import { PageClient } from "./page.client";
 import { FileHistoryLoader } from "./ui/file-history-loader";
@@ -11,6 +12,7 @@ import { parseLineSelection } from "./util";
 
 export type Resources = {
   blob: RepositoryBlobResource | null;
+  hast: Root | null;
 };
 
 export default async function Page({
@@ -26,13 +28,14 @@ export default async function Page({
   const { owner, repo, filePath } = await params;
   const { lines, ref } = await searchParams;
 
-  const { requests, promises } = fetchResources(owner, repo, {
-    // TODO: add ref here + fix file history commits
-    blob: (p) => p.getBlob(filePath.join("/")),
-  });
-
   const filePathString = decodeURIComponent(filePath.join("/"));
   const selectedLines = parseLineSelection(lines);
+
+  // TODO: add ref here + fix file history commits
+  const { requests, promises } = fetchResources(owner, repo, {
+    blob: (p) => p.getBlob(filePathString),
+    hast: (p) => p.getHast(filePathString)
+  });
 
   if (ref) {
     // Unchanged: existing behavior for historical ref views

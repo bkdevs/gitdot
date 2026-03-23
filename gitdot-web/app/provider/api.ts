@@ -7,6 +7,8 @@ import type {
   RepositoryPathsResource,
   RepositorySettingsResource,
 } from "gitdot-api";
+import type { Root } from "hast";
+import { getRepositoryHast } from "@/actions/repository";
 import {
   getRepositoryBlob,
   getRepositoryBlobs,
@@ -21,6 +23,10 @@ import { ServerProvider } from "./server";
 export class ApiProvider extends ServerProvider {
   async getBlob(path: string): Promise<RepositoryBlobResource | null> {
     return await getRepositoryBlob(this.owner, this.repo, { path: path });
+  }
+
+  async getHast(path: string): Promise<Root | null> {
+    return await getRepositoryHast(this.owner, this.repo, path);
   }
 
   async getCommit(sha: string): Promise<RepositoryCommitResource | null> {

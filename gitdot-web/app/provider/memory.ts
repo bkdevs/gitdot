@@ -7,6 +7,7 @@ import type {
   RepositoryPathsResource,
   RepositorySettingsResource,
 } from "gitdot-api";
+import type { Root } from "hast";
 import { ClientProvider } from "./client";
 
 type MemoryStore = {
@@ -16,6 +17,7 @@ type MemoryStore = {
   settings: RepositorySettingsResource | undefined;
   blob: Map<string, RepositoryBlobResource>;
   commit: Map<string, RepositoryCommitResource>;
+  hast: Map<string, Root>;
 };
 
 export class MemoryProvider extends ClientProvider {
@@ -26,6 +28,7 @@ export class MemoryProvider extends ClientProvider {
     settings: undefined,
     blob: new Map(),
     commit: new Map(),
+    hast: new Map(),
   };
 
   async getPaths(): Promise<RepositoryPathsResource | null> {
@@ -34,6 +37,14 @@ export class MemoryProvider extends ClientProvider {
 
   async getBlob(path: string): Promise<RepositoryBlobResource | null> {
     return this.store.blob.get(path) ?? null;
+  }
+
+  async getHast(path: string): Promise<Root | null> {
+    return this.store.hast.get(path) ?? null;
+  }
+
+  putHast(path: string, hast: Root): void {
+    this.store.hast.set(path, hast);
   }
 
   async getCommit(sha: string): Promise<RepositoryCommitResource | null> {

@@ -7,9 +7,8 @@ import {
 } from "@/provider/client";
 import { Suspense, use } from "react";
 import type { Resources } from "./page";
-import { useRepoContext } from "../context";
-import { FolderViewer } from "./ui/folder-viewer";
 import { FileBody } from "./ui/file-body";
+import { FolderViewer } from "./ui/folder-viewer";
 import type { LineSelection } from "./util";
 
 type ResourceRequests = ResourceRequestsType<Resources>;
@@ -33,29 +32,42 @@ export function PageClient({
   const resolvedPromises = resolveResources(owner, repo, requests, promises);
   return (
     <Suspense>
-      <PageContent owner={owner} repo={repo} selectedLines={selectedLines} historySlot={historySlot}  promises={resolvedPromises} />
+      <PageContent
+        owner={owner}
+        repo={repo}
+        selectedLines={selectedLines}
+        historySlot={historySlot}
+        promises={resolvedPromises}
+      />
     </Suspense>
   );
 }
 
-function PageContent({ owner, repo, selectedLines, historySlot, promises }: {
+function PageContent({
+  owner,
+  repo,
+  selectedLines,
+  historySlot,
+  promises,
+}: {
   owner: string;
   repo: string;
   selectedLines: LineSelection | null;
   historySlot: React.ReactNode;
-  promises: ResourcePromises
+  promises: ResourcePromises;
 }) {
   const blob = use(promises.blob);
-  const { hasts } = useRepoContext();
-
   if (!blob) {
     return <div>File not found.</div>;
-  } else if (blob.type === "folder") {
+  }
+  if (blob.type === "folder") {
     return <FolderViewer owner={owner} repo={repo} entries={blob.entries} />;
   }
 
-  const hast = use(hasts).get(blob.path);
-  if (!hast) return null;
+  const hast = use(promises.hast);
+  if (!hast) {
+    return <div>File failed to render.</div>
+  }
 
   return (
     <div className="flex w-full h-full min-h-0 overflow-hidden">

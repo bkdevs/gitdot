@@ -1,20 +1,23 @@
 "use server";
 
+import { fileToHast, inferLanguage } from "@/(main)/[owner]/[repo]/util";
+import {
+  ApiError,
+  createRepository,
+  deleteRepository,
+  getRepositoryBlob,
+  getRepositorySettings,
+  migrateGitHubRepositories,
+  updateRepositorySettings,
+} from "@/dal";
 import type {
   CommitFilterResource,
   RepositoryResource,
   RepositorySettingsResource,
 } from "gitdot-api";
+import type { Root } from "hast";
 import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
-import {
-  ApiError,
-  createRepository,
-  deleteRepository,
-  getRepositorySettings,
-  migrateGitHubRepositories,
-  updateRepositorySettings,
-} from "@/dal";
 
 export type CreateRepositoryActionResult =
   | { repository: RepositoryResource }
@@ -123,4 +126,15 @@ export async function migrateGitHubRepositoriesAction(
 
   redirect("/settings/migrations");
   return { success: true };
+}
+
+export async function getRepositoryHast(
+owner: string,
+repo: string,
+path: string,
+): Promise<Root | null> {
+const blob = await getRepositoryBlob(owner, repo, { path });
+if (!blob || blob.type === "folder") return null;
+const lang = inferLanguage(path);
+return fileToHast(blob.content, lang, "vitesse-light", []);
 }
