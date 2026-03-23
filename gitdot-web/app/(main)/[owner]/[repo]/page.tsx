@@ -1,17 +1,16 @@
+import type { RepositoryBlobResource } from "gitdot-api";
 import {
   fetchResources,
-  type ResourceDefinition,
   type ResourcePromisesType,
   type ResourceRequestsType,
 } from "@/provider/server";
 import { PageClient } from "./page.client";
 
-const resources = {
-  readme: (p) => p.getBlob("README.md"),
-} satisfies ResourceDefinition;
-
-export type ResourcePromises = ResourcePromisesType<typeof resources>;
-export type ResourceRequests = ResourceRequestsType<typeof resources>;
+type Resources = {
+  readme: RepositoryBlobResource | null;
+};
+export type ResourcePromises = ResourcePromisesType<Resources>;
+export type ResourceRequests = ResourceRequestsType<Resources>;
 
 export default async function Page({
   params,
@@ -19,7 +18,9 @@ export default async function Page({
   params: Promise<{ owner: string; repo: string }>;
 }) {
   const { owner, repo } = await params;
-  const { requests, promises } = fetchResources(owner, repo, resources);
+  const { requests, promises } = fetchResources(owner, repo, {
+    readme: (p) => p.getBlob("README.md"),
+  });
 
   return (
     <PageClient

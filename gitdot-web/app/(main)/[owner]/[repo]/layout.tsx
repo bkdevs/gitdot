@@ -1,7 +1,12 @@
+import type {
+  RepositoryBlobsResource,
+  RepositoryCommitResource,
+  RepositoryPathsResource,
+  RepositorySettingsResource,
+} from "gitdot-api";
 import { getUserMetadata } from "@/lib/supabase";
 import {
   fetchResources,
-  type ResourceDefinition,
   type ResourcePromisesType,
   type ResourceRequestsType,
 } from "@/provider/server";
@@ -11,16 +16,14 @@ import { RepoScroll } from "./ui/repo-scroll";
 import { RepoShortcuts } from "./ui/repo-shortcuts";
 import { RepoSidebar } from "./ui/repo-sidebar";
 
-const resources = {
-  paths: (p) => p.getPaths(),
-  commits: (p) => p.getCommits(),
-  blobs: (p) => p.getBlobs(),
-  settings: (p) => p.getSettings(),
-} satisfies ResourceDefinition;
-
-// works as server types can be imported by client-components but not server consts
-export type ResourcePromises = ResourcePromisesType<typeof resources>;
-export type ResourceRequests = ResourceRequestsType<typeof resources>;
+type Resources = {
+  paths: RepositoryPathsResource | null;
+  commits: RepositoryCommitResource[] | null;
+  blobs: RepositoryBlobsResource | null;
+  settings: RepositorySettingsResource | null;
+};
+export type ResourcePromises = ResourcePromisesType<Resources>;
+export type ResourceRequests = ResourceRequestsType<Resources>;
 
 export default async function Layout({
   children,
@@ -31,7 +34,12 @@ export default async function Layout({
 }>) {
   const { owner, repo } = await params;
   const { username, orgs } = await getUserMetadata();
-  const { requests, promises } = fetchResources(owner, repo, resources);
+  const { requests, promises } = fetchResources(owner, repo, {
+    paths: (p) => p.getPaths(),
+    commits: (p) => p.getCommits(),
+    blobs: (p) => p.getBlobs(),
+    settings: (p) => p.getSettings(),
+  });
   const isAdmin = username === owner || orgs.includes(`${owner}:admin`);
 
   return (

@@ -12,17 +12,21 @@ export type ResourceDefinition = Record<
 >;
 
 export type ResourceRequestType = { method: string; args: unknown[] };
-export type ResourceRequestsType<T extends ResourceDefinition> = {
-  [K in keyof T]: ResourceRequestType;
+export type ResourceRequestsType<S> = {
+  [K in keyof S]: ResourceRequestType;
 };
 
-export type ResourcePromisesType<T extends ResourceDefinition> = {
-  [K in keyof T]: Promise<Awaited<ReturnType<T[K]>>>;
+export type ResourcePromisesType<S> = {
+  [K in keyof S]: Promise<S[K]>;
 };
 
-export type ResourceResultType<T extends ResourceDefinition> = {
-  promises: ResourcePromisesType<T>;
-  requests: ResourceRequestsType<T>;
+export type ResourceResult<S> = {
+  promises: ResourcePromisesType<S>;
+  requests: ResourceRequestsType<S>;
+};
+
+type ShapeFromDefinition<T extends ResourceDefinition> = {
+  [K in keyof T]: Awaited<ReturnType<T[K]>>;
 };
 
 export abstract class RepoProvider {
@@ -43,7 +47,9 @@ export abstract class RepoProvider {
 }
 
 export abstract class ServerProvider extends RepoProvider {
-  fetch<T extends ResourceDefinition>(def: T): ResourceResultType<T> {
+  fetch<T extends ResourceDefinition>(
+    def: T,
+  ): ResourceResult<ShapeFromDefinition<T>> {
     const promises: Record<string, Promise<unknown>> = {};
     const requests: Record<string, ResourceRequestType> = {};
 
@@ -77,7 +83,7 @@ export abstract class ServerProvider extends RepoProvider {
       requests[key] = request;
     }
 
-    return { promises, requests } as ResourceResultType<T>;
+    return { promises, requests } as ResourceResult<ShapeFromDefinition<T>>;
   }
 }
 
