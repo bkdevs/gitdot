@@ -4,9 +4,9 @@ use crate::{
     dto::{
         AnswerResponse, CommentResponse, CreateAnswerCommentRequest, CreateAnswerRequest,
         CreateQuestionCommentRequest, CreateQuestionRequest, GetQuestionRequest,
-        ListQuestionsRequest, QuestionResponse, UpdateAnswerRequest, UpdateCommentRequest,
-        UpdateQuestionRequest, VoteAnswerRequest, VoteCommentRequest, VoteQuestionRequest,
-        VoteResponse,
+        ListQuestionsRequest, QuestionResponse, QuestionsResponse, UpdateAnswerRequest,
+        UpdateCommentRequest, UpdateQuestionRequest, VoteAnswerRequest, VoteCommentRequest,
+        VoteQuestionRequest, VoteResponse,
     },
     error::QuestionError,
     model::VoteTarget,
@@ -35,7 +35,7 @@ pub trait QuestionService: Send + Sync + 'static {
     async fn list_questions(
         &self,
         request: ListQuestionsRequest,
-    ) -> Result<Vec<QuestionResponse>, QuestionError>;
+    ) -> Result<QuestionsResponse, QuestionError>;
 
     async fn create_answer(
         &self,
@@ -165,7 +165,7 @@ where
     async fn list_questions(
         &self,
         request: ListQuestionsRequest,
-    ) -> Result<Vec<QuestionResponse>, QuestionError> {
+    ) -> Result<QuestionsResponse, QuestionError> {
         let repository = self
             .repo_repo
             .get(request.owner.as_ref(), request.repo.as_ref())
@@ -174,10 +174,12 @@ where
 
         let questions = self
             .question_repo
-            .list_questions(repository.id, request.user_id)
+            .list_questions(repository.id, request.user_id, request.from, request.to)
             .await?;
 
-        Ok(questions.into_iter().map(QuestionResponse::from).collect())
+        Ok(QuestionsResponse {
+            questions: questions.into_iter().map(QuestionResponse::from).collect(),
+        })
     }
 
     async fn create_answer(

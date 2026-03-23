@@ -7,7 +7,7 @@ use chrono::Utc;
 
 use gitdot_api::endpoint::repository::get_repository_resources as api;
 use gitdot_core::dto::{
-    GetCommitsRequest, GetRepositoryBlobsRequest, GetRepositoryPathsRequest,
+    GetCommitsRequest, GetRepositoryBlobsRequest, GetRepositoryPathsRequest, ListQuestionsRequest,
     RepositoryAuthorizationRequest, RepositoryPermission,
 };
 
@@ -25,12 +25,9 @@ pub async fn get_repository_resources(
     Path((owner, repo)): Path<(String, String)>,
     Json(params): Json<api::GetRepositoryResourcesRequest>,
 ) -> Result<AppResponse<api::GetRepositoryResourcesResponse>, AppError> {
-    let auth_request = RepositoryAuthorizationRequest::new(
-        auth_user.map(|u| u.id),
-        &owner,
-        &repo,
-        RepositoryPermission::Read,
-    )?;
+    let user_id = auth_user.map(|u| u.id);
+    let auth_request =
+        RepositoryAuthorizationRequest::new(user_id, &owner, &repo, RepositoryPermission::Read)?;
     state
         .authorization_service
         .verify_authorized_for_repository(auth_request)
@@ -51,6 +48,7 @@ pub async fn get_repository_resources(
                 paths: None,
                 commits: None,
                 blobs: None,
+                questions: None,
             },
         ));
     }
@@ -67,17 +65,19 @@ pub async fn get_repository_resources(
         GetRepositoryBlobsRequest::new(&repo, &owner, "HEAD".to_string(), blob_paths)?;
 
     let now = Utc::now();
-    let commits_request = GetCommitsRequest::new(
-        &owner,
-        &repo,
-        "HEAD".to_string(),
-        params
-            .last_updated
-            .unwrap_or_else(|| now - chrono::Duration::days(365)),
-        now,
-    )?;
+    let commits_from = params
+        .last_updated
+        .unwrap_or_else(|| now - chrono::Duration::days(365));
+    let questions_from = params
+        .last_updated
+        .unwrap_or_else(|| now - chrono::Duration::weeks(2));
 
-    let (blobs, commits) = tokio::try_join!(
+    let commits_request =
+        GetCommitsRequest::new(&owner, &repo, "HEAD".to_string(), commits_from, now)?;
+
+    let questions_request = ListQuestionsRequest::new(&owner, &repo, user_id, questions_from, now)?;
+
+    let (blobs, commits, questions) = tokio::try_join!(
         async {
             state
                 .repo_service
@@ -92,6 +92,13 @@ pub async fn get_repository_resources(
                 .await
                 .map_err(AppError::from)
         },
+        async {
+            state
+                .question_service
+                .list_questions(questions_request)
+                .await
+                .map_err(AppError::from)
+        },
     )?;
 
     let resource = api::GetRepositoryResourcesResponse {
@@ -100,6 +107,7 @@ pub async fn get_repository_resources(
         paths: Some(paths.into_api()),
         commits: Some(commits.into_api()),
         blobs: Some(blobs.into_api()),
+        questions: Some(questions.into_api()),
     };
     Ok(AppResponse::new(StatusCode::OK, resource))
 }

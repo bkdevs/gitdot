@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { QuestionResource } from "./question";
 import { CommitFilterResource } from "./settings";
 
 export const SyntaxHighlight = z.enum([
@@ -154,12 +155,20 @@ export type RepositorySettingsResource = z.infer<
   typeof RepositorySettingsResource
 >;
 
+export const RepositoryQuestionsResource = z.object({
+  questions: z.array(QuestionResource),
+});
+export type RepositoryQuestionsResource = z.infer<
+  typeof RepositoryQuestionsResource
+>;
+
 export const RepositoryResourcesResource = z.object({
   last_commit: z.string(),
   last_updated: z.iso.datetime().optional(),
   paths: RepositoryPathsResource.optional(),
   commits: RepositoryCommitsResource.optional(),
   blobs: RepositoryBlobsResource.optional(),
+  questions: RepositoryQuestionsResource.optional(),
 });
 export type RepositoryResourcesResource = z.infer<
   typeof RepositoryResourcesResource

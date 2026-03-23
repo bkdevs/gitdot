@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use chrono::{DateTime, Utc};
 use sqlx::{Error, PgPool};
 use uuid::Uuid;
 
@@ -94,6 +95,97 @@ SELECT
 FROM questions q
 "#;
 
+// Same as QUESTION_DETAILS_QUERY but uses $4 for user_id (freeing $2/$3 for from/to filters)
+const QUESTION_LIST_QUERY: &str = r#"
+SELECT
+    q.id,
+    q.number,
+    q.author_id,
+    q.repository_id,
+    q.title,
+    q.body,
+    q.upvote,
+    q.impression,
+    q.created_at,
+    q.updated_at,
+
+    -- User's vote on question (NULL if user_id is NULL)
+    (SELECT v.value FROM votes v WHERE v.target_id = q.id AND v.user_id = $4) AS user_vote,
+
+    -- Question Author
+    (SELECT json_build_object(
+        'id', u.id, 'name', u.name, 'email', u.email, 'created_at', u.created_at
+    ) FROM users u WHERE u.id = q.author_id) AS author,
+
+    -- Question Comments (with user_vote)
+    COALESCE(
+        (
+            SELECT json_agg(
+                json_build_object(
+                    'id', c.id,
+                    'parent_id', c.parent_id,
+                    'author_id', c.author_id,
+                    'body', c.body,
+                    'upvote', c.upvote,
+                    'user_vote', (SELECT v.value FROM votes v WHERE v.target_id = c.id AND v.user_id = $4),
+                    'created_at', c.created_at,
+                    'updated_at', c.updated_at,
+                    'author', (SELECT json_build_object('id', cu.id, 'name', cu.name, 'email', cu.email, 'created_at', cu.created_at)
+                               FROM users cu WHERE cu.id = c.author_id)
+                ) ORDER BY c.created_at ASC
+            )
+            FROM comments c
+            WHERE c.parent_id = q.id
+        ),
+        '[]'::json
+    ) AS comments,
+
+    -- Answers (with user_vote and nested comments with user_vote)
+    COALESCE(
+        (
+            SELECT json_agg(
+                json_build_object(
+                    'id', a.id,
+                    'question_id', a.question_id,
+                    'author_id', a.author_id,
+                    'body', a.body,
+                    'upvote', a.upvote,
+                    'user_vote', (SELECT v.value FROM votes v WHERE v.target_id = a.id AND v.user_id = $4),
+                    'created_at', a.created_at,
+                    'updated_at', a.updated_at,
+                    'author', (SELECT json_build_object('id', au.id, 'name', au.name, 'email', au.email, 'created_at', au.created_at)
+                               FROM users au WHERE au.id = a.author_id),
+                    'comments', COALESCE(
+                        (
+                            SELECT json_agg(
+                                json_build_object(
+                                    'id', ac.id,
+                                    'parent_id', ac.parent_id,
+                                    'author_id', ac.author_id,
+                                    'body', ac.body,
+                                    'upvote', ac.upvote,
+                                    'user_vote', (SELECT v.value FROM votes v WHERE v.target_id = ac.id AND v.user_id = $4),
+                                    'created_at', ac.created_at,
+                                    'updated_at', ac.updated_at,
+                                    'author', (SELECT json_build_object('id', acu.id, 'name', acu.name, 'email', acu.email, 'created_at', acu.created_at)
+                                               FROM users acu WHERE acu.id = ac.author_id)
+                                ) ORDER BY ac.created_at ASC
+                            )
+                            FROM comments ac
+                            WHERE ac.parent_id = a.id
+                        ),
+                        '[]'::json
+                    )
+                ) ORDER BY a.created_at ASC
+            )
+            FROM answers a
+            WHERE a.question_id = q.id
+        ),
+        '[]'::json
+    ) AS answers
+FROM questions q
+"#;
+
 #[async_trait]
 pub trait QuestionRepository: Send + Sync + Clone + 'static {
     async fn create_question(
@@ -130,6 +222,8 @@ pub trait QuestionRepository: Send + Sync + Clone + 'static {
         &self,
         repository_id: Uuid,
         user_id: Option<Uuid>,
+        from: DateTime<Utc>,
+        to: DateTime<Utc>,
     ) -> Result<Vec<Question>, Error>;
 
     async fn create_answer(
@@ -299,16 +393,18 @@ impl QuestionRepository for QuestionRepositoryImpl {
         &self,
         repository_id: Uuid,
         user_id: Option<Uuid>,
+        from: DateTime<Utc>,
+        to: DateTime<Utc>,
     ) -> Result<Vec<Question>, Error> {
-        // Use $2 as placeholder for number to keep $3 for user_id consistent with QUESTION_DETAILS_QUERY
         let query = format!(
-            "{} WHERE q.repository_id = $1 AND $2::int IS NULL ORDER BY q.created_at DESC",
-            QUESTION_DETAILS_QUERY
+            "{} WHERE q.repository_id = $1 AND q.updated_at >= $2 AND q.updated_at <= $3 ORDER BY q.updated_at ASC",
+            QUESTION_LIST_QUERY
         );
 
         let questions = sqlx::query_as::<_, Question>(&query)
             .bind(repository_id)
-            .bind(None::<i32>)
+            .bind(from)
+            .bind(to)
             .bind(user_id)
             .fetch_all(&self.pool)
             .await?;

@@ -2,6 +2,7 @@ use axum::{
     extract::{Path, State},
     http::StatusCode,
 };
+use chrono::Utc;
 
 use gitdot_api::endpoint::list_questions as api;
 use gitdot_core::dto::{
@@ -28,11 +29,18 @@ pub async fn list_questions(
         .verify_authorized_for_repository(request)
         .await?;
 
-    let request = ListQuestionsRequest::new(&owner, &repo, user_id)?;
+    let now = Utc::now();
+    let request = ListQuestionsRequest::new(
+        &owner,
+        &repo,
+        user_id,
+        now - chrono::Duration::weeks(2),
+        now,
+    )?;
     state
         .question_service
         .list_questions(request)
         .await
         .map_err(AppError::from)
-        .map(|qs| AppResponse::new(StatusCode::OK, qs.into_api()))
+        .map(|qs| AppResponse::new(StatusCode::OK, qs.questions.into_api()))
 }

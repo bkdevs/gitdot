@@ -9,6 +9,8 @@ const gzipAsync = promisify(gzip);
 // TODO: make the client call gitdot-api directly rather than go through the route
 // the main reason we're doing so is authentication, as though we _can_ forward SameSite cookies with
 // Origin set to Lax (i.e., gitdot.io -> api.gitdot.io), we do not have the logic to decode the Supabase JWT key on our backend
+//
+// TODO: should block users from hitting this too, only the worker ever should as it is indeed expensive.
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ owner: string; repo: string }> },

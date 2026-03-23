@@ -22,6 +22,11 @@ pub use create_question::CreateQuestionRequest;
 pub use create_question_comment::CreateQuestionCommentRequest;
 pub use get_question::GetQuestionRequest;
 pub use list_questions::ListQuestionsRequest;
+
+#[derive(Debug, Clone)]
+pub struct QuestionsResponse {
+    pub questions: Vec<QuestionResponse>,
+}
 pub use update_answer::UpdateAnswerRequest;
 pub use update_comment::UpdateCommentRequest;
 pub use update_question::UpdateQuestionRequest;

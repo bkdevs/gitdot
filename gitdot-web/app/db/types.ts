@@ -78,10 +78,7 @@ export interface Database {
     settings: RepositorySettingsResource,
   ): Promise<void>;
 
-  getMetadata(
-    owner: string,
-    repo: string,
-  ): Promise<RepositoryMetadata | null>;
+  getMetadata(owner: string, repo: string): Promise<RepositoryMetadata | null>;
 
   putMetadata(
     owner: string,
