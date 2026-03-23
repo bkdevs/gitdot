@@ -1,30 +1,35 @@
 "use client";
 
-import { racePromises } from "@/util";
-import { DatabaseProvider } from "./database";
+export type {
+  ResourcePromisesType,
+  ResourceRequestsType,
+} from "@/provider/types";
+
+import { DatabaseProvider } from "@/provider/database";
 import type {
   ClientProvider,
   ResourcePromisesType,
   ResourceRequestsType,
-} from "./types";
+} from "@/provider/types";
+import { racePromises } from "@/util";
+import { useRepoContext } from "./context";
 
-export * from "./types";
-
-export function resolveResources<S>(
+export function useResolvePromises<S>(
   owner: string,
   repo: string,
   requests: ResourceRequestsType<S>,
   promises: ResourcePromisesType<S>,
 ): ResourcePromisesType<S> {
-  const db = new DatabaseProvider(owner, repo);
+  const { provider: memoryProvider } = useRepoContext();
+  const dbProvider = new DatabaseProvider(owner, repo);
 
   for (const key of Object.keys(requests)) {
     promises[key as keyof S].then((value) =>
-      db.write(requests[key as keyof S].method, value),
+      dbProvider.write(requests[key as keyof S].method, value),
     );
   }
 
-  return raceRequests([db], requests, promises);
+  return raceRequests([memoryProvider, dbProvider], requests, promises);
 }
 
 function raceRequests<S>(

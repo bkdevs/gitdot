@@ -7,8 +7,8 @@ use chrono::Utc;
 
 use gitdot_api::endpoint::repository::get_repository_resources as api;
 use gitdot_core::dto::{
-    GetCommitsRequest, GetRepositoryBlobsRequest, GetRepositoryPathsRequest, ListQuestionsRequest,
-    ListReviewsRequest, RepositoryAuthorizationRequest, RepositoryPermission,
+    GetCommitsRequest, GetRepositoryBlobsRequest, GetRepositoryPathsRequest, ListBuildsRequest,
+    ListQuestionsRequest, ListReviewsRequest, RepositoryAuthorizationRequest, RepositoryPermission,
 };
 
 use crate::{
@@ -50,6 +50,7 @@ pub async fn get_repository_resources(
                 blobs: None,
                 questions: None,
                 reviews: None,
+                builds: None,
             },
         ));
     }
@@ -80,7 +81,9 @@ pub async fn get_repository_resources(
 
     let reviews_request = ListReviewsRequest::new(&owner, &repo, user_id, resources_from, now)?;
 
-    let (blobs, commits, questions, reviews) = tokio::try_join!(
+    let builds_request = ListBuildsRequest::new(&owner, &repo, resources_from, now)?;
+
+    let (blobs, commits, questions, reviews, builds) = tokio::try_join!(
         async {
             state
                 .repo_service
@@ -109,6 +112,13 @@ pub async fn get_repository_resources(
                 .await
                 .map_err(AppError::from)
         },
+        async {
+            state
+                .build_service
+                .list_builds(builds_request)
+                .await
+                .map_err(AppError::from)
+        },
     )?;
 
     let resource = api::GetRepositoryResourcesResponse {
@@ -119,6 +129,7 @@ pub async fn get_repository_resources(
         blobs: Some(blobs.into_api()),
         questions: Some(questions.into_api()),
         reviews: Some(reviews.into_api()),
+        builds: Some(builds.into_api()),
     };
     Ok(AppResponse::new(StatusCode::OK, resource))
 }

@@ -1,7 +1,16 @@
-use gitdot_api::resource::build as api;
-use gitdot_core::dto::BuildResponse;
+use gitdot_api::resource::{build as api, repository as repo_api};
+use gitdot_core::dto::{BuildResponse, BuildsResponse};
 
 use super::IntoApi;
+
+impl IntoApi for BuildsResponse {
+    type ApiType = repo_api::RepositoryBuildsResource;
+    fn into_api(self) -> Self::ApiType {
+        repo_api::RepositoryBuildsResource {
+            builds: self.builds.into_api(),
+        }
+    }
+}
 
 impl IntoApi for BuildResponse {
     type ApiType = api::BuildResource;

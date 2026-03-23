@@ -8,9 +8,10 @@ import type {
   RepositorySettingsResource,
 } from "gitdot-api";
 import type { Root } from "hast";
-import { ClientProvider } from "./client";
+import { openIdb } from "@/db";
+import { ClientProvider } from "./types";
 
-type MemoryStore = {
+type Store = {
   paths: RepositoryPathsResource | undefined;
   blobs: RepositoryBlobsResource | undefined;
   commits: RepositoryCommitResource[] | undefined;
@@ -20,8 +21,8 @@ type MemoryStore = {
   hast: Map<string, Root>;
 };
 
-export class MemoryProvider extends ClientProvider {
-  private store: MemoryStore = {
+export class InMemoryProvider extends ClientProvider {
+  private store: Store = {
     paths: undefined,
     blobs: undefined,
     commits: undefined,
@@ -61,5 +62,27 @@ export class MemoryProvider extends ClientProvider {
 
   async getSettings(): Promise<RepositorySettingsResource | null> {
     return this.store.settings ?? null;
+  }
+
+  async initialize(): Promise<void> {
+    const db = openIdb();
+    const [paths, blobs, commits, settings, hasts] = await Promise.all([
+      db.getPaths(this.owner, this.repo),
+      db.getBlobs(this.owner, this.repo),
+      db.getCommits(this.owner, this.repo),
+      db.getSettings(this.owner, this.repo),
+      db.getHasts(this.owner, this.repo),
+    ]);
+    if (paths) this.store.paths = paths;
+    if (blobs) {
+      this.store.blobs = blobs;
+      for (const b of blobs.blobs) this.store.blob.set(b.path, b);
+    }
+    if (commits?.length) {
+      this.store.commits = commits;
+      for (const c of commits) this.store.commit.set(c.sha, c);
+    }
+    if (settings) this.store.settings = settings;
+    if (hasts) this.store.hast = hasts;
   }
 }

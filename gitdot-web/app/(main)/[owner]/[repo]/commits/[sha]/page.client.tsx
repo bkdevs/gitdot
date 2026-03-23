@@ -1,12 +1,12 @@
 "use client";
 
 import { Suspense, use } from "react";
-import type { DiffEntry } from "@/actions";
 import {
   type ResourcePromisesType,
   type ResourceRequestsType,
-  resolveResources,
-} from "@/provider/client";
+  useResolvePromises,
+} from "@/(main)/[owner]/[repo]/resources";
+import type { DiffEntry } from "@/actions";
 import { Loading } from "@/ui/loading";
 import type { Resources } from "./page";
 import { CommitBody } from "./ui/commit-body";
@@ -31,7 +31,7 @@ export function PageClient({
   promises: ResourcePromises;
   diffPromise: Promise<DiffEntry[]>;
 }) {
-  const resolvedPromises = resolveResources(owner, repo, requests, promises);
+  const resolvedPromises = useResolvePromises(owner, repo, requests, promises);
 
   return (
     <Suspense>

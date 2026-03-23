@@ -8,7 +8,7 @@ import type {
 } from "gitdot-api";
 import type { Root } from "hast";
 import { openIdb } from "@/db";
-import { ClientProvider } from "./client";
+import { ClientProvider } from "./types";
 
 export class DatabaseProvider extends ClientProvider {
   private db = openIdb();

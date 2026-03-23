@@ -5,8 +5,8 @@ import { Suspense, use, useState } from "react";
 import {
   type ResourcePromisesType,
   type ResourceRequestsType,
-  resolveResources,
-} from "@/provider/client";
+  useResolvePromises,
+} from "@/(main)/[owner]/[repo]/resources";
 import type { Resources } from "./page";
 import { CommitsGrid } from "./ui/commits-grid";
 import { CommitsHeader } from "./ui/commits-header";
@@ -28,7 +28,7 @@ export function PageClient({
   requests: ResourceRequests;
   promises: ResourcePromises;
 }) {
-  const resolvedPromises = resolveResources(owner, repo, requests, promises);
+  const resolvedPromises = useResolvePromises(owner, repo, requests, promises);
   return (
     <Suspense>
       <PageContent promises={resolvedPromises} />

@@ -2,7 +2,10 @@ import { z } from "zod";
 import { BuildResource } from "../../resource";
 import type { Endpoint } from "../endpoint";
 
-export const ListBuildsRequest = z.object({});
+export const ListBuildsRequest = z.object({
+  from: z.iso.datetime().optional(),
+  to: z.iso.datetime().optional(),
+});
 export type ListBuildsRequest = z.infer<typeof ListBuildsRequest>;
 
 export const ListBuildsResponse = z.array(BuildResource);

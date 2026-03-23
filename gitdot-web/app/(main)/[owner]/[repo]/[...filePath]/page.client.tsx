@@ -4,8 +4,8 @@ import { Suspense, use } from "react";
 import {
   type ResourcePromisesType,
   type ResourceRequestsType,
-  resolveResources,
-} from "@/provider/client";
+  useResolvePromises,
+} from "@/(main)/[owner]/[repo]/resources";
 import type { Resources } from "./page";
 import { FileBody } from "./ui/file-body";
 import { FolderViewer } from "./ui/folder-viewer";
@@ -31,7 +31,7 @@ export function PageClient({
 }) {
   // TODO: this is being re-invoked many times as history slot streams in? selected lines too?
   // in general resolveResources is fine to use as long as it is strictly owner, repo, requests, promises
-  const resolvedPromises = resolveResources(owner, repo, requests, promises);
+  const resolvedPromises = useResolvePromises(owner, repo, requests, promises);
   return (
     <Suspense>
       <PageContent

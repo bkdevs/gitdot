@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { BuildResource } from "./build";
 import { QuestionResource } from "./question";
 import { ReviewResource } from "./review";
 import { CommitFilterResource } from "./settings";
@@ -170,6 +171,11 @@ export type RepositoryReviewsResource = z.infer<
   typeof RepositoryReviewsResource
 >;
 
+export const RepositoryBuildsResource = z.object({
+  builds: z.array(BuildResource),
+});
+export type RepositoryBuildsResource = z.infer<typeof RepositoryBuildsResource>;
+
 export const RepositoryResourcesResource = z.object({
   last_commit: z.string(),
   last_updated: z.iso.datetime().optional(),
@@ -178,6 +184,7 @@ export const RepositoryResourcesResource = z.object({
   blobs: RepositoryBlobsResource.optional(),
   questions: RepositoryQuestionsResource.optional(),
   reviews: RepositoryReviewsResource.optional(),
+  builds: RepositoryBuildsResource.optional(),
 });
 export type RepositoryResourcesResource = z.infer<
   typeof RepositoryResourcesResource

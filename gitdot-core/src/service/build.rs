@@ -7,8 +7,8 @@ use uuid::Uuid;
 use crate::{
     client::{Git2Client, GitClient, S2Client, S2ClientImpl},
     dto::{
-        BuildResponse, CiConfig, CreateBuildRequest, ListBuildsRequest, RepositoryBlobResponse,
-        TaskResponse,
+        BuildResponse, BuildsResponse, CiConfig, CreateBuildRequest, ListBuildsRequest,
+        RepositoryBlobResponse, TaskResponse,
     },
     error::{BuildError, GitError},
     model::{BuildStatus, TaskStatus},
@@ -23,10 +23,7 @@ use crate::{
 pub trait BuildService: Send + Sync + 'static {
     async fn create_build(&self, request: CreateBuildRequest) -> Result<BuildResponse, BuildError>;
 
-    async fn list_builds(
-        &self,
-        request: ListBuildsRequest,
-    ) -> Result<Vec<BuildResponse>, BuildError>;
+    async fn list_builds(&self, request: ListBuildsRequest) -> Result<BuildsResponse, BuildError>;
 
     async fn get_build(
         &self,
@@ -222,10 +219,7 @@ where
         })
     }
 
-    async fn list_builds(
-        &self,
-        request: ListBuildsRequest,
-    ) -> Result<Vec<BuildResponse>, BuildError> {
+    async fn list_builds(&self, request: ListBuildsRequest) -> Result<BuildsResponse, BuildError> {
         let owner = request.repo_owner.as_ref();
         let repo = request.repo_name.as_ref();
 
@@ -238,11 +232,13 @@ where
 
         let builds = self
             .build_repo
-            .list_by_repo(repository.id)
+            .list_by_repo(repository.id, request.from, request.to)
             .await
             .map_err(BuildError::DatabaseError)?;
 
-        Ok(builds.into_iter().map(Into::into).collect())
+        Ok(BuildsResponse {
+            builds: builds.into_iter().map(Into::into).collect(),
+        })
     }
 
     async fn get_build(

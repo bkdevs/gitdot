@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use chrono::{DateTime, Utc};
 use sqlx::{Error, PgPool};
 use uuid::Uuid;
 
@@ -16,7 +17,12 @@ pub trait BuildRepository: Send + Sync + Clone + 'static {
 
     async fn get(&self, repository_id: Uuid, number: i32) -> Result<Option<Build>, Error>;
 
-    async fn list_by_repo(&self, repository_id: Uuid) -> Result<Vec<BuildWithStats>, Error>;
+    async fn list_by_repo(
+        &self,
+        repository_id: Uuid,
+        from: DateTime<Utc>,
+        to: DateTime<Utc>,
+    ) -> Result<Vec<BuildWithStats>, Error>;
 }
 
 #[derive(Debug, Clone)]
@@ -72,7 +78,12 @@ impl BuildRepository for BuildRepositoryImpl {
         Ok(build)
     }
 
-    async fn list_by_repo(&self, repository_id: Uuid) -> Result<Vec<BuildWithStats>, Error> {
+    async fn list_by_repo(
+        &self,
+        repository_id: Uuid,
+        from: DateTime<Utc>,
+        to: DateTime<Utc>,
+    ) -> Result<Vec<BuildWithStats>, Error> {
         let builds = sqlx::query_as::<_, BuildWithStats>(
             r#"
             SELECT
@@ -89,12 +100,14 @@ impl BuildRepository for BuildRepositoryImpl {
                 COALESCE(MAX(t.updated_at), b.created_at) AS updated_at
             FROM builds b
             LEFT JOIN tasks t ON t.build_id = b.id
-            WHERE b.repository_id = $1
+            WHERE b.repository_id = $1 AND b.created_at >= $2 AND b.created_at <= $3
             GROUP BY b.id, b.number, b.repository_id, b.ref_name, b.trigger, b.commit_sha, b.created_at
             ORDER BY b.created_at DESC
             "#,
         )
         .bind(repository_id)
+        .bind(from)
+        .bind(to)
         .fetch_all(&self.pool)
         .await?;
 

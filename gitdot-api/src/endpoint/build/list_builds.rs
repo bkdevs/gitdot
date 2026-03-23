@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::{endpoint::Endpoint, resource::BuildResource};
@@ -13,6 +14,11 @@ impl Endpoint for ListBuilds {
 }
 
 #[derive(ApiRequest, Debug, Serialize, Deserialize)]
-pub struct ListBuildsRequest {}
+pub struct ListBuildsRequest {
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub from: Option<DateTime<Utc>>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub to: Option<DateTime<Utc>>,
+}
 
 pub type ListBuildsResponse = Vec<BuildResource>;

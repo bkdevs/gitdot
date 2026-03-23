@@ -4,8 +4,8 @@ import { Suspense, use } from "react";
 import {
   type ResourcePromisesType,
   type ResourceRequestsType,
-  resolveResources,
-} from "@/provider/client";
+  useResolvePromises,
+} from "@/(main)/[owner]/[repo]/resources";
 import { FolderViewer } from "../../[...filePath]/ui/folder-viewer";
 import { getFolderEntries } from "../../util";
 import type { Resources } from "./page";
@@ -24,7 +24,7 @@ export function PageClient({
   requests: ResourceRequests;
   promises: ResourcePromises;
 }) {
-  const resolvedPromises = resolveResources(owner, repo, requests, promises);
+  const resolvedPromises = useResolvePromises(owner, repo, requests, promises);
   return (
     <Suspense>
       <PageContent owner={owner} repo={repo} promises={resolvedPromises} />

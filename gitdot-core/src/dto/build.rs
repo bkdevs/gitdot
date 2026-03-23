@@ -44,4 +44,7 @@ impl From<BuildWithStats> for BuildResponse {
     }
 }
 
-pub type ListBuildsResponse = Vec<BuildResponse>;
+#[derive(Debug, Clone)]
+pub struct BuildsResponse {
+    pub builds: Vec<BuildResponse>,
+}

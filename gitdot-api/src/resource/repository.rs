@@ -3,7 +3,8 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::resource::{
-    question::QuestionResource, review::ReviewResource, settings::CommitFilterResource,
+    build::BuildResource, question::QuestionResource, review::ReviewResource,
+    settings::CommitFilterResource,
 };
 
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -173,6 +174,11 @@ pub struct RepositoryReviewsResource {
 }
 
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RepositoryBuildsResource {
+    pub builds: Vec<BuildResource>,
+}
+
+#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RepositoryResourcesResource {
     pub last_commit: String,
     pub last_updated: Option<DateTime<Utc>>,
@@ -186,4 +192,6 @@ pub struct RepositoryResourcesResource {
     pub questions: Option<RepositoryQuestionsResource>,
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub reviews: Option<RepositoryReviewsResource>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub builds: Option<RepositoryBuildsResource>,
 }

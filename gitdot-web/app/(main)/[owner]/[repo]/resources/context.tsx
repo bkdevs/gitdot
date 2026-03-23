@@ -1,13 +1,15 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { useWorkerContext } from "@/(main)/context/worker";
+import { InMemoryProvider } from "@/provider/memory";
 
-type RepoResourcesState = {
+type RepoContext = {
   resourcesReady: boolean;
   hastsReady: boolean;
+  provider: InMemoryProvider;
 };
-const RepoResourcesState = createContext<RepoResourcesState | null>(null);
+const RepoContext = createContext<RepoContext | null>(null);
 
 export function RepoResources({
   owner,
@@ -21,10 +23,21 @@ export function RepoResources({
   const { sync } = useWorkerContext();
   const [resourcesReady, setResourcesReady] = useState(false);
   const [hastsReady, setHastsReady] = useState(false);
+  const provider = useRef(new InMemoryProvider(owner, repo)).current;
+
+  useEffect(() => {
+    provider.initialize();
+  }, [provider]);
+
+  useEffect(() => {
+    if (resourcesReady) provider.initialize();
+  }, [resourcesReady, provider]);
 
   useEffect(() => {
     if (!sync) return;
-    const handler = (e: MessageEvent<RepoResourcesState>) => {
+    const handler = (
+      e: MessageEvent<{ resourcesReady: boolean; hastsReady: boolean }>,
+    ) => {
       setResourcesReady(e.data.resourcesReady);
       setHastsReady(e.data.hastsReady);
     };
@@ -35,19 +48,20 @@ export function RepoResources({
   }, [sync, owner, repo]);
 
   return (
-    <RepoResourcesState
+    <RepoContext
       value={{
         resourcesReady,
         hastsReady,
+        provider,
       }}
     >
       {children}
-    </RepoResourcesState>
+    </RepoContext>
   );
 }
 
-export function useRepoResources(): RepoResourcesState {
-  const ctx = useContext(RepoResourcesState);
-  if (!ctx) throw new Error("useRepoContext must be used within RepoClient");
+export function useRepoContext(): RepoContext {
+  const ctx = useContext(RepoContext);
+  if (!ctx) throw new Error("useRepoContext must be used within RepoResources");
   return ctx;
 }

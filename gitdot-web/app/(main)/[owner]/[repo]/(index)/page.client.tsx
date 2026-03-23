@@ -4,8 +4,8 @@ import { Suspense, use } from "react";
 import {
   type ResourcePromisesType,
   type ResourceRequestsType,
-  resolveResources,
-} from "@/provider/client";
+  useResolvePromises,
+} from "@/(main)/[owner]/[repo]/resources";
 import { MarkdownBody } from "../ui/markdown/markdown-body";
 import type { Resources } from "./page";
 
@@ -23,7 +23,7 @@ export function PageClient({
   requests: ResourceRequests;
   promises: ResourcePromises;
 }) {
-  const resolvedPromises = resolveResources(owner, repo, requests, promises);
+  const resolvedPromises = useResolvePromises(owner, repo, requests, promises);
   return (
     <Suspense>
       <PageContent promises={resolvedPromises} />

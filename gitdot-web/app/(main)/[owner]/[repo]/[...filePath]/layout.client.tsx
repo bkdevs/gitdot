@@ -6,8 +6,8 @@ import { Suspense, use, useMemo } from "react";
 import {
   type ResourcePromisesType,
   type ResourceRequestsType,
-  resolveResources,
-} from "@/provider/client";
+  useResolvePromises,
+} from "@/(main)/[owner]/[repo]/resources";
 import Link from "@/ui/link";
 import { OverlayScroll } from "@/ui/scroll";
 import { Sidebar, SidebarContent } from "@/ui/sidebar";
@@ -30,7 +30,7 @@ export function LayoutClient({
   promises: ResourcePromises;
   children: React.ReactNode;
 }) {
-  const resolvedPromises = resolveResources(owner, repo, requests, promises);
+  const resolvedPromises = useResolvePromises(owner, repo, requests, promises);
   return (
     <Suspense>
       <FileSidebar owner={owner} repo={repo} promises={resolvedPromises} />
