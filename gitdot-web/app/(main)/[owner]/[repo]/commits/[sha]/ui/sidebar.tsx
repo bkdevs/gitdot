@@ -1,13 +1,35 @@
 "use client";
 
+import { useLeftSidebar } from "@/(main)/hooks/use-sidebar";
+import Link from "@/ui/link";
+import { Sidebar, SidebarContent } from "@/ui/sidebar";
+import { timeAgo } from "@/util";
 import { Undo2 } from "lucide-react";
 import { useParams } from "next/navigation";
 import { use } from "react";
-import Link from "@/ui/link";
-import { timeAgo } from "@/util";
-import { useRepoContext } from "../../context";
+import { useRepoContext } from "../../../context";
 
-export function RepoSidebarCommits() {
+const SIDEBAR_WIDTH = "15rem";
+
+export function CommitSidebar() {
+  const open = useLeftSidebar();
+  if (!open) return null;
+
+  return (
+    <div className="flex-col h-full! border-r shrink-0">
+      <Sidebar
+        className="bg-background h-full!"
+        style={{ width: SIDEBAR_WIDTH }}
+      >
+        <SidebarContent className="overflow-auto">
+          <CommitSidebarContent />
+        </SidebarContent>
+      </Sidebar>
+    </div>
+  );
+}
+
+function CommitSidebarContent() {
   const { owner, repo, sha } = useParams<{
     owner: string;
     repo: string;
