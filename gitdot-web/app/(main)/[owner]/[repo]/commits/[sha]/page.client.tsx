@@ -34,7 +34,7 @@ export function PageClient({
   const resolvedPromises = useResolvePromises(owner, repo, requests, promises);
 
   return (
-    <Suspense>
+    <Suspense fallback={<Loading />}>
       <PageContent promises={resolvedPromises} diffPromise={diffPromise} />
     </Suspense>
   );

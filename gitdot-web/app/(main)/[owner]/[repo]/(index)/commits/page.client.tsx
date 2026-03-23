@@ -7,6 +7,7 @@ import {
   type ResourceRequestsType,
   useResolvePromises,
 } from "@/(main)/[owner]/[repo]/resources";
+import { Loading } from "@/ui/loading";
 import type { Resources } from "./page";
 import { CommitsGrid } from "./ui/commits-grid";
 import { CommitsHeader } from "./ui/commits-header";
@@ -30,7 +31,7 @@ export function PageClient({
 }) {
   const resolvedPromises = useResolvePromises(owner, repo, requests, promises);
   return (
-    <Suspense>
+    <Suspense fallback={<Loading />}>
       <PageContent promises={resolvedPromises} />
     </Suspense>
   );

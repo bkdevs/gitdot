@@ -6,6 +6,7 @@ import {
   type ResourceRequestsType,
   useResolvePromises,
 } from "@/(main)/[owner]/[repo]/resources";
+import { Loading } from "@/ui/loading";
 import { FolderViewer } from "../../[...filePath]/ui/folder-viewer";
 import { getFolderEntries } from "../../util";
 import type { Resources } from "./page";
@@ -26,7 +27,7 @@ export function PageClient({
 }) {
   const resolvedPromises = useResolvePromises(owner, repo, requests, promises);
   return (
-    <Suspense>
+    <Suspense fallback={<Loading />}>
       <PageContent owner={owner} repo={repo} promises={resolvedPromises} />
     </Suspense>
   );

@@ -6,6 +6,7 @@ import {
   type ResourceRequestsType,
   useResolvePromises,
 } from "@/(main)/[owner]/[repo]/resources";
+import { Loading } from "@/ui/loading";
 import { MarkdownBody } from "../ui/markdown/markdown-body";
 import type { Resources } from "./page";
 
@@ -25,7 +26,7 @@ export function PageClient({
 }) {
   const resolvedPromises = useResolvePromises(owner, repo, requests, promises);
   return (
-    <Suspense>
+    <Suspense fallback={<Loading />}>
       <PageContent promises={resolvedPromises} />
     </Suspense>
   );

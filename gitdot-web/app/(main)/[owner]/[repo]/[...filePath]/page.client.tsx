@@ -6,6 +6,7 @@ import {
   type ResourceRequestsType,
   useResolvePromises,
 } from "@/(main)/[owner]/[repo]/resources";
+import { Loading } from "@/ui/loading";
 import type { Resources } from "./page";
 import { FileBody } from "./ui/file-body";
 import { FolderViewer } from "./ui/folder-viewer";
@@ -33,7 +34,7 @@ export function PageClient({
   // in general resolveResources is fine to use as long as it is strictly owner, repo, requests, promises
   const resolvedPromises = useResolvePromises(owner, repo, requests, promises);
   return (
-    <Suspense>
+    <Suspense fallback={<Loading />}>
       <PageContent
         owner={owner}
         repo={repo}
