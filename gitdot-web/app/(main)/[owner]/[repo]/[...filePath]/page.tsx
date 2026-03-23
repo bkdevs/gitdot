@@ -1,11 +1,17 @@
-import { Suspense } from "react";
 import { getRepositoryBlob, getRepositoryFileCommits } from "@/dal";
+import { fetchResources } from "@/provider/server";
 import { Loading } from "@/ui/loading";
-import { FileBlobClient } from "./ui/file-blob-client";
+import type { RepositoryBlobResource } from "gitdot-api";
+import { Suspense } from "react";
+import { PageClient } from "./page.client";
 import { FileHistoryLoader } from "./ui/file-history-loader";
 import { FileViewer } from "./ui/file-viewer";
 import { FolderViewer } from "./ui/folder-viewer";
 import { parseLineSelection } from "./util";
+
+export type Resources = {
+  blob: RepositoryBlobResource | null;
+};
 
 export default async function Page({
   params,
@@ -19,6 +25,11 @@ export default async function Page({
 }) {
   const { owner, repo, filePath } = await params;
   const { lines, ref } = await searchParams;
+
+  const { requests, promises } = fetchResources(owner, repo, {
+    // TODO: add ref here + fix file history commits
+    blob: (p) => p.getBlob(filePath.join("/")),
+  });
 
   const filePathString = decodeURIComponent(filePath.join("/"));
   const selectedLines = parseLineSelection(lines);
@@ -46,23 +57,24 @@ export default async function Page({
     );
   }
 
-  // Default ref: use context blobs, history in Suspense
+  // Default ref: use resources, but fetch file history manually still
   const commitsPromise = getRepositoryFileCommits(owner, repo, {
     path: filePathString,
   });
 
   return (
     <Suspense fallback={<Loading />}>
-      <FileBlobClient
+      <PageClient
         owner={owner}
         repo={repo}
-        path={filePathString}
         selectedLines={selectedLines}
         historySlot={
           <Suspense fallback={<div className="w-64 border-l" />}>
             <FileHistoryLoader commitsPromise={commitsPromise} />
           </Suspense>
         }
+        requests={requests}
+        promises={promises}
       />
     </Suspense>
   );

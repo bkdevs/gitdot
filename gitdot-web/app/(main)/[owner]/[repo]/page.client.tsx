@@ -1,9 +1,16 @@
 "use client";
 
 import { Suspense, use } from "react";
-import { resolveResources } from "@/provider/client";
-import type { ResourcePromises, ResourceRequests } from "./page";
+import {
+  type ResourcePromisesType,
+  type ResourceRequestsType,
+  resolveResources,
+} from "@/provider/client";
+import type { Resources } from "./page";
 import { MarkdownBody } from "./ui/markdown/markdown-body";
+
+type ResourceRequests = ResourceRequestsType<Resources>;
+type ResourcePromises = ResourcePromisesType<Resources>;
 
 export function PageClient({
   owner,

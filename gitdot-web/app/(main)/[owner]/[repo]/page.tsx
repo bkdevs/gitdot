@@ -1,16 +1,10 @@
 import type { RepositoryBlobResource } from "gitdot-api";
-import {
-  fetchResources,
-  type ResourcePromisesType,
-  type ResourceRequestsType,
-} from "@/provider/server";
+import { fetchResources } from "@/provider/server";
 import { PageClient } from "./page.client";
 
-type Resources = {
+export type Resources = {
   readme: RepositoryBlobResource | null;
 };
-export type ResourcePromises = ResourcePromisesType<Resources>;
-export type ResourceRequests = ResourceRequestsType<Resources>;
 
 export default async function Page({
   params,
