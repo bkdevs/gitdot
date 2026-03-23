@@ -1,4 +1,5 @@
 import type {
+  QuestionResource,
   RepositoryBlobResource,
   RepositoryBlobsResource,
   RepositoryCommitResource,
@@ -46,6 +47,7 @@ export abstract class RepoProvider {
   abstract getCommits(): Promise<RepositoryCommitResource[] | null>;
   abstract getBlobs(): Promise<RepositoryBlobsResource | null>;
   abstract getSettings(): Promise<RepositorySettingsResource | null>;
+  abstract getQuestions(): Promise<QuestionResource[] | null>;
 }
 
 export abstract class ServerProvider extends RepoProvider {

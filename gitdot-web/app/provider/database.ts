@@ -1,6 +1,7 @@
 "use client";
 
 import type {
+  QuestionResource,
   RepositoryBlobsResource,
   RepositoryCommitResource,
   RepositoryPathsResource,
@@ -73,7 +74,16 @@ export class DatabaseProvider extends ClientProvider {
     getCommits: (v) => this.putCommits(v as RepositoryCommitResource[]),
     getBlobs: (v) => this.putBlobs(v as RepositoryBlobsResource),
     getSettings: (v) => this.putSettings(v as RepositorySettingsResource),
+    getQuestions: (v) => this.putQuestions(v as QuestionResource[]),
   };
+
+  async getQuestions(): Promise<QuestionResource[] | null> {
+    return this.db.getQuestions(this.owner, this.repo);
+  }
+
+  async putQuestions(questions: QuestionResource[]) {
+    return this.db.putQuestions(this.owner, this.repo, questions);
+  }
 
   write(method: string, value: unknown) {
     if (!value) return;

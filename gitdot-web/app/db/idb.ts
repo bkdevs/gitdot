@@ -1,5 +1,6 @@
 "use client";
 
+import type { QuestionResource } from "gitdot-api";
 import type { Root } from "hast";
 import { type IDBPDatabase, openDB } from "idb";
 import type { Database, RepositoryMetadata } from "./types";
@@ -15,7 +16,7 @@ const blobKey = (owner: string, repo: string, path: string) =>
 let dbPromise: Promise<IDBPDatabase> | null = null;
 function getDb(): Promise<IDBPDatabase> {
   if (!dbPromise) {
-    dbPromise = openDB("gitdot", 5, {
+    dbPromise = openDB("gitdot", 6, {
       upgrade(db) {
         if (!db.objectStoreNames.contains("commits"))
           db.createObjectStore("commits");
@@ -29,6 +30,8 @@ function getDb(): Promise<IDBPDatabase> {
           db.createObjectStore("settings");
         if (!db.objectStoreNames.contains("metadata"))
           db.createObjectStore("metadata");
+        if (!db.objectStoreNames.contains("questions"))
+          db.createObjectStore("questions");
       },
     });
   }
@@ -172,6 +175,16 @@ export function openIdb(): Database {
     async putSettings(owner, repo, settings) {
       const db = await getDb();
       await db.put("settings", settings, repoKey(owner, repo));
+    },
+
+    async getQuestions(owner, repo): Promise<QuestionResource[] | null> {
+      const db = await getDb();
+      return (await db.get("questions", repoKey(owner, repo))) ?? null;
+    },
+
+    async putQuestions(owner, repo, questions: QuestionResource[]) {
+      const db = await getDb();
+      await db.put("questions", questions, repoKey(owner, repo));
     },
 
     async getMetadata(owner, repo) {

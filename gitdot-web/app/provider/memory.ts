@@ -2,6 +2,7 @@
 
 import { openIdb } from "@/db";
 import type {
+  QuestionResource,
   RepositoryBlobResource,
   RepositoryBlobsResource,
   RepositoryCommitResource,
@@ -16,6 +17,7 @@ type Store = {
   blobs: RepositoryBlobsResource | undefined;
   commits: RepositoryCommitResource[] | undefined;
   settings: RepositorySettingsResource | undefined;
+  questions: QuestionResource[] | undefined;
   blob: Map<string, RepositoryBlobResource>;
   commit: Map<string, RepositoryCommitResource>;
   hast: Map<string, Root>;
@@ -27,6 +29,7 @@ export class InMemoryProvider extends ClientProvider {
     blobs: undefined,
     commits: undefined,
     settings: undefined,
+    questions: undefined,
     blob: new Map(),
     commit: new Map(),
     hast: new Map(),
@@ -68,14 +71,19 @@ export class InMemoryProvider extends ClientProvider {
     return this.store.settings ?? null;
   }
 
+  async getQuestions(): Promise<QuestionResource[] | null> {
+    return this.store.questions ?? null;
+  }
+
   async initialize(): Promise<void> {
     const db = openIdb();
-    const [paths, blobs, commits, settings, hasts] = await Promise.all([
+    const [paths, blobs, commits, settings, hasts, questions] = await Promise.all([
       db.getPaths(this.owner, this.repo),
       db.getBlobs(this.owner, this.repo),
       db.getCommits(this.owner, this.repo),
       db.getSettings(this.owner, this.repo),
       db.getHasts(this.owner, this.repo),
+      db.getQuestions(this.owner, this.repo),
     ]);
     if (paths) this.store.paths = paths;
     if (blobs) {
@@ -88,5 +96,6 @@ export class InMemoryProvider extends ClientProvider {
     }
     if (settings) this.store.settings = settings;
     if (hasts) this.store.hast = hasts;
+    if (questions?.length) this.store.questions = questions;
   }
 }

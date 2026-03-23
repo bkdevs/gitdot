@@ -7,7 +7,7 @@ import {
 } from "@/ui/dropdown-menu";
 import { cn } from "@/util";
 import { CreateQuestionButton } from "./create-question-button";
-import type { QuestionsFilter, QuestionsSort } from "./questions-client";
+import type { QuestionsFilter, QuestionsSort } from "../page.client";
 
 export function QuestionsHeader({
   owner,

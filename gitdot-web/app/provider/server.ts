@@ -1,6 +1,7 @@
 import "server-only";
 
 import type {
+  QuestionResource,
   RepositoryBlobResource,
   RepositoryBlobsResource,
   RepositoryCommitResource,
@@ -9,6 +10,7 @@ import type {
 } from "gitdot-api";
 import type { Root } from "hast";
 import { getRepositoryHast } from "@/actions/repository";
+import { listQuestions } from "@/dal/question";
 import {
   getRepositoryBlob,
   getRepositoryBlobs,
@@ -63,5 +65,9 @@ export class ApiProvider extends ServerProvider {
 
   async getSettings(): Promise<RepositorySettingsResource | null> {
     return await getRepositorySettings(this.owner, this.repo);
+  }
+
+  async getQuestions(): Promise<QuestionResource[] | null> {
+    return await listQuestions(this.owner, this.repo);
   }
 }
