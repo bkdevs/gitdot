@@ -44,7 +44,7 @@ export function RepoSidebar({
   };
 
   return (
-    <div className="hidden md:flex flex-col h-full border-r shrink-0">
+    <div className="flex-col h-full! border-r shrink-0">
       <Sidebar
         className="bg-background h-full!"
         style={{ width: SIDEBAR_WIDTH }}

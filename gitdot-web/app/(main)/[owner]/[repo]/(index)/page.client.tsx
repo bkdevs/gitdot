@@ -7,7 +7,7 @@ import {
   resolveResources,
 } from "@/provider/client";
 import type { Resources } from "./page";
-import { MarkdownBody } from "./ui/markdown/markdown-body";
+import { MarkdownBody } from "../ui/markdown/markdown-body";
 
 type ResourceRequests = ResourceRequestsType<Resources>;
 type ResourcePromises = ResourcePromisesType<Resources>;
