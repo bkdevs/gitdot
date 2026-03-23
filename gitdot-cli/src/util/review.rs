@@ -35,12 +35,13 @@ pub async fn save_review_branch(git: &GitWrapper, branch: &str) -> anyhow::Resul
     Ok(())
 }
 
-pub async fn load_review_branch(git: &GitWrapper) -> anyhow::Result<String> {
+pub async fn load_review_branch(git: &GitWrapper) -> anyhow::Result<Option<String>> {
     let path = get_review_branch_path(git).await?;
-    let branch = fs::read_to_string(&path)
-        .await
-        .context("No review checkout in progress. Run `gdot review checkout` first.")?;
-    Ok(branch.trim().to_string())
+    match fs::read_to_string(&path).await {
+        Ok(branch) => Ok(Some(branch.trim().to_string())),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(None),
+        Err(e) => Err(e.into()),
+    }
 }
 
 pub async fn clear_review_branch(git: &GitWrapper) -> anyhow::Result<()> {
