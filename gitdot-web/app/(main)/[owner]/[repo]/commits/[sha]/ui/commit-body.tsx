@@ -3,11 +3,11 @@ import type { DiffEntry } from "@/actions";
 import { DiffBody } from "./diff-body";
 
 export function CommitBody({
-  diffEntries: diffData,
+  diffPromise,
 }: {
-  diffEntries: Promise<DiffEntry[]>;
+  diffPromise: Promise<DiffEntry[]>;
 }) {
-  const entries = use(diffData);
+  const entries = use(diffPromise);
 
   return (
     <div className="flex flex-col">

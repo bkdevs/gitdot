@@ -1,6 +1,11 @@
-import { Suspense } from "react";
 import { renderCommitDiffAction } from "@/actions";
-import { CommitClient } from "./ui/commit-client";
+import { fetchResources } from "@/provider/server";
+import type { RepositoryCommitResource } from "gitdot-api";
+import { PageClient } from "./page.client";
+
+export type Resources = {
+  commit: RepositoryCommitResource | null;
+};
 
 export default async function Page({
   params,
@@ -8,11 +13,17 @@ export default async function Page({
   params: Promise<{ owner: string; repo: string; sha: string }>;
 }) {
   const { owner, repo, sha } = await params;
-  const diffEntries = renderCommitDiffAction(owner, repo, sha);
+  const { requests, promises } = fetchResources(owner, repo, {
+    commit: (p) => p.getCommit(sha)
+  });
+  const diffPromise = renderCommitDiffAction(owner, repo, sha);
 
-  return (
-    <Suspense>
-      <CommitClient sha={sha} diffEntries={diffEntries} />
-    </Suspense>
-  );
+  return <PageClient
+    owner={owner}
+    repo={repo}
+    requests={requests}
+    promises={promises}
+    diffPromise={diffPromise}
+  />
+
 }

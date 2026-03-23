@@ -1,0 +1,54 @@
+"use client";
+
+import { Suspense, use } from "react";
+import type { DiffEntry } from "@/actions";
+import { Loading } from "@/ui/loading";
+import { CommitBody } from "./ui/commit-body";
+import { CommitHeader } from "./ui/commit-header";
+import { CommitShortcuts } from "./ui/commit-shortcuts";
+import {
+  type ResourcePromisesType,
+  type ResourceRequestsType,
+  resolveResources,
+} from "@/provider/client";
+import type { Resources } from "./page";
+
+type ResourceRequests = ResourceRequestsType<Resources>;
+type ResourcePromises = ResourcePromisesType<Resources>;
+
+export function PageClient({
+  owner,
+  repo,
+  requests,
+  promises,
+  diffPromise,
+}: {
+  owner: string;
+  repo: string;
+  requests: ResourceRequests,
+  promises: ResourcePromises
+  diffPromise: Promise<DiffEntry[]>;
+}) {
+  const resolvedPromises = resolveResources(owner, repo, requests, promises);
+
+  return (
+    <Suspense>
+      <PageContent promises={resolvedPromises} diffPromise={diffPromise} />
+    </Suspense>
+  );
+}
+
+function PageContent({ promises, diffPromise }: { promises: ResourcePromises, diffPromise: Promise<DiffEntry[]>}) {
+  const commit = use(promises.commit);
+  if (!commit) return null;
+
+  return (
+    <div data-diff-top className="flex flex-col w-full">
+      <CommitHeader commit={commit} stats={commit.diffs} />
+      <Suspense fallback={<Loading />}>
+        <CommitBody diffPromise={diffPromise} />
+      </Suspense>
+      <CommitShortcuts />
+    </div>
+  );
+}
