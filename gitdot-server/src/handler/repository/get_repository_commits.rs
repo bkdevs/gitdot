@@ -13,14 +13,13 @@ use gitdot_core::{
 use crate::{
     app::{AppError, AppResponse, AppState},
     dto::IntoApi,
-    extract::{ClientCookies, Principal, User},
+    extract::{Principal, User},
 };
 
 // TODO: this does not support ref in request as of now, service ignores it.
 #[axum::debug_handler]
 pub async fn get_repository_commits(
     auth_user: Option<Principal<User>>,
-    client_cookies: ClientCookies,
     State(state): State<AppState>,
     Path((owner, repo)): Path<(String, String)>,
     Query(params): Query<api::GetRepositoryCommitsRequest>,
@@ -40,17 +39,6 @@ pub async fn get_repository_commits(
         return Err(AppError::Commit(CommitError::InvalidDateRange(
             "`to` requires `from` to be set".into(),
         )));
-    }
-
-    if let Some(client_sha) = client_cookies.sha {
-        let latest_sha = state
-            .repo_service
-            .resolve_ref_sha(&owner, &repo, &params.ref_name)
-            .await
-            .map_err(AppError::from)?;
-        if latest_sha == client_sha {
-            return Ok(AppResponse::NotModified);
-        }
     }
 
     let now = Utc::now();

@@ -10,6 +10,5 @@ export function fetchResources<T extends ResourceDefinition>(
   repo: string,
   resources: T,
 ) {
-  console.log("CALLING FETCH REOSURCES");
   return new ApiProvider(owner, repo).fetch(resources);
 }
