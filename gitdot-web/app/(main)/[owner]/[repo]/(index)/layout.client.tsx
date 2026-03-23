@@ -5,18 +5,15 @@ import Link from "@/ui/link";
 import { OverlayScroll } from "@/ui/scroll";
 import { Sidebar, SidebarContent } from "@/ui/sidebar";
 
-const navItems = [
+export const NAV_ITEMS = [
   { path: "", label: "/home" },
   { path: "files", label: "/files" },
   { path: "commits", label: "/commits" },
   { path: "questions", label: "/questions" },
   { path: "reviews", label: "/reviews" },
   { path: "builds", label: "/builds" },
+  { path: "settings", label: "/settings", protected: true },
 ];
-
-export const NAV_SECTIONS = new Set(
-  [...navItems.map((i) => i.path), "settings"].filter(Boolean),
-);
 
 export function LayoutClient({
   owner,
@@ -49,9 +46,7 @@ function IndexSidebar({
   const pathname = usePathname();
   const path = pathname.replace(`/${owner}/${repo}`, "") || "/";
 
-  const items = showSettings
-    ? [...navItems, { path: "settings", label: "/settings" }]
-    : navItems;
+  const items = NAV_ITEMS.filter((i) => !i.protected || showSettings);
   const isActive = (itemPath: string) => {
     const full = `/${itemPath}`;
     return path === full || path.startsWith(`${full}/`);

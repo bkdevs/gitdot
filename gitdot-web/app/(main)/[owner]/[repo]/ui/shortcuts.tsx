@@ -9,7 +9,9 @@ import {
   useRef,
 } from "react";
 import { type Shortcut, useShortcuts } from "@/(main)/context/shortcuts";
-import { NAV_SECTIONS } from "../(index)/layout.client";
+import { NAV_ITEMS } from "../(index)/layout.client";
+
+const NAV_SECTIONS = new Set(NAV_ITEMS.map((i) => i.path).filter(Boolean));
 
 export function RepoShortcuts() {
   const router = useRouter();

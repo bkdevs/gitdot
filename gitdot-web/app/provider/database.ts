@@ -22,10 +22,7 @@ export class DatabaseProvider extends ClientProvider {
   }
 
   async getBlob(path: string) {
-    console.log(path);
-    const result = this.db.getBlob(this.owner, this.repo, path);
-    console.log(result);
-    return result;
+    return this.db.getBlob(this.owner, this.repo, path);
   }
 
   async getHast(path: string): Promise<Root | null> {

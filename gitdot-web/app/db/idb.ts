@@ -101,7 +101,6 @@ export function openIdb(): Database {
     async getBlob(owner, repo, path) {
       const db = await getDb();
       const row = await db.get("blobs", blobKey(owner, repo, path));
-      console.log(blobKey(owner, repo, path));
       if (!row) return null;
       const { ref_name, commit_sha, ...blob } = row;
       return blob;

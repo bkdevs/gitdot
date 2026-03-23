@@ -34,7 +34,9 @@ export function LayoutClient({
   return (
     <Suspense>
       <FileSidebar owner={owner} repo={repo} promises={resolvedPromises} />
-      <OverlayScroll>{children}</OverlayScroll>
+      <Suspense>
+        <OverlayScroll>{children}</OverlayScroll>
+      </Suspense>
     </Suspense>
   );
 }
