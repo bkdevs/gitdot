@@ -2,16 +2,16 @@
 
 import { Suspense, use } from "react";
 import type { DiffEntry } from "@/actions";
-import { Loading } from "@/ui/loading";
-import { CommitBody } from "./ui/commit-body";
-import { CommitHeader } from "./ui/commit-header";
-import { CommitShortcuts } from "./ui/commit-shortcuts";
 import {
   type ResourcePromisesType,
   type ResourceRequestsType,
   resolveResources,
 } from "@/provider/client";
+import { Loading } from "@/ui/loading";
 import type { Resources } from "./page";
+import { CommitBody } from "./ui/commit-body";
+import { CommitHeader } from "./ui/commit-header";
+import { CommitShortcuts } from "./ui/commit-shortcuts";
 
 type ResourceRequests = ResourceRequestsType<Resources>;
 type ResourcePromises = ResourcePromisesType<Resources>;
@@ -25,8 +25,8 @@ export function PageClient({
 }: {
   owner: string;
   repo: string;
-  requests: ResourceRequests,
-  promises: ResourcePromises
+  requests: ResourceRequests;
+  promises: ResourcePromises;
   diffPromise: Promise<DiffEntry[]>;
 }) {
   const resolvedPromises = resolveResources(owner, repo, requests, promises);
@@ -38,7 +38,13 @@ export function PageClient({
   );
 }
 
-function PageContent({ promises, diffPromise }: { promises: ResourcePromises, diffPromise: Promise<DiffEntry[]>}) {
+function PageContent({
+  promises,
+  diffPromise,
+}: {
+  promises: ResourcePromises;
+  diffPromise: Promise<DiffEntry[]>;
+}) {
   const commit = use(promises.commit);
   if (!commit) return null;
 

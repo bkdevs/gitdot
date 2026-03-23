@@ -1,7 +1,7 @@
 "use client";
 
 import type { Root } from "hast";
-import { createContext, useContext, useEffect, useMemo } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useWorkerContext } from "@/(main)/context/worker";
 import { setRepoCookie } from "@/cookie";
 import { openIdb } from "@/db";
@@ -50,9 +50,18 @@ export function RepoClient({
     });
   }, [owner, repo, serverPromises]);
 
+  const [syncReady, setSyncReady] = useState(false);
+  console.log(syncReady);
+
   useEffect(() => {
     if (!sync) return;
+    const handler = (e: MessageEvent<{ ready: boolean }>) => {
+      setSyncReady(e.data.ready);
+    };
+
+    sync.port.addEventListener("message", handler);
     sync.port.postMessage({ owner, repo, serverUrl });
+    return () => sync.port.removeEventListener("message", handler);
   }, [sync, owner, repo, serverUrl]);
 
   return (
