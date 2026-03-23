@@ -1,11 +1,20 @@
 use gitdot_api::resource::{repository as repo_api, review as api};
 use gitdot_core::dto::{
     DiffChange, DiffLine, DiffPair, DiffResponse, ReviewAuthorResponse, ReviewCommentResponse,
-    ReviewDiffResponse, ReviewResponse, ReviewVerdictResponse, ReviewerResponse, RevisionResponse,
-    SyntaxHighlight,
+    ReviewDiffResponse, ReviewResponse, ReviewVerdictResponse, ReviewerResponse, ReviewsResponse,
+    RevisionResponse, SyntaxHighlight,
 };
 
 use super::IntoApi;
+
+impl IntoApi for ReviewsResponse {
+    type ApiType = repo_api::RepositoryReviewsResource;
+    fn into_api(self) -> Self::ApiType {
+        repo_api::RepositoryReviewsResource {
+            reviews: self.reviews.into_api(),
+        }
+    }
+}
 
 impl IntoApi for ReviewResponse {
     type ApiType = api::ReviewResource;

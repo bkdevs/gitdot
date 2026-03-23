@@ -29,6 +29,8 @@ export function PageClient({
   requests: ResourceRequests;
   promises: ResourcePromises;
 }) {
+  // TODO: this is being re-invoked many times as history slot streams in? selected lines too?
+  // in general resolveResources is fine to use as long as it is strictly owner, repo, requests, promises
   const resolvedPromises = resolveResources(owner, repo, requests, promises);
   return (
     <Suspense>

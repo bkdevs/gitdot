@@ -37,6 +37,11 @@ pub use update_review::UpdateReviewRequest;
 pub use update_review_comment::UpdateReviewCommentRequest;
 
 #[derive(Debug, Clone)]
+pub struct ReviewsResponse {
+    pub reviews: Vec<ReviewResponse>,
+}
+
+#[derive(Debug, Clone)]
 pub struct ReviewResponse {
     pub id: Uuid,
     pub number: i32,

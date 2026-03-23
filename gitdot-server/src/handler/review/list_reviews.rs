@@ -2,6 +2,7 @@ use axum::{
     extract::{Path, State},
     http::StatusCode,
 };
+use chrono::Utc;
 
 use gitdot_api::endpoint::list_reviews as api;
 use gitdot_core::dto::{ListReviewsRequest, RepositoryAuthorizationRequest, RepositoryPermission};
@@ -26,11 +27,17 @@ pub async fn list_reviews(
         .verify_authorized_for_repository(auth_request)
         .await?;
 
-    let request = ListReviewsRequest::new(&owner, &repo, user_id)?;
+    let request = ListReviewsRequest::new(
+        &owner,
+        &repo,
+        user_id,
+        chrono::DateTime::UNIX_EPOCH,
+        Utc::now(),
+    )?;
     state
         .review_service
         .list_reviews(request)
         .await
         .map_err(AppError::from)
-        .map(|r| AppResponse::new(StatusCode::OK, r.into_api()))
+        .map(|r| AppResponse::new(StatusCode::OK, r.reviews.into_api()))
 }

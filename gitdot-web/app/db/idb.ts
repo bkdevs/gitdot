@@ -75,6 +75,7 @@ export function openIdb(): Database {
     },
 
     async getCommit(owner, repo, sha) {
+      console.log("getCommit", owner, repo, sha);
       const db = await getDb();
       return (await db.get("commits", commitKey(owner, repo, sha))) ?? null;
     },
@@ -101,6 +102,7 @@ export function openIdb(): Database {
     },
 
     async getBlob(owner, repo, path) {
+      console.log("getBlob being called", owner, repo, path);
       const db = await getDb();
       const row = await db.get("blobs", blobKey(owner, repo, path));
       if (!row) return null;

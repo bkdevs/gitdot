@@ -6,7 +6,7 @@ use crate::{
         AddReviewerRequest, GetReviewDiffRequest, GetReviewRequest, ListReviewsRequest,
         MergeDiffRequest, ProcessReviewRequest, PublishReviewRequest, RemoveReviewerRequest,
         ResolveReviewCommentRequest, ReviewCommentResponse, ReviewDiffResponse, ReviewResponse,
-        ReviewerResponse, SubmitAction, SubmitReviewRequest, UpdateDiffRequest,
+        ReviewerResponse, ReviewsResponse, SubmitAction, SubmitReviewRequest, UpdateDiffRequest,
         UpdateReviewCommentRequest, UpdateReviewRequest,
     },
     error::ReviewError,
@@ -26,7 +26,7 @@ pub trait ReviewService: Send + Sync + 'static {
     async fn list_reviews(
         &self,
         request: ListReviewsRequest,
-    ) -> Result<Vec<ReviewResponse>, ReviewError>;
+    ) -> Result<ReviewsResponse, ReviewError>;
 
     /// Creates a new review from a push to `refs/for/<branch>`.
     ///
@@ -191,17 +191,21 @@ where
     async fn list_reviews(
         &self,
         request: ListReviewsRequest,
-    ) -> Result<Vec<ReviewResponse>, ReviewError> {
+    ) -> Result<ReviewsResponse, ReviewError> {
         let reviews = self
             .review_repo
             .list_reviews(
                 request.owner.as_ref(),
                 request.repo.as_ref(),
                 request.viewer_id,
+                request.from,
+                request.to,
             )
             .await?;
 
-        Ok(reviews.into_iter().map(ReviewResponse::from).collect())
+        Ok(ReviewsResponse {
+            reviews: reviews.into_iter().map(ReviewResponse::from).collect(),
+        })
     }
 
     async fn create_review(

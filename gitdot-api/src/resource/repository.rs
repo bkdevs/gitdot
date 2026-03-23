@@ -2,7 +2,9 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::resource::{question::QuestionResource, settings::CommitFilterResource};
+use crate::resource::{
+    question::QuestionResource, review::ReviewResource, settings::CommitFilterResource,
+};
 
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RepositoryResource {
@@ -166,6 +168,11 @@ pub struct RepositoryQuestionsResource {
 }
 
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RepositoryReviewsResource {
+    pub reviews: Vec<ReviewResource>,
+}
+
+#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RepositoryResourcesResource {
     pub last_commit: String,
     pub last_updated: Option<DateTime<Utc>>,
@@ -177,4 +184,6 @@ pub struct RepositoryResourcesResource {
     pub blobs: Option<RepositoryBlobsResource>,
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub questions: Option<RepositoryQuestionsResource>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub reviews: Option<RepositoryReviewsResource>,
 }

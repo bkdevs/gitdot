@@ -16,6 +16,8 @@ import { CommitShortcuts } from "./ui/commit-shortcuts";
 type ResourceRequests = ResourceRequestsType<Resources>;
 type ResourcePromises = ResourcePromisesType<Resources>;
 
+// same TODO as file page, resolveResources is invoked repeatedly as requests and promises
+// are updated by SSR (Promises is ->) so this is called multiple times on render...
 export function PageClient({
   owner,
   repo,

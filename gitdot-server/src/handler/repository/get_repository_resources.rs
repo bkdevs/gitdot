@@ -8,7 +8,7 @@ use chrono::Utc;
 use gitdot_api::endpoint::repository::get_repository_resources as api;
 use gitdot_core::dto::{
     GetCommitsRequest, GetRepositoryBlobsRequest, GetRepositoryPathsRequest, ListQuestionsRequest,
-    RepositoryAuthorizationRequest, RepositoryPermission,
+    ListReviewsRequest, RepositoryAuthorizationRequest, RepositoryPermission,
 };
 
 use crate::{
@@ -49,6 +49,7 @@ pub async fn get_repository_resources(
                 commits: None,
                 blobs: None,
                 questions: None,
+                reviews: None,
             },
         ));
     }
@@ -68,16 +69,18 @@ pub async fn get_repository_resources(
     let commits_from = params
         .last_updated
         .unwrap_or_else(|| now - chrono::Duration::days(365));
-    let questions_from = params
+    let resources_from = params
         .last_updated
         .unwrap_or_else(|| now - chrono::Duration::weeks(2));
 
     let commits_request =
         GetCommitsRequest::new(&owner, &repo, "HEAD".to_string(), commits_from, now)?;
 
-    let questions_request = ListQuestionsRequest::new(&owner, &repo, user_id, questions_from, now)?;
+    let questions_request = ListQuestionsRequest::new(&owner, &repo, user_id, resources_from, now)?;
 
-    let (blobs, commits, questions) = tokio::try_join!(
+    let reviews_request = ListReviewsRequest::new(&owner, &repo, user_id, resources_from, now)?;
+
+    let (blobs, commits, questions, reviews) = tokio::try_join!(
         async {
             state
                 .repo_service
@@ -99,6 +102,13 @@ pub async fn get_repository_resources(
                 .await
                 .map_err(AppError::from)
         },
+        async {
+            state
+                .review_service
+                .list_reviews(reviews_request)
+                .await
+                .map_err(AppError::from)
+        },
     )?;
 
     let resource = api::GetRepositoryResourcesResponse {
@@ -108,6 +118,7 @@ pub async fn get_repository_resources(
         commits: Some(commits.into_api()),
         blobs: Some(blobs.into_api()),
         questions: Some(questions.into_api()),
+        reviews: Some(reviews.into_api()),
     };
     Ok(AppResponse::new(StatusCode::OK, resource))
 }
