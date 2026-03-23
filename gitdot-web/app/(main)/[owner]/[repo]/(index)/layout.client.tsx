@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import Link from "@/ui/link";
+import { OverlayScroll } from "@/ui/scroll";
 import { Sidebar, SidebarContent } from "@/ui/sidebar";
 
 const navItems = [
@@ -17,7 +18,26 @@ export const NAV_SECTIONS = new Set(
   [...navItems.map((i) => i.path), "settings"].filter(Boolean),
 );
 
-export function RepoSidebar({
+export function LayoutClient({
+  owner,
+  repo,
+  showSettings,
+  children,
+}: {
+  owner: string;
+  repo: string;
+  showSettings?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <>
+      <LayoutSidebar owner={owner} repo={repo} showSettings={showSettings} />
+      <OverlayScroll> {children} </OverlayScroll>
+    </>
+  );
+}
+
+function LayoutSidebar({
   owner,
   repo,
   showSettings,

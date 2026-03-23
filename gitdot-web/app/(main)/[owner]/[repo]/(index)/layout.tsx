@@ -1,6 +1,5 @@
 import { getUserMetadata } from "@/lib/supabase";
-import { OverlayScroll } from "../../../../ui/scroll";
-import { RepoSidebar } from "./ui/sidebar";
+import { LayoutClient } from "./layout.client";
 
 export default async function Layout({
   children,
@@ -14,9 +13,8 @@ export default async function Layout({
   const isAdmin = username === owner || orgs.includes(`${owner}:admin`);
 
   return (
-    <>
-      <RepoSidebar owner={owner} repo={repo} showSettings={isAdmin} />
-      <OverlayScroll>{children}</OverlayScroll>
-    </>
+    <LayoutClient owner={owner} repo={repo} showSettings={isAdmin}>
+      {children}
+    </LayoutClient>
   );
 }
