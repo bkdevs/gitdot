@@ -1,40 +1,17 @@
 use std::io::{self, Write};
 
 use anyhow::{Context, bail};
-use tokio::{fs, process::Command};
+use tokio::fs;
 
-use super::git_dir;
-use crate::config::UserConfig;
+use crate::{config::UserConfig, git::GitWrapper};
 
-pub async fn checkout_review(_config: UserConfig) -> anyhow::Result<()> {
-    let branch_output = Command::new("git")
-        .args(["branch", "--show-current"])
-        .output()
-        .await
-        .context("Failed to get current branch")?;
-    let branch = String::from_utf8(branch_output.stdout)?.trim().to_string();
+pub async fn checkout_review(_config: UserConfig, git: &GitWrapper) -> anyhow::Result<()> {
+    let branch = git.current_branch().await?;
     if branch.is_empty() {
         bail!("Not currently on a branch");
     }
 
-    let output = Command::new("git")
-        .args(["log", &format!("origin/{}..HEAD", branch), "--oneline"])
-        .output()
-        .await
-        .context("Failed to run git log")?;
-
-    if !output.status.success() {
-        bail!("Failed to list commits");
-    }
-
-    let stdout = String::from_utf8(output.stdout)?;
-    let commits: Vec<(&str, &str)> = stdout
-        .lines()
-        .filter_map(|line| {
-            let (hash, subject) = line.split_once(' ')?;
-            Some((hash, subject))
-        })
-        .collect();
+    let commits = git.log_oneline(&format!("origin/{}..HEAD", branch)).await?;
 
     if commits.is_empty() {
         bail!("No commits ahead of origin/{}", branch);
@@ -62,21 +39,13 @@ pub async fn checkout_review(_config: UserConfig) -> anyhow::Result<()> {
         choice - 1
     };
 
-    let (hash, subject) = commits[selected];
+    let (hash, subject) = &commits[selected];
 
     // Save current branch name so `gdot review amend` knows where to rebase
-    let git_dir = git_dir().await?;
+    let git_dir = git.git_dir().await?;
     fs::write(git_dir.join("gdot-review-branch"), &branch).await?;
 
-    let status = Command::new("git")
-        .args(["checkout", hash])
-        .status()
-        .await
-        .context("Failed to run git checkout")?;
-
-    if !status.success() {
-        bail!("Failed to checkout {}", hash);
-    }
+    git.checkout(hash).await?;
 
     println!("Checked out: {} {}", hash, subject);
 

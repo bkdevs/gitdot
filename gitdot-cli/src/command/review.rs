@@ -3,13 +3,10 @@ mod checkout;
 mod create;
 mod update;
 
-use std::{path::PathBuf, process::Stdio};
-
 use anyhow::{Context, bail};
 use clap::{Args, Subcommand};
-use tokio::process::Command;
 
-use crate::config::UserConfig;
+use crate::{config::UserConfig, git::GitWrapper};
 
 #[derive(Args, Debug)]
 pub struct ReviewArgs {
@@ -34,27 +31,19 @@ pub enum ReviewCommand {
 
 impl ReviewCommand {
     pub async fn execute(&self, config: UserConfig) -> anyhow::Result<()> {
+        let git = GitWrapper::new();
         match self {
-            ReviewCommand::New {} => create::create_review(config).await,
-            ReviewCommand::Checkout {} => checkout::checkout_review(config).await,
-            ReviewCommand::Amend {} => amend::amend_review(config).await,
-            ReviewCommand::Update {} => update::update_review(config).await,
+            ReviewCommand::New {} => create::create_review(config, &git).await,
+            ReviewCommand::Checkout {} => checkout::checkout_review(config, &git).await,
+            ReviewCommand::Amend {} => amend::amend_review(config, &git).await,
+            ReviewCommand::Update {} => update::update_review(config, &git).await,
         }
     }
 }
 
-async fn get_remote_owner_repo() -> anyhow::Result<(String, String)> {
-    let output = Command::new("git")
-        .args(["remote", "get-url", "origin"])
-        .output()
-        .await
-        .context("Failed to get git remote URL")?;
+async fn get_remote_owner_repo(git: &GitWrapper) -> anyhow::Result<(String, String)> {
+    let url = git.remote_url("origin").await?;
 
-    if !output.status.success() {
-        bail!("No 'origin' remote found");
-    }
-
-    let url = String::from_utf8(output.stdout)?.trim().to_string();
     let path = if let Some(rest) = url.strip_prefix("git@") {
         rest.split_once(':')
             .map(|(_, path)| path.to_string())
@@ -74,58 +63,8 @@ async fn get_remote_owner_repo() -> anyhow::Result<(String, String)> {
     Ok((owner.to_string(), repo.to_string()))
 }
 
-async fn get_default_branch() -> anyhow::Result<String> {
-    let output = Command::new("git")
-        .args(["symbolic-ref", "--short", "refs/remotes/origin/HEAD"])
-        .output()
-        .await?;
-    let remote_head = String::from_utf8(output.stdout)?.trim().to_string();
-    let default_branch = remote_head
-        .rsplit('/')
-        .next()
-        .unwrap_or(&remote_head)
-        .to_string();
-    Ok(default_branch)
-}
-
-async fn git_dir() -> anyhow::Result<PathBuf> {
-    let output = Command::new("git")
-        .args(["rev-parse", "--git-dir"])
-        .output()
-        .await
-        .context("Failed to get git dir")?;
-    let dir = String::from_utf8(output.stdout)?.trim().to_string();
-    Ok(PathBuf::from(dir))
-}
-
-async fn rev_parse(rev: &str) -> anyhow::Result<String> {
-    let output = Command::new("git")
-        .args(["rev-parse", rev])
-        .output()
-        .await
-        .context("Failed to run git rev-parse")?;
-    Ok(String::from_utf8(output.stdout)?.trim().to_string())
-}
-
-async fn pull_rebase_default_branch() -> anyhow::Result<String> {
-    let default_branch = get_default_branch().await?;
-
-    let status = Command::new("git")
-        .args(["pull", "origin", &default_branch, "--rebase"])
-        .stdout(Stdio::null())
-        .stderr(Stdio::null())
-        .status()
-        .await
-        .context("Failed to run git pull")?;
-
-    if !status.success() {
-        bail!("Failed to rebase onto origin/{}", default_branch);
-    }
-
-    Ok(default_branch)
-}
-
 async fn push_for_review(
+    git: &GitWrapper,
     branch: &str,
     review_number: Option<i32>,
 ) -> anyhow::Result<Option<String>> {
@@ -134,21 +73,8 @@ async fn push_for_review(
         None => format!("HEAD:refs/for/{}", branch),
     };
 
-    let output = Command::new("git")
-        .args(["push", "origin", &refspec])
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .output()
-        .await
-        .context("Failed to run git push")?;
+    let stderr = git.push_refspec(&refspec).await?;
 
-    if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        eprintln!("{}", stderr.trim());
-        bail!("Failed to push to {}", refspec);
-    }
-
-    let stderr = String::from_utf8_lossy(&output.stderr);
     let review_url = stderr
         .lines()
         .find_map(|line| {

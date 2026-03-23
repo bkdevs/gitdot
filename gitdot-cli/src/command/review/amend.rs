@@ -1,11 +1,10 @@
-use anyhow::{Context, bail};
-use tokio::{fs, process::Command};
+use anyhow::Context;
+use tokio::fs;
 
-use super::{git_dir, rev_parse};
-use crate::config::UserConfig;
+use crate::{config::UserConfig, git::GitWrapper};
 
-pub async fn amend_review(_config: UserConfig) -> anyhow::Result<()> {
-    let git_dir = git_dir().await?;
+pub async fn amend_review(_config: UserConfig, git: &GitWrapper) -> anyhow::Result<()> {
+    let git_dir = git.git_dir().await?;
     let branch_file = git_dir.join("gdot-review-branch");
 
     let branch = fs::read_to_string(&branch_file)
@@ -13,35 +12,13 @@ pub async fn amend_review(_config: UserConfig) -> anyhow::Result<()> {
         .context("No review checkout in progress. Run `gdot review checkout` first.")?;
     let branch = branch.trim();
 
-    let original_hash = rev_parse("HEAD").await?;
+    let original_hash = git.rev_parse("HEAD").await?;
 
-    let status = Command::new("git")
-        .args(["add", "-A"])
-        .status()
-        .await
-        .context("Failed to run git add")?;
-    if !status.success() {
-        bail!("Failed to stage changes");
-    }
+    git.add_all().await?;
+    git.commit_amend_no_edit().await?;
 
-    let status = Command::new("git")
-        .args(["commit", "--amend", "--no-edit"])
-        .status()
-        .await
-        .context("Failed to run git commit --amend")?;
-    if !status.success() {
-        bail!("Failed to amend commit");
-    }
-
-    let new_hash = rev_parse("HEAD").await?;
-    let status = Command::new("git")
-        .args(["rebase", "--onto", &new_hash, &original_hash, branch])
-        .status()
-        .await
-        .context("Failed to run git rebase")?;
-    if !status.success() {
-        bail!("Rebase failed. Resolve conflicts and run `git rebase --continue`.");
-    }
+    let new_hash = git.rev_parse("HEAD").await?;
+    git.rebase_onto(&new_hash, &original_hash, branch).await?;
 
     let _ = fs::remove_file(&branch_file).await;
 
