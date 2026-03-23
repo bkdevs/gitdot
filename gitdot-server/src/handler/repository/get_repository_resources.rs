@@ -1,7 +1,7 @@
 use axum::{
     Json,
     extract::{Path, State},
-    http::StatusCode,
+    http::{HeaderMap, StatusCode},
 };
 use chrono::Utc;
 
@@ -21,10 +21,16 @@ use crate::{
 pub async fn get_repository_resources(
     _service: Service<Vercel>,
     user_auth: Option<Principal<UserJwt>>,
+    headers: HeaderMap,
     State(state): State<AppState>,
     Path((owner, repo)): Path<(String, String)>,
     Json(_params): Json<api::GetRepositoryResourcesRequest>,
 ) -> Result<AppResponse<api::GetRepositoryResourcesResponse>, AppError> {
+    if let Some(cookie_header) = headers.get(axum::http::header::COOKIE) {
+        tracing::info!("cookies: {:?}", cookie_header);
+    } else {
+        tracing::info!("no cookies received");
+    }
     let auth_request = RepositoryAuthorizationRequest::new(
         user_auth.map(|u| u.id),
         &owner,

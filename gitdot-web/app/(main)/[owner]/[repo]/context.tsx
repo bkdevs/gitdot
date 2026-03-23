@@ -2,6 +2,7 @@
 
 import type { Root } from "hast";
 import { createContext, useContext, useEffect, useMemo } from "react";
+import { useWorkerContext } from "@/(main)/context/worker";
 import { setRepoCookie } from "@/cookie";
 import { openIdb } from "@/db";
 import { resolveResources } from "@/provider/client";
@@ -17,16 +18,19 @@ const RepoContext = createContext<RepoContext | null>(null);
 export function RepoClient({
   owner,
   repo,
+  serverUrl,
   serverRequests,
   serverPromises,
   children,
 }: {
   owner: string;
   repo: string;
+  serverUrl: string;
   serverRequests: ResourceRequests;
   serverPromises: ResourcePromises;
   children: React.ReactNode;
 }) {
+  const { sync } = useWorkerContext();
   const idb = useMemo(() => openIdb(), []);
   const racedPromises = useMemo(
     () => resolveResources(owner, repo, serverRequests, serverPromises),
@@ -45,6 +49,11 @@ export function RepoClient({
       setRepoCookie(owner, repo, p.commit_sha);
     });
   }, [owner, repo, serverPromises]);
+
+  useEffect(() => {
+    if (!sync) return;
+    sync.port.postMessage({ owner, repo, serverUrl });
+  }, [sync, owner, repo, serverUrl]);
 
   return (
     <RepoContext

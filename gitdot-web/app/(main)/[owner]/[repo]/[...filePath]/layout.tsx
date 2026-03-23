@@ -10,7 +10,7 @@ export default async function Layout({
   params,
   children,
 }: {
-  params: Promise<{ owner: string; repo: string; sha: string }>;
+  params: Promise<{ owner: string; repo: string }>;
   children: React.ReactNode;
 }) {
   const { owner, repo } = await params;

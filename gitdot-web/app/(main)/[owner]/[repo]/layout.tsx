@@ -4,6 +4,7 @@ import type {
   RepositoryPathsResource,
   RepositorySettingsResource,
 } from "gitdot-api";
+import { GITDOT_SERVER_URL } from "@/dal/util";
 import {
   fetchResources,
   type ResourcePromisesType,
@@ -41,6 +42,7 @@ export default async function Layout({
     <RepoClient
       owner={owner}
       repo={repo}
+      serverUrl={GITDOT_SERVER_URL}
       serverRequests={requests}
       serverPromises={promises}
     >

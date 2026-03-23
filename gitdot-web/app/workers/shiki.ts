@@ -58,15 +58,16 @@ import { inferLanguage } from "./util";
 // necessary as while the browser will queue messages while the worker is downloading
 // it does _NOT_ queue between download -> self.onmessage
 // that is, the block of code from imports above to what you see below must be very very fast
-const queue: WorkerMessage[] = [];
-interface WorkerMessage {
+interface Message {
   path: string;
   code: string;
   theme: "vitesse-light" | "gitdot-light";
 }
 
+const queue: Message[] = [];
 let ready = false;
-self.onmessage = (event: MessageEvent<WorkerMessage>) => {
+
+self.onmessage = (event: MessageEvent<Message>) => {
   if (ready) {
     process(event.data);
   } else {
@@ -74,7 +75,7 @@ self.onmessage = (event: MessageEvent<WorkerMessage>) => {
   }
 };
 
-function process({ path, code, theme }: WorkerMessage) {
+function process({ path, code, theme }: Message) {
   const lang = inferLanguage(path) ?? "plaintext";
   const hast = highlighter.codeToHast(code, { lang, theme });
   self.postMessage({ path, hast });
