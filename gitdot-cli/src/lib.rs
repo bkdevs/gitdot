@@ -3,6 +3,7 @@ mod cli;
 mod client;
 mod command;
 mod config;
+mod git;
 mod util;
 
 #[cfg(feature = "main")]
