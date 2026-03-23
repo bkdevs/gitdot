@@ -1,13 +1,13 @@
 import type {
-  RepositoryBlobsResource,
-  RepositoryCommitResource,
-  RepositoryPathsResource,
-  RepositorySettingsResource,
-} from "gitdot-api";
+    ResourcePromisesType,
+    ResourceRequestsType,
+} from "@/provider/types";
 import type {
-  ResourcePromisesType,
-  ResourceRequestsType,
-} from "@/provider/server";
+    RepositoryBlobsResource,
+    RepositoryCommitResource,
+    RepositoryPathsResource,
+    RepositorySettingsResource,
+} from "gitdot-api";
 import { RepoResources } from "./resources/context";
 import { RepoDialogs } from "./ui/dialog/repo-dialogs";
 import { RepoShortcuts } from "./ui/shortcuts";

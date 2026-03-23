@@ -1,5 +1,5 @@
 import type { QuestionResource } from "gitdot-api";
-import type { QuestionsFilter, QuestionsSort } from "./ui/questions-client";
+import type { QuestionsFilter, QuestionsSort } from "./page.client";
 
 export function processQuestions(
   questions: QuestionResource[],

@@ -95,7 +95,7 @@ function QuestionSidebarContent({
 
   return questions.map((question) => {
     const isActive = number === String(question.number);
-    const author = question.author.name;
+    const author = question.author?.name;
     return (
       <Link
         key={question.id}
