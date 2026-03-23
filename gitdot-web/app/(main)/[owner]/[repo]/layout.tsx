@@ -12,9 +12,9 @@ import {
 } from "@/provider/server";
 import { RepoClient } from "./context";
 import { RepoDialogs } from "./ui/dialog/repo-dialogs";
-import { RepoScroll } from "./ui/repo-scroll";
-import { RepoShortcuts } from "./ui/repo-shortcuts";
-import { RepoSidebar } from "./ui/repo-sidebar";
+import { RepoScroll } from "./ui/scroll";
+import { RepoShortcuts } from "./ui/shortcuts";
+import { RepoSidebar } from "./ui/sidebar";
 
 type Resources = {
   paths: RepositoryPathsResource | null;
