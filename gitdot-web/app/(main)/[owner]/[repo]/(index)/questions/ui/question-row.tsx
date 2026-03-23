@@ -1,7 +1,7 @@
 import type { QuestionResource } from "gitdot-api";
 import Link from "@/ui/link";
 import { pluralize, timeAgo } from "@/util";
-import { VoteBox } from "../[number]/ui/vote-box";
+import { VoteBox } from "../../../questions/[number]/ui/vote-box";
 
 export function QuestionRow({
   owner,

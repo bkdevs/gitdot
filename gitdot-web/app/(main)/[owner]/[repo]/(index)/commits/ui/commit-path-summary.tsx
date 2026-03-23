@@ -1,7 +1,7 @@
 import type { RepositoryDiffStatResource } from "gitdot-api";
 import { Fragment } from "react";
 import { pluralize } from "@/util";
-import { DiffStatBar } from "../[sha]/ui/diff-stat-bar";
+import { DiffStatBar } from "../../../commits/[sha]/ui/diff-stat-bar";
 import { computePrimaryPaths } from "../util";
 
 export function CommitPathSummary({

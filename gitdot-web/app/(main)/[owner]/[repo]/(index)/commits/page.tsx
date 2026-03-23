@@ -2,7 +2,7 @@
 
 import type { CommitFilterResource } from "gitdot-api";
 import { Suspense, use, useState } from "react";
-import { useRepoContext } from "../context";
+import { useRepoContext } from "../../context";
 import { CommitsGrid } from "./ui/commits-grid";
 import { CommitsHeader } from "./ui/commits-header";
 import { CommitsList } from "./ui/commits-list";
