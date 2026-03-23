@@ -1,5 +1,6 @@
 "use client";
 
+import { openIdb } from "@/db";
 import type {
   RepositoryBlobResource,
   RepositoryBlobsResource,
@@ -8,7 +9,6 @@ import type {
   RepositorySettingsResource,
 } from "gitdot-api";
 import type { Root } from "hast";
-import { openIdb } from "@/db";
 import { ClientProvider } from "./types";
 
 type Store = {
@@ -49,11 +49,15 @@ export class InMemoryProvider extends ClientProvider {
   }
 
   async getCommit(sha: string): Promise<RepositoryCommitResource | null> {
-    return this.store.commit.get(sha) ?? null;
+    const result = this.store.commit.get(sha) ?? null;
+    return result;
   }
 
   async getCommits(): Promise<RepositoryCommitResource[] | null> {
-    return this.store.commits ?? null;
+    if (!this.store.commits) return null;
+    return this.store.commits.sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+    );
   }
 
   async getBlobs(): Promise<RepositoryBlobsResource | null> {
@@ -80,7 +84,7 @@ export class InMemoryProvider extends ClientProvider {
     }
     if (commits?.length) {
       this.store.commits = commits;
-      for (const c of commits) this.store.commit.set(c.sha, c);
+      for (const c of commits) this.store.commit.set(c.sha.slice(0, 7), c);
     }
     if (settings) this.store.settings = settings;
     if (hasts) this.store.hast = hasts;
