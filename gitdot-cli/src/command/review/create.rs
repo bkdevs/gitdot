@@ -1,5 +1,4 @@
-use super::push_for_review;
-use crate::{config::UserConfig, git::GitWrapper};
+use crate::{config::UserConfig, git::GitWrapper, util::review::push_for_review};
 
 pub async fn create_review(_config: UserConfig, git: &GitWrapper) -> anyhow::Result<()> {
     // We are only allowing to open reviews against the default branch.

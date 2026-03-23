@@ -4,8 +4,12 @@ use anyhow::{Context, bail};
 
 use gitdot_api::endpoint::list_user_reviews::ListUserReviewsRequest;
 
-use super::{get_remote_owner_repo, push_for_review};
-use crate::{client::GitdotClient, config::UserConfig, git::GitWrapper};
+use crate::{
+    client::GitdotClient,
+    config::UserConfig,
+    git::GitWrapper,
+    util::review::{get_remote_owner_repo, push_for_review},
+};
 
 pub async fn update_review(config: UserConfig, git: &GitWrapper) -> anyhow::Result<()> {
     // TODO: init client with token from store

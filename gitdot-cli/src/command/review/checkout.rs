@@ -1,9 +1,8 @@
 use std::io::{self, Write};
 
 use anyhow::{Context, bail};
-use tokio::fs;
 
-use crate::{config::UserConfig, git::GitWrapper};
+use crate::{config::UserConfig, git::GitWrapper, util::review::save_review_branch};
 
 pub async fn checkout_review(_config: UserConfig, git: &GitWrapper) -> anyhow::Result<()> {
     let branch = git.current_branch().await?;
@@ -41,10 +40,7 @@ pub async fn checkout_review(_config: UserConfig, git: &GitWrapper) -> anyhow::R
 
     let (hash, subject) = &commits[selected];
 
-    // Save current branch name so `gdot review amend` knows where to rebase
-    let git_dir = git.git_dir().await?;
-    fs::write(git_dir.join("gdot-review-branch"), &branch).await?;
-
+    save_review_branch(git, &branch).await?;
     git.checkout(hash).await?;
 
     println!("Checked out: {} {}", hash, subject);
