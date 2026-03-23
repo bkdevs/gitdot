@@ -1,8 +1,33 @@
-import { File, Folder, FolderOpen } from "lucide-react";
-import { use, useMemo } from "react";
+"use client";
+
+import { useLeftSidebar } from "@/(main)/hooks/use-sidebar";
 import Link from "@/ui/link";
+import { Sidebar, SidebarContent } from "@/ui/sidebar";
+import { File, Folder, FolderOpen } from "lucide-react";
+import { useParams } from "next/navigation";
+import { use, useMemo } from "react";
 import { useRepoContext } from "../../context";
 import { getFolderEntries, getParentPath } from "../../util";
+
+const SIDEBAR_WIDTH = "15rem";
+
+export function FileSidebar() {
+  const open = useLeftSidebar();
+  if (!open) return null;
+
+  return (
+    <div className="flex-col h-full! border-r shrink-0">
+      <Sidebar
+        className="bg-background h-full!"
+        style={{ width: SIDEBAR_WIDTH }}
+      >
+        <SidebarContent className="overflow-auto">
+          <FileSidebarContent />
+        </SidebarContent>
+      </Sidebar>
+    </div>
+  );
+}
 
 function FileRow({
   filePath,
@@ -40,15 +65,14 @@ function FileRow({
   );
 }
 
-export function RepoSidebarFiles({
-  owner,
-  repo,
-  currentPath,
-}: {
-  owner: string;
-  repo: string;
-  currentPath: string;
-}) {
+function FileSidebarContent() {
+  const { owner, repo, filePath: filePathSegments } = useParams<{
+    owner: string;
+    repo: string;
+    filePath: string[];
+  }>();
+
+  const currentPath = filePathSegments.join("/");
   const paths = use(useRepoContext().paths);
   const parentPath = getParentPath(currentPath);
   const contextFiles = useMemo(
