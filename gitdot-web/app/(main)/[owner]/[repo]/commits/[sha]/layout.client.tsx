@@ -33,13 +33,13 @@ export function LayoutClient({
   const resolvedPromises = resolveResources(owner, repo, requests, promises);
   return (
     <Suspense>
-      <LayoutSidebar owner={owner} repo={repo} promises={resolvedPromises} />
+      <CommitSidebar owner={owner} repo={repo} promises={resolvedPromises} />
       <OverlayScroll>{children}</OverlayScroll>
     </Suspense>
   );
 }
 
-function LayoutSidebar({
+function CommitSidebar({
   owner,
   repo,
   promises,

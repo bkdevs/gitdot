@@ -31,13 +31,13 @@ export function LayoutClient({
 }) {
   return (
     <>
-      <LayoutSidebar owner={owner} repo={repo} showSettings={showSettings} />
+      <IndexSidebar owner={owner} repo={repo} showSettings={showSettings} />
       <OverlayScroll> {children} </OverlayScroll>
     </>
   );
 }
 
-function LayoutSidebar({
+function IndexSidebar({
   owner,
   repo,
   showSettings,

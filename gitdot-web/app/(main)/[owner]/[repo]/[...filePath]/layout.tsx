@@ -1,11 +1,31 @@
-import { OverlayScroll } from "../../../../ui/scroll";
-import { FileSidebar } from "./ui/sidebar";
+import type { RepositoryPathsResource } from "gitdot-api";
+import { fetchResources } from "@/provider/server";
+import { LayoutClient } from "./layout.client";
 
-export default function Layout({ children }: { children: React.ReactNode }) {
+export type Resources = {
+  paths: RepositoryPathsResource | null;
+};
+
+export default async function Layout({
+  params,
+  children,
+}: {
+  params: Promise<{ owner: string; repo: string; sha: string }>;
+  children: React.ReactNode;
+}) {
+  const { owner, repo } = await params;
+  const { requests, promises } = fetchResources(owner, repo, {
+    paths: (p) => p.getPaths(),
+  });
+
   return (
-    <>
-      <FileSidebar />
-      <OverlayScroll>{children}</OverlayScroll>
-    </>
+    <LayoutClient
+      owner={owner}
+      repo={repo}
+      requests={requests}
+      promises={promises}
+    >
+      {children}
+    </LayoutClient>
   );
 }
