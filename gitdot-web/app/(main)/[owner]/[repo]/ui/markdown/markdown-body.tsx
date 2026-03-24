@@ -50,10 +50,18 @@ export function MarkdownBody({ content }: { content: string }) {
         ),
         li: ({ node, ...props }) => <li className="text-sm" {...props} />,
 
+        pre: ({ node, ...props }) => (
+          <pre
+            className="bg-black/5 dark:bg-white/10 rounded p-4 mb-4 overflow-x-auto text-sm"
+            style={{ fontFamily: "ui-monospace, 'Cascadia Code', 'Fira Code', Menlo, Consolas, monospace" }}
+            {...props}
+          />
+        ),
         code: ({ node, className, children, ...props }) => {
+          const isBlock = node?.position?.start.line !== node?.position?.end.line;
           return (
             <code
-              className="bg-black/5 dark:bg-white/10 px-1.5 py-0.5 rounded font-mono text-sm"
+              className={isBlock ? "font-mono text-sm" : "bg-black/5 dark:bg-white/10 px-1.5 py-0.5 rounded font-mono text-sm"}
               {...props}
             >
               {children}
