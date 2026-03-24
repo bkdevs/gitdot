@@ -1,21 +1,76 @@
 import { renderMermaidSVG } from "beautiful-mermaid";
+import React from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import Link from "@/ui/link";
+
+function extractText(children: React.ReactNode): string {
+  return React.Children.toArray(children)
+    .map((c) =>
+      typeof c === "string"
+        ? c
+        : extractText((c as React.ReactElement).props?.children ?? ""),
+    )
+    .join("");
+}
+
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/[\s_]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
 
 export function MarkdownBody({ content }: { content: string }) {
   return (
     <Markdown
       remarkPlugins={[remarkGfm]}
       components={{
-        h1: ({ node, ...props }) => (
-          <h1 className="text-3xl font-bold mb-4 border-b pb-2" {...props} />
+        h1: ({ node, children, ...props }) => (
+          <h1
+            id={slugify(extractText(children))}
+            className="text-3xl font-bold mb-4 border-b pb-2"
+            {...props}
+          >
+            {children}
+          </h1>
         ),
-        h2: ({ node, ...props }) => (
-          <h2 className="text-xl font-semibold mb-3" {...props} />
+        h2: ({ node, children, ...props }) => (
+          <h2
+            id={slugify(extractText(children))}
+            className="text-xl font-semibold mb-3"
+            {...props}
+          >
+            {children}
+          </h2>
         ),
-        h3: ({ node, ...props }) => (
-          <h3 className="text-lg font-medium mb-2" {...props} />
+        h3: ({ node, children, ...props }) => (
+          <h3
+            id={slugify(extractText(children))}
+            className="text-lg font-medium mb-2"
+            {...props}
+          >
+            {children}
+          </h3>
+        ),
+        h4: ({ node, children, ...props }) => (
+          <h4
+            id={slugify(extractText(children))}
+            className="text-base font-medium mb-2"
+            {...props}
+          >
+            {children}
+          </h4>
+        ),
+        h5: ({ node, children, ...props }) => (
+          <h5
+            id={slugify(extractText(children))}
+            className="text-sm font-semibold mb-2"
+            {...props}
+          >
+            {children}
+          </h5>
         ),
 
         p: ({ node, ...props }) => (

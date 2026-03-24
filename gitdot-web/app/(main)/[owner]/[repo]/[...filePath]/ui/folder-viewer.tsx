@@ -2,6 +2,30 @@ import type { RepositoryPathResource } from "gitdot-api";
 import { File, Folder } from "lucide-react";
 import { MarkdownBody } from "@/(main)/[owner]/[repo]/ui/markdown/markdown-body";
 import Link from "@/ui/link";
+import { FolderToc, type TocHeader } from "./folder-toc";
+
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/[\s_]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function extractHeaders(markdown: string): TocHeader[] {
+  const headerRegex = /^(#{1,5})\s+(.+)$/gm;
+  const headers: TocHeader[] = [];
+  let first = true;
+  for (const match of markdown.matchAll(headerRegex)) {
+    if (first) {
+      first = false;
+      continue;
+    }
+    const text = match[2].replace(/[*_`[\]]/g, "").trim();
+    headers.push({ level: match[1].length, text, slug: slugify(text) });
+  }
+  return headers;
+}
 
 export function FolderViewer({
   owner,
@@ -22,23 +46,27 @@ export function FolderViewer({
   });
 
   return (
-    <div className="flex flex-col w-full flex-1 overflow-auto">
-      {readme && (
-        <div className="border-b px-4 py-3">
-          <div className="max-w-3xl mx-auto">
+    <div className="flex w-full h-full min-h-0 overflow-hidden">
+      <div
+        data-page-scroll
+        className="flex flex-col flex-1 min-w-0 overflow-auto scrollbar-thin"
+      >
+        {readme && (
+          <div className="border-b px-4 py-3">
             <MarkdownBody content={readme} />
           </div>
+        )}
+        <div className="flex-1 flex flex-col">
+          {sortedEntries.map((entry) => (
+            <FolderEntryRow
+              key={entry.path}
+              entry={entry}
+              href={`/${owner}/${repo}/${entry.path}`}
+            />
+          ))}
         </div>
-      )}
-      <div className="flex-1 overflow-hidden flex flex-col">
-        {sortedEntries.map((entry) => (
-          <FolderEntryRow
-            key={entry.path}
-            entry={entry}
-            href={`/${owner}/${repo}/${entry.path}`}
-          />
-        ))}
       </div>
+      {readme && <FolderToc headers={extractHeaders(readme)} />}
     </div>
   );
 }

@@ -3,7 +3,7 @@
 ### Architecture
 
 ```mermaid
-graph TD
+graph LR
     subgraph Clients
         WEB["gitdot-web\n(Next.js)"]
         CLI["gitdot-cli\n(clap)"]
