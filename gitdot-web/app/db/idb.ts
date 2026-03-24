@@ -229,5 +229,18 @@ export function openIdb(): Database {
       const db = await getDb();
       await db.put("builds", builds, repoKey(owner, repo));
     },
+
+    async getBuild(owner, repo, number) {
+      const builds = await this.getBuilds(owner, repo);
+      return builds?.find((b) => b.number === number) ?? null;
+    },
+
+    async putBuild(owner, repo, build) {
+      const builds = (await this.getBuilds(owner, repo)) ?? [];
+      const idx = builds.findIndex((b) => b.number === build.number);
+      if (idx >= 0) builds[idx] = build;
+      else builds.push(build);
+      await this.putBuilds(owner, repo, builds);
+    },
   };
 }

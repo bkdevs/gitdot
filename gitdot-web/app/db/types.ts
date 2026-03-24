@@ -118,4 +118,10 @@ export interface Database {
     repo: string,
     builds: BuildResource[],
   ): Promise<void>;
+  getBuild(
+    owner: string,
+    repo: string,
+    number: number,
+  ): Promise<BuildResource | null>;
+  putBuild(owner: string, repo: string, build: BuildResource): Promise<void>;
 }

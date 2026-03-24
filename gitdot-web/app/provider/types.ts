@@ -53,6 +53,7 @@ export abstract class RepoProvider {
   abstract getReview(number: number): Promise<ReviewResource | null>;
   abstract getReviews(): Promise<ReviewResource[] | null>;
   abstract getBuilds(): Promise<BuildResource[] | null>;
+  abstract getBuild(number: number): Promise<BuildResource | null>;
 }
 
 export abstract class ServerProvider extends RepoProvider {

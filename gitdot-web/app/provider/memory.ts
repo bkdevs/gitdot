@@ -25,6 +25,7 @@ type Store = {
   commit: Map<string, RepositoryCommitResource>;
   hast: Map<string, Root>;
   review: Map<number, ReviewResource>;
+  build: Map<number, BuildResource>;
 };
 
 export class InMemoryProvider extends ClientProvider {
@@ -39,6 +40,7 @@ export class InMemoryProvider extends ClientProvider {
     commit: new Map(),
     hast: new Map(),
     review: new Map(),
+    build: new Map(),
   };
 
   async getPaths(): Promise<RepositoryPathsResource | null> {
@@ -94,6 +96,10 @@ export class InMemoryProvider extends ClientProvider {
     return this.store.builds ?? null;
   }
 
+  async getBuild(number: number): Promise<BuildResource | null> {
+    return this.store.build.get(number) ?? null;
+  }
+
   async initialize(): Promise<void> {
     const db = openIdb();
     const [paths, blobs, commits, settings, hasts, questions, reviews, builds] =
@@ -122,6 +128,9 @@ export class InMemoryProvider extends ClientProvider {
     if (reviews?.length) {
       for (const r of reviews) this.store.review.set(r.number, r);
     }
-    if (builds?.length) this.store.builds = builds;
+    if (builds?.length) {
+      this.store.builds = builds;
+      for (const b of builds) this.store.build.set(b.number, b);
+    }
   }
 }

@@ -12,7 +12,10 @@ import type {
 } from "gitdot-api";
 import type { Root } from "hast";
 import { getRepositoryHast } from "@/actions/repository";
-import { getBuilds as dalGetBuilds } from "@/dal/build";
+import {
+  getBuild as dalGetBuild,
+  getBuilds as dalGetBuilds,
+} from "@/dal/build";
 import { listQuestions } from "@/dal/question";
 import {
   getRepositoryBlob,
@@ -85,5 +88,9 @@ export class ApiProvider extends ServerProvider {
 
   async getBuilds(): Promise<BuildResource[] | null> {
     return await dalGetBuilds(this.owner, this.repo);
+  }
+
+  async getBuild(number: number): Promise<BuildResource | null> {
+    return await dalGetBuild(this.owner, this.repo, number);
   }
 }

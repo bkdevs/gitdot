@@ -7,12 +7,12 @@ export function FolderViewer({
   owner,
   repo,
   entries,
-  claudeMd,
+  readme,
 }: {
   owner: string;
   repo: string;
   entries: RepositoryPathResource[];
-  claudeMd?: string | null;
+  readme?: string | null;
 }) {
   const sortedEntries = entries.toSorted((a, b) => {
     if (a.path_type === b.path_type) {
@@ -23,9 +23,9 @@ export function FolderViewer({
 
   return (
     <div className="flex flex-col w-full flex-1 overflow-auto">
-      {claudeMd && (
+      {readme && (
         <div className="border-b px-4 py-3">
-          <MarkdownBody content={claudeMd} />
+          <MarkdownBody content={readme} />
         </div>
       )}
       <div className="flex-1 overflow-hidden flex flex-col">

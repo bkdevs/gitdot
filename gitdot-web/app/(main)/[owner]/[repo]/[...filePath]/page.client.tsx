@@ -60,19 +60,19 @@ function PageContent({
   promises: ResourcePromises;
 }) {
   const blob = use(promises.blob);
-  const claudeMd = use(promises.claudeMd);
+  const readme = use(promises.readme);
   if (!blob) {
     return <div>File not found.</div>;
   }
   if (blob.type === "folder") {
-    const claudeMdContent =
-      claudeMd?.type === "file" ? claudeMd.content : null;
+    const readmeContent =
+      readme?.type === "file" ? readme.content : null;
     return (
       <FolderViewer
         owner={owner}
         repo={repo}
         entries={blob.entries}
-        claudeMd={claudeMdContent}
+        readme={readmeContent}
       />
     );
   }

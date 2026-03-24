@@ -83,6 +83,8 @@ export class DatabaseProvider extends ClientProvider {
       for (const r of v as ReviewResource[]) this.putReview(r.number, r);
     },
     getBuilds: (v) => this.putBuilds(v as BuildResource[]),
+    getBuild: (v) =>
+      this.putBuild((v as BuildResource).number, v as BuildResource),
   };
 
   async getQuestions(): Promise<QuestionResource[] | null> {
@@ -113,6 +115,14 @@ export class DatabaseProvider extends ClientProvider {
 
   async putBuilds(builds: BuildResource[]): Promise<void> {
     return this.db.putBuilds(this.owner, this.repo, builds);
+  }
+
+  async getBuild(number: number): Promise<BuildResource | null> {
+    return this.db.getBuild(this.owner, this.repo, number);
+  }
+
+  async putBuild(_number: number, build: BuildResource): Promise<void> {
+    return this.db.putBuild(this.owner, this.repo, build);
   }
 
   write(method: string, value: unknown) {
