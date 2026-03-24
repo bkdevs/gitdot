@@ -1,15 +1,26 @@
 import { renderMermaidSVG } from "beautiful-mermaid";
+import type { Element, ElementContent } from "hast";
 import React from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import Link from "@/ui/link";
+import { highlightMarkdownCode } from "./markdown-highlighter";
+
+function hastText(node: ElementContent): string {
+  if (node.type === "text") return node.value;
+  if (node.type === "element") return node.children.map(hastText).join("");
+  return "";
+}
 
 function extractText(children: React.ReactNode): string {
   return React.Children.toArray(children)
     .map((c) =>
       typeof c === "string"
         ? c
-        : extractText((c as React.ReactElement).props?.children ?? ""),
+        : extractText(
+            (c as React.ReactElement<{ children?: React.ReactNode }>).props
+              ?.children ?? "",
+          ),
     )
     .join("");
 }
@@ -107,18 +118,31 @@ export function MarkdownBody({ content }: { content: string }) {
         li: ({ node, ...props }) => <li className="text-sm" {...props} />,
 
         pre: ({ node, children, ...props }) => {
-          const hasMermaid = node?.children?.some(
-            (child) =>
-              child.type === "element" &&
-              "tagName" in child &&
-              child.tagName === "code" &&
-              "properties" in child &&
-              Array.isArray(child.properties?.className) &&
-              (child.properties.className as string[]).includes(
-                "language-mermaid",
-              ),
+          const codeEl = node?.children?.find(
+            (child): child is Element =>
+              child.type === "element" && child.tagName === "code",
           );
-          if (hasMermaid) return <>{children}</>;
+          const classNames = Array.isArray(codeEl?.properties?.className)
+            ? (codeEl.properties.className as string[])
+            : [];
+          const lang =
+            classNames
+              .find((c) => c.startsWith("language-"))
+              ?.replace("language-", "") ?? "";
+
+          if (lang === "mermaid") return <>{children}</>;
+
+          if (codeEl && lang) {
+            const code = hastText(codeEl).trimEnd();
+            const html = highlightMarkdownCode(code, lang);
+            if (html) {
+              return (
+                // biome-ignore lint/security/noDangerouslySetInnerHtml: server-generated Shiki HTML
+                <div dangerouslySetInnerHTML={{ __html: html }} />
+              );
+            }
+          }
+
           return (
             <pre
               className="bg-black/5 dark:bg-white/10 rounded p-4 mb-4 overflow-x-auto text-sm"

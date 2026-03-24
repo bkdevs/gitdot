@@ -6,34 +6,6 @@
 
 The SDK exposes three top-level handle types — `S2`, `S2Basin`, and `S2Stream` — that reflect the S2 resource hierarchy. Append workloads are served at multiple abstraction levels: a single `append` call for simple use cases, an `AppendSession` for pipelined HTTP/2 batches with backpressure, and a `Producer` that further abstracts individual record submission with automatic batching and per-record acknowledgement tickets.
 
-### Files
-
-```
-s2-sdk/
-├── CLAUDE.md
-├── Cargo.toml
-├── LICENSE
-├── src
-│   ├── api.rs          # AccountClient / BasinClient; protobuf + S2S protocol
-│   ├── batching.rs     # BatchingConfig, AppendInputs — linger, byte/record limits
-│   ├── client.rs       # HTTP transport, connection pooling, auth (BaseClient)
-│   ├── lib.rs          # Crate root; public re-exports
-│   ├── ops.rs          # Public API: S2, S2Basin, S2Stream
-│   ├── producer.rs     # High-level Producer: per-record submission with auto-batching
-│   ├── retry.rs        # RetryBackoff with exponential backoff + jitter
-│   ├── session
-│   │   ├── append.rs   # AppendSession: pipelined HTTP/2 appends with backpressure
-│   │   ├── mod.rs
-│   │   └── read.rs     # read_session: streaming reads with retry + heartbeat
-│   └── types.rs        # S2Config, S2Error, S2Endpoints, input/output DTOs
-└── tests
-    ├── account_ops.rs
-    ├── basin_ops.rs
-    ├── common
-    │   └── mod.rs
-    └── stream_ops.rs
-```
-
 ### APIs
 
 - **`S2`** — account-level handle ([s2-sdk/src/ops.rs](s2-sdk/src/ops.rs))

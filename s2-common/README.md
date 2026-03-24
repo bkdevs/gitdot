@@ -6,36 +6,6 @@
 
 The crate is intentionally dependency-light and feature-gated: the `axum` feature enables Axum extractor implementations for HTTP header types, `clap` enables CLI parsing support, and `rkyv` enables binary serialization. Everything else is available unconditionally, keeping SDK and server consumers from pulling in unnecessary dependencies.
 
-### Files
-
-```
-s2-common/
-├── Cargo.toml
-└── src
-    ├── lib.rs
-    ├── bash.rs            # BLAKE3 hashing wrapper (Bash)
-    ├── caps.rs            # System limit constants
-    ├── deep_size.rs       # DeepSize trait for heap billing
-    ├── http.rs            # ParseableHeader trait + optional Axum extractors
-    ├── maybe.rs           # Maybe<T> — PATCH-semantics optional
-    ├── read_extent.rs     # ReadLimit / ReadUntil — read throttling
-    ├── record
-    │   ├── mod.rs         # Record, SequencedRecord, Encodable, MagicByte, StreamPosition
-    │   ├── batcher.rs     # RecordBatch, RecordBatcher<I, E>
-    │   ├── command.rs     # CommandRecord (trim, fence)
-    │   ├── envelope.rs    # EnvelopeRecord (headers + body)
-    │   ├── fencing.rs     # FencingToken
-    │   └── metering.rs    # Metered<T>, MeteredSize
-    └── types
-        ├── mod.rs         # ValidationError
-        ├── access.rs      # Operation enum, ResourceSet
-        ├── basin.rs       # BasinName, BasinNamePrefix, BasinInfo, BasinState
-        ├── config.rs      # StreamConfig, BasinConfig, reconfiguration types
-        ├── resources.rs   # Page<T>, ListLimit, ListItemsRequest, RequestToken, CreateMode
-        ├── stream.rs      # StreamName, StreamNamePrefix, StreamInfo
-        └── strings.rs     # StrProps marker traits for name validation
-```
-
 ### APIs
 
 - **`record`** ([s2-common/src/record/mod.rs](s2-common/src/record/mod.rs))

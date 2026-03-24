@@ -6,65 +6,6 @@
 
 The crate follows a strict layered architecture: handlers call services, services call repositories and clients, repositories execute SQL queries via `sqlx`, and clients wrap `git2`, `difftastic`, GitHub's API, and S2 streams. Every layer is expressed as a trait with a corresponding `Impl` struct, making each layer independently testable.
 
-### Files
-
-```
-gitdot-core/
-├── derive/                         # Proc macro crate — #[derive(ApiResource)]
-│   ├── src/lib.rs
-│   └── Cargo.toml
-├── hooks/                          # Git hook scripts installed into bare repos
-│   ├── post-receive
-│   ├── pre-receive
-│   └── proc-receive
-├── migrations/                     # sqlx up/down migration SQL files
-├── src/
-│   ├── client/                     # External service clients (traits + impls)
-│   │   ├── diff.rs                 # DiffClient / DifftClient (difftastic)
-│   │   ├── git.rs                  # GitClient / Git2Client (libgit2)
-│   │   ├── git_http.rs             # GitHttpClient / GitHttpClientImpl (git http-backend)
-│   │   ├── github.rs               # GitHubClient / OctocrabClient
-│   │   ├── s2.rs                   # S2Client / S2ClientImpl (durable streams)
-│   │   └── secret.rs               # SecretClient / GoogleSecretClient
-│   ├── dto/                        # Request/response DTOs, one dir per domain
-│   │   ├── authentication/
-│   │   ├── authorization/
-│   │   ├── build/
-│   │   ├── commit/
-│   │   ├── git_http/
-│   │   ├── migration/github/
-│   │   ├── oauth/
-│   │   ├── organization/
-│   │   ├── question/
-│   │   ├── repository/
-│   │   ├── review/
-│   │   ├── runner/
-│   │   ├── task/
-│   │   ├── user/
-│   │   └── common.rs               # Validated types: OwnerName, RepositoryName, RunnerName
-│   ├── error/                      # Domain error enums (thiserror), one file per domain
-│   ├── model/                      # #[derive(FromRow)] DB model structs
-│   ├── repository/                 # SQL data-access traits + impls (sqlx)
-│   ├── service/                    # Business logic traits + impls, one file per domain
-│   ├── util/                       # Internal helpers
-│   │   ├── auth.rs                 # Reserved name checks
-│   │   ├── code.rs
-│   │   ├── git.rs                  # Hook scripts, ref helpers, DEFAULT_BRANCH constant
-│   │   ├── github.rs               # GitHub clone URL helpers
-│   │   ├── review.rs               # Magic-ref helpers (refs/for/*, refs/reviews/*)
-│   │   └── token.rs                # Token generation and hashing
-│   ├── client.rs
-│   ├── dto.rs
-│   ├── error.rs
-│   ├── lib.rs
-│   ├── model.rs
-│   ├── repository.rs
-│   ├── service.rs
-│   └── util.rs
-├── CLAUDE.md
-└── Cargo.toml
-```
-
 ### APIs
 
 #### Services (`gitdot-core/src/service/`)
