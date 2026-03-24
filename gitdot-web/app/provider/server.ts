@@ -12,7 +12,7 @@ import type {
 import type { Root } from "hast";
 import { getRepositoryHast } from "@/actions/repository";
 import { listQuestions } from "@/dal/question";
-import { getReview as dalGetReview } from "@/dal/review";
+import { getReview as dalGetReview, listReviews } from "@/dal/review";
 import {
   getRepositoryBlob,
   getRepositoryBlobs,
@@ -75,5 +75,9 @@ export class ApiProvider extends ServerProvider {
 
   async getReview(number: number): Promise<ReviewResource | null> {
     return await dalGetReview(this.owner, this.repo, number);
+  }
+
+  async getReviews(): Promise<ReviewResource[] | null> {
+    return await listReviews(this.owner, this.repo);
   }
 }

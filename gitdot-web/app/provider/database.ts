@@ -78,6 +78,9 @@ export class DatabaseProvider extends ClientProvider {
     getQuestions: (v) => this.putQuestions(v as QuestionResource[]),
     getReview: (v) =>
       this.putReview((v as ReviewResource).number, v as ReviewResource),
+    getReviews: (v) => {
+      for (const r of v as ReviewResource[]) this.putReview(r.number, r);
+    },
   };
 
   async getQuestions(): Promise<QuestionResource[] | null> {
@@ -90,6 +93,12 @@ export class DatabaseProvider extends ClientProvider {
 
   async getReview(number: number): Promise<ReviewResource | null> {
     return this.db.getReview(this.owner, this.repo, number);
+  }
+
+  async getReviews(): Promise<ReviewResource[] | null> {
+    const reviews = await this.db.getReviews(this.owner, this.repo);
+    if (reviews.length === 0) return null;
+    return reviews;
   }
 
   async putReview(number: number, review: ReviewResource): Promise<void> {

@@ -1,5 +1,10 @@
-import { listReviews } from "@/dal";
-import { ReviewsClient } from "./ui/reviews-client";
+import type { ReviewResource } from "gitdot-api";
+import { fetchResources } from "@/provider/server";
+import { PageClient } from "./page.client";
+
+export type Resources = {
+  reviews: ReviewResource[] | null;
+};
 
 export default async function Page({
   params,
@@ -7,8 +12,11 @@ export default async function Page({
   params: Promise<{ owner: string; repo: string }>;
 }) {
   const { owner, repo } = await params;
-  const reviews = await listReviews(owner, repo);
-  if (!reviews) return null;
+  const { requests, promises } = fetchResources(owner, repo, {
+    reviews: (p) => p.getReviews(),
+  });
 
-  return <ReviewsClient owner={owner} repo={repo} reviews={reviews} />;
+  return (
+    <PageClient owner={owner} repo={repo} requests={requests} promises={promises} />
+  );
 }

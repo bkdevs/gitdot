@@ -15,6 +15,7 @@ export default async function Page({
   const { requests, promises } = fetchResources(owner, repo, {
     review: (p) => p.getReview(number),
   });
+
   return (
     <PageClient
       owner={owner}

@@ -1,15 +1,24 @@
 "use client";
 
-import type { ReviewResource } from "gitdot-api";
-import { useMemo, useState } from "react";
-import { ReviewRow } from "./review-row";
+import { Suspense, use, useMemo, useState } from "react";
+import {
+  type ResourcePromisesType,
+  type ResourceRequestsType,
+  useResolvePromises,
+} from "@/(main)/[owner]/[repo]/resources";
+import { Loading } from "@/ui/loading";
+import { ReviewRow } from "./ui/review-row";
+import type { Resources } from "./page";
+
+type ResourceRequests = ResourceRequestsType<Resources>;
+type ResourcePromises = ResourcePromisesType<Resources>;
 
 export type ReviewsFilter = "open" | "merged" | "all";
 
 function filterReviews(
-  reviews: ReviewResource[],
+  reviews: NonNullable<Resources["reviews"]>,
   filter: ReviewsFilter,
-): ReviewResource[] {
+): NonNullable<Resources["reviews"]> {
   const filtered =
     filter === "all" ? reviews : reviews.filter((r) => r.status === filter);
 
@@ -19,21 +28,43 @@ function filterReviews(
   );
 }
 
-export function ReviewsClient({
+export function PageClient({
   owner,
   repo,
-  reviews,
+  requests,
+  promises,
 }: {
   owner: string;
   repo: string;
-  reviews: ReviewResource[];
+  requests: ResourceRequests;
+  promises: ResourcePromises;
 }) {
+  const resolvedPromises = useResolvePromises(owner, repo, requests, promises);
+  return (
+    <Suspense fallback={<Loading />}>
+      <PageContent owner={owner} repo={repo} promises={resolvedPromises} />
+    </Suspense>
+  );
+}
+
+function PageContent({
+  owner,
+  repo,
+  promises,
+}: {
+  owner: string;
+  repo: string;
+  promises: ResourcePromises;
+}) {
+  const reviews = use(promises.reviews);
   const [filter, setFilter] = useState<ReviewsFilter>("all");
 
   const filteredReviews = useMemo(
-    () => filterReviews(reviews, filter),
+    () => filterReviews(reviews ?? [], filter),
     [reviews, filter],
   );
+
+  if (!reviews) return null;
 
   return (
     <div className="flex flex-col">

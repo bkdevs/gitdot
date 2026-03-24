@@ -50,6 +50,7 @@ export abstract class RepoProvider {
   abstract getSettings(): Promise<RepositorySettingsResource | null>;
   abstract getQuestions(): Promise<QuestionResource[] | null>;
   abstract getReview(number: number): Promise<ReviewResource | null>;
+  abstract getReviews(): Promise<ReviewResource[] | null>;
 }
 
 export abstract class ServerProvider extends RepoProvider {

@@ -82,6 +82,11 @@ export class InMemoryProvider extends ClientProvider {
     return this.store.review.get(number) ?? null;
   }
 
+  async getReviews(): Promise<ReviewResource[] | null> {
+    if (this.store.review.size === 0) return null;
+    return Array.from(this.store.review.values());
+  }
+
   async initialize(): Promise<void> {
     const db = openIdb();
     const [paths, blobs, commits, settings, hasts, questions, reviews] =
