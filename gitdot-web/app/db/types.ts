@@ -5,6 +5,7 @@ import type {
   RepositoryCommitResource,
   RepositoryPathsResource,
   RepositorySettingsResource,
+  ReviewResource,
 } from "gitdot-api";
 import type { Root } from "hast";
 
@@ -96,5 +97,20 @@ export interface Database {
     owner: string,
     repo: string,
     metadata: RepositoryMetadata,
+  ): Promise<void>;
+
+  getReview(
+    owner: string,
+    repo: string,
+    number: number,
+  ): Promise<ReviewResource | null>;
+
+  getReviews(owner: string, repo: string): Promise<ReviewResource[]>;
+
+  putReview(
+    owner: string,
+    repo: string,
+    number: number,
+    review: ReviewResource,
   ): Promise<void>;
 }

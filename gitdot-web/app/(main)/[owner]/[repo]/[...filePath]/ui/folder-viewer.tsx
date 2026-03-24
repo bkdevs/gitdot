@@ -1,15 +1,18 @@
 import type { RepositoryPathResource } from "gitdot-api";
 import { File, Folder } from "lucide-react";
+import { MarkdownBody } from "@/(main)/[owner]/[repo]/ui/markdown/markdown-body";
 import Link from "@/ui/link";
 
 export function FolderViewer({
   owner,
   repo,
   entries,
+  claudeMd,
 }: {
   owner: string;
   repo: string;
   entries: RepositoryPathResource[];
+  claudeMd?: string | null;
 }) {
   const sortedEntries = entries.toSorted((a, b) => {
     if (a.path_type === b.path_type) {
@@ -19,7 +22,12 @@ export function FolderViewer({
   });
 
   return (
-    <div className="flex flex-col w-full flex-1">
+    <div className="flex flex-col w-full flex-1 overflow-auto">
+      {claudeMd && (
+        <div className="border-b px-4 py-3">
+          <MarkdownBody content={claudeMd} />
+        </div>
+      )}
       <div className="flex-1 overflow-hidden flex flex-col">
         {sortedEntries.map((entry) => (
           <FolderEntryRow

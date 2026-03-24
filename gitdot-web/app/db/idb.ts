@@ -1,12 +1,14 @@
 "use client";
 
-import type { QuestionResource } from "gitdot-api";
+import type { QuestionResource, ReviewResource } from "gitdot-api";
 import type { Root } from "hast";
 import { type IDBPDatabase, openDB } from "idb";
 import type { Database, RepositoryMetadata } from "./types";
 
 const commitKey = (owner: string, repo: string, sha: string) =>
   `${owner}/${repo}/${sha}`;
+const reviewKey = (owner: string, repo: string, number: number) =>
+  `${owner}/${repo}/${number}`;
 const repoKey = (owner: string, repo: string) => `${owner}/${repo}`;
 const pathKey = (owner: string, repo: string, path: string) =>
   `${owner}/${repo}/${path}`;
@@ -16,7 +18,7 @@ const blobKey = (owner: string, repo: string, path: string) =>
 let dbPromise: Promise<IDBPDatabase> | null = null;
 function getDb(): Promise<IDBPDatabase> {
   if (!dbPromise) {
-    dbPromise = openDB("gitdot", 6, {
+    dbPromise = openDB("gitdot", 7, {
       upgrade(db) {
         if (!db.objectStoreNames.contains("commits"))
           db.createObjectStore("commits");
@@ -32,6 +34,8 @@ function getDb(): Promise<IDBPDatabase> {
           db.createObjectStore("metadata");
         if (!db.objectStoreNames.contains("questions"))
           db.createObjectStore("questions");
+        if (!db.objectStoreNames.contains("reviews"))
+          db.createObjectStore("reviews");
       },
     });
   }
@@ -195,6 +199,23 @@ export function openIdb(): Database {
     async putMetadata(owner, repo, metadata: RepositoryMetadata) {
       const db = await getDb();
       await db.put("metadata", metadata, repoKey(owner, repo));
+    },
+
+    async getReview(owner, repo, number) {
+      const db = await getDb();
+      return (await db.get("reviews", reviewKey(owner, repo, number))) ?? null;
+    },
+
+    async getReviews(owner, repo) {
+      const db = await getDb();
+      const prefix = `${repoKey(owner, repo)}/`;
+      const range = IDBKeyRange.bound(prefix, `${prefix}\uffff`);
+      return db.getAll("reviews", range);
+    },
+
+    async putReview(owner, repo, number, review: ReviewResource) {
+      const db = await getDb();
+      await db.put("reviews", review, reviewKey(owner, repo, number));
     },
   };
 }

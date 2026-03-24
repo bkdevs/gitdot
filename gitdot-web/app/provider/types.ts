@@ -5,6 +5,7 @@ import type {
   RepositoryCommitResource,
   RepositoryPathsResource,
   RepositorySettingsResource,
+  ReviewResource,
 } from "gitdot-api";
 import type { Root } from "hast";
 
@@ -48,6 +49,7 @@ export abstract class RepoProvider {
   abstract getBlobs(): Promise<RepositoryBlobsResource | null>;
   abstract getSettings(): Promise<RepositorySettingsResource | null>;
   abstract getQuestions(): Promise<QuestionResource[] | null>;
+  abstract getReview(number: number): Promise<ReviewResource | null>;
 }
 
 export abstract class ServerProvider extends RepoProvider {

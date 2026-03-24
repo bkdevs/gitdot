@@ -7,10 +7,12 @@ import type {
   RepositoryCommitResource,
   RepositoryPathsResource,
   RepositorySettingsResource,
+  ReviewResource,
 } from "gitdot-api";
 import type { Root } from "hast";
 import { getRepositoryHast } from "@/actions/repository";
 import { listQuestions } from "@/dal/question";
+import { getReview as dalGetReview } from "@/dal/review";
 import {
   getRepositoryBlob,
   getRepositoryBlobs,
@@ -69,5 +71,9 @@ export class ApiProvider extends ServerProvider {
 
   async getQuestions(): Promise<QuestionResource[] | null> {
     return await listQuestions(this.owner, this.repo);
+  }
+
+  async getReview(number: number): Promise<ReviewResource | null> {
+    return await dalGetReview(this.owner, this.repo, number);
   }
 }

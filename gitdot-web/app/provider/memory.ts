@@ -8,6 +8,7 @@ import type {
   RepositoryCommitResource,
   RepositoryPathsResource,
   RepositorySettingsResource,
+  ReviewResource,
 } from "gitdot-api";
 import type { Root } from "hast";
 import { ClientProvider } from "./types";
@@ -21,6 +22,7 @@ type Store = {
   blob: Map<string, RepositoryBlobResource>;
   commit: Map<string, RepositoryCommitResource>;
   hast: Map<string, Root>;
+  review: Map<number, ReviewResource>;
 };
 
 export class InMemoryProvider extends ClientProvider {
@@ -33,6 +35,7 @@ export class InMemoryProvider extends ClientProvider {
     blob: new Map(),
     commit: new Map(),
     hast: new Map(),
+    review: new Map(),
   };
 
   async getPaths(): Promise<RepositoryPathsResource | null> {
@@ -75,16 +78,22 @@ export class InMemoryProvider extends ClientProvider {
     return this.store.questions ?? null;
   }
 
+  async getReview(number: number): Promise<ReviewResource | null> {
+    return this.store.review.get(number) ?? null;
+  }
+
   async initialize(): Promise<void> {
     const db = openIdb();
-    const [paths, blobs, commits, settings, hasts, questions] = await Promise.all([
-      db.getPaths(this.owner, this.repo),
-      db.getBlobs(this.owner, this.repo),
-      db.getCommits(this.owner, this.repo),
-      db.getSettings(this.owner, this.repo),
-      db.getHasts(this.owner, this.repo),
-      db.getQuestions(this.owner, this.repo),
-    ]);
+    const [paths, blobs, commits, settings, hasts, questions, reviews] =
+      await Promise.all([
+        db.getPaths(this.owner, this.repo),
+        db.getBlobs(this.owner, this.repo),
+        db.getCommits(this.owner, this.repo),
+        db.getSettings(this.owner, this.repo),
+        db.getHasts(this.owner, this.repo),
+        db.getQuestions(this.owner, this.repo),
+        db.getReviews(this.owner, this.repo),
+      ]);
     if (paths) this.store.paths = paths;
     if (blobs) {
       this.store.blobs = blobs;
@@ -97,5 +106,8 @@ export class InMemoryProvider extends ClientProvider {
     if (settings) this.store.settings = settings;
     if (hasts) this.store.hast = hasts;
     if (questions?.length) this.store.questions = questions;
+    if (reviews?.length) {
+      for (const r of reviews) this.store.review.set(r.number, r);
+    }
   }
 }

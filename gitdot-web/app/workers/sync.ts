@@ -87,6 +87,12 @@ async function process({ owner, repo }: MessageBody, port: MessagePort) {
     for (const c of result.commits.commits)
       writes.push(db.putCommit(owner, repo, c));
   }
+  if (result.questions)
+    writes.push(db.putQuestions(owner, repo, result.questions.questions));
+  if (result.reviews) {
+    for (const r of result.reviews.reviews)
+      writes.push(db.putReview(owner, repo, r.number, r));
+  }
   await Promise.all(writes);
   console.log(`[sync-worker] idb write took ${performance.now() - t}ms`);
   port.postMessage({

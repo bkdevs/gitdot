@@ -6,6 +6,7 @@ import type {
   RepositoryCommitResource,
   RepositoryPathsResource,
   RepositorySettingsResource,
+  ReviewResource,
 } from "gitdot-api";
 import type { Root } from "hast";
 import { openIdb } from "@/db";
@@ -75,6 +76,8 @@ export class DatabaseProvider extends ClientProvider {
     getBlobs: (v) => this.putBlobs(v as RepositoryBlobsResource),
     getSettings: (v) => this.putSettings(v as RepositorySettingsResource),
     getQuestions: (v) => this.putQuestions(v as QuestionResource[]),
+    getReview: (v) =>
+      this.putReview((v as ReviewResource).number, v as ReviewResource),
   };
 
   async getQuestions(): Promise<QuestionResource[] | null> {
@@ -83,6 +86,14 @@ export class DatabaseProvider extends ClientProvider {
 
   async putQuestions(questions: QuestionResource[]) {
     return this.db.putQuestions(this.owner, this.repo, questions);
+  }
+
+  async getReview(number: number): Promise<ReviewResource | null> {
+    return this.db.getReview(this.owner, this.repo, number);
+  }
+
+  async putReview(number: number, review: ReviewResource): Promise<void> {
+    return this.db.putReview(this.owner, this.repo, number, review);
   }
 
   write(method: string, value: unknown) {
