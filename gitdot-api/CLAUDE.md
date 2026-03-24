@@ -8,7 +8,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Structure
 
-- `resource/` — Data structs returned by the API. One file per domain (user, repository, question, etc.).
+- `resource/` — Data structs returned by the API. One file per domain:
+  - [build](src/resource/build.rs)
+  - [migration](src/resource/migration.rs)
+  - [oauth](src/resource/oauth.rs)
+  - [organization](src/resource/organization.rs)
+  - [question](src/resource/question.rs)
+  - [repository](src/resource/repository.rs)
+  - [review](src/resource/review.rs)
+  - [runner](src/resource/runner.rs)
+  - [settings](src/resource/settings.rs)
+  - [task](src/resource/task.rs)
+  - [user](src/resource/user.rs)
 - `endpoint/` — One submodule per endpoint. Each defines a ZST implementing the `Endpoint` trait plus request/response types.
 - `ApiResource` — Marker trait (`Serialize + PartialEq`) with blanket impls for `Vec<T>`, `Option<T>`, and `()`. Use `#[derive(ApiResource)]` from `api_derive`.
 
