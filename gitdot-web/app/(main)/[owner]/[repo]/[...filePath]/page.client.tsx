@@ -1,12 +1,14 @@
 "use client";
 
-import { Suspense, use } from "react";
+import { Suspense, use, useEffect, useMemo, useState } from "react";
 import {
   type ResourcePromisesType,
   type ResourceRequestsType,
   useResolvePromises,
 } from "@/(main)/[owner]/[repo]/resources";
 import { Loading } from "@/ui/loading";
+import { DatabaseProvider } from "@/provider/database";
+import type { RepositoryPathResource } from "gitdot-api";
 import type { Resources } from "./page";
 import { FileBody } from "./ui/file-body";
 import { FolderViewer } from "./ui/folder-viewer";
@@ -67,10 +69,21 @@ function PageContent({
   if (blob.type === "folder") {
     const readmeContent =
       readme?.type === "file" ? readme.content : null;
+    if (!readmeContent) {
+      return (
+        <FolderViewerWithPaths
+          owner={owner}
+          repo={repo}
+          folderPath={blob.path}
+          entries={blob.entries}
+        />
+      );
+    }
     return (
       <FolderViewer
         owner={owner}
         repo={repo}
+        folderPath={blob.path}
         entries={blob.entries}
         readme={readmeContent}
       />
@@ -92,5 +105,44 @@ function PageContent({
       </div>
       {historySlot}
     </div>
+  );
+}
+
+function FolderViewerWithPaths({
+  owner,
+  repo,
+  folderPath,
+  entries,
+}: {
+  owner: string;
+  repo: string;
+  folderPath: string;
+  entries: RepositoryPathResource[];
+}) {
+  const [allFiles, setAllFiles] = useState<RepositoryPathResource[] | null>(null);
+  const db = useMemo(() => new DatabaseProvider(owner, repo), [owner, repo]);
+
+  useEffect(() => {
+    db.getPaths().then((paths) => {
+      if (!paths) return;
+      const prefix = folderPath ? `${folderPath}/` : "";
+      setAllFiles(
+        paths.entries.filter(
+          (e) =>
+            (e.path_type === "blob" || e.path_type === "tree") &&
+            e.path.startsWith(prefix),
+        ),
+      );
+    });
+  }, [db, folderPath]);
+
+  return (
+    <FolderViewer
+      owner={owner}
+      repo={repo}
+      folderPath={folderPath}
+      entries={entries}
+      allFiles={allFiles}
+    />
   );
 }
