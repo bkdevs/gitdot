@@ -6,6 +6,19 @@
 
 The SDK exposes three top-level handle types — `S2`, `S2Basin`, and `S2Stream` — that reflect the S2 resource hierarchy. Append workloads are served at multiple abstraction levels: a single `append` call for simple use cases, an `AppendSession` for pipelined HTTP/2 batches with backpressure, and a `Producer` that further abstracts individual record submission with automatic batching and per-record acknowledgement tickets.
 
+```mermaid
+graph LR
+    S2["S2\n(account handle)"] --> BASIN["S2Basin\n(basin handle)"]
+    BASIN --> STREAM["S2Stream\n(stream handle)"]
+    STREAM --> APPEND["append()"]
+    STREAM --> READ["read_session()"]
+    STREAM --> SESSION["AppendSession\n(pipelined HTTP/2)"]
+    SESSION --> PRODUCER["Producer\n(per-record batching)"]
+    S2 --> CLIENT["BaseClient\n(hyper + rustls)"]
+    SESSION --> CLIENT
+    READ --> CLIENT
+```
+
 ### APIs
 
 #### `S2` — account-level handle ([s2-sdk/src/ops.rs](s2-sdk/src/ops.rs))

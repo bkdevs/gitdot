@@ -6,6 +6,16 @@
 
 The crate is intentionally dependency-light and feature-gated: the `axum` feature enables Axum extractor implementations for HTTP header types, `clap` enables CLI parsing support, and `rkyv` enables binary serialization.
 
+```mermaid
+graph LR
+    COMMON["s2-common"] --> API["s2-api"]
+    COMMON --> SDK["s2-sdk"]
+    COMMON --> SERVER["s2-server"]
+    RECORD["record/\n(Record · SequencedRecord\nFencingToken · Encodable)"] --> COMMON
+    TYPES["types/\n(BasinName · StreamName\nStreamConfig · BasinConfig)"] --> COMMON
+    MAYBE["maybe/\n(Maybe&lt;T&gt; · PATCH semantics)"] --> COMMON
+```
+
 ### APIs
 
 #### `record` — core record types ([s2-common/src/record/mod.rs](s2-common/src/record/mod.rs))

@@ -6,6 +6,21 @@
 
 The server follows a clean layered architecture: HTTP handlers delegate to backend service methods, which execute reads and writes against a KV schema built on top of SlateDB. Append operations flow through per-stream **streamer** actors that handle sequencing, batching, and durability tracking, while background tasks manage stream trimming, delete-on-empty enforcement, and basin deletion cleanup.
 
+```mermaid
+graph LR
+    HTTP["HTTP Handlers\n(basins · streams · records)"] --> BACKEND["Backend\n(core.rs)"]
+    BACKEND --> BASINS["basin ops"]
+    BACKEND --> STREAMS["stream ops"]
+    BACKEND --> APPEND["append ops"]
+    BACKEND --> READ["read ops"]
+    BACKEND --> STREAMER["Streamer actor\n(sequencing · batching)"]
+    BASINS --> KV["KV Schema\n(SlateDB)"]
+    STREAMS --> KV
+    APPEND --> KV
+    READ --> KV
+    KV --> STORE[("Object Storage\nS3 · GCP · Local · Memory")]
+```
+
 ### APIs
 
 #### `LiteArgs` + `run` — entry point ([s2-server/src/server.rs](s2-server/src/server.rs))

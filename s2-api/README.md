@@ -4,6 +4,16 @@
 
 `s2-api` defines the shared API contract for S2, a durable streams service — request/response types, error codes, format negotiation, and wire protocols. It is the contract layer consumed by both `s2-server` (to type handlers) and `s2-sdk` (to serialize requests and deserialize responses). Axum extractors and `IntoResponse` impls are behind the `axum` feature flag; protobuf support requires the `proto` feature.
 
+```mermaid
+graph LR
+    COMMON["s2-common\n(record types)"] --> API["s2-api\n(HTTP contract)"]
+    API -->|"axum feature"| SERVER["s2-server\n(handler types)"]
+    API -->|"proto feature"| PROTO["Protobuf\n(prost generated)"]
+    API --> SDK["s2-sdk\n(client types)"]
+    API --> SSE["SSE\n(resumable reads)"]
+    API --> S2S["S2S binary\n(framing + compression)"]
+```
+
 ### APIs
 
 - **`ErrorCode`** — machine-readable error codes ([s2-api/src/v1/error.rs](s2-api/src/v1/error.rs))
