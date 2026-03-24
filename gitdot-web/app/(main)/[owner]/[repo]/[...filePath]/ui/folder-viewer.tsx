@@ -45,28 +45,34 @@ export function FolderViewer({
     return a.path_type === "tree" ? -1 : 1;
   });
 
-  return (
-    <div className="flex w-full h-full min-h-0 overflow-hidden">
-      <div
-        data-page-scroll
-        className="flex flex-col flex-1 min-w-0 overflow-auto scrollbar-thin"
-      >
-        {readme && (
+  if (readme) {
+    return (
+      <div className="flex w-full h-full min-h-0 overflow-hidden">
+        <div
+          data-page-scroll
+          className="flex flex-col flex-1 min-w-0 overflow-auto scrollbar-thin"
+        >
           <div className="border-b px-8 py-6 max-w-4xl mx-auto w-full">
             <MarkdownBody content={readme} />
           </div>
-        )}
-        <div className="flex-1 flex flex-col">
-          {sortedEntries.map((entry) => (
-            <FolderEntryRow
-              key={entry.path}
-              entry={entry}
-              href={`/${owner}/${repo}/${entry.path}`}
-            />
-          ))}
         </div>
+        <FolderToc headers={extractHeaders(readme)} />
       </div>
-      {readme && <FolderToc headers={extractHeaders(readme)} />}
+    );
+  }
+
+  return (
+    <div
+      data-page-scroll
+      className="flex flex-col flex-1 w-full min-w-0 overflow-auto scrollbar-thin"
+    >
+      {sortedEntries.map((entry) => (
+        <FolderEntryRow
+          key={entry.path}
+          entry={entry}
+          href={`/${owner}/${repo}/${entry.path}`}
+        />
+      ))}
     </div>
   );
 }

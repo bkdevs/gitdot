@@ -2,7 +2,7 @@
 
 import { File, Folder, FolderOpen } from "lucide-react";
 import { useParams } from "next/navigation";
-import { Suspense, use, useMemo } from "react";
+import { Fragment, Suspense, use, useMemo } from "react";
 import {
   type ResourcePromisesType,
   type ResourceRequestsType,
@@ -11,6 +11,7 @@ import {
 import Link from "@/ui/link";
 import { OverlayScroll } from "@/ui/scroll";
 import { Sidebar, SidebarContent } from "@/ui/sidebar";
+import type { RepositoryPathsResource } from "gitdot-api";
 import { getFolderEntries, getParentPath } from "../util";
 import type { Resources } from "./layout";
 
@@ -92,18 +93,61 @@ function FileSidebarContent({
         const filePath = file.path.split("/").pop();
         if (!filePath) return null;
         const fullPath = parentPath ? `${parentPath}/${filePath}` : filePath;
+        const isFolder = file.path_type === "tree";
+        const isActive = currentPath === fullPath;
 
         return (
-          <FileRow
-            key={file.path}
-            filePath={filePath}
-            href={`/${owner}/${repo}/${parentPath}/${filePath}`}
-            isFolder={file.path_type === "tree"}
-            isActive={currentPath === fullPath}
-          />
+          <Fragment key={file.path}>
+            <FileRow
+              filePath={filePath}
+              href={`/${owner}/${repo}/${parentPath}/${filePath}`}
+              isFolder={isFolder}
+              isActive={isActive}
+            />
+            {isActive && isFolder && (
+              <FolderChildren
+                owner={owner}
+                repo={repo}
+                folderPath={fullPath}
+                paths={paths}
+              />
+            )}
+          </Fragment>
         );
       })}
     </div>
+  );
+}
+
+function FolderChildren({
+  owner,
+  repo,
+  folderPath,
+  paths,
+}: {
+  owner: string;
+  repo: string;
+  folderPath: string;
+  paths: RepositoryPathsResource;
+}) {
+  const children = getFolderEntries(folderPath, paths);
+  return (
+    <>
+      {children.map((child) => {
+        const childName = child.path.split("/").pop();
+        if (!childName) return null;
+        return (
+          <FileRow
+            key={child.path}
+            filePath={childName}
+            href={`/${owner}/${repo}/${folderPath}/${childName}`}
+            isFolder={child.path_type === "tree"}
+            isActive={false}
+            indent={true}
+          />
+        );
+      })}
+    </>
   );
 }
 
@@ -112,17 +156,19 @@ function FileRow({
   href,
   isFolder,
   isActive,
+  indent = false,
 }: {
   filePath: string;
   href: string;
   isFolder: boolean;
   isActive: boolean;
+  indent?: boolean;
 }) {
   const navigable = filePath !== "..";
   return (
     <Link
       href={href}
-      className={`flex flex-row w-full px-2 h-9 items-center border-b select-none cursor-default text-sm font-mono hover:bg-accent/50 ${
+      className={`flex flex-row w-full h-9 items-center border-b select-none cursor-default text-sm font-mono hover:bg-accent/50 ${indent ? "pl-6 pr-2" : "px-2"} ${
         isActive && "bg-sidebar"
       }`}
       prefetch={true}
