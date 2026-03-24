@@ -1,6 +1,11 @@
-import type { RepositoryCommitResource } from "gitdot-api";
-import { getBuilds, getRepositoryCommit } from "@/dal";
-import { BuildsClient } from "./ui/builds-client";
+import type { BuildResource, RepositoryCommitResource } from "gitdot-api";
+import { fetchResources } from "@/provider/server";
+import { PageClient } from "./page.client";
+
+export type Resources = {
+  builds: BuildResource[] | null;
+  commits: RepositoryCommitResource[] | null;
+};
 
 export default async function Page({
   params,
@@ -8,15 +13,17 @@ export default async function Page({
   params: Promise<{ owner: string; repo: string }>;
 }) {
   const { owner, repo } = await params;
-  const builds = await getBuilds(owner, repo);
-  if (!builds) return null;
-
-  const commits = (await Promise.all(
-    builds.map((build) => getRepositoryCommit(owner, repo, build.commit_sha)),
-  )) as RepositoryCommitResource[];
-  if (commits.some((c) => c === null)) return null;
+  const { requests, promises } = fetchResources(owner, repo, {
+    builds: (p) => p.getBuilds(),
+    commits: (p) => p.getCommits(),
+  });
 
   return (
-    <BuildsClient owner={owner} repo={repo} builds={builds} commits={commits} />
+    <PageClient
+      owner={owner}
+      repo={repo}
+      requests={requests}
+      promises={promises}
+    />
   );
 }

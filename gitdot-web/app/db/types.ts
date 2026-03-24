@@ -1,4 +1,5 @@
 import type {
+  BuildResource,
   QuestionResource,
   RepositoryBlobResource,
   RepositoryBlobsResource,
@@ -80,10 +81,7 @@ export interface Database {
     settings: RepositorySettingsResource,
   ): Promise<void>;
 
-  getQuestions(
-    owner: string,
-    repo: string,
-  ): Promise<QuestionResource[] | null>;
+  getQuestions(owner: string, repo: string): Promise<QuestionResource[] | null>;
 
   putQuestions(
     owner: string,
@@ -112,5 +110,12 @@ export interface Database {
     repo: string,
     number: number,
     review: ReviewResource,
+  ): Promise<void>;
+
+  getBuilds(owner: string, repo: string): Promise<BuildResource[] | null>;
+  putBuilds(
+    owner: string,
+    repo: string,
+    builds: BuildResource[],
   ): Promise<void>;
 }

@@ -1,4 +1,5 @@
 import type {
+  BuildResource,
   QuestionResource,
   RepositoryBlobResource,
   RepositoryBlobsResource,
@@ -51,6 +52,7 @@ export abstract class RepoProvider {
   abstract getQuestions(): Promise<QuestionResource[] | null>;
   abstract getReview(number: number): Promise<ReviewResource | null>;
   abstract getReviews(): Promise<ReviewResource[] | null>;
+  abstract getBuilds(): Promise<BuildResource[] | null>;
 }
 
 export abstract class ServerProvider extends RepoProvider {

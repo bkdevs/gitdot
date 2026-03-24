@@ -93,6 +93,8 @@ async function process({ owner, repo }: MessageBody, port: MessagePort) {
     for (const r of result.reviews.reviews)
       writes.push(db.putReview(owner, repo, r.number, r));
   }
+  if (result.builds)
+    writes.push(db.putBuilds(owner, repo, result.builds.builds));
   await Promise.all(writes);
   console.log(`[sync-worker] idb write took ${performance.now() - t}ms`);
   port.postMessage({

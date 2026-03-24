@@ -1,7 +1,7 @@
 "use client";
 
-import { openIdb } from "@/db";
 import type {
+  BuildResource,
   QuestionResource,
   RepositoryBlobResource,
   RepositoryBlobsResource,
@@ -11,6 +11,7 @@ import type {
   ReviewResource,
 } from "gitdot-api";
 import type { Root } from "hast";
+import { openIdb } from "@/db";
 import { ClientProvider } from "./types";
 
 type Store = {
@@ -19,6 +20,7 @@ type Store = {
   commits: RepositoryCommitResource[] | undefined;
   settings: RepositorySettingsResource | undefined;
   questions: QuestionResource[] | undefined;
+  builds: BuildResource[] | undefined;
   blob: Map<string, RepositoryBlobResource>;
   commit: Map<string, RepositoryCommitResource>;
   hast: Map<string, Root>;
@@ -32,6 +34,7 @@ export class InMemoryProvider extends ClientProvider {
     commits: undefined,
     settings: undefined,
     questions: undefined,
+    builds: undefined,
     blob: new Map(),
     commit: new Map(),
     hast: new Map(),
@@ -87,9 +90,13 @@ export class InMemoryProvider extends ClientProvider {
     return Array.from(this.store.review.values());
   }
 
+  async getBuilds(): Promise<BuildResource[] | null> {
+    return this.store.builds ?? null;
+  }
+
   async initialize(): Promise<void> {
     const db = openIdb();
-    const [paths, blobs, commits, settings, hasts, questions, reviews] =
+    const [paths, blobs, commits, settings, hasts, questions, reviews, builds] =
       await Promise.all([
         db.getPaths(this.owner, this.repo),
         db.getBlobs(this.owner, this.repo),
@@ -98,6 +105,7 @@ export class InMemoryProvider extends ClientProvider {
         db.getHasts(this.owner, this.repo),
         db.getQuestions(this.owner, this.repo),
         db.getReviews(this.owner, this.repo),
+        db.getBuilds(this.owner, this.repo),
       ]);
     if (paths) this.store.paths = paths;
     if (blobs) {
@@ -114,5 +122,6 @@ export class InMemoryProvider extends ClientProvider {
     if (reviews?.length) {
       for (const r of reviews) this.store.review.set(r.number, r);
     }
+    if (builds?.length) this.store.builds = builds;
   }
 }

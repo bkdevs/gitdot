@@ -1,6 +1,7 @@
 import "server-only";
 
 import type {
+  BuildResource,
   QuestionResource,
   RepositoryBlobResource,
   RepositoryBlobsResource,
@@ -11,8 +12,8 @@ import type {
 } from "gitdot-api";
 import type { Root } from "hast";
 import { getRepositoryHast } from "@/actions/repository";
+import { getBuilds as dalGetBuilds } from "@/dal/build";
 import { listQuestions } from "@/dal/question";
-import { getReview as dalGetReview, listReviews } from "@/dal/review";
 import {
   getRepositoryBlob,
   getRepositoryBlobs,
@@ -21,6 +22,7 @@ import {
   getRepositoryPaths,
   getRepositorySettings,
 } from "@/dal/repository";
+import { getReview as dalGetReview, listReviews } from "@/dal/review";
 import { subtractDays } from "@/util/date";
 import type { ResourceDefinition } from "./types";
 import { ServerProvider } from "./types";
@@ -79,5 +81,9 @@ export class ApiProvider extends ServerProvider {
 
   async getReviews(): Promise<ReviewResource[] | null> {
     return await listReviews(this.owner, this.repo);
+  }
+
+  async getBuilds(): Promise<BuildResource[] | null> {
+    return await dalGetBuilds(this.owner, this.repo);
   }
 }

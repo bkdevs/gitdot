@@ -21,10 +21,11 @@ export function BuildsClient({
   const [filter, setFilter] = useState<BuildsFilter>("main");
 
   const commitsBySha: Record<string, RepositoryCommitResource> = {};
-  for (let i = 0; i < builds.length; i++) {
-    commitsBySha[builds[i].commit_sha] = commits[i];
+  for (const commit of commits) {
+    commitsBySha[commit.sha] = commit;
   }
   const filteredBuilds = builds.filter((build) => {
+    if (!commitsBySha[build.commit_sha]) return false;
     if (filter === "main") return build.trigger === "push_to_main";
     return build.trigger === "pull_request";
   });

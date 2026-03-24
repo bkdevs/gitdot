@@ -9,17 +9,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Structure
 
 - `resource/` — Data structs returned by the API. One file per domain:
-  - [build](src/resource/build.rs)
-  - [migration](src/resource/migration.rs)
-  - [oauth](src/resource/oauth.rs)
-  - [organization](src/resource/organization.rs)
-  - [question](src/resource/question.rs)
-  - [repository](src/resource/repository.rs)
-  - [review](src/resource/review.rs)
-  - [runner](src/resource/runner.rs)
-  - [settings](src/resource/settings.rs)
-  - [task](src/resource/task.rs)
-  - [user](src/resource/user.rs)
+  - [build](gitdot-api/src/resource/build.rs)
+  - [migration](gitdot-api/src/resource/migration.rs)
+  - [oauth](gitdot-api/src/resource/oauth.rs)
+  - [organization](gitdot-api/src/resource/organization.rs)
+  - [question](gitdot-api/src/resource/question.rs)
+  - [repository](gitdot-api/src/resource/repository.rs)
+  - [review](gitdot-api/src/resource/review.rs)
+  - [runner](gitdot-api/src/resource/runner.rs)
+  - [settings](gitdot-api/src/resource/settings.rs)
+  - [task](gitdot-api/src/resource/task.rs)
+  - [user](gitdot-api/src/resource/user.rs)
 - `endpoint/` — One submodule per endpoint. Each defines a ZST implementing the `Endpoint` trait plus request/response types.
 - `ApiResource` — Marker trait (`Serialize + PartialEq`) with blanket impls for `Vec<T>`, `Option<T>`, and `()`. Use `#[derive(ApiResource)]` from `api_derive`.
 

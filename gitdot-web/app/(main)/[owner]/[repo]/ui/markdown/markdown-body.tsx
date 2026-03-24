@@ -1,3 +1,4 @@
+import Link from "@/ui/link";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -19,11 +20,14 @@ export function MarkdownBody({ content }: { content: string }) {
         p: ({ node, ...props }) => (
           <p className="leading-relaxed text-sm mb-4" {...props} />
         ),
-        a: ({ node, ...props }) => (
-          <a
+        a: ({ node, href, children, ...props }) => (
+          <Link
+            href={href ?? ""}
             className="text-sm underline underline-offset-4 decoration-1 hover:decoration-2 transition-all"
             {...props}
-          />
+          >
+            {children}
+          </Link>
         ),
         blockquote: ({ node, ...props }) => (
           <blockquote

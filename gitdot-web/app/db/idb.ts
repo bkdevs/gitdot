@@ -18,7 +18,7 @@ const blobKey = (owner: string, repo: string, path: string) =>
 let dbPromise: Promise<IDBPDatabase> | null = null;
 function getDb(): Promise<IDBPDatabase> {
   if (!dbPromise) {
-    dbPromise = openDB("gitdot", 7, {
+    dbPromise = openDB("gitdot", 8, {
       upgrade(db) {
         if (!db.objectStoreNames.contains("commits"))
           db.createObjectStore("commits");
@@ -36,6 +36,8 @@ function getDb(): Promise<IDBPDatabase> {
           db.createObjectStore("questions");
         if (!db.objectStoreNames.contains("reviews"))
           db.createObjectStore("reviews");
+        if (!db.objectStoreNames.contains("builds"))
+          db.createObjectStore("builds");
       },
     });
   }
@@ -216,6 +218,16 @@ export function openIdb(): Database {
     async putReview(owner, repo, number, review: ReviewResource) {
       const db = await getDb();
       await db.put("reviews", review, reviewKey(owner, repo, number));
+    },
+
+    async getBuilds(owner, repo) {
+      const db = await getDb();
+      return (await db.get("builds", repoKey(owner, repo))) ?? null;
+    },
+
+    async putBuilds(owner, repo, builds) {
+      const db = await getDb();
+      await db.put("builds", builds, repoKey(owner, repo));
     },
   };
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import type {
+  BuildResource,
   QuestionResource,
   RepositoryBlobsResource,
   RepositoryCommitResource,
@@ -81,6 +82,7 @@ export class DatabaseProvider extends ClientProvider {
     getReviews: (v) => {
       for (const r of v as ReviewResource[]) this.putReview(r.number, r);
     },
+    getBuilds: (v) => this.putBuilds(v as BuildResource[]),
   };
 
   async getQuestions(): Promise<QuestionResource[] | null> {
@@ -103,6 +105,14 @@ export class DatabaseProvider extends ClientProvider {
 
   async putReview(number: number, review: ReviewResource): Promise<void> {
     return this.db.putReview(this.owner, this.repo, number, review);
+  }
+
+  async getBuilds(): Promise<BuildResource[] | null> {
+    return this.db.getBuilds(this.owner, this.repo);
+  }
+
+  async putBuilds(builds: BuildResource[]): Promise<void> {
+    return this.db.putBuilds(this.owner, this.repo, builds);
   }
 
   write(method: string, value: unknown) {
