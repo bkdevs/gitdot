@@ -6,6 +6,8 @@
 
 The crate follows a strict layered architecture: handlers call services, services call repositories and clients, repositories execute SQL queries via `sqlx`, and clients wrap `git2`, `difftastic`, GitHub's API, and S2 streams. Every layer is expressed as a trait with a corresponding `Impl` struct, making each layer independently testable.
 
+### Architecture
+
 ```mermaid
 graph LR
     SERVER["gitdot-server\n(handlers)"] --> SVC["Services\n(UserService · RepoService\nReviewService · BuildService\nRunnerService · TaskService)"]
@@ -17,6 +19,8 @@ graph LR
     GIT --> FS[("bare git repos\non disk")]
     S2C --> S2[("S2 streams")]
 ```
+
+### Class diagram
 
 ```mermaid
 classDiagram

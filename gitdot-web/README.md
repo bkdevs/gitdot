@@ -6,6 +6,8 @@
 
 Data fetching is built around a multi-provider pattern that races IndexedDB (for instant cached reads) against live API responses. A SharedWorker (`app/workers/sync.ts`) runs in the background to bulk-sync all repository resources — blobs, commits, paths, reviews, builds, and questions — into IDB, and pre-computes syntax-highlighted HAST trees for every file. This makes repeat navigations feel instant even on large repos.
 
+### Architecture
+
 ```mermaid
 graph LR
     PAGE["page.tsx\n(server component)"] --> DAL["app/dal/\n(authFetch + Zod)"]
@@ -19,6 +21,8 @@ graph LR
     WORKER --> IDB
     SUPABASE["Supabase"] -->|"JWT"| DAL
 ```
+
+### Class diagram
 
 ```mermaid
 classDiagram

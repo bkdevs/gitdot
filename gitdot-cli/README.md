@@ -4,6 +4,8 @@
 
 Configuration is split between two TOML files: user config at `~/.config/gitdot/config.toml` (auth tokens, server URLs) and runner config at `/etc/gitdot/runner.toml` (runner token, executor count, S2 stream URL). All API calls go through `GitdotClient`, a thin reqwest wrapper that attaches JWT or Basic auth headers and deserializes responses into `gitdot-api` resource types.
 
+### Architecture
+
 ```mermaid
 graph LR
     USER["user"] --> GDOT["gdot binary"]
@@ -18,6 +20,8 @@ graph LR
     CLIENT -->|"Bearer JWT"| API["gitdot-server\nREST API"]
     RUNNER -->|"Basic token"| API
 ```
+
+### Class diagram
 
 ```mermaid
 classDiagram

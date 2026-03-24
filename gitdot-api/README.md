@@ -6,6 +6,8 @@
 
 The crate is split into two layers: `resource/` contains plain data structs annotated with `#[derive(ApiResource)]`, and `endpoint/` contains zero-sized-type (ZST) structs implementing the `Endpoint` trait that associate a path, method, request type, and response type for each API call. A companion proc-macro crate (`gitdot-api/derive`) provides the `#[derive(ApiResource)]` and `#[derive(ApiRequest)]` derives.
 
+### Architecture
+
 ```mermaid
 graph LR
     MACRO["api_derive\n(proc macros)"] -->|"#[derive(ApiResource)]"| RUST["gitdot-api\n(Rust)"]
@@ -14,6 +16,8 @@ graph LR
     RUST -->|"mirrored by"| TS["gitdot-api-ts\n(Zod schemas)"]
     TS -->|"DAL validation"| WEB["gitdot-web"]
 ```
+
+### Class diagram
 
 ```mermaid
 classDiagram

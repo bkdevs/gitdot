@@ -46,6 +46,8 @@ graph LR
     AUTH -->|"validate JWT"| SUPABASE
 ```
 
+### Class diagram
+
 ```mermaid
 classDiagram
     direction TB

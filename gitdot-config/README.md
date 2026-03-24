@@ -4,6 +4,8 @@
 
 `gitdot-config` is the shared configuration crate for the Gitdot platform. It parses and validates `.gitdot.toml` CI pipeline config files authored by users, and is consumed by `gitdot-core` when creating and executing CI builds.
 
+### Architecture
+
 ```mermaid
 graph LR
     TOML[".gitdot.toml"] --> PARSE["CiConfig::new()"]
@@ -12,6 +14,8 @@ graph LR
     CONFIG --> CORE["gitdot-core\nBuildService"]
     CORE --> RUNNER["CI runner\n(task execution)"]
 ```
+
+### Class diagram
 
 ```mermaid
 classDiagram

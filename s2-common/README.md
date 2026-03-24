@@ -6,6 +6,8 @@
 
 The crate is intentionally dependency-light and feature-gated: the `axum` feature enables Axum extractor implementations for HTTP header types, `clap` enables CLI parsing support, and `rkyv` enables binary serialization.
 
+### Architecture
+
 ```mermaid
 graph LR
     COMMON["s2-common"] --> API["s2-api"]
@@ -15,6 +17,8 @@ graph LR
     TYPES["types/\n(BasinName · StreamName\nStreamConfig · BasinConfig)"] --> COMMON
     MAYBE["maybe/\n(Maybe&lt;T&gt; · PATCH semantics)"] --> COMMON
 ```
+
+### Class diagram
 
 ```mermaid
 classDiagram

@@ -161,6 +161,8 @@ export function MarkdownBody({ content }: { content: string }) {
             try {
               const svg = renderMermaidSVG(String(children).trimEnd(), {
                 transparent: true,
+                fg: "#09090B",
+                muted: "#52525B",
               });
               return (
                 <div
