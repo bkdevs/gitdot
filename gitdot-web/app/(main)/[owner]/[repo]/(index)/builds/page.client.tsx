@@ -1,14 +1,18 @@
 "use client";
 
-import { Suspense, use } from "react";
 import {
   type ResourcePromisesType,
   type ResourceRequestsType,
   useResolvePromises,
 } from "@/(main)/[owner]/[repo]/resources";
 import { Loading } from "@/ui/loading";
+import type { RepositoryCommitResource } from "gitdot-api";
+import { Suspense, use, useState } from "react";
 import type { Resources } from "./page";
-import { BuildsClient } from "./ui/builds-client";
+import { BuildRow } from "./ui/build-row";
+import { BuildsHeader } from "./ui/builds-header";
+
+export type BuildsFilter = "main" | "pull-request";
 
 type ResourceRequests = ResourceRequestsType<Resources>;
 type ResourcePromises = ResourcePromisesType<Resources>;
@@ -44,7 +48,35 @@ function PageContent({
   const builds = use(promises.builds);
   const commits = use(promises.commits);
   if (!builds || !commits) return null;
+
+  const [filter, setFilter] = useState<BuildsFilter>("main");
+  const commitsBySha: Record<string, RepositoryCommitResource> = {};
+  for (const commit of commits) {
+    commitsBySha[commit.sha] = commit;
+  }
+  const filteredBuilds = builds.filter((build) => {
+    if (!commitsBySha[build.commit_sha]) return false;
+    if (filter === "main") return build.trigger === "push_to_main";
+    return build.trigger === "pull_request";
+  });
+
   return (
-    <BuildsClient owner={owner} repo={repo} builds={builds} commits={commits} />
+    <div className="flex flex-col">
+      <BuildsHeader
+      owner={owner}
+      repo={repo}
+      filter={filter}
+      setFilter={setFilter}
+      />
+      {filteredBuilds.map((build) => (
+        <BuildRow
+        key={build.id}
+        owner={owner}
+        repo={repo}
+        build={build}
+        commit={commitsBySha[build.commit_sha]}
+        />
+      ))}
+    </div>
   );
 }

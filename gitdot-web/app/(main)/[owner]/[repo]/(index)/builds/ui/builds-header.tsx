@@ -1,6 +1,6 @@
-import { GitBranch, GitPullRequest } from "lucide-react";
 import { cn } from "@/util";
-import type { BuildsFilter } from "./builds-client";
+import { GitBranch, GitPullRequest } from "lucide-react";
+import type { BuildsFilter } from "../page.client";
 import { CreateBuildButton } from "./create-build-button";
 
 export function BuildsHeader({
