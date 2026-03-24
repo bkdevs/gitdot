@@ -14,6 +14,65 @@ graph LR
     API --> S2S["S2S binary\n(framing + compression)"]
 ```
 
+```mermaid
+classDiagram
+    direction TB
+
+    class Format {
+        <<enumeration>>
+        Raw
+        Base64
+        +encode(bytes) String
+        +decode(s) Bytes
+    }
+    note for Format "controlled by S2-Format header"
+
+    class Json~T~ {
+        +0 T
+    }
+    note for Json "impl IntoResponse via axum::Json"
+
+    class Proto~T~ {
+        +0 T
+    }
+    note for Proto "impl IntoResponse via prost encode"
+
+    class JsonOrProto~T P~ {
+        <<enumeration>>
+        Json(T)
+        Proto(P)
+    }
+    note for JsonOrProto "Axum extractor — dispatches on Content-Type: application/json vs application/protobuf"
+
+    class ErrorCode {
+        <<enumeration>>
+        BadFrame
+        NotFound
+        PermissionDenied
+        RateLimited
+        Unavailable
+        +status() StatusCode
+    }
+
+    class ReadEvent {
+        <<enumeration>>
+        Batch
+        Error
+        Ping
+        Done
+    }
+    note for ReadEvent "SSE events; LastEventId encodes seq_num,count,bytes for resumable reads"
+
+    class FrameDecoder {
+        +new()
+        +decode(buf) Option~Frame~
+    }
+    note for FrameDecoder "S2S binary: 3-byte len + 1-byte flags + payload\nZstd/Gzip compression; max 2 MiB"
+
+    JsonOrProto ..> Json : wraps
+    JsonOrProto ..> Proto : wraps
+```
+
 ### APIs
 
 - **`ErrorCode`** — machine-readable error codes ([s2-api/src/v1/error.rs](s2-api/src/v1/error.rs))

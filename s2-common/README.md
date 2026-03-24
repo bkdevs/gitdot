@@ -16,6 +16,86 @@ graph LR
     MAYBE["maybe/\n(Maybe&lt;T&gt; · PATCH semantics)"] --> COMMON
 ```
 
+```mermaid
+classDiagram
+    direction TB
+
+    class Encodable {
+        <<interface>>
+        +encoded_size() usize
+        +encode_into(buf)
+        +to_bytes() Bytes
+    }
+
+    class MeteredSize {
+        <<interface>>
+        +metered_size() usize
+    }
+
+    class Record {
+        <<enumeration>>
+        Command(CommandRecord)
+        Envelope(EnvelopeRecord)
+        +try_from_parts(headers, body)
+        +sequenced(position) SequencedRecord
+    }
+
+    class SequencedRecord {
+        +position StreamPosition
+        +record Record
+    }
+
+    class Metered~T~ {
+        -size usize
+        -inner T
+        +into_inner() T
+        +metered_size() usize
+    }
+    note for Metered "caches billable size at construction via From~T~"
+
+    Encodable <|.. Record
+    Encodable <|.. SequencedRecord
+    MeteredSize <|.. Record
+    MeteredSize <|.. SequencedRecord
+    MeteredSize <|.. Metered
+
+    class ParseableHeader {
+        <<interface>>
+        +name() HeaderName
+        +parse(value) Self
+    }
+    class BasinName
+    class RequestToken
+    class FencingToken
+    ParseableHeader <|.. BasinName
+    ParseableHeader <|.. RequestToken
+    ParseableHeader <|.. FencingToken
+
+    class Maybe~T~ {
+        <<enumeration>>
+        Unspecified
+        Specified(T)
+        +map(f) Maybe~U~
+        +unwrap_or_default() T
+    }
+    note for Maybe "absent field vs explicit null — PATCH semantics"
+
+    class StreamConfig
+    note for StreamConfig "resolved — concrete values, used at runtime"
+
+    class OptionalStreamConfig {
+        +merge(basin_defaults) StreamConfig
+        +reconfigure(reconfig)
+    }
+    note for OptionalStreamConfig "internal storage — Option~T~ fields"
+
+    class StreamReconfiguration
+    note for StreamReconfiguration "PATCH update — Maybe~T~ fields"
+
+    StreamReconfiguration ..> OptionalStreamConfig : reconfigure() mutates
+    OptionalStreamConfig ..> StreamConfig : merge() produces
+```
+
 ### APIs
 
 #### `record` — core record types ([s2-common/src/record/mod.rs](s2-common/src/record/mod.rs))

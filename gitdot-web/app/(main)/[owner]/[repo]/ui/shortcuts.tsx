@@ -118,19 +118,6 @@ export function RepoShortcuts() {
     };
   }, []);
 
-  // override the browser back button to act like nav pop rather than back / forth
-  useEffect(() => {
-    history.pushState({ navIntercepted: true }, "");
-
-    const handlePopState = () => {
-      const didNavigate = navPop();
-      if (!didNavigate) return;
-    };
-
-    window.addEventListener("popstate", handlePopState);
-    return () => window.removeEventListener("popstate", handlePopState);
-  }, [navPop]);
-
   const shortcuts = useMemo<Shortcut[]>(
     () => [
       {

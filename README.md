@@ -39,21 +39,6 @@ Every week, we will publish a developer log to detail not only our progress, but
 
 ---
 
-```mermaid
-graph LR
-    WEB["gitdot-web\n(Next.js)"] --> SERVER["gitdot-server\n(Axum)"]
-    CLI["gitdot-cli\n(gdot)"] --> SERVER
-    GIT["git client"] --> SERVER
-    SERVER --> CORE["gitdot-core\n(business logic)"]
-    CORE --> PG[("PostgreSQL")]
-    CORE --> FS[("bare git repos")]
-    CORE --> S2["s2-server\n(durable streams)"]
-    WEB --> SUPABASE["Supabase\n(auth)"]
-    SERVER --> SUPABASE
-```
-
----
-
 We recognize that we're making some bold claims here and we're not so naive as to think this will be easy. \
 Building software is hard — but it is simply what we love doing.
 

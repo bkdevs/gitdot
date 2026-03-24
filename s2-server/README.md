@@ -21,6 +21,76 @@ graph LR
     KV --> STORE[("Object Storage\nS3 · GCP · Local · Memory")]
 ```
 
+```mermaid
+classDiagram
+    direction TB
+
+    class Authenticator {
+        <<interface>>
+        +authenticate(parts, backend) Principal~Self~
+    }
+    class Internal
+    note for Internal "validates JWT sub = gitdot-server"
+    class TaskJwt
+    note for TaskJwt "task-scoped JWT — UUID from sub field"
+    Authenticator <|.. Internal
+    Authenticator <|.. TaskJwt
+
+    class Principal~A Authenticator~ {
+        +id Uuid
+    }
+
+    class AuthError {
+        <<enumeration>>
+        MissingHeader
+        InvalidHeaderFormat
+        InvalidToken
+        InvalidPublicKey
+    }
+    note for AuthError "impl IntoResponse — always 401 Unauthorized"
+
+    class Backend {
+        +db Db
+        -streamer_slots DashMap~StreamId StreamerClientSlot~
+        +list_basins()
+        +create_basin()
+        +list_streams()
+        +create_stream()
+        +append()
+        +append_session()
+        +check_tail()
+        +read()
+    }
+
+    class StreamerClientSlot {
+        <<enumeration>>
+        Initializing
+        Ready
+    }
+
+    class Spawner {
+        +spawn(on_exit) StreamerClient
+    }
+
+    class Streamer {
+        +next_assignable_pos() StreamPosition
+        +sequence_records(input)
+    }
+    note for Streamer "per-stream actor — sequencing, batching, fencing, DOE deadlines"
+
+    class PendingAppends {
+        +accept(ticket, ack_range)
+        +on_stable(stable_pos)
+        +on_durability_failed(err)
+    }
+    note for PendingAppends "durability queue — holds acks until SlateDB confirms"
+
+    Backend *-- StreamerClientSlot : manages per-stream
+    StreamerClientSlot ..> Spawner : initializes via
+    Spawner ..> Streamer : spawns background task
+    Backend ..> PendingAppends : used in append ops
+```
+
 ### APIs
 
 #### `LiteArgs` + `run` — entry point ([s2-server/src/server.rs](s2-server/src/server.rs))

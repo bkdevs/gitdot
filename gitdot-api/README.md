@@ -15,6 +15,62 @@ graph LR
     TS -->|"DAL validation"| WEB["gitdot-web"]
 ```
 
+```mermaid
+classDiagram
+    direction TB
+
+    class ApiResource {
+        <<interface>>
+    }
+    note for ApiResource "Serialize + PartialEq + DeserializeOwned\nblanket impls: Vec~T~, Option~T~, ()"
+
+    class ApiRequest {
+        <<interface>>
+    }
+    note for ApiRequest "Serialize + DeserializeOwned + Send\nblanket impl: ()"
+
+    class Endpoint {
+        <<interface>>
+        PATH str
+        METHOD Method
+        Request ApiRequest
+        Response ApiResource
+    }
+
+    class UserResource
+    class RepositoryResource
+    class ReviewResource
+    class BuildResource
+    class RunnerResource
+    class TaskResource
+    class OrganizationResource
+    class QuestionResource
+
+    ApiResource <|.. UserResource
+    ApiResource <|.. RepositoryResource
+    ApiResource <|.. ReviewResource
+    ApiResource <|.. BuildResource
+    ApiResource <|.. RunnerResource
+    ApiResource <|.. TaskResource
+    ApiResource <|.. OrganizationResource
+    ApiResource <|.. QuestionResource
+
+    class GetUser
+    class CreateRepository
+    class GetReview
+    class CreateBuild
+
+    Endpoint <|.. GetUser
+    Endpoint <|.. CreateRepository
+    Endpoint <|.. GetReview
+    Endpoint <|.. CreateBuild
+
+    GetUser ..> UserResource : Response
+    CreateRepository ..> RepositoryResource : Response
+    GetReview ..> ReviewResource : Response
+    CreateBuild ..> BuildResource : Response
+```
+
 ### Core Traits
 
 Defined in [`src/resource.rs`](src/resource.rs) and [`src/endpoint.rs`](src/endpoint.rs).

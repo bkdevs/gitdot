@@ -20,6 +20,65 @@ graph LR
     SUPABASE["Supabase"] -->|"JWT"| DAL
 ```
 
+```mermaid
+classDiagram
+    direction TB
+
+    class RepoProvider {
+        <<abstract>>
+        #owner string
+        #repo string
+        +getPaths()
+        +getBlob(path)
+        +getHast(path)
+        +getCommit(sha)
+        +getCommits()
+        +getBlobs()
+        +getSettings()
+        +getReview(number)
+        +getBuilds()
+    }
+
+    class ServerProvider {
+        <<abstract>>
+        +fetch(def) ResourceResult
+    }
+
+    class ClientProvider {
+        <<abstract>>
+        +replay(requests) promises
+    }
+
+    class ApiProvider
+    note for ApiProvider "server-side — implements all methods via app/dal/*"
+
+    class DatabaseProvider
+    note for DatabaseProvider "client-side — implements all methods via openIdb()"
+
+    RepoProvider <|-- ServerProvider
+    RepoProvider <|-- ClientProvider
+    ServerProvider <|-- ApiProvider
+    ClientProvider <|-- DatabaseProvider
+
+    class Database {
+        <<interface>>
+        +getPaths()
+        +putPaths()
+        +getBlob()
+        +putBlobs()
+        +getCommit()
+        +putCommits()
+        +getHast()
+        +putHast()
+        +getReview()
+        +putReview()
+        +getBuilds()
+        +putBuild()
+    }
+    note for Database "openIdb() — returns no-op Proxy on SSR"
+    DatabaseProvider ..> Database
+```
+
 ### Pages & Layouts
 
 The app uses Next.js App Router with route groups. Layouts nest from the root outward — each level adds providers, chrome, or data without re-mounting outer shells.

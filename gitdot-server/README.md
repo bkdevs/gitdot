@@ -46,6 +46,69 @@ graph LR
     AUTH -->|"validate JWT"| SUPABASE
 ```
 
+```mermaid
+classDiagram
+    direction TB
+
+    class Authenticator {
+        <<interface>>
+        +authenticate(parts, app_state) Principal~Self~
+    }
+    class User["User (Bearer JWT or Basic)"]
+    class UserJwt["UserJwt (Supabase ES256)"]
+    class UserToken["UserToken (personal access token)"]
+    class RunnerToken["RunnerToken (runner token)"]
+    class TaskJwt["TaskJwt (EdDSA task JWT)"]
+    Authenticator <|.. User
+    Authenticator <|.. UserJwt
+    Authenticator <|.. UserToken
+    Authenticator <|.. RunnerToken
+    Authenticator <|.. TaskJwt
+
+    class Principal~S Authenticator~ {
+        +id Uuid
+    }
+    note for Principal "implements FromRequestParts and OptionalFromRequestParts"
+
+    class IntoApi {
+        <<interface>>
+        +into_api() ApiType
+    }
+    class FromApi {
+        <<interface>>
+        +from_api(api) Self
+    }
+    note for IntoApi "blanket impls: Vec~T~, Option~T~"
+
+    class AppResponse~T ApiResource~ {
+        +new(status, data)
+    }
+    note for AppResponse "impl IntoResponse — serialises T as JSON"
+
+    class AppError {
+        <<enumeration>>
+        Authorization
+        User
+        Organization
+        Repository
+        Review
+        Build
+        Runner
+        Task
+        Internal
+    }
+    note for AppError "impl IntoResponse — maps each variant to HTTP status"
+
+    class AppState {
+        +user_service Arc~dyn UserService~
+        +repo_service Arc~dyn RepositoryService~
+        +review_service Arc~dyn ReviewService~
+        +build_service Arc~dyn BuildService~
+        +runner_service Arc~dyn RunnerService~
+        +task_service Arc~dyn TaskService~
+    }
+```
+
 ### Overview
 
 `gitdot-server` is the Axum HTTP server that forms the API layer for Gitdot. It is intentionally thin: handlers extract request parameters, delegate all business logic to services from `gitdot-core`, and map results back to JSON responses using the `IntoApi` trait. The server composes all domain routers into a single `Router`, applies middleware (tracing, CORS, request IDs, timeouts), and exposes three route groups — the main API, Git smart HTTP, and internal hooks.

@@ -18,6 +18,148 @@ graph LR
     S2C --> S2[("S2 streams")]
 ```
 
+```mermaid
+classDiagram
+    direction TB
+
+    class UserService {
+        <<interface>>
+        +get_current_user()
+        +update_current_user()
+        +get_user()
+        +list_repositories()
+        +list_reviews()
+    }
+    class UserServiceImpl~U R O V~
+    UserService <|.. UserServiceImpl
+    UserServiceImpl ..> UserRepository
+    UserServiceImpl ..> RepositoryRepository
+
+    class RepositoryService {
+        <<interface>>
+        +create_repository()
+        +get_repository_blob()
+        +get_repository_paths()
+        +resolve_ref_sha()
+    }
+    class RepositoryServiceImpl~G O R U~
+    RepositoryService <|.. RepositoryServiceImpl
+    RepositoryServiceImpl ..> GitClient
+    RepositoryServiceImpl ..> RepositoryRepository
+
+    class ReviewService {
+        <<interface>>
+        +create_review()
+        +process_review_update()
+        +get_review_diff()
+        +submit_review()
+        +merge_diff()
+    }
+    class ReviewServiceImpl~V R U O G D~
+    ReviewService <|.. ReviewServiceImpl
+    ReviewServiceImpl ..> GitClient
+    ReviewServiceImpl ..> DiffClient
+    ReviewServiceImpl ..> ReviewRepository
+
+    class BuildService {
+        <<interface>>
+        +create_build()
+        +list_builds()
+        +get_build()
+    }
+    class BuildServiceImpl~G S B T R~
+    BuildService <|.. BuildServiceImpl
+    BuildServiceImpl ..> GitClient
+    BuildServiceImpl ..> S2Client
+    BuildServiceImpl ..> BuildRepository
+
+    class RunnerService {
+        <<interface>>
+        +create_runner()
+        +verify_runner()
+        +refresh_runner_token()
+    }
+    class RunnerServiceImpl~R O T~
+    RunnerService <|.. RunnerServiceImpl
+    RunnerServiceImpl ..> RunnerRepository
+
+    class TaskService {
+        <<interface>>
+        +get_task()
+        +poll_task()
+        +update_task()
+    }
+    class TaskServiceImpl~T R S~
+    TaskService <|.. TaskServiceImpl
+    TaskServiceImpl ..> TaskRepository
+    TaskServiceImpl ..> RunnerRepository
+
+    class UserRepository {
+        <<interface>>
+        +get_by_id()
+        +get()
+        +update()
+        +get_settings()
+    }
+    class UserRepositoryImpl {
+        -pool PgPool
+    }
+    UserRepository <|.. UserRepositoryImpl
+
+    class RepositoryRepository {
+        <<interface>>
+        +create()
+        +get()
+        +delete()
+        +get_settings()
+    }
+    class RepositoryRepositoryImpl {
+        -pool PgPool
+    }
+    RepositoryRepository <|.. RepositoryRepositoryImpl
+
+    class ReviewRepository { <<interface>> }
+    class ReviewRepositoryImpl { -pool PgPool }
+    ReviewRepository <|.. ReviewRepositoryImpl
+
+    class BuildRepository { <<interface>> }
+    class BuildRepositoryImpl { -pool PgPool }
+    BuildRepository <|.. BuildRepositoryImpl
+
+    class RunnerRepository { <<interface>> }
+    class RunnerRepositoryImpl { -pool PgPool }
+    RunnerRepository <|.. RunnerRepositoryImpl
+
+    class TaskRepository { <<interface>> }
+    class TaskRepositoryImpl { -pool PgPool }
+    TaskRepository <|.. TaskRepositoryImpl
+
+    class GitClient {
+        <<interface>>
+        +create_repo()
+        +get_repo_blob()
+        +rev_list()
+        +cherry_pick_commit()
+        +install_hook()
+    }
+    class Git2Client
+    GitClient <|.. Git2Client
+
+    class DiffClient {
+        <<interface>>
+        +diff_files()
+    }
+    class DifftasticClient
+    DiffClient <|.. DifftasticClient
+
+    class S2Client {
+        <<interface>>
+        +create_stream()
+    }
+    class S2ClientImpl
+    S2Client <|.. S2ClientImpl
+```
+
 ### APIs
 
 #### Services (`gitdot-core/src/service/`)

@@ -13,6 +13,49 @@ graph LR
     CORE --> RUNNER["CI runner\n(task execution)"]
 ```
 
+```mermaid
+classDiagram
+    direction TB
+
+    class CiConfig {
+        +builds Vec~BuildConfig~
+        +tasks Vec~TaskConfig~
+        +new(toml) Result~Self CiConfigError~
+        +get_build_config(trigger) BuildConfig
+        +get_task_configs(build) Vec~TaskConfig~
+    }
+
+    class BuildConfig {
+        +trigger BuildTrigger
+        +tasks Vec~String~
+    }
+
+    class TaskConfig {
+        +name String
+        +command String
+        +waits_for Option~Vec~String~~
+    }
+
+    class BuildTrigger {
+        <<enumeration>>
+        PullRequest
+        PushToMain
+    }
+
+    class CiConfigError {
+        <<enumeration>>
+        Parse
+        Validation
+        NoMatchingBuild
+        InvalidTrigger
+    }
+
+    CiConfig "1" *-- "many" BuildConfig
+    CiConfig "1" *-- "many" TaskConfig
+    BuildConfig ..> BuildTrigger : trigger field
+    CiConfig ..> CiConfigError : new() returns on failure
+```
+
 ### APIs
 
 - **`CiConfig`** — top-level parsed config ([gitdot-config/src/ci.rs](gitdot-config/src/ci.rs))

@@ -19,6 +19,72 @@ graph LR
     READ --> CLIENT
 ```
 
+```mermaid
+classDiagram
+    direction TB
+
+    class S2 {
+        +new(config) Self
+        +with_auth(token) Self
+        +basin(name) S2Basin
+        +create_basin(input)
+        +delete_basin(input)
+    }
+
+    class S2Basin {
+        +stream(name) S2Stream
+        +list_streams(input)
+        +list_all_streams(input) Streaming~StreamInfo~
+        +create_stream(input)
+        +delete_stream(input)
+    }
+
+    class S2Stream {
+        +check_tail()
+        +append(input) AppendAck
+        +read(input) ReadBatch
+        +append_session(config) AppendSession
+        +producer(config) Producer
+        +read_session(input) Streaming~ReadBatch~
+    }
+
+    class AppendSession {
+        +submit(input) BatchSubmitTicket
+        +reserve(bytes) BatchSubmitPermit
+        +close()
+    }
+    note for AppendSession "pipelined HTTP/2; semaphore backpressure on max_unacked_bytes"
+
+    class BatchSubmitTicket {
+        <<Future~AppendAck~>>
+    }
+
+    class Producer {
+        +submit(record) RecordSubmitTicket
+        +reserve(bytes) RecordSubmitPermit
+        +close()
+    }
+    note for Producer "auto-batches individual records via tokio-muxt"
+
+    class RecordSubmitTicket {
+        <<Future~IndexedAppendAck~>>
+    }
+
+    class BaseClient
+    note for BaseClient "hyper HTTP/2 + rustls; connection pooling; retry"
+
+    S2 --> S2Basin : .basin()
+    S2Basin --> S2Stream : .stream()
+    S2Stream --> AppendSession : .append_session()
+    S2Stream --> Producer : .producer()
+    AppendSession --> BatchSubmitTicket : .submit()
+    Producer --> RecordSubmitTicket : .submit()
+    Producer ..> AppendSession : delegates batches
+    S2 ..> BaseClient
+    AppendSession ..> BaseClient
+    S2Stream ..> BaseClient
+```
+
 ### APIs
 
 #### `S2` — account-level handle ([s2-sdk/src/ops.rs](s2-sdk/src/ops.rs))
