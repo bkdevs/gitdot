@@ -61,7 +61,8 @@ export function MarkdownBody({ content }: { content: string }) {
           const isBlock = node?.position?.start.line !== node?.position?.end.line;
           return (
             <code
-              className={isBlock ? "font-mono text-sm" : "bg-black/5 dark:bg-white/10 px-1.5 py-0.5 rounded font-mono text-sm"}
+              className={isBlock ? "text-sm" : "bg-black/5 dark:bg-white/10 px-1.5 py-0.5 rounded font-mono text-sm"}
+              style={isBlock ? { fontFamily: "ui-monospace, 'Cascadia Code', 'Fira Code', Menlo, Consolas, monospace", fontSize: "0.8125rem" } : undefined}
               {...props}
             >
               {children}

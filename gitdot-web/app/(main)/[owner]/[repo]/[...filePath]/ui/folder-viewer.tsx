@@ -25,7 +25,9 @@ export function FolderViewer({
     <div className="flex flex-col w-full flex-1 overflow-auto">
       {readme && (
         <div className="border-b px-4 py-3">
-          <MarkdownBody content={readme} />
+          <div className="max-w-3xl mx-auto">
+            <MarkdownBody content={readme} />
+          </div>
         </div>
       )}
       <div className="flex-1 overflow-hidden flex flex-col">

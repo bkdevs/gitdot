@@ -1,5 +1,51 @@
 ## gitdot-server
 
+### Architecture
+
+```mermaid
+graph TD
+    subgraph Clients
+        WEB["gitdot-web\n(Next.js)"]
+        CLI["gitdot-cli\n(clap)"]
+        GIT["git client\n(smart HTTP)"]
+    end
+
+    subgraph gitdot-server["gitdot-server (Axum)"]
+        MW["Middleware\n(tracing · CORS · request ID · timeout)"]
+        AUTH["extract/auth.rs\nPrincipal&lt;S: Authenticator&gt;\n(UserJwt · UserToken · RunnerToken · TaskJwt)"]
+        HANDLER["handler/\n(user · org · repo · review · question\nbuild · runner · task · oauth · migration\ngit_http · internal · otel)"]
+        DTO["dto/  IntoApi / FromApi"]
+        STATE["AppState\nArc&lt;dyn *Service&gt;"]
+    end
+
+    subgraph gitdot-core["gitdot-core"]
+        SVC["Services\n(UserService · RepoService · ReviewService\nBuildService · RunnerService · TaskService · …)"]
+        REPO["Repositories\n(sqlx queries)"]
+    end
+
+    subgraph External
+        PG[("PostgreSQL")]
+        GIT_FS[("bare git repos\non disk")]
+        SUPABASE["Supabase\n(JWT auth)"]
+        S2["S2 streams"]
+    end
+
+    WEB -->|"REST JSON\nBearer JWT / token"| MW
+    CLI -->|"REST JSON\nBearer token"| MW
+    GIT -->|"git smart HTTP\n/git/{owner}/{repo}.git"| MW
+
+    MW --> AUTH
+    AUTH --> HANDLER
+    HANDLER --> STATE
+    HANDLER --> DTO
+    STATE --> SVC
+    SVC --> REPO
+    REPO --> PG
+    SVC -->|"git http-backend CGI"| GIT_FS
+    SVC --> S2
+    AUTH -->|"validate JWT"| SUPABASE
+```
+
 ### Overview
 
 `gitdot-server` is the Axum HTTP server that forms the API layer for Gitdot. It is intentionally thin: handlers extract request parameters, delegate all business logic to services from `gitdot-core`, and map results back to JSON responses using the `IntoApi` trait. The server composes all domain routers into a single `Router`, applies middleware (tracing, CORS, request IDs, timeouts), and exposes three route groups — the main API, Git smart HTTP, and internal hooks.
