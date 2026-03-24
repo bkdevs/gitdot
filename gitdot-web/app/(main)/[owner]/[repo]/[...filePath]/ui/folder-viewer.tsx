@@ -52,7 +52,7 @@ export function FolderViewer({
         className="flex flex-col flex-1 min-w-0 overflow-auto scrollbar-thin"
       >
         {readme && (
-          <div className="border-b px-4 py-3">
+          <div className="border-b px-8 py-6 max-w-4xl mx-auto w-full">
             <MarkdownBody content={readme} />
           </div>
         )}

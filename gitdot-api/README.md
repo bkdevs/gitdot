@@ -6,46 +6,14 @@
 
 The crate is split into two layers: `resource/` contains plain data structs annotated with `#[derive(ApiResource)]`, and `endpoint/` contains zero-sized-type (ZST) structs implementing the `Endpoint` trait that associate a path, method, request type, and response type for each API call. A companion proc-macro crate (`gitdot-api/derive`) provides the `#[derive(ApiResource)]` and `#[derive(ApiRequest)]` derives.
 
----
-
-### Table of Contents
-
-- [Core Traits](#core-traits)
-- [Resource Types](#resource-types)
-  - [OAuth](#oauth-resources)
-  - [Users](#user-resources)
-  - [Organizations](#organization-resources)
-  - [Repositories](#repository-resources)
-  - [Reviews](#review-resources)
-  - [Questions](#question-resources)
-  - [Builds](#build-resources)
-  - [Tasks](#task-resources)
-  - [Runners](#runner-resources)
-  - [Settings](#settings-resources)
-  - [Migrations](#migration-resources)
-- [Endpoints](#endpoints)
-  - [Authentication](#authentication)
-  - [Users](#users)
-  - [Organizations](#organizations)
-  - [Repositories](#repositories)
-  - [Reviews](#reviews)
-  - [Questions](#questions)
-  - [Builds](#builds)
-  - [Tasks](#tasks)
-  - [Runners](#runners)
-  - [Migrations](#migrations)
-
----
 
 ### Core Traits
 
 Defined in [`src/resource.rs`](src/resource.rs) and [`src/endpoint.rs`](src/endpoint.rs).
 
-| Trait | Bounds | Description |
-|-------|--------|-------------|
-| `ApiResource` | `Serialize + PartialEq + DeserializeOwned` | Marker for all response types. Blanket impls for `Vec<T>`, `Option<T>`, `()`. |
-| `ApiRequest` | `Serialize + DeserializeOwned + Send` | Marker for all request types. Blanket impl for `()`. |
-| `Endpoint` | — | Associates `PATH: &str`, `METHOD: Method`, `Request: ApiRequest`, `Response: ApiResource`. |
+- `ApiResource` — `Serialize + PartialEq + DeserializeOwned`. Marker for all response types. Blanket impls for `Vec<T>`, `Option<T>`, `()`.
+- `ApiRequest` — `Serialize + DeserializeOwned + Send`. Marker for all request types. Blanket impl for `()`.
+- `Endpoint` — Associates `PATH: &str`, `METHOD: Method`, `Request: ApiRequest`, `Response: ApiResource`.
 
 Proc macros from [`derive/src/lib.rs`](derive/src/lib.rs):
 - `#[derive(ApiResource)]` — implements `ApiResource` for any struct or enum
@@ -61,23 +29,27 @@ Proc macros from [`derive/src/lib.rs`](derive/src/lib.rs):
 
 Returned when initiating a device authorization flow.
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `device_code` | `string` | Opaque device code used to poll for a token |
-| `user_code` | `string` | Short code the user enters at the verification URI |
-| `verification_uri` | `string` | URL the user visits to authorize the device |
-| `expires_in` | `u64` | Seconds until the device code expires |
-| `interval` | `u64` | Minimum polling interval in seconds |
+```json
+{
+  "device_code": "abc123",
+  "user_code": "WDJB-MJHT",
+  "verification_uri": "https://gitdot.dev/activate",
+  "expires_in": 900,
+  "interval": 5
+}
+```
 
 ##### `TokenResource`
 
 Returned after a device code is authorized.
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `access_token` | `string` | Bearer token for subsequent API calls |
-| `user_name` | `string` | Name of the authenticated user |
-| `user_email` | `string` | Email of the authenticated user |
+```json
+{
+  "access_token": "gdt_tok_...",
+  "user_name": "alice",
+  "user_email": "alice@example.com"
+}
+```
 
 ---
 
@@ -85,24 +57,36 @@ Returned after a device code is authorized.
 
 ##### `UserResource`
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | `uuid` | User ID |
-| `name` | `string` | Username (login handle) |
-| `email` | `string` | Email address |
-| `created_at` | `datetime` | Account creation timestamp |
+```json
+{
+  "id": "018e1b2c-0000-7000-8000-000000000001",
+  "name": "alice",
+  "email": "alice@example.com",
+  "created_at": "2024-01-15T10:00:00Z"
+}
+```
 
 ##### `UserSettingsResource`
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `repos` | `map<string, UserRepoSettingsResource>` | Per-repository settings keyed by `owner/repo` |
-
-##### `UserRepoSettingsResource`
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `commit_filters` | `CommitFilterResource[]` | No | Named commit filter sets for this repo |
+```json
+{
+  "repos": {
+    "alice/myrepo": {
+      "commit_filters": [
+        {
+          "name": "frontend only",
+          "authors": [],
+          "tags": [],
+          "included_paths": ["src/web/"],
+          "excluded_paths": [],
+          "created_at": "2024-06-01T00:00:00Z",
+          "updated_at": "2024-06-01T00:00:00Z"
+        }
+      ]
+    }
+  }
+}
+```
 
 ---
 
@@ -110,21 +94,25 @@ Returned after a device code is authorized.
 
 ##### `OrganizationResource`
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | `uuid` | Organization ID |
-| `name` | `string` | Organization name (slug) |
-| `created_at` | `datetime` | Creation timestamp |
+```json
+{
+  "id": "018e1b2c-0000-7000-8000-000000000002",
+  "name": "acme",
+  "created_at": "2024-02-01T09:00:00Z"
+}
+```
 
 ##### `OrganizationMemberResource`
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | `uuid` | Membership record ID |
-| `user_id` | `uuid` | Member's user ID |
-| `organization_id` | `uuid` | Organization ID |
-| `role` | `string` | Member role (e.g. `owner`, `member`) |
-| `created_at` | `datetime` | When the user joined the organization |
+```json
+{
+  "id": "018e1b2c-0000-7000-8000-000000000003",
+  "user_id": "018e1b2c-0000-7000-8000-000000000001",
+  "organization_id": "018e1b2c-0000-7000-8000-000000000002",
+  "role": "member",
+  "created_at": "2024-03-10T12:00:00Z"
+}
+```
 
 ---
 
@@ -132,205 +120,147 @@ Returned after a device code is authorized.
 
 ##### `RepositoryResource`
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | `uuid` | Repository ID |
-| `name` | `string` | Repository name |
-| `owner` | `string` | Owner name (user or organization) |
-| `visibility` | `string` | `public` or `private` |
-| `created_at` | `datetime` | Creation timestamp |
+```json
+{
+  "id": "018e1b2c-0000-7000-8000-000000000004",
+  "name": "myrepo",
+  "owner": "alice",
+  "visibility": "public",
+  "created_at": "2024-01-20T08:00:00Z"
+}
+```
 
 ##### `RepositoryPathsResource`
 
 Top-level listing of a ref's tree entries.
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `ref_name` | `string` | Ref used for the listing (e.g. `HEAD`, `main`) |
-| `commit_sha` | `string` | Resolved commit SHA for the ref |
-| `entries` | `RepositoryPathResource[]` | Flat list of all paths in the tree |
+```json
+{
+  "ref_name": "main",
+  "commit_sha": "a1b2c3d4e5f6...",
+  "entries": [
+    {
+      "path": "src/main.rs",
+      "name": "main.rs",
+      "path_type": "Blob",
+      "sha": "deadbeef..."
+    },
+    {
+      "path": "src",
+      "name": "src",
+      "path_type": "Tree",
+      "sha": "cafebabe..."
+    }
+  ]
+}
+```
 
-##### `RepositoryPathResource`
-
-A single entry in a repository tree.
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `path` | `string` | Full path from repo root |
-| `name` | `string` | Filename or directory name |
-| `path_type` | `PathType` | Entry kind |
-| `sha` | `string` | Object SHA |
-
-**`PathType`** (enum): `Blob` · `Tree` · `Commit` · `Unknown`
+`path_type` is one of: `Blob` · `Tree` · `Commit` · `Unknown`
 
 ##### `RepositoryFileResource`
 
-Contents of a single file blob.
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `path` | `string` | File path |
-| `sha` | `string` | Blob SHA |
-| `content` | `string` | File contents |
-| `encoding` | `string` | Content encoding (e.g. `utf-8`, `base64`) |
+```json
+{
+  "path": "src/main.rs",
+  "sha": "deadbeef...",
+  "content": "fn main() {\n    println!(\"Hello\");\n}\n",
+  "encoding": "utf-8"
+}
+```
 
 ##### `RepositoryFolderResource`
 
-Contents of a directory.
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `path` | `string` | Directory path |
-| `entries` | `RepositoryPathResource[]` | Direct children of the directory |
+```json
+{
+  "path": "src",
+  "entries": [
+    { "path": "src/main.rs", "name": "main.rs", "path_type": "Blob", "sha": "deadbeef..." }
+  ]
+}
+```
 
 ##### `RepositoryBlobResource`
 
-Tagged union — either a file or a folder.
-
-| Variant | Payload |
-|---------|---------|
-| `File` | `RepositoryFileResource` |
-| `Folder` | `RepositoryFolderResource` |
+Tagged union — either `{ "File": { ...RepositoryFileResource } }` or `{ "Folder": { ...RepositoryFolderResource } }`.
 
 ##### `RepositoryBlobsResource`
 
-Batch blob response.
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `ref_name` | `string` | Ref used for the lookup |
-| `commit_sha` | `string` | Resolved commit SHA |
-| `blobs` | `RepositoryBlobResource[]` | Requested blobs in order |
+```json
+{
+  "ref_name": "main",
+  "commit_sha": "a1b2c3d4e5f6...",
+  "blobs": [
+    { "File": { "path": "src/main.rs", "sha": "deadbeef...", "content": "...", "encoding": "utf-8" } }
+  ]
+}
+```
 
 ##### `RepositoryCommitsResource`
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `commits` | `RepositoryCommitResource[]` | Ordered list of commits |
-
-##### `RepositoryCommitResource`
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `sha` | `string` | Yes | Commit SHA |
-| `parent_sha` | `string` | Yes | Parent commit SHA |
-| `message` | `string` | Yes | Commit message |
-| `date` | `datetime` | Yes | Commit timestamp |
-| `author` | `CommitAuthorResource` | Yes | Commit author |
-| `review_number` | `i32` | No | Review number this commit belongs to |
-| `diff_position` | `i32` | No | Diff position within the review |
-| `diffs` | `RepositoryDiffStatResource[]` | Yes | Per-file diff statistics |
-
-##### `CommitAuthorResource`
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `id` | `uuid` | No | User ID if the author has a Gitdot account |
-| `name` | `string` | Yes | Author name |
-| `email` | `string` | Yes | Author email |
-
-##### `RepositoryDiffStatResource`
-
-Line-count summary for a single file in a commit.
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `path` | `string` | File path |
-| `lines_added` | `u32` | Lines added |
-| `lines_removed` | `u32` | Lines removed |
+```json
+{
+  "commits": [
+    {
+      "sha": "a1b2c3d4",
+      "parent_sha": "00000000",
+      "message": "Initial commit",
+      "date": "2024-01-20T08:00:00Z",
+      "author": { "id": "018e1b2c-...", "name": "alice", "email": "alice@example.com" },
+      "review_number": null,
+      "diff_position": null,
+      "diffs": [{ "path": "src/main.rs", "lines_added": 5, "lines_removed": 0 }]
+    }
+  ]
+}
+```
 
 ##### `RepositoryCommitDiffResource`
 
-Full diff for a single commit.
+```json
+{
+  "sha": "a1b2c3d4",
+  "parent_sha": "00000000",
+  "files": [
+    {
+      "path": "src/main.rs",
+      "lines_added": 5,
+      "lines_removed": 0,
+      "hunks": [
+        [
+          {
+            "lhs": null,
+            "rhs": {
+              "line_number": 1,
+              "changes": [{ "start": 0, "end": 12, "content": "fn main() {", "highlight": "Keyword" }]
+            }
+          }
+        ]
+      ],
+      "left_content": null,
+      "right_content": "fn main() {\n    println!(\"Hello\");\n}\n"
+    }
+  ]
+}
+```
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `sha` | `string` | Commit SHA |
-| `parent_sha` | `string` | Parent commit SHA |
-| `files` | `RepositoryDiffFileResource[]` | Per-file diffs |
-
-##### `RepositoryDiffFileResource`
-
-Rich diff for one file.
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `path` | `string` | Yes | File path |
-| `lines_added` | `u32` | Yes | Lines added |
-| `lines_removed` | `u32` | Yes | Lines removed |
-| `hunks` | `DiffHunkResource[]` | Yes | Diff hunks (each is a list of line pairs) |
-| `left_content` | `string` | No | Full original file content |
-| `right_content` | `string` | No | Full modified file content |
-
-`DiffHunkResource` = `DiffPairResource[]`
-
-##### `DiffPairResource`
-
-One row in a side-by-side diff view.
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `lhs` | `DiffLineResource` | No | Left-hand (old) line |
-| `rhs` | `DiffLineResource` | No | Right-hand (new) line |
-
-##### `DiffLineResource`
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `line_number` | `u32` | 1-based line number |
-| `changes` | `DiffChangeResource[]` | Syntax-highlighted change spans |
-
-##### `DiffChangeResource`
-
-An inline character span with syntax highlighting.
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `start` | `u32` | Start byte offset within the line |
-| `end` | `u32` | End byte offset within the line |
-| `content` | `string` | Text content of the span |
-| `highlight` | `SyntaxHighlight` | Highlight category |
-
-**`SyntaxHighlight`** (enum): `Delimiter` · `Normal` · `String` · `Type` · `Comment` · `Keyword` · `TreeSitterError`
-
-##### `RepositorySettingsResource`
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `commit_filters` | `CommitFilterResource[]` | No | Repository-level commit filters |
+`SyntaxHighlight` values: `Delimiter` · `Normal` · `String` · `Type` · `Comment` · `Keyword` · `TreeSitterError`
 
 ##### `RepositoryResourcesResource`
 
-Composite payload returned by `GetRepositoryResources` — bundles multiple resource types in one request.
+Composite payload returned by `GetRepositoryResources`.
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `last_commit` | `string` | Yes | SHA of the latest commit seen by the server |
-| `last_updated` | `datetime` | No | When the repo was last updated |
-| `paths` | `RepositoryPathsResource` | No | File tree (included when changed) |
-| `commits` | `RepositoryCommitsResource` | No | Recent commits (included when changed) |
-| `blobs` | `RepositoryBlobsResource` | No | Requested file contents |
-| `questions` | `RepositoryQuestionsResource` | No | Open questions |
-| `reviews` | `RepositoryReviewsResource` | No | Open reviews |
-| `builds` | `RepositoryBuildsResource` | No | Recent builds |
-
-##### `RepositoryQuestionsResource`
-
-| Field | Type |
-|-------|------|
-| `questions` | `QuestionResource[]` |
-
-##### `RepositoryReviewsResource`
-
-| Field | Type |
-|-------|------|
-| `reviews` | `ReviewResource[]` |
-
-##### `RepositoryBuildsResource`
-
-| Field | Type |
-|-------|------|
-| `builds` | `BuildResource[]` |
+```json
+{
+  "last_commit": "a1b2c3d4",
+  "last_updated": "2024-06-15T10:00:00Z",
+  "paths": { "...RepositoryPathsResource": "..." },
+  "commits": { "...RepositoryCommitsResource": "..." },
+  "blobs": { "...RepositoryBlobsResource": "..." },
+  "questions": { "questions": [] },
+  "reviews": { "reviews": [] },
+  "builds": { "builds": [] }
+}
+```
 
 ---
 
@@ -338,100 +268,105 @@ Composite payload returned by `GetRepositoryResources` — bundles multiple reso
 
 ##### `ReviewResource`
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `id` | `uuid` | Yes | Review ID |
-| `number` | `i32` | Yes | Human-readable review number within the repo |
-| `author_id` | `uuid` | Yes | Author's user ID |
-| `repository_id` | `uuid` | Yes | Repository ID |
-| `title` | `string` | Yes | Review title |
-| `description` | `string` | Yes | Review description |
-| `target_branch` | `string` | Yes | Branch this review targets |
-| `status` | `string` | Yes | `draft`, `open`, `merged`, `closed` |
-| `created_at` | `datetime` | Yes | — |
-| `updated_at` | `datetime` | Yes | — |
-| `author` | `ReviewAuthorResource` | No | Embedded author info |
-| `diffs` | `DiffResource[]` | Yes | Constituent diffs |
-| `reviewers` | `ReviewerResource[]` | Yes | Assigned reviewers |
-| `comments` | `ReviewCommentResource[]` | Yes | All comments on the review |
+```json
+{
+  "id": "018e1b2c-0000-7000-8000-000000000010",
+  "number": 1,
+  "author_id": "018e1b2c-0000-7000-8000-000000000001",
+  "repository_id": "018e1b2c-0000-7000-8000-000000000004",
+  "title": "Add login flow",
+  "description": "Implements the OAuth device flow.",
+  "target_branch": "main",
+  "status": "open",
+  "created_at": "2024-04-01T09:00:00Z",
+  "updated_at": "2024-04-02T11:00:00Z",
+  "author": { "id": "018e1b2c-...", "name": "alice" },
+  "diffs": [],
+  "reviewers": [],
+  "comments": []
+}
+```
 
-##### `ReviewAuthorResource`
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | `uuid` | User ID |
-| `name` | `string` | Username |
+`status` values: `draft` · `open` · `merged` · `closed`
 
 ##### `DiffResource`
 
-A single diff within a review (corresponds to one commit range being reviewed).
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `id` | `uuid` | Yes | Diff ID |
-| `review_id` | `uuid` | Yes | Parent review ID |
-| `position` | `i32` | Yes | Ordering position within the review |
-| `title` | `string` | Yes | Diff title |
-| `description` | `string` | Yes | Diff description |
-| `status` | `string` | Yes | `open`, `merged` |
-| `created_at` | `datetime` | Yes | — |
-| `updated_at` | `datetime` | Yes | — |
-| `revisions` | `RevisionResource[]` | Yes | Ordered list of revisions |
+```json
+{
+  "id": "018e1b2c-0000-7000-8000-000000000020",
+  "review_id": "018e1b2c-0000-7000-8000-000000000010",
+  "position": 1,
+  "title": "Auth changes",
+  "description": "",
+  "status": "open",
+  "created_at": "2024-04-01T09:00:00Z",
+  "updated_at": "2024-04-01T09:00:00Z",
+  "revisions": []
+}
+```
 
 ##### `RevisionResource`
 
-A snapshot of a diff at a point in time.
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | `uuid` | Revision ID |
-| `diff_id` | `uuid` | Parent diff ID |
-| `number` | `i32` | Revision number (1-based) |
-| `commit_hash` | `string` | Commit SHA for this revision's tip |
-| `parent_hash` | `string` | Parent commit SHA |
-| `created_at` | `datetime` | — |
-| `verdicts` | `ReviewVerdictResource[]` | Reviewer verdicts on this revision |
+```json
+{
+  "id": "018e1b2c-0000-7000-8000-000000000030",
+  "diff_id": "018e1b2c-0000-7000-8000-000000000020",
+  "number": 1,
+  "commit_hash": "a1b2c3d4",
+  "parent_hash": "00000000",
+  "created_at": "2024-04-01T09:00:00Z",
+  "verdicts": []
+}
+```
 
 ##### `ReviewVerdictResource`
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | `uuid` | Verdict ID |
-| `diff_id` | `uuid` | Diff being reviewed |
-| `revision_id` | `uuid` | Specific revision being judged |
-| `reviewer_id` | `uuid` | Reviewer's user ID |
-| `verdict` | `string` | `approved`, `rejected`, `pending` |
-| `created_at` | `datetime` | — |
+```json
+{
+  "id": "018e1b2c-0000-7000-8000-000000000040",
+  "diff_id": "018e1b2c-0000-7000-8000-000000000020",
+  "revision_id": "018e1b2c-0000-7000-8000-000000000030",
+  "reviewer_id": "018e1b2c-0000-7000-8000-000000000001",
+  "verdict": "approved",
+  "created_at": "2024-04-02T10:00:00Z"
+}
+```
+
+`verdict` values: `approved` · `rejected` · `pending`
 
 ##### `ReviewerResource`
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `id` | `uuid` | Yes | Record ID |
-| `review_id` | `uuid` | Yes | Review ID |
-| `reviewer_id` | `uuid` | Yes | User ID of the reviewer |
-| `created_at` | `datetime` | Yes | When they were added |
-| `user` | `ReviewAuthorResource` | No | Embedded reviewer info |
+```json
+{
+  "id": "018e1b2c-0000-7000-8000-000000000050",
+  "review_id": "018e1b2c-0000-7000-8000-000000000010",
+  "reviewer_id": "018e1b2c-0000-7000-8000-000000000002",
+  "created_at": "2024-04-01T09:30:00Z",
+  "user": { "id": "018e1b2c-...", "name": "bob" }
+}
+```
 
 ##### `ReviewCommentResource`
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `id` | `uuid` | Yes | Comment ID |
-| `review_id` | `uuid` | Yes | Parent review |
-| `diff_id` | `uuid` | Yes | Diff the comment is on |
-| `revision_id` | `uuid` | Yes | Revision the comment is anchored to |
-| `author_id` | `uuid` | Yes | Author's user ID |
-| `parent_id` | `uuid` | No | Parent comment ID (for threads) |
-| `body` | `string` | Yes | Comment text (Markdown) |
-| `file_path` | `string` | No | File path for inline comments |
-| `line_number_start` | `i32` | No | Start line for inline range |
-| `line_number_end` | `i32` | No | End line for inline range |
-| `side` | `string` | No | `left` or `right` for side-by-side diffs |
-| `resolved` | `bool` | Yes | Whether the comment thread is resolved |
-| `created_at` | `datetime` | Yes | — |
-| `updated_at` | `datetime` | Yes | — |
-| `author` | `ReviewAuthorResource` | No | Embedded author info |
+```json
+{
+  "id": "018e1b2c-0000-7000-8000-000000000060",
+  "review_id": "018e1b2c-0000-7000-8000-000000000010",
+  "diff_id": "018e1b2c-0000-7000-8000-000000000020",
+  "revision_id": "018e1b2c-0000-7000-8000-000000000030",
+  "author_id": "018e1b2c-0000-7000-8000-000000000002",
+  "parent_id": null,
+  "body": "LGTM",
+  "file_path": "src/main.rs",
+  "line_number_start": 10,
+  "line_number_end": 12,
+  "side": "right",
+  "resolved": false,
+  "created_at": "2024-04-02T10:05:00Z",
+  "updated_at": "2024-04-02T10:05:00Z",
+  "author": { "id": "018e1b2c-...", "name": "bob" }
+}
+```
 
 ---
 
@@ -439,68 +374,67 @@ A snapshot of a diff at a point in time.
 
 ##### `QuestionResource`
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `id` | `uuid` | Yes | Question ID |
-| `number` | `i32` | Yes | Human-readable number within the repo |
-| `author_id` | `uuid` | Yes | Author's user ID |
-| `repository_id` | `uuid` | Yes | Repository ID |
-| `title` | `string` | Yes | Question title |
-| `body` | `string` | Yes | Question body (Markdown) |
-| `upvote` | `i32` | Yes | Net upvote count |
-| `impression` | `i32` | Yes | View count |
-| `created_at` | `datetime` | Yes | — |
-| `updated_at` | `datetime` | Yes | — |
-| `user_vote` | `i16` | No | Requesting user's vote: `1`, `-1`, or `0` |
-| `author` | `AuthorResource` | No | Embedded author info |
-| `comments` | `CommentResource[]` | Yes | Top-level comments |
-| `answers` | `AnswerResource[]` | Yes | Answers |
+```json
+{
+  "id": "018e1b2c-0000-7000-8000-000000000070",
+  "number": 1,
+  "author_id": "018e1b2c-0000-7000-8000-000000000001",
+  "repository_id": "018e1b2c-0000-7000-8000-000000000004",
+  "title": "How does auth work?",
+  "body": "Can someone explain the device flow?",
+  "upvote": 3,
+  "impression": 42,
+  "created_at": "2024-05-01T08:00:00Z",
+  "updated_at": "2024-05-01T08:00:00Z",
+  "user_vote": 1,
+  "author": { "id": "018e1b2c-...", "name": "alice" },
+  "comments": [],
+  "answers": []
+}
+```
 
 ##### `AnswerResource`
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `id` | `uuid` | Yes | Answer ID |
-| `question_id` | `uuid` | Yes | Parent question ID |
-| `author_id` | `uuid` | Yes | Author's user ID |
-| `body` | `string` | Yes | Answer body (Markdown) |
-| `upvote` | `i32` | Yes | Net upvote count |
-| `created_at` | `datetime` | Yes | — |
-| `updated_at` | `datetime` | Yes | — |
-| `user_vote` | `i16` | No | Requesting user's vote |
-| `author` | `AuthorResource` | No | Embedded author info |
-| `comments` | `CommentResource[]` | Yes | Comments on this answer |
+```json
+{
+  "id": "018e1b2c-0000-7000-8000-000000000080",
+  "question_id": "018e1b2c-0000-7000-8000-000000000070",
+  "author_id": "018e1b2c-0000-7000-8000-000000000002",
+  "body": "It uses OAuth 2.0 device authorization grant.",
+  "upvote": 5,
+  "created_at": "2024-05-01T09:00:00Z",
+  "updated_at": "2024-05-01T09:00:00Z",
+  "user_vote": null,
+  "author": { "id": "018e1b2c-...", "name": "bob" },
+  "comments": []
+}
+```
 
 ##### `CommentResource`
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `id` | `uuid` | Yes | Comment ID |
-| `parent_id` | `uuid` | Yes | ID of parent (question or answer) |
-| `author_id` | `uuid` | Yes | Author's user ID |
-| `body` | `string` | Yes | Comment body (Markdown) |
-| `upvote` | `i32` | Yes | Net upvote count |
-| `created_at` | `datetime` | Yes | — |
-| `updated_at` | `datetime` | Yes | — |
-| `user_vote` | `i16` | No | Requesting user's vote |
-| `author` | `AuthorResource` | No | Embedded author info |
-
-##### `AuthorResource`
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | `uuid` | User ID |
-| `name` | `string` | Username |
+```json
+{
+  "id": "018e1b2c-0000-7000-8000-000000000090",
+  "parent_id": "018e1b2c-0000-7000-8000-000000000070",
+  "author_id": "018e1b2c-0000-7000-8000-000000000001",
+  "body": "Great question!",
+  "upvote": 1,
+  "created_at": "2024-05-01T08:30:00Z",
+  "updated_at": "2024-05-01T08:30:00Z",
+  "user_vote": null,
+  "author": { "id": "018e1b2c-...", "name": "alice" }
+}
+```
 
 ##### `VoteResource`
 
-Returned after casting a vote.
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `target_id` | `uuid` | Yes | ID of the voted-on item |
-| `score` | `i32` | Yes | Updated net score |
-| `user_vote` | `i16` | No | Requesting user's vote after update |
+```json
+{
+  "target_id": "018e1b2c-0000-7000-8000-000000000070",
+  "score": 4,
+  "user_vote": 1
+}
+```
 
 ---
 
@@ -508,19 +442,23 @@ Returned after casting a vote.
 
 ##### `BuildResource`
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | `uuid` | Build ID |
-| `number` | `i32` | Human-readable build number within the repo |
-| `repository_id` | `uuid` | Repository ID |
-| `ref_name` | `string` | Branch or tag that triggered the build |
-| `trigger` | `string` | What triggered the build (e.g. `push`, `manual`) |
-| `commit_sha` | `string` | Commit SHA the build ran against |
-| `status` | `string` | `pending`, `running`, `success`, `failed`, `cancelled` |
-| `total_tasks` | `i32` | Total number of tasks in this build |
-| `completed_tasks` | `i32` | Number of completed tasks |
-| `created_at` | `datetime` | — |
-| `updated_at` | `datetime` | — |
+```json
+{
+  "id": "018e1b2c-0000-7000-8000-000000000100",
+  "number": 42,
+  "repository_id": "018e1b2c-0000-7000-8000-000000000004",
+  "ref_name": "main",
+  "trigger": "push",
+  "commit_sha": "a1b2c3d4",
+  "status": "success",
+  "total_tasks": 3,
+  "completed_tasks": 3,
+  "created_at": "2024-06-01T10:00:00Z",
+  "updated_at": "2024-06-01T10:05:00Z"
+}
+```
+
+`status` values: `pending` · `running` · `success` · `failed` · `cancelled`
 
 ---
 
@@ -528,39 +466,45 @@ Returned after casting a vote.
 
 ##### `TaskResource`
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | `uuid` | Task ID |
-| `repository_id` | `uuid` | Repository ID |
-| `build_id` | `uuid` | Build this task belongs to |
-| `s2_uri` | `string` | S2 stream URI for log streaming |
-| `name` | `string` | Task name |
-| `command` | `string` | Shell command to execute |
-| `status` | `string` | `pending`, `running`, `success`, `failed` |
-| `waits_for` | `uuid[]` | Task IDs this task depends on |
-| `created_at` | `datetime` | — |
-| `updated_at` | `datetime` | — |
+```json
+{
+  "id": "018e1b2c-0000-7000-8000-000000000110",
+  "repository_id": "018e1b2c-0000-7000-8000-000000000004",
+  "build_id": "018e1b2c-0000-7000-8000-000000000100",
+  "s2_uri": "s2://mystream/tasks/018e1b2c...",
+  "name": "test",
+  "command": "cargo test",
+  "status": "success",
+  "waits_for": [],
+  "created_at": "2024-06-01T10:00:00Z",
+  "updated_at": "2024-06-01T10:03:00Z"
+}
+```
 
 ##### `PollTaskResource`
 
 Returned by a runner when polling for work.
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | `uuid` | Task ID |
-| `token` | `string` | Short-lived token for reporting status |
-| `owner_name` | `string` | Repository owner |
-| `repository_name` | `string` | Repository name |
-| `s2_uri` | `string` | S2 stream URI |
-| `name` | `string` | Task name |
-| `command` | `string` | Command to execute |
-| `status` | `string` | Current status |
+```json
+{
+  "id": "018e1b2c-0000-7000-8000-000000000110",
+  "token": "task_tok_...",
+  "owner_name": "alice",
+  "repository_name": "myrepo",
+  "s2_uri": "s2://mystream/tasks/018e1b2c...",
+  "name": "test",
+  "command": "cargo test",
+  "status": "pending"
+}
+```
 
 ##### `TaskTokenResource`
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `token` | `string` | Short-lived token for authenticating task status updates |
+```json
+{
+  "token": "task_tok_shortlived..."
+}
+```
 
 ---
 
@@ -568,21 +512,25 @@ Returned by a runner when polling for work.
 
 ##### `RunnerResource`
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `id` | `uuid` | Yes | Runner ID |
-| `name` | `string` | Yes | Runner name |
-| `owner_id` | `uuid` | Yes | Owner's user or organization ID |
-| `owner_name` | `string` | Yes | Owner name |
-| `owner_type` | `string` | Yes | `user` or `organization` |
-| `last_active` | `datetime` | No | Last time the runner polled for work |
-| `created_at` | `datetime` | Yes | — |
+```json
+{
+  "id": "018e1b2c-0000-7000-8000-000000000120",
+  "name": "my-runner",
+  "owner_id": "018e1b2c-0000-7000-8000-000000000001",
+  "owner_name": "alice",
+  "owner_type": "user",
+  "last_active": "2024-06-10T15:00:00Z",
+  "created_at": "2024-06-01T00:00:00Z"
+}
+```
 
 ##### `RunnerTokenResource`
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `token` | `string` | Authentication token for the runner |
+```json
+{
+  "token": "runner_tok_..."
+}
+```
 
 ---
 
@@ -590,17 +538,17 @@ Returned by a runner when polling for work.
 
 ##### `CommitFilterResource`
 
-A named rule that selects a subset of commits (used in both repo and user settings).
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `name` | `string` | Yes | Filter name |
-| `authors` | `string[]` | No | Limit to commits by these authors |
-| `tags` | `string[]` | No | Limit to commits with these tags |
-| `included_paths` | `string[]` | No | Only show commits touching these paths |
-| `excluded_paths` | `string[]` | No | Exclude commits that only touch these paths |
-| `created_at` | `datetime` | Yes | — |
-| `updated_at` | `datetime` | Yes | — |
+```json
+{
+  "name": "frontend only",
+  "authors": ["alice"],
+  "tags": ["ui"],
+  "included_paths": ["src/web/"],
+  "excluded_paths": ["src/web/vendor/"],
+  "created_at": "2024-06-01T00:00:00Z",
+  "updated_at": "2024-06-01T00:00:00Z"
+}
+```
 
 ---
 
@@ -608,63 +556,65 @@ A named rule that selects a subset of commits (used in both repo and user settin
 
 ##### `GitHubInstallationResource`
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | `uuid` | Internal installation record ID |
-| `installation_id` | `i64` | GitHub App installation ID |
-| `owner_id` | `uuid` | Gitdot user who connected the installation |
-| `installation_type` | `string` | `User` or `Organization` |
-| `github_login` | `string` | GitHub account login that installed the app |
-| `created_at` | `datetime` | — |
+```json
+{
+  "id": "018e1b2c-0000-7000-8000-000000000130",
+  "installation_id": 12345678,
+  "owner_id": "018e1b2c-0000-7000-8000-000000000001",
+  "installation_type": "User",
+  "github_login": "alice",
+  "created_at": "2024-03-01T08:00:00Z"
+}
+```
 
 ##### `GitHubRepositoryResource`
 
-A repository visible to a GitHub App installation.
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `id` | `u64` | Yes | GitHub repository ID |
-| `name` | `string` | Yes | Repository name |
-| `full_name` | `string` | Yes | `owner/repo` |
-| `description` | `string` | No | Repository description |
-| `private` | `bool` | Yes | Whether the repo is private on GitHub |
-| `default_branch` | `string` | Yes | Default branch name |
+```json
+{
+  "id": 987654321,
+  "name": "myrepo",
+  "full_name": "alice/myrepo",
+  "description": "My awesome repo",
+  "private": false,
+  "default_branch": "main"
+}
+```
 
 ##### `MigrationResource`
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | `uuid` | Migration ID |
-| `number` | `i32` | Human-readable migration number |
-| `author_id` | `uuid` | User who initiated the migration |
-| `origin_service` | `string` | Source service (e.g. `github`) |
-| `origin` | `string` | Source namespace or owner |
-| `origin_type` | `string` | `user` or `organization` |
-| `destination` | `string` | Destination namespace on Gitdot |
-| `destination_type` | `string` | `user` or `organization` |
-| `status` | `string` | `pending`, `running`, `complete`, `failed` |
-| `created_at` | `datetime` | — |
-| `updated_at` | `datetime` | — |
-| `repositories` | `MigrationRepositoryResource[]` | Per-repository migration status |
-
-##### `MigrationRepositoryResource`
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `id` | `uuid` | Yes | Record ID |
-| `origin_full_name` | `string` | Yes | Source `owner/repo` |
-| `destination_full_name` | `string` | Yes | Destination `owner/repo` |
-| `visibility` | `string` | Yes | `public` or `private` |
-| `status` | `string` | Yes | `pending`, `running`, `complete`, `failed` |
-| `error` | `string` | No | Error message if migration failed |
-| `created_at` | `datetime` | Yes | — |
-| `updated_at` | `datetime` | Yes | — |
+```json
+{
+  "id": "018e1b2c-0000-7000-8000-000000000140",
+  "number": 1,
+  "author_id": "018e1b2c-0000-7000-8000-000000000001",
+  "origin_service": "github",
+  "origin": "alice",
+  "origin_type": "user",
+  "destination": "alice",
+  "destination_type": "user",
+  "status": "complete",
+  "created_at": "2024-03-15T10:00:00Z",
+  "updated_at": "2024-03-15T10:45:00Z",
+  "repositories": [
+    {
+      "id": "018e1b2c-0000-7000-8000-000000000150",
+      "origin_full_name": "alice/myrepo",
+      "destination_full_name": "alice/myrepo",
+      "visibility": "public",
+      "status": "complete",
+      "error": null,
+      "created_at": "2024-03-15T10:00:00Z",
+      "updated_at": "2024-03-15T10:30:00Z"
+    }
+  ]
+}
+```
 
 ---
 
 ### Endpoints
 
-All endpoints are relative to the API base URL. Path parameters are written as `{param}`. Query parameters and JSON body fields are listed in the **Request** table. The **Required** column shows `Yes` for mandatory fields; path parameters are always required.
+Examples use `$BASE_URL` for the API base URL and `$TOKEN` for the Bearer token.
 
 ---
 
@@ -672,29 +622,29 @@ All endpoints are relative to the API base URL. Path parameters are written as `
 
 ##### `POST /oauth/device`
 
-Initiate a device authorization flow. Returns a device code and user code pair.
+Initiate a device authorization flow.
 
-**Request body**
+```bash
+curl -X POST $BASE_URL/oauth/device \
+  -H "Content-Type: application/json" \
+  -d '{"client_id": "gitdot-cli"}'
+```
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `client_id` | `string` | Yes | OAuth client ID |
-
-**Response:** `DeviceCodeResource`
+Response: `DeviceCodeResource`
 
 ---
 
 ##### `POST /oauth/authorize`
 
-Authorize a device code. The user calls this after entering their user code.
+Authorize a device code after the user enters their user code.
 
-**Request body**
+```bash
+curl -X POST $BASE_URL/oauth/authorize \
+  -H "Content-Type: application/json" \
+  -d '{"user_code": "WDJB-MJHT"}'
+```
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `user_code` | `string` | Yes | Code displayed to the user |
-
-**Response:** `(empty)`
+Response: empty
 
 ---
 
@@ -702,14 +652,13 @@ Authorize a device code. The user calls this after entering their user code.
 
 Poll for an access token after device authorization.
 
-**Request body**
+```bash
+curl -X POST $BASE_URL/oauth/token \
+  -H "Content-Type: application/json" \
+  -d '{"device_code": "abc123", "client_id": "gitdot-cli"}'
+```
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `device_code` | `string` | Yes | Device code from `/oauth/device` |
-| `client_id` | `string` | Yes | OAuth client ID |
-
-**Response:** `TokenResource`
+Response: `TokenResource`
 
 ---
 
@@ -719,23 +668,27 @@ Poll for an access token after device authorization.
 
 Get the currently authenticated user.
 
-**Request:** none
+```bash
+curl $BASE_URL/user \
+  -H "Authorization: Bearer $TOKEN"
+```
 
-**Response:** `UserResource`
+Response: `UserResource`
 
 ---
 
 ##### `PATCH /user`
 
-Update the currently authenticated user's profile.
+Update the current user's profile.
 
-**Request body**
+```bash
+curl -X PATCH $BASE_URL/user \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "alice-new"}'
+```
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `name` | `string` | Yes | New username |
-
-**Response:** `UserResource`
+Response: `UserResource`
 
 ---
 
@@ -743,9 +696,12 @@ Update the currently authenticated user's profile.
 
 Get the current user's settings.
 
-**Request:** none
+```bash
+curl $BASE_URL/user/settings \
+  -H "Authorization: Bearer $TOKEN"
+```
 
-**Response:** `UserSettingsResource`
+Response: `UserSettingsResource`
 
 ---
 
@@ -753,19 +709,25 @@ Get the current user's settings.
 
 Update the current user's settings.
 
-**Request body**
+```bash
+curl -X PATCH $BASE_URL/user/settings \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "repos": {
+      "alice/myrepo": {
+        "commit_filters": [
+          {
+            "name": "frontend only",
+            "included_paths": ["src/web/"]
+          }
+        ]
+      }
+    }
+  }'
+```
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `repos` | `map<string, UpdateUserRepoSettingsRequest>` | No | Per-repo settings to update |
-
-`UpdateUserRepoSettingsRequest`:
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `commit_filters` | `CommitFilterResource[]` | No | Replace the commit filters for this repo |
-
-**Response:** `UserSettingsResource`
+Response: `UserSettingsResource`
 
 ---
 
@@ -773,13 +735,12 @@ Update the current user's settings.
 
 Get a user by username.
 
-**Path parameters**
+```bash
+curl $BASE_URL/user/alice \
+  -H "Authorization: Bearer $TOKEN"
+```
 
-| Param | Description |
-|-------|-------------|
-| `user_name` | Username to look up |
-
-**Response:** `UserResource`
+Response: `UserResource`
 
 ---
 
@@ -787,13 +748,12 @@ Get a user by username.
 
 Check whether a username is taken. Returns `200` if the user exists, `404` otherwise.
 
-**Path parameters**
+```bash
+curl -I $BASE_URL/user/alice \
+  -H "Authorization: Bearer $TOKEN"
+```
 
-| Param | Description |
-|-------|-------------|
-| `user_name` | Username to check |
-
-**Response:** `(empty)`
+Response: empty
 
 ---
 
@@ -801,13 +761,12 @@ Check whether a username is taken. Returns `200` if the user exists, `404` other
 
 List repositories owned by a user.
 
-**Path parameters**
+```bash
+curl $BASE_URL/user/alice/repositories \
+  -H "Authorization: Bearer $TOKEN"
+```
 
-| Param | Description |
-|-------|-------------|
-| `user_name` | Username |
-
-**Response:** `RepositoryResource[]`
+Response: `RepositoryResource[]`
 
 ---
 
@@ -815,35 +774,25 @@ List repositories owned by a user.
 
 List organizations a user belongs to.
 
-**Path parameters**
+```bash
+curl $BASE_URL/user/alice/organizations \
+  -H "Authorization: Bearer $TOKEN"
+```
 
-| Param | Description |
-|-------|-------------|
-| `user_name` | Username |
-
-**Response:** `OrganizationResource[]`
+Response: `OrganizationResource[]`
 
 ---
 
 ##### `GET /user/{user_name}/reviews`
 
-List reviews authored by or assigned to a user.
+List reviews authored by or assigned to a user. Supports optional query params: `status`, `owner`, `repo`.
 
-**Path parameters**
+```bash
+curl "$BASE_URL/user/alice/reviews?status=open&owner=alice&repo=myrepo" \
+  -H "Authorization: Bearer $TOKEN"
+```
 
-| Param | Description |
-|-------|-------------|
-| `user_name` | Username |
-
-**Query parameters**
-
-| Param | Type | Required | Description |
-|-------|------|----------|-------------|
-| `status` | `string` | No | Filter by review status |
-| `owner` | `string` | No | Filter by repository owner |
-| `repo` | `string` | No | Filter by repository name |
-
-**Response:** `ReviewResource[]`
+Response: `ReviewResource[]`
 
 ---
 
@@ -853,15 +802,12 @@ List reviews authored by or assigned to a user.
 
 Create a new organization.
 
-**Path parameters**
+```bash
+curl -X POST $BASE_URL/organization/acme \
+  -H "Authorization: Bearer $TOKEN"
+```
 
-| Param | Description |
-|-------|-------------|
-| `org_name` | Name for the new organization |
-
-**Request body:** none
-
-**Response:** `OrganizationResource`
+Response: `OrganizationResource`
 
 ---
 
@@ -869,9 +815,12 @@ Create a new organization.
 
 List all organizations.
 
-**Request:** none
+```bash
+curl $BASE_URL/organizations \
+  -H "Authorization: Bearer $TOKEN"
+```
 
-**Response:** `OrganizationResource[]`
+Response: `OrganizationResource[]`
 
 ---
 
@@ -879,40 +828,27 @@ List all organizations.
 
 Add a member to an organization.
 
-**Path parameters**
+```bash
+curl -X POST $BASE_URL/organization/acme/members \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"user_name": "bob", "role": "member"}'
+```
 
-| Param | Description |
-|-------|-------------|
-| `org_name` | Organization name |
-
-**Request body**
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `user_name` | `string` | Yes | Username to add |
-| `role` | `string` | Yes | Member role (e.g. `member`, `owner`) |
-
-**Response:** `OrganizationMemberResource`
+Response: `OrganizationMemberResource`
 
 ---
 
 ##### `GET /organization/{org_name}/members`
 
-List members of an organization.
+List members of an organization. Supports optional `role` query param.
 
-**Path parameters**
+```bash
+curl "$BASE_URL/organization/acme/members?role=owner" \
+  -H "Authorization: Bearer $TOKEN"
+```
 
-| Param | Description |
-|-------|-------------|
-| `org_name` | Organization name |
-
-**Query parameters**
-
-| Param | Type | Required | Description |
-|-------|------|----------|-------------|
-| `role` | `string` | No | Filter by role |
-
-**Response:** `OrganizationMemberResource[]`
+Response: `OrganizationMemberResource[]`
 
 ---
 
@@ -920,13 +856,12 @@ List members of an organization.
 
 List repositories owned by an organization.
 
-**Path parameters**
+```bash
+curl $BASE_URL/organization/acme/repositories \
+  -H "Authorization: Bearer $TOKEN"
+```
 
-| Param | Description |
-|-------|-------------|
-| `org_name` | Organization name |
-
-**Response:** `RepositoryResource[]`
+Response: `RepositoryResource[]`
 
 ---
 
@@ -936,21 +871,14 @@ List repositories owned by an organization.
 
 Create a new repository.
 
-**Path parameters**
+```bash
+curl -X POST $BASE_URL/repository/alice/myrepo \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"owner_type": "user", "visibility": "public"}'
+```
 
-| Param | Description |
-|-------|-------------|
-| `owner` | Owner name (user or organization) |
-| `repo` | Repository name |
-
-**Request body**
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `owner_type` | `string` | Yes | `user` or `organization` |
-| `visibility` | `string` | No | `public` (default) or `private` |
-
-**Response:** `RepositoryResource`
+Response: `RepositoryResource`
 
 ---
 
@@ -958,79 +886,53 @@ Create a new repository.
 
 Delete a repository.
 
-**Path parameters**
+```bash
+curl -X DELETE $BASE_URL/repository/alice/myrepo \
+  -H "Authorization: Bearer $TOKEN"
+```
 
-| Param | Description |
-|-------|-------------|
-| `owner` | Owner name |
-| `repo` | Repository name |
-
-**Response:** `(empty)`
+Response: empty
 
 ---
 
 ##### `POST /repository/{owner}/{repo}/resources`
 
-Fetch multiple repository resources in a single request. Pass `last_commit` and `last_updated` to get only what changed since the client's last poll.
+Fetch multiple repository resources in one request. Pass `last_commit` and `last_updated` to receive only what changed.
 
-**Path parameters**
+```bash
+curl -X POST $BASE_URL/repository/alice/myrepo/resources \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"last_commit": "a1b2c3d4", "last_updated": "2024-06-01T10:00:00Z"}'
+```
 
-| Param | Description |
-|-------|-------------|
-| `owner` | Owner name |
-| `repo` | Repository name |
-
-**Request body**
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `last_commit` | `string` | No | Last commit SHA the client has; omit for a full response |
-| `last_updated` | `datetime` | No | Client's last-updated timestamp for delta detection |
-
-**Response:** `RepositoryResourcesResource`
+Response: `RepositoryResourcesResource`
 
 ---
 
 ##### `GET /repository/{owner}/{repo}/paths`
 
-List all file paths in the repository tree.
+List all file paths in the repository tree. Supports optional `ref_name` query param (default: `HEAD`).
 
-**Path parameters**
+```bash
+curl "$BASE_URL/repository/alice/myrepo/paths?ref_name=main" \
+  -H "Authorization: Bearer $TOKEN"
+```
 
-| Param | Description |
-|-------|-------------|
-| `owner` | Owner name |
-| `repo` | Repository name |
-
-**Query parameters**
-
-| Param | Type | Required | Description |
-|-------|------|----------|-------------|
-| `ref_name` | `string` | No | Ref to list (default: `HEAD`) |
-
-**Response:** `RepositoryPathsResource`
+Response: `RepositoryPathsResource`
 
 ---
 
 ##### `GET /repository/{owner}/{repo}/blob`
 
-Fetch a single file or directory.
+Fetch a single file or directory. Requires `path` query param; `ref_name` is optional (default: `HEAD`).
 
-**Path parameters**
+```bash
+curl "$BASE_URL/repository/alice/myrepo/blob?path=src/main.rs&ref_name=main" \
+  -H "Authorization: Bearer $TOKEN"
+```
 
-| Param | Description |
-|-------|-------------|
-| `owner` | Owner name |
-| `repo` | Repository name |
-
-**Query parameters**
-
-| Param | Type | Required | Description |
-|-------|------|----------|-------------|
-| `ref_name` | `string` | No | Ref to read from (default: `HEAD`) |
-| `path` | `string` | Yes | Path to the file or directory |
-
-**Response:** `RepositoryBlobResource`
+Response: `RepositoryBlobResource`
 
 ---
 
@@ -1038,44 +940,27 @@ Fetch a single file or directory.
 
 Fetch multiple files or directories in one request.
 
-**Path parameters**
+```bash
+curl -X POST $BASE_URL/repository/alice/myrepo/blobs \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"ref_name": "main", "paths": ["src/main.rs", "Cargo.toml"]}'
+```
 
-| Param | Description |
-|-------|-------------|
-| `owner` | Owner name |
-| `repo` | Repository name |
-
-**Request body**
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `ref_name` | `string` | No | Ref to read from (default: `HEAD`) |
-| `paths` | `string[]` | Yes | Paths to fetch |
-
-**Response:** `RepositoryBlobsResource`
+Response: `RepositoryBlobsResource`
 
 ---
 
 ##### `GET /repository/{owner}/{repo}/commits`
 
-List commits on a ref, optionally filtered by date range.
+List commits on a ref. Supports optional `ref_name`, `from`, and `to` query params.
 
-**Path parameters**
+```bash
+curl "$BASE_URL/repository/alice/myrepo/commits?ref_name=main&from=2024-01-01T00:00:00Z" \
+  -H "Authorization: Bearer $TOKEN"
+```
 
-| Param | Description |
-|-------|-------------|
-| `owner` | Owner name |
-| `repo` | Repository name |
-
-**Query parameters**
-
-| Param | Type | Required | Description |
-|-------|------|----------|-------------|
-| `ref_name` | `string` | No | Ref to walk (default: `HEAD`) |
-| `from` | `datetime` | No | Include commits after this timestamp |
-| `to` | `datetime` | No | Include commits before this timestamp |
-
-**Response:** `RepositoryCommitsResource`
+Response: `RepositoryCommitsResource`
 
 ---
 
@@ -1083,15 +968,12 @@ List commits on a ref, optionally filtered by date range.
 
 Get a single commit.
 
-**Path parameters**
+```bash
+curl $BASE_URL/repository/alice/myrepo/commits/a1b2c3d4 \
+  -H "Authorization: Bearer $TOKEN"
+```
 
-| Param | Description |
-|-------|-------------|
-| `owner` | Owner name |
-| `repo` | Repository name |
-| `sha` | Commit SHA |
-
-**Response:** `RepositoryCommitResource`
+Response: `RepositoryCommitResource`
 
 ---
 
@@ -1099,39 +981,25 @@ Get a single commit.
 
 Get the full diff for a commit.
 
-**Path parameters**
+```bash
+curl $BASE_URL/repository/alice/myrepo/commits/a1b2c3d4/diff \
+  -H "Authorization: Bearer $TOKEN"
+```
 
-| Param | Description |
-|-------|-------------|
-| `owner` | Owner name |
-| `repo` | Repository name |
-| `sha` | Commit SHA |
-
-**Response:** `RepositoryCommitDiffResource`
+Response: `RepositoryCommitDiffResource`
 
 ---
 
 ##### `GET /repository/{owner}/{repo}/file/commits`
 
-List commits that touched a specific file, with pagination.
+List commits that touched a specific file, with pagination. Requires `path`; supports `ref_name`, `page`, `per_page`.
 
-**Path parameters**
+```bash
+curl "$BASE_URL/repository/alice/myrepo/file/commits?path=src/main.rs&page=1&per_page=30" \
+  -H "Authorization: Bearer $TOKEN"
+```
 
-| Param | Description |
-|-------|-------------|
-| `owner` | Owner name |
-| `repo` | Repository name |
-
-**Query parameters**
-
-| Param | Type | Required | Description |
-|-------|------|----------|-------------|
-| `path` | `string` | Yes | File path |
-| `ref_name` | `string` | No | Ref to walk (default: `HEAD`) |
-| `page` | `u32` | No | Page number (default: `1`) |
-| `per_page` | `u32` | No | Results per page (default: `30`) |
-
-**Response:** `RepositoryCommitsResource`
+Response: `RepositoryCommitsResource`
 
 ---
 
@@ -1139,14 +1007,12 @@ List commits that touched a specific file, with pagination.
 
 Get repository settings.
 
-**Path parameters**
+```bash
+curl $BASE_URL/repository/alice/myrepo/settings \
+  -H "Authorization: Bearer $TOKEN"
+```
 
-| Param | Description |
-|-------|-------------|
-| `owner` | Owner name |
-| `repo` | Repository name |
-
-**Response:** `RepositorySettingsResource`
+Response: `RepositorySettingsResource`
 
 ---
 
@@ -1154,20 +1020,18 @@ Get repository settings.
 
 Update repository settings.
 
-**Path parameters**
+```bash
+curl -X PATCH $BASE_URL/repository/alice/myrepo/settings \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "commit_filters": [
+      {"name": "no vendor", "excluded_paths": ["vendor/"]}
+    ]
+  }'
+```
 
-| Param | Description |
-|-------|-------------|
-| `owner` | Owner name |
-| `repo` | Repository name |
-
-**Request body**
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `commit_filters` | `CommitFilterResource[]` | No | Replace the repository's commit filters |
-
-**Response:** `RepositorySettingsResource`
+Response: `RepositorySettingsResource`
 
 ---
 
@@ -1177,14 +1041,12 @@ Update repository settings.
 
 List all reviews for a repository.
 
-**Path parameters**
+```bash
+curl $BASE_URL/repository/alice/myrepo/reviews \
+  -H "Authorization: Bearer $TOKEN"
+```
 
-| Param | Description |
-|-------|-------------|
-| `owner` | Owner name |
-| `repo` | Repository name |
-
-**Response:** `ReviewResource[]`
+Response: `ReviewResource[]`
 
 ---
 
@@ -1192,15 +1054,12 @@ List all reviews for a repository.
 
 Get a single review.
 
-**Path parameters**
+```bash
+curl $BASE_URL/repository/alice/myrepo/review/1 \
+  -H "Authorization: Bearer $TOKEN"
+```
 
-| Param | Description |
-|-------|-------------|
-| `owner` | Owner name |
-| `repo` | Repository name |
-| `number` | Review number |
-
-**Response:** `ReviewResource`
+Response: `ReviewResource`
 
 ---
 
@@ -1208,82 +1067,48 @@ Get a single review.
 
 Update review metadata.
 
-**Path parameters**
+```bash
+curl -X PATCH $BASE_URL/repository/alice/myrepo/review/1 \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"title": "Updated title", "description": "Now with more details."}'
+```
 
-| Param | Description |
-|-------|-------------|
-| `owner` | Owner name |
-| `repo` | Repository name |
-| `number` | Review number |
-
-**Request body**
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `title` | `string` | No | New title |
-| `description` | `string` | No | New description |
-
-**Response:** `ReviewResource`
+Response: `ReviewResource`
 
 ---
 
 ##### `POST /repository/{owner}/{repo}/review/{number}/publish`
 
-Publish (open) a review, optionally setting metadata for the review and its diffs in one call.
+Publish (open) a review, optionally setting metadata for the review and its diffs.
 
-**Path parameters**
+```bash
+curl -X POST $BASE_URL/repository/alice/myrepo/review/1/publish \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Add login flow",
+    "description": "Implements device authorization.",
+    "diffs": [
+      {"position": 1, "title": "Auth changes", "description": ""}
+    ]
+  }'
+```
 
-| Param | Description |
-|-------|-------------|
-| `owner` | Owner name |
-| `repo` | Repository name |
-| `number` | Review number |
-
-**Request body**
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `title` | `string` | No | Review title |
-| `description` | `string` | No | Review description |
-| `diffs` | `DiffUpdate[]` | No | Metadata updates for individual diffs |
-
-`DiffUpdate`:
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `position` | `i32` | Yes | Diff position to update |
-| `title` | `string` | No | New diff title |
-| `description` | `string` | No | New diff description |
-
-**Response:** `ReviewResource`
+Response: `ReviewResource`
 
 ---
 
 ##### `GET /repository/{owner}/{repo}/review/{number}/diff/{position}`
 
-Get the file diffs for a specific diff within a review, optionally between two revisions.
+Get the file diffs for a specific diff within a review. Supports optional `revision` and `compare_to` query params.
 
-**Path parameters**
+```bash
+curl "$BASE_URL/repository/alice/myrepo/review/1/diff/1?revision=2&compare_to=1" \
+  -H "Authorization: Bearer $TOKEN"
+```
 
-| Param | Description |
-|-------|-------------|
-| `owner` | Owner name |
-| `repo` | Repository name |
-| `number` | Review number |
-| `position` | Diff position |
-
-**Query parameters**
-
-| Param | Type | Required | Description |
-|-------|------|----------|-------------|
-| `revision` | `i32` | No | Revision number to view (latest if omitted) |
-| `compare_to` | `i32` | No | Compare against this earlier revision number |
-
-**Response**
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `files` | `RepositoryDiffFileResource[]` | Per-file diffs |
+Response: `{ "files": RepositoryDiffFileResource[] }`
 
 ---
 
@@ -1291,23 +1116,14 @@ Get the file diffs for a specific diff within a review, optionally between two r
 
 Update a diff's metadata.
 
-**Path parameters**
+```bash
+curl -X PATCH $BASE_URL/repository/alice/myrepo/review/1/diff/1 \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"title": "Refactored auth", "description": "Cleaner impl."}'
+```
 
-| Param | Description |
-|-------|-------------|
-| `owner` | Owner name |
-| `repo` | Repository name |
-| `number` | Review number |
-| `position` | Diff position |
-
-**Request body**
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `title` | `string` | No | New title |
-| `description` | `string` | No | New description |
-
-**Response:** `ReviewResource`
+Response: `ReviewResource`
 
 ---
 
@@ -1315,18 +1131,12 @@ Update a diff's metadata.
 
 Merge a diff into the target branch.
 
-**Path parameters**
+```bash
+curl -X POST $BASE_URL/repository/alice/myrepo/review/1/diff/1/merge \
+  -H "Authorization: Bearer $TOKEN"
+```
 
-| Param | Description |
-|-------|-------------|
-| `owner` | Owner name |
-| `repo` | Repository name |
-| `number` | Review number |
-| `position` | Diff position |
-
-**Request body:** none
-
-**Response:** `ReviewResource`
+Response: `ReviewResource`
 
 ---
 
@@ -1334,34 +1144,25 @@ Merge a diff into the target branch.
 
 Submit a verdict and comments on a diff revision.
 
-**Path parameters**
+```bash
+curl -X POST $BASE_URL/repository/alice/myrepo/review/1/diff/1/submit \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": "approve",
+    "comments": [
+      {
+        "body": "Looks great!",
+        "file_path": "src/auth.rs",
+        "line_number_start": 42,
+        "line_number_end": 45,
+        "side": "right"
+      }
+    ]
+  }'
+```
 
-| Param | Description |
-|-------|-------------|
-| `owner` | Owner name |
-| `repo` | Repository name |
-| `number` | Review number |
-| `position` | Diff position |
-
-**Request body**
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `action` | `string` | Yes | `approve`, `reject`, or `comment` |
-| `comments` | `SubmitReviewComment[]` | Yes | Comments to post |
-
-`SubmitReviewComment`:
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `body` | `string` | Yes | Comment text (Markdown) |
-| `parent_id` | `uuid` | No | Parent comment ID (for replies) |
-| `file_path` | `string` | No | File path for inline comments |
-| `line_number_start` | `i32` | No | Start line |
-| `line_number_end` | `i32` | No | End line |
-| `side` | `string` | No | `left` or `right` |
-
-**Response:** `ReviewResource`
+Response: `ReviewResource`
 
 ---
 
@@ -1369,21 +1170,14 @@ Submit a verdict and comments on a diff revision.
 
 Add a reviewer to a review.
 
-**Path parameters**
+```bash
+curl -X POST $BASE_URL/repository/alice/myrepo/review/1/reviewer \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"user_name": "bob"}'
+```
 
-| Param | Description |
-|-------|-------------|
-| `owner` | Owner name |
-| `repo` | Repository name |
-| `number` | Review number |
-
-**Request body**
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `user_name` | `string` | Yes | Username to add as reviewer |
-
-**Response:** `ReviewerResource`
+Response: `ReviewerResource`
 
 ---
 
@@ -1391,16 +1185,12 @@ Add a reviewer to a review.
 
 Remove a reviewer from a review.
 
-**Path parameters**
+```bash
+curl -X DELETE $BASE_URL/repository/alice/myrepo/review/1/reviewer/bob \
+  -H "Authorization: Bearer $TOKEN"
+```
 
-| Param | Description |
-|-------|-------------|
-| `owner` | Owner name |
-| `repo` | Repository name |
-| `number` | Review number |
-| `reviewer_name` | Username of reviewer to remove |
-
-**Response:** `(empty)`
+Response: empty
 
 ---
 
@@ -1408,22 +1198,14 @@ Remove a reviewer from a review.
 
 Edit a review comment.
 
-**Path parameters**
+```bash
+curl -X PATCH "$BASE_URL/repository/alice/myrepo/review/1/comment/018e1b2c-0000-7000-8000-000000000060" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"body": "Updated: LGTM with minor nits."}'
+```
 
-| Param | Description |
-|-------|-------------|
-| `owner` | Owner name |
-| `repo` | Repository name |
-| `number` | Review number |
-| `comment_id` | Comment ID |
-
-**Request body**
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `body` | `string` | Yes | Updated comment text |
-
-**Response:** `ReviewCommentResource`
+Response: `ReviewCommentResource`
 
 ---
 
@@ -1431,22 +1213,14 @@ Edit a review comment.
 
 Toggle the resolved state of a review comment thread.
 
-**Path parameters**
+```bash
+curl -X POST "$BASE_URL/repository/alice/myrepo/review/1/comment/018e1b2c-0000-7000-8000-000000000060/resolve" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"resolved": true}'
+```
 
-| Param | Description |
-|-------|-------------|
-| `owner` | Owner name |
-| `repo` | Repository name |
-| `number` | Review number |
-| `comment_id` | Comment ID |
-
-**Request body**
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `resolved` | `bool` | Yes | `true` to resolve, `false` to reopen |
-
-**Response:** `ReviewCommentResource`
+Response: `ReviewCommentResource`
 
 ---
 
@@ -1456,14 +1230,12 @@ Toggle the resolved state of a review comment thread.
 
 List questions in a repository.
 
-**Path parameters**
+```bash
+curl $BASE_URL/repository/alice/myrepo/questions \
+  -H "Authorization: Bearer $TOKEN"
+```
 
-| Param | Description |
-|-------|-------------|
-| `owner` | Owner name |
-| `repo` | Repository name |
-
-**Response:** `QuestionResource[]`
+Response: `QuestionResource[]`
 
 ---
 
@@ -1471,21 +1243,14 @@ List questions in a repository.
 
 Create a question.
 
-**Path parameters**
+```bash
+curl -X POST $BASE_URL/repository/alice/myrepo/question \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"title": "How does auth work?", "body": "Can someone explain the device flow?"}'
+```
 
-| Param | Description |
-|-------|-------------|
-| `owner` | Owner name |
-| `repo` | Repository name |
-
-**Request body**
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `title` | `string` | Yes | Question title |
-| `body` | `string` | Yes | Question body (Markdown) |
-
-**Response:** `QuestionResource`
+Response: `QuestionResource`
 
 ---
 
@@ -1493,15 +1258,12 @@ Create a question.
 
 Get a question with its answers and comments.
 
-**Path parameters**
+```bash
+curl $BASE_URL/repository/alice/myrepo/question/1 \
+  -H "Authorization: Bearer $TOKEN"
+```
 
-| Param | Description |
-|-------|-------------|
-| `owner` | Owner name |
-| `repo` | Repository name |
-| `number` | Question number |
-
-**Response:** `QuestionResource`
+Response: `QuestionResource`
 
 ---
 
@@ -1509,44 +1271,29 @@ Get a question with its answers and comments.
 
 Update a question.
 
-**Path parameters**
+```bash
+curl -X PATCH $BASE_URL/repository/alice/myrepo/question/1 \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"title": "How does OAuth device flow work?", "body": "Updated body with more context."}'
+```
 
-| Param | Description |
-|-------|-------------|
-| `owner` | Owner name |
-| `repo` | Repository name |
-| `number` | Question number |
-
-**Request body**
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `title` | `string` | Yes | New title |
-| `body` | `string` | Yes | New body |
-
-**Response:** `QuestionResource`
+Response: `QuestionResource`
 
 ---
 
 ##### `POST /repository/{owner}/{repo}/question/{number}/vote`
 
-Vote on a question.
+Vote on a question. `value`: `1` (upvote), `-1` (downvote), `0` (remove vote).
 
-**Path parameters**
+```bash
+curl -X POST $BASE_URL/repository/alice/myrepo/question/1/vote \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"value": 1}'
+```
 
-| Param | Description |
-|-------|-------------|
-| `owner` | Owner name |
-| `repo` | Repository name |
-| `number` | Question number |
-
-**Request body**
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `value` | `i16` | Yes | `1` (upvote), `-1` (downvote), or `0` (remove vote) |
-
-**Response:** `VoteResource`
+Response: `VoteResource`
 
 ---
 
@@ -1554,21 +1301,14 @@ Vote on a question.
 
 Add a top-level comment to a question.
 
-**Path parameters**
+```bash
+curl -X POST $BASE_URL/repository/alice/myrepo/question/1/comment \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"body": "Great question!"}'
+```
 
-| Param | Description |
-|-------|-------------|
-| `owner` | Owner name |
-| `repo` | Repository name |
-| `number` | Question number |
-
-**Request body**
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `body` | `string` | Yes | Comment text (Markdown) |
-
-**Response:** `CommentResource`
+Response: `CommentResource`
 
 ---
 
@@ -1576,21 +1316,14 @@ Add a top-level comment to a question.
 
 Post an answer to a question.
 
-**Path parameters**
+```bash
+curl -X POST $BASE_URL/repository/alice/myrepo/question/1/answer \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"body": "It uses OAuth 2.0 device authorization grant."}'
+```
 
-| Param | Description |
-|-------|-------------|
-| `owner` | Owner name |
-| `repo` | Repository name |
-| `number` | Question number |
-
-**Request body**
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `body` | `string` | Yes | Answer text (Markdown) |
-
-**Response:** `AnswerResource`
+Response: `AnswerResource`
 
 ---
 
@@ -1598,22 +1331,14 @@ Post an answer to a question.
 
 Edit an answer.
 
-**Path parameters**
+```bash
+curl -X PATCH "$BASE_URL/repository/alice/myrepo/question/1/answer/018e1b2c-0000-7000-8000-000000000080" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"body": "Revised: it uses the RFC 8628 device authorization grant."}'
+```
 
-| Param | Description |
-|-------|-------------|
-| `owner` | Owner name |
-| `repo` | Repository name |
-| `number` | Question number |
-| `answer_id` | Answer ID |
-
-**Request body**
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `body` | `string` | Yes | Updated answer text |
-
-**Response:** `AnswerResource`
+Response: `AnswerResource`
 
 ---
 
@@ -1621,22 +1346,14 @@ Edit an answer.
 
 Vote on an answer.
 
-**Path parameters**
+```bash
+curl -X POST "$BASE_URL/repository/alice/myrepo/question/1/answer/018e1b2c-0000-7000-8000-000000000080/vote" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"value": 1}'
+```
 
-| Param | Description |
-|-------|-------------|
-| `owner` | Owner name |
-| `repo` | Repository name |
-| `number` | Question number |
-| `answer_id` | Answer ID |
-
-**Request body**
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `value` | `i16` | Yes | `1`, `-1`, or `0` |
-
-**Response:** `VoteResource`
+Response: `VoteResource`
 
 ---
 
@@ -1644,22 +1361,14 @@ Vote on an answer.
 
 Add a comment to an answer.
 
-**Path parameters**
+```bash
+curl -X POST "$BASE_URL/repository/alice/myrepo/question/1/answer/018e1b2c-0000-7000-8000-000000000080/comment" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"body": "Thanks, very helpful!"}'
+```
 
-| Param | Description |
-|-------|-------------|
-| `owner` | Owner name |
-| `repo` | Repository name |
-| `number` | Question number |
-| `answer_id` | Answer ID |
-
-**Request body**
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `body` | `string` | Yes | Comment text (Markdown) |
-
-**Response:** `CommentResource`
+Response: `CommentResource`
 
 ---
 
@@ -1667,22 +1376,14 @@ Add a comment to an answer.
 
 Edit a comment on a question or answer.
 
-**Path parameters**
+```bash
+curl -X PATCH "$BASE_URL/repository/alice/myrepo/question/1/comment/018e1b2c-0000-7000-8000-000000000090" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"body": "Excellent question, actually."}'
+```
 
-| Param | Description |
-|-------|-------------|
-| `owner` | Owner name |
-| `repo` | Repository name |
-| `number` | Question number |
-| `comment_id` | Comment ID |
-
-**Request body**
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `body` | `string` | Yes | Updated comment text |
-
-**Response:** `CommentResource`
+Response: `CommentResource`
 
 ---
 
@@ -1690,22 +1391,14 @@ Edit a comment on a question or answer.
 
 Vote on a comment.
 
-**Path parameters**
+```bash
+curl -X POST "$BASE_URL/repository/alice/myrepo/question/1/comment/018e1b2c-0000-7000-8000-000000000090/vote" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"value": 1}'
+```
 
-| Param | Description |
-|-------|-------------|
-| `owner` | Owner name |
-| `repo` | Repository name |
-| `number` | Question number |
-| `comment_id` | Comment ID |
-
-**Request body**
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `value` | `i16` | Yes | `1`, `-1`, or `0` |
-
-**Response:** `VoteResource`
+Response: `VoteResource`
 
 ---
 
@@ -1713,23 +1406,14 @@ Vote on a comment.
 
 ##### `GET /repository/{owner}/{repo}/builds`
 
-List builds for a repository.
+List builds for a repository. Supports optional `from` and `to` datetime query params.
 
-**Path parameters**
+```bash
+curl "$BASE_URL/repository/alice/myrepo/builds?from=2024-06-01T00:00:00Z" \
+  -H "Authorization: Bearer $TOKEN"
+```
 
-| Param | Description |
-|-------|-------------|
-| `owner` | Owner name |
-| `repo` | Repository name |
-
-**Query parameters**
-
-| Param | Type | Required | Description |
-|-------|------|----------|-------------|
-| `from` | `datetime` | No | Include builds after this timestamp |
-| `to` | `datetime` | No | Include builds before this timestamp |
-
-**Response:** `BuildResource[]`
+Response: `BuildResource[]`
 
 ---
 
@@ -1737,21 +1421,14 @@ List builds for a repository.
 
 Trigger a new build.
 
-**Path parameters**
+```bash
+curl -X POST $BASE_URL/repository/alice/myrepo/build \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"ref_name": "main", "commit_sha": "a1b2c3d4"}'
+```
 
-| Param | Description |
-|-------|-------------|
-| `owner` | Owner name |
-| `repo` | Repository name |
-
-**Request body**
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `ref_name` | `string` | Yes | Branch or tag to build |
-| `commit_sha` | `string` | Yes | Commit SHA to build |
-
-**Response:** `BuildResource`
+Response: `BuildResource`
 
 ---
 
@@ -1759,15 +1436,12 @@ Trigger a new build.
 
 Get a single build.
 
-**Path parameters**
+```bash
+curl $BASE_URL/repository/alice/myrepo/build/42 \
+  -H "Authorization: Bearer $TOKEN"
+```
 
-| Param | Description |
-|-------|-------------|
-| `owner` | Owner name |
-| `repo` | Repository name |
-| `number` | Build number |
-
-**Response:** `BuildResource`
+Response: `BuildResource`
 
 ---
 
@@ -1775,15 +1449,12 @@ Get a single build.
 
 List tasks belonging to a build.
 
-**Path parameters**
+```bash
+curl $BASE_URL/repository/alice/myrepo/build/42/tasks \
+  -H "Authorization: Bearer $TOKEN"
+```
 
-| Param | Description |
-|-------|-------------|
-| `owner` | Owner name |
-| `repo` | Repository name |
-| `number` | Build number |
-
-**Response:** `TaskResource[]`
+Response: `TaskResource[]`
 
 ---
 
@@ -1793,27 +1464,27 @@ These endpoints are used by CI runners, not end users.
 
 ##### `GET /ci/task/poll`
 
-Poll for the next available task. Called by idle runners.
+Poll for the next available task. Returns `null` when no work is available.
 
-**Request:** none
+```bash
+curl $BASE_URL/ci/task/poll \
+  -H "Authorization: Bearer $RUNNER_TOKEN"
+```
 
-**Response:** `PollTaskResource` (nullable — `null` when no work is available)
+Response: `PollTaskResource` (nullable)
 
 ---
 
 ##### `POST /ci/task/{id}/token`
 
-Issue a short-lived token for a task. The runner calls this before reporting status.
+Issue a short-lived token for a task before reporting status.
 
-**Path parameters**
+```bash
+curl -X POST "$BASE_URL/ci/task/018e1b2c-0000-7000-8000-000000000110/token" \
+  -H "Authorization: Bearer $RUNNER_TOKEN"
+```
 
-| Param | Description |
-|-------|-------------|
-| `id` | Task ID |
-
-**Request body:** none
-
-**Response:** `TaskTokenResource`
+Response: `TaskTokenResource`
 
 ---
 
@@ -1821,19 +1492,16 @@ Issue a short-lived token for a task. The runner calls this before reporting sta
 
 Report a task status update.
 
-**Path parameters**
+```bash
+curl -X PATCH "$BASE_URL/ci/task/018e1b2c-0000-7000-8000-000000000110" \
+  -H "Authorization: Bearer $TASK_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"status": "success"}'
+```
 
-| Param | Description |
-|-------|-------------|
-| `id` | Task ID |
+`status` values: `running` · `success` · `failed`
 
-**Request body**
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `status` | `string` | Yes | New status: `running`, `success`, `failed` |
-
-**Response:** `TaskResource`
+Response: `TaskResource`
 
 ---
 
@@ -1843,13 +1511,12 @@ Report a task status update.
 
 List runners for an owner.
 
-**Path parameters**
+```bash
+curl $BASE_URL/ci/runner/alice \
+  -H "Authorization: Bearer $TOKEN"
+```
 
-| Param | Description |
-|-------|-------------|
-| `owner` | Owner name (user or organization) |
-
-**Response:** `RunnerResource[]`
+Response: `RunnerResource[]`
 
 ---
 
@@ -1857,20 +1524,14 @@ List runners for an owner.
 
 Register a new runner.
 
-**Path parameters**
+```bash
+curl -X POST $BASE_URL/ci/runner/alice \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "my-runner", "owner_type": "user"}'
+```
 
-| Param | Description |
-|-------|-------------|
-| `owner` | Owner name |
-
-**Request body**
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `name` | `string` | Yes | Runner name |
-| `owner_type` | `string` | Yes | `user` or `organization` |
-
-**Response:** `RunnerResource`
+Response: `RunnerResource`
 
 ---
 
@@ -1878,14 +1539,12 @@ Register a new runner.
 
 Get a runner by name.
 
-**Path parameters**
+```bash
+curl $BASE_URL/ci/runner/alice/my-runner \
+  -H "Authorization: Bearer $TOKEN"
+```
 
-| Param | Description |
-|-------|-------------|
-| `owner` | Owner name |
-| `name` | Runner name |
-
-**Response:** `RunnerResource`
+Response: `RunnerResource`
 
 ---
 
@@ -1893,14 +1552,12 @@ Get a runner by name.
 
 Delete a runner.
 
-**Path parameters**
+```bash
+curl -X DELETE $BASE_URL/ci/runner/alice/my-runner \
+  -H "Authorization: Bearer $TOKEN"
+```
 
-| Param | Description |
-|-------|-------------|
-| `owner` | Owner name |
-| `name` | Runner name |
-
-**Response:** `(empty)`
+Response: empty
 
 ---
 
@@ -1908,16 +1565,12 @@ Delete a runner.
 
 Refresh the authentication token for a runner.
 
-**Path parameters**
+```bash
+curl -X POST $BASE_URL/ci/runner/alice/my-runner/token \
+  -H "Authorization: Bearer $TOKEN"
+```
 
-| Param | Description |
-|-------|-------------|
-| `owner` | Owner name |
-| `name` | Runner name |
-
-**Request body:** none
-
-**Response:** `RunnerTokenResource`
+Response: `RunnerTokenResource`
 
 ---
 
@@ -1925,15 +1578,12 @@ Refresh the authentication token for a runner.
 
 Verify a runner's identity. Called by the runner on startup.
 
-**Path parameters**
+```bash
+curl -X POST "$BASE_URL/ci/runner/018e1b2c-0000-7000-8000-000000000120/verify" \
+  -H "Authorization: Bearer $RUNNER_TOKEN"
+```
 
-| Param | Description |
-|-------|-------------|
-| `id` | Runner ID |
-
-**Request body:** none
-
-**Response:** `(empty)`
+Response: empty
 
 ---
 
@@ -1943,7 +1593,12 @@ Verify a runner's identity. Called by the runner on startup.
 
 List all migrations initiated by the current user.
 
-**Response:** `MigrationResource[]`
+```bash
+curl $BASE_URL/migrations \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+Response: `MigrationResource[]`
 
 ---
 
@@ -1951,13 +1606,12 @@ List all migrations initiated by the current user.
 
 Get a single migration.
 
-**Path parameters**
+```bash
+curl $BASE_URL/migration/1 \
+  -H "Authorization: Bearer $TOKEN"
+```
 
-| Param | Description |
-|-------|-------------|
-| `number` | Migration number |
-
-**Response:** `MigrationResource`
+Response: `MigrationResource`
 
 ---
 
@@ -1965,7 +1619,12 @@ Get a single migration.
 
 List GitHub App installations connected by the current user.
 
-**Response:** `GitHubInstallationResource[]`
+```bash
+curl $BASE_URL/migration/github/installations \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+Response: `GitHubInstallationResource[]`
 
 ---
 
@@ -1973,15 +1632,12 @@ List GitHub App installations connected by the current user.
 
 Register a GitHub App installation.
 
-**Path parameters**
+```bash
+curl -X POST $BASE_URL/migration/github/12345678 \
+  -H "Authorization: Bearer $TOKEN"
+```
 
-| Param | Description |
-|-------|-------------|
-| `installation_id` | GitHub App installation ID |
-
-**Request body:** none
-
-**Response:** `GitHubInstallationResource`
+Response: `GitHubInstallationResource`
 
 ---
 
@@ -1989,13 +1645,12 @@ Register a GitHub App installation.
 
 List repositories accessible via a GitHub App installation.
 
-**Path parameters**
+```bash
+curl $BASE_URL/migration/github/12345678/repositories \
+  -H "Authorization: Bearer $TOKEN"
+```
 
-| Param | Description |
-|-------|-------------|
-| `installation_id` | GitHub App installation ID |
-
-**Response:** `GitHubRepositoryResource[]`
+Response: `GitHubRepositoryResource[]`
 
 ---
 
@@ -2003,20 +1658,17 @@ List repositories accessible via a GitHub App installation.
 
 Start migrating repositories from GitHub.
 
-**Path parameters**
+```bash
+curl -X POST $BASE_URL/migration/github/12345678/migrate \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "origin": "alice",
+    "origin_type": "user",
+    "destination": "alice",
+    "destination_type": "user",
+    "repositories": ["myrepo", "otherrepo"]
+  }'
+```
 
-| Param | Description |
-|-------|-------------|
-| `installation_id` | GitHub App installation ID |
-
-**Request body**
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `origin` | `string` | Yes | Source namespace (GitHub owner) |
-| `origin_type` | `string` | Yes | `user` or `organization` |
-| `destination` | `string` | Yes | Destination namespace on Gitdot |
-| `destination_type` | `string` | Yes | `user` or `organization` |
-| `repositories` | `string[]` | Yes | Repository names to migrate |
-
-**Response:** `MigrationResource`
+Response: `MigrationResource`
