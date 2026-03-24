@@ -12,158 +12,243 @@ The crate follows a strict layered architecture: handlers call services, service
 
 All services are `async_trait` traits. Concrete impls are generic over repository/client traits and wired up with `*Impl` types.
 
-- **`UserService`** — [`src/service/user.rs`](gitdot-core/src/service/user.rs)
-  - `get_current_user(request) -> UserResponse`
-  - `update_current_user(request) -> UserResponse` — validates against reserved names / name conflicts
-  - `has_user(request) -> ()`
-  - `get_user(request) -> UserResponse`
-  - `list_repositories(request) -> Vec<RepositoryResponse>` — filters private repos for non-owners
-  - `list_organizations(request) -> Vec<OrganizationResponse>`
-  - `list_reviews(request) -> Vec<ReviewResponse>`
-  - `get_current_user_settings(request) -> UserSettingsResponse`
-  - `update_current_user_settings(request) -> UserSettingsResponse`
+---
 
-- **`RepositoryService`** — [`src/service/repository.rs`](gitdot-core/src/service/repository.rs)
-  - `create_repository(request) -> RepositoryResponse` — initializes bare git repo, installs hooks, then inserts DB record
-  - `delete_repository(request) -> ()`
-  - `get_repository_by_id(id) -> RepositoryResponse`
-  - `get_repository_blob(request) -> RepositoryBlobResponse` — file or folder listing at a ref/path
-  - `get_repository_blobs(request) -> RepositoryBlobsResponse`
-  - `get_repository_paths(request) -> RepositoryPathsResponse` — full recursive file tree
-  - `get_repository_file_commits(request) -> RepositoryCommitsResponse` — paginated, enriched with user info
-  - `resolve_ref_sha(owner, repo, ref_name) -> String`
-  - `get_repository_settings(request) -> RepositorySettingsResponse`
-  - `update_repository_settings(request) -> RepositorySettingsResponse`
+#### `UserService` — [`src/service/user.rs`](gitdot-core/src/service/user.rs)
 
-- **`ReviewService`** — [`src/service/review.rs`](gitdot-core/src/service/review.rs)
-  - `get_review(request) -> ReviewResponse`
-  - `list_reviews(request) -> ReviewsResponse`
-  - `create_review(request) -> ReviewResponse` — triggered by `refs/for/<branch>` push; creates diffs + revisions + git refs
-    ```rust
-    // Push flow: proc-receive hook → ReviewService::create_review
-    // Creates: refs/reviews/<N>/diffs/<pos>/revisions/1
-    //          refs/reviews/<N>/diffs/<pos>/current
-    //          refs/reviews/<N>/head
-    ```
-  - `process_review_update(request) -> ReviewResponse` — handles re-push to `refs/for/<branch>/<N>`; detects rebase-only vs. content change via patch IDs
-  - `publish_review(request) -> ReviewResponse` — transitions draft → in_progress
-  - `update_review(request) -> ReviewResponse`
-  - `get_review_diff(request) -> ReviewDiffResponse` — fetches file pairs and runs difftastic
-  - `submit_review(request) -> ReviewResponse` — records verdict (approve/request-changes/comment)
-  - `merge_diff(request) -> ReviewResponse` — fast-forward or cherry-pick onto target branch
-  - `update_diff(request) -> ReviewResponse`
-  - `add_reviewer(request) -> ReviewerResponse`
-  - `remove_reviewer(request) -> ()`
-  - `update_review_comment(request) -> ReviewCommentResponse`
-  - `resolve_review_comment(request) -> ReviewCommentResponse`
+```rust
+#[async_trait]
+pub trait UserService: Send + Sync + 'static {
+    async fn get_current_user(&self, request: GetCurrentUserRequest) -> Result<UserResponse, UserError>;
+    async fn update_current_user(&self, request: UpdateCurrentUserRequest) -> Result<UserResponse, UserError>;
+    async fn has_user(&self, request: HasUserRequest) -> Result<(), UserError>;
+    async fn get_user(&self, request: GetUserRequest) -> Result<UserResponse, UserError>;
+    async fn list_repositories(&self, request: ListUserRepositoriesRequest) -> Result<Vec<RepositoryResponse>, UserError>;
+    async fn list_organizations(&self, request: ListUserOrganizationsRequest) -> Result<Vec<OrganizationResponse>, UserError>;
+    async fn list_reviews(&self, request: ListUserReviewsRequest) -> Result<Vec<ReviewResponse>, UserError>;
+    async fn get_current_user_settings(&self, request: GetCurrentUserSettingsRequest) -> Result<UserSettingsResponse, UserError>;
+    async fn update_current_user_settings(&self, request: UpdateCurrentUserSettingsRequest) -> Result<UserSettingsResponse, UserError>;
+}
 
-- **`BuildService`** — [`src/service/build.rs`](gitdot-core/src/service/build.rs)
-  - `create_build(request) -> BuildResponse` — reads CI config from repo, creates build + tasks, publishes to S2 stream
-  - `list_builds(request) -> BuildsResponse`
-  - `get_build(owner, repo, number) -> BuildResponse`
-  - `list_build_tasks(owner, repo, number) -> Vec<TaskResponse>`
+pub struct UserServiceImpl<U, R, O, V>
+where U: UserRepository, R: RepositoryRepository, O: OrganizationRepository, V: ReviewRepository
+{
+    pub fn new(user_repo: U, repo_repo: R, org_repo: O, review_repo: V) -> Self;
+}
+```
 
-- **`CommitService`** — [`src/service/commit.rs`](gitdot-core/src/service/commit.rs)
-  - `get_commit(request) -> CommitResponse`
-  - `get_commit_diff(request) -> CommitDiffResponse` — diff via git + difftastic
-  - `get_commits(request) -> CommitsResponse`
-  - `create_commits(request) -> Vec<CommitResponse>` — stores commit metadata in DB from push hook
+---
 
-- **`OrganizationService`** — [`src/service/organization.rs`](gitdot-core/src/service/organization.rs)
-  - `create_organization(request) -> OrganizationResponse`
-  - `get_organization(request) -> OrganizationResponse`
-  - `add_member(request) -> OrganizationMemberResponse`
-  - `list_repositories(request) -> Vec<RepositoryResponse>`
-  - `list_organizations() -> Vec<OrganizationResponse>`
-  - `list_members(request) -> Vec<OrganizationMemberResponse>`
+#### `RepositoryService` — [`src/service/repository.rs`](gitdot-core/src/service/repository.rs)
 
-- **`QuestionService`** — [`src/service/question.rs`](gitdot-core/src/service/question.rs)
-  - `create_question / update_question / get_question / list_questions`
-  - `create_answer / update_answer`
-  - `create_question_comment / create_answer_comment / update_comment`
-  - `vote_question / vote_answer / vote_comment -> VoteResponse`
+```rust
+#[async_trait]
+pub trait RepositoryService: Send + Sync + 'static {
+    async fn create_repository(&self, request: CreateRepositoryRequest) -> Result<RepositoryResponse, RepositoryError>;
+    async fn delete_repository(&self, request: DeleteRepositoryRequest) -> Result<(), RepositoryError>;
+    async fn get_repository_by_id(&self, id: Uuid) -> Result<RepositoryResponse, RepositoryError>;
+    async fn get_repository_blob(&self, request: GetRepositoryBlobRequest) -> Result<RepositoryBlobResponse, RepositoryError>;
+    async fn get_repository_blobs(&self, request: GetRepositoryBlobsRequest) -> Result<RepositoryBlobsResponse, RepositoryError>;
+    async fn get_repository_paths(&self, request: GetRepositoryPathsRequest) -> Result<RepositoryPathsResponse, RepositoryError>;
+    async fn get_repository_file_commits(&self, request: GetRepositoryFileCommitsRequest) -> Result<RepositoryCommitsResponse, RepositoryError>;
+    async fn resolve_ref_sha(&self, owner: &str, repo: &str, ref_name: &str) -> Result<String, RepositoryError>;
+    async fn get_repository_settings(&self, request: GetRepositorySettingsRequest) -> Result<RepositorySettingsResponse, RepositoryError>;
+    async fn update_repository_settings(&self, request: UpdateRepositorySettingsRequest) -> Result<RepositorySettingsResponse, RepositoryError>;
+}
 
-- **`RunnerService`** — [`src/service/runner.rs`](gitdot-core/src/service/runner.rs)
-  - `create_runner(request) -> CreateRunnerResponse`
-  - `verify_runner(request) -> ()` — validates hashed token
-  - `get_runner(request) -> GetRunnerResponse`
-  - `delete_runner(request) -> ()`
-  - `refresh_runner_token(request) -> CreateRunnerTokenResponse`
-  - `list_runners(request) -> ListRunnersResponse`
+pub struct RepositoryServiceImpl<G, O, R, U>
+where G: GitClient, O: OrganizationRepository, R: RepositoryRepository, U: UserRepository
+{
+    pub fn new(git_client: G, org_repo: O, repo_repo: R, user_repo: U) -> Self;
+}
+```
 
-- **`MigrationService`** — [`src/service/migration.rs`](gitdot-core/src/service/migration.rs)
-  - `get_migration / list_migrations`
-  - `create_github_installation / list_github_installations / list_github_installation_repositories`
-  - `create_github_migration -> CreateGitHubMigrationResponse`
-  - `migrate_github_repositories -> MigrateGitHubRepositoriesResponse` — mirrors repos via `git clone --mirror`, installs hooks
+`create_repository` initializes a bare git repo on disk, installs hooks, then inserts the DB record. `get_repository_blob` serves a file or directory listing at a given ref/path.
 
-- **`AuthenticationService`** — [`src/service/authentication.rs`](gitdot-core/src/service/authentication.rs)
-  - `issue_task_jwt(request) -> String` — mints a short-lived JWT for runner tasks
+---
 
-- **`AuthorizationService`** — [`src/service/authorization.rs`](gitdot-core/src/service/authorization.rs)
-  - `validate_token / verify_authorized_for_repository / verify_authorized_for_review / ...` — permission checks per resource type
+#### `ReviewService` — [`src/service/review.rs`](gitdot-core/src/service/review.rs)
 
-- **`OAuthService`** — [`src/service/oauth.rs`](gitdot-core/src/service/oauth.rs)
-  - `request_device_code / poll_token / authorize_device` — device flow OAuth
+```rust
+#[async_trait]
+pub trait ReviewService: Send + Sync + 'static {
+    async fn get_review(&self, request: GetReviewRequest) -> Result<ReviewResponse, ReviewError>;
+    async fn list_reviews(&self, request: ListReviewsRequest) -> Result<ReviewsResponse, ReviewError>;
+    async fn create_review(&self, request: ProcessReviewRequest) -> Result<ReviewResponse, ReviewError>;
+    async fn process_review_update(&self, request: ProcessReviewRequest) -> Result<ReviewResponse, ReviewError>;
+    async fn publish_review(&self, request: PublishReviewRequest) -> Result<ReviewResponse, ReviewError>;
+    async fn update_review(&self, request: UpdateReviewRequest) -> Result<ReviewResponse, ReviewError>;
+    async fn get_review_diff(&self, request: GetReviewDiffRequest) -> Result<ReviewDiffResponse, ReviewError>;
+    async fn submit_review(&self, request: SubmitReviewRequest) -> Result<ReviewResponse, ReviewError>;
+    async fn merge_diff(&self, request: MergeDiffRequest) -> Result<ReviewResponse, ReviewError>;
+    async fn update_diff(&self, request: UpdateDiffRequest) -> Result<ReviewResponse, ReviewError>;
+    async fn add_reviewer(&self, request: AddReviewerRequest) -> Result<ReviewerResponse, ReviewError>;
+    async fn remove_reviewer(&self, request: RemoveReviewerRequest) -> Result<(), ReviewError>;
+    async fn update_review_comment(&self, request: UpdateReviewCommentRequest) -> Result<ReviewCommentResponse, ReviewError>;
+    async fn resolve_review_comment(&self, request: ResolveReviewCommentRequest) -> Result<ReviewCommentResponse, ReviewError>;
+}
 
-- **`GitHttpService`** — [`src/service/git_http.rs`](gitdot-core/src/service/git_http.rs)
-  - `info_refs / upload_pack / receive_pack` — proxies smart HTTP git protocol to `git http-backend`
+pub struct ReviewServiceImpl<V, R, U, O, G, D>
+where V: ReviewRepository, R: RepositoryRepository, U: UserRepository,
+      O: OrganizationRepository, G: GitClient, D: DiffClient
+{
+    pub fn new(review_repo: V, repo_repo: R, user_repo: U, org_repo: O, git_client: G, diff_client: D) -> Self;
+}
+```
 
-- **`TaskService`** — [`src/service/task.rs`](gitdot-core/src/service/task.rs)
-  - `update_task(request) -> TaskResponse` — runner reports task status/output
+`create_review` is triggered by a `refs/for/<branch>` push via the proc-receive hook. It creates diffs, revisions, and git refs (`refs/reviews/<N>/...`). `process_review_update` handles re-pushes and detects rebase-only vs. content changes via patch IDs.
+
+---
+
+#### `BuildService` — [`src/service/build.rs`](gitdot-core/src/service/build.rs)
+
+```rust
+#[async_trait]
+pub trait BuildService: Send + Sync + 'static {
+    async fn create_build(&self, request: CreateBuildRequest) -> Result<BuildResponse, BuildError>;
+    async fn list_builds(&self, request: ListBuildsRequest) -> Result<BuildsResponse, BuildError>;
+    async fn get_build(&self, owner: &str, repo: &str, number: i32) -> Result<BuildResponse, BuildError>;
+    async fn list_build_tasks(&self, owner: &str, repo: &str, number: i32) -> Result<Vec<TaskResponse>, BuildError>;
+}
+
+pub struct BuildServiceImpl<G, S, B, T, R>
+where G: GitClient, S: S2Client, B: BuildRepository, T: TaskRepository, R: RepositoryRepository
+{
+    pub fn new(git_client: G, s2_client: S, build_repo: B, task_repo: T, repo_repo: R) -> Self;
+}
+```
+
+`create_build` reads the CI config from the repo, creates a build and its tasks in the DB, and publishes them to an S2 stream for runner pickup.
+
+---
+
+#### `RunnerService` — [`src/service/runner.rs`](gitdot-core/src/service/runner.rs)
+
+```rust
+#[async_trait]
+pub trait RunnerService: Send + Sync + 'static {
+    async fn create_runner(&self, request: CreateRunnerRequest) -> Result<CreateRunnerResponse, RunnerError>;
+    async fn verify_runner(&self, request: VerifyRunnerRequest) -> Result<(), RunnerError>;
+    async fn get_runner(&self, request: GetRunnerRequest) -> Result<GetRunnerResponse, RunnerError>;
+    async fn delete_runner(&self, request: DeleteRunnerRequest) -> Result<(), RunnerError>;
+    async fn refresh_runner_token(&self, request: CreateRunnerTokenRequest) -> Result<CreateRunnerTokenResponse, RunnerError>;
+    async fn list_runners(&self, request: ListRunnersRequest) -> Result<ListRunnersResponse, RunnerError>;
+}
+
+pub struct RunnerServiceImpl<R, O, T>
+where R: RunnerRepository, O: OrganizationRepository, T: TokenRepository
+{
+    pub fn new(runner_repo: R, org_repo: O, token_repo: T) -> Self;
+}
+```
+
+`verify_runner` validates a hashed token without returning the runner record. `refresh_runner_token` rotates the token and returns the new one.
+
+---
+
+#### `TaskService` — [`src/service/task.rs`](gitdot-core/src/service/task.rs)
+
+```rust
+#[async_trait]
+pub trait TaskService: Send + Sync + 'static {
+    async fn get_task(&self, id: Uuid) -> Result<Option<TaskResponse>, TaskError>;
+    async fn poll_task(&self, runner_id: Uuid) -> Result<Option<TaskResponse>, TaskError>;
+    async fn update_task(&self, request: UpdateTaskRequest) -> Result<TaskResponse, TaskError>;
+}
+
+pub struct TaskServiceImpl<T, R, S>
+where T: TaskRepository, R: RunnerRepository, S: RepositoryRepository
+{
+    pub fn new(task_repo: T, runner_repo: R, repository_repo: S) -> Self;
+}
+```
+
+---
 
 #### Clients (`gitdot-core/src/client/`)
 
-- **`GitClient` / `Git2Client`** — [`src/client/git.rs`](gitdot-core/src/client/git.rs)
-  - Wraps `git2` (libgit2). Blocking calls run inside `tokio::task::spawn_blocking`.
-  - `create_repo / delete_repo / mirror_repo`
-  - `create_ref / update_ref`
-  - `get_repo_blob / get_repo_blobs / get_repo_paths / get_repo_commit / get_repo_file_commits`
-  - `get_repo_diff_files / get_repo_diff_stats`
-  - `rev_list(old_sha, new_sha) -> Vec<RepositoryCommitResponse>`
-  - `resolve_ref_sha / get_commit_patch_id / cherry_pick_commit`
-  - `install_hook / empty_hooks`
+```rust
+// git2 wrapper — blocking calls run in tokio::task::spawn_blocking
+#[async_trait]
+pub trait GitClient: Send + Sync + Clone + 'static {
+    async fn create_repo(&self, owner: &str, repo: &str) -> Result<(), GitError>;
+    async fn delete_repo(&self, owner: &str, repo: &str) -> Result<(), GitError>;
+    async fn mirror_repo(&self, owner: &str, repo: &str, url: &str) -> Result<(), GitError>;
+    async fn get_repo_blob(&self, request: GetRepoBlobRequest) -> Result<RepositoryBlobResponse, GitError>;
+    async fn get_repo_blobs(&self, request: GetRepoBlobsRequest) -> Result<RepositoryBlobsResponse, GitError>;
+    async fn get_repo_paths(&self, request: GetRepoPathsRequest) -> Result<RepositoryPathsResponse, GitError>;
+    async fn get_repo_commit(&self, request: GetRepoCommitRequest) -> Result<RepositoryCommitResponse, GitError>;
+    async fn get_repo_file_commits(&self, request: GetRepoFileCommitsRequest) -> Result<RepositoryCommitsResponse, GitError>;
+    async fn rev_list(&self, owner: &str, repo: &str, old_sha: &str, new_sha: &str) -> Result<Vec<RepositoryCommitResponse>, GitError>;
+    async fn resolve_ref_sha(&self, owner: &str, repo: &str, ref_name: &str) -> Result<String, GitError>;
+    async fn create_ref(&self, owner: &str, repo: &str, ref_name: &str, sha: &str) -> Result<(), GitError>;
+    async fn update_ref(&self, owner: &str, repo: &str, ref_name: &str, sha: &str) -> Result<(), GitError>;
+    async fn install_hook(&self, owner: &str, repo: &str, hook_name: &str) -> Result<(), GitError>;
+    async fn cherry_pick_commit(&self, owner: &str, repo: &str, sha: &str, onto: &str) -> Result<String, GitError>;
+}
 
-- **`DiffClient` / `DifftClient`** — [`src/client/diff.rs`](gitdot-core/src/client/diff.rs)
-  - `diff_files(left, right) -> RepositoryDiffFileResponse` — shells out to `difft` for syntax-aware diffs
+// difftastic wrapper
+#[async_trait]
+pub trait DiffClient: Send + Sync + Clone + 'static {
+    async fn diff_files(&self, left: DiffFile, right: DiffFile) -> Result<RepositoryDiffFileResponse, DiffError>;
+}
 
-- **`GitHttpClient` / `GitHttpClientImpl`** — [`src/client/git_http.rs`](gitdot-core/src/client/git_http.rs)
-  - `info_refs / upload_pack / receive_pack` — CGI bridge to `git http-backend`
+// S2 stream provisioning
+#[async_trait]
+pub trait S2Client: Send + Sync + Clone + 'static {
+    async fn create_stream(&self, owner: &str, repo: &str, task_id: Uuid) -> Result<String, S2ClientError>;
+}
+```
 
-- **`GitHubClient` / `OctocrabClient`** — [`src/client/github.rs`](gitdot-core/src/client/github.rs)
-  - Wraps `octocrab` for GitHub App API calls (installations, repos)
-
-- **`S2Client` / `S2ClientImpl`** — [`src/client/s2.rs`](gitdot-core/src/client/s2.rs)
-  - `create_stream(owner, repo, task_id) -> String` — provisions an S2 durable stream for build task logs
-
-- **`SecretClient` / `GoogleSecretClient`** — [`src/client/secret.rs`](gitdot-core/src/client/secret.rs)
-  - Fetches secrets (e.g., GitHub App private key) from Google Secret Manager
+---
 
 #### DTOs — Validated Types (`gitdot-core/src/dto/common.rs`)
 
-Key request types use `nutype`-derived wrappers that auto-sanitize and validate on construction:
-
 ```rust
-// OwnerName: trim, lowercase, strip ".git", validate slug (2–32 chars, [a-z0-9_-])
-let owner = OwnerName::try_new("MyOrg").unwrap(); // → "myorg"
+// Auto-sanitize (trim, lowercase) + validate slug format (2–32 chars, [a-z0-9_-])
+pub struct OwnerName(String);
+pub struct RepositoryName(String);  // also strips ".git" suffix
+pub struct RunnerName(String);
 
-// RepositoryName: same rules
-// RunnerName: same rules
+impl OwnerName {
+    pub fn try_new(raw: impl Into<String>) -> Result<Self, OwnerNameError>;
+}
+
+// Usage in request constructors:
+let owner = OwnerName::try_new("MyOrg")?;    // → "myorg"
+let repo  = RepositoryName::try_new("Foo.git")?;  // → "foo"
 ```
+
+---
 
 #### Repositories (`gitdot-core/src/repository/`)
 
-Each domain exposes a `*Repository` trait and a `*RepositoryImpl` backed by a `PgPool`. Methods return `Result<T, sqlx::Error>`. Key ones:
+Each domain exposes a trait and a `PgPool`-backed impl. Methods return `Result<T, sqlx::Error>`.
 
-- **`UserRepository`** — `get_by_id / get / get_by_emails / is_name_taken / update / get_settings / update_settings`
-- **`RepositoryRepository`** — `create / get / get_by_id / list_by_owner / delete / get_settings / update_settings`
-- **`ReviewRepository`** — `create_review / get_review / list_reviews / create_diff / create_revision / update_revision_sha / update_diff / update_review / create_comment / get_comment / update_comment / resolve_comment / create_verdict / add_reviewer / remove_reviewer / get_reviews_by_user`
-- **`BuildRepository`** — `create / get / list / get_by_number`
-- **`CommitRepository`** — `create / get / list`
-- **`TaskRepository`** — `create / update / get_by_build`
-- **`TokenRepository`** — `create / get_by_hash / revoke`
-- **`OrganizationRepository`** — `create / get / list_by_user_id / add_member / list_members / get_member_role`
-- **`QuestionRepository`** — full CRUD + voting for questions, answers, and comments
-- **`RunnerRepository`** — `create / get / list / delete`
-- **`MigrationRepository`** / **`GitHubRepository`** — migration and GitHub installation records
-- **`CodeRepository`** — stores file-level code snapshots for search/indexing
+```rust
+#[async_trait]
+pub trait UserRepository: Send + Sync + Clone + 'static {
+    async fn get_by_id(&self, id: Uuid) -> Result<User, sqlx::Error>;
+    async fn get(&self, name: &str) -> Result<User, sqlx::Error>;
+    async fn get_by_emails(&self, emails: &[String]) -> Result<Vec<User>, sqlx::Error>;
+    async fn is_name_taken(&self, name: &str) -> Result<bool, sqlx::Error>;
+    async fn update(&self, id: Uuid, request: UpdateUserRequest) -> Result<User, sqlx::Error>;
+    async fn get_settings(&self, id: Uuid) -> Result<UserSettings, sqlx::Error>;
+    async fn update_settings(&self, id: Uuid, request: UpdateUserSettingsRequest) -> Result<UserSettings, sqlx::Error>;
+}
+
+#[async_trait]
+pub trait RepositoryRepository: Send + Sync + Clone + 'static {
+    async fn create(&self, request: CreateRepositoryDbRequest) -> Result<Repository, sqlx::Error>;
+    async fn get(&self, owner: &str, name: &str) -> Result<Repository, sqlx::Error>;
+    async fn get_by_id(&self, id: Uuid) -> Result<Repository, sqlx::Error>;
+    async fn list_by_owner(&self, owner: &str) -> Result<Vec<Repository>, sqlx::Error>;
+    async fn delete(&self, owner: &str, name: &str) -> Result<(), sqlx::Error>;
+    async fn get_settings(&self, owner: &str, name: &str) -> Result<RepositorySettings, sqlx::Error>;
+    async fn update_settings(&self, owner: &str, name: &str, request: UpdateRepositorySettingsDbRequest) -> Result<RepositorySettings, sqlx::Error>;
+}
+
+pub struct UserRepositoryImpl { pool: PgPool }
+pub struct RepositoryRepositoryImpl { pool: PgPool }
+// (all *RepositoryImpl types have the same shape)
+```

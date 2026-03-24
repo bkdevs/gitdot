@@ -8,123 +8,324 @@ The server follows a clean layered architecture: HTTP handlers delegate to backe
 
 ### APIs
 
-- **[`src/auth.rs`](s2-server/src/auth.rs)** — JWT authentication
-  - `trait Authenticator` — async auth provider
-    - `async fn authenticate(parts: &Parts, backend: &Backend) -> Result<Principal<Self>, AuthError>`
-  - `struct Principal<A: Authenticator>` — authenticated identity wrapper
-    - `fn new(id: Uuid) -> Self`
-  - `struct Internal` — GitDot server-to-server authenticator; validates JWT with `sub = "gitdot-server"`
-  - `struct TaskJwt` — task-scoped JWT authenticator; parses UUID from `sub` field
-  - `enum AuthError` — `MissingHeader | InvalidHeaderFormat | InvalidToken | InvalidPublicKey`; implements `IntoResponse` with `401 Unauthorized`
+#### `LiteArgs` + `run` — entry point ([s2-server/src/server.rs](s2-server/src/server.rs))
 
-- **[`src/server.rs`](s2-server/src/server.rs)** — server initialization
-  - `struct LiteArgs` — CLI args: `local_root`, `port`, `tls`, `no_cors`, `init_file`
-  - `enum StoreType` — storage backend selector: `S3Bucket | GcpBucket | LocalFileSystem | InMemory`
-    - `fn default_flush_interval(&self) -> Duration`
-  - `async fn run(args: LiteArgs) -> eyre::Result<()>` — main server entry point; detects storage backend, initializes SlateDB, starts Axum
+```rust
+pub struct LiteArgs {
+    pub local_root: Option<PathBuf>,   // local filesystem backend root
+    pub port: Option<u16>,             // default: 443 (TLS) or 80
+    pub tls: TlsConfig,                // self-signed | cert+key | none
+    pub no_cors: bool,
+    pub init_file: Option<PathBuf>,
+}
 
-- **[`src/init.rs`](s2-server/src/init.rs)** — declarative JSON initialization
-  - `struct ResourcesSpec` — root spec: `basins: Vec<BasinSpec>`
-  - `struct BasinSpec` — `name`, `config: Option<BasinConfigSpec>`, `streams: Vec<StreamSpec>`
-  - `struct StreamSpec` — `name`, `config: Option<StreamConfigSpec>`
-  - `fn load(path: &Path) -> eyre::Result<ResourcesSpec>` — parse JSON spec file
-  - `fn validate(spec: &ResourcesSpec) -> eyre::Result<()>` — validate names and uniqueness
-  - `async fn apply(backend: &Backend, spec: ResourcesSpec) -> eyre::Result<()>` — apply spec to live backend
-  - Example init file:
-    ```json
-    {
-      "basins": [{
-        "name": "my-basin",
-        "config": { "create_stream_on_append": true },
-        "streams": [{ "name": "events" }]
-      }]
-    }
-    ```
+pub enum StoreType { S3Bucket(String), GcpBucket(String), LocalFileSystem(PathBuf), InMemory }
 
-- **[`src/backend/core.rs`](s2-server/src/backend/core.rs)** — main `Backend` struct
-  - `struct Backend` — holds SlateDB, streamer slots, auth key, bgtask channel
-    - `fn new(db: slatedb::Db, append_inflight_max: ByteSize, gitdot_public_key: String) -> Self`
-    - `async fn streamer_client(&self, basin, stream) -> Result<StreamerClient, StreamerError>` — get or init streamer
-    - `fn streamer_client_if_active(&self, basin, stream) -> Option<StreamerClient>` — non-blocking check
-    - `async fn streamer_client_with_auto_create<E>(&self, basin, stream, should_auto_create) -> Result<StreamerClient, E>`
-    - `fn bgtask_trigger(&self, trigger: BgtaskTrigger)` — fire background task
-  - `enum StreamerClientSlot` — `Initializing { init_id, future } | Ready { client }`
+impl StoreType {
+    pub fn default_flush_interval(&self) -> Duration
+}
 
-- **[`src/backend/basins.rs`](s2-server/src/backend/basins.rs)** — basin lifecycle
-  - `async fn list_basins(&self, request: ListBasinsRequest) -> Result<Page<BasinInfo>, ListBasinsError>`
-  - `async fn create_basin(&self, basin, config, mode: CreateMode) -> Result<CreatedOrReconfigured<BasinInfo>, CreateBasinError>`
-  - `async fn get_basin_config(&self, basin) -> Result<BasinConfig, GetBasinConfigError>`
-  - `async fn reconfigure_basin(&self, basin, reconfig: BasinReconfiguration) -> Result<BasinConfig, ReconfigureBasinError>`
-  - `async fn delete_basin(&self, basin) -> Result<(), DeleteBasinError>`
+pub async fn run(args: LiteArgs) -> eyre::Result<()>
+// Detects storage backend, initializes SlateDB, applies init spec, starts Axum.
+```
 
-- **[`src/backend/streams.rs`](s2-server/src/backend/streams.rs)** — stream lifecycle
-  - `async fn list_streams(&self, basin, request: ListStreamsRequest) -> Result<Page<StreamInfo>, ListStreamsError>`
-  - `async fn create_stream(&self, basin, stream, config, mode) -> Result<CreatedOrReconfigured<StreamInfo>, CreateStreamError>`
-  - `async fn get_stream_config(&self, basin, stream) -> Result<OptionalStreamConfig, GetStreamConfigError>`
-  - `async fn reconfigure_stream(&self, basin, stream, reconfig) -> Result<OptionalStreamConfig, ReconfigureStreamError>`
-  - `async fn delete_stream(&self, basin, stream) -> Result<(), DeleteStreamError>` — terminal trim then mark deleted
+---
 
-- **[`src/backend/append.rs`](s2-server/src/backend/append.rs)** — record append
-  - `async fn append(&self, basin, stream, input: AppendInput) -> Result<AppendAck, AppendError>`
-  - `async fn append_session(self, basin, stream, inputs: impl Stream<Item = AppendInput>) -> Result<impl Stream<Item = Result<AppendAck, AppendError>>, AppendError>`
-  - `struct PendingAppends` — durability queue
-    - `fn accept(&mut self, ticket: Ticket, ack_range: Range<StreamPosition>)`
-    - `fn on_stable(&mut self, stable_pos: StreamPosition)` — complete appends when durable
-    - `fn on_durability_failed(self, err: slatedb::Error)` — fail all pending
-  - `struct Ticket` — permission slot to enqueue an append
-    - `fn accept(self, ack_range) -> BlockedReplySender`
-    - `fn reject(self, err, stable_pos) -> Option<BlockedReplySender>`
+#### `auth` — JWT authentication ([s2-server/src/auth.rs](s2-server/src/auth.rs))
 
-- **[`src/backend/read.rs`](s2-server/src/backend/read.rs)** — record read
-  - `async fn check_tail(&self, basin, stream) -> Result<StreamPosition, CheckTailError>`
-  - `async fn read(&self, basin, stream, start: ReadStart, end: ReadEnd) -> Result<impl Stream<Item = Result<ReadSessionOutput, ReadError>>, ReadError>`
-  - `async fn resolve_timestamp(&self, stream_id, timestamp) -> Result<Option<StreamPosition>, StorageError>`
+```rust
+#[derive(Debug, Clone)]
+pub struct Principal<A: Authenticator> {
+    pub id: Uuid,
+    _marker: PhantomData<A>,
+}
 
-- **[`src/backend/streamer.rs`](s2-server/src/backend/streamer.rs)** — per-stream sequencing actor
-  - `struct Spawner` — configures and launches a streamer background task
-    - `fn spawn(self, on_exit: impl FnOnce(StreamerId)) -> StreamerClient`
-  - `struct Streamer` — runtime instance managing sequencing, batching, fencing, and DOE deadlines
-    - `fn next_assignable_pos(&self) -> StreamPosition`
-    - `fn sequence_records(&self, input: AppendInput) -> Result<Vec<Metered<SequencedRecord>>, AppendErrorInternal>`
-  - `struct CommandState<T>` — tracks when a command (trim point, fencing token) has been applied to the log
-    - `fn is_applied_in(&self, seq_num_range: &Range<SeqNum>) -> bool`
-  - Constants: `DORMANT_TIMEOUT = 60s`, `DOE_DEADLINE_REFRESH_PERIOD = 600s`
+#[async_trait]
+pub trait Authenticator: Send + Sync + 'static {
+    async fn authenticate(parts: &Parts, backend: &Backend) -> Result<Principal<Self>, AuthError>
+    where Self: Sized;
+}
 
-- **[`src/backend/store.rs`](s2-server/src/backend/store.rs)** — DB access helpers
-  - `async fn db_status(&self) -> Result<(), slatedb::Error>` — health check
-  - `async fn db_get<K, V>(&self, key, deser) -> Result<Option<V>, StorageError>` — get with remote durability filter
-  - `async fn db_txn_get<K, V>(txn, key, deser) -> Result<Option<V>, StorageError>` — transactional get
+// Authenticator implementations:
+pub struct Internal;   // gitdot server-to-server; validates JWT with sub = "gitdot-server"
+pub struct TaskJwt;    // task-scoped JWT; parses UUID from sub field
 
-- **[`src/backend/error.rs`](s2-server/src/backend/error.rs)** — domain errors
-  - `enum StorageError` — `Deserialization | Database`
-  - `enum AppendError` — covers storage, fencing, condition failures, stream-not-found, deletion-pending, etc.
-  - `enum ReadError` — covers storage, unwritten, stream-not-found, etc.
-  - `enum AppendConditionFailedError` — `FencingTokenMismatch | SeqNumMismatch`
-  - Per-operation error enums for all CRUD operations: `CreateBasinError`, `DeleteBasinError`, `ListBasinsError`, `ReconfigureBasinError`, `CreateStreamError`, `DeleteStreamError`, etc.
+#[derive(Debug, thiserror::Error)]
+pub enum AuthError {
+    #[error("missing authorization header")]           MissingHeader,
+    #[error("invalid authorization header format")]    InvalidHeaderFormat,
+    #[error("invalid token: {0}")]                     InvalidToken(String),
+    #[error("invalid public key: {0}")]                InvalidPublicKey(String),
+}
 
-- **[`src/handlers/v1/basins.rs`](s2-server/src/handlers/v1/basins.rs)** — basin HTTP handlers
-  - `fn router() -> axum::Router<Backend>`
-  - `async fn list_basins(auth, State(backend), ListArgs) -> Result<Json<ListBasinsResponse>, ServiceError>`
-  - `async fn create_basin(auth, State(backend), CreateArgs) -> Result<(StatusCode, Json<BasinInfo>), ServiceError>` — `201 Created`
-  - `async fn delete_basin(auth, State(backend), DeleteArgs) -> Result<StatusCode, ServiceError>` — `202 Accepted`
+impl IntoResponse for AuthError  // always 401 Unauthorized
+```
 
-- **[`src/handlers/v1/streams.rs`](s2-server/src/handlers/v1/streams.rs)** — stream HTTP handlers
-  - `fn router() -> axum::Router<Backend>`
-  - `async fn list_streams`, `async fn create_stream`, `async fn delete_stream`
+---
 
-- **[`src/handlers/v1/records.rs`](s2-server/src/handlers/v1/records.rs)** — record HTTP handlers
-  - `fn router() -> axum::Router<Backend>`
-  - `async fn check_tail(auth: Principal<TaskJwt>, State(backend), CheckTailArgs) -> Result<Json<TailResponse>, ServiceError>`
-  - `async fn read(auth: Principal<TaskJwt>, State(backend), ReadArgs) -> Result<Response, ServiceError>` — supports SSE streaming and unary modes
-  - `async fn append(auth: Principal<TaskJwt>, State(backend), AppendArgs) -> Result<Response, ServiceError>`
+#### `init` — declarative JSON initialization ([s2-server/src/init.rs](s2-server/src/init.rs))
 
-- **[`src/handlers/v1/paths.rs`](s2-server/src/handlers/v1/paths.rs)** — URL path constants
-  - `basins::LIST = "/basins"`, `basins::CREATE = "/basins"`, `basins::DELETE = "/basins/{basin}"`
-  - `streams::LIST = "/streams"`, `streams::CREATE = "/streams"`, `streams::DELETE = "/streams/{stream}"`
-  - `streams::records::CHECK_TAIL = "/streams/{stream}/records/tail"`
-  - `streams::records::READ = "/streams/{stream}/records"`
-  - `streams::records::APPEND = "/streams/{stream}/records"`
+```rust
+pub struct ResourcesSpec {
+    pub basins: Vec<BasinSpec>,
+}
 
-- **[`src/handlers/v1/error.rs`](s2-server/src/handlers/v1/error.rs)** — HTTP error mapping
-  - `enum ServiceError` — maps all domain errors to HTTP responses; implements `IntoResponse`
-    - `fn to_response(&self) -> ErrorResponse`
+pub struct BasinSpec {
+    pub name: String,
+    pub config: Option<BasinConfigSpec>,
+    pub streams: Vec<StreamSpec>,
+}
+
+pub struct StreamSpec {
+    pub name: String,
+    pub config: Option<StreamConfigSpec>,
+}
+
+pub fn load(path: &Path) -> eyre::Result<ResourcesSpec>
+pub fn validate(spec: &ResourcesSpec) -> eyre::Result<()>
+pub async fn apply(backend: &Backend, spec: ResourcesSpec) -> eyre::Result<()>
+```
+
+```json
+{
+  "basins": [{
+    "name": "my-basin",
+    "config": { "create_stream_on_append": true },
+    "streams": [{ "name": "events" }]
+  }]
+}
+```
+
+---
+
+#### `Backend` — main service struct ([s2-server/src/backend/core.rs](s2-server/src/backend/core.rs))
+
+```rust
+#[derive(Clone)]
+pub struct Backend {
+    pub(super) db: slatedb::Db,
+    pub gitdot_public_key: String,
+    streamer_slots: Arc<DashMap<StreamId, StreamerClientSlot>>,
+    append_inflight_max: ByteSize,
+    bgtask_trigger_tx: broadcast::Sender<BgtaskTrigger>,
+}
+
+impl Backend {
+    pub fn new(db: slatedb::Db, append_inflight_max: ByteSize, gitdot_public_key: String) -> Self
+
+    pub(super) async fn streamer_client(
+        &self, basin: BasinName, stream: StreamName,
+    ) -> Result<StreamerClient, StreamerError>
+    // Gets or initializes the streamer actor for this stream.
+
+    pub(super) fn streamer_client_if_active(
+        &self, basin: &BasinName, stream: &StreamName,
+    ) -> Option<StreamerClient>
+    // Non-blocking check; returns None if no streamer is running.
+
+    pub(super) fn bgtask_trigger(&self, trigger: BgtaskTrigger)
+    pub(super) fn bgtask_trigger_subscribe(&self) -> broadcast::Receiver<BgtaskTrigger>
+}
+
+pub enum StreamerClientSlot {
+    Initializing { init_id: Uuid, future: SharedFuture },
+    Ready { client: StreamerClient },
+}
+```
+
+---
+
+#### Basin operations ([s2-server/src/backend/basins.rs](s2-server/src/backend/basins.rs))
+
+```rust
+impl Backend {
+    pub async fn list_basins(
+        &self, request: ListBasinsRequest,
+    ) -> Result<Page<BasinInfo>, ListBasinsError>
+
+    pub async fn create_basin(
+        &self,
+        basin: BasinName,
+        config: impl Into<BasinReconfiguration>,
+        mode: CreateMode,
+    ) -> Result<CreatedOrReconfigured<BasinInfo>, CreateBasinError>
+
+    pub async fn get_basin_config(
+        &self, basin: &BasinName,
+    ) -> Result<BasinConfig, GetBasinConfigError>
+
+    pub async fn reconfigure_basin(
+        &self,
+        basin: &BasinName,
+        reconfig: BasinReconfiguration,
+    ) -> Result<BasinConfig, ReconfigureBasinError>
+
+    pub async fn delete_basin(
+        &self, basin: &BasinName,
+    ) -> Result<(), DeleteBasinError>
+}
+```
+
+---
+
+#### Stream operations ([s2-server/src/backend/streams.rs](s2-server/src/backend/streams.rs))
+
+```rust
+impl Backend {
+    pub async fn list_streams(
+        &self, basin: &BasinName, request: ListStreamsRequest,
+    ) -> Result<Page<StreamInfo>, ListStreamsError>
+
+    pub async fn create_stream(
+        &self,
+        basin: &BasinName,
+        stream: StreamName,
+        config: impl Into<StreamReconfiguration>,
+        mode: CreateMode,
+    ) -> Result<CreatedOrReconfigured<StreamInfo>, CreateStreamError>
+
+    pub async fn get_stream_config(
+        &self, basin: &BasinName, stream: &StreamName,
+    ) -> Result<OptionalStreamConfig, GetStreamConfigError>
+
+    pub async fn reconfigure_stream(
+        &self,
+        basin: &BasinName,
+        stream: &StreamName,
+        reconfig: StreamReconfiguration,
+    ) -> Result<OptionalStreamConfig, ReconfigureStreamError>
+
+    pub async fn delete_stream(
+        &self, basin: &BasinName, stream: &StreamName,
+    ) -> Result<(), DeleteStreamError>
+    // Terminal trim then mark deleted.
+}
+```
+
+---
+
+#### Append operations ([s2-server/src/backend/append.rs](s2-server/src/backend/append.rs))
+
+```rust
+impl Backend {
+    pub async fn append(
+        &self,
+        basin: BasinName,
+        stream: StreamName,
+        input: AppendInput,
+    ) -> Result<AppendAck, AppendError>
+
+    pub async fn append_session(
+        self,
+        basin: BasinName,
+        stream: StreamName,
+        inputs: impl Stream<Item = AppendInput>,
+    ) -> Result<impl Stream<Item = Result<AppendAck, AppendError>>, AppendError>
+}
+
+pub struct PendingAppends { /* durability queue */ }
+
+impl PendingAppends {
+    pub fn accept(&mut self, ticket: Ticket, ack_range: Range<StreamPosition>)
+    pub fn on_stable(&mut self, stable_pos: StreamPosition)  // complete appends when durable
+    pub fn on_durability_failed(self, err: slatedb::Error)   // fail all pending
+}
+
+pub struct Ticket { /* permission slot to enqueue an append */ }
+
+impl Ticket {
+    pub fn accept(self, ack_range: Range<StreamPosition>) -> BlockedReplySender
+    pub fn reject(self, err: AppendError, stable_pos: StreamPosition) -> Option<BlockedReplySender>
+}
+```
+
+---
+
+#### Read operations ([s2-server/src/backend/read.rs](s2-server/src/backend/read.rs))
+
+```rust
+impl Backend {
+    pub async fn check_tail(
+        &self, basin: BasinName, stream: StreamName,
+    ) -> Result<StreamPosition, CheckTailError>
+
+    pub async fn read(
+        &self,
+        basin: BasinName,
+        stream: StreamName,
+        start: ReadStart,
+        end: ReadEnd,
+    ) -> Result<impl Stream<Item = Result<ReadSessionOutput, ReadError>> + 'static, ReadError>
+
+    async fn resolve_timestamp(
+        &self, stream_id: StreamId, timestamp: u64,
+    ) -> Result<Option<StreamPosition>, StorageError>
+}
+```
+
+---
+
+#### Streamer actor ([s2-server/src/backend/streamer.rs](s2-server/src/backend/streamer.rs))
+
+```rust
+pub struct Spawner { /* configures and launches a streamer background task */ }
+
+impl Spawner {
+    pub fn spawn(self, on_exit: impl FnOnce(StreamerId)) -> StreamerClient
+}
+
+pub struct Streamer { /* runtime instance: sequencing, batching, fencing, DOE deadlines */ }
+
+impl Streamer {
+    pub fn next_assignable_pos(&self) -> StreamPosition
+    pub fn sequence_records(&self, input: AppendInput) -> Result<Vec<Metered<SequencedRecord>>, AppendErrorInternal>
+}
+
+pub const DORMANT_TIMEOUT: Duration;        // 60s
+pub const DOE_DEADLINE_REFRESH_PERIOD: Duration;  // 600s
+```
+
+---
+
+#### HTTP handlers
+
+```rust
+// basins.rs — fn router() -> axum::Router<Backend>
+async fn list_basins(auth: Principal<Internal>, State(backend): State<Backend>, ListArgs) -> Result<Json<ListBasinsResponse>, ServiceError>
+async fn create_basin(auth: Principal<Internal>, State(backend): State<Backend>, CreateArgs) -> Result<(StatusCode, Json<BasinInfo>), ServiceError>  // 201 Created
+async fn delete_basin(auth: Principal<Internal>, State(backend): State<Backend>, DeleteArgs) -> Result<StatusCode, ServiceError>  // 202 Accepted
+async fn get_basin_config(auth: Principal<Internal>, ...) -> Result<Json<BasinConfig>, ServiceError>
+async fn reconfigure_basin(auth: Principal<Internal>, ...) -> Result<Json<BasinConfig>, ServiceError>
+
+// streams.rs — fn router() -> axum::Router<Backend>
+async fn list_streams(auth: Principal<Internal>, ...) -> Result<Json<ListStreamsResponse>, ServiceError>
+async fn create_stream(auth: Principal<Internal>, ...) -> Result<(StatusCode, Json<StreamInfo>), ServiceError>
+async fn delete_stream(auth: Principal<Internal>, ...) -> Result<StatusCode, ServiceError>
+async fn get_stream_config(auth: Principal<Internal>, ...) -> Result<Json<StreamConfig>, ServiceError>
+async fn reconfigure_stream(auth: Principal<Internal>, ...) -> Result<Json<StreamConfig>, ServiceError>
+
+// records.rs — fn router() -> axum::Router<Backend>
+async fn check_tail(auth: Principal<TaskJwt>, State(backend): State<Backend>, CheckTailArgs) -> Result<Json<TailResponse>, ServiceError>
+async fn read(auth: Principal<TaskJwt>, State(backend): State<Backend>, ReadArgs) -> Result<Response, ServiceError>
+// Supports SSE streaming (Accept: text/event-stream) and unary modes.
+async fn append(auth: Principal<TaskJwt>, State(backend): State<Backend>, AppendArgs) -> Result<Response, ServiceError>
+```
+
+HTTP routes:
+
+```
+GET  /health  (also /ping)
+GET  /v1/basins                              list_basins
+POST /v1/basins                              create_basin
+GET  /v1/basins/{basin}                      get_basin_config
+PUT  /v1/basins/{basin}                      reconfigure_basin
+DELETE /v1/basins/{basin}                    delete_basin
+GET  /v1/{basin}/streams                     list_streams
+POST /v1/{basin}/streams                     create_stream
+GET  /v1/{basin}/streams/{stream}            get_stream_config
+PUT  /v1/{basin}/streams/{stream}            reconfigure_stream
+DELETE /v1/{basin}/streams/{stream}          delete_stream
+GET  /v1/{basin}/streams/{stream}/records/tail    check_tail
+GET  /v1/{basin}/streams/{stream}/records         read
+POST /v1/{basin}/streams/{stream}/records         append
+```
