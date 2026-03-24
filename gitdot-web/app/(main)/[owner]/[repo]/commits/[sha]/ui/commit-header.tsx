@@ -20,12 +20,15 @@ export function CommitHeader({
   const renderStatItem = (stat: RepositoryDiffStatResource) => {
     return (
       <li key={stat.path} className="font-mono text-sm flex items-center">
-        <a
-          href={`#${stat.path}`}
-          className="truncate flex-1 mr-2 hover:underline"
+        <button
+          type="button"
+          className="truncate flex-1 mr-2 hover:underline text-left cursor-pointer"
+          onClick={() =>
+            document.getElementById(stat.path)?.scrollIntoView()
+          }
         >
           {stat.path}
-        </a>
+        </button>
         <span className="text-muted-foreground w-6 text-right mr-1.5 select-none shrink-0">
           {stat.lines_added + stat.lines_removed}
         </span>

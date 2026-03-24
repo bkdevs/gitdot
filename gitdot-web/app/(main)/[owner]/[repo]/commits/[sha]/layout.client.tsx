@@ -36,12 +36,12 @@ export function LayoutClient({
       <Sidebar>
         <SidebarContent className="overflow-auto">
           <div className="flex flex-col w-full">
+            <CommitSidebarHeader owner={owner} repo={repo} />
             <Suspense>
-              <CommitSidebarHeader owner={owner} repo={repo}/>
               <CommitSidebarContent
-              owner={owner}
-              repo={repo}
-              promises={resolvedPromises}
+                owner={owner}
+                repo={repo}
+                promises={resolvedPromises}
               />
             </Suspense>
           </div>
