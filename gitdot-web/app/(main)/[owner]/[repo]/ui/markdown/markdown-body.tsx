@@ -1,6 +1,7 @@
-import Link from "@/ui/link";
+import { renderMermaidSVG } from "beautiful-mermaid";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import Link from "@/ui/link";
 
 export function MarkdownBody({ content }: { content: string }) {
   return (
@@ -50,19 +51,67 @@ export function MarkdownBody({ content }: { content: string }) {
         ),
         li: ({ node, ...props }) => <li className="text-sm" {...props} />,
 
-        pre: ({ node, ...props }) => (
-          <pre
-            className="bg-black/5 dark:bg-white/10 rounded p-4 mb-4 overflow-x-auto text-sm"
-            style={{ fontFamily: "ui-monospace, 'Cascadia Code', 'Fira Code', Menlo, Consolas, monospace" }}
-            {...props}
-          />
-        ),
+        pre: ({ node, children, ...props }) => {
+          const hasMermaid = node?.children?.some(
+            (child) =>
+              child.type === "element" &&
+              "tagName" in child &&
+              child.tagName === "code" &&
+              "properties" in child &&
+              Array.isArray(child.properties?.className) &&
+              (child.properties.className as string[]).includes(
+                "language-mermaid",
+              ),
+          );
+          if (hasMermaid) return <>{children}</>;
+          return (
+            <pre
+              className="bg-black/5 dark:bg-white/10 rounded p-4 mb-4 overflow-x-auto text-sm"
+              style={{
+                fontFamily:
+                  "ui-monospace, 'Cascadia Code', 'Fira Code', Menlo, Consolas, monospace",
+              }}
+              {...props}
+            >
+              {children}
+            </pre>
+          );
+        },
         code: ({ node, className, children, ...props }) => {
-          const isBlock = node?.position?.start.line !== node?.position?.end.line;
+          if (className === "language-mermaid") {
+            try {
+              const svg = renderMermaidSVG(String(children).trimEnd(), {
+                transparent: true,
+              });
+              return (
+                <div
+                  className="my-4 flex justify-center overflow-x-auto"
+                  // biome-ignore lint/security/noDangerouslySetInnerHtml: beautiful-mermaid renders trusted SVG server-side
+                  dangerouslySetInnerHTML={{ __html: svg }}
+                />
+              );
+            } catch {
+              // fall through to plain code block on parse error
+            }
+          }
+          const isBlock =
+            node?.position?.start.line !== node?.position?.end.line;
           return (
             <code
-              className={isBlock ? "text-sm" : "bg-black/5 dark:bg-white/10 px-1.5 py-0.5 rounded font-mono text-sm"}
-              style={isBlock ? { fontFamily: "ui-monospace, 'Cascadia Code', 'Fira Code', Menlo, Consolas, monospace", fontSize: "0.8125rem" } : undefined}
+              className={
+                isBlock
+                  ? "text-sm"
+                  : "bg-black/5 dark:bg-white/10 px-1.5 py-0.5 rounded font-mono text-sm"
+              }
+              style={
+                isBlock
+                  ? {
+                      fontFamily:
+                        "ui-monospace, 'Cascadia Code', 'Fira Code', Menlo, Consolas, monospace",
+                      fontSize: "0.8125rem",
+                    }
+                  : undefined
+              }
               {...props}
             >
               {children}
