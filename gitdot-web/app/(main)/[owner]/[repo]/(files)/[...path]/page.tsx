@@ -19,16 +19,16 @@ export default async function Page({
   params,
   searchParams,
 }: {
-  params: Promise<{ owner: string; repo: string; filePath: string[] }>;
+  params: Promise<{ owner: string; repo: string; path: string[] }>;
   searchParams: Promise<{
     lines?: string | string[];
     ref?: string;
   }>;
 }) {
-  const { owner, repo, filePath } = await params;
+  const { owner, repo, path } = await params;
   const { lines, ref } = await searchParams;
 
-  const filePathString = decodeURIComponent(filePath.join("/"));
+  const filePathString = decodeURIComponent(path.join("/"));
   const selectedLines = parseLineSelection(lines);
 
   // TODO: add ref here + fix file history commits

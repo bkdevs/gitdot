@@ -7,7 +7,7 @@ import {
   useResolvePromises,
 } from "@/(main)/[owner]/[repo]/resources";
 import { Loading } from "@/ui/loading";
-import { FolderViewer } from "../../[...filePath]/ui/folder-viewer";
+import { FolderViewer } from "../../(files)/[...path]/ui/folder-viewer";
 import type { Resources } from "./page";
 
 type ResourceRequests = ResourceRequestsType<Resources>;

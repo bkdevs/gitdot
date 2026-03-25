@@ -30,7 +30,7 @@ function Breadcrumbs() {
   const segments = pathname.split("/").filter(Boolean);
   segments.forEach((segment, index) => {
     let path = `/${segments.slice(0, index + 1).join("/")}`;
-    if ("filePath" in params && index === 1) {
+    if ("path" in params && index === 1) {
       path = `${path}/files`;
     }
 

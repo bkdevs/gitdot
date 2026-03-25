@@ -1,17 +1,19 @@
 "use client";
 
-import type { RepositoryPathResource } from "gitdot-api";
-import { File, Folder, FolderOpen, Undo2 } from "lucide-react";
-import { Fragment, Suspense, use, useEffect, useState } from "react";
 import {
   type ResourcePromisesType,
   type ResourceRequestsType,
   useResolvePromises,
 } from "@/(main)/[owner]/[repo]/resources";
+import { getFolderEntries } from "@/(main)/[owner]/[repo]/util";
 import Link from "@/ui/link";
 import { OverlayScroll } from "@/ui/scroll";
 import { Sidebar, SidebarContent } from "@/ui/sidebar";
-import { getFolderEntries } from "../util";
+import { cn } from "@/util";
+import type { RepositoryPathResource } from "gitdot-api";
+import { File, Folder, FolderOpen, Undo2 } from "lucide-react";
+import { useParams } from "next/navigation";
+import { Fragment, Suspense, use, useEffect, useState } from "react";
 import type { Resources } from "./layout";
 
 type ResourceRequests = ResourceRequestsType<Resources>;
@@ -20,19 +22,19 @@ type ResourcePromises = ResourcePromisesType<Resources>;
 export function LayoutClient({
   owner,
   repo,
-  filePath,
   requests,
   promises,
   children,
 }: {
   owner: string;
   repo: string;
-  filePath: string;
   requests: ResourceRequests;
   promises: ResourcePromises;
   children: React.ReactNode;
 }) {
+  const { path } = useParams<{ path: string[] }>();
   const resolvedPromises = useResolvePromises(owner, repo, requests, promises);
+
   return (
     <>
       <Sidebar>
@@ -41,7 +43,7 @@ export function LayoutClient({
             <FileTree
               owner={owner}
               repo={repo}
-              filePath={filePath}
+              filePath={path.join("/") ?? ""}
               promises={resolvedPromises}
             />
           </Suspense>
@@ -64,7 +66,7 @@ function FileTree({
   repo: string;
   filePath: string;
   promises: ResourcePromises;
-  }) {
+}) {
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(() => {
     const s = new Set<string>();
     const parts = filePath.split("/");
@@ -85,7 +87,7 @@ function FileTree({
     });
   }, [filePath]);
 
-  const toggle = (path: string) => {
+  const toggleFolder = (path: string) => {
     setExpandedFolders((prev) => {
       const next = new Set(prev);
       if (next.has(path)) {
@@ -117,7 +119,7 @@ function FileTree({
               depth={depth}
               isActive={isActive}
               expanded={isExpanded}
-              setExpanded={() => toggle(entry.path)}
+              setExpanded={() => toggleFolder(entry.path)}
             />
           ) : (
             <FileRow
@@ -139,7 +141,6 @@ function FileTree({
       <Link
         href={`/${owner}/${repo}`}
         className="sticky top-0 bg-background flex items-center justify-between border-b px-2 h-9 z-10 hover:bg-accent/50 cursor-default"
-        prefetch={true}
       >
         <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
           Files
@@ -174,7 +175,10 @@ function FolderRow({
       type="button"
       onClick={() => setExpanded()}
       style={{ paddingLeft: `${0.5 + depth * 1}rem` }}
-      className={`flex flex-row w-full h-9 items-center border-b select-none cursor-default text-sm font-mono hover:bg-accent/50 pr-2 ${isActive ? "bg-sidebar" : ""}`}
+      className={cn(
+        "flex flex-row w-full h-9 items-center border-b select-none cursor-default text-sm font-mono hover:bg-accent/50 pr-2",
+        isActive && "bg-sidebar"
+      )}
       data-sidebar-item=""
       data-sidebar-item-active={isActive ? "true" : undefined}
     >
@@ -187,7 +191,6 @@ function FolderRow({
         href={`/${owner}/${repo}/${entry.path}`}
         onClick={(e) => e.stopPropagation()}
         className="ml-2 truncate cursor-pointer hover:underline"
-        prefetch={true}
       >
         {name}
       </Link>
@@ -214,8 +217,10 @@ function FileRow({
     <Link
       href={`/${owner}/${repo}/${entry.path}`}
       style={{ paddingLeft: `${0.5 + depth * 1}rem` }}
-      className={`flex flex-row w-full h-9 items-center border-b select-none cursor-default text-sm font-mono hover:bg-accent/50 pr-2 ${isActive ? "bg-sidebar" : ""}`}
-      prefetch={true}
+      className={cn(
+        "flex flex-row w-full h-9 items-center border-b select-none cursor-default text-sm font-mono hover:bg-accent/50 pr-2",
+        isActive && "bg-sidebar"
+      )}
       data-sidebar-item=""
       data-sidebar-item-active={isActive}
     >

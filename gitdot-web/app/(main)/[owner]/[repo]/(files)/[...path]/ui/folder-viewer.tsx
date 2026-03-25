@@ -4,9 +4,9 @@ import type { RepositoryPathsResource } from "gitdot-api";
 import type { Root } from "hast";
 import { useParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { getFolderEntries } from "@/(main)/[owner]/[repo]/util";
 import { DatabaseProvider } from "@/provider/database";
 import Link from "@/ui/link";
-import { getFolderEntries } from "../../util";
 import { FileBody } from "./file-body";
 
 type TreeLine = {
