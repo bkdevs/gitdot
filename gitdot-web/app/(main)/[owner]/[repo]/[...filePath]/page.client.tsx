@@ -60,13 +60,11 @@ function PageContent({
   promises: ResourcePromises;
 }) {
   const blob = use(promises.blob);
-  const readme = use(promises.readme);
   if (!blob) {
     return <div>File not found.</div>;
   }
   if (blob.type === "folder") {
-    const readmeContent = readme?.type === "file" ? readme.content : null;
-    return <FolderViewer folderPath={blob.path} readme={readmeContent} />;
+    return <FolderViewer folderPath={blob.path} />;
   }
 
   const hast = use(promises.hast);

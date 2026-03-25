@@ -13,7 +13,6 @@ import { parseLineSelection } from "./util";
 export type Resources = {
   blob: RepositoryBlobResource | null;
   hast: Root | null;
-  readme: RepositoryBlobResource | null;
 };
 
 export default async function Page({
@@ -36,7 +35,6 @@ export default async function Page({
   const { requests, promises } = fetchResources(owner, repo, {
     blob: (p) => p.getBlob(filePathString),
     hast: (p) => p.getHast(filePathString),
-    readme: (p) => p.getBlob(`${filePathString}/README.md`),
   });
 
   if (ref) {

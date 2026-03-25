@@ -4,35 +4,10 @@ import type { RepositoryPathsResource } from "gitdot-api";
 import type { Root } from "hast";
 import { useParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { MarkdownBody } from "@/(main)/[owner]/[repo]/ui/markdown/markdown-body";
 import { DatabaseProvider } from "@/provider/database";
 import Link from "@/ui/link";
 import { getFolderEntries } from "../../util";
 import { FileBody } from "./file-body";
-import { FolderToc, type TocHeader } from "./folder-toc";
-
-function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .replace(/[^\w\s-]/g, "")
-    .replace(/[\s_]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
-
-function extractHeaders(markdown: string): TocHeader[] {
-  const headerRegex = /^(#{1,5})\s+(.+)$/gm;
-  const headers: TocHeader[] = [];
-  let first = true;
-  for (const match of markdown.matchAll(headerRegex)) {
-    if (first) {
-      first = false;
-      continue;
-    }
-    const text = match[2].replace(/[*_`[\]]/g, "").trim();
-    headers.push({ level: match[1].length, text, slug: slugify(text) });
-  }
-  return headers;
-}
 
 type TreeLine = {
   prefix: string;
@@ -74,6 +49,7 @@ function flattenAll(
   paths: RepositoryPathsResource,
   prefix = "",
   depth = 0,
+  maxDepth = Number.POSITIVE_INFINITY,
 ): Omit<TreeLine, "isExpanded">[] {
   const entries = getFolderEntries(folderPath, paths);
   const lines: Omit<TreeLine, "isExpanded">[] = [];
@@ -84,9 +60,9 @@ function flattenAll(
     const isLast = i === entries.length - 1;
     const connector = depth === 0 ? "" : (isLast ? "└─ " : "├─ ");
     lines.push({ prefix, connector, name, path: entry.path, isTree, depth });
-    if (isTree) {
+    if (isTree && depth + 1 < maxDepth) {
       const childPrefix = depth === 0 ? " " : prefix + (isLast ? "  " : "│ ");
-      lines.push(...flattenAll(entry.path, paths, childPrefix, depth + 1));
+      lines.push(...flattenAll(entry.path, paths, childPrefix, depth + 1, maxDepth));
     }
   }
   return lines;
@@ -94,13 +70,7 @@ function flattenAll(
 
 type Preview = { kind: "file"; hast: Root } | { kind: "folder"; lines: Omit<TreeLine, "isExpanded">[] };
 
-export function FolderViewer({
-  folderPath,
-  readme,
-}: {
-  folderPath?: string;
-  readme?: string | null;
-}) {
+export function FolderViewer({ folderPath }: { folderPath?: string }) {
   const { owner, repo } = useParams<{ owner: string; repo: string }>();
   const [paths, setPaths] = useState<RepositoryPathsResource | null>(null);
   const [expandedPaths, setExpandedPaths] = useState<Set<string>>(new Set());
@@ -132,7 +102,7 @@ export function FolderViewer({
   const handleHover = (path: string, isTree: boolean) => {
     if (isTree) {
       if (pathsRef.current) {
-        setPreview({ kind: "folder", lines: flattenAll(path, pathsRef.current) });
+        setPreview({ kind: "folder", lines: flattenAll(path, pathsRef.current, "", 0, 2) });
       }
       return;
     }
@@ -142,22 +112,6 @@ export function FolderViewer({
     });
   };
 
-  if (readme) {
-    return (
-      <div className="flex w-full h-full min-h-0 overflow-hidden">
-        <div
-          data-page-scroll
-          className="flex flex-col flex-1 min-w-0 overflow-auto scrollbar-thin"
-        >
-          <div className="border-b px-8 py-6 max-w-4xl mx-auto w-full">
-            <MarkdownBody content={readme} />
-          </div>
-        </div>
-        <FolderToc headers={extractHeaders(readme)} />
-      </div>
-    );
-  }
-
   if (!paths) return null;
 
   const lines = flattenTree(folderPath ?? "", paths, expandedPaths);
@@ -166,21 +120,27 @@ export function FolderViewer({
     <div className="flex w-full h-full min-h-0 overflow-hidden">
       <div
         data-page-scroll
-        className="flex flex-col w-1/2 shrink-0 border-r overflow-auto scrollbar-thin px-4 py-2"
+        className="flex flex-col w-[45%] shrink-0 border-r overflow-auto scrollbar-thin px-4 py-2"
         onMouseLeave={() => setPreview(null)}
       >
         {lines.map((line) =>
           line.isTree ? (
-            <button
+            // biome-ignore lint/a11y/useKeyWithClickEvents: expand/collapse on click
+            <div
               key={line.path}
-              type="button"
-              className="flex font-mono text-sm leading-6 px-1 rounded hover:bg-accent cursor-pointer text-left w-full"
+              className="flex font-mono text-sm leading-6 px-1 rounded hover:bg-accent w-full"
               onMouseEnter={() => handleHover(line.path, true)}
               onClick={() => toggleFolder(line.path)}
             >
               <span className="text-muted-foreground whitespace-pre select-none">{line.prefix}{line.connector}</span>
-              <span>{line.name}/</span>
-            </button>
+              <Link
+                href={`/${owner}/${repo}/${line.path}`}
+                className="cursor-pointer hover:underline"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {line.name}/
+              </Link>
+            </div>
           ) : (
             <Link
               key={line.path}

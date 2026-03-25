@@ -1,6 +1,6 @@
 "use client";
 
-import { File, Folder, FolderOpen } from "lucide-react";
+import { File, Folder, FolderOpen, Undo2 } from "lucide-react";
 import { useParams } from "next/navigation";
 import { Fragment, Suspense, use, useEffect, useState } from "react";
 import {
@@ -159,6 +159,18 @@ function FileSidebarContent({
   };
 
   return (
-    <div className="flex flex-col w-full">{renderEntries("", 0)}</div>
+    <div className="flex flex-col w-full">
+      <Link
+        href={`/${owner}/${repo}`}
+        className="sticky top-0 bg-background flex items-center justify-between border-b px-2 h-9 z-10 hover:bg-accent/50 cursor-default"
+        prefetch={true}
+      >
+        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+          Files
+        </h3>
+        <Undo2 size={14} className="text-muted-foreground -translate-y-px" />
+      </Link>
+      {renderEntries("", 0)}
+    </div>
   );
 }
