@@ -4,18 +4,12 @@ import type {
   RepositoryBlobsResource,
   RepositoryPathsResource,
 } from "gitdot-api";
-import type { Root } from "hast";
-import { toJsxRuntime } from "hast-util-to-jsx-runtime";
-import { useParams } from "next/navigation";
-import { Fragment, useEffect, useRef, useState } from "react";
-import { jsx, jsxs } from "react/jsx-runtime";
+import { useState } from "react";
 import { getFolderEntries } from "@/(main)/[owner]/[repo]/util";
-import { DatabaseProvider } from "@/provider/database";
 import Link from "@/ui/link";
 import { cn } from "@/util";
-import { FolderTree } from "./folder-tree";
 
-type TreeLine = {
+type TreeRowData = {
   hasMoreSiblings: boolean[];
   isLast: boolean;
   name: string;
@@ -25,21 +19,23 @@ type TreeLine = {
   depth: number;
 };
 
-function _flattenTree(
-  folderPath: string,
+function flattenTree(
+  path: string,
   paths: RepositoryPathsResource,
   expandedPaths: Set<string>,
   hasMoreSiblings: boolean[] = [],
   depth = 0,
-): TreeLine[] {
-  const entries = getFolderEntries(folderPath, paths);
-  const lines: TreeLine[] = [];
+): TreeRowData[] {
+  const entries = getFolderEntries(path, paths);
+  const lines: TreeRowData[] = [];
+
   for (let i = 0; i < entries.length; i++) {
     const entry = entries[i];
     const name = entry.path.split("/").pop()!;
     const isTree = entry.path_type === "tree";
     const isLast = i === entries.length - 1;
     const isExpanded = isTree && expandedPaths.has(entry.path);
+
     lines.push({
       hasMoreSiblings,
       isLast,
@@ -51,7 +47,7 @@ function _flattenTree(
     });
     if (isExpanded) {
       lines.push(
-        ..._flattenTree(
+        ...flattenTree(
           entry.path,
           paths,
           expandedPaths,
@@ -64,45 +60,7 @@ function _flattenTree(
   return lines;
 }
 
-function flattenAll(
-  folderPath: string,
-  paths: RepositoryPathsResource,
-  hasMoreSiblings: boolean[] = [],
-  depth = 0,
-  maxDepth = Number.POSITIVE_INFINITY,
-): TreeLine[] {
-  const entries = getFolderEntries(folderPath, paths);
-  const lines: TreeLine[] = [];
-  for (let i = 0; i < entries.length; i++) {
-    const entry = entries[i];
-    const name = entry.path.split("/").pop()!;
-    const isTree = entry.path_type === "tree";
-    const isLast = i === entries.length - 1;
-    lines.push({
-      hasMoreSiblings,
-      isLast,
-      name,
-      path: entry.path,
-      isTree,
-      isExpanded: false,
-      depth,
-    });
-    if (isTree && depth + 1 < maxDepth) {
-      lines.push(
-        ...flattenAll(
-          entry.path,
-          paths,
-          [...hasMoreSiblings, !isLast],
-          depth + 1,
-          maxDepth,
-        ),
-      );
-    }
-  }
-  return lines;
-}
-
-function TreeLinePrefix({
+function TreeRowGutter({
   hasMoreSiblings,
   isLast,
 }: {
@@ -115,18 +73,18 @@ function TreeLinePrefix({
         // biome-ignore lint/suspicious/noArrayIndexKey: stable positional slots
         <span key={i} className="relative w-5">
           {active && (
-            <span className="absolute left-[9px] top-0 bottom-0 border-l border-foreground" />
+            <span className="absolute left-2.25 top-0 bottom-0 border-l border-foreground" />
           )}
         </span>
       ))}
       <span className="relative w-5">
         <span
           className={cn(
-            "absolute left-[9px] border-l border-foreground",
+            "absolute left-2.25 border-l border-foreground",
             isLast ? "top-0 bottom-1/2" : "top-0 bottom-0",
           )}
         />
-        <span className="absolute left-[9px] right-0 top-1/2 border-t border-foreground" />
+        <span className="absolute left-2.25 right-0 top-1/2 border-t border-foreground" />
       </span>
     </span>
   );
@@ -139,19 +97,19 @@ function formatBytes(bytes: number): string {
 }
 
 function TreeHeader({
-  folderPath,
+  path,
   paths,
   owner,
   repo,
 }: {
-  folderPath: string;
+  path: string;
   paths: RepositoryPathsResource;
   owner: string;
   repo: string;
 }) {
-  const prefix = folderPath ? `${folderPath}/` : "";
+  const prefix = path ? `${path}/` : "";
   const under = paths.entries.filter(
-    (e) => e.path.startsWith(prefix) && e.path !== folderPath,
+    (e) => e.path.startsWith(prefix) && e.path !== path,
   );
   const fileCount = under.filter((e) => e.path_type === "blob").length;
 
@@ -165,7 +123,7 @@ function TreeHeader({
         <Link href={`/${owner}/${repo}`} className="hover:underline">
           {repo}
         </Link>
-        {folderPath?.split("/").map((seg, i, arr) => (
+        {path?.split("/").map((seg, i, arr) => (
           // biome-ignore lint/suspicious/noArrayIndexKey: stable path segments
           <span key={i}>
             <span>/</span>
@@ -183,37 +141,50 @@ function TreeHeader({
   );
 }
 
-function TreeRows({
-  lines,
+export function FolderTree({
+  path,
   paths,
   blobs,
   owner,
   repo,
   showAbsolutePath = false,
-  onToggle,
-  onMouseEnter,
 }: {
-  lines: TreeLine[];
+  path: string;
   paths: RepositoryPathsResource;
   blobs: RepositoryBlobsResource | null;
   owner: string;
   repo: string;
   showAbsolutePath?: boolean;
-  onToggle?: (path: string) => void;
-  onMouseEnter?: (path: string, isTree: boolean) => void;
 }) {
+  const [_expandedPaths, setExpandedPaths] = useState<Set<string>>(new Set());
+
+  const _toggleFolder = (path: string) => {
+    setExpandedPaths((prev) => {
+      const next = new Set(prev);
+      if (next.has(path)) next.delete(path);
+      else next.add(path);
+      return next;
+    });
+  };
+
+  const lines = flattenTree(path ?? "", paths, new Set());
+
   return (
-    <>
+    <div
+      data-page-scroll
+      className="flex flex-col w-[45%] h-full shrink-0 border-r overflow-y-auto scrollbar-thin"
+    >
+      <TreeHeader path={path ?? ""} paths={paths} owner={owner} repo={repo} />
       {lines.map((line) =>
         line.isTree ? (
           // biome-ignore lint/a11y/useKeyWithClickEvents: expand/collapse on click
           <div
             key={line.path}
             className="flex items-stretch gap-1.5 font-mono text-sm h-6 shrink-0 select-none hover:bg-accent w-full pl-1 pr-2"
-            onMouseEnter={() => onMouseEnter?.(line.path, true)}
-            onClick={() => onToggle?.(line.path)}
+            // onMouseEnter={() => onMouseEnter?.(line.path, true)}
+            // onClick={() => onToggle?.(line.path)}
           >
-            <TreeLinePrefix
+            <TreeRowGutter
               hasMoreSiblings={line.hasMoreSiblings}
               isLast={line.isLast}
             />
@@ -245,9 +216,9 @@ function TreeRows({
             key={line.path}
             href={`/${owner}/${repo}/${line.path}`}
             className="flex items-stretch gap-1.5 font-mono text-sm h-6 shrink-0 select-none hover:bg-accent cursor-default px-1"
-            onMouseEnter={() => onMouseEnter?.(line.path, false)}
+            // onMouseEnter={() => onMouseEnter?.(line.path, false)}
           >
-            <TreeLinePrefix
+            <TreeRowGutter
               hasMoreSiblings={line.hasMoreSiblings}
               isLast={line.isLast}
             />
@@ -273,95 +244,6 @@ function TreeRows({
           </Link>
         ),
       )}
-    </>
-  );
-}
-
-type Preview =
-  | { kind: "file"; hast: Root }
-  | { kind: "folder"; path: string; lines: TreeLine[] };
-
-export function FolderViewer({ path }: { path: string }) {
-  const { owner, repo } = useParams<{ owner: string; repo: string }>();
-  const [paths, setPaths] = useState<RepositoryPathsResource | null>(null);
-  const [blobs, setBlobs] = useState<RepositoryBlobsResource | null>(null);
-  const [preview, setPreview] = useState<Preview | null>(null);
-  const dbRef = useRef<DatabaseProvider | null>(null);
-  const pathsRef = useRef<RepositoryPathsResource | null>(null);
-
-  useEffect(() => {
-    const db = new DatabaseProvider(owner, repo);
-    dbRef.current = db;
-    db.getPaths().then((p) => {
-      if (!p) return;
-      setPaths(p);
-      pathsRef.current = p;
-      const _topLevel = getFolderEntries(path ?? "", p);
-    });
-    db.getBlobs().then((b) => {
-      if (b) setBlobs(b);
-    });
-  }, [owner, repo, path]);
-
-  const _handleHover = (path: string, isTree: boolean) => {
-    if (isTree) {
-      if (pathsRef.current) {
-        setPreview({
-          kind: "folder",
-          path,
-          lines: flattenAll(path, pathsRef.current, [], 0, 2),
-        });
-      }
-      return;
-    }
-    dbRef.current?.getHast(path).then((hast) => {
-      if (hast) setPreview({ kind: "file", hast });
-      else setPreview(null);
-    });
-  };
-
-  if (!paths) return null;
-
-  return (
-    <div className="flex w-full h-full min-h-0 overflow-hidden">
-      <FolderTree
-        path={path}
-        owner={owner}
-        repo={repo}
-        paths={paths}
-        blobs={blobs}
-      />
-      <div className="flex-1 min-w-0 overflow-auto scrollbar-thin">
-        {preview?.kind === "file" && (
-          <div className="text-sm px-2 py-1.5">
-            {
-              toJsxRuntime(preview.hast, {
-                Fragment,
-                jsx,
-                jsxs,
-              }) as React.JSX.Element
-            }
-          </div>
-        )}
-        {preview?.kind === "folder" && (
-          <div className="flex flex-col">
-            <TreeHeader
-              folderPath={preview.path}
-              paths={paths}
-              owner={owner}
-              repo={repo}
-            />
-            <TreeRows
-              lines={preview.lines}
-              paths={paths}
-              blobs={blobs}
-              owner={owner}
-              repo={repo}
-              showAbsolutePath
-            />
-          </div>
-        )}
-      </div>
     </div>
   );
 }

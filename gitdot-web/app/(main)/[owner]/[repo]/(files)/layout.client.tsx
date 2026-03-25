@@ -1,5 +1,9 @@
 "use client";
 
+import type { RepositoryPathResource } from "gitdot-api";
+import { Undo2 } from "lucide-react";
+import { useParams } from "next/navigation";
+import { Fragment, Suspense, use, useEffect, useState } from "react";
 import {
   type ResourcePromisesType,
   type ResourceRequestsType,
@@ -10,10 +14,6 @@ import Link from "@/ui/link";
 import { OverlayScroll } from "@/ui/scroll";
 import { Sidebar, SidebarContent } from "@/ui/sidebar";
 import { cn } from "@/util";
-import type { RepositoryPathResource } from "gitdot-api";
-import { Undo2 } from "lucide-react";
-import { useParams } from "next/navigation";
-import { Fragment, Suspense, use, useEffect, useState } from "react";
 import type { Resources } from "./layout";
 
 type ResourceRequests = ResourceRequestsType<Resources>;
@@ -181,7 +181,7 @@ function FolderRow({
       style={{ paddingLeft: `${8 + depth * 16}px` }}
       className={cn(
         "flex flex-row w-full h-9 items-center border-b select-none cursor-default text-sm font-mono hover:bg-accent/50 pr-2",
-        isActive && "bg-sidebar"
+        isActive && "bg-sidebar",
       )}
       data-sidebar-item=""
       data-sidebar-item-active={isActive ? "true" : undefined}
@@ -192,7 +192,10 @@ function FolderRow({
         className="truncate cursor-pointer underline decoration-transparent hover:decoration-current transition-colors duration-300"
       >
         {name}
-      </Link><span className={cn("pl-px", expanded ? "opacity-100" : "opacity-40")}>/</span>
+      </Link>
+      <span className={cn("pl-px", expanded ? "opacity-100" : "opacity-40")}>
+        /
+      </span>
     </button>
   );
 }
@@ -218,7 +221,7 @@ function FileRow({
       style={{ paddingLeft: `${8 + depth * 16}px` }}
       className={cn(
         "flex flex-row w-full h-9 items-center border-b select-none cursor-default text-sm font-mono hover:bg-accent/50 pr-2",
-        isActive && "bg-sidebar"
+        isActive && "bg-sidebar",
       )}
       data-sidebar-item=""
       data-sidebar-item-active={isActive}
