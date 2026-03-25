@@ -91,7 +91,11 @@ function FileTree({
     setExpandedFolders((prev) => {
       const next = new Set(prev);
       if (next.has(path)) {
-        next.delete(path);
+        for (const p of next) {
+          if (p === path || p.startsWith(`${path}/`)) {
+            next.delete(p);
+          }
+        }
       } else {
         next.add(path);
       }
@@ -188,7 +192,7 @@ function FolderRow({
         className="truncate cursor-pointer underline decoration-transparent hover:decoration-current transition-colors duration-300"
       >
         {name}
-      </Link><span className={cn("inline-block transition-all duration-300 pl-0.5 shrink-0", expanded ? "opacity-100 rotate-[156deg] translate-x-px" : "opacity-40 rotate-0")}>/</span>
+      </Link><span className={cn("pl-0.5", expanded ? "opacity-100" : "opacity-40")}>/</span>
     </button>
   );
 }
