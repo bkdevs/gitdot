@@ -47,7 +47,7 @@ export default async function Page({
     });
     if (!blob) return <div>File not found.</div>;
     if (blob.type === "folder")
-      return <FolderViewer owner={owner} repo={repo} entries={blob.entries} />;
+      return <FolderViewer />;
     const commits = await getRepositoryFileCommits(owner, repo, {
       path: filePathString,
       ref_name: ref,

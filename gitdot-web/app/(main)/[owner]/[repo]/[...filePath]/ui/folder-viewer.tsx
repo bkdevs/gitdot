@@ -1,10 +1,14 @@
 "use client";
 
-import type { RepositoryPathResource } from "gitdot-api";
-import { ChevronDown, ChevronRight, File, Folder } from "lucide-react";
-import { useState } from "react";
+import type { RepositoryPathsResource } from "gitdot-api";
+import type { Root } from "hast";
+import { useParams } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import { MarkdownBody } from "@/(main)/[owner]/[repo]/ui/markdown/markdown-body";
+import { DatabaseProvider } from "@/provider/database";
 import Link from "@/ui/link";
+import { getFolderEntries } from "../../util";
+import { FileBody } from "./file-body";
 import { FolderToc, type TocHeader } from "./folder-toc";
 
 function slugify(text: string): string {
@@ -30,27 +34,113 @@ function extractHeaders(markdown: string): TocHeader[] {
   return headers;
 }
 
-export function FolderViewer({
-  owner,
-  repo,
-  folderPath,
-  entries,
-  readme,
-  allFiles,
-}: {
-  owner: string;
-  repo: string;
-  folderPath?: string;
-  entries: RepositoryPathResource[];
-  readme?: string | null;
-  allFiles?: RepositoryPathResource[] | null;
-}) {
-  const sortedEntries = entries.toSorted((a, b) => {
-    if (a.path_type === b.path_type) {
-      return a.path.localeCompare(b.path);
+type TreeLine = {
+  prefix: string;
+  connector: string;
+  name: string;
+  path: string;
+  isTree: boolean;
+  isExpanded: boolean;
+  depth: number;
+};
+
+function flattenTree(
+  folderPath: string,
+  paths: RepositoryPathsResource,
+  expandedPaths: Set<string>,
+  prefix = "",
+  depth = 0,
+): TreeLine[] {
+  const entries = getFolderEntries(folderPath, paths);
+  const lines: TreeLine[] = [];
+  for (let i = 0; i < entries.length; i++) {
+    const entry = entries[i];
+    const name = entry.path.split("/").pop()!;
+    const isTree = entry.path_type === "tree";
+    const isLast = i === entries.length - 1;
+    const connector = depth === 0 ? "" : (isLast ? "└─ " : "├─ ");
+    const isExpanded = isTree && expandedPaths.has(entry.path);
+    lines.push({ prefix, connector, name, path: entry.path, isTree, isExpanded, depth });
+    if (isExpanded) {
+      const childPrefix = depth === 0 ? " " : prefix + (isLast ? "  " : "│ ");
+      lines.push(...flattenTree(entry.path, paths, expandedPaths, childPrefix, depth + 1));
     }
-    return a.path_type === "tree" ? -1 : 1;
-  });
+  }
+  return lines;
+}
+
+function flattenAll(
+  folderPath: string,
+  paths: RepositoryPathsResource,
+  prefix = "",
+  depth = 0,
+): Omit<TreeLine, "isExpanded">[] {
+  const entries = getFolderEntries(folderPath, paths);
+  const lines: Omit<TreeLine, "isExpanded">[] = [];
+  for (let i = 0; i < entries.length; i++) {
+    const entry = entries[i];
+    const name = entry.path.split("/").pop()!;
+    const isTree = entry.path_type === "tree";
+    const isLast = i === entries.length - 1;
+    const connector = depth === 0 ? "" : (isLast ? "└─ " : "├─ ");
+    lines.push({ prefix, connector, name, path: entry.path, isTree, depth });
+    if (isTree) {
+      const childPrefix = depth === 0 ? " " : prefix + (isLast ? "  " : "│ ");
+      lines.push(...flattenAll(entry.path, paths, childPrefix, depth + 1));
+    }
+  }
+  return lines;
+}
+
+type Preview = { kind: "file"; hast: Root } | { kind: "folder"; lines: Omit<TreeLine, "isExpanded">[] };
+
+export function FolderViewer({
+  folderPath,
+  readme,
+}: {
+  folderPath?: string;
+  readme?: string | null;
+}) {
+  const { owner, repo } = useParams<{ owner: string; repo: string }>();
+  const [paths, setPaths] = useState<RepositoryPathsResource | null>(null);
+  const [expandedPaths, setExpandedPaths] = useState<Set<string>>(new Set());
+  const [preview, setPreview] = useState<Preview | null>(null);
+  const dbRef = useRef<DatabaseProvider | null>(null);
+  const pathsRef = useRef<RepositoryPathsResource | null>(null);
+
+  useEffect(() => {
+    const db = new DatabaseProvider(owner, repo);
+    dbRef.current = db;
+    db.getPaths().then((p) => {
+      if (!p) return;
+      setPaths(p);
+      pathsRef.current = p;
+      const topLevel = getFolderEntries(folderPath ?? "", p);
+      setExpandedPaths(new Set(topLevel.filter((e) => e.path_type === "tree").map((e) => e.path)));
+    });
+  }, [owner, repo]);
+
+  const toggleFolder = (path: string) => {
+    setExpandedPaths((prev) => {
+      const next = new Set(prev);
+      if (next.has(path)) next.delete(path);
+      else next.add(path);
+      return next;
+    });
+  };
+
+  const handleHover = (path: string, isTree: boolean) => {
+    if (isTree) {
+      if (pathsRef.current) {
+        setPreview({ kind: "folder", lines: flattenAll(path, pathsRef.current) });
+      }
+      return;
+    }
+    dbRef.current?.getHast(path).then((hast) => {
+      if (hast) setPreview({ kind: "file", hast });
+      else setPreview(null);
+    });
+  };
 
   if (readme) {
     return (
@@ -68,152 +158,57 @@ export function FolderViewer({
     );
   }
 
-  if (allFiles && allFiles.length > 0) {
-    return (
-      <RecursiveFolderView
-        owner={owner}
-        repo={repo}
-        folderPath={folderPath ?? ""}
-        allFiles={allFiles}
-      />
-    );
-  }
+  if (!paths) return null;
+
+  const lines = flattenTree(folderPath ?? "", paths, expandedPaths);
 
   return (
-    <div
-      data-page-scroll
-      className="flex flex-col flex-1 w-full min-w-0 overflow-auto scrollbar-thin"
-    >
-      {sortedEntries.map((entry) => (
-        <FolderEntryRow
-          key={entry.path}
-          entry={entry}
-          href={`/${owner}/${repo}/${entry.path}`}
-        />
-      ))}
-    </div>
-  );
-}
-
-function RecursiveFolderView({
-  owner,
-  repo,
-  folderPath,
-  allFiles,
-}: {
-  owner: string;
-  repo: string;
-  folderPath: string;
-  allFiles: RepositoryPathResource[];
-}) {
-  const [collapsed, setCollapsed] = useState<Set<string>>(
-    () => new Set(allFiles.filter((e) => e.path_type === "tree").map((e) => e.path)),
-  );
-
-  const prefix = folderPath ? `${folderPath}/` : "";
-  const sorted = allFiles.toSorted((a, b) => a.path.localeCompare(b.path));
-
-  const visible = sorted.filter((entry) => {
-    const relative = entry.path.slice(prefix.length);
-    const parts = relative.split("/");
-    for (let i = 1; i < parts.length; i++) {
-      const ancestorPath = prefix + parts.slice(0, i).join("/");
-      if (collapsed.has(ancestorPath)) return false;
-    }
-    return true;
-  });
-
-  const toggle = (path: string) => {
-    setCollapsed((prev) => {
-      const next = new Set(prev);
-      if (next.has(path)) next.delete(path);
-      else next.add(path);
-      return next;
-    });
-  };
-
-  return (
-    <div
-      data-page-scroll
-      className="flex flex-col flex-1 w-full min-w-0 overflow-auto scrollbar-thin"
-    >
-      {visible.map((entry) => {
-        const relative = entry.path.slice(prefix.length);
-        const depth = relative.split("/").length - 1;
-        const name = relative.split("/").pop() ?? relative;
-        const isFolder = entry.path_type === "tree";
-        const isCollapsed = collapsed.has(entry.path);
-
-        if (isFolder) {
-          return (
+    <div className="flex w-full h-full min-h-0 overflow-hidden">
+      <div
+        data-page-scroll
+        className="flex flex-col w-1/2 shrink-0 border-r overflow-auto scrollbar-thin px-4 py-2"
+        onMouseLeave={() => setPreview(null)}
+      >
+        {lines.map((line) =>
+          line.isTree ? (
             <button
-              key={entry.path}
+              key={line.path}
               type="button"
-              style={{ paddingLeft: `${0.5 + depth * 1}rem` }}
-              className="flex w-full h-9 items-center border-b hover:bg-accent/50 select-none cursor-default text-sm text-left"
-              onClick={() => toggle(entry.path)}
+              className="flex font-mono text-sm leading-6 px-1 rounded hover:bg-accent cursor-pointer text-left w-full"
+              onMouseEnter={() => handleHover(line.path, true)}
+              onClick={() => toggleFolder(line.path)}
             >
-              {isCollapsed ? (
-                <ChevronRight className="size-3 shrink-0 text-muted-foreground" />
-              ) : (
-                <ChevronDown className="size-3 shrink-0 text-muted-foreground" />
-              )}
-              <Folder className="size-4 shrink-0 ml-1" />
-              <span className="ml-2 truncate font-mono">{name}</span>
+              <span className="text-muted-foreground whitespace-pre select-none">{line.prefix}{line.connector}</span>
+              <span>{line.name}/</span>
             </button>
-          );
-        }
-
-        return (
-          <Link
-            key={entry.path}
-            data-page-item
-            tabIndex={-1}
-            style={{ paddingLeft: `${0.5 + depth * 1}rem` }}
-            className="flex w-full h-9 items-center border-b focus:bg-accent/50 select-none cursor-default text-sm focus:outline-none"
-            href={`/${owner}/${repo}/${entry.path}`}
-            prefetch={true}
-          >
-            <File className="size-4 shrink-0 ml-4" />
-            <span className="ml-2 truncate font-mono">{name}</span>
-          </Link>
-        );
-      })}
-    </div>
-  );
-}
-
-function FolderEntryRow({
-  entry,
-  href,
-  label,
-  depth = 0,
-}: {
-  entry: RepositoryPathResource;
-  href: string;
-  label?: string;
-  depth?: number;
-}) {
-  return (
-    <Link
-      data-page-item
-      tabIndex={-1}
-      style={{ paddingLeft: `${0.5 + depth * 1}rem` }}
-      className="grid grid-cols-[1fr_300px_150px] w-full h-9 items-center border-b focus:bg-accent/50 select-none cursor-default text-sm focus:outline-none"
-      href={href}
-      prefetch={true}
-    >
-      <span className="flex items-center min-w-0">
-        {entry.path_type === "blob" ? (
-          <File className="size-4 shrink-0" />
-        ) : (
-          <Folder className="size-4 shrink-0" />
+          ) : (
+            <Link
+              key={line.path}
+              href={`/${owner}/${repo}/${line.path}`}
+              className="flex font-mono text-sm leading-6 px-1 rounded hover:bg-accent cursor-pointer"
+              onMouseEnter={() => handleHover(line.path, false)}
+            >
+              <span className="text-muted-foreground whitespace-pre select-none">{line.prefix}{line.connector}</span>
+              <span>{line.name}</span>
+            </Link>
+          )
         )}
-        <span className="ml-2 truncate font-mono">
-          {label ?? entry.path.split("/").pop()}
-        </span>
-      </span>
-      <span className="truncate" />
-    </Link>
+      </div>
+      <div className="flex-1 min-w-0 overflow-auto scrollbar-thin px-4 py-2">
+        {preview?.kind === "file" && (
+          <FileBody selectedLines={null} hast={preview.hast} />
+        )}
+        {preview?.kind === "folder" && (
+          <div className="flex flex-col font-mono text-sm">
+            {preview.lines.map((line) => (
+              <div key={line.path} className="flex leading-6 px-1" style={{ paddingLeft: `${line.depth * 1}rem` }}>
+                <span className="text-muted-foreground whitespace-pre select-none">{line.connector}</span>
+                <span className={line.isTree ? "" : "text-muted-foreground"}>{line.isTree ? `${line.path}/` : line.path}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

@@ -8,7 +8,6 @@ import {
 } from "@/(main)/[owner]/[repo]/resources";
 import { Loading } from "@/ui/loading";
 import { FolderViewer } from "../../[...filePath]/ui/folder-viewer";
-import { getFolderEntries } from "../../util";
 import type { Resources } from "./page";
 
 type ResourceRequests = ResourceRequestsType<Resources>;
@@ -28,23 +27,12 @@ export function PageClient({
   const resolvedPromises = useResolvePromises(owner, repo, requests, promises);
   return (
     <Suspense fallback={<Loading />}>
-      <PageContent owner={owner} repo={repo} promises={resolvedPromises} />
+      <PageContent promises={resolvedPromises} />
     </Suspense>
   );
 }
 
-function PageContent({
-  owner,
-  repo,
-  promises,
-}: {
-  owner: string;
-  repo: string;
-  promises: ResourcePromises;
-}) {
-  const paths = use(promises.paths);
-  if (!paths) return null;
-
-  const entries = getFolderEntries("", paths);
-  return <FolderViewer owner={owner} repo={repo} entries={entries} />;
+function PageContent({ promises }: { promises: ResourcePromises }) {
+  use(promises.paths);
+  return <FolderViewer />;
 }

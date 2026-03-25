@@ -2,7 +2,7 @@
 
 import { File, Folder, FolderOpen } from "lucide-react";
 import { useParams } from "next/navigation";
-import { Fragment, Suspense, use, useMemo } from "react";
+import { Fragment, Suspense, use, useEffect, useState } from "react";
 import {
   type ResourcePromisesType,
   type ResourceRequestsType,
@@ -11,8 +11,7 @@ import {
 import Link from "@/ui/link";
 import { OverlayScroll } from "@/ui/scroll";
 import { Sidebar, SidebarContent } from "@/ui/sidebar";
-import type { RepositoryPathsResource } from "gitdot-api";
-import { getFolderEntries, getParentPath } from "../util";
+import { getFolderEntries } from "../util";
 import type { Resources } from "./layout";
 
 type ResourceRequests = ResourceRequestsType<Resources>;
@@ -69,122 +68,97 @@ function FileSidebarContent({
 
   const currentPath = filePathSegments.join("/");
   const paths = use(promises.paths);
-  const parentPath = getParentPath(currentPath);
-  const contextFiles = useMemo(
-    () => (paths ? getFolderEntries(parentPath, paths) : []),
-    [parentPath, paths],
-  );
+
+  const [expanded, setExpanded] = useState<Set<string>>(() => {
+    const s = new Set<string>();
+    const parts = currentPath.split("/");
+    for (let i = 1; i <= parts.length; i++) {
+      s.add(parts.slice(0, i).join("/"));
+    }
+    return s;
+  });
+
+  useEffect(() => {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      const parts = currentPath.split("/");
+      for (let i = 1; i <= parts.length; i++) {
+        next.add(parts.slice(0, i).join("/"));
+      }
+      return next;
+    });
+  }, [currentPath]);
+
   if (!paths) return null;
 
-  return (
-    <div className="flex flex-col w-full">
-      <FileRow
-        key=".."
-        filePath={".."}
-        href={
-          parentPath
-            ? `/${owner}/${repo}/${parentPath}`
-            : `/${owner}/${repo}/files`
-        }
-        isFolder={true}
-        isActive={false}
-      />
-      {contextFiles.map((file) => {
-        const filePath = file.path.split("/").pop();
-        if (!filePath) return null;
-        const fullPath = parentPath ? `${parentPath}/${filePath}` : filePath;
-        const isFolder = file.path_type === "tree";
-        const isActive = currentPath === fullPath;
+  const toggle = (path: string) => {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(path)) next.delete(path);
+      else next.add(path);
+      return next;
+    });
+  };
 
-        return (
-          <Fragment key={file.path}>
-            <FileRow
-              filePath={filePath}
-              href={`/${owner}/${repo}/${parentPath}/${filePath}`}
-              isFolder={isFolder}
-              isActive={isActive}
-            />
-            {isActive && isFolder && (
-              <FolderChildren
-                owner={owner}
-                repo={repo}
-                folderPath={fullPath}
-                paths={paths}
-              />
-            )}
-          </Fragment>
-        );
-      })}
-    </div>
-  );
-}
+  const renderEntries = (
+    parentPath: string,
+    depth: number,
+  ): React.ReactNode => {
+    return getFolderEntries(parentPath, paths).map((entry) => {
+      const name = entry.path.split("/").pop()!;
+      const isFolder = entry.path_type === "tree";
+      const isExpanded = expanded.has(entry.path);
+      const isActive = currentPath === entry.path;
 
-function FolderChildren({
-  owner,
-  repo,
-  folderPath,
-  paths,
-}: {
-  owner: string;
-  repo: string;
-  folderPath: string;
-  paths: RepositoryPathsResource;
-}) {
-  const children = getFolderEntries(folderPath, paths);
-  return (
-    <>
-      {children.map((child) => {
-        const childName = child.path.split("/").pop();
-        if (!childName) return null;
-        return (
-          <FileRow
-            key={child.path}
-            filePath={childName}
-            href={`/${owner}/${repo}/${folderPath}/${childName}`}
-            isFolder={child.path_type === "tree"}
-            isActive={false}
-            indent={true}
-          />
-        );
-      })}
-    </>
-  );
-}
+      return (
+        <Fragment key={entry.path}>
+          {isFolder ? (
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => toggle(entry.path)}
+              onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && toggle(entry.path)}
+              style={{ paddingLeft: `${0.5 + depth * 1}rem` }}
+              className={`flex flex-row w-full h-9 items-center border-b select-none cursor-default text-sm font-mono hover:bg-accent/50 pr-2 ${isActive ? "bg-sidebar" : ""}`}
+              data-sidebar-item=""
+              data-sidebar-item-active={isActive ? "true" : undefined}
+            >
+              {isExpanded ? (
+                <FolderOpen className="size-4 shrink-0" />
+              ) : (
+                <Folder className="size-4 shrink-0" />
+              )}
+              <Link
+                href={`/${owner}/${repo}/${entry.path}`}
+                onClick={(e) => e.stopPropagation()}
+                className="ml-2 truncate cursor-pointer hover:underline"
+                prefetch={true}
+              >
+                {name}
+              </Link>
+            </div>
+          ) : (
+            <Link
+              href={`/${owner}/${repo}/${entry.path}`}
+              style={{ paddingLeft: `${0.5 + depth * 1}rem` }}
+              className={`flex flex-row w-full h-9 items-center border-b select-none cursor-default text-sm font-mono hover:bg-accent/50 pr-2 ${currentPath === entry.path ? "bg-sidebar" : ""}`}
+              prefetch={true}
+              data-sidebar-item=""
+              data-sidebar-item-active={
+                currentPath === entry.path ? "true" : undefined
+              }
+            >
+              <File className="size-4 shrink-0" />
+              <span className="ml-2 truncate">{name}</span>
+            </Link>
+          )}
+          {isFolder && isExpanded && renderEntries(entry.path, depth + 1)}
+        </Fragment>
+      );
+    });
+  };
 
-function FileRow({
-  filePath,
-  href,
-  isFolder,
-  isActive,
-  indent = false,
-}: {
-  filePath: string;
-  href: string;
-  isFolder: boolean;
-  isActive: boolean;
-  indent?: boolean;
-}) {
-  const navigable = filePath !== "..";
   return (
-    <Link
-      href={href}
-      className={`flex flex-row w-full h-9 items-center border-b select-none cursor-default text-sm font-mono hover:bg-accent/50 ${indent ? "pl-6 pr-2" : "px-2"} ${
-        isActive && "bg-sidebar"
-      }`}
-      prefetch={true}
-      data-sidebar-item={navigable ? "" : undefined}
-      data-sidebar-item-active={navigable && isActive ? "true" : undefined}
-    >
-      {isFolder ? (
-        isActive ? (
-          <FolderOpen className="size-4 shrink-0" />
-        ) : (
-          <Folder className="size-4 shrink-0" />
-        )
-      ) : (
-        <File className="size-4 shrink-0" />
-      )}
-      <span className="ml-2 truncate">{filePath}</span>
-    </Link>
+    <div className="flex flex-col w-full">{renderEntries("", 0)}</div>
   );
 }
