@@ -178,7 +178,7 @@ function FolderRow({
     <button
       type="button"
       onClick={() => setExpanded()}
-      style={{ paddingLeft: `${8 + depth * 12}px` }}
+      style={{ paddingLeft: `${8 + depth * 16}px` }}
       className={cn(
         "flex flex-row w-full h-9 items-center border-b select-none cursor-default text-sm font-mono hover:bg-accent/50 pr-2",
         isActive && "bg-sidebar"
@@ -192,7 +192,7 @@ function FolderRow({
         className="truncate cursor-pointer underline decoration-transparent hover:decoration-current transition-colors duration-300"
       >
         {name}
-      </Link><span className={cn("pl-0.5", expanded ? "opacity-100" : "opacity-40")}>/</span>
+      </Link><span className={cn("pl-px", expanded ? "opacity-100" : "opacity-40")}>/</span>
     </button>
   );
 }
@@ -215,7 +215,7 @@ function FileRow({
   return (
     <Link
       href={`/${owner}/${repo}/${entry.path}`}
-      style={{ paddingLeft: `${8 + depth * 12}px` }}
+      style={{ paddingLeft: `${8 + depth * 16}px` }}
       className={cn(
         "flex flex-row w-full h-9 items-center border-b select-none cursor-default text-sm font-mono hover:bg-accent/50 pr-2",
         isActive && "bg-sidebar"
