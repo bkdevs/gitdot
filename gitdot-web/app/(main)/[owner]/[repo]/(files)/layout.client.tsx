@@ -11,7 +11,7 @@ import { OverlayScroll } from "@/ui/scroll";
 import { Sidebar, SidebarContent } from "@/ui/sidebar";
 import { cn } from "@/util";
 import type { RepositoryPathResource } from "gitdot-api";
-import { File, Folder, FolderOpen, Undo2 } from "lucide-react";
+import { Undo2 } from "lucide-react";
 import { useParams } from "next/navigation";
 import { Fragment, Suspense, use, useEffect, useState } from "react";
 import type { Resources } from "./layout";
@@ -174,7 +174,7 @@ function FolderRow({
     <button
       type="button"
       onClick={() => setExpanded()}
-      style={{ paddingLeft: `${0.5 + depth * 1}rem` }}
+      style={{ paddingLeft: `${8 + depth * 12}px` }}
       className={cn(
         "flex flex-row w-full h-9 items-center border-b select-none cursor-default text-sm font-mono hover:bg-accent/50 pr-2",
         isActive && "bg-sidebar"
@@ -182,18 +182,13 @@ function FolderRow({
       data-sidebar-item=""
       data-sidebar-item-active={isActive ? "true" : undefined}
     >
-      {expanded ? (
-        <FolderOpen className="size-4 shrink-0" />
-      ) : (
-        <Folder className="size-4 shrink-0" />
-      )}
       <Link
         href={`/${owner}/${repo}/${entry.path}`}
         onClick={(e) => e.stopPropagation()}
-        className="ml-2 truncate cursor-pointer hover:underline"
+        className="truncate cursor-pointer underline decoration-transparent hover:decoration-current transition-colors duration-300"
       >
         {name}
-      </Link>
+      </Link><span className={cn("inline-block transition-all duration-300 pl-0.5 shrink-0", expanded ? "opacity-100 rotate-[156deg] translate-x-px" : "opacity-40 rotate-0")}>/</span>
     </button>
   );
 }
@@ -216,7 +211,7 @@ function FileRow({
   return (
     <Link
       href={`/${owner}/${repo}/${entry.path}`}
-      style={{ paddingLeft: `${0.5 + depth * 1}rem` }}
+      style={{ paddingLeft: `${8 + depth * 12}px` }}
       className={cn(
         "flex flex-row w-full h-9 items-center border-b select-none cursor-default text-sm font-mono hover:bg-accent/50 pr-2",
         isActive && "bg-sidebar"
@@ -224,8 +219,7 @@ function FileRow({
       data-sidebar-item=""
       data-sidebar-item-active={isActive}
     >
-      <File className="size-4 shrink-0" />
-      <span className="ml-2 truncate">{name}</span>
+      <span className="truncate">{name}</span>
     </Link>
   );
 }
