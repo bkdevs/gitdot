@@ -1,13 +1,13 @@
 "use client";
 
+import type { RepositoryCommitResource } from "gitdot-api";
+import { Suspense, use, useState } from "react";
 import {
   type ResourcePromisesType,
   type ResourceRequestsType,
   useResolvePromises,
 } from "@/(main)/[owner]/[repo]/resources";
 import { Loading } from "@/ui/loading";
-import type { RepositoryCommitResource } from "gitdot-api";
-import { Suspense, use, useState } from "react";
 import type { Resources } from "./page";
 import { BuildRow } from "./ui/build-row";
 import { BuildsHeader } from "./ui/builds-header";
@@ -63,18 +63,18 @@ function PageContent({
   return (
     <div className="flex flex-col">
       <BuildsHeader
-      owner={owner}
-      repo={repo}
-      filter={filter}
-      setFilter={setFilter}
+        owner={owner}
+        repo={repo}
+        filter={filter}
+        setFilter={setFilter}
       />
       {filteredBuilds.map((build) => (
         <BuildRow
-        key={build.id}
-        owner={owner}
-        repo={repo}
-        build={build}
-        commit={commitsBySha[build.commit_sha]}
+          key={build.id}
+          owner={owner}
+          repo={repo}
+          build={build}
+          commit={commitsBySha[build.commit_sha]}
         />
       ))}
     </div>

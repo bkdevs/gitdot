@@ -16,6 +16,11 @@ export default async function Page({
     questions: (p) => p.getQuestions(),
   });
   return (
-    <PageClient owner={owner} repo={repo} requests={requests} promises={promises} />
+    <PageClient
+      owner={owner}
+      repo={repo}
+      requests={requests}
+      promises={promises}
+    />
   );
 }

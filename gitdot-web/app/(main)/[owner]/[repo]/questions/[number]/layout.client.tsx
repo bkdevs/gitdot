@@ -1,5 +1,8 @@
 "use client";
 
+import { Undo2 } from "lucide-react";
+import { useParams } from "next/navigation";
+import { Suspense, use } from "react";
 import {
   type ResourcePromisesType,
   type ResourceRequestsType,
@@ -9,9 +12,6 @@ import Link from "@/ui/link";
 import { OverlayScroll } from "@/ui/scroll";
 import { Sidebar, SidebarContent } from "@/ui/sidebar";
 import { timeAgo } from "@/util";
-import { Undo2 } from "lucide-react";
-import { useParams } from "next/navigation";
-import { Suspense, use } from "react";
 import type { Resources } from "./layout";
 
 type ResourceRequests = ResourceRequestsType<Resources>;
@@ -54,7 +54,7 @@ export function LayoutClient({
 
 function QuestionSidebarHeader({
   owner,
-  repo
+  repo,
 }: {
   owner: string;
   repo: string;
@@ -67,12 +67,9 @@ function QuestionSidebarHeader({
       <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
         Questions
       </h3>
-      <Undo2
-      size={14}
-      className="text-muted-foreground -translate-y-px"
-      />
+      <Undo2 size={14} className="text-muted-foreground -translate-y-px" />
     </Link>
-  )
+  );
 }
 
 function QuestionSidebarContent({

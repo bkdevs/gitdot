@@ -23,9 +23,7 @@ export function CommitHeader({
         <button
           type="button"
           className="truncate flex-1 mr-2 hover:underline text-left cursor-pointer"
-          onClick={() =>
-            document.getElementById(stat.path)?.scrollIntoView()
-          }
+          onClick={() => document.getElementById(stat.path)?.scrollIntoView()}
         >
           {stat.path}
         </button>

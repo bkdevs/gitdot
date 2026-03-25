@@ -33,12 +33,28 @@ function flattenTree(
     const name = entry.path.split("/").pop()!;
     const isTree = entry.path_type === "tree";
     const isLast = i === entries.length - 1;
-    const connector = depth === 0 ? "" : (isLast ? "└─ " : "├─ ");
+    const connector = depth === 0 ? "" : isLast ? "└─ " : "├─ ";
     const isExpanded = isTree && expandedPaths.has(entry.path);
-    lines.push({ prefix, connector, name, path: entry.path, isTree, isExpanded, depth });
+    lines.push({
+      prefix,
+      connector,
+      name,
+      path: entry.path,
+      isTree,
+      isExpanded,
+      depth,
+    });
     if (isExpanded) {
       const childPrefix = depth === 0 ? " " : prefix + (isLast ? "  " : "│ ");
-      lines.push(...flattenTree(entry.path, paths, expandedPaths, childPrefix, depth + 1));
+      lines.push(
+        ...flattenTree(
+          entry.path,
+          paths,
+          expandedPaths,
+          childPrefix,
+          depth + 1,
+        ),
+      );
     }
   }
   return lines;
@@ -58,17 +74,21 @@ function flattenAll(
     const name = entry.path.split("/").pop()!;
     const isTree = entry.path_type === "tree";
     const isLast = i === entries.length - 1;
-    const connector = depth === 0 ? "" : (isLast ? "└─ " : "├─ ");
+    const connector = depth === 0 ? "" : isLast ? "└─ " : "├─ ";
     lines.push({ prefix, connector, name, path: entry.path, isTree, depth });
     if (isTree && depth + 1 < maxDepth) {
       const childPrefix = depth === 0 ? " " : prefix + (isLast ? "  " : "│ ");
-      lines.push(...flattenAll(entry.path, paths, childPrefix, depth + 1, maxDepth));
+      lines.push(
+        ...flattenAll(entry.path, paths, childPrefix, depth + 1, maxDepth),
+      );
     }
   }
   return lines;
 }
 
-type Preview = { kind: "file"; hast: Root } | { kind: "folder"; lines: Omit<TreeLine, "isExpanded">[] };
+type Preview =
+  | { kind: "file"; hast: Root }
+  | { kind: "folder"; lines: Omit<TreeLine, "isExpanded">[] };
 
 export function FolderViewer({ folderPath }: { folderPath?: string }) {
   const { owner, repo } = useParams<{ owner: string; repo: string }>();
@@ -86,9 +106,13 @@ export function FolderViewer({ folderPath }: { folderPath?: string }) {
       setPaths(p);
       pathsRef.current = p;
       const topLevel = getFolderEntries(folderPath ?? "", p);
-      setExpandedPaths(new Set(topLevel.filter((e) => e.path_type === "tree").map((e) => e.path)));
+      setExpandedPaths(
+        new Set(
+          topLevel.filter((e) => e.path_type === "tree").map((e) => e.path),
+        ),
+      );
     });
-  }, [owner, repo]);
+  }, [owner, repo, folderPath]);
 
   const toggleFolder = (path: string) => {
     setExpandedPaths((prev) => {
@@ -102,7 +126,10 @@ export function FolderViewer({ folderPath }: { folderPath?: string }) {
   const handleHover = (path: string, isTree: boolean) => {
     if (isTree) {
       if (pathsRef.current) {
-        setPreview({ kind: "folder", lines: flattenAll(path, pathsRef.current, "", 0, 2) });
+        setPreview({
+          kind: "folder",
+          lines: flattenAll(path, pathsRef.current, "", 0, 2),
+        });
       }
       return;
     }
@@ -132,7 +159,10 @@ export function FolderViewer({ folderPath }: { folderPath?: string }) {
               onMouseEnter={() => handleHover(line.path, true)}
               onClick={() => toggleFolder(line.path)}
             >
-              <span className="text-muted-foreground whitespace-pre select-none">{line.prefix}{line.connector}</span>
+              <span className="text-muted-foreground whitespace-pre select-none">
+                {line.prefix}
+                {line.connector}
+              </span>
               <Link
                 href={`/${owner}/${repo}/${line.path}`}
                 className="cursor-pointer hover:underline"
@@ -148,10 +178,13 @@ export function FolderViewer({ folderPath }: { folderPath?: string }) {
               className="flex font-mono text-sm leading-6 px-1 rounded hover:bg-accent cursor-pointer"
               onMouseEnter={() => handleHover(line.path, false)}
             >
-              <span className="text-muted-foreground whitespace-pre select-none">{line.prefix}{line.connector}</span>
+              <span className="text-muted-foreground whitespace-pre select-none">
+                {line.prefix}
+                {line.connector}
+              </span>
               <span>{line.name}</span>
             </Link>
-          )
+          ),
         )}
       </div>
       <div className="flex-1 min-w-0 overflow-auto scrollbar-thin px-4 py-2">
@@ -161,9 +194,17 @@ export function FolderViewer({ folderPath }: { folderPath?: string }) {
         {preview?.kind === "folder" && (
           <div className="flex flex-col font-mono text-sm">
             {preview.lines.map((line) => (
-              <div key={line.path} className="flex leading-6 px-1" style={{ paddingLeft: `${line.depth * 1}rem` }}>
-                <span className="text-muted-foreground whitespace-pre select-none">{line.connector}</span>
-                <span className={line.isTree ? "" : "text-muted-foreground"}>{line.isTree ? `${line.path}/` : line.path}</span>
+              <div
+                key={line.path}
+                className="flex leading-6 px-1"
+                style={{ paddingLeft: `${line.depth * 1}rem` }}
+              >
+                <span className="text-muted-foreground whitespace-pre select-none">
+                  {line.connector}
+                </span>
+                <span className={line.isTree ? "" : "text-muted-foreground"}>
+                  {line.isTree ? `${line.path}/` : line.path}
+                </span>
               </div>
             ))}
           </div>

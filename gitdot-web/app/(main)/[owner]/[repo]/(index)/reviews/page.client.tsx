@@ -7,8 +7,8 @@ import {
   useResolvePromises,
 } from "@/(main)/[owner]/[repo]/resources";
 import { Loading } from "@/ui/loading";
-import { ReviewRow } from "./ui/review-row";
 import type { Resources } from "./page";
+import { ReviewRow } from "./ui/review-row";
 
 type ResourceRequests = ResourceRequestsType<Resources>;
 type ResourcePromises = ResourcePromisesType<Resources>;

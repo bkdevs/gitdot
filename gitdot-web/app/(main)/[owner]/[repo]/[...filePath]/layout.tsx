@@ -10,10 +10,10 @@ export default async function Layout({
   params,
   children,
 }: {
-  params: Promise<{ owner: string; repo: string }>;
+  params: Promise<{ owner: string; repo: string; filePath: string[] }>;
   children: React.ReactNode;
 }) {
-  const { owner, repo } = await params;
+  const { owner, repo, filePath } = await params;
   const { requests, promises } = fetchResources(owner, repo, {
     paths: (p) => p.getPaths(),
   });
@@ -22,6 +22,7 @@ export default async function Layout({
     <LayoutClient
       owner={owner}
       repo={repo}
+      filePath={filePath.join("/")}
       requests={requests}
       promises={promises}
     >

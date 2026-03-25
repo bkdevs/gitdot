@@ -7,10 +7,10 @@ import {
   useResolvePromises,
 } from "@/(main)/[owner]/[repo]/resources";
 import { Loading } from "@/ui/loading";
-import { processQuestions } from "./util";
+import type { Resources } from "./page";
 import { QuestionRow } from "./ui/question-row";
 import { QuestionsHeader } from "./ui/questions-header";
-import type { Resources } from "./page";
+import { processQuestions } from "./util";
 
 type ResourceRequests = ResourceRequestsType<Resources>;
 type ResourcePromises = ResourcePromisesType<Resources>;

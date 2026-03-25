@@ -17,6 +17,11 @@ export default async function Page({
   });
 
   return (
-    <PageClient owner={owner} repo={repo} requests={requests} promises={promises} />
+    <PageClient
+      owner={owner}
+      repo={repo}
+      requests={requests}
+      promises={promises}
+    />
   );
 }
