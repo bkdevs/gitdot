@@ -5,7 +5,7 @@ import type {
   RepositoryPathsResource,
 } from "gitdot-api";
 import { useParams } from "next/navigation";
-import { Fragment, Suspense, use, useEffect, useState } from "react";
+import { Fragment, Suspense, use, useLayoutEffect, useState } from "react";
 import {
   type ResourcePromisesType,
   type ResourceRequestsType,
@@ -38,6 +38,42 @@ export function LayoutClient({
   const { path } = useParams<{ path: string[] }>();
   const filePath = path.join("/") ?? "";
   const resolvedPromises = useResolvePromises(owner, repo, requests, promises);
+
+  return (
+    <>
+      <Sidebar>
+        <SidebarContent className="overflow-auto flex flex-col w-full">
+          <div className="flex flex-col w-full">
+            <Suspense fallback={<Loading />}>
+              <FileTree
+                owner={owner}
+                repo={repo}
+                filePath={filePath}
+                promises={resolvedPromises}
+              />
+            </Suspense>
+          </div>
+        </SidebarContent>
+      </Sidebar>
+      <Suspense>
+        <OverlayScroll>{children}</OverlayScroll>
+      </Suspense>
+    </>
+  );
+}
+
+function FileTree({
+  owner,
+  repo,
+  filePath,
+  promises,
+}: {
+  owner: string;
+  repo: string;
+  filePath: string;
+  promises: ResourcePromises;
+}) {
+  const paths = use(promises.paths);
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
     new Set(),
   );
@@ -64,34 +100,26 @@ export function LayoutClient({
     });
   };
 
+  if (!paths) return null;
+
   return (
     <>
-      <Sidebar>
-        <SidebarContent className="overflow-auto flex flex-col w-full">
-          <div className="flex flex-col w-full">
-            <FileTreeHeader
-              repo={repo}
-              rootPath={rootPath}
-              updateRootPath={updateRootPath}
-            />
-            <Suspense fallback={<Loading />}>
-              <FileTreeBody
-                owner={owner}
-                repo={repo}
-                filePath={filePath}
-                promises={resolvedPromises}
-                rootPath={rootPath}
-                expandedFolders={expandedFolders}
-                toggleFolder={toggleFolder}
-                updateRootPath={updateRootPath}
-              />
-            </Suspense>
-          </div>
-        </SidebarContent>
-      </Sidebar>
-      <Suspense>
-        <OverlayScroll>{children}</OverlayScroll>
-      </Suspense>
+      <FileTreeHeader
+        owner={owner}
+        repo={repo}
+        rootPath={rootPath}
+        updateRootPath={updateRootPath}
+      />
+      <FileTreeRows
+        owner={owner}
+        repo={repo}
+        filePath={filePath}
+        paths={paths}
+        rootPath={rootPath}
+        expandedFolders={expandedFolders}
+        toggleFolder={toggleFolder}
+        updateRootPath={updateRootPath}
+      />
     </>
   );
 }
@@ -99,10 +127,12 @@ export function LayoutClient({
 const HEADER_CHAR_LIMIT = 32;
 
 function FileTreeHeader({
+  owner,
   repo,
   rootPath,
   updateRootPath,
 }: {
+  owner: string;
   repo: string;
   rootPath: string;
   updateRootPath: (path: string) => void;
@@ -135,8 +165,8 @@ function FileTreeHeader({
           const isLast = i === visibleSegments.length - 1;
           return (
             <Fragment key={globalIdx}>
-              <button
-                type="button"
+              <Link
+                href={segPath ? `/${owner}/${repo}/${segPath}` : `/${owner}/${repo}/files`}
                 onClick={() => updateRootPath(segPath)}
                 className={cn(
                   "cursor-pointer underline decoration-transparent hover:decoration-current",
@@ -144,49 +174,13 @@ function FileTreeHeader({
                 )}
               >
                 {segment}
-              </button>
+              </Link>
               {!isLast && <span className="shrink-0">/</span>}
             </Fragment>
           );
         })}
       </div>
     </div>
-  );
-}
-
-function FileTreeBody({
-  owner,
-  repo,
-  filePath,
-  promises,
-  rootPath,
-  expandedFolders,
-  toggleFolder,
-  updateRootPath,
-}: {
-  owner: string;
-  repo: string;
-  filePath: string;
-  promises: ResourcePromises;
-  rootPath: string;
-  expandedFolders: Set<string>;
-  toggleFolder: (path: string) => void;
-  updateRootPath: (path: string) => void;
-}) {
-  const paths = use(promises.paths);
-  if (!paths) return null;
-
-  return (
-    <FileTreeRows
-      owner={owner}
-      repo={repo}
-      filePath={filePath}
-      paths={paths}
-      rootPath={rootPath}
-      expandedFolders={expandedFolders}
-      toggleFolder={toggleFolder}
-      updateRootPath={updateRootPath}
-    />
   );
 }
 
@@ -209,7 +203,7 @@ function FileTreeRows({
   toggleFolder: (path: string) => void;
   updateRootPath: (path: string) => void;
 }) {
-  useEffect(() => {
+  useLayoutEffect(() => {
     const isFolder =
       filePath !== "" &&
       paths.entries.some((e) => e.path === filePath && e.path_type === "tree");

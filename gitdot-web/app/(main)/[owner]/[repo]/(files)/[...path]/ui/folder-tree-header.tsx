@@ -25,10 +25,6 @@ export function FolderTreeHeader({
   return (
     <div className="font-mono text-sm h-6 flex items-center justify-between pl-3 pr-2 pt-2 shrink-0">
       <div className="flex items-center">
-        <Link href={`/${owner}`} className="hover:underline">
-          {owner}
-        </Link>
-        <span>/</span>
         <Link href={`/${owner}/${repo}/files`} className="hover:underline">
           {repo}
         </Link>

@@ -125,9 +125,7 @@ export function TreeRowFile({
       onMouseEnter={onMouseEnter}
     >
       <TreeRowGutter depth={row.depth} isLast={row.isLast} />
-      <span
-        className="flex items-center cursor-pointer"
-      >
+      <span className="flex items-center cursor-pointer hover:underline">
         {absolutePaths && (
           <span className="text-muted-foreground">
             {row.path.split("/").slice(0, -1).join("/")}/
