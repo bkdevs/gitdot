@@ -41,15 +41,7 @@ function buildRows(
           );
         }).length
       : 0;
-    lines.push({
-      name,
-      path: entry.path,
-      isTree,
-      isExpanded,
-      fileCount,
-      depth,
-      isLast,
-    });
+    lines.push({ name, path: entry.path, isTree, isExpanded, fileCount, depth, isLast });
     if (isExpanded) {
       lines.push(...buildRows(entry.path, paths, expandedPaths, depth + 1));
     }
@@ -154,21 +146,20 @@ function TreeHeader({
         <Link href={`/${owner}/${repo}/files`} className="hover:underline">
           {repo}
         </Link>
-        {path && path.split("/").map((seg, i, arr) => (
-          // biome-ignore lint/suspicious/noArrayIndexKey: stable path segments
-          <span key={i}>
-            <span>/</span>
-            <Link
-              href={`/${owner}/${repo}/${arr.slice(0, i + 1).join("/")}`}
-              className="hover:underline"
-            >
-              {seg}
-            </Link>
-          </span>
-        ))}
-        <span>
-          /
-        </span>
+        {path?.length > 0 &&
+          path?.split("/").map((seg, i, arr) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: stable path segments
+            <span key={i}>
+              <span>/</span>
+              <Link
+                href={`/${owner}/${repo}/${arr.slice(0, i + 1).join("/")}`}
+                className="hover:underline"
+              >
+                {seg}
+              </Link>
+            </span>
+          ))}
+        <span>/</span>
       </div>
       <span className="text-xs text-muted-foreground">{fileCount} files</span>
     </div>

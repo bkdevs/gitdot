@@ -10,6 +10,7 @@ import { openIdb } from "@/db";
 import { DatabaseProvider } from "@/provider/database";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
 import Link from "@/ui/link";
+import { Loading } from "@/ui/loading";
 import { useRepoContext } from "../../resources/context";
 import { fuzzyMatch } from "../../util";
 
@@ -204,7 +205,7 @@ export function RepoFileDialog({
           </div>
 
           <div className="w-3/5 flex flex-col text-sm scrollbar-none overflow-y-hidden">
-            {hast && (
+            {hast ? (
               <div className="px-2 py-2">
                 {
                   toJsxRuntime(hast, {
@@ -214,7 +215,9 @@ export function RepoFileDialog({
                   }) as JSX.Element
                 }
               </div>
-            )}
+            ) : selectedFile ? (
+              <Loading />
+            ) : null}
           </div>
         </div>
       </DialogContent>

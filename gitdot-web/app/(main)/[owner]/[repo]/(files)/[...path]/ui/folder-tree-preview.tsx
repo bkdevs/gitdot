@@ -5,6 +5,7 @@ import type { Root } from "hast";
 import { toJsxRuntime } from "hast-util-to-jsx-runtime";
 import { Fragment, useEffect, useState } from "react";
 import { jsx, jsxs } from "react/jsx-runtime";
+import { Loading } from "@/ui/loading";
 import { FolderTree } from "./folder-tree";
 
 export function FolderTreePreview({
@@ -51,7 +52,9 @@ export function FolderTreePreview({
         <div className="text-sm px-2 py-1.5">
           {toJsxRuntime(hast, { Fragment, jsx, jsxs }) as React.JSX.Element}
         </div>
-      ) : null}
+      ) : (
+        <Loading />
+      )}
     </div>
   );
 }
