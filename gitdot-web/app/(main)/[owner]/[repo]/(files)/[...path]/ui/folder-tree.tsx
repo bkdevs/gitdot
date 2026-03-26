@@ -10,6 +10,8 @@ type TreeRowData = {
   name: string;
   path: string;
   isTree: boolean;
+  isExpanded: boolean;
+  fileCount: number;
   depth: number;
   isLast: boolean;
 };
@@ -30,7 +32,24 @@ function buildRows(
     const isLast = i === entries.length - 1;
     const isExpanded = isTree && expandedPaths.has(entry.path);
 
-    lines.push({ name, path: entry.path, isTree, depth, isLast });
+    const fileCount = isTree
+      ? paths.entries.filter((e) => {
+          const prefix = `${entry.path}/`;
+          return (
+            e.path.startsWith(prefix) &&
+            !e.path.slice(prefix.length).includes("/")
+          );
+        }).length
+      : 0;
+    lines.push({
+      name,
+      path: entry.path,
+      isTree,
+      isExpanded,
+      fileCount,
+      depth,
+      isLast,
+    });
     if (isExpanded) {
       lines.push(...buildRows(entry.path, paths, expandedPaths, depth + 1));
     }
@@ -130,7 +149,7 @@ function TreeHeader({
         <Link href={`/${owner}/${repo}/files`} className="hover:underline">
           {repo}
         </Link>
-        {path && path.split("/").map((seg, i, arr) => (
+        {path?.split("/").map((seg, i, arr) => (
           // biome-ignore lint/suspicious/noArrayIndexKey: stable path segments
           <span key={i}>
             <span>/</span>
@@ -182,7 +201,13 @@ function TreeRowFolder({
             {row.path.split("/").slice(0, -1).join("/")}/
           </span>
         )}
-        {row.name}/
+        {row.name}
+        {row.isExpanded && "/"}
+        {!row.isExpanded && (
+          <span className="ml-1 text-xs text-muted-foreground inline-flex items-center">
+            ({row.fileCount})
+          </span>
+        )}
       </Link>
     </button>
   );
@@ -221,13 +246,7 @@ function TreeRowFile({
   );
 }
 
-function TreeRowGutter({
-  depth,
-  isLast,
-}: {
-  depth: number;
-  isLast: boolean;
-}) {
+function TreeRowGutter({ depth, isLast }: { depth: number; isLast: boolean }) {
   return (
     <span className="flex items-stretch shrink-0 select-none" aria-hidden>
       {Array.from({ length: depth }, (_, i) => (

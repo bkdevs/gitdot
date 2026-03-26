@@ -113,7 +113,7 @@ export function RepoFileDialog({
       return;
     }
     db.getHast(selectedFile.path).then(setHast);
-  }, [selectedFile?.path, db]);
+  }, [selectedFile?.path, db, selectedFile]);
 
   useEffect(() => {
     if (selectedIndex >= filteredFiles.length) {
