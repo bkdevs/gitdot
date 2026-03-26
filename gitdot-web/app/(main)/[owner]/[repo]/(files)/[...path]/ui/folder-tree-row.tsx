@@ -66,16 +66,14 @@ function TreeRowFolder({
       type="button"
       className={cn(
         "flex items-stretch gap-1 font-mono text-sm h-6 shrink-0 select-none ring-0 outline-0 w-full pl-1 pr-2",
-        focused && "bg-accent/50",
       )}
-      onMouseEnter={onMouseEnter}
-      onClick={() => onClick(row.path)}
     >
       <TreeRowGutter depth={row.depth} isLast={row.isLast} />
       <Link
         href={`/${owner}/${repo}/${row.path}`}
-        className="flex items-center cursor-pointer hover:underline"
-        onClick={(e) => e.stopPropagation()}
+        className={cn("flex items-center cursor-pointer hover:underline", focused && "underline")}
+        onMouseEnter={onMouseEnter}
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); onClick(row.path); }}
       >
         {absolutePaths && (
           <span className="text-muted-foreground">
@@ -115,12 +113,10 @@ export function TreeRowFile({
       data-path={row.path}
       className={cn(
         "flex items-stretch gap-1 font-mono text-sm h-6 shrink-0 select-none ring-0 outline-0 cursor-default px-1 w-full",
-        focused && "bg-accent/50",
       )}
-      onMouseEnter={onMouseEnter}
     >
       <TreeRowGutter depth={row.depth} isLast={row.isLast} />
-      <span className="flex items-center">
+      <span className={cn("flex items-center cursor-pointer", focused && "underline")} onMouseEnter={onMouseEnter}>
         {absolutePaths && (
           <span className="text-muted-foreground">
             {row.path.split("/").slice(0, -1).join("/")}/
