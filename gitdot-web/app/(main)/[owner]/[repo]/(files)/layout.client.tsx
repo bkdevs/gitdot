@@ -1,7 +1,9 @@
 "use client";
 
-import type { RepositoryPathResource } from "gitdot-api";
-import { Undo2 } from "lucide-react";
+import type {
+  RepositoryPathResource,
+  RepositoryPathsResource,
+} from "gitdot-api";
 import { useParams } from "next/navigation";
 import { Fragment, Suspense, use, useEffect, useState } from "react";
 import {
@@ -11,6 +13,7 @@ import {
 } from "@/(main)/[owner]/[repo]/resources";
 import { getFolderEntries } from "@/(main)/[owner]/[repo]/util";
 import Link from "@/ui/link";
+import { Loading } from "@/ui/loading";
 import { OverlayScroll } from "@/ui/scroll";
 import { Sidebar, SidebarContent } from "@/ui/sidebar";
 import { cn } from "@/util";
@@ -33,59 +36,17 @@ export function LayoutClient({
   children: React.ReactNode;
 }) {
   const { path } = useParams<{ path: string[] }>();
+  const filePath = path.join("/") ?? "";
   const resolvedPromises = useResolvePromises(owner, repo, requests, promises);
-
-  return (
-    <>
-      <Sidebar>
-        <SidebarContent className="overflow-auto">
-          <Suspense>
-            <FileTree
-              owner={owner}
-              repo={repo}
-              filePath={path.join("/") ?? ""}
-              promises={resolvedPromises}
-            />
-          </Suspense>
-        </SidebarContent>
-      </Sidebar>
-      <Suspense>
-        <OverlayScroll>{children}</OverlayScroll>
-      </Suspense>
-    </>
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
+    new Set(),
   );
-}
+  const [rootPath, setRootPath] = useState("");
 
-function FileTree({
-  owner,
-  repo,
-  filePath,
-  promises,
-}: {
-  owner: string;
-  repo: string;
-  filePath: string;
-  promises: ResourcePromises;
-}) {
-  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(() => {
-    const s = new Set<string>();
-    const parts = filePath.split("/");
-    for (let i = 1; i <= parts.length; i++) {
-      s.add(parts.slice(0, i).join("/"));
-    }
-    return s;
-  });
-
-  useEffect(() => {
-    setExpandedFolders((prev) => {
-      const next = new Set(prev);
-      const parts = filePath.split("/");
-      for (let i = 1; i <= parts.length; i++) {
-        next.add(parts.slice(0, i).join("/"));
-      }
-      return next;
-    });
-  }, [filePath]);
+  const updateRootPath = (path: string) => {
+    setRootPath(path);
+    setExpandedFolders(new Set());
+  };
 
   const toggleFolder = (path: string) => {
     setExpandedFolders((prev) => {
@@ -99,13 +60,151 @@ function FileTree({
       } else {
         next.add(path);
       }
-
       return next;
     });
   };
 
+  return (
+    <>
+      <Sidebar>
+        <SidebarContent className="overflow-auto flex flex-col w-full">
+          <div className="flex flex-col w-full">
+            <FileTreeHeader
+              repo={repo}
+              rootPath={rootPath}
+              updateRootPath={updateRootPath}
+            />
+            <Suspense fallback={<Loading />}>
+              <FileTreeBody
+                owner={owner}
+                repo={repo}
+                filePath={filePath}
+                promises={resolvedPromises}
+                rootPath={rootPath}
+                expandedFolders={expandedFolders}
+                toggleFolder={toggleFolder}
+                updateRootPath={updateRootPath}
+              />
+            </Suspense>
+          </div>
+        </SidebarContent>
+      </Sidebar>
+      <Suspense>
+        <OverlayScroll>{children}</OverlayScroll>
+      </Suspense>
+    </>
+  );
+}
+
+function FileTreeHeader({
+  repo,
+  rootPath,
+  updateRootPath,
+}: {
+  repo: string;
+  rootPath: string;
+  updateRootPath: (path: string) => void;
+}) {
+  const rootSegments = rootPath.split("/").filter(Boolean);
+
+  return (
+    <div className="sticky top-0 bg-background flex items-center border-b px-2 h-9 z-10 text-sm font-mono select-none overflow-hidden">
+      <div className="flex items-center min-w-0 overflow-hidden whitespace-nowrap">
+        <button
+          type="button"
+          onClick={() => updateRootPath("")}
+          className="cursor-pointer underline decoration-transparent hover:decoration-current shrink-0"
+        >
+          {repo}
+        </button>
+        <span className="shrink-0">/</span>
+        {rootSegments.map((segment, i) => {
+          const segPath = rootSegments.slice(0, i + 1).join("/");
+          const isLast = i === rootSegments.length - 1;
+          return (
+            <Fragment key={segPath}>
+              <button
+                type="button"
+                onClick={() => updateRootPath(segPath)}
+                className={cn(
+                  "cursor-pointer underline decoration-transparent hover:decoration-current",
+                  isLast ? "truncate" : "shrink-0",
+                )}
+              >
+                {segment}
+              </button>
+              <span className="shrink-0">/</span>
+            </Fragment>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function FileTreeBody({
+  owner,
+  repo,
+  filePath,
+  promises,
+  rootPath,
+  expandedFolders,
+  toggleFolder,
+  updateRootPath,
+}: {
+  owner: string;
+  repo: string;
+  filePath: string;
+  promises: ResourcePromises;
+  rootPath: string;
+  expandedFolders: Set<string>;
+  toggleFolder: (path: string) => void;
+  updateRootPath: (path: string) => void;
+}) {
   const paths = use(promises.paths);
   if (!paths) return null;
+
+  return (
+    <FileTreeRows
+      owner={owner}
+      repo={repo}
+      filePath={filePath}
+      paths={paths}
+      rootPath={rootPath}
+      expandedFolders={expandedFolders}
+      toggleFolder={toggleFolder}
+      updateRootPath={updateRootPath}
+    />
+  );
+}
+
+function FileTreeRows({
+  owner,
+  repo,
+  filePath,
+  paths,
+  rootPath,
+  expandedFolders,
+  toggleFolder,
+  updateRootPath,
+}: {
+  owner: string;
+  repo: string;
+  filePath: string;
+  paths: RepositoryPathsResource;
+  rootPath: string;
+  expandedFolders: Set<string>;
+  toggleFolder: (path: string) => void;
+  updateRootPath: (path: string) => void;
+}) {
+  useEffect(() => {
+    const isFolder =
+      filePath !== "" &&
+      paths.entries.some((e) => e.path === filePath && e.path_type === "tree");
+    if (isFolder) {
+      updateRootPath(filePath);
+    }
+  }, [filePath, paths, updateRootPath]);
 
   const renderRows = (parentPath: string, depth: number): React.ReactNode => {
     return getFolderEntries(parentPath, paths).map((entry) => {
@@ -140,21 +239,9 @@ function FileTree({
     });
   };
 
-  return (
-    <div className="flex flex-col w-full">
-      <Link
-        href={`/${owner}/${repo}`}
-        className="sticky top-0 bg-background flex items-center justify-between border-b px-2 h-9 z-10 hover:bg-accent/50 cursor-default"
-      >
-        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-          Files
-        </h3>
-        <Undo2 size={14} className="text-muted-foreground -translate-y-px" />
-      </Link>
-      {renderRows("", 0)}
-    </div>
-  );
+  return <>{renderRows(rootPath, 0)}</>;
 }
+
 function FolderRow({
   owner,
   repo,

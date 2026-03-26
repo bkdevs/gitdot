@@ -2,10 +2,11 @@
 
 import type { RepositoryPathsResource } from "gitdot-api";
 import { useEffect, useRef, useState } from "react";
-import { expandPaths, buildTreeRows } from "../util";
+import { buildTreeRows, expandPaths } from "../util";
 import { FolderShortcuts } from "./folder-shortcuts";
 import { FolderTreeHeader } from "./folder-tree-header";
 import { FolderTreeRow } from "./folder-tree-row";
+
 export type { TreeRowData } from "./folder-tree-row";
 
 export function FolderTree({
@@ -59,13 +60,13 @@ export function FolderTree({
       }}
     >
       <FolderShortcuts
-      rows={rows}
-      hoveredPath={previewPath ?? null}
-      onHover={(p) => {
-        mouseMoved.current = false;
-        setPreviewPath(p);
-      }}
-      onToggle={toggleFolder}
+        rows={rows}
+        hoveredPath={previewPath ?? null}
+        onHover={(p) => {
+          mouseMoved.current = false;
+          setPreviewPath(p);
+        }}
+        onToggle={toggleFolder}
       />
       <FolderTreeHeader path={path} paths={paths} owner={owner} repo={repo} />
       {rows.map((row) => (

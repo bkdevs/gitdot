@@ -3,6 +3,7 @@
 import Link from "@/ui/link";
 import { cn } from "@/util";
 import type { FolderTreeRow } from "../util";
+
 export type { FolderTreeRow as TreeRowData } from "../util";
 
 export function FolderTreeRow({
@@ -71,9 +72,16 @@ function TreeRowFolder({
       <TreeRowGutter depth={row.depth} isLast={row.isLast} />
       <Link
         href={`/${owner}/${repo}/${row.path}`}
-        className={cn("flex items-center cursor-pointer hover:underline", focused && "underline")}
+        className={cn(
+          "flex items-center cursor-pointer hover:underline",
+          focused && "underline",
+        )}
         onMouseEnter={onMouseEnter}
-        onClick={(e) => { e.preventDefault(); e.stopPropagation(); onClick(row.path); }}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onClick(row.path);
+        }}
       >
         {absolutePaths && (
           <span className="text-muted-foreground">
@@ -116,7 +124,13 @@ export function TreeRowFile({
       )}
     >
       <TreeRowGutter depth={row.depth} isLast={row.isLast} />
-      <span className={cn("flex items-center cursor-pointer", focused && "underline")} onMouseEnter={onMouseEnter}>
+      <span
+        className={cn(
+          "flex items-center cursor-pointer",
+          focused && "underline",
+        )}
+        onMouseEnter={onMouseEnter}
+      >
         {absolutePaths && (
           <span className="text-muted-foreground">
             {row.path.split("/").slice(0, -1).join("/")}/

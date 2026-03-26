@@ -1,7 +1,8 @@
 "use client";
 
-import Link from "@/ui/link";
 import type { RepositoryPathsResource } from "gitdot-api";
+import Link from "@/ui/link";
+
 export type { TreeRowData } from "./folder-tree-row";
 
 export function FolderTreeHeader({

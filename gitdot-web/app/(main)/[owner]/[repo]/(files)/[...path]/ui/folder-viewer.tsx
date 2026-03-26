@@ -5,8 +5,8 @@ import type { Root } from "hast";
 import { useParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { DatabaseProvider } from "@/provider/database";
-import { FolderTree } from "./folder-tree";
 import { FolderPathPreview } from "./folder-path-preview";
+import { FolderTree } from "./folder-tree";
 
 export function FolderViewer({
   path,
