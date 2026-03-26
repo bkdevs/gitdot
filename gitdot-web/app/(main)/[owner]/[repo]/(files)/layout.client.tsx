@@ -96,6 +96,8 @@ export function LayoutClient({
   );
 }
 
+const HEADER_CHAR_LIMIT = 32;
+
 function FileTreeHeader({
   repo,
   rootPath,
@@ -105,24 +107,34 @@ function FileTreeHeader({
   rootPath: string;
   updateRootPath: (path: string) => void;
 }) {
-  const rootSegments = rootPath.split("/").filter(Boolean);
+  const allSegments = [repo, ...rootPath.split("/").filter(Boolean)];
+
+  // Find how many segments to show from the right so the path fits
+  let startIdx = 0;
+  const fullDisplay = allSegments.join("/");
+  if (fullDisplay.length > HEADER_CHAR_LIMIT) {
+    for (let i = 1; i < allSegments.length; i++) {
+      const display = `../${allSegments.slice(i).join("/")}`;
+      if (display.length <= HEADER_CHAR_LIMIT || i === allSegments.length - 1) {
+        startIdx = i;
+        break;
+      }
+    }
+  }
+
+  const visibleSegments = allSegments.slice(startIdx);
+  const truncated = startIdx > 0;
 
   return (
-    <div className="sticky top-0 bg-background flex items-center border-b px-2 h-9 z-10 text-sm font-mono select-none overflow-hidden">
+    <div className="sticky top-0 bg-background flex items-center border-b px-2 h-9 z-10 text-sm font-mono font-bold select-none overflow-hidden">
       <div className="flex items-center min-w-0 overflow-hidden whitespace-nowrap">
-        <button
-          type="button"
-          onClick={() => updateRootPath("")}
-          className="cursor-pointer underline decoration-transparent hover:decoration-current shrink-0"
-        >
-          {repo}
-        </button>
-        <span className="shrink-0">/</span>
-        {rootSegments.map((segment, i) => {
-          const segPath = rootSegments.slice(0, i + 1).join("/");
-          const isLast = i === rootSegments.length - 1;
+        {truncated && <span className="shrink-0">../</span>}
+        {visibleSegments.map((segment, i) => {
+          const globalIdx = startIdx + i;
+          const segPath = allSegments.slice(1, globalIdx + 1).join("/");
+          const isLast = i === visibleSegments.length - 1;
           return (
-            <Fragment key={segPath}>
+            <Fragment key={globalIdx}>
               <button
                 type="button"
                 onClick={() => updateRootPath(segPath)}
@@ -133,7 +145,7 @@ function FileTreeHeader({
               >
                 {segment}
               </button>
-              <span className="shrink-0">/</span>
+              {!isLast && <span className="shrink-0">/</span>}
             </Fragment>
           );
         })}
