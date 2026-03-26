@@ -1,7 +1,14 @@
-import type { RepositoryBlobResource, RepositoryPathsResource } from "gitdot-api";
+import type {
+  RepositoryBlobResource,
+  RepositoryPathsResource,
+} from "gitdot-api";
 import type { Root } from "hast";
 import { Suspense } from "react";
-import { getRepositoryBlob, getRepositoryFileCommits, getRepositoryPaths } from "@/dal";
+import {
+  getRepositoryBlob,
+  getRepositoryFileCommits,
+  getRepositoryPaths,
+} from "@/dal";
 import { fetchResources } from "@/provider/server";
 import { Loading } from "@/ui/loading";
 import { PageClient } from "./page.client";
@@ -46,17 +53,18 @@ export default async function Page({
       getRepositoryPaths(owner, repo),
     ]);
     if (!blob) return <div>File not found.</div>;
-    if (blob.type === "folder") return <FolderViewer path={blob.path} paths={paths} />;
+    if (blob.type === "folder")
+      return <FolderViewer path={blob.path} paths={paths} />;
     const commits = await getRepositoryFileCommits(owner, repo, {
       path: filePathString,
       ref_name: ref,
     });
     return (
       <FileViewer
-      file={blob}
-      commits={commits}
-      selectedLines={selectedLines}
-      selectedCommit={ref}
+        file={blob}
+        commits={commits}
+        selectedLines={selectedLines}
+        selectedCommit={ref}
       />
     );
   }

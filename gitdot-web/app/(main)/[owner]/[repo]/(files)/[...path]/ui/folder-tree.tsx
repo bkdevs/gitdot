@@ -7,18 +7,18 @@ import Link from "@/ui/link";
 import { cn } from "@/util";
 
 type TreeRowData = {
-  hasMoreSiblings: boolean[];
-  isLast: boolean;
   name: string;
   path: string;
   isTree: boolean;
+  depth: number;
+  isLast: boolean;
 };
 
 function buildRows(
   path: string,
   paths: RepositoryPathsResource,
   expandedPaths: Set<string>,
-  hasMoreSiblings: boolean[] = [],
+  depth = 0,
 ): TreeRowData[] {
   const entries = getFolderEntries(path, paths);
   const lines: TreeRowData[] = [];
@@ -30,22 +30,9 @@ function buildRows(
     const isLast = i === entries.length - 1;
     const isExpanded = isTree && expandedPaths.has(entry.path);
 
-    lines.push({
-      hasMoreSiblings,
-      isLast,
-      name,
-      path: entry.path,
-      isTree,
-    });
+    lines.push({ name, path: entry.path, isTree, depth, isLast });
     if (isExpanded) {
-      lines.push(
-        ...buildRows(
-          entry.path,
-          paths,
-          expandedPaths,
-          [...hasMoreSiblings, !isLast],
-        ),
-      );
+      lines.push(...buildRows(entry.path, paths, expandedPaths, depth + 1));
     }
   }
   return lines;
@@ -67,7 +54,7 @@ export function FolderTree({
   setPreview?: (path: string) => void;
 }) {
   const [expandedPaths, setExpandedPaths] = useState<Set<string>>(() => {
-    const entries = getFolderEntries(path ?? "", paths);
+    const entries = getFolderEntries(path, paths);
     return new Set(
       entries.filter((e) => e.path_type === "tree").map((e) => e.path),
     );
@@ -183,10 +170,7 @@ function TreeRowFolder({
       onMouseEnter={() => setPreview?.(row.path)}
       onClick={() => onToggle(row.path)}
     >
-      <TreeRowGutter
-        hasMoreSiblings={row.hasMoreSiblings}
-        isLast={row.isLast}
-      />
+      <TreeRowGutter depth={row.depth} isLast={row.isLast} />
       <Link
         href={`/${owner}/${repo}/${row.path}`}
         className="flex items-center cursor-pointer hover:underline"
@@ -223,10 +207,7 @@ function TreeRowFile({
       className="flex items-stretch gap-1.5 font-mono text-sm h-6 shrink-0 select-none hover:bg-accent cursor-default px-1"
       onMouseEnter={() => setPreview?.(row.path)}
     >
-      <TreeRowGutter
-        hasMoreSiblings={row.hasMoreSiblings}
-        isLast={row.isLast}
-      />
+      <TreeRowGutter depth={row.depth} isLast={row.isLast} />
       <span className="flex items-center">
         {absolutePaths && (
           <span className="text-muted-foreground">
@@ -240,20 +221,18 @@ function TreeRowFile({
 }
 
 function TreeRowGutter({
-  hasMoreSiblings,
+  depth,
   isLast,
 }: {
-  hasMoreSiblings: boolean[];
+  depth: number;
   isLast: boolean;
 }) {
   return (
     <span className="flex items-stretch shrink-0 select-none" aria-hidden>
-      {hasMoreSiblings.map((active, i) => (
+      {Array.from({ length: depth }, (_, i) => (
         // biome-ignore lint/suspicious/noArrayIndexKey: stable positional slots
         <span key={i} className="relative w-5">
-          {active && (
-            <span className="absolute left-2.25 top-0 bottom-0 border-l border-foreground" />
-          )}
+          <span className="absolute left-2.25 top-0 bottom-0 border-l border-foreground" />
         </span>
       ))}
       <span className="relative w-5">
