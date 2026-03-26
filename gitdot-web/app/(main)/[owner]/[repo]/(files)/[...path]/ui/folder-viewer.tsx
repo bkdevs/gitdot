@@ -41,6 +41,7 @@ export function FolderViewer({
           owner={owner}
           repo={repo}
           paths={paths}
+          shortcuts
           onHover={handleHover}
           onHoverClear={() => setHoveredPath(null)}
           onPin={handlePin}

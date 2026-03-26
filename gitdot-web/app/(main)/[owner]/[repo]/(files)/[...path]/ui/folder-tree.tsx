@@ -1,12 +1,13 @@
 "use client";
 
 import type { RepositoryPathsResource } from "gitdot-api";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { getFolderEntries } from "@/(main)/[owner]/[repo]/util";
 import Link from "@/ui/link";
 import { cn } from "@/util";
+import { FolderShortcuts } from "./folder-shortcuts";
 
-type TreeRowData = {
+export type TreeRowData = {
   name: string;
   path: string;
   isTree: boolean;
@@ -16,7 +17,7 @@ type TreeRowData = {
   isLast: boolean;
 };
 
-function buildRows(
+export function buildRows(
   path: string,
   paths: RepositoryPathsResource,
   expandedPaths: Set<string>,
@@ -41,7 +42,15 @@ function buildRows(
           );
         }).length
       : 0;
-    lines.push({ name, path: entry.path, isTree, isExpanded, fileCount, depth, isLast });
+    lines.push({
+      name,
+      path: entry.path,
+      isTree,
+      isExpanded,
+      fileCount,
+      depth,
+      isLast,
+    });
     if (isExpanded) {
       lines.push(...buildRows(entry.path, paths, expandedPaths, depth + 1));
     }
@@ -55,6 +64,7 @@ export function FolderTree({
   path,
   paths,
   absolutePaths = false,
+  shortcuts = false,
   onHover,
   onHoverClear,
   onPin,
@@ -65,6 +75,7 @@ export function FolderTree({
   path: string;
   paths: RepositoryPathsResource;
   absolutePaths: boolean;
+  shortcuts?: boolean;
   onHover?: (path: string) => void;
   onHoverClear?: () => void;
   onPin?: (path: string) => void;
@@ -78,15 +89,18 @@ export function FolderTree({
     );
   });
 
-  const toggleFolder = (path: string) => {
+  const mouseMoved = useRef(false);
+
+  const toggleFolder = (folderPath: string) => {
     setExpandedPaths((prev) => {
       const next = new Set(prev);
-      if (next.has(path)) {
+      if (next.has(folderPath)) {
         for (const p of next) {
-          if (p === path || p.startsWith(`${path}/`)) next.delete(p);
+          if (p === folderPath || p.startsWith(`${folderPath}/`))
+            next.delete(p);
         }
       } else {
-        next.add(path);
+        next.add(folderPath);
       }
       return next;
     });
@@ -98,9 +112,33 @@ export function FolderTree({
     <div
       data-page-scroll
       className="flex flex-col h-full overflow-y-auto scrollbar-thin"
-      onMouseLeave={() => { setFocusedPath(null); onHoverClear?.(); }}
-      onMouseOver={(e) => { if (e.target === e.currentTarget) { setFocusedPath(null); onHoverClear?.(); } }}
+      onMouseMove={() => {
+        mouseMoved.current = true;
+      }}
+      onMouseLeave={() => {
+        if (!mouseMoved.current) return;
+        setFocusedPath(null);
+        onHoverClear?.();
+      }}
+      onMouseOver={(e) => {
+        if (!mouseMoved.current || e.target !== e.currentTarget) return;
+        setFocusedPath(null);
+        onHoverClear?.();
+      }}
     >
+      {shortcuts && (
+        <FolderShortcuts
+          rows={rows}
+          hoveredPath={focusedPath}
+          onHover={(p) => {
+            mouseMoved.current = false;
+            setFocusedPath(p);
+            onHover?.(p);
+          }}
+          onPin={onPin ?? (() => {})}
+          onToggle={toggleFolder}
+        />
+      )}
       <TreeHeader path={path} paths={paths} owner={owner} repo={repo} />
       {rows.map((row) =>
         row.isTree ? (
@@ -112,7 +150,11 @@ export function FolderTree({
             absolutePaths={absolutePaths}
             focused={focusedPath === row.path}
             pinned={pinnedPath === row.path}
-            onMouseEnter={() => { setFocusedPath(row.path); onHover?.(row.path); }}
+            onMouseEnter={() => {
+              if (!mouseMoved.current) return;
+              setFocusedPath(row.path);
+              onHover?.(row.path);
+            }}
             onToggle={toggleFolder}
             onPin={onPin}
           />
@@ -122,7 +164,11 @@ export function FolderTree({
             row={row}
             focused={focusedPath === row.path}
             pinned={pinnedPath === row.path}
-            onMouseEnter={() => { setFocusedPath(row.path); onHover?.(row.path); }}
+            onMouseEnter={() => {
+              if (!mouseMoved.current) return;
+              setFocusedPath(row.path);
+              onHover?.(row.path);
+            }}
             onPin={onPin}
             absolutePaths={absolutePaths}
           />
@@ -203,9 +249,16 @@ function TreeRowFolder({
   return (
     <button
       type="button"
-      className={cn("flex items-stretch gap-1 font-mono text-sm h-6 shrink-0 select-none w-full pl-1 pr-2", focused && "bg-accent", pinned && "underline")}
+      className={cn(
+        "flex items-stretch gap-1 font-mono text-sm h-6 shrink-0 select-none w-full pl-1 pr-2",
+        focused && "bg-accent",
+        pinned && "underline",
+      )}
       onMouseEnter={onMouseEnter}
-      onClick={() => { onToggle(row.path); onPin?.(row.path); }}
+      onClick={() => {
+        onToggle(row.path);
+        onPin?.(row.path);
+      }}
     >
       <TreeRowGutter depth={row.depth} isLast={row.isLast} />
       <Link
@@ -248,7 +301,11 @@ function TreeRowFile({
   return (
     <button
       type="button"
-      className={cn("flex items-stretch gap-1 font-mono text-sm h-6 shrink-0 select-none cursor-default px-1 w-full", focused && "bg-accent", pinned && "underline")}
+      className={cn(
+        "flex items-stretch gap-1 font-mono text-sm h-6 shrink-0 select-none cursor-default px-1 w-full",
+        focused && "bg-accent",
+        pinned && "underline",
+      )}
       onMouseEnter={onMouseEnter}
       onClick={() => onPin?.(row.path)}
     >
