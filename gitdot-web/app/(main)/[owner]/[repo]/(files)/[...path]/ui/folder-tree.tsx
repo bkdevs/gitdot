@@ -12,16 +12,13 @@ type TreeRowData = {
   name: string;
   path: string;
   isTree: boolean;
-  isExpanded: boolean;
-  depth: number;
 };
 
-function flattenTree(
+function buildRows(
   path: string,
   paths: RepositoryPathsResource,
   expandedPaths: Set<string>,
   hasMoreSiblings: boolean[] = [],
-  depth = 0,
 ): TreeRowData[] {
   const entries = getFolderEntries(path, paths);
   const lines: TreeRowData[] = [];
@@ -39,17 +36,14 @@ function flattenTree(
       name,
       path: entry.path,
       isTree,
-      isExpanded,
-      depth,
     });
     if (isExpanded) {
       lines.push(
-        ...flattenTree(
+        ...buildRows(
           entry.path,
           paths,
           expandedPaths,
           [...hasMoreSiblings, !isLast],
-          depth + 1,
         ),
       );
     }
@@ -88,7 +82,7 @@ export function FolderTree({
     });
   };
 
-  const rows = flattenTree(path ?? "", paths, expandedPaths);
+  const rows = buildRows(path ?? "", paths, expandedPaths);
 
   return (
     <div
@@ -103,7 +97,6 @@ export function FolderTree({
             row={row}
             owner={owner}
             repo={repo}
-            paths={paths}
             absolutePaths={absolutePaths}
             setPreview={setPreview}
             onToggle={toggleFolder}
@@ -172,7 +165,6 @@ function TreeRowFolder({
   row,
   owner,
   repo,
-  paths,
   setPreview,
   absolutePaths,
   onToggle,
@@ -180,7 +172,6 @@ function TreeRowFolder({
   row: TreeRowData;
   owner: string;
   repo: string;
-  paths: RepositoryPathsResource;
   setPreview?: (path: string) => void;
   absolutePaths: boolean;
   onToggle: (path: string) => void;
@@ -208,14 +199,6 @@ function TreeRowFolder({
         )}
         {row.name}/
       </Link>
-      <span className="text-xs text-muted-foreground ml-auto flex items-center">
-        {
-          paths.entries.filter(
-            (e) => e.path.startsWith(`${row.path}/`) && e.path_type === "blob",
-          ).length
-        }{" "}
-        files
-      </span>
     </button>
   );
 }

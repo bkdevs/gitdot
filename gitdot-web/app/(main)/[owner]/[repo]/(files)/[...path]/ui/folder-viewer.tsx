@@ -8,7 +8,7 @@ import { DatabaseProvider } from "@/provider/database";
 import { FolderTree } from "./folder-tree";
 import { FolderTreePreview } from "./folder-tree-preview";
 
-export function FolderViewer({ folderPath: path }: { folderPath: string }) {
+export function FolderViewer({ path }: { path: string }) {
   const { owner, repo } = useParams<{ owner: string; repo: string }>();
   const [paths, setPaths] = useState<RepositoryPathsResource | null>(null);
   const [previewPath, setPreviewPath] = useState<string | null>(null);

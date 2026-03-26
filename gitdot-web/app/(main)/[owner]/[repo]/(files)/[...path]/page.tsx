@@ -44,17 +44,17 @@ export default async function Page({
       ref_name: ref,
     });
     if (!blob) return <div>File not found.</div>;
-    if (blob.type === "folder") return <FolderViewer />;
+    if (blob.type === "folder") return <FolderViewer path={blob.path} />;
     const commits = await getRepositoryFileCommits(owner, repo, {
       path: filePathString,
       ref_name: ref,
     });
     return (
       <FileViewer
-        file={blob}
-        commits={commits}
-        selectedLines={selectedLines}
-        selectedCommit={ref}
+      file={blob}
+      commits={commits}
+      selectedLines={selectedLines}
+      selectedCommit={ref}
       />
     );
   }
