@@ -81,7 +81,9 @@ function FileTree({
   promises: ResourcePromises;
 }) {
   const paths = use(promises.paths);
-  const [rootPath, setRootPath] = useState("");
+  const [rootPath, setRootPath] = useState(() =>
+    filePath.split("/").slice(0, -1).join("/"),
+  );
 
   if (!paths) return null;
 
@@ -217,12 +219,18 @@ function FileTreeRows({
     const isFolder = paths.entries.some(
       (e) => e.path === filePath && e.path_type === "tree",
     );
-    if (!isFolder) return;
+
+    // For files, rootPath and expand logic is based on the parent folder
+    const targetPath = isFolder
+      ? filePath
+      : filePath.split("/").slice(0, -1).join("/");
+
+    if (targetPath === rootPath) return;
 
     const isWithinCurrentRoot =
       rootPath === "" ||
-      filePath === rootPath ||
-      filePath.startsWith(`${rootPath}/`);
+      targetPath === rootPath ||
+      targetPath.startsWith(`${rootPath}/`);
 
     if (isWithinCurrentRoot) {
       const segments = filePath.split("/");
@@ -235,7 +243,7 @@ function FileTreeRows({
         expandFolders(ancestors);
       }
     } else {
-      updateRootPath(filePath);
+      updateRootPath(targetPath);
     }
   }, [
     filePath,
