@@ -4,6 +4,7 @@ import type {
   RepositoryPathResource,
   RepositoryPathsResource,
 } from "gitdot-api";
+import { Undo2 } from "lucide-react";
 import { useParams } from "next/navigation";
 import {
   Fragment,
@@ -89,7 +90,14 @@ function FileTree({
 
   return (
     <>
-      <FileTreeHeader owner={owner} repo={repo} rootPath={rootPath} />
+      <FileTreeHeader
+        owner={owner}
+        repo={repo}
+        rootPath={rootPath}
+        onNavigateUp={() =>
+          setRootPath(rootPath.split("/").slice(0, -1).join("/"))
+        }
+      />
       <FileTreeRows
         owner={owner}
         repo={repo}
@@ -102,64 +110,44 @@ function FileTree({
   );
 }
 
-const HEADER_CHAR_LIMIT = 32;
 
 function FileTreeHeader({
   owner,
   repo,
   rootPath,
+  onNavigateUp,
 }: {
   owner: string;
   repo: string;
   rootPath: string;
+  onNavigateUp: () => void;
 }) {
-  const allSegments = [repo, ...rootPath.split("/").filter(Boolean)];
-
-  // Find how many segments to show from the right so the path fits
-  let startIdx = 0;
-  const fullDisplay = allSegments.join("/");
-  if (fullDisplay.length > HEADER_CHAR_LIMIT) {
-    for (let i = 1; i < allSegments.length; i++) {
-      const display = `../${allSegments.slice(i).join("/")}`;
-      if (display.length <= HEADER_CHAR_LIMIT || i === allSegments.length - 1) {
-        startIdx = i;
-        break;
-      }
-    }
-  }
-
-  const visibleSegments = allSegments.slice(startIdx);
-  const truncated = startIdx > 0;
+  const isRoot = rootPath === "";
 
   return (
-    <div className="sticky top-0 bg-background flex items-center border-b px-2 h-9 z-10 text-sm font-mono font-bold select-none overflow-hidden">
-      <div className="flex items-center min-w-0 overflow-hidden whitespace-nowrap">
-        {truncated && <span className="shrink-0">../</span>}
-        {visibleSegments.map((segment, i) => {
-          const globalIdx = startIdx + i;
-          const segPath = allSegments.slice(1, globalIdx + 1).join("/");
-          const isLast = i === visibleSegments.length - 1;
-          return (
-            <Fragment key={globalIdx}>
-              <Link
-                href={
-                  segPath
-                    ? `/${owner}/${repo}/${segPath}`
-                    : `/${owner}/${repo}/files`
-                }
-                className={cn(
-                  "cursor-pointer underline decoration-transparent hover:decoration-current",
-                  isLast ? "truncate" : "shrink-0",
-                )}
-              >
-                {segment}
-              </Link>
-              {!isLast && <span className="shrink-0">/</span>}
-            </Fragment>
-          );
-        })}
-      </div>
-    </div>
+    <Link
+      href={`/${owner}/${repo}/files`}
+      onClick={
+        !isRoot
+          ? (e) => {
+              e.preventDefault();
+              onNavigateUp();
+            }
+          : undefined
+      }
+      className="sticky top-0 bg-background flex items-center justify-between border-b px-2 h-9 z-10 hover:bg-accent/50 cursor-default select-none"
+    >
+      {isRoot ? (
+        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+          Files
+        </h3>
+      ) : (
+        <span className="font-mono text-sm truncate">
+          <span className="text-base leading-none">•</span>/{rootPath}/
+        </span>
+      )}
+      <Undo2 size={14} className="text-muted-foreground -translate-y-px shrink-0" />
+    </Link>
   );
 }
 
@@ -271,6 +259,7 @@ function FileTreeRows({
               isActive={isActive}
               expanded={isExpanded}
               setExpanded={() => toggleFolder(entry.path)}
+              count={getFolderEntries(entry.path, paths).length}
             />
           ) : (
             <FileRow
@@ -298,6 +287,7 @@ function FolderRow({
   isActive,
   expanded,
   setExpanded,
+  count,
 }: {
   owner: string;
   repo: string;
@@ -306,6 +296,7 @@ function FolderRow({
   isActive: boolean;
   expanded: boolean;
   setExpanded: () => void;
+  count: number;
 }) {
   const name = entry.path.split("/").pop();
 
@@ -324,13 +315,14 @@ function FolderRow({
       <Link
         href={`/${owner}/${repo}/${entry.path}`}
         onClick={(e) => e.stopPropagation()}
-        className="truncate cursor-pointer underline decoration-transparent hover:decoration-current transition-colors duration-300"
+        className="inline-flex items-center truncate cursor-pointer"
       >
-        {name}
+        <span className="underline decoration-transparent hover:decoration-current">{name}</span>
+        {expanded && "/"}
+        {!expanded && (
+          <span className="ml-1 text-xs text-muted-foreground">({count})</span>
+        )}
       </Link>
-      <span className={cn("pl-px", expanded ? "opacity-100" : "opacity-40")}>
-        /
-      </span>
     </button>
   );
 }
