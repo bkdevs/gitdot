@@ -10,7 +10,7 @@ import { Loading } from "@/ui/loading";
 import type { Resources } from "./page";
 import { FileBody } from "./ui/file-body";
 import { FolderViewer } from "./ui/folder-viewer";
-import type { LineSelection } from "./util";
+import { expandPaths, type LineSelection } from "./util";
 
 type ResourceRequests = ResourceRequestsType<Resources>;
 type ResourcePromises = ResourcePromisesType<Resources>;
@@ -65,7 +65,8 @@ function PageContent({
   }
   if (blob.type === "folder") {
     const paths = use(promises.paths);
-    return <FolderViewer path={blob.path} paths={paths} />;
+    const initialExpanded = paths ? expandPaths(blob.path, paths, 1) : undefined;
+    return <FolderViewer path={blob.path} paths={paths} initialExpanded={initialExpanded} />;
   }
 
   const hast = use(promises.hast);

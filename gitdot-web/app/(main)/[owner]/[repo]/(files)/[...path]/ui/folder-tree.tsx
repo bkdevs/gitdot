@@ -1,7 +1,7 @@
 "use client";
 
 import type { RepositoryPathsResource } from "gitdot-api";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { expandPaths, buildTreeRows } from "../util";
 import { FolderShortcuts } from "./folder-shortcuts";
 import { FolderTreeHeader } from "./folder-tree-header";
@@ -15,6 +15,8 @@ export function FolderTree({
   paths,
   previewPath,
   setPreviewPath,
+  initialExpanded,
+  activePath,
 }: {
   owner: string;
   repo: string;
@@ -22,14 +24,12 @@ export function FolderTree({
   paths: RepositoryPathsResource;
   previewPath?: string | null;
   setPreviewPath: (path: string) => void;
+  initialExpanded?: Set<string>;
+  activePath?: string;
 }) {
   const [expandedPaths, setExpandedPaths] = useState<Set<string>>(() =>
-    expandPaths(path, paths, 1),
+    initialExpanded ?? expandPaths(path, paths, 1),
   );
-
-  useEffect(() => {
-    setExpandedPaths(expandPaths(path, paths));
-  }, [path, paths]);
 
   const mouseMoved = useRef(false);
 
@@ -76,6 +76,7 @@ export function FolderTree({
           repo={repo}
           absolutePaths={false}
           focused={previewPath === row.path}
+          active={activePath === row.path}
           onMouseEnter={() => {
             if (!mouseMoved.current) return;
             setPreviewPath(row.path);
