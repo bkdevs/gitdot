@@ -1,7 +1,7 @@
 import type { RepositoryPathsResource } from "gitdot-api";
 import { getFolderEntries } from "@/(main)/[owner]/[repo]/util";
 
-export type FolderTreeRow = {
+export type FolderTreeRowData = {
   name: string;
   path: string;
   isTree: boolean;
@@ -16,9 +16,9 @@ export function buildTreeRows(
   paths: RepositoryPathsResource,
   expandedPaths: Set<string>,
   depth = 0,
-): FolderTreeRow[] {
+): FolderTreeRowData[] {
   const entries = getFolderEntries(path, paths);
-  const lines: FolderTreeRow[] = [];
+  const lines: FolderTreeRowData[] = [];
 
   for (let i = 0; i < entries.length; i++) {
     const entry = entries[i];

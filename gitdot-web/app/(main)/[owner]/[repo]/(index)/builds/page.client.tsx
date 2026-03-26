@@ -45,11 +45,10 @@ function PageContent({
   repo: string;
   promises: ResourcePromises;
 }) {
+  const [filter, setFilter] = useState<BuildsFilter>("main");
   const builds = use(promises.builds);
   const commits = use(promises.commits);
   if (!builds || !commits) return null;
-
-  const [filter, setFilter] = useState<BuildsFilter>("main");
   const commitsBySha: Record<string, RepositoryCommitResource> = {};
   for (const commit of commits) {
     commitsBySha[commit.sha] = commit;

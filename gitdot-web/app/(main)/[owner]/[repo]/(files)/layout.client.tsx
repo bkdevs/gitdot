@@ -5,7 +5,14 @@ import type {
   RepositoryPathsResource,
 } from "gitdot-api";
 import { useParams } from "next/navigation";
-import { Fragment, Suspense, use, useLayoutEffect, useState } from "react";
+import {
+  Fragment,
+  Suspense,
+  use,
+  useCallback,
+  useLayoutEffect,
+  useState,
+} from "react";
 import {
   type ResourcePromisesType,
   type ResourceRequestsType,
@@ -74,51 +81,20 @@ function FileTree({
   promises: ResourcePromises;
 }) {
   const paths = use(promises.paths);
-  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
-    new Set(),
-  );
   const [rootPath, setRootPath] = useState("");
-
-  const updateRootPath = (path: string) => {
-    setRootPath(path);
-    setExpandedFolders(new Set());
-  };
-
-  const toggleFolder = (path: string) => {
-    setExpandedFolders((prev) => {
-      const next = new Set(prev);
-      if (next.has(path)) {
-        for (const p of next) {
-          if (p === path || p.startsWith(`${path}/`)) {
-            next.delete(p);
-          }
-        }
-      } else {
-        next.add(path);
-      }
-      return next;
-    });
-  };
 
   if (!paths) return null;
 
   return (
     <>
-      <FileTreeHeader
-        owner={owner}
-        repo={repo}
-        rootPath={rootPath}
-        updateRootPath={updateRootPath}
-      />
+      <FileTreeHeader owner={owner} repo={repo} rootPath={rootPath} />
       <FileTreeRows
         owner={owner}
         repo={repo}
         filePath={filePath}
         paths={paths}
         rootPath={rootPath}
-        expandedFolders={expandedFolders}
-        toggleFolder={toggleFolder}
-        updateRootPath={updateRootPath}
+        setRootPath={setRootPath}
       />
     </>
   );
@@ -130,12 +106,10 @@ function FileTreeHeader({
   owner,
   repo,
   rootPath,
-  updateRootPath,
 }: {
   owner: string;
   repo: string;
   rootPath: string;
-  updateRootPath: (path: string) => void;
 }) {
   const allSegments = [repo, ...rootPath.split("/").filter(Boolean)];
 
@@ -166,8 +140,11 @@ function FileTreeHeader({
           return (
             <Fragment key={globalIdx}>
               <Link
-                href={segPath ? `/${owner}/${repo}/${segPath}` : `/${owner}/${repo}/files`}
-                onClick={() => updateRootPath(segPath)}
+                href={
+                  segPath
+                    ? `/${owner}/${repo}/${segPath}`
+                    : `/${owner}/${repo}/files`
+                }
                 className={cn(
                   "cursor-pointer underline decoration-transparent hover:decoration-current",
                   isLast ? "truncate" : "shrink-0",
@@ -190,27 +167,84 @@ function FileTreeRows({
   filePath,
   paths,
   rootPath,
-  expandedFolders,
-  toggleFolder,
-  updateRootPath,
+  setRootPath,
 }: {
   owner: string;
   repo: string;
   filePath: string;
   paths: RepositoryPathsResource;
   rootPath: string;
-  expandedFolders: Set<string>;
-  toggleFolder: (path: string) => void;
-  updateRootPath: (path: string) => void;
+  setRootPath: (path: string) => void;
 }) {
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
+    new Set(),
+  );
+
+  const updateRootPath = useCallback(
+    (path: string) => {
+      setRootPath(path);
+      setExpandedFolders(new Set());
+    },
+    [setRootPath],
+  );
+
+  const toggleFolder = (path: string) => {
+    setExpandedFolders((prev) => {
+      const next = new Set(prev);
+      if (next.has(path)) {
+        for (const p of next) {
+          if (p === path || p.startsWith(`${path}/`)) {
+            next.delete(p);
+          }
+        }
+      } else {
+        next.add(path);
+      }
+      return next;
+    });
+  };
+
+  const expandFolders = useCallback((paths: string[]) => {
+    setExpandedFolders((prev) => new Set([...prev, ...paths]));
+  }, []);
+
   useLayoutEffect(() => {
-    const isFolder =
-      filePath !== "" &&
-      paths.entries.some((e) => e.path === filePath && e.path_type === "tree");
-    if (isFolder) {
+    if (filePath === "") {
+      updateRootPath("");
+      return;
+    }
+
+    const isFolder = paths.entries.some(
+      (e) => e.path === filePath && e.path_type === "tree",
+    );
+    if (!isFolder) return;
+
+    const isWithinCurrentRoot =
+      rootPath === "" ||
+      filePath === rootPath ||
+      filePath.startsWith(`${rootPath}/`);
+
+    if (isWithinCurrentRoot) {
+      const segments = filePath.split("/");
+      const rootDepth = rootPath === "" ? 0 : rootPath.split("/").length;
+      const ancestors = Array.from(
+        { length: segments.length - rootDepth - 1 },
+        (_, i) => segments.slice(0, rootDepth + 1 + i).join("/"),
+      );
+      if (!ancestors.every((a) => expandedFolders.has(a))) {
+        expandFolders(ancestors);
+      }
+    } else {
       updateRootPath(filePath);
     }
-  }, [filePath, paths, updateRootPath]);
+  }, [
+    filePath,
+    paths,
+    rootPath,
+    updateRootPath,
+    expandFolders,
+    expandedFolders,
+  ]);
 
   const renderRows = (parentPath: string, depth: number): React.ReactNode => {
     return getFolderEntries(parentPath, paths).map((entry) => {

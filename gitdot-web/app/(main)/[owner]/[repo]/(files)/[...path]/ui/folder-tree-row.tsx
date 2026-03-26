@@ -2,9 +2,9 @@
 
 import Link from "@/ui/link";
 import { cn } from "@/util";
-import type { FolderTreeRow } from "../util";
+import type { FolderTreeRowData } from "../util";
 
-export type { FolderTreeRow as TreeRowData } from "../util";
+export type { FolderTreeRowData as TreeRowData } from "../util";
 
 export function FolderTreeRow({
   row,
@@ -15,7 +15,7 @@ export function FolderTreeRow({
   onClick,
   absolutePaths,
 }: {
-  row: FolderTreeRow;
+  row: FolderTreeRowData;
   owner: string;
   repo: string;
   focused: boolean;
@@ -54,7 +54,7 @@ function TreeRowFolder({
   onClick,
   absolutePaths,
 }: {
-  row: FolderTreeRow;
+  row: FolderTreeRowData;
   owner: string;
   repo: string;
   focused: boolean;
@@ -107,7 +107,7 @@ export function TreeRowFile({
   onMouseEnter,
   absolutePaths,
 }: {
-  row: FolderTreeRow;
+  row: FolderTreeRowData;
   owner: string;
   repo: string;
   focused: boolean;
