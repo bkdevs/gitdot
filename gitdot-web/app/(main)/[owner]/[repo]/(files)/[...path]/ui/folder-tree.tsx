@@ -1,7 +1,7 @@
 "use client";
 
 import type { RepositoryPathsResource } from "gitdot-api";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getFolderEntries } from "@/(main)/[owner]/[repo]/util";
 import Link from "@/ui/link";
 import { cn } from "@/util";
@@ -82,12 +82,28 @@ export function FolderTree({
   pinnedPath?: string | null;
 }) {
   const [focusedPath, setFocusedPath] = useState<string | null>(null);
-  const [expandedPaths, setExpandedPaths] = useState<Set<string>>(() => {
-    const entries = getFolderEntries(path, paths);
-    return new Set(
-      entries.filter((e) => e.path_type === "tree").map((e) => e.path),
-    );
-  });
+  const buildExpandedPaths = (p: string) => {
+    const result = new Set<string>();
+    const expand = (cur: string, depth: number) => {
+      if (depth <= 0) return;
+      for (const e of getFolderEntries(cur, paths)) {
+        if (e.path_type === "tree") {
+          result.add(e.path);
+          expand(e.path, depth - 1);
+        }
+      }
+    };
+    expand(p, absolutePaths ? Number.POSITIVE_INFINITY : 1);
+    return result;
+  };
+
+  const [expandedPaths, setExpandedPaths] = useState<Set<string>>(() =>
+    buildExpandedPaths(path),
+  );
+
+  useEffect(() => {
+    setExpandedPaths(buildExpandedPaths(path));
+  }, [path]);
 
   const mouseMoved = useRef(false);
 
