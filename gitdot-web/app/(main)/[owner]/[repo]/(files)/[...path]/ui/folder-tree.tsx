@@ -82,8 +82,13 @@ export function FolderTree({
   const toggleFolder = (path: string) => {
     setExpandedPaths((prev) => {
       const next = new Set(prev);
-      if (next.has(path)) next.delete(path);
-      else next.add(path);
+      if (next.has(path)) {
+        for (const p of next) {
+          if (p === path || p.startsWith(`${path}/`)) next.delete(p);
+        }
+      } else {
+        next.add(path);
+      }
       return next;
     });
   };
@@ -149,7 +154,7 @@ function TreeHeader({
         <Link href={`/${owner}/${repo}/files`} className="hover:underline">
           {repo}
         </Link>
-        {path?.split("/").map((seg, i, arr) => (
+        {path && path.split("/").map((seg, i, arr) => (
           // biome-ignore lint/suspicious/noArrayIndexKey: stable path segments
           <span key={i}>
             <span>/</span>
@@ -161,7 +166,9 @@ function TreeHeader({
             </Link>
           </span>
         ))}
-        <span>/</span>
+        <span>
+          /
+        </span>
       </div>
       <span className="text-xs text-muted-foreground">{fileCount} files</span>
     </div>
