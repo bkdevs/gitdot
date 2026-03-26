@@ -286,6 +286,7 @@ export function FolderViewer({ path }: { path: string }) {
   const [paths, setPaths] = useState<RepositoryPathsResource | null>(null);
   const [blobs, setBlobs] = useState<RepositoryBlobsResource | null>(null);
   const [preview, setPreview] = useState<Preview | null>(null);
+  const [previewPath, setPreviewPath] = useState<string | null>(null);
   const dbRef = useRef<DatabaseProvider | null>(null);
   const pathsRef = useRef<RepositoryPathsResource | null>(null);
 
@@ -330,6 +331,7 @@ export function FolderViewer({ path }: { path: string }) {
         repo={repo}
         paths={paths}
         blobs={blobs}
+        setPreview={setPreviewPath}
       />
       <div className="flex-1 min-w-0 overflow-auto scrollbar-thin">
         {preview?.kind === "file" && (

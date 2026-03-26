@@ -64,7 +64,7 @@ function PageContent({
     return <div>File not found.</div>;
   }
   if (blob.type === "folder") {
-    return <FolderViewer folderPath={blob.path} />;
+    return <FolderViewer path={blob.path} />;
   }
 
   const hast = use(promises.hast);

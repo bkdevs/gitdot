@@ -1,13 +1,13 @@
 "use client";
 
+import { getFolderEntries } from "@/(main)/[owner]/[repo]/util";
+import Link from "@/ui/link";
+import { cn } from "@/util";
 import type {
   RepositoryBlobsResource,
   RepositoryPathsResource,
 } from "gitdot-api";
 import { useState } from "react";
-import { getFolderEntries } from "@/(main)/[owner]/[repo]/util";
-import Link from "@/ui/link";
-import { cn } from "@/util";
 
 type TreeRowData = {
   hasMoreSiblings: boolean[];
@@ -60,40 +60,54 @@ function flattenTree(
   return lines;
 }
 
-function TreeRowGutter({
-  hasMoreSiblings,
-  isLast,
+export function FolderTree({
+  path,
+  paths,
+  blobs,
+  owner,
+  repo,
+  showAbsolutePath = false,
+  setPreview,
 }: {
-  hasMoreSiblings: boolean[];
-  isLast: boolean;
+  path: string;
+  paths: RepositoryPathsResource;
+  blobs: RepositoryBlobsResource | null;
+  owner: string;
+  repo: string;
+  showAbsolutePath?: boolean;
+  setPreview?: (path: string) => void;
 }) {
-  return (
-    <span className="flex items-stretch shrink-0 select-none" aria-hidden>
-      {hasMoreSiblings.map((active, i) => (
-        // biome-ignore lint/suspicious/noArrayIndexKey: stable positional slots
-        <span key={i} className="relative w-5">
-          {active && (
-            <span className="absolute left-2.25 top-0 bottom-0 border-l border-foreground" />
-          )}
-        </span>
-      ))}
-      <span className="relative w-5">
-        <span
-          className={cn(
-            "absolute left-2.25 border-l border-foreground",
-            isLast ? "top-0 bottom-1/2" : "top-0 bottom-0",
-          )}
-        />
-        <span className="absolute left-2.25 right-0 top-1/2 border-t border-foreground" />
-      </span>
-    </span>
-  );
-}
+  const [expandedPaths, setExpandedPaths] = useState<Set<string>>(() => {
+    const entries = getFolderEntries(path ?? "", paths);
+    return new Set(
+      entries.filter((e) => e.path_type === "tree").map((e) => e.path),
+    );
+  });
 
-function formatBytes(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  const _toggleFolder = (path: string) => {
+    setExpandedPaths((prev) => {
+      const next = new Set(prev);
+      if (next.has(path)) next.delete(path);
+      else next.add(path);
+      return next;
+    });
+  };
+
+  const rows = flattenTree(path ?? "", paths, expandedPaths);
+
+  return (
+    <div
+      data-page-scroll
+      className="flex flex-col w-[45%] h-full shrink-0 border-r overflow-y-auto scrollbar-thin"
+    >
+      <TreeHeader path={path ?? ""} paths={paths} owner={owner} repo={repo} />
+      {rows.map((row) =>
+        row.isTree ?
+        <TreeRowFolder row={row} owner={owner} repo={repo} paths={paths} absolutePaths={showAbsolutePath} setPreview={setPreview} />
+        : <TreeRowFile row={row} owner={owner} repo={repo} setPreview={setPreview} absolutePaths={showAbsolutePath} />,
+      )}
+    </div>
+  );
 }
 
 function TreeHeader({
@@ -141,109 +155,119 @@ function TreeHeader({
   );
 }
 
-export function FolderTree({
-  path,
-  paths,
-  blobs,
+function TreeRowFolder({
+  row,
   owner,
   repo,
-  showAbsolutePath = false,
+  paths,
+  setPreview,
+  absolutePaths,
 }: {
-  path: string;
-  paths: RepositoryPathsResource;
-  blobs: RepositoryBlobsResource | null;
+  row: TreeRowData;
   owner: string;
-  repo: string;
-  showAbsolutePath?: boolean;
+    repo: string;
+    paths: RepositoryPathsResource;
+  setPreview: any;
+  absolutePaths: boolean
 }) {
-  const [_expandedPaths, setExpandedPaths] = useState<Set<string>>(new Set());
-
-  const _toggleFolder = (path: string) => {
-    setExpandedPaths((prev) => {
-      const next = new Set(prev);
-      if (next.has(path)) next.delete(path);
-      else next.add(path);
-      return next;
-    });
-  };
-
-  const lines = flattenTree(path ?? "", paths, new Set());
-
   return (
     <div
-      data-page-scroll
-      className="flex flex-col w-[45%] h-full shrink-0 border-r overflow-y-auto scrollbar-thin"
+      key={row.path}
+      className="flex items-stretch gap-1.5 font-mono text-sm h-6 shrink-0 select-none hover:bg-accent w-full pl-1 pr-2"
+      onMouseEnter={() => setPreview?.(row.path)}
     >
-      <TreeHeader path={path ?? ""} paths={paths} owner={owner} repo={repo} />
-      {lines.map((line) =>
-        line.isTree ? (
-          // biome-ignore lint/a11y/useKeyWithClickEvents: expand/collapse on click
-          <div
-            key={line.path}
-            className="flex items-stretch gap-1.5 font-mono text-sm h-6 shrink-0 select-none hover:bg-accent w-full pl-1 pr-2"
-            // onMouseEnter={() => onMouseEnter?.(line.path, true)}
-            // onClick={() => onToggle?.(line.path)}
-          >
-            <TreeRowGutter
-              hasMoreSiblings={line.hasMoreSiblings}
-              isLast={line.isLast}
-            />
-            <Link
-              href={`/${owner}/${repo}/${line.path}`}
-              className="flex items-center cursor-pointer hover:underline"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {showAbsolutePath && (
-                <span className="text-muted-foreground">
-                  {line.path.split("/").slice(0, -1).join("/")}/
-                </span>
-              )}
-              {line.name}/
-            </Link>
-            <span className="text-xs text-muted-foreground ml-auto flex items-center">
-              {
-                paths.entries.filter(
-                  (e) =>
-                    e.path.startsWith(`${line.path}/`) &&
-                    e.path_type === "blob",
-                ).length
-              }{" "}
-              files
-            </span>
-          </div>
-        ) : (
-          <Link
-            key={line.path}
-            href={`/${owner}/${repo}/${line.path}`}
-            className="flex items-stretch gap-1.5 font-mono text-sm h-6 shrink-0 select-none hover:bg-accent cursor-default px-1"
-            // onMouseEnter={() => onMouseEnter?.(line.path, false)}
-          >
-            <TreeRowGutter
-              hasMoreSiblings={line.hasMoreSiblings}
-              isLast={line.isLast}
-            />
-            <span className="flex items-center">
-              {showAbsolutePath && (
-                <span className="text-muted-foreground">
-                  {line.path.split("/").slice(0, -1).join("/")}/
-                </span>
-              )}
-              {line.name}
-            </span>
-            {blobs &&
-              (() => {
-                const blob = blobs.blobs.find(
-                  (b) => b.type === "file" && b.path === line.path,
-                );
-                return blob && blob.type === "file" ? (
-                  <span className="text-xs text-muted-foreground ml-auto flex items-center pr-1">
-                    {formatBytes(new TextEncoder().encode(blob.content).length)}
-                  </span>
-                ) : null;
-              })()}
-          </Link>
-        ),
-      )}
+      <TreeRowGutter
+      hasMoreSiblings={row.hasMoreSiblings}
+      isLast={row.isLast}
+      />
+      <Link
+        href={`/${owner}/${repo}/${row.path}`}
+        className="flex items-center cursor-pointer hover:underline"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {absolutePaths && (
+          <span className="text-muted-foreground">
+            {row.path.split("/").slice(0, -1).join("/")}/
+          </span>
+        )}
+        {row.name}/
+      </Link>
+      <span className="text-xs text-muted-foreground ml-auto flex items-center">
+        {
+          paths.entries.filter(
+            (e) =>
+            e.path.startsWith(`${row.path}/`) &&
+            e.path_type === "blob",
+          ).length
+        }{" "}
+        files
+      </span>
     </div>
+  )
+};
+
+function TreeRowFile({
+  row,
+  owner,
+  repo,
+  setPreview,
+  absolutePaths,
+}: {
+  row: TreeRowData;
+  owner: string;
+  repo: string;
+  setPreview: any;
+  absolutePaths: boolean
+}) {
+  return (
+    <Link
+      key={row.path}
+      href={`/${owner}/${repo}/${row.path}`}
+      className="flex items-stretch gap-1.5 font-mono text-sm h-6 shrink-0 select-none hover:bg-accent cursor-default px-1"
+      onMouseEnter={() => setPreview?.(row.path)}
+    >
+      <TreeRowGutter
+        hasMoreSiblings={row.hasMoreSiblings}
+        isLast={row.isLast}
+      />
+      <span className="flex items-center">
+        {absolutePaths && (
+          <span className="text-muted-foreground">
+            {row.path.split("/").slice(0, -1).join("/")}/
+          </span>
+        )}
+        {row.name}
+      </span>
+    </Link>
+  );
+}
+
+function TreeRowGutter({
+  hasMoreSiblings,
+  isLast,
+}: {
+  hasMoreSiblings: boolean[];
+  isLast: boolean;
+}) {
+  return (
+    <span className="flex items-stretch shrink-0 select-none" aria-hidden>
+      {hasMoreSiblings.map((active, i) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: stable positional slots
+        <span key={i} className="relative w-5">
+          {active && (
+            <span className="absolute left-2.25 top-0 bottom-0 border-l border-foreground" />
+          )}
+        </span>
+      ))}
+      <span className="relative w-5">
+        <span
+          className={cn(
+            "absolute left-2.25 border-l border-foreground",
+            isLast ? "top-0 bottom-1/2" : "top-0 bottom-0",
+          )}
+        />
+        <span className="absolute left-2.25 right-0 top-1/2 border-t border-foreground" />
+      </span>
+    </span>
   );
 }
