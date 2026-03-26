@@ -184,7 +184,7 @@ function TreeRowFolder({
   return (
     <button
       type="button"
-      className="flex items-stretch gap-1.5 font-mono text-sm h-6 shrink-0 select-none hover:bg-accent w-full pl-1 pr-2"
+      className="flex items-stretch gap-1 font-mono text-sm h-6 shrink-0 select-none hover:bg-accent w-full pl-1 pr-2"
       onMouseEnter={() => setPreview?.(row.path)}
       onClick={() => onToggle(row.path)}
     >
@@ -228,7 +228,7 @@ function TreeRowFile({
     <Link
       key={row.path}
       href={`/${owner}/${repo}/${row.path}`}
-      className="flex items-stretch gap-1.5 font-mono text-sm h-6 shrink-0 select-none hover:bg-accent cursor-default px-1"
+      className="flex items-stretch gap-1 font-mono text-sm h-6 shrink-0 select-none hover:bg-accent cursor-default px-1"
       onMouseEnter={() => setPreview?.(row.path)}
     >
       <TreeRowGutter depth={row.depth} isLast={row.isLast} />
@@ -260,7 +260,7 @@ function TreeRowGutter({ depth, isLast }: { depth: number; isLast: boolean }) {
             isLast ? "top-0 bottom-1/2" : "top-0 bottom-0",
           )}
         />
-        <span className="absolute left-2.25 right-0 top-1/2 border-t border-foreground" />
+        <span className="absolute left-2.25 right-0.5 top-1/2 border-t border-foreground" />
       </span>
     </span>
   );
