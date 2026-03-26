@@ -8,13 +8,11 @@ export function FolderShortcuts({
   rows,
   hoveredPath,
   onHover,
-  onPin,
   onToggle,
 }: {
   rows: TreeRowData[];
   hoveredPath: string | null;
   onHover: (path: string) => void;
-  onPin: (path: string) => void;
   onToggle: (path: string) => void;
 }) {
   const shortcuts = useMemo<Shortcut[]>(
@@ -46,18 +44,23 @@ export function FolderShortcuts({
         },
       },
       {
-        name: "TreePin",
-        description: "Pin focused tree item",
+        name: "TreeOpen",
+        description: "Open focused tree item",
         keys: ["Enter", " "],
         execute: () => {
           if (!hoveredPath) return;
-          onPin(hoveredPath);
           const row = rows.find((r) => r.path === hoveredPath);
-          if (row?.isTree) onToggle(hoveredPath);
+          if (row?.isTree) {
+            onToggle(hoveredPath);
+          } else {
+            document
+              .querySelector<HTMLAnchorElement>(`[data-path="${hoveredPath}"]`)
+              ?.click();
+          }
         },
       },
     ],
-    [rows, hoveredPath, onHover, onPin, onToggle],
+    [rows, hoveredPath, onHover, onToggle],
   );
 
   useShortcuts(shortcuts);

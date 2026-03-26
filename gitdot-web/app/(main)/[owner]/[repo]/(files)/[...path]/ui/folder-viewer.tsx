@@ -7,7 +7,7 @@ import { useMemo, useState } from "react";
 import { getFolderEntries } from "@/(main)/[owner]/[repo]/util";
 import { DatabaseProvider } from "@/provider/database";
 import { FolderTree } from "./folder-tree";
-import { FolderTreePreview } from "./folder-tree-preview";
+import { FolderPathPreview } from "./folder-path-preview";
 
 export function FolderViewer({
   path,
@@ -17,8 +17,7 @@ export function FolderViewer({
   paths: RepositoryPathsResource | null;
 }) {
   const { owner, repo } = useParams<{ owner: string; repo: string }>();
-  const [hoveredPath, setHoveredPath] = useState<string | null>(null);
-  const [pinnedPath, setPinnedPath] = useState<string | null>(() => {
+  const [previewPath, setPreviewPath] = useState<string | null>(() => {
     if (!paths) return null;
     const entries = getFolderEntries(path, paths);
     return entries[0]?.path ?? null;
@@ -26,15 +25,6 @@ export function FolderViewer({
   const db = useMemo(() => new DatabaseProvider(owner, repo), [owner, repo]);
 
   const getHast = (p: string): Promise<Root | null> => db.getHast(p);
-
-  const handleHover = (path: string) => {
-    setHoveredPath(path);
-  };
-
-  const handlePin = (path: string) => {
-    setPinnedPath(path);
-    setHoveredPath(path);
-  };
 
   if (!paths) return null;
 
@@ -46,16 +36,12 @@ export function FolderViewer({
           owner={owner}
           repo={repo}
           paths={paths}
-          shortcuts
-          onHover={handleHover}
-          onHoverClear={() => setHoveredPath(null)}
-          onPin={handlePin}
-          pinnedPath={pinnedPath}
-          absolutePaths={false}
+          previewPath={previewPath}
+          setPreviewPath={setPreviewPath}
         />
       </div>
-      <FolderTreePreview
-        previewPath={hoveredPath ?? pinnedPath}
+      <FolderPathPreview
+        previewPath={previewPath}
         paths={paths}
         owner={owner}
         repo={repo}
