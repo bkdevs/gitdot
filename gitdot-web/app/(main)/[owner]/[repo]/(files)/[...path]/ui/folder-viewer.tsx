@@ -11,13 +11,9 @@ import { FolderPathPreview } from "./folder-path-preview";
 export function FolderViewer({
   path,
   paths,
-  initialExpanded,
-  activePath,
 }: {
   path: string;
   paths: RepositoryPathsResource | null;
-  initialExpanded?: Set<string>;
-  activePath?: string;
 }) {
   const { owner, repo } = useParams<{ owner: string; repo: string }>();
   const [previewPath, setPreviewPath] = useState<string | null>(null);
@@ -37,8 +33,6 @@ export function FolderViewer({
           paths={paths}
           previewPath={previewPath}
           setPreviewPath={setPreviewPath}
-          initialExpanded={initialExpanded}
-          activePath={activePath}
         />
       </div>
       <FolderPathPreview

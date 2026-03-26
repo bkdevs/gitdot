@@ -10,7 +10,6 @@ export function FolderTreeRow({
   owner,
   repo,
   focused,
-  active,
   onMouseEnter,
   onClick,
   absolutePaths,
@@ -19,7 +18,6 @@ export function FolderTreeRow({
   owner: string;
   repo: string;
   focused: boolean;
-  active: boolean;
   onMouseEnter: () => void;
   onClick: (path: string) => void;
   absolutePaths: boolean;
@@ -30,7 +28,6 @@ export function FolderTreeRow({
       owner={owner}
       repo={repo}
       focused={focused}
-      active={active}
       onMouseEnter={onMouseEnter}
       onClick={onClick}
       absolutePaths={absolutePaths}
@@ -41,7 +38,6 @@ export function FolderTreeRow({
       owner={owner}
       repo={repo}
       focused={focused}
-      active={active}
       onMouseEnter={onMouseEnter}
       absolutePaths={absolutePaths}
     />
@@ -53,7 +49,6 @@ function TreeRowFolder({
   owner,
   repo,
   focused,
-  active,
   onMouseEnter,
   onClick,
   absolutePaths,
@@ -62,25 +57,23 @@ function TreeRowFolder({
   owner: string;
   repo: string;
   focused: boolean;
-  active: boolean;
   onMouseEnter: () => void;
   onClick: (path: string) => void;
   absolutePaths: boolean;
 }) {
   return (
-    <div
+    <button
+      type="button"
       className={cn(
-        "flex items-stretch gap-1 font-mono text-sm h-6 shrink-0 select-none w-full pl-1 pr-2",
-        focused && "bg-sidebar",
+        "flex items-stretch gap-1 font-mono text-sm h-6 shrink-0 select-none ring-0 outline-0 w-full pl-1 pr-2",
       )}
-      onMouseEnter={onMouseEnter}
-      onClick={() => onClick(row.path)}
     >
       <TreeRowGutter depth={row.depth} isLast={row.isLast} />
       <Link
         href={`/${owner}/${repo}/${row.path}`}
-        className={cn("flex items-center cursor-pointer hover:underline", active && "underline")}
-        onClick={(e) => e.stopPropagation()}
+        className={cn("flex items-center cursor-pointer hover:underline", focused && "underline")}
+        onMouseEnter={onMouseEnter}
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); onClick(row.path); }}
       >
         {absolutePaths && (
           <span className="text-muted-foreground">
@@ -95,7 +88,7 @@ function TreeRowFolder({
           </span>
         )}
       </Link>
-    </div>
+    </button>
   );
 }
 
@@ -104,7 +97,6 @@ export function TreeRowFile({
   owner,
   repo,
   focused,
-  active,
   onMouseEnter,
   absolutePaths,
 }: {
@@ -112,32 +104,27 @@ export function TreeRowFile({
   owner: string;
   repo: string;
   focused: boolean;
-  active: boolean;
   onMouseEnter: () => void;
   absolutePaths: boolean;
 }) {
   return (
-    <div
+    <Link
+      href={`/${owner}/${repo}/${row.path}`}
       data-path={row.path}
       className={cn(
-        "flex items-stretch gap-1 font-mono text-sm h-6 shrink-0 select-none px-1 w-full",
-        focused && "bg-sidebar",
+        "flex items-stretch gap-1 font-mono text-sm h-6 shrink-0 select-none ring-0 outline-0 cursor-default px-1 w-full",
       )}
-      onMouseEnter={onMouseEnter}
     >
       <TreeRowGutter depth={row.depth} isLast={row.isLast} />
-      <Link
-        href={`/${owner}/${repo}/${row.path}`}
-        className={cn("flex items-center cursor-pointer hover:underline", active && "underline")}
-      >
+      <span className={cn("flex items-center cursor-pointer", focused && "underline")} onMouseEnter={onMouseEnter}>
         {absolutePaths && (
           <span className="text-muted-foreground">
             {row.path.split("/").slice(0, -1).join("/")}/
           </span>
         )}
         {row.name}
-      </Link>
-    </div>
+      </span>
+    </Link>
   );
 }
 

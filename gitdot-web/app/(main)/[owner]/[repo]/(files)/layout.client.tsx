@@ -1,7 +1,7 @@
 "use client";
 
 import type { RepositoryPathResource } from "gitdot-api";
-import { Folder, FolderOpen, History } from "lucide-react";
+import { Undo2 } from "lucide-react";
 import { useParams } from "next/navigation";
 import { Fragment, Suspense, use, useEffect, useState } from "react";
 import {
@@ -15,7 +15,6 @@ import { OverlayScroll } from "@/ui/scroll";
 import { Sidebar, SidebarContent } from "@/ui/sidebar";
 import { cn } from "@/util";
 import type { Resources } from "./layout";
-import { FolderViewer } from "./[...path]/ui/folder-viewer";
 
 type ResourceRequests = ResourceRequestsType<Resources>;
 type ResourcePromises = ResourcePromisesType<Resources>;
@@ -35,13 +34,6 @@ export function LayoutClient({
 }) {
   const { path } = useParams<{ path: string[] }>();
   const resolvedPromises = useResolvePromises(owner, repo, requests, promises);
-  const [showFolderView, setShowFolderView] = useState(false);
-
-  useEffect(() => {
-    setShowFolderView(false);
-  }, [path]);
-
-  const currentFilePath = (path ?? []).join("/");
 
   return (
     <>
@@ -51,44 +43,17 @@ export function LayoutClient({
             <FileTree
               owner={owner}
               repo={repo}
-              filePath={currentFilePath}
+              filePath={path.join("/") ?? ""}
               promises={resolvedPromises}
-              showFolderView={showFolderView}
-              onToggleFolderView={() => setShowFolderView((v) => !v)}
             />
           </Suspense>
         </SidebarContent>
       </Sidebar>
-      {showFolderView ? (
-        <Suspense>
-          <FolderToggleContent
-            promises={resolvedPromises}
-            filePath={currentFilePath}
-          />
-        </Suspense>
-      ) : (
-        <Suspense>
-          <OverlayScroll>{children}</OverlayScroll>
-        </Suspense>
-      )}
+      <Suspense>
+        <OverlayScroll>{children}</OverlayScroll>
+      </Suspense>
     </>
   );
-}
-
-function FolderToggleContent({
-  promises,
-  filePath,
-}: {
-  promises: ResourcePromises;
-  filePath: string;
-}) {
-  const paths = use(promises.paths);
-  const ancestorFolders = new Set<string>();
-  const parts = filePath.split("/");
-  for (let i = 1; i < parts.length; i++) {
-    ancestorFolders.add(parts.slice(0, i).join("/"));
-  }
-  return <FolderViewer path="" paths={paths} initialExpanded={ancestorFolders} activePath={filePath} />;
 }
 
 function FileTree({
@@ -96,15 +61,11 @@ function FileTree({
   repo,
   filePath,
   promises,
-  showFolderView,
-  onToggleFolderView,
 }: {
   owner: string;
   repo: string;
   filePath: string;
   promises: ResourcePromises;
-  showFolderView: boolean;
-  onToggleFolderView: () => void;
 }) {
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(() => {
     const s = new Set<string>();
@@ -181,32 +142,15 @@ function FileTree({
 
   return (
     <div className="flex flex-col w-full">
-      <div className="sticky top-0 bg-background flex items-center border-b h-9 z-10">
-        <Link
-          href={`/${owner}/${repo}`}
-          className="flex-1 flex items-center px-2 h-full hover:bg-accent/50 cursor-default"
-        >
-          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-            Files
-          </h3>
-        </Link>
-        <button
-          type="button"
-          className="w-9 h-full border-l border-border flex items-center justify-center hover:bg-sidebar-accent transition-colors shrink-0 ring-0 outline-none"
-        >
-          <History className="size-4" />
-        </button>
-        <button
-          type="button"
-          onClick={onToggleFolderView}
-          className={cn(
-            "w-9 h-full border-l border-border flex items-center justify-center hover:bg-sidebar-accent transition-colors shrink-0 ring-0 outline-none",
-            showFolderView && "bg-sidebar-accent",
-          )}
-        >
-          {showFolderView ? <FolderOpen className="size-4" /> : <Folder className="size-4" />}
-        </button>
-      </div>
+      <Link
+        href={`/${owner}/${repo}`}
+        className="sticky top-0 bg-background flex items-center justify-between border-b px-2 h-9 z-10 hover:bg-accent/50 cursor-default"
+      >
+        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+          Files
+        </h3>
+        <Undo2 size={14} className="text-muted-foreground -translate-y-px" />
+      </Link>
       {renderRows("", 0)}
     </div>
   );

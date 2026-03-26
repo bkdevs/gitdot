@@ -15,7 +15,7 @@ import { PageClient } from "./page.client";
 import { FileHistoryLoader } from "./ui/file-history-loader";
 import { FileViewer } from "./ui/file-viewer";
 import { FolderViewer } from "./ui/folder-viewer";
-import { expandPaths, parseLineSelection } from "./util";
+import { parseLineSelection } from "./util";
 
 export type Resources = {
   blob: RepositoryBlobResource | null;
@@ -53,10 +53,8 @@ export default async function Page({
       getRepositoryPaths(owner, repo),
     ]);
     if (!blob) return <div>File not found.</div>;
-    if (blob.type === "folder") {
-      const initialExpanded = paths ? expandPaths(blob.path, paths, 1) : undefined;
-      return <FolderViewer path={blob.path} paths={paths} initialExpanded={initialExpanded} />;
-    }
+    if (blob.type === "folder")
+      return <FolderViewer path={blob.path} paths={paths} />;
     const commits = await getRepositoryFileCommits(owner, repo, {
       path: filePathString,
       ref_name: ref,
