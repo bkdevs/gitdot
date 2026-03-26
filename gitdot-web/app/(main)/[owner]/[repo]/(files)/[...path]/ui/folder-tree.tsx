@@ -55,15 +55,22 @@ export function FolderTree({
   path,
   paths,
   absolutePaths = false,
-  setPreview,
+  onHover,
+  onHoverClear,
+  onPin,
+  pinnedPath,
 }: {
   owner: string;
   repo: string;
   path: string;
   paths: RepositoryPathsResource;
   absolutePaths: boolean;
-  setPreview?: (path: string) => void;
+  onHover?: (path: string) => void;
+  onHoverClear?: () => void;
+  onPin?: (path: string) => void;
+  pinnedPath?: string | null;
 }) {
+  const [focusedPath, setFocusedPath] = useState<string | null>(null);
   const [expandedPaths, setExpandedPaths] = useState<Set<string>>(() => {
     const entries = getFolderEntries(path, paths);
     return new Set(
@@ -91,6 +98,8 @@ export function FolderTree({
     <div
       data-page-scroll
       className="flex flex-col h-full overflow-y-auto scrollbar-thin"
+      onMouseLeave={() => { setFocusedPath(null); onHoverClear?.(); }}
+      onMouseOver={(e) => { if (e.target === e.currentTarget) { setFocusedPath(null); onHoverClear?.(); } }}
     >
       <TreeHeader path={path} paths={paths} owner={owner} repo={repo} />
       {rows.map((row) =>
@@ -101,16 +110,20 @@ export function FolderTree({
             owner={owner}
             repo={repo}
             absolutePaths={absolutePaths}
-            setPreview={setPreview}
+            focused={focusedPath === row.path}
+            pinned={pinnedPath === row.path}
+            onMouseEnter={() => { setFocusedPath(row.path); onHover?.(row.path); }}
             onToggle={toggleFolder}
+            onPin={onPin}
           />
         ) : (
           <TreeRowFile
             key={row.path}
             row={row}
-            owner={owner}
-            repo={repo}
-            setPreview={setPreview}
+            focused={focusedPath === row.path}
+            pinned={pinnedPath === row.path}
+            onMouseEnter={() => { setFocusedPath(row.path); onHover?.(row.path); }}
+            onPin={onPin}
             absolutePaths={absolutePaths}
           />
         ),
@@ -170,23 +183,29 @@ function TreeRowFolder({
   row,
   owner,
   repo,
-  setPreview,
+  focused,
+  pinned,
+  onMouseEnter,
   absolutePaths,
   onToggle,
+  onPin,
 }: {
   row: TreeRowData;
   owner: string;
   repo: string;
-  setPreview?: (path: string) => void;
+  focused: boolean;
+  pinned: boolean;
+  onMouseEnter: () => void;
   absolutePaths: boolean;
   onToggle: (path: string) => void;
+  onPin?: (path: string) => void;
 }) {
   return (
     <button
       type="button"
-      className="flex items-stretch gap-1 font-mono text-sm h-6 shrink-0 select-none hover:bg-accent w-full pl-1 pr-2"
-      onMouseEnter={() => setPreview?.(row.path)}
-      onClick={() => onToggle(row.path)}
+      className={cn("flex items-stretch gap-1 font-mono text-sm h-6 shrink-0 select-none w-full pl-1 pr-2", focused && "bg-accent", pinned && "underline")}
+      onMouseEnter={onMouseEnter}
+      onClick={() => { onToggle(row.path); onPin?.(row.path); }}
     >
       <TreeRowGutter depth={row.depth} isLast={row.isLast} />
       <Link
@@ -213,23 +232,25 @@ function TreeRowFolder({
 
 function TreeRowFile({
   row,
-  owner,
-  repo,
-  setPreview,
+  focused,
+  pinned,
+  onMouseEnter,
+  onPin,
   absolutePaths,
 }: {
   row: TreeRowData;
-  owner: string;
-  repo: string;
-  setPreview?: (path: string) => void;
+  focused: boolean;
+  pinned: boolean;
+  onMouseEnter: () => void;
+  onPin?: (path: string) => void;
   absolutePaths: boolean;
 }) {
   return (
-    <Link
-      key={row.path}
-      href={`/${owner}/${repo}/${row.path}`}
-      className="flex items-stretch gap-1 font-mono text-sm h-6 shrink-0 select-none hover:bg-accent cursor-default px-1"
-      onMouseEnter={() => setPreview?.(row.path)}
+    <button
+      type="button"
+      className={cn("flex items-stretch gap-1 font-mono text-sm h-6 shrink-0 select-none cursor-default px-1 w-full", focused && "bg-accent", pinned && "underline")}
+      onMouseEnter={onMouseEnter}
+      onClick={() => onPin?.(row.path)}
     >
       <TreeRowGutter depth={row.depth} isLast={row.isLast} />
       <span className="flex items-center">
@@ -240,7 +261,7 @@ function TreeRowFile({
         )}
         {row.name}
       </span>
-    </Link>
+    </button>
   );
 }
 

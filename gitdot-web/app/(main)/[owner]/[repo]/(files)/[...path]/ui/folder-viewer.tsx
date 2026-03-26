@@ -16,10 +16,20 @@ export function FolderViewer({
   paths: RepositoryPathsResource | null;
 }) {
   const { owner, repo } = useParams<{ owner: string; repo: string }>();
-  const [previewPath, setPreviewPath] = useState<string | null>(null);
+  const [hoveredPath, setHoveredPath] = useState<string | null>(null);
+  const [pinnedPath, setPinnedPath] = useState<string | null>(null);
   const db = useMemo(() => new DatabaseProvider(owner, repo), [owner, repo]);
 
   const getHast = (p: string): Promise<Root | null> => db.getHast(p);
+
+  const handleHover = (path: string) => {
+    setHoveredPath(path);
+  };
+
+  const handlePin = (path: string) => {
+    setPinnedPath(path);
+    setHoveredPath(path);
+  };
 
   if (!paths) return null;
 
@@ -31,12 +41,15 @@ export function FolderViewer({
           owner={owner}
           repo={repo}
           paths={paths}
-          setPreview={setPreviewPath}
+          onHover={handleHover}
+          onHoverClear={() => setHoveredPath(null)}
+          onPin={handlePin}
+          pinnedPath={pinnedPath}
           absolutePaths={false}
         />
       </div>
       <FolderTreePreview
-        previewPath={previewPath}
+        previewPath={hoveredPath ?? pinnedPath}
         paths={paths}
         owner={owner}
         repo={repo}
