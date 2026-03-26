@@ -3,27 +3,23 @@
 import type { RepositoryPathsResource } from "gitdot-api";
 import type { Root } from "hast";
 import { useParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { DatabaseProvider } from "@/provider/database";
 import { FolderTree } from "./folder-tree";
 import { FolderTreePreview } from "./folder-tree-preview";
 
-export function FolderViewer({ path }: { path: string }) {
+export function FolderViewer({
+  path,
+  paths,
+}: {
+  path: string;
+  paths: RepositoryPathsResource | null;
+}) {
   const { owner, repo } = useParams<{ owner: string; repo: string }>();
-  const [paths, setPaths] = useState<RepositoryPathsResource | null>(null);
   const [previewPath, setPreviewPath] = useState<string | null>(null);
-  const dbRef = useRef<DatabaseProvider | null>(null);
+  const db = useMemo(() => new DatabaseProvider(owner, repo), [owner, repo]);
 
-  useEffect(() => {
-    const db = new DatabaseProvider(owner, repo);
-    dbRef.current = db;
-    db.getPaths().then((p) => {
-      if (p) setPaths(p);
-    });
-  }, [owner, repo]);
-
-  const getHast = (path: string): Promise<Root | null> =>
-    dbRef.current?.getHast(path) ?? Promise.resolve(null);
+  const getHast = (p: string): Promise<Root | null> => db.getHast(p);
 
   if (!paths) return null;
 

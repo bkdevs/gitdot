@@ -1,7 +1,7 @@
-import type { RepositoryBlobResource } from "gitdot-api";
+import type { RepositoryBlobResource, RepositoryPathsResource } from "gitdot-api";
 import type { Root } from "hast";
 import { Suspense } from "react";
-import { getRepositoryBlob, getRepositoryFileCommits } from "@/dal";
+import { getRepositoryBlob, getRepositoryFileCommits, getRepositoryPaths } from "@/dal";
 import { fetchResources } from "@/provider/server";
 import { Loading } from "@/ui/loading";
 import { PageClient } from "./page.client";
@@ -13,6 +13,7 @@ import { parseLineSelection } from "./util";
 export type Resources = {
   blob: RepositoryBlobResource | null;
   hast: Root | null;
+  paths: RepositoryPathsResource | null;
 };
 
 export default async function Page({
@@ -35,16 +36,17 @@ export default async function Page({
   const { requests, promises } = fetchResources(owner, repo, {
     blob: (p) => p.getBlob(filePathString),
     hast: (p) => p.getHast(filePathString),
+    paths: (p) => p.getPaths(),
   });
 
   if (ref) {
     // Unchanged: existing behavior for historical ref views
-    const blob = await getRepositoryBlob(owner, repo, {
-      path: filePathString,
-      ref_name: ref,
-    });
+    const [blob, paths] = await Promise.all([
+      getRepositoryBlob(owner, repo, { path: filePathString, ref_name: ref }),
+      getRepositoryPaths(owner, repo),
+    ]);
     if (!blob) return <div>File not found.</div>;
-    if (blob.type === "folder") return <FolderViewer path={blob.path} />;
+    if (blob.type === "folder") return <FolderViewer path={blob.path} paths={paths} />;
     const commits = await getRepositoryFileCommits(owner, repo, {
       path: filePathString,
       ref_name: ref,

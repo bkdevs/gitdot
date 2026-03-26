@@ -33,6 +33,6 @@ export function PageClient({
 }
 
 function PageContent({ promises }: { promises: ResourcePromises }) {
-  use(promises.paths);
-  return <FolderViewer path="" />;
+  const paths = use(promises.paths);
+  return <FolderViewer path="" paths={paths} />;
 }

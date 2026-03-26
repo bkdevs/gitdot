@@ -140,7 +140,7 @@ function TreeHeader({
           {owner}
         </Link>
         <span>/</span>
-        <Link href={`/${owner}/${repo}`} className="hover:underline">
+        <Link href={`/${owner}/${repo}/files`} className="hover:underline">
           {repo}
         </Link>
         {path?.split("/").map((seg, i, arr) => (
