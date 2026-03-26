@@ -1,13 +1,10 @@
 "use client";
 
+import type { RepositoryPathsResource } from "gitdot-api";
+import { useState } from "react";
 import { getFolderEntries } from "@/(main)/[owner]/[repo]/util";
 import Link from "@/ui/link";
 import { cn } from "@/util";
-import type {
-  RepositoryBlobsResource,
-  RepositoryPathsResource,
-} from "gitdot-api";
-import { useState } from "react";
 
 type TreeRowData = {
   hasMoreSiblings: boolean[];
@@ -31,7 +28,7 @@ function flattenTree(
 
   for (let i = 0; i < entries.length; i++) {
     const entry = entries[i];
-    const name = entry.path.split("/").pop()!;
+    const name = entry.path.split("/").pop() ?? "";
     const isTree = entry.path_type === "tree";
     const isLast = i === entries.length - 1;
     const isExpanded = isTree && expandedPaths.has(entry.path);
@@ -61,20 +58,18 @@ function flattenTree(
 }
 
 export function FolderTree({
-  path,
-  paths,
-  blobs,
   owner,
   repo,
-  showAbsolutePath = false,
+  path,
+  paths,
+  absolutePaths = false,
   setPreview,
 }: {
-  path: string;
-  paths: RepositoryPathsResource;
-  blobs: RepositoryBlobsResource | null;
   owner: string;
   repo: string;
-  showAbsolutePath?: boolean;
+  path: string;
+  paths: RepositoryPathsResource;
+  absolutePaths: boolean;
   setPreview?: (path: string) => void;
 }) {
   const [expandedPaths, setExpandedPaths] = useState<Set<string>>(() => {
@@ -84,7 +79,7 @@ export function FolderTree({
     );
   });
 
-  const _toggleFolder = (path: string) => {
+  const toggleFolder = (path: string) => {
     setExpandedPaths((prev) => {
       const next = new Set(prev);
       if (next.has(path)) next.delete(path);
@@ -98,13 +93,31 @@ export function FolderTree({
   return (
     <div
       data-page-scroll
-      className="flex flex-col w-[45%] h-full shrink-0 border-r overflow-y-auto scrollbar-thin"
+      className="flex flex-col h-full overflow-y-auto scrollbar-thin"
     >
-      <TreeHeader path={path ?? ""} paths={paths} owner={owner} repo={repo} />
+      <TreeHeader path={path} paths={paths} owner={owner} repo={repo} />
       {rows.map((row) =>
-        row.isTree ?
-        <TreeRowFolder row={row} owner={owner} repo={repo} paths={paths} absolutePaths={showAbsolutePath} setPreview={setPreview} />
-        : <TreeRowFile row={row} owner={owner} repo={repo} setPreview={setPreview} absolutePaths={showAbsolutePath} />,
+        row.isTree ? (
+          <TreeRowFolder
+            key={row.path}
+            row={row}
+            owner={owner}
+            repo={repo}
+            paths={paths}
+            absolutePaths={absolutePaths}
+            setPreview={setPreview}
+            onToggle={toggleFolder}
+          />
+        ) : (
+          <TreeRowFile
+            key={row.path}
+            row={row}
+            owner={owner}
+            repo={repo}
+            setPreview={setPreview}
+            absolutePaths={absolutePaths}
+          />
+        ),
       )}
     </div>
   );
@@ -162,23 +175,26 @@ function TreeRowFolder({
   paths,
   setPreview,
   absolutePaths,
+  onToggle,
 }: {
   row: TreeRowData;
   owner: string;
-    repo: string;
-    paths: RepositoryPathsResource;
-  setPreview: any;
-  absolutePaths: boolean
+  repo: string;
+  paths: RepositoryPathsResource;
+  setPreview?: (path: string) => void;
+  absolutePaths: boolean;
+  onToggle: (path: string) => void;
 }) {
   return (
-    <div
-      key={row.path}
+    <button
+      type="button"
       className="flex items-stretch gap-1.5 font-mono text-sm h-6 shrink-0 select-none hover:bg-accent w-full pl-1 pr-2"
       onMouseEnter={() => setPreview?.(row.path)}
+      onClick={() => onToggle(row.path)}
     >
       <TreeRowGutter
-      hasMoreSiblings={row.hasMoreSiblings}
-      isLast={row.isLast}
+        hasMoreSiblings={row.hasMoreSiblings}
+        isLast={row.isLast}
       />
       <Link
         href={`/${owner}/${repo}/${row.path}`}
@@ -195,16 +211,14 @@ function TreeRowFolder({
       <span className="text-xs text-muted-foreground ml-auto flex items-center">
         {
           paths.entries.filter(
-            (e) =>
-            e.path.startsWith(`${row.path}/`) &&
-            e.path_type === "blob",
+            (e) => e.path.startsWith(`${row.path}/`) && e.path_type === "blob",
           ).length
         }{" "}
         files
       </span>
-    </div>
-  )
-};
+    </button>
+  );
+}
 
 function TreeRowFile({
   row,
@@ -216,8 +230,8 @@ function TreeRowFile({
   row: TreeRowData;
   owner: string;
   repo: string;
-  setPreview: any;
-  absolutePaths: boolean
+  setPreview?: (path: string) => void;
+  absolutePaths: boolean;
 }) {
   return (
     <Link
