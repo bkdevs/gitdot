@@ -1,7 +1,7 @@
 "use client";
 
 import type { RepositoryPathResource } from "gitdot-api";
-import { Folder, FolderOpen } from "lucide-react";
+import { Folder, FolderOpen, History } from "lucide-react";
 import { useParams } from "next/navigation";
 import { Fragment, Suspense, use, useEffect, useState } from "react";
 import {
@@ -59,19 +59,18 @@ export function LayoutClient({
           </Suspense>
         </SidebarContent>
       </Sidebar>
-      {showFolderView && (
+      {showFolderView ? (
         <Suspense>
           <FolderToggleContent
             promises={resolvedPromises}
             filePath={currentFilePath}
           />
         </Suspense>
-      )}
-      <div className={cn("contents", showFolderView && "hidden")}>
+      ) : (
         <Suspense>
           <OverlayScroll>{children}</OverlayScroll>
         </Suspense>
-      </div>
+      )}
     </>
   );
 }
@@ -107,24 +106,25 @@ function FileTree({
   showFolderView: boolean;
   onToggleFolderView: () => void;
 }) {
-  const pathParts = filePath.split("/").filter(Boolean);
-  const parentParts = pathParts.slice(0, -1);
-  const parentFolder = parentParts.join("/");
-  const grandparentParts = parentParts.slice(0, -1);
-  const grandparentFolder = grandparentParts.join("/");
-  const upParts = grandparentParts.slice(0, -1);
-  const upHref =
-    upParts.length === 0
-      ? `/${owner}/${repo}`
-      : `/${owner}/${repo}/${upParts.join("/")}`;
-
-  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
-    () => parentFolder ? new Set([parentFolder]) : new Set(),
-  );
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(() => {
+    const s = new Set<string>();
+    const parts = filePath.split("/");
+    for (let i = 1; i <= parts.length; i++) {
+      s.add(parts.slice(0, i).join("/"));
+    }
+    return s;
+  });
 
   useEffect(() => {
-    setExpandedFolders(parentFolder ? new Set([parentFolder]) : new Set());
-  }, [parentFolder]);
+    setExpandedFolders((prev) => {
+      const next = new Set(prev);
+      const parts = filePath.split("/");
+      for (let i = 1; i <= parts.length; i++) {
+        next.add(parts.slice(0, i).join("/"));
+      }
+      return next;
+    });
+  }, [filePath]);
 
   const toggleFolder = (path: string) => {
     setExpandedFolders((prev) => {
@@ -181,23 +181,33 @@ function FileTree({
 
   return (
     <div className="flex flex-col w-full">
-      <button
-        type="button"
-        onClick={onToggleFolderView}
-        className={cn("sticky top-0 bg-background flex items-center justify-between border-b px-2 h-9 z-10 hover:bg-accent/50 cursor-default w-full ring-0 outline-none", showFolderView && "bg-accent/50")}
-      >
-        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-          Files
-        </h3>
-        {showFolderView ? <FolderOpen className="size-4" /> : <Folder className="size-4" />}
-      </button>
-      <Link
-        href={upHref}
-        className="flex flex-row w-full h-9 items-center border-b select-none cursor-default text-sm font-mono hover:bg-accent/50 px-2"
-      >
-        ../
-      </Link>
-      {renderRows(grandparentFolder, 0)}
+      <div className="sticky top-0 bg-background flex items-center border-b h-9 z-10">
+        <Link
+          href={`/${owner}/${repo}`}
+          className="flex-1 flex items-center px-2 h-full hover:bg-accent/50 cursor-default"
+        >
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+            Files
+          </h3>
+        </Link>
+        <button
+          type="button"
+          className="w-9 h-full border-l border-border flex items-center justify-center hover:bg-sidebar-accent transition-colors shrink-0 ring-0 outline-none"
+        >
+          <History className="size-4" />
+        </button>
+        <button
+          type="button"
+          onClick={onToggleFolderView}
+          className={cn(
+            "w-9 h-full border-l border-border flex items-center justify-center hover:bg-sidebar-accent transition-colors shrink-0 ring-0 outline-none",
+            showFolderView && "bg-sidebar-accent",
+          )}
+        >
+          {showFolderView ? <FolderOpen className="size-4" /> : <Folder className="size-4" />}
+        </button>
+      </div>
+      {renderRows("", 0)}
     </div>
   );
 }
