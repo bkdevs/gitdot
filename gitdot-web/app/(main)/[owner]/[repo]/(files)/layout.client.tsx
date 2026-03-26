@@ -12,6 +12,7 @@ import {
   use,
   useCallback,
   useLayoutEffect,
+  useRef,
   useState,
 } from "react";
 import {
@@ -169,6 +170,8 @@ function FileTreeRows({
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
     new Set(),
   );
+  const expandedFoldersRef = useRef(expandedFolders);
+  expandedFoldersRef.current = expandedFolders;
 
   const updateRootPath = useCallback(
     (path: string) => {
@@ -227,7 +230,7 @@ function FileTreeRows({
         { length: segments.length - rootDepth - 1 },
         (_, i) => segments.slice(0, rootDepth + 1 + i).join("/"),
       );
-      if (!ancestors.every((a) => expandedFolders.has(a))) {
+      if (!ancestors.every((a) => expandedFoldersRef.current.has(a))) {
         expandFolders(ancestors);
       }
     } else {
@@ -239,14 +242,15 @@ function FileTreeRows({
     rootPath,
     updateRootPath,
     expandFolders,
-    expandedFolders,
   ]);
 
   const renderRows = (parentPath: string, depth: number): React.ReactNode => {
-    return getFolderEntries(parentPath, paths).map((entry) => {
+    const entries = getFolderEntries(parentPath, paths);
+    return entries.map((entry, index) => {
       const isFolder = entry.path_type === "tree";
       const isExpanded = expandedFolders.has(entry.path);
       const isActive = filePath === entry.path;
+      const isLast = index === entries.length - 1;
 
       return (
         <Fragment key={entry.path}>
@@ -258,6 +262,7 @@ function FileTreeRows({
               depth={depth}
               isActive={isActive}
               expanded={isExpanded}
+              isLast={isLast}
               setExpanded={() => toggleFolder(entry.path)}
               count={getFolderEntries(entry.path, paths).length}
             />
@@ -268,6 +273,7 @@ function FileTreeRows({
               entry={entry}
               depth={depth}
               isActive={isActive}
+              isLast={isLast}
             />
           )}
           {isFolder && isExpanded && renderRows(entry.path, depth + 1)}
@@ -279,6 +285,21 @@ function FileTreeRows({
   return <>{renderRows(rootPath, 0)}</>;
 }
 
+function RowGutter({ depth }: { depth: number }) {
+  if (depth === 0) return null;
+  return (
+    <>
+      {Array.from({ length: depth }, (_, i) => (
+        <span
+          key={i}
+          className="absolute top-0 bottom-0 w-px bg-border"
+          style={{ left: `${16 + i * 16}px` }}
+        />
+      ))}
+    </>
+  );
+}
+
 function FolderRow({
   owner,
   repo,
@@ -286,6 +307,7 @@ function FolderRow({
   entry,
   isActive,
   expanded,
+  isLast,
   setExpanded,
   count,
 }: {
@@ -295,6 +317,7 @@ function FolderRow({
   entry: RepositoryPathResource;
   isActive: boolean;
   expanded: boolean;
+  isLast: boolean;
   setExpanded: () => void;
   count: number;
 }) {
@@ -306,12 +329,14 @@ function FolderRow({
       onClick={() => setExpanded()}
       style={{ paddingLeft: `${8 + depth * 16}px` }}
       className={cn(
-        "flex flex-row w-full h-9 items-center border-b select-none cursor-default text-sm font-mono hover:bg-accent/50 pr-2",
-        isActive && "bg-sidebar",
+        "relative flex flex-row w-full h-9 items-center select-none cursor-default text-sm font-mono hover:bg-accent/50 pr-2",
+        (depth === 0 || (isLast && depth === 1)) && "border-b",
+        isActive && "bg-sidebar border-t border-b",
       )}
       data-sidebar-item=""
       data-sidebar-item-active={isActive ? "true" : undefined}
     >
+      <RowGutter depth={depth} />
       <Link
         href={`/${owner}/${repo}/${entry.path}`}
         onClick={(e) => e.stopPropagation()}
@@ -333,12 +358,14 @@ function FileRow({
   depth,
   entry,
   isActive,
+  isLast,
 }: {
   owner: string;
   repo: string;
   depth: number;
   entry: RepositoryPathResource;
   isActive: boolean;
+  isLast: boolean;
 }) {
   const name = entry.path.split("/").pop();
 
@@ -347,12 +374,14 @@ function FileRow({
       href={`/${owner}/${repo}/${entry.path}`}
       style={{ paddingLeft: `${8 + depth * 16}px` }}
       className={cn(
-        "flex flex-row w-full h-9 items-center border-b select-none cursor-default text-sm font-mono hover:bg-accent/50 pr-2",
-        isActive && "bg-sidebar",
+        "relative flex flex-row w-full h-9 items-center select-none cursor-default text-sm font-mono hover:bg-accent/50 pr-2",
+        (depth === 0 || (isLast && depth === 1)) && "border-b",
+        isActive && "bg-sidebar border-t border-b",
       )}
       data-sidebar-item=""
       data-sidebar-item-active={isActive}
     >
+      <RowGutter depth={depth} />
       <span className="truncate">{name}</span>
     </Link>
   );
