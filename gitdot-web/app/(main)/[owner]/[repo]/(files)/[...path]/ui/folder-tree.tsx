@@ -130,7 +130,7 @@ function TreeHeader({
         <Link href={`/${owner}/${repo}/files`} className="hover:underline">
           {repo}
         </Link>
-        {path?.split("/").map((seg, i, arr) => (
+        {path && path.split("/").map((seg, i, arr) => (
           // biome-ignore lint/suspicious/noArrayIndexKey: stable path segments
           <span key={i}>
             <span>/</span>
@@ -142,6 +142,7 @@ function TreeHeader({
             </Link>
           </span>
         ))}
+        <span>/</span>
       </div>
       <span className="text-xs text-muted-foreground">{fileCount} files</span>
     </div>

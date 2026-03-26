@@ -7,6 +7,7 @@ import type { JSX } from "react";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { jsx, jsxs } from "react/jsx-runtime";
 import { openIdb } from "@/db";
+import { DatabaseProvider } from "@/provider/database";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
 import Link from "@/ui/link";
 import { useRepoContext } from "../../resources/context";
@@ -19,10 +20,11 @@ export function RepoFileDialog({
   owner: string;
   repo: string;
 }) {
-  const { resourcesReady, hastsReady } = useRepoContext();
+  const { resourcesReady } = useRepoContext();
   const idb = useMemo(() => openIdb(), []);
+  const db = useMemo(() => new DatabaseProvider(owner, repo), [owner, repo]);
   const [paths, setPaths] = useState<RepositoryPathsResource | null>(null);
-  const [hasts, setHasts] = useState<Map<string, Root> | null>(null);
+  const [hast, setHast] = useState<Root | null>(null);
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -33,11 +35,6 @@ export function RepoFileDialog({
     if (!resourcesReady) return;
     idb.getPaths(owner, repo).then(setPaths);
   }, [resourcesReady, idb, owner, repo]);
-
-  useEffect(() => {
-    if (!hastsReady) return;
-    idb.getHasts(owner, repo).then(setHasts);
-  }, [hastsReady, idb, owner, repo]);
 
   const files = useMemo(
     () => paths?.entries.filter((entry) => entry.path_type === "blob") ?? [],
@@ -105,9 +102,18 @@ export function RepoFileDialog({
       setSelectedIndex(0);
       setEnableHover(false);
       setMouseMoved(false);
+      setHast(null);
       initialMousePos.current = null;
     }
   }, [open]);
+
+  useEffect(() => {
+    if (!selectedFile) {
+      setHast(null);
+      return;
+    }
+    db.getHast(selectedFile.path).then(setHast);
+  }, [selectedFile?.path, db]);
 
   useEffect(() => {
     if (selectedIndex >= filteredFiles.length) {
@@ -146,7 +152,6 @@ export function RepoFileDialog({
   }, [open, filteredFiles.length, selectedFile]);
 
   if (!paths) return null;
-  const selectedHast = selectedFile ? hasts?.get(selectedFile.path) : null;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -199,10 +204,10 @@ export function RepoFileDialog({
           </div>
 
           <div className="w-3/5 flex flex-col text-sm scrollbar-none overflow-y-hidden">
-            {selectedHast && (
+            {hast && (
               <div className="px-2 py-2">
                 {
-                  toJsxRuntime(selectedHast, {
+                  toJsxRuntime(hast, {
                     Fragment,
                     jsx,
                     jsxs,
