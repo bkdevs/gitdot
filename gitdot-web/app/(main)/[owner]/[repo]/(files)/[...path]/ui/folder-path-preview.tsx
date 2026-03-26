@@ -29,7 +29,7 @@ export function FolderPathPreview({
   const entry = previewPath
     ? paths.entries.find((e) => e.path === previewPath)
     : null;
-  if (!previewPath || !entry) return null;
+  if (!previewPath || !entry) return <PreviewPlaceholder />;
 
   if (entry.path_type === "tree") {
     return <FolderPreview path={previewPath} paths={paths} owner={owner} repo={repo} />
@@ -38,6 +38,14 @@ export function FolderPathPreview({
       <FilePreview path={previewPath} getHast={getHast} />
     );
   }
+}
+
+function PreviewPlaceholder() {
+  return (
+    <div className="flex-1 min-w-0 flex flex-col items-center justify-center h-full w-full pb-[5%]">
+      <span className="font-mono text-sm text-muted-foreground lowercase">select a file to preview...</span>
+    </div>
+  );
 }
 
 function FolderPreview({

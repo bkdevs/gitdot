@@ -4,7 +4,6 @@ import type { RepositoryPathsResource } from "gitdot-api";
 import type { Root } from "hast";
 import { useParams } from "next/navigation";
 import { useMemo, useState } from "react";
-import { getFolderEntries } from "@/(main)/[owner]/[repo]/util";
 import { DatabaseProvider } from "@/provider/database";
 import { FolderTree } from "./folder-tree";
 import { FolderPathPreview } from "./folder-path-preview";
@@ -17,11 +16,7 @@ export function FolderViewer({
   paths: RepositoryPathsResource | null;
 }) {
   const { owner, repo } = useParams<{ owner: string; repo: string }>();
-  const [previewPath, setPreviewPath] = useState<string | null>(() => {
-    if (!paths) return null;
-    const entries = getFolderEntries(path, paths);
-    return entries[0]?.path ?? null;
-  });
+  const [previewPath, setPreviewPath] = useState<string | null>(null);
   const db = useMemo(() => new DatabaseProvider(owner, repo), [owner, repo]);
 
   const getHast = (p: string): Promise<Root | null> => db.getHast(p);
