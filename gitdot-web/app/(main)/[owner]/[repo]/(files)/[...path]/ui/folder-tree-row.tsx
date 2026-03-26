@@ -65,8 +65,8 @@ function TreeRowFolder({
     <button
       type="button"
       className={cn(
-        "flex items-stretch gap-1 font-mono text-sm h-6 shrink-0 select-none w-full pl-1 pr-2",
-        focused && "bg-accent",
+        "flex items-stretch gap-1 font-mono text-sm h-6 shrink-0 select-none ring-0 outline-0 w-full pl-1 pr-2",
+        focused && "bg-accent/50",
       )}
       onMouseEnter={onMouseEnter}
       onClick={() => onClick(row.path)}
@@ -114,8 +114,8 @@ export function TreeRowFile({
       href={`/${owner}/${repo}/${row.path}`}
       data-path={row.path}
       className={cn(
-        "flex items-stretch gap-1 font-mono text-sm h-6 shrink-0 select-none cursor-default px-1 w-full",
-        focused && "bg-accent",
+        "flex items-stretch gap-1 font-mono text-sm h-6 shrink-0 select-none ring-0 outline-0 cursor-default px-1 w-full",
+        focused && "bg-accent/50",
       )}
       onMouseEnter={onMouseEnter}
     >

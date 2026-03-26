@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { jsx, jsxs } from "react/jsx-runtime";
 import { getFolderEntries } from "@/(main)/[owner]/[repo]/util";
 import Link from "@/ui/link";
+import { cn } from "@/util";
 import { Loading } from "@/ui/loading";
 import { expandPaths, buildTreeRows } from "../util";
 import { FolderTreeRow } from "./folder-tree-row";
@@ -31,7 +32,7 @@ export function FolderPathPreview({
   if (!previewPath || !entry) return null;
 
   if (entry.path_type === "tree") {
-    return <FolderTreePreview path={previewPath} paths={paths} owner={owner} repo={repo} />
+    return <FolderPreview path={previewPath} paths={paths} owner={owner} repo={repo} />
   } else {
     return (
       <FilePreview path={previewPath} getHast={getHast} />
@@ -39,7 +40,7 @@ export function FolderPathPreview({
   }
 }
 
-export function FolderTreePreview({
+function FolderPreview({
   path,
   paths,
   owner,
@@ -51,7 +52,6 @@ export function FolderTreePreview({
   repo: string;
 }) {
   const [hoveredPath, setHoveredPath] = useState<string | null>(null);
-
   const router = useRouter();
   const mouseMoved = useRef(false);
   const expandedPaths = expandPaths(path, paths, Number.POSITIVE_INFINITY);
@@ -62,71 +62,68 @@ export function FolderTreePreview({
       onMouseMove={() => { mouseMoved.current = true; }}
     >
       <div className="flex flex-col">
-        {getFolderEntries(path, paths)
-          .filter((e) => e.path_type === "tree")
-          .map((subfolder) => (
-            <FolderPreview
-            key={subfolder.path}
-            entryPath={subfolder.path}
-            owner={owner}
-            repo={repo}
-            rows={buildTreeRows(subfolder.path, paths, expandedPaths)}
-            hoveredPath={hoveredPath}
-            onMouseEnter={(path) => {
+        {getFolderEntries(path, paths).map((entry) => {
+            const name = entry.path.split("/").pop() ?? "";
+            const prefix = entry.path.split("/").slice(0, -1).join("/");
+            const navigate = (p: string) => router.push(`/${owner}/${repo}/${p}`);
+            const onMouseEnter = () => {
               if (!mouseMoved.current) return;
-              setHoveredPath(path);
-            }}
-            onNavigate={(path) => router.push(`/${owner}/${repo}/${path}`)}
-            />
-          ))}
-      </div>
-    </div>
-  );
-}
+              setHoveredPath(entry.path);
+            };
 
-function FolderPreview({
-  entryPath,
-  owner,
-  repo,
-  rows,
-  hoveredPath,
-  onMouseEnter,
-  onNavigate,
-}: {
-  entryPath: string;
-  owner: string;
-  repo: string;
-  rows: ReturnType<typeof buildTreeRows>;
-  hoveredPath: string | null;
-  onMouseEnter: (path: string) => void;
-  onNavigate: (path: string) => void;
-}) {
-  const name = entryPath.split("/").pop() ?? "";
-  const prefix = entryPath.split("/").slice(0, -1).join("/");
+            if (entry.path_type === "tree") {
+              const rows = buildTreeRows(entry.path, paths, expandedPaths);
+              return (
+                <div key={entry.path}>
+                  <div
+                    className={cn("flex items-center font-mono text-sm h-6 shrink-0 select-none pl-2.5", hoveredPath === entry.path && "bg-accent/50")}
+                    onMouseEnter={onMouseEnter}
+                  >
+                    <Link
+                      href={`/${owner}/${repo}/${entry.path}`}
+                      className="flex items-center cursor-pointer hover:underline"
+                    >
+                      <span className="text-muted-foreground">{prefix}/</span>
+                      {name}/
+                    </Link>
+                  </div>
+                  {rows.map((row) => (
+                    <FolderTreeRow
+                      key={row.path}
+                      row={row}
+                      owner={owner}
+                      repo={repo}
+                      absolutePaths={true}
+                      focused={hoveredPath === row.path}
+                      onMouseEnter={() => {
+                        if (!mouseMoved.current) return;
+                        setHoveredPath(row.path);
+                      }}
+                      onClick={navigate}
+                    />
+                  ))}
+                </div>
+              );
+            }
 
-  return (
-    <div>
-      <div className="flex items-center font-mono text-sm h-6 shrink-0 select-none pl-2.5">
-        <Link
-          href={`/${owner}/${repo}/${entryPath}`}
-          className="flex items-center cursor-pointer hover:underline"
-        >
-          <span className="text-muted-foreground">{prefix}/</span>
-          {name}/
-        </Link>
+            return (
+              <div
+                key={entry.path}
+                className={cn("flex items-center font-mono text-sm h-6 shrink-0 select-none pl-2.5", hoveredPath === entry.path && "bg-accent/50")}
+                onMouseEnter={onMouseEnter}
+              >
+                <Link
+                  href={`/${owner}/${repo}/${entry.path}`}
+                  data-path={entry.path}
+                  className="flex items-center cursor-default"
+                >
+                  <span className="text-muted-foreground">{prefix}/</span>
+                  {name}
+                </Link>
+              </div>
+            );
+          })}
       </div>
-      {rows.map((row) => (
-        <FolderTreeRow
-          key={row.path}
-          row={row}
-          owner={owner}
-          repo={repo}
-          absolutePaths={true}
-          focused={hoveredPath === row.path}
-          onMouseEnter={() => onMouseEnter(row.path)}
-          onClick={onNavigate}
-        />
-      ))}
     </div>
   );
 }
