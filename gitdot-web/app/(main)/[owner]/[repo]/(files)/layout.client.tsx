@@ -293,7 +293,7 @@ function RowGutter({ depth }: { depth: number }) {
         <span
           key={i}
           className="absolute top-0 bottom-0 w-px bg-border"
-          style={{ left: `${16 + i * 16}px` }}
+          style={{ left: `${10 + i * 16}px` }}
         />
       ))}
     </>
@@ -331,7 +331,7 @@ function FolderRow({
       className={cn(
         "relative flex flex-row w-full h-9 items-center select-none cursor-default text-sm font-mono hover:bg-accent/50 pr-2",
         (depth === 0 || (isLast && depth === 1)) && "border-b",
-        isActive && "bg-sidebar border-t border-b",
+        isActive && "bg-sidebar ring-1 ring-inset ring-border",
       )}
       data-sidebar-item=""
       data-sidebar-item-active={isActive ? "true" : undefined}
@@ -376,7 +376,7 @@ function FileRow({
       className={cn(
         "relative flex flex-row w-full h-9 items-center select-none cursor-default text-sm font-mono hover:bg-accent/50 pr-2",
         (depth === 0 || (isLast && depth === 1)) && "border-b",
-        isActive && "bg-sidebar border-t border-b",
+        isActive && "bg-sidebar ring-1 ring-inset ring-border",
       )}
       data-sidebar-item=""
       data-sidebar-item-active={isActive}
