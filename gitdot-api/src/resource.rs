@@ -9,6 +9,7 @@ pub mod runner;
 pub mod settings;
 pub mod task;
 pub mod user;
+pub mod webhook;
 
 use serde::{Serialize, de::DeserializeOwned};
 
@@ -23,6 +24,7 @@ pub use runner::*;
 pub use settings::*;
 pub use task::*;
 pub use user::*;
+pub use webhook::*;
 
 pub trait ApiResource: Serialize + PartialEq + DeserializeOwned {}
 
