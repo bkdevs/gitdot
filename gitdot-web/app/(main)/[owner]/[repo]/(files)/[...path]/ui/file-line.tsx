@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/util";
-import { useFileViewer } from "./file-body-client";
+import { useFileBodyContext } from "./file-body-client";
 
 export function FileLine({
   children,
@@ -11,7 +11,7 @@ export function FileLine({
   "data-line-number": number;
 }) {
   const { isLineSelected, handleLineMouseDown, handleLineMouseEnter } =
-    useFileViewer();
+    useFileBodyContext();
 
   const isSelected = isLineSelected(lineNumber);
 

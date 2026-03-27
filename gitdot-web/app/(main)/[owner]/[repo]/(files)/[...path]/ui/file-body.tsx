@@ -13,6 +13,7 @@ import { FileLine } from "./file-line";
 function applyFileBodyTransformers(hast: Root): Root {
   const pre = hast.children[0] as Element;
   addClassToHast(pre, "outline-none");
+
   const code = pre.children[0] as Element;
   let lineIndex = 0;
   for (const child of code.children) {
