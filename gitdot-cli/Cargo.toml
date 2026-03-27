@@ -29,8 +29,8 @@ tombi-diagnostic = { git = "https://github.com/tombi-toml/tombi", rev = "1517a93
 tombi-formatter = { git = "https://github.com/tombi-toml/tombi", rev = "1517a938d105bfffd7515011b0844df5305121ea" }
 tombi-linter = { git = "https://github.com/tombi-toml/tombi", rev = "1517a938d105bfffd7515011b0844df5305121ea" }
 tombi-schema-store = { git = "https://github.com/tombi-toml/tombi", rev = "1517a938d105bfffd7515011b0844df5305121ea" }
-toml = "0.9.11"
-url = "2.5.8"
+toml = { workspace = true }
+url = { workspace = true }
 uuid = { workspace = true }
 
 [features]

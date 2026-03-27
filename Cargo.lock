@@ -2248,7 +2248,7 @@ dependencies = [
  "tombi-formatter",
  "tombi-linter",
  "tombi-schema-store",
- "toml 0.9.11+spec-1.1.0",
+ "toml 1.0.3+spec-1.1.0",
  "url",
  "uuid",
 ]
