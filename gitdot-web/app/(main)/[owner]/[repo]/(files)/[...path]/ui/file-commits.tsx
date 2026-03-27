@@ -1,10 +1,55 @@
 "use client";
 
-import type { RepositoryCommitsResource } from "gitdot-api";
+import type { RepositoryCommitResource } from "gitdot-api";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useRightSidebar } from "@/(main)/hooks/use-sidebar";
 import Link from "@/ui/link";
 import { timeAgo } from "@/util";
+
+export function FileCommits({
+  commits,
+}: {
+  commits: RepositoryCommitResource[];
+}) {
+  const pathname = usePathname();
+  const params = useSearchParams();
+
+  const open = useRightSidebar();
+  if (!open) return null;
+
+  const ref = params.get("ref");
+  const selectedCommitSha = ref ?? commits[0]?.sha.substring(0, 7) ?? "";
+
+  const getCommitHref = (sha: string) => {
+    const isLatest = sha === commits[0]?.sha;
+    const newParams = new URLSearchParams(params);
+
+    if (isLatest) {
+      newParams.delete("ref");
+    } else {
+      newParams.set("ref", sha.substring(0, 7));
+      newParams.delete("lines");
+    }
+
+    const queryString = newParams.toString();
+    return queryString ? `${pathname}?${queryString}` : pathname;
+  };
+
+  return (
+    <div className="w-64 h-full border-l flex flex-col">
+      <div className="flex-1 overflow-auto scrollbar-none">
+        {commits.map((commit) => (
+          <FileCommit
+            key={commit.sha}
+            commit={commit}
+            isSelected={selectedCommitSha === commit.sha.substring(0, 7)}
+            href={getCommitHref(commit.sha)}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function FileCommit({
   commit,
@@ -48,49 +93,5 @@ function FileCommit({
         </div>
       </div>
     </Link>
-  );
-}
-
-export function FileCommits({
-  commits,
-  selectedCommitSha,
-}: {
-  commits: RepositoryCommitsResource;
-  selectedCommitSha: string;
-}) {
-  const pathname = usePathname();
-  const params = useSearchParams();
-
-  const open = useRightSidebar();
-  if (!open) return null;
-
-  const getCommitHref = (sha: string) => {
-    const isLatest = sha === commits.commits[0]?.sha;
-    const newParams = new URLSearchParams(params);
-
-    if (isLatest) {
-      newParams.delete("ref");
-    } else {
-      newParams.set("ref", sha.substring(0, 7));
-      newParams.delete("lines");
-    }
-
-    const queryString = newParams.toString();
-    return queryString ? `${pathname}?${queryString}` : pathname;
-  };
-
-  return (
-    <div className="w-64 h-full border-l flex flex-col">
-      <div className="flex-1 overflow-auto scrollbar-none">
-        {commits.commits.map((commit) => (
-          <FileCommit
-            key={commit.sha}
-            commit={commit}
-            isSelected={selectedCommitSha === commit.sha.substring(0, 7)}
-            href={getCommitHref(commit.sha)}
-          />
-        ))}
-      </div>
-    </div>
   );
 }

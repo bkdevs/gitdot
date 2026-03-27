@@ -1,14 +1,14 @@
 "use client";
 
-import { Suspense, use } from "react";
 import {
   type ResourcePromisesType,
   type ResourceRequestsType,
   useResolvePromises,
 } from "@/(main)/[owner]/[repo]/resources";
 import { Loading } from "@/ui/loading";
+import { Suspense, use } from "react";
 import type { Resources } from "./page";
-import { FileBody } from "./ui/file-body";
+import { FileViewer } from "./ui/file-viewer";
 import { FolderViewer } from "./ui/folder-viewer";
 import type { LineSelection } from "./util";
 
@@ -19,19 +19,17 @@ export function PageClient({
   owner,
   repo,
   selectedLines,
-  historySlot,
+  filePath,
   requests,
   promises,
 }: {
   owner: string;
   repo: string;
   selectedLines: LineSelection | null;
-  historySlot: React.ReactNode;
+  filePath: string;
   requests: ResourceRequests;
   promises: ResourcePromises;
 }) {
-  // TODO: this is being re-invoked many times as history slot streams in? selected lines too?
-  // in general resolveResources is fine to use as long as it is strictly owner, repo, requests, promises
   const resolvedPromises = useResolvePromises(owner, repo, requests, promises);
   return (
     <Suspense fallback={<Loading />}>
@@ -39,7 +37,7 @@ export function PageClient({
         owner={owner}
         repo={repo}
         selectedLines={selectedLines}
-        historySlot={historySlot}
+        filePath={filePath}
         promises={resolvedPromises}
       />
     </Suspense>
@@ -50,38 +48,33 @@ function PageContent({
   owner,
   repo,
   selectedLines,
-  historySlot,
+  filePath,
   promises,
 }: {
   owner: string;
   repo: string;
   selectedLines: LineSelection | null;
-  historySlot: React.ReactNode;
+  filePath: string;
   promises: ResourcePromises;
 }) {
   const blob = use(promises.blob);
   if (!blob) {
     return <div>File not found.</div>;
   }
+
   if (blob.type === "folder") {
     const paths = use(promises.paths);
     return <FolderViewer path={blob.path} paths={paths} />;
-  }
+  } else {
+    const hast = use(promises.hast);
+    if (!hast) {
+      return <div>File failed to render.</div>;
+    }
 
-  const hast = use(promises.hast);
-  if (!hast) {
-    return <div>File failed to render.</div>;
+    const allCommits = use(promises.commits);
+    const fileCommits = (allCommits ?? []).filter((c) =>
+      c.diffs.some((d) => d.path === filePath),
+    );
+    return <FileViewer selectedLines={selectedLines} hast={hast} fileCommits={fileCommits}/>
   }
-
-  return (
-    <div className="flex w-full h-full min-h-0 overflow-hidden">
-      <div
-        data-page-scroll
-        className="flex-1 min-w-0 overflow-auto scrollbar-thin"
-      >
-        <FileBody selectedLines={selectedLines} hast={hast} />
-      </div>
-      {historySlot}
-    </div>
-  );
 }
