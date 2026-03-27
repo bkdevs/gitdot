@@ -10,6 +10,7 @@ mod review;
 mod runner;
 mod task;
 mod user;
+mod webhook;
 
 pub use build::*;
 pub use git_http::*;
@@ -23,6 +24,7 @@ pub use review::*;
 pub use runner::*;
 pub use task::*;
 pub use user::*;
+pub use webhook::*;
 
 #[cfg(feature = "otel")]
 mod otel;

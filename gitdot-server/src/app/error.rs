@@ -9,6 +9,7 @@ use gitdot_api::ApiResource;
 use gitdot_core::error::{
     AuthorizationError, BuildError, CommitError, GitHttpError, MigrationError, OrganizationError,
     QuestionError, RepositoryError, ReviewError, RunnerError, TaskError, TokenError, UserError,
+    WebhookError,
 };
 
 use super::AppResponse;
@@ -53,6 +54,9 @@ pub enum AppError {
 
     #[error(transparent)]
     Task(#[from] TaskError),
+
+    #[error(transparent)]
+    Webhook(#[from] WebhookError),
 
     #[error(transparent)]
     Internal(#[from] anyhow::Error),
@@ -310,6 +314,25 @@ impl IntoResponse for AppError {
                     TaskError::NotFound(_) => StatusCode::NOT_FOUND,
                     TaskError::NoBuildConfig => StatusCode::UNPROCESSABLE_ENTITY,
                     TaskError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+                };
+                let response = AppResponse::new(
+                    status_code,
+                    AppErrorMessage {
+                        message: e.to_string(),
+                    },
+                );
+                response.into_response()
+            }
+            AppError::Webhook(e) => {
+                let status_code = match e {
+                    WebhookError::InvalidOwnerName(_) => StatusCode::BAD_REQUEST,
+                    WebhookError::InvalidRepositoryName(_) => StatusCode::BAD_REQUEST,
+                    WebhookError::InvalidUrl(_) => StatusCode::BAD_REQUEST,
+                    WebhookError::InvalidSecret(_) => StatusCode::BAD_REQUEST,
+                    WebhookError::InvalidEventType(_) => StatusCode::BAD_REQUEST,
+                    WebhookError::NotFound(_) => StatusCode::NOT_FOUND,
+                    WebhookError::RepositoryNotFound(_) => StatusCode::NOT_FOUND,
+                    WebhookError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                 };
                 let response = AppResponse::new(
                     status_code,

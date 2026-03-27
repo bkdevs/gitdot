@@ -17,6 +17,9 @@ pub enum WebhookError {
     #[error("Invalid webhook URL: {0}")]
     InvalidUrl(String),
 
+    #[error("Invalid secret: {0}")]
+    InvalidSecret(String),
+
     #[error("Invalid event type: {0}")]
     InvalidEventType(String),
 

@@ -28,7 +28,7 @@ use crate::{
         create_build_router, create_git_http_router, create_internal_router,
         create_migration_router, create_oauth_router, create_organization_router,
         create_question_router, create_repository_router, create_review_router,
-        create_runner_router, create_task_router, create_user_router,
+        create_runner_router, create_task_router, create_user_router, create_webhook_router,
     },
     layer::GitdotLayer,
 };
@@ -98,7 +98,8 @@ fn create_router(app_state: AppState) -> Router {
         .merge(create_review_router())
         .merge(create_build_router())
         .merge(create_oauth_router())
-        .merge(create_migration_router());
+        .merge(create_migration_router())
+        .merge(create_webhook_router());
 
     #[cfg(feature = "otel")]
     let api_router = api_router.merge(create_otel_router());

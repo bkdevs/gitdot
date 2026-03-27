@@ -12,7 +12,7 @@ use gitdot_core::{
         BuildRepositoryImpl, CodeRepositoryImpl, CommitRepositoryImpl, GitHubRepositoryImpl,
         MigrationRepositoryImpl, OrganizationRepositoryImpl, QuestionRepositoryImpl,
         RepositoryRepositoryImpl, ReviewRepositoryImpl, RunnerRepositoryImpl, TaskRepositoryImpl,
-        TokenRepositoryImpl, UserRepositoryImpl,
+        TokenRepositoryImpl, UserRepositoryImpl, WebhookRepositoryImpl,
     },
     service::{
         AuthenticationService, AuthenticationServiceImpl, AuthorizationService,
@@ -21,7 +21,7 @@ use gitdot_core::{
         OAuthServiceImpl, OrganizationService, OrganizationServiceImpl, QuestionService,
         QuestionServiceImpl, RepositoryService, RepositoryServiceImpl, ReviewService,
         ReviewServiceImpl, RunnerService, RunnerServiceImpl, TaskService, TaskServiceImpl,
-        UserService, UserServiceImpl,
+        UserService, UserServiceImpl, WebhookService, WebhookServiceImpl,
     },
 };
 
@@ -45,6 +45,7 @@ pub struct AppState {
     pub commit_service: Arc<dyn CommitService>,
     pub migration_service: Arc<dyn MigrationService>,
 
+    pub webhook_service: Arc<dyn WebhookService>,
     pub build_service: Arc<dyn BuildService>,
     pub runner_service: Arc<dyn RunnerService>,
     pub task_service: Arc<dyn TaskService>,
@@ -68,6 +69,7 @@ impl AppState {
         let commit_repo = CommitRepositoryImpl::new(pool.clone());
         let github_repo = GitHubRepositoryImpl::new(pool.clone());
         let migration_repo = MigrationRepositoryImpl::new(pool.clone());
+        let webhook_repo = WebhookRepositoryImpl::new(pool.clone());
         let build_repo = BuildRepositoryImpl::new(pool.clone());
         let runner_repo = RunnerRepositoryImpl::new(pool.clone());
         let task_repo = TaskRepositoryImpl::new(pool.clone());
@@ -150,6 +152,10 @@ impl AppState {
                 migration_repo.clone(),
                 org_repo.clone(),
                 github_repo.clone(),
+            )),
+            webhook_service: Arc::new(WebhookServiceImpl::new(
+                webhook_repo.clone(),
+                repo_repo.clone(),
             )),
             build_service: Arc::new(BuildServiceImpl::new(
                 git_client.clone(),

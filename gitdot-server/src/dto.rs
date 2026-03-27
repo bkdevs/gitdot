@@ -11,6 +11,7 @@ mod runner;
 mod settings;
 mod task;
 mod user;
+mod webhook;
 
 pub use git_http::*;
 pub use internal::*;

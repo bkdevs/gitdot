@@ -23,12 +23,23 @@ impl UpdateWebhookRequest {
         webhook_id: Uuid,
         url: Option<&str>,
         secret: Option<String>,
-        events: Option<Vec<WebhookEventType>>,
+        events: Option<Vec<String>>,
     ) -> Result<Self, WebhookError> {
         let url = url
             .map(WebhookUrl::try_new)
             .transpose()
             .map_err(|e| WebhookError::InvalidUrl(e.to_string()))?;
+
+        let events = events
+            .map(|evts| {
+                evts.iter()
+                    .map(|e| {
+                        WebhookEventType::try_from(e.as_str())
+                            .map_err(WebhookError::InvalidEventType)
+                    })
+                    .collect::<Result<Vec<_>, _>>()
+            })
+            .transpose()?;
 
         Ok(Self {
             owner_name: OwnerName::try_new(owner)
