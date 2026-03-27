@@ -12,6 +12,7 @@ import { useRightSidebar } from "@/(main)/hooks/use-sidebar";
 import { getRepositoryBlobsAction } from "@/actions/repository";
 import Link from "@/ui/link";
 import { timeAgo } from "@/util";
+import { computeInlineDiffs } from "../util";
 import { useFileViewerContext } from "./file-viewer-context";
 
 export function FileCommits({
@@ -27,8 +28,9 @@ export function FileCommits({
 }) {
   const { highlightFile } = useWorkerContext();
   const { setHast } = useFileViewerContext();
-  const [_blobs, setBlobs] = useState<RepositoryBlobResource[]>([]);
-  const [hasts, setHasts] = useState<Record<string, Root>>({});
+  const [blobHasts, setBlobHasts] = useState<Record<string, Root>>({});
+  const [diffHasts, setDiffHasts] = useState<Record<string, Root>>({});
+
   const params = useSearchParams();
   const ref = params.get("ref");
 
@@ -38,9 +40,7 @@ export function FileCommits({
 
     async function fetchBlobs() {
       const res = await getRepositoryBlobsAction(owner, repo, refs, path);
-      const blobs = res?.blobs ?? [];
-      setBlobs(blobs);
-      return blobs;
+      return res?.blobs ?? [];
     }
 
     async function highlightBlobs(blobs: RepositoryBlobResource[]) {
@@ -49,7 +49,15 @@ export function FileCommits({
           .filter((b) => b.type === "file")
           .map(async (b) => [b.commit_sha, await highlightFile(b.path, b.content)] as const)
       );
-      setHasts(Object.fromEntries(entries));
+      const hastsMap = Object.fromEntries(entries);
+      setBlobHasts(hastsMap);
+
+      const currentSha = ref
+        ? commits.find((c) => c.sha.startsWith(ref))?.sha
+        : commits[0]?.sha;
+      if (currentSha) {
+        setDiffHasts(computeInlineDiffs(currentSha, blobs, hastsMap));
+      }
     }
 
     fetchBlobs().then((blobs) => blobs && highlightBlobs(blobs));
@@ -72,9 +80,10 @@ export function FileCommits({
             owner={owner}
             repo={repo}
             path={path}
-            onHover={
-              () => hasts[commit.sha] && setHast(hasts[commit.sha])
-            }
+            onHover={() => {
+              const hast = diffHasts[commit.sha] ?? blobHasts[commit.sha];
+              if (hast) setHast(hast);
+            }}
           />
         ))}
       </div>

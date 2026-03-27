@@ -1,4 +1,6 @@
-import type { RepositoryPathsResource } from "gitdot-api";
+import type { RepositoryBlobResource, RepositoryPathsResource } from "gitdot-api";
+import type { Element, Root, Text } from "hast";
+import { structuredPatch } from "diff";
 import { getFolderEntries } from "@/(main)/[owner]/[repo]/util";
 
 export type FolderTreeRowData = {
@@ -103,4 +105,126 @@ export function formatLineSelection(selection: LineSelection): string {
   return selection.start === selection.end
     ? `${selection.start}`
     : `${selection.start}-${selection.end}`;
+}
+
+// ============================================================================
+// inline diff
+// ============================================================================
+
+export function computeInlineDiffs(
+  currentSha: string,
+  blobs: RepositoryBlobResource[],
+  hasts: Record<string, Root>,
+): Record<string, Root> {
+  const currentBlob = blobs.find((b) => b.commit_sha === currentSha);
+  if (!currentBlob || currentBlob.type !== "file") return {};
+
+  const currentHast = hasts[currentSha];
+  if (!currentHast) return {};
+
+  const currentLines = extractLines(currentHast);
+  const result: Record<string, Root> = {};
+
+  for (const otherBlob of blobs) {
+    if (otherBlob.type !== "file") continue;
+    if (otherBlob.commit_sha === currentBlob.commit_sha) continue;
+
+    const otherHast = hasts[otherBlob.commit_sha];
+    if (!otherHast) continue;
+
+    const otherLines = extractLines(otherHast);
+    const patch = structuredPatch(
+      otherBlob.path,
+      currentBlob.path,
+      otherBlob.content,
+      currentBlob.content,
+      "",
+      "",
+      { context: 0 },
+    );
+    console.log(patch);
+    
+    const resultLines: Element[] = [];
+    let oldCursor = 1;
+
+    for (const hunk of patch.hunks) {
+      while (oldCursor < hunk.oldStart) {
+        const src = otherLines[oldCursor - 1];
+        if (src) resultLines.push(structuredClone(src));
+        oldCursor++;
+      }
+
+      let newLineCursor = hunk.newStart;
+      for (const line of hunk.lines) {
+        if (line.startsWith(" ")) {
+          const src = otherLines[oldCursor - 1];
+          if (src) resultLines.push(structuredClone(src));
+          oldCursor++;
+          newLineCursor++;
+        } else if (line.startsWith("-")) {
+          const src = otherLines[oldCursor - 1];
+          if (src) resultLines.push(colorBackground(src, "#fef2f2"));
+          oldCursor++;
+        } else if (line.startsWith("+")) {
+          const src = currentLines[newLineCursor - 1];
+          if (src) resultLines.push(colorBackground(src, "#f0fdf4"));
+          newLineCursor++;
+        }
+        // skip "\" no-newline-at-EOF markers
+      }
+    }
+
+    while (oldCursor <= otherLines.length) {
+      const src = otherLines[oldCursor - 1];
+      if (src) resultLines.push(structuredClone(src));
+      oldCursor++;
+    }
+
+    result[otherBlob.commit_sha] = buildInlineDiffHast(resultLines);
+  }
+
+  return result;
+}
+
+function buildInlineDiffHast(lines: Element[]): Root {
+  const codeChildren: Array<Element | Text> = [];
+  for (let i = 0; i < lines.length; i++) {
+    codeChildren.push(lines[i]);
+    if (i < lines.length - 1) {
+      codeChildren.push({ type: "text", value: "\n" });
+    }
+  }
+  return {
+    type: "root",
+    children: [
+      {
+        type: "element",
+        tagName: "pre",
+        properties: { class: ["outline-none"] },
+        children: [
+          {
+            type: "element",
+            tagName: "code",
+            properties: { class: ["flex", "flex-col"] },
+            children: codeChildren,
+          },
+        ],
+      },
+    ],
+  };
+}
+
+function colorBackground(line: Element, color: string): Element {
+  const cloned = structuredClone(line);
+  const existing = cloned.properties.style;
+  cloned.properties.style = existing
+    ? `${existing}; background-color: ${color}`
+    : `background-color: ${color}`;
+  return cloned;
+}
+
+function extractLines(hast: Root): Element[] {
+  const pre = hast.children[0] as Element;
+  const code = pre.children[0] as Element;
+  return code.children.filter((c): c is Element => c.type === "element");
 }

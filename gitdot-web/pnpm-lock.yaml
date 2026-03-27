@@ -83,6 +83,9 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
+      diff:
+        specifier: ^8.0.4
+        version: 8.0.4
       gitdot-api:
         specifier: workspace:*
         version: link:packages/api
@@ -1768,6 +1771,10 @@ packages:
 
   diff@4.0.4:
     resolution: {integrity: sha512-X07nttJQkwkfKfvTPG/KSnE2OMdcUCao6+eXF3wmnIQRn2aPAHH3VxDbDOdegkd6JbPsXqShpvEOHfAT+nCNwQ==}
+    engines: {node: '>=0.3.1'}
+
+  diff@8.0.4:
+    resolution: {integrity: sha512-DPi0FmjiSU5EvQV0++GFDOJ9ASQUVFh5kD+OzOnYdi7n3Wpm9hWWGfB/O2blfHcMVTL5WkQXSnRiK9makhrcnw==}
     engines: {node: '>=0.3.1'}
 
   eastasianwidth@0.2.0:
@@ -4723,6 +4730,8 @@ snapshots:
       dequal: 2.0.3
 
   diff@4.0.4: {}
+
+  diff@8.0.4: {}
 
   eastasianwidth@0.2.0: {}
 

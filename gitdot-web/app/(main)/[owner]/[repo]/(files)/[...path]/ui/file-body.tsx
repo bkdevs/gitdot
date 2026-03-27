@@ -45,9 +45,11 @@ function applyFileBodyTransformers(hast: Root): Root {
 function FileLine({
   children,
   "data-line-number": lineNumber,
+  style,
 }: {
   children: React.ReactNode;
   "data-line-number": number;
+  style?: React.CSSProperties;
 }) {
   const { isLineSelected, handleLineMouseDown, handleLineMouseEnter } =
     useFileViewerContext();
@@ -57,6 +59,7 @@ function FileLine({
   return (
     <span
       className={cn("inline-flex w-full", isSelected && "bg-accent/60")}
+      style={style}
       onMouseEnter={() => handleLineMouseEnter(lineNumber)}
     >
       <button
