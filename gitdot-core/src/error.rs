@@ -15,6 +15,7 @@ mod secret;
 mod task;
 mod token;
 mod user;
+mod webhook;
 
 pub use authorization::AuthorizationError;
 pub use build::BuildError;
@@ -33,3 +34,4 @@ pub use secret::SecretError;
 pub use task::TaskError;
 pub use token::TokenError;
 pub use user::UserError;
+pub use webhook::WebhookError;

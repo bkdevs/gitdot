@@ -11,6 +11,7 @@ mod runner;
 mod task;
 mod token;
 mod user;
+mod webhook;
 
 pub use build::{BuildRepository, BuildRepositoryImpl};
 pub use code::{CodeRepository, CodeRepositoryImpl};
@@ -25,3 +26,4 @@ pub use runner::{RunnerRepository, RunnerRepositoryImpl};
 pub use task::{TaskRepository, TaskRepositoryImpl};
 pub use token::{TokenRepository, TokenRepositoryImpl};
 pub use user::{UserRepository, UserRepositoryImpl};
+pub use webhook::{WebhookRepository, WebhookRepositoryImpl};

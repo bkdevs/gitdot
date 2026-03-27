@@ -12,6 +12,7 @@ mod review;
 mod runner;
 mod task;
 mod user;
+mod webhook;
 
 pub use authentication::{AuthenticationService, AuthenticationServiceImpl};
 pub use authorization::{AuthorizationService, AuthorizationServiceImpl};
@@ -27,3 +28,4 @@ pub use review::{ReviewService, ReviewServiceImpl};
 pub use runner::{RunnerService, RunnerServiceImpl};
 pub use task::{TaskService, TaskServiceImpl};
 pub use user::{UserService, UserServiceImpl};
+pub use webhook::{WebhookService, WebhookServiceImpl};

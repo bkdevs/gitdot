@@ -12,6 +12,7 @@ mod review;
 mod runner;
 mod task;
 mod user;
+mod webhook;
 
 pub(crate) mod common;
 
@@ -33,3 +34,4 @@ pub use review::*;
 pub use runner::*;
 pub use task::*;
 pub use user::*;
+pub use webhook::*;
