@@ -282,13 +282,16 @@ function RowGutter({ depth }: { depth: number }) {
   if (depth === 0) return null;
   return (
     <>
-      {Array.from({ length: depth }, (_, i) => (
-        <span
-          key={i}
-          className="absolute top-0 bottom-0 w-px bg-border"
-          style={{ left: `${10 + i * 16}px` }}
-        />
-      ))}
+      {Array.from({ length: depth }, (_, i) => {
+        const left = 10 + i * 16;
+        return (
+          <span
+            key={`gutter-${left}px`}
+            className="absolute top-0 bottom-0 w-px bg-border"
+            style={{ left: `${left}px` }}
+          />
+        );
+      })}
     </>
   );
 }

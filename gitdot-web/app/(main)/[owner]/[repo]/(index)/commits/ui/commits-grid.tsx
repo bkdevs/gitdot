@@ -71,7 +71,6 @@ export function CommitsGrid({
           ))}
         </div>
 
-        {/* biome-ignore lint/a11y/noStaticElementInteractions: mouse enter/leave are purely cosmetic, not interactive */}
         <div
           className="grid w-full pt-1.5 pb-1 px-1.5"
           style={{

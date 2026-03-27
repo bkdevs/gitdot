@@ -1,11 +1,13 @@
 "use client";
 
 import type {
-  RepositoryBlobsResource,
+  RepositoryBlobResource,
   RepositoryCommitResource,
 } from "gitdot-api";
-import { usePathname, useSearchParams } from "next/navigation";
+import type { Root } from "hast";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useWorkerContext } from "@/(main)/context/worker";
 import { useRightSidebar } from "@/(main)/hooks/use-sidebar";
 import { getRepositoryBlobsAction } from "@/actions/repository";
 import Link from "@/ui/link";
@@ -22,40 +24,38 @@ export function FileCommits({
   repo: string;
   path: string;
 }) {
-  const pathname = usePathname();
+  const { highlightFile } = useWorkerContext();
+  const [_blobs, setBlobs] = useState<RepositoryBlobResource[]>([]);
+  const [_hasts, setHasts] = useState<Record<string, Root>>({});
   const params = useSearchParams();
-  const [blobs, setBlobs] = useState<RepositoryBlobsResource | null>(null);
+  const ref = params.get("ref");
 
   useEffect(() => {
     const refs = commits.map((c) => c.sha);
     if (refs.length === 0) return;
-    getRepositoryBlobsAction(owner, repo, refs, path).then(setBlobs);
-  }, [commits, owner, path, repo]);
 
-  useEffect(() => {
-    console.log(blobs);
-  }, [blobs]);
+    async function fetchBlobs() {
+      const res = await getRepositoryBlobsAction(owner, repo, refs, path);
+      const blobs = res?.blobs ?? [];
+      setBlobs(blobs);
+      return blobs;
+    }
+
+    async function highlightBlobs(blobs: RepositoryBlobResource[]) {
+      const fileBlobs = blobs.filter((b) => b.type === "file");
+      const entries = await Promise.all(
+        fileBlobs.map(async (b) => [b.commit_sha, await highlightFile(b.path, b.content)] as const),
+      );
+      setHasts(Object.fromEntries(entries));
+    }
+
+    fetchBlobs().then((blobs) => blobs && highlightBlobs(blobs));
+  }, [commits, owner, path, repo, highlightFile]);
 
   const open = useRightSidebar();
   if (!open) return null;
 
-  const ref = params.get("ref");
   const selectedCommitSha = ref ?? commits[0]?.sha.substring(0, 7) ?? "";
-
-  const getCommitHref = (sha: string) => {
-    const isLatest = sha === commits[0]?.sha;
-    const newParams = new URLSearchParams(params);
-
-    if (isLatest) {
-      newParams.delete("ref");
-    } else {
-      newParams.set("ref", sha.substring(0, 7));
-      newParams.delete("lines");
-    }
-
-    const queryString = newParams.toString();
-    return queryString ? `${pathname}?${queryString}` : pathname;
-  };
 
   return (
     <div className="w-64 h-full border-l flex flex-col">
@@ -65,7 +65,10 @@ export function FileCommits({
             key={commit.sha}
             commit={commit}
             isSelected={selectedCommitSha === commit.sha.substring(0, 7)}
-            href={getCommitHref(commit.sha)}
+            isLatest={commit.sha === commits[0]?.sha}
+            owner={owner}
+            repo={repo}
+            path={path}
           />
         ))}
       </div>
@@ -76,7 +79,10 @@ export function FileCommits({
 function FileCommit({
   commit,
   isSelected,
-  href,
+  isLatest,
+  owner,
+  repo,
+  path,
 }: {
   commit: {
     sha: string;
@@ -85,8 +91,26 @@ function FileCommit({
     date: string;
   };
   isSelected: boolean;
-  href: string;
+  isLatest: boolean;
+  owner: string;
+  repo: string;
+  path: string;
 }) {
+  const params = useSearchParams();
+  const newParams = new URLSearchParams(params);
+
+  if (isLatest) {
+    newParams.delete("ref");
+  } else {
+    newParams.set("ref", commit.sha.substring(0, 7));
+    newParams.delete("lines");
+  }
+
+  const queryString = newParams.toString();
+  const href = queryString
+    ? `/${owner}/${repo}/${path}?${queryString}`
+    : `/${owner}/${repo}/${path}`;
+
   const author = commit.author.name;
 
   return (

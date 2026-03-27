@@ -16,7 +16,6 @@ export function FileLine({
   const isSelected = isLineSelected(lineNumber);
 
   return (
-    // biome-ignore lint/a11y/noStaticElementInteractions: hover interaction for capturing selections
     <span
       className={cn("inline-flex w-full", isSelected && "bg-accent/60")}
       onMouseEnter={() => handleLineMouseEnter(lineNumber)}

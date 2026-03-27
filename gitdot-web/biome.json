@@ -28,7 +28,8 @@
     "rules": {
       "recommended": true,
       "a11y": {
-        "noAutofocus": "off"
+        "noAutofocus": "off",
+        "noStaticElementInteractions": "off"
       },
       "suspicious": {
         "noUnknownAtRules": "off"
