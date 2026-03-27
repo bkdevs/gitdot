@@ -360,6 +360,7 @@ where
 #[cfg(test)]
 mod tests {
     use async_trait::async_trait;
+    use chrono::{DateTime, Utc};
     use mockall::mock;
     use uuid::Uuid;
 
@@ -426,7 +427,7 @@ mod tests {
             async fn update_question(&self, repository_id: Uuid, number: i32, title: &str, body: &str) -> Result<Option<Question>, sqlx::Error>;
             async fn get_question(&self, repository_id: Uuid, number: i32, user_id: Option<Uuid>) -> Result<Option<Question>, sqlx::Error>;
             async fn get_question_id(&self, owner: &str, repo: &str, question_number: i32) -> Result<Option<Uuid>, sqlx::Error>;
-            async fn list_questions(&self, repository_id: Uuid, user_id: Option<Uuid>) -> Result<Vec<Question>, sqlx::Error>;
+            async fn list_questions(&self, repository_id: Uuid, user_id: Option<Uuid>, from: DateTime<Utc>, to: DateTime<Utc>) -> Result<Vec<Question>, sqlx::Error>;
             async fn create_answer(&self, owner: &str, repo: &str, question_number: i32, author_id: Uuid, body: &str) -> Result<Option<Answer>, sqlx::Error>;
             async fn update_answer(&self, id: Uuid, body: &str) -> Result<Option<Answer>, sqlx::Error>;
             async fn create_comment(&self, parent_id: Uuid, author_id: Uuid, body: &str) -> Result<Comment, sqlx::Error>;
