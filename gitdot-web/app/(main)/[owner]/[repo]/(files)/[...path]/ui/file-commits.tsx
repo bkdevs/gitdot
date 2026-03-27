@@ -1,10 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import type { RepositoryBlobsResource, RepositoryCommitResource } from "gitdot-api";
+import type {
+  RepositoryBlobsResource,
+  RepositoryCommitResource,
+} from "gitdot-api";
 import { usePathname, useSearchParams } from "next/navigation";
-import { getRepositoryBlobsAction } from "@/actions/repository";
+import { useEffect, useState } from "react";
 import { useRightSidebar } from "@/(main)/hooks/use-sidebar";
+import { getRepositoryBlobsAction } from "@/actions/repository";
 import Link from "@/ui/link";
 import { timeAgo } from "@/util";
 
@@ -27,7 +30,7 @@ export function FileCommits({
     const refs = commits.map((c) => c.sha);
     if (refs.length === 0) return;
     getRepositoryBlobsAction(owner, repo, refs, path).then(setBlobs);
-  }, []);
+  }, [commits, owner, path, repo]);
 
   useEffect(() => {
     console.log(blobs);

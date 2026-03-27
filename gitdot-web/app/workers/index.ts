@@ -3,3 +3,10 @@ export function createSyncWorker(): SharedWorker {
     name: "gitdot-sync",
   });
 }
+
+export function createShikiWorker(): SharedWorker {
+  return new SharedWorker(new URL("./shiki.ts", import.meta.url), {
+    name: "gitdot-shiki",
+    type: "module",
+  });
+}

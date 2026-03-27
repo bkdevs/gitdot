@@ -20,7 +20,7 @@ export function RepoResources({
   repo: string;
   children: React.ReactNode;
 }) {
-  const { sync } = useWorkerContext();
+  const { syncRepo } = useWorkerContext();
   const [resourcesReady, setResourcesReady] = useState(false);
   const [hastsReady, setHastsReady] = useState(false);
   const provider = useRef(new InMemoryProvider(owner, repo)).current;
@@ -34,18 +34,10 @@ export function RepoResources({
   }, [resourcesReady, provider]);
 
   useEffect(() => {
-    if (!sync) return;
-    const handler = (
-      e: MessageEvent<{ resourcesReady: boolean; hastsReady: boolean }>,
-    ) => {
-      setResourcesReady(e.data.resourcesReady);
-      setHastsReady(e.data.hastsReady);
-    };
-
-    sync.port.addEventListener("message", handler);
-    sync.port.postMessage({ owner, repo });
-    return () => sync.port.removeEventListener("message", handler);
-  }, [sync, owner, repo]);
+    const { resources, hasts } = syncRepo(owner, repo);
+    resources.then(() => setResourcesReady(true));
+    hasts.then(() => setHastsReady(true));
+  }, [syncRepo, owner, repo]);
 
   return (
     <RepoContext

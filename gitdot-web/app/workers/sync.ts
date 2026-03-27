@@ -5,35 +5,34 @@ import { GetRepositoryResourcesResponse } from "gitdot-api";
 import { openIdb } from "@/db/idb";
 import { createHighlighter, inferLanguage } from "./util";
 
-interface MessageBody {
+export interface SyncRequest {
+  id: string;
   owner: string;
   repo: string;
 }
 
-interface MessageResponse {
-  resourcesReady: boolean;
-  hastsReady: boolean;
+export interface SyncResponse {
+  id: string;
+  stage: "resources" | "hasts";
 }
 
 interface Message {
-  body: MessageBody;
+  body: SyncRequest;
   port: MessagePort;
 }
 
 const queue: Message[] = [];
 let ready = false;
 
-console.log("[gitdot-sync] script loaded");
+console.log("[gitdot-sync] worker loaded");
 
 self.onconnect = (event: MessageEvent) => {
-  console.log("[gitdot-sync] client connected");
+  console.log("[gitdot-sync] worker connected");
   const port = event.ports[0];
-  port.onmessage = (e: MessageEvent<MessageBody>) => {
-    console.log("[gitdot-sync] message received", e.data);
+  port.onmessage = (e: MessageEvent<SyncRequest>) => {
     if (ready) {
       process(e.data, port);
     } else {
-      console.log("[gitdot-sync] not ready, queuing message");
       queue.push({ body: e.data, port });
     }
   };
@@ -47,10 +46,7 @@ self.onconnect = (event: MessageEvent) => {
 // sync.ts:69 [gitdot-sync] zod parse took 8.099999904632568ms
 // sync.ts:79 [gitdot-sync] idb write took 220.19999980926514ms
 // sync.ts:97 [gitdot-sync] highlight + hast write took 6603.199999809265ms (1075 files)
-//
-// i'm unsure why highlight is so slow, but we should likely do all this on on a separate spawned child worker
-// a bit iffy with concurrency potentially for multiple repos
-async function process({ owner, repo }: MessageBody, port: MessagePort) {
+async function process({ id, owner, repo }: SyncRequest, port: MessagePort) {
   const db = openIdb();
   const metadata = await db.getMetadata(owner, repo);
 
@@ -96,17 +92,12 @@ async function process({ owner, repo }: MessageBody, port: MessagePort) {
   if (result.builds)
     writes.push(db.putBuilds(owner, repo, result.builds.builds));
   await Promise.all(writes);
-  console.log(`[gitdot-sync] idb write took ${performance.now() - t}ms`);
-  port.postMessage({
-    resourcesReady: true,
-    hastsReady: false,
-  } satisfies MessageResponse);
 
+  console.log(`[gitdot-sync] idb write took ${performance.now() - t}ms`);
+
+  port.postMessage({ id, stage: "resources" } satisfies SyncResponse);
   if (!result.blobs) {
-    port.postMessage({
-      resourcesReady: true,
-      hastsReady: true,
-    } satisfies MessageResponse);
+    port.postMessage({ id, stage: "hasts" } satisfies SyncResponse);
     return;
   }
 
@@ -125,13 +116,13 @@ async function process({ owner, repo }: MessageBody, port: MessagePort) {
   console.log(
     `[gitdot-sync] highlight + hast write took ${performance.now() - t}ms (${fileBlobs.length} files)`,
   );
-  port.postMessage({
-    resourcesReady: true,
-    hastsReady: true,
-  } satisfies MessageResponse);
+  port.postMessage({ id, stage: "hasts" } satisfies SyncResponse);
 }
 
+const t = performance.now();
 const highlighter = await createHighlighter();
+console.log(`[gitdot-sync] createHighlighter took ${performance.now() - t}ms`);
+
 ready = true;
 console.log("[gitdot-sync] ready");
 for (const { body, port } of queue) process(body, port);

@@ -29,7 +29,12 @@ export function FileViewer({
       >
         <FileBody selectedLines={selectedLines} hast={hast} />
       </div>
-      <FileCommits commits={fileCommits} owner={owner} repo={repo} path={path} />
+      <FileCommits
+        commits={fileCommits}
+        owner={owner}
+        repo={repo}
+        path={path}
+      />
     </div>
   );
 }
