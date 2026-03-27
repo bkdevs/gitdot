@@ -16,6 +16,10 @@ fn strip_git_suffix(s: String) -> String {
     s.strip_suffix(".git").map(|s| s.to_string()).unwrap_or(s)
 }
 
+fn is_valid_url(s: &str) -> bool {
+    url::Url::parse(s).is_ok()
+}
+
 #[nutype(
     sanitize(trim, lowercase),
     validate(predicate = is_valid_slug),
@@ -36,6 +40,13 @@ pub struct RunnerName(String);
     derive(Debug, Clone, PartialEq, Eq, AsRef, Deref)
 )]
 pub struct RepositoryName(String);
+
+#[nutype(
+    sanitize(trim),
+    validate(predicate = is_valid_url),
+    derive(Debug, Clone, PartialEq, Eq, AsRef, Deref)
+)]
+pub struct WebhookUrl(String);
 
 #[cfg(test)]
 mod tests {
@@ -204,6 +215,43 @@ mod tests {
         fn strips_git_suffix() {
             let repo = RepositoryName::try_new("myrepo.git").unwrap();
             assert_eq!(repo.as_ref(), "myrepo");
+        }
+    }
+
+    mod webhook_url {
+        use super::*;
+
+        #[test]
+        fn valid_https() {
+            let url = WebhookUrl::try_new("https://example.com/webhook").unwrap();
+            assert_eq!(url.as_ref(), "https://example.com/webhook");
+        }
+
+        #[test]
+        fn valid_http() {
+            let url = WebhookUrl::try_new("http://localhost:8080/hook").unwrap();
+            assert_eq!(url.as_ref(), "http://localhost:8080/hook");
+        }
+
+        #[test]
+        fn sanitizes_whitespace() {
+            let url = WebhookUrl::try_new("  https://example.com  ").unwrap();
+            assert_eq!(url.as_ref(), "https://example.com");
+        }
+
+        #[test]
+        fn rejects_empty_string() {
+            assert!(WebhookUrl::try_new("").is_err());
+        }
+
+        #[test]
+        fn rejects_not_a_url() {
+            assert!(WebhookUrl::try_new("not-a-url").is_err());
+        }
+
+        #[test]
+        fn rejects_missing_scheme() {
+            assert!(WebhookUrl::try_new("example.com/webhook").is_err());
         }
     }
 }
