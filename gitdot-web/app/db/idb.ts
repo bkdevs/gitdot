@@ -17,8 +17,10 @@ const reviewKey = (owner: string, repo: string, number: number) =>
 const repoKey = (owner: string, repo: string) => `${owner}/${repo}`;
 const pathKey = (owner: string, repo: string, path: string) =>
   `${owner}/${repo}/${path}`;
+const blobPrefix = (owner: string, repo: string, commit: string) =>
+  `${owner}/${repo}/${commit.slice(0, 7)}/`;
 const blobKey = (owner: string, repo: string, commit: string, path: string) =>
-  `${owner}/${repo}/${commit}/${path}`;
+  `${blobPrefix(owner, repo, commit)}${path}`;
 
 let dbPromise: Promise<IDBPDatabase> | null = null;
 function getDb(): Promise<IDBPDatabase> {
@@ -89,7 +91,6 @@ export function openIdb(): Database {
     },
 
     async getCommit(owner, repo, sha) {
-      console.log("getCommit", owner, repo, sha);
       const db = await getDb();
       return (await db.get("commits", commitKey(owner, repo, sha))) ?? null;
     },
@@ -124,7 +125,7 @@ export function openIdb(): Database {
 
     async getBlobs(owner: string, repo: string, commit: string) {
       const db = await getDb();
-      const prefix = `${owner}/${repo}/${commit}/`;
+      const prefix = blobPrefix(owner, repo, commit);
       const range = IDBKeyRange.bound(prefix, `${prefix}\uffff`);
       const rows = await db.getAll("blobs", range);
       if (rows.length === 0) return null;
@@ -151,10 +152,7 @@ export function openIdb(): Database {
       const tx = db.transaction("blobs", "readwrite");
       await Promise.all([
         ...blobs.blobs.map((b) =>
-          tx.store.put(
-            b,
-            blobKey(owner, repo, b.commit_sha.slice(0, 7), b.path),
-          ),
+          tx.store.put(b, blobKey(owner, repo, b.commit_sha, b.path)),
         ),
         tx.done,
       ]);
@@ -169,7 +167,7 @@ export function openIdb(): Database {
 
     async getHasts(owner: string, repo: string, commit: string) {
       const db = await getDb();
-      const prefix = `${owner}/${repo}/${commit}/`;
+      const prefix = blobPrefix(owner, repo, commit);
       const range = IDBKeyRange.bound(prefix, `${prefix}\uffff`);
       const keys = await db.getAllKeys("hasts", range);
       const values = await db.getAll("hasts", range);

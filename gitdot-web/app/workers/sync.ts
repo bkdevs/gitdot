@@ -23,17 +23,17 @@ interface Message {
 const queue: Message[] = [];
 let ready = false;
 
-console.log("[sync-worker] script loaded");
+console.log("[gitdot-sync] script loaded");
 
 self.onconnect = (event: MessageEvent) => {
-  console.log("[sync-worker] client connected");
+  console.log("[gitdot-sync] client connected");
   const port = event.ports[0];
   port.onmessage = (e: MessageEvent<MessageBody>) => {
-    console.log("[sync-worker] message received", e.data);
+    console.log("[gitdot-sync] message received", e.data);
     if (ready) {
       process(e.data, port);
     } else {
-      console.log("[sync-worker] not ready, queuing message");
+      console.log("[gitdot-sync] not ready, queuing message");
       queue.push({ body: e.data, port });
     }
   };
@@ -41,12 +41,12 @@ self.onconnect = (event: MessageEvent) => {
 };
 
 // TODO: this is quite expensive, from one run
-// [sync-worker] fetching resources for pybbae/gitdot-laptop
-// sync.ts:60 [sync-worker] fetch took 1696.4000000953674ms
-// sync.ts:65 [sync-worker] json parse took 36.09999990463257ms
-// sync.ts:69 [sync-worker] zod parse took 8.099999904632568ms
-// sync.ts:79 [sync-worker] idb write took 220.19999980926514ms
-// sync.ts:97 [sync-worker] highlight + hast write took 6603.199999809265ms (1075 files)
+// [gitdot-sync] fetching resources for pybbae/gitdot-laptop
+// sync.ts:60 [gitdot-sync] fetch took 1696.4000000953674ms
+// sync.ts:65 [gitdot-sync] json parse took 36.09999990463257ms
+// sync.ts:69 [gitdot-sync] zod parse took 8.099999904632568ms
+// sync.ts:79 [gitdot-sync] idb write took 220.19999980926514ms
+// sync.ts:97 [gitdot-sync] highlight + hast write took 6603.199999809265ms (1075 files)
 //
 // i'm unsure why highlight is so slow, but we should likely do all this on on a separate spawned child worker
 // a bit iffy with concurrency potentially for multiple repos
@@ -54,7 +54,7 @@ async function process({ owner, repo }: MessageBody, port: MessagePort) {
   const db = openIdb();
   const metadata = await db.getMetadata(owner, repo);
 
-  console.log(`[sync-worker] fetching resources for ${owner}/${repo}`);
+  console.log(`[gitdot-sync] fetching resources for ${owner}/${repo}`);
   const url = new URL(`/${owner}/${repo}/resources`, self.location.origin);
   if (metadata) {
     url.searchParams.set("last_commit", metadata.last_commit);
@@ -62,16 +62,16 @@ async function process({ owner, repo }: MessageBody, port: MessagePort) {
   }
   let t = performance.now();
   const response = await fetch(url.toString());
-  console.log(`[sync-worker] fetch took ${performance.now() - t}ms`);
+  console.log(`[gitdot-sync] fetch took ${performance.now() - t}ms`);
 
   if (!response.ok) return;
   t = performance.now();
   const json = await response.json();
-  console.log(`[sync-worker] json parse took ${performance.now() - t}ms`);
+  console.log(`[gitdot-sync] json parse took ${performance.now() - t}ms`);
 
   t = performance.now();
   const result = GetRepositoryResourcesResponse.parse(json);
-  console.log(`[sync-worker] zod parse took ${performance.now() - t}ms`);
+  console.log(`[gitdot-sync] zod parse took ${performance.now() - t}ms`);
   console.log(result);
 
   t = performance.now();
@@ -96,7 +96,7 @@ async function process({ owner, repo }: MessageBody, port: MessagePort) {
   if (result.builds)
     writes.push(db.putBuilds(owner, repo, result.builds.builds));
   await Promise.all(writes);
-  console.log(`[sync-worker] idb write took ${performance.now() - t}ms`);
+  console.log(`[gitdot-sync] idb write took ${performance.now() - t}ms`);
   port.postMessage({
     resourcesReady: true,
     hastsReady: false,
@@ -119,17 +119,11 @@ async function process({ owner, repo }: MessageBody, port: MessagePort) {
         lang,
         theme: "vitesse-light",
       });
-      return db.putHast(
-        owner,
-        repo,
-        blob.path,
-        hast,
-        blob.commit_sha.slice(0, 7),
-      );
+      return db.putHast(owner, repo, blob.path, hast, blob.commit_sha);
     }),
   );
   console.log(
-    `[sync-worker] highlight + hast write took ${performance.now() - t}ms (${fileBlobs.length} files)`,
+    `[gitdot-sync] highlight + hast write took ${performance.now() - t}ms (${fileBlobs.length} files)`,
   );
   port.postMessage({
     resourcesReady: true,
@@ -139,6 +133,6 @@ async function process({ owner, repo }: MessageBody, port: MessagePort) {
 
 const highlighter = await createHighlighter();
 ready = true;
-console.log("[sync-worker] ready");
+console.log("[gitdot-sync] ready");
 for (const { body, port } of queue) process(body, port);
 queue.length = 0;

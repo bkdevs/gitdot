@@ -36,24 +36,14 @@ export class DatabaseProvider extends ClientProvider {
     if (ref) return this.db.getBlob(this.owner, this.repo, path, ref);
     const metadata = await this.metadata();
     if (!metadata) return null;
-    return this.db.getBlob(
-      this.owner,
-      this.repo,
-      path,
-      metadata.last_commit.slice(0, 7),
-    );
+    return this.db.getBlob(this.owner, this.repo, path, metadata.last_commit);
   }
 
   async getHast(path: string, ref?: string): Promise<Root | null> {
     if (ref) return this.db.getHast(this.owner, this.repo, path, ref);
     const metadata = await this.metadata();
     if (!metadata) return null;
-    return this.db.getHast(
-      this.owner,
-      this.repo,
-      path,
-      metadata.last_commit.slice(0, 7),
-    );
+    return this.db.getHast(this.owner, this.repo, path, metadata.last_commit);
   }
 
   async putHast(path: string, hast: Root, commit: string): Promise<void> {
@@ -79,11 +69,7 @@ export class DatabaseProvider extends ClientProvider {
   async getBlobs(): Promise<RepositoryBlobsResource | null> {
     const metadata = await this.metadata();
     if (!metadata) return null;
-    return await this.db.getBlobs(
-      this.owner,
-      this.repo,
-      metadata.last_commit.slice(0, 7),
-    );
+    return await this.db.getBlobs(this.owner, this.repo, metadata.last_commit);
   }
 
   async putBlobs(blobs: RepositoryBlobsResource) {
