@@ -2,6 +2,7 @@
 
 import type {
   CommitFilterResource,
+  RepositoryBlobsResource,
   RepositoryResource,
   RepositorySettingsResource,
 } from "gitdot-api";
@@ -14,6 +15,7 @@ import {
   createRepository,
   deleteRepository,
   getRepositoryBlob,
+  getRepositoryBlobs,
   getRepositorySettings,
   migrateGitHubRepositories,
   updateRepositorySettings,
@@ -128,7 +130,7 @@ export async function migrateGitHubRepositoriesAction(
   return { success: true };
 }
 
-export async function getRepositoryHast(
+export async function getRepositoryHastAction(
   owner: string,
   repo: string,
   path: string,
@@ -141,4 +143,13 @@ export async function getRepositoryHast(
   if (!blob || blob.type === "folder") return null;
   const lang = inferLanguage(path);
   return fileToHast(blob.content, lang, "vitesse-light", []);
+}
+
+export async function getRepositoryBlobsAction(
+  owner: string,
+  repo: string,
+  refs: string[],
+  path: string,
+): Promise<RepositoryBlobsResource | null> {
+  return getRepositoryBlobs(owner, repo, { refs, paths: [path] });
 }

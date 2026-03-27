@@ -11,7 +11,7 @@ import type {
   ReviewResource,
 } from "gitdot-api";
 import type { Root } from "hast";
-import { getRepositoryHast } from "@/actions/repository";
+import { getRepositoryHastAction } from "@/actions/repository";
 import {
   getBuild as dalGetBuild,
   getBuilds as dalGetBuilds,
@@ -50,7 +50,7 @@ export class ApiProvider extends ServerProvider {
   }
 
   async getHast(path: string, ref?: string): Promise<Root | null> {
-    return await getRepositoryHast(this.owner, this.repo, path, ref);
+    return await getRepositoryHastAction(this.owner, this.repo, path, ref);
   }
 
   async getCommit(sha: string): Promise<RepositoryCommitResource | null> {

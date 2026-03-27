@@ -80,6 +80,9 @@ function PageContent({
         selectedLines={selectedLines}
         hast={hast}
         fileCommits={fileCommits}
+        owner={owner}
+        repo={repo}
+        path={filePath}
       />
     );
   }

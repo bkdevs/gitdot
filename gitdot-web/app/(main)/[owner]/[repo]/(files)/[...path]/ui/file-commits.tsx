@@ -1,18 +1,37 @@
 "use client";
 
-import type { RepositoryCommitResource } from "gitdot-api";
+import { useEffect, useState } from "react";
+import type { RepositoryBlobsResource, RepositoryCommitResource } from "gitdot-api";
 import { usePathname, useSearchParams } from "next/navigation";
+import { getRepositoryBlobsAction } from "@/actions/repository";
 import { useRightSidebar } from "@/(main)/hooks/use-sidebar";
 import Link from "@/ui/link";
 import { timeAgo } from "@/util";
 
 export function FileCommits({
   commits,
+  owner,
+  repo,
+  path,
 }: {
   commits: RepositoryCommitResource[];
+  owner: string;
+  repo: string;
+  path: string;
 }) {
   const pathname = usePathname();
   const params = useSearchParams();
+  const [blobs, setBlobs] = useState<RepositoryBlobsResource | null>(null);
+
+  useEffect(() => {
+    const refs = commits.map((c) => c.sha);
+    if (refs.length === 0) return;
+    getRepositoryBlobsAction(owner, repo, refs, path).then(setBlobs);
+  }, []);
+
+  useEffect(() => {
+    console.log(blobs);
+  }, [blobs]);
 
   const open = useRightSidebar();
   if (!open) return null;

@@ -10,10 +10,16 @@ export function FileViewer({
   hast,
   fileCommits,
   selectedLines,
+  owner,
+  repo,
+  path,
 }: {
   hast: Root;
   fileCommits: RepositoryCommitResource[];
   selectedLines: LineSelection | null;
+  owner: string;
+  repo: string;
+  path: string;
 }) {
   return (
     <div className="flex w-full h-full min-h-0 overflow-hidden">
@@ -23,7 +29,7 @@ export function FileViewer({
       >
         <FileBody selectedLines={selectedLines} hast={hast} />
       </div>
-      <FileCommits commits={fileCommits} />
+      <FileCommits commits={fileCommits} owner={owner} repo={repo} path={path} />
     </div>
   );
 }
