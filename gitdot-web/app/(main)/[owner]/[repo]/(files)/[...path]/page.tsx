@@ -24,17 +24,20 @@ export default async function Page({
   params: Promise<{ owner: string; repo: string; path: string[] }>;
   searchParams: Promise<{
     lines?: string | string[];
+    ref?: string;
   }>;
 }) {
   const { owner, repo, path } = await params;
-  const { lines } = await searchParams;
+  const { lines, ref } = await searchParams;
 
   const filePathString = decodeURIComponent(path.join("/"));
   const selectedLines = parseLineSelection(lines);
 
+  // TODO: we shouldn't fetch _all_ commits here, just those relevant to the file, the put is a bit nuanced
+  // want to make sure we merge the put, but yeah, maybe just augment get repo commits again?
   const { requests, promises } = fetchResources(owner, repo, {
-    blob: (p) => p.getBlob(filePathString),
-    hast: (p) => p.getHast(filePathString),
+    blob: (p) => p.getBlob(filePathString, ref),
+    hast: (p) => p.getHast(filePathString, ref),
     paths: (p) => p.getPaths(),
     commits: (p) => p.getCommits(),
   });

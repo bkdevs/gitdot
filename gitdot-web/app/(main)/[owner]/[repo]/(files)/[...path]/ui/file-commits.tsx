@@ -68,13 +68,8 @@ function FileCommit({
   const author = commit.author.name;
 
   return (
-    // TODO: if we move this to be a client-side component and fetches we can safe on things
-    //  1: making it a single call to fetch all files (getRepositoryFiles)
-    //  2: avoid re-fetching getRepositoryFileCommits for each of the prelinks
-    // we likely need to do this at the point that we also consider movingn into more diff-based functionality and etc.
     <Link
       href={href}
-      prefetch={true}
       tabIndex={-1}
       className={`flex w-full border-b focus:bg-accent/50 select-none cursor-default py-2 px-2 focus:outline-none ${
         isSelected ? "bg-sidebar" : ""

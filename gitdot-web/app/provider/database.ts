@@ -3,6 +3,7 @@
 import type {
   BuildResource,
   QuestionResource,
+  RepositoryBlobResource,
   RepositoryBlobsResource,
   RepositoryCommitResource,
   RepositoryPathsResource,
@@ -35,14 +36,24 @@ export class DatabaseProvider extends ClientProvider {
     if (ref) return this.db.getBlob(this.owner, this.repo, path, ref);
     const metadata = await this.metadata();
     if (!metadata) return null;
-    return this.db.getBlob(this.owner, this.repo, path, metadata.last_commit);
+    return this.db.getBlob(
+      this.owner,
+      this.repo,
+      path,
+      metadata.last_commit.slice(0, 7),
+    );
   }
 
   async getHast(path: string, ref?: string): Promise<Root | null> {
     if (ref) return this.db.getHast(this.owner, this.repo, path, ref);
     const metadata = await this.metadata();
     if (!metadata) return null;
-    return this.db.getHast(this.owner, this.repo, path, metadata.last_commit);
+    return this.db.getHast(
+      this.owner,
+      this.repo,
+      path,
+      metadata.last_commit.slice(0, 7),
+    );
   }
 
   async putHast(path: string, hast: Root, commit: string): Promise<void> {
@@ -68,7 +79,11 @@ export class DatabaseProvider extends ClientProvider {
   async getBlobs(): Promise<RepositoryBlobsResource | null> {
     const metadata = await this.metadata();
     if (!metadata) return null;
-    return await this.db.getBlobs(this.owner, this.repo, metadata.last_commit);
+    return await this.db.getBlobs(
+      this.owner,
+      this.repo,
+      metadata.last_commit.slice(0, 7),
+    );
   }
 
   async putBlobs(blobs: RepositoryBlobsResource) {
@@ -126,26 +141,44 @@ export class DatabaseProvider extends ClientProvider {
     return this.db.putBuild(this.owner, this.repo, build);
   }
 
+  async putBlob(path: string, commit: string, blob: RepositoryBlobResource) {
+    return this.db.putBlob(this.owner, this.repo, path, commit, blob);
+  }
+
   // TODO: this is a tad hacky (relying on the fact that provider get / put methods) are serialized as such
   // we can do better if we discrminate resource types directly with a "type" field.
-  private writers: Record<string, (value: unknown) => void> = {
-    getPaths: (v) => this.putPaths(v as RepositoryPathsResource),
-    getCommits: (v) => this.putCommits(v as RepositoryCommitResource[]),
-    getBlobs: (v) => this.putBlobs(v as RepositoryBlobsResource),
-    getSettings: (v) => this.putSettings(v as RepositorySettingsResource),
-    getQuestions: (v) => this.putQuestions(v as QuestionResource[]),
-    getReview: (v) =>
+  private writers: Record<string, (args: unknown[], value: unknown) => void> = {
+    getPaths: (_args, v) => this.putPaths(v as RepositoryPathsResource),
+    getCommits: (_args, v) => this.putCommits(v as RepositoryCommitResource[]),
+    getBlobs: (_args, v) => this.putBlobs(v as RepositoryBlobsResource),
+    getSettings: (_args, v) =>
+      this.putSettings(v as RepositorySettingsResource),
+    getQuestions: (_args, v) => this.putQuestions(v as QuestionResource[]),
+    getReview: (_args, v) =>
       this.putReview((v as ReviewResource).number, v as ReviewResource),
-    getReviews: (v) => {
+    getReviews: (_args, v) => {
       for (const r of v as ReviewResource[]) this.putReview(r.number, r);
     },
-    getBuilds: (v) => this.putBuilds(v as BuildResource[]),
-    getBuild: (v) =>
+    getBuilds: (_args, v) => this.putBuilds(v as BuildResource[]),
+    getBuild: (_args, v) =>
       this.putBuild((v as BuildResource).number, v as BuildResource),
+    getBlob: (args, v) => {
+      if (!args[1]) return;
+      this.putBlob(
+        args[0] as string,
+        args[1] as string,
+        v as RepositoryBlobResource,
+      );
+    },
+    getHast: (args, v) => {
+      const ref = args[1] as string | undefined;
+      if (!ref) return;
+      this.putHast(args[0] as string, v as Root, ref);
+    },
   };
 
-  write(method: string, value: unknown) {
+  write(method: string, args: unknown[], value: unknown) {
     if (!value) return;
-    this.writers[method]?.(value);
+    this.writers[method]?.(args, value);
   }
 }

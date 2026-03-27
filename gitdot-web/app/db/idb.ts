@@ -2,6 +2,7 @@
 
 import type {
   QuestionResource,
+  RepositoryBlobResource,
   RepositoryBlobsResource,
   ReviewResource,
 } from "gitdot-api";
@@ -126,8 +127,19 @@ export function openIdb(): Database {
       const prefix = `${owner}/${repo}/${commit}/`;
       const range = IDBKeyRange.bound(prefix, `${prefix}\uffff`);
       const rows = await db.getAll("blobs", range);
-      if (rows.length === 0) return undefined;
+      if (rows.length === 0) return null;
       return { blobs: rows };
+    },
+
+    async putBlob(
+      owner: string,
+      repo: string,
+      path: string,
+      commit: string,
+      blob: RepositoryBlobResource,
+    ) {
+      const db = await getDb();
+      await db.put("blobs", blob, blobKey(owner, repo, commit, path));
     },
 
     async putBlobs(
@@ -139,7 +151,10 @@ export function openIdb(): Database {
       const tx = db.transaction("blobs", "readwrite");
       await Promise.all([
         ...blobs.blobs.map((b) =>
-          tx.store.put(b, blobKey(owner, repo, b.commit_sha, b.path)),
+          tx.store.put(
+            b,
+            blobKey(owner, repo, b.commit_sha.slice(0, 7), b.path),
+          ),
         ),
         tx.done,
       ]);

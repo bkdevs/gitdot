@@ -25,7 +25,11 @@ export function useResolvePromises<S>(
 
   for (const key of Object.keys(requests)) {
     promises[key as keyof S].then((value) =>
-      dbProvider.write(requests[key as keyof S].method, value),
+      dbProvider.write(
+        requests[key as keyof S].method,
+        requests[key as keyof S].args,
+        value,
+      ),
     );
   }
 

@@ -47,6 +47,14 @@ export interface Database {
     commits: RepositoryCommitResource[],
   ): Promise<void>;
 
+  putBlob(
+    owner: string,
+    repo: string,
+    path: string,
+    commit: string,
+    blob: RepositoryBlobResource,
+  ): Promise<void>;
+
   getBlob(
     owner: string,
     repo: string,
