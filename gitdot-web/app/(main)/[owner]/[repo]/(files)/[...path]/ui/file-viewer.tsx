@@ -5,6 +5,7 @@ import type { Root } from "hast";
 import type { LineSelection } from "../util";
 import { FileBody } from "./file-body";
 import { FileCommits } from "./file-commits";
+import { FileViewerProvider } from "./file-viewer-context";
 
 export function FileViewer({
   hast,
@@ -22,19 +23,21 @@ export function FileViewer({
   path: string;
 }) {
   return (
-    <div className="flex w-full h-full min-h-0 overflow-hidden">
-      <div
-        data-page-scroll
-        className="flex-1 min-w-0 overflow-auto scrollbar-thin"
-      >
-        <FileBody selectedLines={selectedLines} hast={hast} />
+    <FileViewerProvider selectedLines={selectedLines}>
+      <div className="flex w-full h-full min-h-0 overflow-hidden">
+        <div
+          data-page-scroll
+          className="flex-1 min-w-0 overflow-auto scrollbar-thin"
+        >
+          <FileBody hast={hast} />
+        </div>
+        <FileCommits
+          commits={fileCommits}
+          owner={owner}
+          repo={repo}
+          path={path}
+        />
       </div>
-      <FileCommits
-        commits={fileCommits}
-        owner={owner}
-        repo={repo}
-        path={path}
-      />
-    </div>
+    </FileViewerProvider>
   );
 }

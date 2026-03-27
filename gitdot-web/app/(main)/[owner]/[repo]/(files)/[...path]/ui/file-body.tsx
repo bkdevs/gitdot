@@ -1,14 +1,29 @@
 "use client";
 
+import { cn } from "@/util";
 import type { Element, Root } from "hast";
 import { toJsxRuntime } from "hast-util-to-jsx-runtime";
 import type { JSX } from "react";
 import { Fragment } from "react";
 import { jsx, jsxs } from "react/jsx-runtime";
 import { addClassToHast } from "shiki";
-import type { LineSelection } from "../util";
-import { FileBodyClient } from "./file-body-client";
-import { FileLine } from "./file-line";
+import { useFileViewerContext } from "./file-viewer-context";
+
+export function FileBody({ hast }: { hast: Root }) {
+  const content = toJsxRuntime(
+    applyFileBodyTransformers(structuredClone(hast)),
+    {
+      Fragment,
+      jsx,
+      jsxs,
+      components: {
+        fileline: (props) => <FileLine {...props} />,
+      },
+    },
+  ) as JSX.Element;
+
+  return <div className="w-full text-sm">{content}</div>;
+}
 
 function applyFileBodyTransformers(hast: Root): Root {
   const pre = hast.children[0] as Element;
@@ -26,28 +41,31 @@ function applyFileBodyTransformers(hast: Root): Root {
   return hast;
 }
 
-export function FileBody({
-  selectedLines,
-  hast,
+function FileLine({
+  children,
+  "data-line-number": lineNumber,
 }: {
-  selectedLines: LineSelection | null;
-  hast: Root;
+  children: React.ReactNode;
+  "data-line-number": number;
 }) {
-  const content = toJsxRuntime(
-    applyFileBodyTransformers(structuredClone(hast)),
-    {
-      Fragment,
-      jsx,
-      jsxs,
-      components: {
-        fileline: (props) => <FileLine {...props} />,
-      },
-    },
-  ) as JSX.Element;
+  const { isLineSelected, handleLineMouseDown, handleLineMouseEnter } =
+    useFileViewerContext();
+
+  const isSelected = isLineSelected(lineNumber);
 
   return (
-    <div className="w-full text-sm">
-      <FileBodyClient selectedLines={selectedLines}>{content}</FileBodyClient>
-    </div>
+    <span
+      className={cn("inline-flex w-full", isSelected && "bg-accent/60")}
+      onMouseEnter={() => handleLineMouseEnter(lineNumber)}
+    >
+      <button
+        type="button"
+        className="w-9 text-right shrink-0 pr-1.5 mr-1 text-primary/60 select-none outline-none cursor-pointer"
+        onMouseDown={() => handleLineMouseDown(lineNumber)}
+      >
+        {lineNumber}
+      </button>
+      {children}
+    </span>
   );
 }

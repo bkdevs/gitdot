@@ -10,23 +10,23 @@ import {
 
 import { formatLineSelection, type LineSelection } from "../util";
 
-type FileBodyContextType = {
+type FileViewerContextType = {
   isLineSelected: (lineNumber: number) => boolean;
   handleLineMouseDown: (lineNumber: number) => void;
   handleLineMouseEnter: (lineNumber: number) => void;
 };
 
-const FileBodyContext = createContext<FileBodyContextType | null>(null);
+const FileViewerContext = createContext<FileViewerContextType | null>(null);
 
-export function useFileBodyContext() {
-  const context = useContext(FileBodyContext);
+export function useFileViewerContext() {
+  const context = useContext(FileViewerContext);
   if (!context) {
-    throw new Error("useFileBodyContext must be used within FileBodyContext");
+    throw new Error("useFileViewerContext must be used within FileViewerContext");
   }
   return context;
 }
 
-export function FileBodyClient({
+export function FileViewerProvider({
   children,
   selectedLines: initialSelectedLines,
 }: {
@@ -122,7 +122,7 @@ export function FileBodyClient({
   );
 
   return (
-    <FileBodyContext.Provider
+    <FileViewerContext.Provider
       value={{
         isLineSelected,
         handleLineMouseDown,
@@ -130,6 +130,6 @@ export function FileBodyClient({
       }}
     >
       {children}
-    </FileBodyContext.Provider>
+    </FileViewerContext.Provider>
   );
 }
