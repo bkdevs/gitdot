@@ -23,13 +23,13 @@ export function FileViewer({
   path: string;
 }) {
   return (
-    <FileViewerProvider selectedLines={selectedLines}>
+    <FileViewerProvider hast={hast} selectedLines={selectedLines}>
       <div className="flex w-full h-full min-h-0 overflow-hidden">
         <div
           data-page-scroll
           className="flex-1 min-w-0 overflow-auto scrollbar-thin"
         >
-          <FileBody hast={hast} />
+          <FileBody />
         </div>
         <FileCommits
           commits={fileCommits}

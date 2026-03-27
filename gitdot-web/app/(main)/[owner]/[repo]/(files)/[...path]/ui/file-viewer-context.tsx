@@ -1,5 +1,6 @@
 "use client";
 
+import type { Root } from "hast";
 import {
   createContext,
   useCallback,
@@ -11,6 +12,8 @@ import {
 import { formatLineSelection, type LineSelection } from "../util";
 
 type FileViewerContextType = {
+  hast: Root;
+  setHast: (hast: Root) => void;
   isLineSelected: (lineNumber: number) => boolean;
   handleLineMouseDown: (lineNumber: number) => void;
   handleLineMouseEnter: (lineNumber: number) => void;
@@ -21,22 +24,31 @@ const FileViewerContext = createContext<FileViewerContextType | null>(null);
 export function useFileViewerContext() {
   const context = useContext(FileViewerContext);
   if (!context) {
-    throw new Error("useFileViewerContext must be used within FileViewerContext");
+    throw new Error(
+      "useFileViewerContext must be used within FileViewerContext",
+    );
   }
   return context;
 }
 
 export function FileViewerProvider({
   children,
+  hast: initialHast,
   selectedLines: initialSelectedLines,
 }: {
   children: React.ReactNode;
+  hast: Root;
   selectedLines: LineSelection | null;
 }) {
+  const [hast, setHastState] = useState<Root>(initialHast);
   const [selectedLines, setSelectedLines] = useState<LineSelection | null>(
     initialSelectedLines,
   );
   const [isDragging, setIsDragging] = useState(false);
+
+  useEffect(() => {
+    setSelectedLines(initialSelectedLines);
+  }, [initialSelectedLines]);
   const [dragStart, setDragStart] = useState<number | null>(null);
 
   useEffect(() => {
@@ -51,6 +63,10 @@ export function FileViewerProvider({
       }, 100);
     }
   }, [selectedLines]);
+
+  const setHast = useCallback((newHast: Root) => {
+    setHastState(newHast);
+  }, []);
 
   const updateUrl = useCallback((selection: LineSelection | null) => {
     const params = new URLSearchParams(window.location.search);
@@ -124,6 +140,8 @@ export function FileViewerProvider({
   return (
     <FileViewerContext.Provider
       value={{
+        hast,
+        setHast,
         isLineSelected,
         handleLineMouseDown,
         handleLineMouseEnter,

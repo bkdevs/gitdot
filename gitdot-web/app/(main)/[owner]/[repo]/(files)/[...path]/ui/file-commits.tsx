@@ -12,6 +12,7 @@ import { useRightSidebar } from "@/(main)/hooks/use-sidebar";
 import { getRepositoryBlobsAction } from "@/actions/repository";
 import Link from "@/ui/link";
 import { timeAgo } from "@/util";
+import { useFileViewerContext } from "./file-viewer-context";
 
 export function FileCommits({
   commits,
@@ -25,8 +26,9 @@ export function FileCommits({
   path: string;
 }) {
   const { highlightFile } = useWorkerContext();
+  const { setHast } = useFileViewerContext();
   const [_blobs, setBlobs] = useState<RepositoryBlobResource[]>([]);
-  const [_hasts, setHasts] = useState<Record<string, Root>>({});
+  const [hasts, setHasts] = useState<Record<string, Root>>({});
   const params = useSearchParams();
   const ref = params.get("ref");
 
@@ -42,9 +44,10 @@ export function FileCommits({
     }
 
     async function highlightBlobs(blobs: RepositoryBlobResource[]) {
-      const fileBlobs = blobs.filter((b) => b.type === "file");
       const entries = await Promise.all(
-        fileBlobs.map(async (b) => [b.commit_sha, await highlightFile(b.path, b.content)] as const),
+        blobs
+          .filter((b) => b.type === "file")
+          .map(async (b) => [b.commit_sha, await highlightFile(b.path, b.content)] as const)
       );
       setHasts(Object.fromEntries(entries));
     }
@@ -69,6 +72,9 @@ export function FileCommits({
             owner={owner}
             repo={repo}
             path={path}
+            onHover={
+              () => hasts[commit.sha] && setHast(hasts[commit.sha])
+            }
           />
         ))}
       </div>
@@ -83,6 +89,7 @@ function FileCommit({
   owner,
   repo,
   path,
+  onHover,
 }: {
   commit: {
     sha: string;
@@ -95,37 +102,36 @@ function FileCommit({
   owner: string;
   repo: string;
   path: string;
+  onHover: () => void;
 }) {
   const params = useSearchParams();
   const newParams = new URLSearchParams(params);
-
   if (isLatest) {
     newParams.delete("ref");
   } else {
     newParams.set("ref", commit.sha.substring(0, 7));
-    newParams.delete("lines");
   }
+  newParams.delete("lines");
 
   const queryString = newParams.toString();
   const href = queryString
     ? `/${owner}/${repo}/${path}?${queryString}`
     : `/${owner}/${repo}/${path}`;
 
-  const author = commit.author.name;
-
   return (
     <Link
       href={href}
       tabIndex={-1}
-      className={`flex w-full border-b focus:bg-accent/50 select-none cursor-default py-2 px-2 focus:outline-none ${
+      className={`flex w-full border-b hover:bg-accent/50 focus:bg-accent/50 select-none cursor-default py-2 px-2 focus:outline-none ${
         isSelected ? "bg-sidebar" : ""
       }`}
+      onMouseEnter={onHover}
     >
       <div className="flex flex-col w-full justify-start items-start min-w-0">
         <div className="text-sm truncate mb-0.5 w-full">{commit.message}</div>
 
         <div className="text-xs text-muted-foreground flex items-center gap-1 w-full min-w-0">
-          <span className="truncate min-w-0">{author}</span>
+          <span className="truncate min-w-0">{commit.author.name}</span>
           <span className="shrink-0">•</span>
           <span className="shrink-0">{commit.sha.substring(0, 7)}</span>
           <span className="ml-auto shrink-0">

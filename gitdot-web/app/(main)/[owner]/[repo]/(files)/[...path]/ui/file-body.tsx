@@ -1,15 +1,16 @@
 "use client";
 
-import { cn } from "@/util";
 import type { Element, Root } from "hast";
 import { toJsxRuntime } from "hast-util-to-jsx-runtime";
 import type { JSX } from "react";
 import { Fragment } from "react";
 import { jsx, jsxs } from "react/jsx-runtime";
 import { addClassToHast } from "shiki";
+import { cn } from "@/util";
 import { useFileViewerContext } from "./file-viewer-context";
 
-export function FileBody({ hast }: { hast: Root }) {
+export function FileBody() {
+  const { hast } = useFileViewerContext();
   const content = toJsxRuntime(
     applyFileBodyTransformers(structuredClone(hast)),
     {
