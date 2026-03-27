@@ -75,9 +75,7 @@ function TreeRowFolder({
       <TreeRowGutter depth={row.depth} isLast={row.isLast} />
       <Link
         href={`/${owner}/${repo}/${row.path}`}
-        className={cn(
-          "inline-flex items-center cursor-pointer",
-        )}
+        className={cn("inline-flex items-center cursor-pointer")}
         onClick={(e) => {
           e.stopPropagation();
         }}
@@ -87,7 +85,9 @@ function TreeRowFolder({
             {row.path.split("/").slice(0, -1).join("/")}/
           </span>
         )}
-        <span className="underline decoration-transparent hover:decoration-current transition-colors duration-300">{row.name}</span>
+        <span className="underline decoration-transparent hover:decoration-current transition-colors duration-300">
+          {row.name}
+        </span>
         {row.isExpanded && "/"}
         {!row.isExpanded && (
           <span className="ml-1 text-xs text-muted-foreground inline-flex items-center">

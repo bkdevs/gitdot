@@ -1,12 +1,12 @@
 "use client";
 
+import { Suspense, use } from "react";
 import {
   type ResourcePromisesType,
   type ResourceRequestsType,
   useResolvePromises,
 } from "@/(main)/[owner]/[repo]/resources";
 import { Loading } from "@/ui/loading";
-import { Suspense, use } from "react";
 import type { Resources } from "./page";
 import { FileViewer } from "./ui/file-viewer";
 import { FolderViewer } from "./ui/folder-viewer";
@@ -75,6 +75,12 @@ function PageContent({
     const fileCommits = (allCommits ?? []).filter((c) =>
       c.diffs.some((d) => d.path === filePath),
     );
-    return <FileViewer selectedLines={selectedLines} hast={hast} fileCommits={fileCommits}/>
+    return (
+      <FileViewer
+        selectedLines={selectedLines}
+        hast={hast}
+        fileCommits={fileCommits}
+      />
+    );
   }
 }

@@ -40,6 +40,7 @@ export const DiffHunkResource = z.array(DiffPairResource);
 export type DiffHunkResource = z.infer<typeof DiffHunkResource>;
 
 export const RepositoryFileResource = z.object({
+  commit_sha: z.string(),
   path: z.string(),
   sha: z.string(),
   content: z.string(),
@@ -123,6 +124,7 @@ export type RepositoryPathsResource = z.infer<typeof RepositoryPathsResource>;
 
 export const RepositoryFolderResource = z.object({
   type: z.literal("folder"),
+  commit_sha: z.string(),
   path: z.string(),
   entries: z.array(RepositoryPathResource),
 });
@@ -135,8 +137,6 @@ export const RepositoryBlobResource = z.discriminatedUnion("type", [
 export type RepositoryBlobResource = z.infer<typeof RepositoryBlobResource>;
 
 export const RepositoryBlobsResource = z.object({
-  ref_name: z.string(),
-  commit_sha: z.string(),
   blobs: z.array(RepositoryBlobResource),
 });
 export type RepositoryBlobsResource = z.infer<typeof RepositoryBlobsResource>;

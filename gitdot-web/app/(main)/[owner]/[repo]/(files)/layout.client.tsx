@@ -111,7 +111,6 @@ function FileTree({
   );
 }
 
-
 function FileTreeHeader({
   owner,
   repo,
@@ -147,7 +146,10 @@ function FileTreeHeader({
           <span className="text-base leading-none">•</span>/{rootPath}/
         </span>
       )}
-      <Undo2 size={14} className="text-muted-foreground -translate-y-px shrink-0" />
+      <Undo2
+        size={14}
+        className="text-muted-foreground -translate-y-px shrink-0"
+      />
     </Link>
   );
 }
@@ -236,13 +238,7 @@ function FileTreeRows({
     } else {
       updateRootPath(targetPath);
     }
-  }, [
-    filePath,
-    paths,
-    rootPath,
-    updateRootPath,
-    expandFolders,
-  ]);
+  }, [filePath, paths, rootPath, updateRootPath, expandFolders]);
 
   const renderRows = (parentPath: string, depth: number): React.ReactNode => {
     const entries = getFolderEntries(parentPath, paths);
@@ -336,7 +332,9 @@ function FolderRow({
         onClick={(e) => e.stopPropagation()}
         className="inline-flex items-center truncate cursor-pointer"
       >
-        <span className="underline decoration-transparent hover:decoration-current">{name}</span>
+        <span className="underline decoration-transparent hover:decoration-current">
+          {name}
+        </span>
         {expanded && "/"}
         {!expanded && (
           <span className="ml-1 text-xs text-muted-foreground">({count})</span>

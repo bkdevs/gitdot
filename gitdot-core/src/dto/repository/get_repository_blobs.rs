@@ -31,7 +31,5 @@ impl GetRepositoryBlobsRequest {
 
 #[derive(Debug, Clone)]
 pub struct RepositoryBlobsResponse {
-    pub ref_name: String,
-    pub commit_sha: String,
     pub blobs: Vec<RepositoryBlobResponse>,
 }

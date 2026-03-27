@@ -5,7 +5,6 @@ import {
   type GetRepositoryBlobRequest,
   type GetRepositoryBlobsRequest,
   type GetRepositoryCommitsRequest,
-  type GetRepositoryFileCommitsRequest,
   type GetRepositoryPathsRequest,
   type GetRepositoryResourcesRequest,
   RepositoryBlobResource,
@@ -63,19 +62,6 @@ export async function getRepositoryCommits(
   const queryString = toQueryString(query);
   const response = await authFetch(
     `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/commits?${queryString}`,
-  );
-
-  return await handleResponse(response, RepositoryCommitsResource);
-}
-
-export async function getRepositoryFileCommits(
-  owner: string,
-  repo: string,
-  query: GetRepositoryFileCommitsRequest,
-): Promise<RepositoryCommitsResource | null> {
-  const queryString = toQueryString(query);
-  const response = await authFetch(
-    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/file/commits?${queryString}`,
   );
 
   return await handleResponse(response, RepositoryCommitsResource);

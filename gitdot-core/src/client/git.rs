@@ -4,8 +4,8 @@ use tokio::{fs, task};
 use crate::{
     dto::{
         PathType, RepositoryBlobResponse, RepositoryBlobsResponse, RepositoryCommitResponse,
-        RepositoryCommitsResponse, RepositoryDiffStatResponse, RepositoryFileResponse,
-        RepositoryFolderResponse, RepositoryPath, RepositoryPathsResponse,
+        RepositoryDiffStatResponse, RepositoryFileResponse, RepositoryFolderResponse,
+        RepositoryPath, RepositoryPathsResponse,
     },
     error::GitError,
     util::{
@@ -69,16 +69,6 @@ pub trait GitClient: Send + Sync + Clone + 'static {
         repo: &str,
         ref_name: &str,
     ) -> Result<RepositoryCommitResponse, GitError>;
-
-    async fn get_repo_file_commits(
-        &self,
-        owner: &str,
-        repo: &str,
-        ref_name: &str,
-        path: &str,
-        page: u32,
-        per_page: u32,
-    ) -> Result<RepositoryCommitsResponse, GitError>;
 
     async fn get_repo_diff_files(
         &self,
@@ -218,7 +208,7 @@ impl Git2Client {
         data.iter().take(8000).any(|&b| b == 0)
     }
 
-    fn blob_to_response(blob: &git2::Blob, path: &str) -> RepositoryFileResponse {
+    fn blob_to_response(blob: &git2::Blob, path: &str, commit_sha: &str) -> RepositoryFileResponse {
         let content_bytes = blob.content();
         let sha = blob.id().to_string();
 
@@ -233,10 +223,37 @@ impl Git2Client {
         };
 
         RepositoryFileResponse {
+            commit_sha: commit_sha.to_string(),
             path: path.to_string(),
             sha,
             content,
             encoding,
+        }
+    }
+
+    fn tree_to_response(
+        tree: &git2::Tree,
+        path: &str,
+        commit_sha: &str,
+    ) -> RepositoryFolderResponse {
+        let entries = tree
+            .iter()
+            .map(|e| {
+                let name = e.name().unwrap_or("").to_string();
+                let entry_path = format!("{}/{}", path, name);
+                RepositoryPath {
+                    path: entry_path,
+                    name,
+                    path_type: PathType::from_git2(e.kind()),
+                    sha: e.id().to_string(),
+                }
+            })
+            .collect();
+
+        RepositoryFolderResponse {
+            commit_sha: commit_sha.to_string(),
+            path: path.to_string(),
+            entries,
         }
     }
 }
@@ -380,6 +397,7 @@ impl GitClient for Git2Client {
 
         task::spawn_blocking(move || {
             let commit = Self::resolve_ref(&repository, &ref_name)?;
+            let commit_sha = commit.id().to_string();
             let tree = commit.tree()?;
 
             let tree_entry = tree.get_path(std::path::Path::new(&path))?;
@@ -388,28 +406,18 @@ impl GitClient for Git2Client {
                 Some(git2::ObjectType::Blob) => {
                     let blob = repository.find_blob(tree_entry.id())?;
                     Ok(RepositoryBlobResponse::File(Self::blob_to_response(
-                        &blob, &path,
+                        &blob,
+                        &path,
+                        &commit_sha,
                     )))
                 }
                 Some(git2::ObjectType::Tree) => {
                     let subtree = repository.find_tree(tree_entry.id())?;
-                    let entries = subtree
-                        .iter()
-                        .map(|e| {
-                            let name = e.name().unwrap_or("").to_string();
-                            let entry_path = format!("{}/{}", path, name);
-                            RepositoryPath {
-                                path: entry_path,
-                                name,
-                                path_type: PathType::from_git2(e.kind()),
-                                sha: e.id().to_string(),
-                            }
-                        })
-                        .collect();
-                    Ok(RepositoryBlobResponse::Folder(RepositoryFolderResponse {
-                        path,
-                        entries,
-                    }))
+                    Ok(RepositoryBlobResponse::Folder(Self::tree_to_response(
+                        &subtree,
+                        &path,
+                        &commit_sha,
+                    )))
                 }
                 _ => Err(git2::Error::from_str("Path is not a blob or tree").into()),
             }
@@ -445,7 +453,9 @@ impl GitClient for Git2Client {
                     Some(git2::ObjectType::Blob) => {
                         let blob = repository.find_blob(tree_entry.id())?;
                         blobs.push(RepositoryBlobResponse::File(Self::blob_to_response(
-                            &blob, path,
+                            &blob,
+                            path,
+                            &commit_sha,
                         )));
                     }
                     Some(git2::ObjectType::Tree) => {
@@ -464,6 +474,7 @@ impl GitClient for Git2Client {
                             })
                             .collect();
                         blobs.push(RepositoryBlobResponse::Folder(RepositoryFolderResponse {
+                            commit_sha: commit_sha.clone(),
                             path: path.clone(),
                             entries,
                         }));
@@ -472,11 +483,7 @@ impl GitClient for Git2Client {
                 }
             }
 
-            Ok(RepositoryBlobsResponse {
-                ref_name,
-                commit_sha,
-                blobs,
-            })
+            Ok(RepositoryBlobsResponse { blobs })
         })
         .await?
     }
@@ -536,122 +543,6 @@ impl GitClient for Git2Client {
         .await?
     }
 
-    async fn get_repo_file_commits(
-        &self,
-        owner: &str,
-        repo: &str,
-        ref_name: &str,
-        path: &str,
-        page: u32,
-        per_page: u32,
-    ) -> Result<RepositoryCommitsResponse, GitError> {
-        let ref_name = ref_name.to_string();
-        let path = path.to_string();
-        let repository = self.open_repository(owner, repo)?;
-
-        let skip = ((page.saturating_sub(1)) * per_page) as usize;
-        let take = per_page as usize;
-
-        task::spawn_blocking(move || {
-            let start_commit = Self::resolve_ref(&repository, &ref_name)?;
-
-            let mut revwalk = repository.revwalk()?;
-            revwalk.push(start_commit.id())?;
-            revwalk.set_sorting(git2::Sort::TIME).ok();
-
-            let mut current_path = path;
-            let mut commits = Vec::new();
-            let mut count = 0;
-
-            for oid_result in revwalk {
-                let oid = oid_result?;
-                let commit = repository.find_commit(oid)?;
-
-                let mut modified = false;
-
-                if commit.parent_count() == 0 {
-                    // Initial commit - check if file exists
-                    let tree = commit.tree()?;
-                    if tree.get_path(std::path::Path::new(&current_path)).is_ok() {
-                        modified = true;
-                    }
-                } else {
-                    // Check diff against parent
-                    for parent in commit.parents() {
-                        let parent_tree = parent.tree()?;
-                        let commit_tree = commit.tree()?;
-
-                        let mut diff_opts = git2::DiffOptions::new();
-                        diff_opts.pathspec(&current_path);
-
-                        let diff = repository.diff_tree_to_tree(
-                            Some(&parent_tree),
-                            Some(&commit_tree),
-                            Some(&mut diff_opts),
-                        )?;
-
-                        // Check if diff contains our path
-                        let path_modified = diff.deltas().any(|delta| {
-                            delta
-                                .new_file()
-                                .path()
-                                .and_then(|p| p.to_str())
-                                .map(|p| p == current_path)
-                                .unwrap_or(false)
-                                || delta
-                                    .old_file()
-                                    .path()
-                                    .and_then(|p| p.to_str())
-                                    .map(|p| p == current_path)
-                                    .unwrap_or(false)
-                        });
-
-                        if path_modified {
-                            modified = true;
-
-                            // Check for renames and update path for next iteration
-                            for delta in diff.deltas() {
-                                if delta.status() == git2::Delta::Renamed {
-                                    if let Some(new_path) = delta.new_file().path() {
-                                        if new_path.to_str() == Some(&current_path) {
-                                            if let Some(old_path) = delta.old_file().path() {
-                                                if let Some(old_path_str) = old_path.to_str() {
-                                                    current_path = old_path_str.to_string();
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-
-                            break; // Found modification, no need to check other parents
-                        }
-                    }
-                }
-
-                if modified {
-                    if count >= skip && commits.len() < take + 1 {
-                        commits.push(RepositoryCommitResponse::from(&commit));
-                    }
-                    count += 1;
-                }
-
-                // Early exit when we have enough results
-                if commits.len() > take {
-                    break;
-                }
-            }
-
-            let has_next = commits.len() > take;
-            if has_next {
-                commits.pop();
-            }
-
-            Ok(RepositoryCommitsResponse { commits })
-        })
-        .await?
-    }
-
     async fn get_repo_diff_files(
         &self,
         owner: &str,
@@ -672,14 +563,20 @@ impl GitClient for Git2Client {
         let repository = self.open_repository(&owner, &repo)?;
 
         task::spawn_blocking(move || {
-            let left_tree = match left_ref {
+            let (left_tree, left_commit_sha) = match left_ref {
                 None => {
                     let empty_oid = repository.treebuilder(None)?.write()?;
-                    repository.find_tree(empty_oid)?
+                    (repository.find_tree(empty_oid)?, String::new())
                 }
-                Some(ref r) => Self::resolve_ref(&repository, r)?.tree()?,
+                Some(ref r) => {
+                    let commit = Self::resolve_ref(&repository, r)?;
+                    let sha = commit.id().to_string();
+                    (commit.tree()?, sha)
+                }
             };
-            let right_tree = Self::resolve_ref(&repository, &right_ref)?.tree()?;
+            let right_commit = Self::resolve_ref(&repository, &right_ref)?;
+            let right_commit_sha = right_commit.id().to_string();
+            let right_tree = right_commit.tree()?;
             let diff = Self::diff_trees(&repository, &left_tree, &right_tree)?;
 
             let mut results = Vec::new();
@@ -694,7 +591,7 @@ impl GitClient for Git2Client {
                         .and_then(|p| p.to_str())
                         .and_then(|path| {
                             let blob = Self::get_blob(&repository, &left_tree, path).ok()?;
-                            Some(Self::blob_to_response(&blob, path))
+                            Some(Self::blob_to_response(&blob, path, &left_commit_sha))
                         })
                 } else {
                     None
@@ -707,7 +604,7 @@ impl GitClient for Git2Client {
                         .and_then(|p| p.to_str())
                         .and_then(|path| {
                             let blob = Self::get_blob(&repository, &right_tree, path).ok()?;
-                            Some(Self::blob_to_response(&blob, path))
+                            Some(Self::blob_to_response(&blob, path, &right_commit_sha))
                         })
                 } else {
                     None

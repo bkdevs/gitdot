@@ -1,23 +1,19 @@
-use std::collections::{HashMap, HashSet};
-
 use async_trait::async_trait;
 use uuid::Uuid;
 
 use crate::{
     client::{Git2Client, GitClient},
     dto::{
-        CommitAuthorResponse, CreateRepositoryRequest, DeleteRepositoryRequest,
-        GetRepositoryBlobRequest, GetRepositoryBlobsRequest, GetRepositoryFileCommitsRequest,
-        GetRepositoryPathsRequest, GetRepositorySettingsRequest, RepositoryBlobResponse,
-        RepositoryBlobsResponse, RepositoryCommitResponse, RepositoryCommitsResponse,
-        RepositoryPathsResponse, RepositoryResponse, RepositorySettingsResponse,
-        UpdateRepositorySettingsRequest,
+        CreateRepositoryRequest, DeleteRepositoryRequest, GetRepositoryBlobRequest,
+        GetRepositoryBlobsRequest, GetRepositoryPathsRequest, GetRepositorySettingsRequest,
+        RepositoryBlobResponse, RepositoryBlobsResponse, RepositoryPathsResponse,
+        RepositoryResponse, RepositorySettingsResponse, UpdateRepositorySettingsRequest,
     },
     error::RepositoryError,
     model::{RepositoryOwnerType, RepositorySettings},
     repository::{
         OrganizationRepository, OrganizationRepositoryImpl, RepositoryRepository,
-        RepositoryRepositoryImpl, UserRepository, UserRepositoryImpl,
+        RepositoryRepositoryImpl,
     },
     util::git::{GitHookType, POST_RECEIVE_SCRIPT, PRE_RECEIVE_SCRIPT, PROC_RECEIVE_SCRIPT},
 };
@@ -43,11 +39,6 @@ pub trait RepositoryService: Send + Sync + 'static {
         &self,
         request: GetRepositoryPathsRequest,
     ) -> Result<RepositoryPathsResponse, RepositoryError>;
-
-    async fn get_repository_file_commits(
-        &self,
-        request: GetRepositoryFileCommitsRequest,
-    ) -> Result<RepositoryCommitsResponse, RepositoryError>;
 
     async fn get_repository_by_id(&self, id: Uuid) -> Result<RepositoryResponse, RepositoryError>;
 
@@ -75,89 +66,38 @@ pub trait RepositoryService: Send + Sync + 'static {
 }
 
 #[derive(Debug, Clone)]
-pub struct RepositoryServiceImpl<G, O, R, U>
+pub struct RepositoryServiceImpl<G, O, R>
 where
     G: GitClient,
     O: OrganizationRepository,
     R: RepositoryRepository,
-    U: UserRepository,
 {
     git_client: G,
     org_repo: O,
     repo_repo: R,
-    user_repo: U,
 }
 
-impl
-    RepositoryServiceImpl<
-        Git2Client,
-        OrganizationRepositoryImpl,
-        RepositoryRepositoryImpl,
-        UserRepositoryImpl,
-    >
-{
+impl RepositoryServiceImpl<Git2Client, OrganizationRepositoryImpl, RepositoryRepositoryImpl> {
     pub fn new(
         git_client: Git2Client,
         org_repo: OrganizationRepositoryImpl,
         repo_repo: RepositoryRepositoryImpl,
-        user_repo: UserRepositoryImpl,
     ) -> Self {
         Self {
             git_client,
             org_repo,
             repo_repo,
-            user_repo,
         }
-    }
-}
-
-impl<G, O, R, U> RepositoryServiceImpl<G, O, R, U>
-where
-    G: GitClient,
-    O: OrganizationRepository,
-    R: RepositoryRepository,
-    U: UserRepository,
-{
-    async fn enrich_commits_with_users(
-        &self,
-        commits: &mut [RepositoryCommitResponse],
-    ) -> Result<(), RepositoryError> {
-        let emails: Vec<_> = commits
-            .iter()
-            .map(|c| c.author.email.clone())
-            .filter(|e| !e.is_empty())
-            .collect::<HashSet<_>>()
-            .into_iter()
-            .collect();
-
-        if emails.is_empty() {
-            return Ok(());
-        }
-
-        let users = self.user_repo.get_by_emails(&emails).await?;
-        let email_to_user: HashMap<_, _> = users.iter().map(|u| (u.email.as_str(), u)).collect();
-        for commit in commits {
-            if let Some(user) = email_to_user.get(commit.author.email.as_str()) {
-                commit.author = CommitAuthorResponse {
-                    id: Some(user.id),
-                    name: user.name.clone(),
-                    email: commit.author.email.clone(),
-                };
-            }
-        }
-
-        Ok(())
     }
 }
 
 #[crate::instrument_all]
 #[async_trait]
-impl<G, O, R, U> RepositoryService for RepositoryServiceImpl<G, O, R, U>
+impl<G, O, R> RepositoryService for RepositoryServiceImpl<G, O, R>
 where
     G: GitClient,
     O: OrganizationRepository,
     R: RepositoryRepository,
-    U: UserRepository,
 {
     async fn create_repository(
         &self,
@@ -246,20 +186,15 @@ where
         &self,
         request: GetRepositoryBlobRequest,
     ) -> Result<RepositoryBlobResponse, RepositoryError> {
-        let response = self
-            .git_client
+        self.git_client
             .get_repo_blob(
                 &request.owner_name,
                 &request.name,
                 &request.ref_name,
                 &request.path,
             )
-            .await?;
-
-        match response {
-            RepositoryBlobResponse::File(f) => Ok(RepositoryBlobResponse::File(f)),
-            RepositoryBlobResponse::Folder(folder) => Ok(RepositoryBlobResponse::Folder(folder)),
-        }
+            .await
+            .map_err(Into::into)
     }
 
     async fn get_repository_blobs(
@@ -285,28 +220,6 @@ where
             .get_repo_paths(&request.owner_name, &request.name, &request.ref_name)
             .await
             .map_err(Into::into)
-    }
-
-    async fn get_repository_file_commits(
-        &self,
-        request: GetRepositoryFileCommitsRequest,
-    ) -> Result<RepositoryCommitsResponse, RepositoryError> {
-        let mut response = self
-            .git_client
-            .get_repo_file_commits(
-                &request.owner_name,
-                &request.name,
-                &request.ref_name,
-                &request.path,
-                request.page,
-                request.per_page,
-            )
-            .await?;
-
-        self.enrich_commits_with_users(&mut response.commits)
-            .await?;
-
-        Ok(response)
     }
 
     async fn get_repository_by_id(&self, id: Uuid) -> Result<RepositoryResponse, RepositoryError> {

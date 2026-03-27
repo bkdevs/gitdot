@@ -97,6 +97,7 @@ impl IntoApi for RepositoryFileResponse {
     type ApiType = api::RepositoryFileResource;
     fn into_api(self) -> Self::ApiType {
         api::RepositoryFileResource {
+            commit_sha: self.commit_sha,
             path: self.path,
             sha: self.sha,
             content: self.content,
@@ -109,6 +110,7 @@ impl IntoApi for RepositoryFolderResponse {
     type ApiType = api::RepositoryFolderResource;
     fn into_api(self) -> Self::ApiType {
         api::RepositoryFolderResource {
+            commit_sha: self.commit_sha,
             path: self.path,
             entries: self.entries.into_api(),
         }
@@ -119,8 +121,6 @@ impl IntoApi for RepositoryBlobsResponse {
     type ApiType = api::RepositoryBlobsResource;
     fn into_api(self) -> Self::ApiType {
         api::RepositoryBlobsResource {
-            ref_name: self.ref_name,
-            commit_sha: self.commit_sha,
             blobs: self.blobs.into_api(),
         }
     }

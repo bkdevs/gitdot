@@ -1,7 +1,7 @@
 "use client";
 
-import { RepositoryCommitResource } from "gitdot-api";
-import { Root } from "hast";
+import type { RepositoryCommitResource } from "gitdot-api";
+import type { Root } from "hast";
 import type { LineSelection } from "../util";
 import { FileBody } from "./file-body";
 import { FileCommits } from "./file-commits";

@@ -42,6 +42,7 @@ pub enum PathType {
 
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RepositoryFileResource {
+    pub commit_sha: String,
     pub path: String,
     pub sha: String,
     pub content: String,
@@ -50,14 +51,13 @@ pub struct RepositoryFileResource {
 
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RepositoryFolderResource {
+    pub commit_sha: String,
     pub path: String,
     pub entries: Vec<RepositoryPathResource>,
 }
 
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RepositoryBlobsResource {
-    pub ref_name: String,
-    pub commit_sha: String,
     pub blobs: Vec<RepositoryBlobResource>,
 }
 

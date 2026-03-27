@@ -113,10 +113,7 @@ export function openIdb(): Database {
     async getBlob(owner, repo, path) {
       console.log("getBlob being called", owner, repo, path);
       const db = await getDb();
-      const row = await db.get("blobs", blobKey(owner, repo, path));
-      if (!row) return null;
-      const { ref_name, commit_sha, ...blob } = row;
-      return blob;
+      return (await db.get("blobs", blobKey(owner, repo, path))) ?? null;
     },
 
     async getBlobs(owner, repo) {
@@ -125,24 +122,15 @@ export function openIdb(): Database {
       const range = IDBKeyRange.bound(prefix, `${prefix}\uffff`);
       const rows = await db.getAll("blobs", range);
       if (rows.length === 0) return undefined;
-      const { ref_name, commit_sha } = rows[0];
-      return {
-        ref_name,
-        commit_sha,
-        blobs: rows.map(({ ref_name, commit_sha, ...b }) => b),
-      };
+      return { blobs: rows };
     },
 
     async putBlobs(owner, repo, blobs) {
       const db = await getDb();
-      const { ref_name, commit_sha } = blobs;
       const tx = db.transaction("blobs", "readwrite");
       await Promise.all([
         ...blobs.blobs.map((b) =>
-          tx.store.put(
-            { ref_name, commit_sha, ...b },
-            blobKey(owner, repo, b.path),
-          ),
+          tx.store.put(b, blobKey(owner, repo, b.path)),
         ),
         tx.done,
       ]);

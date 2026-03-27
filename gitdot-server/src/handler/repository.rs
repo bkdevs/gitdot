@@ -5,7 +5,6 @@ mod get_repository_blobs;
 mod get_repository_commit;
 mod get_repository_commit_diff;
 mod get_repository_commits;
-mod get_repository_file_commits;
 mod get_repository_paths;
 mod get_repository_resources;
 mod get_repository_settings;
@@ -25,7 +24,6 @@ use get_repository_blobs::get_repository_blobs;
 use get_repository_commit::get_repository_commit;
 use get_repository_commit_diff::get_repository_commit_diff;
 use get_repository_commits::get_repository_commits;
-use get_repository_file_commits::get_repository_file_commits;
 use get_repository_paths::get_repository_paths;
 use get_repository_resources::get_repository_resources;
 use get_repository_settings::get_repository_settings;
@@ -45,10 +43,6 @@ pub fn create_repository_router() -> Router<AppState> {
         .route(
             "/repository/{owner}/{repo}/paths",
             get(get_repository_paths),
-        )
-        .route(
-            "/repository/{owner}/{repo}/file/commits",
-            get(get_repository_file_commits),
         )
         .route(
             "/repository/{owner}/{repo}/commits",
