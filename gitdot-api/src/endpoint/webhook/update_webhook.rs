@@ -15,6 +15,7 @@ impl Endpoint for UpdateWebhook {
 #[derive(ApiRequest, Debug, Serialize, Deserialize)]
 pub struct UpdateWebhookRequest {
     pub url: Option<String>,
+    pub secret: Option<String>,
     pub events: Option<Vec<String>>,
 }
 
