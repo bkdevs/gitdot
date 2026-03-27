@@ -47,11 +47,16 @@ export class InMemoryProvider extends ClientProvider {
     return this.store.paths ?? null;
   }
 
-  async getBlob(path: string): Promise<RepositoryBlobResource | null> {
+  async getBlob(
+    path: string,
+    ref?: string,
+  ): Promise<RepositoryBlobResource | null> {
+    if (ref) return null;
     return this.store.blob.get(path) ?? null;
   }
 
-  async getHast(path: string): Promise<Root | null> {
+  async getHast(path: string, ref?: string): Promise<Root | null> {
+    if (ref) return null;
     return this.store.hast.get(path) ?? null;
   }
 
@@ -102,13 +107,16 @@ export class InMemoryProvider extends ClientProvider {
 
   async initialize(): Promise<void> {
     const db = openIdb();
+    const metadata = await db.getMetadata(this.owner, this.repo);
+    if (!metadata) return;
+    const { last_commit: commit } = metadata;
     const [paths, blobs, commits, settings, hasts, questions, reviews, builds] =
       await Promise.all([
         db.getPaths(this.owner, this.repo),
-        db.getBlobs(this.owner, this.repo),
+        db.getBlobs(this.owner, this.repo, commit),
         db.getCommits(this.owner, this.repo),
         db.getSettings(this.owner, this.repo),
-        db.getHasts(this.owner, this.repo),
+        db.getHasts(this.owner, this.repo, commit),
         db.getQuestions(this.owner, this.repo),
         db.getReviews(this.owner, this.repo),
         db.getBuilds(this.owner, this.repo),

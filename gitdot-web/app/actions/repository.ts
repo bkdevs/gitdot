@@ -132,8 +132,12 @@ export async function getRepositoryHast(
   owner: string,
   repo: string,
   path: string,
+  ref?: string,
 ): Promise<Root | null> {
-  const blob = await getRepositoryBlob(owner, repo, { path });
+  const blob = await getRepositoryBlob(owner, repo, {
+    path,
+    ...(ref && { ref_name: ref }),
+  });
   if (!blob || blob.type === "folder") return null;
   const lang = inferLanguage(path);
   return fileToHast(blob.content, lang, "vitesse-light", []);

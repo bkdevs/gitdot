@@ -1,6 +1,10 @@
 "use client";
 
-import type { QuestionResource, ReviewResource } from "gitdot-api";
+import type {
+  QuestionResource,
+  RepositoryBlobsResource,
+  ReviewResource,
+} from "gitdot-api";
 import type { Root } from "hast";
 import { type IDBPDatabase, openDB } from "idb";
 import type { Database, RepositoryMetadata } from "./types";
@@ -12,13 +16,13 @@ const reviewKey = (owner: string, repo: string, number: number) =>
 const repoKey = (owner: string, repo: string) => `${owner}/${repo}`;
 const pathKey = (owner: string, repo: string, path: string) =>
   `${owner}/${repo}/${path}`;
-const blobKey = (owner: string, repo: string, path: string) =>
-  `${owner}/${repo}/${path}`;
+const blobKey = (owner: string, repo: string, commit: string, path: string) =>
+  `${owner}/${repo}/${commit}/${path}`;
 
 let dbPromise: Promise<IDBPDatabase> | null = null;
 function getDb(): Promise<IDBPDatabase> {
   if (!dbPromise) {
-    dbPromise = openDB("gitdot", 8, {
+    dbPromise = openDB("gitdot", 9, {
       upgrade(db) {
         if (!db.objectStoreNames.contains("commits"))
           db.createObjectStore("commits");
@@ -110,40 +114,47 @@ export function openIdb(): Database {
       ]);
     },
 
-    async getBlob(owner, repo, path) {
-      console.log("getBlob being called", owner, repo, path);
+    async getBlob(owner: string, repo: string, path: string, commit: string) {
       const db = await getDb();
-      return (await db.get("blobs", blobKey(owner, repo, path))) ?? null;
+      return (
+        (await db.get("blobs", blobKey(owner, repo, commit, path))) ?? null
+      );
     },
 
-    async getBlobs(owner, repo) {
+    async getBlobs(owner: string, repo: string, commit: string) {
       const db = await getDb();
-      const prefix = `${repoKey(owner, repo)}/`;
+      const prefix = `${owner}/${repo}/${commit}/`;
       const range = IDBKeyRange.bound(prefix, `${prefix}\uffff`);
       const rows = await db.getAll("blobs", range);
       if (rows.length === 0) return undefined;
       return { blobs: rows };
     },
 
-    async putBlobs(owner, repo, blobs) {
+    async putBlobs(
+      owner: string,
+      repo: string,
+      blobs: RepositoryBlobsResource,
+    ) {
       const db = await getDb();
       const tx = db.transaction("blobs", "readwrite");
       await Promise.all([
         ...blobs.blobs.map((b) =>
-          tx.store.put(b, blobKey(owner, repo, b.path)),
+          tx.store.put(b, blobKey(owner, repo, b.commit_sha, b.path)),
         ),
         tx.done,
       ]);
     },
 
-    async getHast(owner, repo, path) {
+    async getHast(owner: string, repo: string, path: string, commit: string) {
       const db = await getDb();
-      return (await db.get("hasts", blobKey(owner, repo, path))) ?? null;
+      return (
+        (await db.get("hasts", blobKey(owner, repo, commit, path))) ?? null
+      );
     },
 
-    async getHasts(owner, repo) {
+    async getHasts(owner: string, repo: string, commit: string) {
       const db = await getDb();
-      const prefix = `${repoKey(owner, repo)}/`;
+      const prefix = `${owner}/${repo}/${commit}/`;
       const range = IDBKeyRange.bound(prefix, `${prefix}\uffff`);
       const keys = await db.getAllKeys("hasts", range);
       const values = await db.getAll("hasts", range);
@@ -156,9 +167,15 @@ export function openIdb(): Database {
       return map;
     },
 
-    async putHast(owner, repo, path, hast) {
+    async putHast(
+      owner: string,
+      repo: string,
+      path: string,
+      hast: Root,
+      commit: string,
+    ) {
       const db = await getDb();
-      await db.put("hasts", hast, blobKey(owner, repo, path));
+      await db.put("hasts", hast, blobKey(owner, repo, commit, path));
     },
 
     async getSettings(owner, repo) {

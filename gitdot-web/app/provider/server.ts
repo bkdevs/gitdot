@@ -39,12 +39,18 @@ export function fetchResources<T extends ResourceDefinition>(
 }
 
 export class ApiProvider extends ServerProvider {
-  async getBlob(path: string): Promise<RepositoryBlobResource | null> {
-    return await getRepositoryBlob(this.owner, this.repo, { path: path });
+  async getBlob(
+    path: string,
+    ref?: string,
+  ): Promise<RepositoryBlobResource | null> {
+    return await getRepositoryBlob(this.owner, this.repo, {
+      path,
+      ...(ref && { ref_name: ref }),
+    });
   }
 
-  async getHast(path: string): Promise<Root | null> {
-    return await getRepositoryHast(this.owner, this.repo, path);
+  async getHast(path: string, ref?: string): Promise<Root | null> {
+    return await getRepositoryHast(this.owner, this.repo, path, ref);
   }
 
   async getCommit(sha: string): Promise<RepositoryCommitResource | null> {

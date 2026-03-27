@@ -11,10 +11,17 @@ import type {
 } from "gitdot-api";
 import type { Root } from "hast";
 import { openIdb } from "@/db";
+import type { RepositoryMetadata } from "@/db/types";
 import { ClientProvider } from "./types";
 
 export class DatabaseProvider extends ClientProvider {
   private db = openIdb();
+  private metadataPromise: Promise<RepositoryMetadata | null> | null = null;
+
+  private metadata() {
+    this.metadataPromise ??= this.db.getMetadata(this.owner, this.repo);
+    return this.metadataPromise;
+  }
 
   async getPaths() {
     return this.db.getPaths(this.owner, this.repo);
@@ -24,16 +31,22 @@ export class DatabaseProvider extends ClientProvider {
     return this.db.putPaths(this.owner, this.repo, paths);
   }
 
-  async getBlob(path: string) {
-    return this.db.getBlob(this.owner, this.repo, path);
+  async getBlob(path: string, ref?: string) {
+    if (ref) return this.db.getBlob(this.owner, this.repo, path, ref);
+    const metadata = await this.metadata();
+    if (!metadata) return null;
+    return this.db.getBlob(this.owner, this.repo, path, metadata.last_commit);
   }
 
-  async getHast(path: string): Promise<Root | null> {
-    return this.db.getHast(this.owner, this.repo, path);
+  async getHast(path: string, ref?: string): Promise<Root | null> {
+    if (ref) return this.db.getHast(this.owner, this.repo, path, ref);
+    const metadata = await this.metadata();
+    if (!metadata) return null;
+    return this.db.getHast(this.owner, this.repo, path, metadata.last_commit);
   }
 
-  async putHast(path: string, hast: Root): Promise<void> {
-    return this.db.putHast(this.owner, this.repo, path, hast);
+  async putHast(path: string, hast: Root, commit: string): Promise<void> {
+    return this.db.putHast(this.owner, this.repo, path, hast, commit);
   }
 
   async getCommit(sha: string) {
@@ -53,12 +66,18 @@ export class DatabaseProvider extends ClientProvider {
   }
 
   async getBlobs(): Promise<RepositoryBlobsResource | null> {
-    const blobs = await this.db.getBlobs(this.owner, this.repo);
-    return blobs ?? null;
+    const metadata = await this.metadata();
+    if (!metadata) return null;
+    return await this.db.getBlobs(this.owner, this.repo, metadata.last_commit);
   }
 
   async putBlobs(blobs: RepositoryBlobsResource) {
     return this.db.putBlobs(this.owner, this.repo, blobs);
+  }
+
+  async putMetadata(metadata: RepositoryMetadata) {
+    this.metadataPromise = Promise.resolve(metadata);
+    return this.db.putMetadata(this.owner, this.repo, metadata);
   }
 
   async getSettings() {
@@ -68,24 +87,6 @@ export class DatabaseProvider extends ClientProvider {
   async putSettings(settings: RepositorySettingsResource) {
     return this.db.putSettings(this.owner, this.repo, settings);
   }
-
-  // TODO: this is a tad hacky (relying on the fact that provider get / put methods) are serialized as such
-  // we can do better if we discrminate resource types directly with a "type" field.
-  private writers: Record<string, (value: unknown) => void> = {
-    getPaths: (v) => this.putPaths(v as RepositoryPathsResource),
-    getCommits: (v) => this.putCommits(v as RepositoryCommitResource[]),
-    getBlobs: (v) => this.putBlobs(v as RepositoryBlobsResource),
-    getSettings: (v) => this.putSettings(v as RepositorySettingsResource),
-    getQuestions: (v) => this.putQuestions(v as QuestionResource[]),
-    getReview: (v) =>
-      this.putReview((v as ReviewResource).number, v as ReviewResource),
-    getReviews: (v) => {
-      for (const r of v as ReviewResource[]) this.putReview(r.number, r);
-    },
-    getBuilds: (v) => this.putBuilds(v as BuildResource[]),
-    getBuild: (v) =>
-      this.putBuild((v as BuildResource).number, v as BuildResource),
-  };
 
   async getQuestions(): Promise<QuestionResource[] | null> {
     return this.db.getQuestions(this.owner, this.repo);
@@ -124,6 +125,24 @@ export class DatabaseProvider extends ClientProvider {
   async putBuild(_number: number, build: BuildResource): Promise<void> {
     return this.db.putBuild(this.owner, this.repo, build);
   }
+
+  // TODO: this is a tad hacky (relying on the fact that provider get / put methods) are serialized as such
+  // we can do better if we discrminate resource types directly with a "type" field.
+  private writers: Record<string, (value: unknown) => void> = {
+    getPaths: (v) => this.putPaths(v as RepositoryPathsResource),
+    getCommits: (v) => this.putCommits(v as RepositoryCommitResource[]),
+    getBlobs: (v) => this.putBlobs(v as RepositoryBlobsResource),
+    getSettings: (v) => this.putSettings(v as RepositorySettingsResource),
+    getQuestions: (v) => this.putQuestions(v as QuestionResource[]),
+    getReview: (v) =>
+      this.putReview((v as ReviewResource).number, v as ReviewResource),
+    getReviews: (v) => {
+      for (const r of v as ReviewResource[]) this.putReview(r.number, r);
+    },
+    getBuilds: (v) => this.putBuilds(v as BuildResource[]),
+    getBuild: (v) =>
+      this.putBuild((v as BuildResource).number, v as BuildResource),
+  };
 
   write(method: string, value: unknown) {
     if (!value) return;

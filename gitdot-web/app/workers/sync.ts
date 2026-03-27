@@ -119,7 +119,7 @@ async function process({ owner, repo }: MessageBody, port: MessagePort) {
         lang,
         theme: "vitesse-light",
       });
-      return db.putHast(owner, repo, blob.path, hast);
+      return db.putHast(owner, repo, blob.path, hast, blob.commit_sha);
     }),
   );
   console.log(

@@ -43,8 +43,11 @@ export abstract class RepoProvider {
   }
 
   abstract getPaths(): Promise<RepositoryPathsResource | null>;
-  abstract getBlob(path: string): Promise<RepositoryBlobResource | null>;
-  abstract getHast(path: string): Promise<Root | null>;
+  abstract getBlob(
+    path: string,
+    ref?: string,
+  ): Promise<RepositoryBlobResource | null>;
+  abstract getHast(path: string, ref?: string): Promise<Root | null>;
   abstract getCommit(sha: string): Promise<RepositoryCommitResource | null>;
   abstract getCommits(): Promise<RepositoryCommitResource[] | null>;
   abstract getBlobs(): Promise<RepositoryBlobsResource | null>;
