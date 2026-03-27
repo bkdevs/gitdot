@@ -63,6 +63,8 @@ export function FileCommits({
     fetchBlobs().then((blobs) => blobs && highlightBlobs(blobs));
   }, [commits, owner, path, repo, highlightFile]);
 
+  const [hoveredSha, setHoveredSha] = useState<string | null>(null);
+
   const open = useRightSidebar();
   if (!open) return null;
 
@@ -76,12 +78,15 @@ export function FileCommits({
             key={commit.sha}
             commit={commit}
             isSelected={selectedCommitSha === commit.sha.substring(0, 7)}
+            isHovered={hoveredSha === commit.sha}
             isLatest={commit.sha === commits[0]?.sha}
             owner={owner}
             repo={repo}
             path={path}
-            onHover={() =>  setHast(diffHasts[commit.sha] ?? blobHasts[commit.sha])
-            }
+            onHover={() => {
+              setHoveredSha(commit.sha);
+              setHast(diffHasts[commit.sha] ?? blobHasts[commit.sha]);
+            }}
           />
         ))}
       </div>
@@ -92,6 +97,7 @@ export function FileCommits({
 function FileCommit({
   commit,
   isSelected,
+  isHovered,
   isLatest,
   owner,
   repo,
@@ -105,6 +111,7 @@ function FileCommit({
     date: string;
   };
   isSelected: boolean;
+  isHovered: boolean;
   isLatest: boolean;
   owner: string;
   repo: string;
@@ -130,7 +137,7 @@ function FileCommit({
       href={href}
       tabIndex={-1}
       className={`flex w-full border-b hover:bg-accent/50 focus:bg-accent/50 select-none cursor-default py-2 px-2 focus:outline-none ${
-        isSelected ? "bg-sidebar" : ""
+        isSelected ? "bg-sidebar" : isHovered ? "bg-accent/50" : ""
       }`}
       onMouseEnter={onHover}
     >
