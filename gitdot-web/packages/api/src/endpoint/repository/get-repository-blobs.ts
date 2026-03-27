@@ -3,7 +3,7 @@ import { RepositoryBlobsResource } from "../../resource";
 import type { Endpoint } from "../endpoint";
 
 export const GetRepositoryBlobsRequest = z.object({
-  ref_name: z.string().optional(),
+  refs: z.array(z.string()).default(["HEAD"]),
   paths: z.array(z.string()),
 });
 export type GetRepositoryBlobsRequest = z.infer<

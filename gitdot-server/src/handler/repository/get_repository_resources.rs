@@ -64,7 +64,7 @@ pub async fn get_repository_resources(
 
     let blob_paths: Vec<String> = paths.entries.iter().map(|e| e.path.clone()).collect();
     let blobs_request =
-        GetRepositoryBlobsRequest::new(&repo, &owner, "HEAD".to_string(), blob_paths)?;
+        GetRepositoryBlobsRequest::new(&repo, &owner, vec!["HEAD".to_string()], blob_paths)?;
 
     let now = Utc::now();
     let commits_from = params

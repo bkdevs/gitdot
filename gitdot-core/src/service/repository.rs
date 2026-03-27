@@ -201,15 +201,27 @@ where
         &self,
         request: GetRepositoryBlobsRequest,
     ) -> Result<RepositoryBlobsResponse, RepositoryError> {
-        self.git_client
-            .get_repo_blobs(
-                &request.owner_name,
-                &request.name,
-                &request.ref_name,
-                &request.paths,
-            )
-            .await
-            .map_err(Into::into)
+        if request.refs.len() > 1 {
+            self.git_client
+                .get_repo_blob_at_refs(
+                    &request.owner_name,
+                    &request.name,
+                    &request.paths[0],
+                    &request.refs,
+                )
+                .await
+                .map_err(Into::into)
+        } else {
+            self.git_client
+                .get_repo_blobs(
+                    &request.owner_name,
+                    &request.name,
+                    &request.refs[0],
+                    &request.paths,
+                )
+                .await
+                .map_err(Into::into)
+        }
     }
 
     async fn get_repository_paths(

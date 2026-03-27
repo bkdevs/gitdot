@@ -25,6 +25,9 @@ pub enum RepositoryError {
     #[error("Invalid visibility: {0}")]
     InvalidVisibility(String),
 
+    #[error("When 'refs' is specified, 'paths' must contain exactly one entry")]
+    TooManyPaths,
+
     #[error("Git error: {0}")]
     GitError(Git2Error),
 

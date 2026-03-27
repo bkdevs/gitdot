@@ -33,7 +33,7 @@ pub async fn get_repository_blobs(
         .verify_authorized_for_repository(request)
         .await?;
 
-    let request = GetRepositoryBlobsRequest::new(&repo, &owner, params.ref_name, params.paths)?;
+    let request = GetRepositoryBlobsRequest::new(&repo, &owner, params.refs, params.paths)?;
     state
         .repo_service
         .get_repository_blobs(request)

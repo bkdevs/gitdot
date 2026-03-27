@@ -3,6 +3,10 @@ use serde::{Deserialize, Serialize};
 use super::default_ref;
 use crate::{endpoint::Endpoint, resource::repository::RepositoryBlobsResource};
 
+fn default_refs() -> Vec<String> {
+    vec![default_ref()]
+}
+
 pub struct GetRepositoryBlobs;
 
 impl Endpoint for GetRepositoryBlobs {
@@ -15,8 +19,8 @@ impl Endpoint for GetRepositoryBlobs {
 
 #[derive(ApiRequest, Debug, Serialize, Deserialize)]
 pub struct GetRepositoryBlobsRequest {
-    #[serde(default = "default_ref")]
-    pub ref_name: String,
+    #[serde(default = "default_refs")]
+    pub refs: Vec<String>,
     pub paths: Vec<String>,
 }
 
