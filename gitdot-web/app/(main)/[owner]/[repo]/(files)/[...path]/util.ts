@@ -134,22 +134,21 @@ export function computeInlineDiffs(
 
     const otherLines = extractLines(otherHast);
     const patch = structuredPatch(
-      otherBlob.path,
       currentBlob.path,
-      otherBlob.content,
+      otherBlob.path,
       currentBlob.content,
+      otherBlob.content,
       "",
       "",
       { context: 0 },
     );
-    console.log(patch);
-    
+
     const resultLines: Element[] = [];
     let oldCursor = 1;
 
     for (const hunk of patch.hunks) {
       while (oldCursor < hunk.oldStart) {
-        const src = otherLines[oldCursor - 1];
+        const src = currentLines[oldCursor - 1];
         if (src) resultLines.push(structuredClone(src));
         oldCursor++;
       }
@@ -157,16 +156,16 @@ export function computeInlineDiffs(
       let newLineCursor = hunk.newStart;
       for (const line of hunk.lines) {
         if (line.startsWith(" ")) {
-          const src = otherLines[oldCursor - 1];
+          const src = currentLines[oldCursor - 1];
           if (src) resultLines.push(structuredClone(src));
           oldCursor++;
           newLineCursor++;
         } else if (line.startsWith("-")) {
-          const src = otherLines[oldCursor - 1];
+          const src = currentLines[oldCursor - 1];
           if (src) resultLines.push(colorBackground(src, "#fef2f2"));
           oldCursor++;
         } else if (line.startsWith("+")) {
-          const src = currentLines[newLineCursor - 1];
+          const src = otherLines[newLineCursor - 1];
           if (src) resultLines.push(colorBackground(src, "#f0fdf4"));
           newLineCursor++;
         }
@@ -174,8 +173,8 @@ export function computeInlineDiffs(
       }
     }
 
-    while (oldCursor <= otherLines.length) {
-      const src = otherLines[oldCursor - 1];
+    while (oldCursor <= currentLines.length) {
+      const src = currentLines[oldCursor - 1];
       if (src) resultLines.push(structuredClone(src));
       oldCursor++;
     }

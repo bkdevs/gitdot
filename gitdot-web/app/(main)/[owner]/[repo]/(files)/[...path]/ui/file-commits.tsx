@@ -80,10 +80,8 @@ export function FileCommits({
             owner={owner}
             repo={repo}
             path={path}
-            onHover={() => {
-              const hast = diffHasts[commit.sha] ?? blobHasts[commit.sha];
-              if (hast) setHast(hast);
-            }}
+            onHover={() =>  setHast(diffHasts[commit.sha] ?? blobHasts[commit.sha])
+            }
           />
         ))}
       </div>
