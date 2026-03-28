@@ -9,7 +9,8 @@ import { useEffect, useState } from "react";
 import { useWorkerContext } from "@/(main)/context/worker";
 import { useRightSidebar } from "@/(main)/hooks/use-sidebar";
 import { getRepositoryBlobsAction } from "@/actions/repository";
-import { timeAgo } from "@/util";
+import { formatDateTime } from "@/util";
+import { DiffStatBar } from "../../../commits/[sha]/ui/diff-stat-bar";
 import { computeCommitDiffs } from "../util";
 import { useFileViewerContext } from "./file-viewer-context";
 
@@ -28,6 +29,9 @@ export function FileCommits({
   const { setHast } = useFileViewerContext();
   const [blobHasts, setBlobHasts] = useState<Record<string, Root>>({});
   const [diffHasts, setDiffHasts] = useState<Record<string, Root>>({});
+
+  const [selectedSha, setSelectedSha] = useState<string | null>(null);
+  const commitStats = commits.map((c) => c.diffs.find((d) => d.path === path));
 
   useEffect(() => {
     const oldest = commits[commits.length - 1];
@@ -60,8 +64,6 @@ export function FileCommits({
     fetchBlobs().then((blobs) => blobs && highlightBlobs(blobs));
   }, [commits, owner, path, repo, highlightFile]);
 
-  const [selectedSha, setSelectedSha] = useState<string | null>(null);
-
   const open = useRightSidebar();
   if (!open) return null;
 
@@ -79,10 +81,11 @@ export function FileCommits({
         className="flex-1 overflow-auto scrollbar-none"
         onMouseLeave={handleMouseLeave}
       >
-        {commits.map((commit) => (
+        {commits.map((commit, i) => (
           <FileCommit
             key={commit.sha}
             commit={commit}
+            diffStat={i === commits.length - 1 ? null : commitStats[i]}
             isSelected={selectedSha === commit.sha}
             onHover={() => setHast(diffHasts[commit.sha] ?? blobHasts[commit.sha])}
             onClick={() => {
@@ -101,8 +104,10 @@ export function FileCommits({
   );
 }
 
+
 function FileCommit({
   commit,
+  diffStat,
   isSelected,
   onHover,
   onClick,
@@ -113,6 +118,7 @@ function FileCommit({
     author: { id?: string; name: string; email: string };
     date: string;
   };
+  diffStat: { lines_added: number; lines_removed: number } | null | undefined;
   isSelected: boolean;
   onHover: () => void;
   onClick: () => void;
@@ -120,19 +126,23 @@ function FileCommit({
   return (
     <button
       type="button"
-      className={`flex w-full border-b select-none cursor-default text-left py-2 px-2 focus:outline-none hover:bg-accent/50 ${isSelected ? "bg-accent/50 shadow-[inset_2px_0_0_color-mix(in_oklch,var(--color-foreground)_60%,transparent)]" : ""}`}
+      className={`flex w-full border-b select-none cursor-default text-left h-18 py-2 px-2 focus:outline-none hover:bg-accent/50 ${isSelected ? "bg-accent/50 shadow-[inset_2px_0_0_color-mix(in_oklch,var(--color-foreground)_60%,transparent)]" : ""}`}
       onMouseEnter={onHover}
       onClick={onClick}
     >
       <div className="flex flex-col w-full justify-start items-start min-w-0">
-        <div className="text-sm truncate mb-0.5 w-full">{commit.message}</div>
-
-        <div className="text-xs text-muted-foreground flex items-center gap-1 w-full min-w-0">
-          <span className="truncate min-w-0">{commit.author.name}</span>
-          <span className="shrink-0">•</span>
-          <span className="shrink-0">{commit.sha.substring(0, 7)}</span>
-          <span className="ml-auto shrink-0">
-            {timeAgo(new Date(commit.date))}
+        <div className="text-xs text-muted-foreground flex items-center w-full min-w-0">
+          <span className="shrink-0">{formatDateTime(new Date(commit.date))}</span>
+        </div>
+        <div className="text-sm truncate pb-1 w-full">{commit.message}</div>
+        <div className="text-xs text-muted-foreground flex items-center w-full min-w-0">
+          <span className="truncate min-w-0 underline">{commit.author.name}</span>
+          <span className="ml-auto pl-2 shrink-0">
+            {diffStat == null ? (
+              <span className="text-green-600 font-mono">created</span>
+            ) : (
+              <DiffStatBar added={diffStat.lines_added} removed={diffStat.lines_removed} />
+            )}
           </span>
         </div>
       </div>
