@@ -5,12 +5,10 @@ import type {
   RepositoryCommitResource,
 } from "gitdot-api";
 import type { Root } from "hast";
-import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useWorkerContext } from "@/(main)/context/worker";
 import { useRightSidebar } from "@/(main)/hooks/use-sidebar";
 import { getRepositoryBlobsAction } from "@/actions/repository";
-import Link from "@/ui/link";
 import { timeAgo } from "@/util";
 import { computeCommitDiffs } from "../util";
 import { useFileViewerContext } from "./file-viewer-context";
@@ -30,9 +28,6 @@ export function FileCommits({
   const { setHast } = useFileViewerContext();
   const [blobHasts, setBlobHasts] = useState<Record<string, Root>>({});
   const [diffHasts, setDiffHasts] = useState<Record<string, Root>>({});
-
-  const params = useSearchParams();
-  const ref = params.get("ref");
 
   useEffect(() => {
     const oldest = commits[commits.length - 1];
@@ -65,29 +60,39 @@ export function FileCommits({
     fetchBlobs().then((blobs) => blobs && highlightBlobs(blobs));
   }, [commits, owner, path, repo, highlightFile]);
 
-  const [hoveredSha, setHoveredSha] = useState<string | null>(null);
+  const [selectedSha, setSelectedSha] = useState<string | null>(null);
 
   const open = useRightSidebar();
   if (!open) return null;
 
-  const selectedCommitSha = ref ?? commits[0]?.sha.substring(0, 7) ?? "";
+  const handleMouseLeave = () => {
+    if (selectedSha) {
+      setHast(diffHasts[selectedSha] ?? blobHasts[selectedSha]);
+    } else {
+      setHast(blobHasts[commits[0]?.sha]);
+    }
+  };
 
   return (
     <div className="w-64 h-full border-l flex flex-col">
-      <div className="flex-1 overflow-auto scrollbar-none">
+      <div
+        className="flex-1 overflow-auto scrollbar-none"
+        onMouseLeave={handleMouseLeave}
+      >
         {commits.map((commit) => (
           <FileCommit
             key={commit.sha}
             commit={commit}
-            isSelected={selectedCommitSha === commit.sha.substring(0, 7)}
-            isHovered={hoveredSha === commit.sha}
-            isLatest={commit.sha === commits[0]?.sha}
-            owner={owner}
-            repo={repo}
-            path={path}
-            onHover={() => {
-              setHoveredSha(commit.sha);
-              setHast(diffHasts[commit.sha] ?? blobHasts[commit.sha]);
+            isSelected={selectedSha === commit.sha}
+            onHover={() => setHast(diffHasts[commit.sha] ?? blobHasts[commit.sha])}
+            onClick={() => {
+              if (selectedSha === commit.sha) {
+                setSelectedSha(null);
+                setHast(blobHasts[commits[0]?.sha]);
+              } else {
+                setSelectedSha(commit.sha);
+                setHast(diffHasts[commit.sha] ?? blobHasts[commit.sha]);
+              }
             }}
           />
         ))}
@@ -99,12 +104,8 @@ export function FileCommits({
 function FileCommit({
   commit,
   isSelected,
-  isHovered,
-  isLatest,
-  owner,
-  repo,
-  path,
   onHover,
+  onClick,
 }: {
   commit: {
     sha: string;
@@ -113,35 +114,15 @@ function FileCommit({
     date: string;
   };
   isSelected: boolean;
-  isHovered: boolean;
-  isLatest: boolean;
-  owner: string;
-  repo: string;
-  path: string;
   onHover: () => void;
+  onClick: () => void;
 }) {
-  const params = useSearchParams();
-  const newParams = new URLSearchParams(params);
-  if (isLatest) {
-    newParams.delete("ref");
-  } else {
-    newParams.set("ref", commit.sha.substring(0, 7));
-  }
-  newParams.delete("lines");
-
-  const queryString = newParams.toString();
-  const href = queryString
-    ? `/${owner}/${repo}/${path}?${queryString}`
-    : `/${owner}/${repo}/${path}`;
-
   return (
-    <Link
-      href={href}
-      tabIndex={-1}
-      className={`flex w-full border-b hover:bg-accent/50 focus:bg-accent/50 select-none cursor-default py-2 px-2 focus:outline-none ${
-        isSelected ? "bg-sidebar" : isHovered ? "bg-accent/50" : ""
-      }`}
+    <button
+      type="button"
+      className={`flex w-full border-b select-none cursor-default text-left py-2 px-2 focus:outline-none hover:bg-accent/50 ${isSelected ? "bg-accent/50 shadow-[inset_2px_0_0_color-mix(in_oklch,var(--color-foreground)_60%,transparent)]" : ""}`}
       onMouseEnter={onHover}
+      onClick={onClick}
     >
       <div className="flex flex-col w-full justify-start items-start min-w-0">
         <div className="text-sm truncate mb-0.5 w-full">{commit.message}</div>
@@ -155,6 +136,6 @@ function FileCommit({
           </span>
         </div>
       </div>
-    </Link>
+    </button>
   );
 }
