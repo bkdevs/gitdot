@@ -2,6 +2,7 @@ use async_trait::async_trait;
 use chrono::{Duration, Utc};
 
 use crate::{
+    client::{TokenClient, TokenClientImpl},
     dto::{
         AuthorizeDeviceRequest, DeviceCodeRequest, DeviceCodeResponse, PollTokenRequest,
         TokenResponse,
@@ -11,13 +12,6 @@ use crate::{
     repository::{
         CodeRepository, CodeRepositoryImpl, TokenRepository, TokenRepositoryImpl, UserRepository,
         UserRepositoryImpl,
-    },
-    util::{
-        code::{
-            DEVICE_CODE_EXPIRY_MINUTES, POLLING_INTERVAL_SECONDS, generate_device_code,
-            generate_user_code,
-        },
-        token::{generate_access_token, hash_token},
     },
 };
 
@@ -34,46 +28,54 @@ pub trait OAuthService: Send + Sync + 'static {
 }
 
 #[derive(Debug, Clone)]
-pub struct OAuthServiceImpl<D, T, U>
+pub struct OAuthServiceImpl<D, T, U, TC>
 where
     D: CodeRepository,
     T: TokenRepository,
     U: UserRepository,
+    TC: TokenClient,
 {
     code_repo: D,
     token_repo: T,
     user_repo: U,
+    token_client: TC,
 }
 
-impl OAuthServiceImpl<CodeRepositoryImpl, TokenRepositoryImpl, UserRepositoryImpl> {
+impl
+    OAuthServiceImpl<CodeRepositoryImpl, TokenRepositoryImpl, UserRepositoryImpl, TokenClientImpl>
+{
     pub fn new(
         code_repo: CodeRepositoryImpl,
         token_repo: TokenRepositoryImpl,
         user_repo: UserRepositoryImpl,
+        token_client: TokenClientImpl,
     ) -> Self {
         Self {
             code_repo,
             token_repo,
             user_repo,
+            token_client,
         }
     }
 }
 
 #[crate::instrument_all]
 #[async_trait]
-impl<D, T, U> OAuthService for OAuthServiceImpl<D, T, U>
+impl<D, T, U, TC> OAuthService for OAuthServiceImpl<D, T, U, TC>
 where
     D: CodeRepository,
     T: TokenRepository,
     U: UserRepository,
+    TC: TokenClient,
 {
     async fn request_device_code(
         &self,
         request: DeviceCodeRequest,
     ) -> Result<DeviceCodeResponse, TokenError> {
-        let device_code = generate_device_code();
-        let user_code = generate_user_code();
-        let expires_at = Utc::now() + Duration::minutes(DEVICE_CODE_EXPIRY_MINUTES);
+        let device_code = self.token_client.generate_device_code();
+        let user_code = self.token_client.generate_user_code();
+        let expiry_secs = self.token_client.get_device_code_expiry_in_seconds();
+        let expires_at = Utc::now() + Duration::seconds(expiry_secs as i64);
 
         self.code_repo
             .create_device_authorization(&device_code, &user_code, &request.client_id, expires_at)
@@ -83,8 +85,8 @@ where
             device_code,
             user_code,
             verification_uri: request.verification_uri,
-            expires_in: (DEVICE_CODE_EXPIRY_MINUTES * 60) as u64,
-            interval: POLLING_INTERVAL_SECONDS,
+            expires_in: expiry_secs,
+            interval: self.token_client.get_polling_interval_in_seconds(),
         })
     }
 
@@ -123,8 +125,10 @@ where
                     .map_err(|e| TokenError::InvalidRequest(e.to_string()))?
                     .ok_or(TokenError::InvalidRequest("User not found".to_string()))?;
 
-                let access_token = generate_access_token(&TokenType::Personal);
-                let token_hash = hash_token(&access_token);
+                let access_token = self
+                    .token_client
+                    .generate_access_token(&TokenType::Personal);
+                let token_hash = self.token_client.hash_token(&access_token);
 
                 self.token_repo
                     .create_token(

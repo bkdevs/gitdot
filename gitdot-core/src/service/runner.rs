@@ -1,6 +1,7 @@
 use async_trait::async_trait;
 
 use crate::{
+    client::{TokenClient, TokenClientImpl},
     dto::{
         CreateRunnerRequest, CreateRunnerResponse, CreateRunnerTokenRequest,
         CreateRunnerTokenResponse, DeleteRunnerRequest, GetRunnerRequest, GetRunnerResponse,
@@ -12,7 +13,6 @@ use crate::{
         OrganizationRepository, OrganizationRepositoryImpl, RunnerRepository, RunnerRepositoryImpl,
         TokenRepository, TokenRepositoryImpl,
     },
-    util::token::{generate_access_token, hash_token},
 };
 
 #[async_trait]
@@ -41,38 +41,50 @@ pub trait RunnerService: Send + Sync + 'static {
 }
 
 #[derive(Debug, Clone)]
-pub struct RunnerServiceImpl<R, O, T>
+pub struct RunnerServiceImpl<R, O, T, TC>
 where
     R: RunnerRepository,
     O: OrganizationRepository,
     T: TokenRepository,
+    TC: TokenClient,
 {
     runner_repo: R,
     org_repo: O,
     token_repo: T,
+    token_client: TC,
 }
 
-impl RunnerServiceImpl<RunnerRepositoryImpl, OrganizationRepositoryImpl, TokenRepositoryImpl> {
+impl
+    RunnerServiceImpl<
+        RunnerRepositoryImpl,
+        OrganizationRepositoryImpl,
+        TokenRepositoryImpl,
+        TokenClientImpl,
+    >
+{
     pub fn new(
         runner_repo: RunnerRepositoryImpl,
         org_repo: OrganizationRepositoryImpl,
         token_repo: TokenRepositoryImpl,
+        token_client: TokenClientImpl,
     ) -> Self {
         Self {
             runner_repo,
             org_repo,
             token_repo,
+            token_client,
         }
     }
 }
 
 #[crate::instrument_all]
 #[async_trait]
-impl<R, O, T> RunnerService for RunnerServiceImpl<R, O, T>
+impl<R, O, T, TC> RunnerService for RunnerServiceImpl<R, O, T, TC>
 where
     R: RunnerRepository,
     O: OrganizationRepository,
     T: TokenRepository,
+    TC: TokenClient,
 {
     async fn create_runner(
         &self,
@@ -174,8 +186,8 @@ where
 
         self.token_repo.delete_token_by_principal(runner.id).await?;
 
-        let raw_token = generate_access_token(&TokenType::Runner);
-        let token_hash = hash_token(&raw_token);
+        let raw_token = self.token_client.generate_access_token(&TokenType::Runner);
+        let token_hash = self.token_client.hash_token(&raw_token);
 
         let client_id = format!(
             "gitdot-runner/{}/{}",

@@ -3,13 +3,13 @@ use chrono::Utc;
 use jsonwebtoken::{Algorithm, EncodingKey, Header, encode};
 
 use crate::{
+    client::{TokenClient, TokenClientImpl},
     dto::{
         GITDOT_SERVER_ID, IssueTaskJwtRequest, IssueTaskJwtResponse, JwtClaims, S2_SERVER_ID,
         ValidateTokenRequest, ValidateTokenResponse,
     },
     error::AuthorizationError,
     repository::{TokenRepository, TokenRepositoryImpl},
-    util::token::{hash_token, validate_token_format},
 };
 
 #[async_trait]
@@ -26,18 +26,25 @@ pub trait AuthenticationService: Send + Sync + 'static {
 }
 
 #[derive(Debug, Clone)]
-pub struct AuthenticationServiceImpl<T>
+pub struct AuthenticationServiceImpl<T, TC>
 where
     T: TokenRepository,
+    TC: TokenClient,
 {
     token_repo: T,
+    token_client: TC,
     gitdot_private_key: String,
 }
 
-impl AuthenticationServiceImpl<TokenRepositoryImpl> {
-    pub fn new(token_repo: TokenRepositoryImpl, gitdot_private_key: String) -> Self {
+impl AuthenticationServiceImpl<TokenRepositoryImpl, TokenClientImpl> {
+    pub fn new(
+        token_repo: TokenRepositoryImpl,
+        token_client: TokenClientImpl,
+        gitdot_private_key: String,
+    ) -> Self {
         Self {
             token_repo,
+            token_client,
             gitdot_private_key,
         }
     }
@@ -45,22 +52,23 @@ impl AuthenticationServiceImpl<TokenRepositoryImpl> {
 
 #[crate::instrument_all]
 #[async_trait]
-impl<T> AuthenticationService for AuthenticationServiceImpl<T>
+impl<T, TC> AuthenticationService for AuthenticationServiceImpl<T, TC>
 where
     T: TokenRepository,
+    TC: TokenClient,
 {
     async fn validate_token(
         &self,
         request: ValidateTokenRequest,
     ) -> Result<ValidateTokenResponse, AuthorizationError> {
-        if !validate_token_format(&request.token) {
+        if !self.token_client.validate_token_format(&request.token) {
             return Err(AuthorizationError::Unauthorized);
         }
         if !&request.token.starts_with(request.token_type.prefix()) {
             return Err(AuthorizationError::Unauthorized);
         }
 
-        let token_hash = hash_token(&request.token);
+        let token_hash = self.token_client.hash_token(&request.token);
         let access_token = self
             .token_repo
             .get_token_by_hash(&token_hash)
