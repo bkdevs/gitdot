@@ -12,7 +12,7 @@ import { useRightSidebar } from "@/(main)/hooks/use-sidebar";
 import { getRepositoryBlobsAction } from "@/actions/repository";
 import Link from "@/ui/link";
 import { timeAgo } from "@/util";
-import { computeInlineDiffs } from "../util";
+import { computeCommitDiffs } from "../util";
 import { useFileViewerContext } from "./file-viewer-context";
 
 export function FileCommits({
@@ -35,7 +35,11 @@ export function FileCommits({
   const ref = params.get("ref");
 
   useEffect(() => {
-    const refs = commits.map((c) => c.sha);
+    const oldest = commits[commits.length - 1];
+    const refs = [
+      ...commits.map((c) => c.sha),
+      ...(oldest ? [oldest.parent_sha] : []),
+    ];
     if (refs.length === 0) return;
 
     async function fetchBlobs() {
@@ -47,17 +51,15 @@ export function FileCommits({
       const entries = await Promise.all(
         blobs
           .filter((b) => b.type === "file")
-          .map(async (b) => [b.commit_sha, await highlightFile(b.path, b.content)] as const)
+          .map(
+            async (b) =>
+              [b.commit_sha, await highlightFile(b.path, b.content)] as const,
+          ),
       );
       const hastsMap = Object.fromEntries(entries);
-      setBlobHasts(hastsMap);
 
-      const currentSha = ref
-        ? commits.find((c) => c.sha.startsWith(ref))?.sha
-        : commits[0]?.sha;
-      if (currentSha) {
-        setDiffHasts(computeInlineDiffs(currentSha, blobs, hastsMap));
-      }
+      setBlobHasts(hastsMap);
+      setDiffHasts(computeCommitDiffs(commits, blobs, hastsMap));
     }
 
     fetchBlobs().then((blobs) => blobs && highlightBlobs(blobs));

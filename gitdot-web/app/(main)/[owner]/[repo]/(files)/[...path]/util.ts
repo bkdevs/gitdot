@@ -1,7 +1,14 @@
-import type { RepositoryBlobResource, RepositoryPathsResource } from "gitdot-api";
-import type { Element, Root, Text } from "hast";
 import { structuredPatch } from "diff";
+import type {
+  RepositoryBlobResource,
+  RepositoryPathsResource,
+} from "gitdot-api";
+import type { Element, Root, Text } from "hast";
 import { getFolderEntries } from "@/(main)/[owner]/[repo]/util";
+
+// ============================================================================
+// folder trees
+// ============================================================================
 
 export type FolderTreeRowData = {
   name: string;
@@ -108,83 +115,103 @@ export function formatLineSelection(selection: LineSelection): string {
 }
 
 // ============================================================================
-// inline diff
+// commit diffs
 // ============================================================================
 
-export function computeInlineDiffs(
-  currentSha: string,
+export function computeCommitDiffs(
+  commits: Array<{ sha: string; parent_sha: string }>,
   blobs: RepositoryBlobResource[],
   hasts: Record<string, Root>,
 ): Record<string, Root> {
-  const currentBlob = blobs.find((b) => b.commit_sha === currentSha);
-  if (!currentBlob || currentBlob.type !== "file") return {};
-
-  const currentHast = hasts[currentSha];
-  if (!currentHast) return {};
-
-  const currentLines = extractLines(currentHast);
   const result: Record<string, Root> = {};
 
-  for (const otherBlob of blobs) {
-    if (otherBlob.type !== "file") continue;
-    if (otherBlob.commit_sha === currentBlob.commit_sha) continue;
+  for (let i = 0; i < commits.length; i++) {
+    const commit = commits[i];
+    const shaBlob = blobs.find((b) => b.commit_sha === commit.sha);
+    if (!shaBlob || shaBlob.type !== "file") continue;
 
-    const otherHast = hasts[otherBlob.commit_sha];
-    if (!otherHast) continue;
+    const shaHast = hasts[commit.sha];
+    if (!shaHast) continue;
 
-    const otherLines = extractLines(otherHast);
-    const patch = structuredPatch(
-      currentBlob.path,
-      otherBlob.path,
-      currentBlob.content,
-      otherBlob.content,
-      "",
-      "",
-      { context: 0 },
-    );
+    // use pairs of commit shas to determine deltas
+    // this relies on the fact that though we may not find every commit for the file, we do not have gaps between commits
+    // and if parent hast is missing (e.g., that file reference does not exist), we can safely say the file did not exist prior then
+    const parentSha = i + 1 < commits.length ? commits[i + 1].sha : commit.parent_sha;
+    const parentBlob = blobs.find((b) => b.commit_sha === parentSha && b.type === "file");
+    const parentHast = parentSha ? hasts[parentSha] : undefined;
 
-    const resultLines: Element[] = [];
-    let oldCursor = 1;
-
-    for (const hunk of patch.hunks) {
-      while (oldCursor < hunk.oldStart) {
-        const src = currentLines[oldCursor - 1];
-        if (src) resultLines.push(structuredClone(src));
-        oldCursor++;
-      }
-
-      let newLineCursor = hunk.newStart;
-      for (const line of hunk.lines) {
-        if (line.startsWith(" ")) {
-          const src = currentLines[oldCursor - 1];
-          if (src) resultLines.push(structuredClone(src));
-          oldCursor++;
-          newLineCursor++;
-        } else if (line.startsWith("-")) {
-          const src = currentLines[oldCursor - 1];
-          if (src) resultLines.push(colorBackground(src, "#fef2f2"));
-          oldCursor++;
-        } else if (line.startsWith("+")) {
-          const src = otherLines[newLineCursor - 1];
-          if (src) resultLines.push(colorBackground(src, "#f0fdf4"));
-          newLineCursor++;
-        }
-        // skip "\" no-newline-at-EOF markers
-      }
-    }
-
-    while (oldCursor <= currentLines.length) {
-      const src = currentLines[oldCursor - 1];
-      if (src) resultLines.push(structuredClone(src));
-      oldCursor++;
-    }
-
-    result[otherBlob.commit_sha] = buildInlineDiffHast(resultLines);
+    result[commit.sha] = computeCommitDiff(parentBlob, parentHast, shaBlob, shaHast);
   }
 
   return result;
 }
 
+// unified diff algorithm
+// for no hunk:
+// - append from either and increment both cursors
+//
+// for a hunk:
+// - lines match: append from either and increment both
+// - left side only: append from left and increment left
+// - right side only: append from right and increment right
+function computeCommitDiff(
+  leftBlob: RepositoryBlobResource | undefined,
+  leftHast: Root | undefined,
+  rightBlob: RepositoryBlobResource,
+  rightHast: Root,
+): Root {
+  const rightLines = extractLines(rightHast);
+  const leftLines = leftBlob && leftHast ? extractLines(leftHast) : [];
+
+  const patch = structuredPatch(
+    leftBlob?.path ?? rightBlob.path,
+    rightBlob.path,
+    leftBlob?.content ?? "",
+    rightBlob.content,
+    "",
+    "",
+    { context: 0 },
+  );
+
+  const resultLines: Element[] = [];
+  let newCursor = 1;
+
+  for (const hunk of patch.hunks) {
+    while (newCursor < hunk.newStart) {
+      const src = rightLines[newCursor - 1];
+      if (src) resultLines.push(structuredClone(src));
+      newCursor++;
+    }
+
+    let oldCursor = hunk.oldStart;
+    for (const line of hunk.lines) {
+      if (line.startsWith(" ")) {
+        const src = rightLines[newCursor - 1];
+        if (src) resultLines.push(structuredClone(src));
+        oldCursor++;
+        newCursor++;
+      } else if (line.startsWith("-")) {
+        const src = leftLines[oldCursor - 1];
+        if (src) resultLines.push(colorBackground(src, "#fef2f2"));
+        oldCursor++;
+      } else if (line.startsWith("+")) {
+        const src = rightLines[newCursor - 1];
+        if (src) resultLines.push(colorBackground(src, "#f0fdf4"));
+        newCursor++;
+      }
+    }
+  }
+
+  while (newCursor <= rightLines.length) {
+    const src = rightLines[newCursor - 1];
+    if (src) resultLines.push(structuredClone(src));
+    newCursor++;
+  }
+
+  return buildInlineDiffHast(resultLines);
+}
+
+// shiki has puts lines of code as the type "element" interspersed with newlines
 function buildInlineDiffHast(lines: Element[]): Root {
   const codeChildren: Array<Element | Text> = [];
   for (let i = 0; i < lines.length; i++) {
@@ -213,6 +240,7 @@ function buildInlineDiffHast(lines: Element[]): Root {
   };
 }
 
+// using explicit bg colors to avoid tailwind tree-shaking dependency
 function colorBackground(line: Element, color: string): Element {
   const cloned = structuredClone(line);
   const existing = cloned.properties.style;

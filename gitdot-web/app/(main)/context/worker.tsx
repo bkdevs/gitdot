@@ -54,7 +54,7 @@ export function WorkerProvider({ children }: { children: React.ReactNode }) {
       if (e.data.stage === "hasts") syncRepoRequests.current.delete(e.data.id);
     };
     for (const fn of syncRepoQueue.current) fn();
-    syncRepoQueue.current = []
+    syncRepoQueue.current = [];
 
     const shiki = createShikiWorker();
     shikiWorker.current = shiki;
