@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
 import { useWorkerContext } from "@/(main)/context/worker";
 import { useRightSidebar } from "@/(main)/hooks/use-sidebar";
 import { getRepositoryBlobsAction } from "@/actions/repository";
-import { formatDateTime } from "@/util";
+import { formatDate, timeAgo } from "@/util";
 import { DiffStatBar } from "../../../commits/[sha]/ui/diff-stat-bar";
 import { computeCommitDiffs } from "../util";
 import { useFileViewerContext } from "./file-viewer-context";
@@ -123,20 +123,23 @@ function FileCommit({
   onHover: () => void;
   onClick: () => void;
 }) {
+  const date = new Date(commit.date);
+
   return (
     <button
       type="button"
-      className={`flex w-full border-b select-none cursor-default text-left h-18 py-2 px-2 focus:outline-none hover:bg-accent/50 ${isSelected ? "bg-accent/50 shadow-[inset_2px_0_0_color-mix(in_oklch,var(--color-foreground)_60%,transparent)]" : ""}`}
+      className={`flex w-full border-b select-none cursor-default text-left h-16 py-1 px-2 focus:outline-none hover:bg-accent/50 ${isSelected ? "bg-accent/50 shadow-[inset_2px_0_0_color-mix(in_oklch,var(--color-foreground)_60%,transparent)]" : ""}`}
       onMouseEnter={onHover}
       onClick={onClick}
     >
       <div className="flex flex-col w-full justify-start items-start min-w-0">
         <div className="text-xs text-muted-foreground flex items-center w-full min-w-0">
-          <span className="shrink-0">{formatDateTime(new Date(commit.date))}</span>
+          <span className="shrink-0">{formatDate(date)}</span>
+          <span className="ml-auto shrink-0">{timeAgo(date)}</span>
         </div>
-        <div className="text-sm truncate pb-1 w-full">{commit.message}</div>
+        <div className="text-sm truncate pb-0.5 w-full">{commit.message}</div>
         <div className="text-xs text-muted-foreground flex items-center w-full min-w-0">
-          <span className="truncate min-w-0 underline">{commit.author.name}</span>
+          <span className="truncate min-w-0 underline cursor-pointer">{commit.author.name}</span>
           <span className="ml-auto pl-2 shrink-0">
             {diffStat == null ? (
               <span className="text-green-600 font-mono">created</span>

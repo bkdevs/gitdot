@@ -26,7 +26,14 @@ export function timeAgo(date: Date) {
   if (seconds < 60) return "just now";
   if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
   if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
-  if (seconds < 2592000) return `${Math.floor(seconds / 86400)}d ago`;
+
+  const days = Math.floor(seconds / 86400);
+  const remHours = Math.floor((seconds % 86400) / 3600);
+  if (seconds < 3 * 86400) {
+    return remHours > 0 ? `${days}d ${remHours}h ago` : `${days}d ago`;
+  }
+
+  if (seconds < 2592000) return `${days}d ago`;
   if (seconds < 31536000) return `${Math.floor(seconds / 2592000)}mo ago`;
   return `${Math.floor(seconds / 31536000)}y ago`;
 }
