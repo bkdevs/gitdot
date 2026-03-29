@@ -324,7 +324,7 @@ function FolderRow({
       style={{ paddingLeft: `${8 + depth * 16}px` }}
       className={cn(
         "relative flex flex-row w-full h-8 items-center select-none cursor-default text-sm font-mono hover:bg-accent/50 pr-2",
-        isActive && "bg-sidebar ring-1 ring-inset ring-border",
+        isActive && "bg-sidebar border-border border-t border-b",
       )}
       data-sidebar-item=""
       data-sidebar-item-active={isActive ? "true" : undefined}
@@ -368,7 +368,7 @@ function FileRow({
       style={{ paddingLeft: `${8 + depth * 16}px` }}
       className={cn(
         "relative flex flex-row w-full h-8 items-center select-none cursor-default text-sm font-mono hover:bg-accent/50 pr-2",
-        isActive && "bg-sidebar ring-1 ring-inset ring-border",
+        isActive && "bg-sidebar border-border border-t border-b",
       )}
       data-sidebar-item=""
       data-sidebar-item-active={isActive}
