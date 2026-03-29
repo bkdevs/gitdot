@@ -19,7 +19,7 @@ axum = { version = "0.8.8", features = ["macros"] }
 base64 = { workspace = true }
 base64ct = { workspace = true }
 chrono = { workspace = true }
-dotenvy = "0.15.7"
+dotenvy = { workspace = true }
 ed25519-dalek = { workspace = true }
 flate2 = { workspace = true }
 futures = { workspace = true }
@@ -41,7 +41,7 @@ tempfile = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true }
 tokio-util = { workspace = true }
-tower = "0.5.2"
+tower = { workspace = true }
 tower-http = { version = "0.6.8", features = [
   "cors",
   "request-id",

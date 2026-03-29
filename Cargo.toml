@@ -39,6 +39,7 @@ config = "0.15"
 crc32fast = "1.4"
 dashmap = "6.1"
 dirs = "6.0"
+dotenvy = "0.15.7"
 ed25519-dalek = { version = "2", features = ["pem", "pkcs8"] }
 enum-ordinalize = "4.3"
 enumset = "1.1"
@@ -104,6 +105,7 @@ thiserror = "2.0.17"
 time = "0.3"
 tokio = { version = "1.49", features = ["full"] }
 tokio-stream = "0.1"
+tower = "0.5.2"
 tokio-util = { version = "0.7.18", features = ["io"] }
 toml = "1.0"
 tower-http = "0.6"
