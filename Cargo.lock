@@ -2225,6 +2225,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "gitdot-auth"
+version = "0.1.0"
+
+[[package]]
 name = "gitdot-cli"
 version = "0.1.0"
 dependencies = [
