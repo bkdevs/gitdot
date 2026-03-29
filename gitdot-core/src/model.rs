@@ -1,3 +1,4 @@
+mod auth;
 mod build;
 mod code;
 mod commit;
@@ -14,6 +15,7 @@ mod token;
 mod user;
 mod webhook;
 
+pub use auth::*;
 pub use build::*;
 pub use code::*;
 pub use commit::*;
