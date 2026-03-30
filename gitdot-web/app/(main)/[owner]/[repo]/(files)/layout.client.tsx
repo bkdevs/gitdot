@@ -260,7 +260,6 @@ function FileTreeRows({
               isFirst={isFirst}
               expanded={isExpanded}
               setExpanded={() => toggleFolder(entry.path)}
-              count={getFolderEntries(entry.path, paths).length}
             />
           ) : (
             <FileRow
@@ -308,7 +307,6 @@ function FolderRow({
   isFirst,
   expanded,
   setExpanded,
-  count,
 }: {
   owner: string;
   repo: string;
@@ -318,7 +316,6 @@ function FolderRow({
   isFirst: boolean;
   expanded: boolean;
   setExpanded: () => void;
-  count: number;
 }) {
   const name = entry.path.split("/").pop();
 
@@ -345,9 +342,6 @@ function FolderRow({
           {name}
         </span>
         {expanded && "/"}
-        {!expanded && (
-          <span className="ml-1 text-xs text-muted-foreground">({count})</span>
-        )}
       </Link>
     </button>
   );

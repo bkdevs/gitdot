@@ -10,17 +10,19 @@ export function FolderTreeRow({
   row,
   owner,
   repo,
-  focused,
+  pinned,
   onMouseEnter,
   onClick,
+  onFileClick,
   absolutePaths,
 }: {
   row: FolderTreeRowData;
   owner: string;
   repo: string;
-  focused: boolean;
+  pinned: boolean;
   onMouseEnter: () => void;
   onClick: (path: string) => void;
+  onFileClick: (path: string) => void;
   absolutePaths: boolean;
 }) {
   return row.isTree ? (
@@ -28,7 +30,6 @@ export function FolderTreeRow({
       row={row}
       owner={owner}
       repo={repo}
-      focused={focused}
       onMouseEnter={onMouseEnter}
       onClick={onClick}
       absolutePaths={absolutePaths}
@@ -38,8 +39,9 @@ export function FolderTreeRow({
       row={row}
       owner={owner}
       repo={repo}
-      focused={focused}
+      pinned={pinned}
       onMouseEnter={onMouseEnter}
+      onFileClick={onFileClick}
       absolutePaths={absolutePaths}
     />
   );
@@ -49,7 +51,6 @@ function TreeRowFolder({
   row,
   owner,
   repo,
-  focused,
   onMouseEnter,
   onClick,
   absolutePaths,
@@ -57,7 +58,6 @@ function TreeRowFolder({
   row: FolderTreeRowData;
   owner: string;
   repo: string;
-  focused: boolean;
   onMouseEnter: () => void;
   onClick: (path: string) => void;
   absolutePaths: boolean;
@@ -65,10 +65,7 @@ function TreeRowFolder({
   return (
     <button
       type="button"
-      className={cn(
-        "flex items-stretch gap-1 font-mono text-sm h-6 shrink-0 select-none ring-0 outline-0 w-full pl-1 pr-2",
-        focused && "bg-accent/50",
-      )}
+      className="flex items-stretch gap-1 font-mono text-sm h-6 shrink-0 select-none ring-0 outline-0 w-full pl-1 pr-2 hover:bg-accent/50"
       onMouseEnter={onMouseEnter}
       onClick={() => onClick(row.path)}
     >
@@ -103,37 +100,46 @@ export function TreeRowFile({
   row,
   owner,
   repo,
-  focused,
+  pinned,
   onMouseEnter,
+  onFileClick,
   absolutePaths,
 }: {
   row: FolderTreeRowData;
   owner: string;
   repo: string;
-  focused: boolean;
+  pinned: boolean;
   onMouseEnter: () => void;
+  onFileClick: (path: string) => void;
   absolutePaths: boolean;
 }) {
   return (
-    <Link
-      href={`/${owner}/${repo}/${row.path}`}
+    <button
+      type="button"
       data-path={row.path}
       className={cn(
-        "flex items-stretch gap-1 font-mono text-sm h-6 shrink-0 select-none ring-0 outline-0 cursor-default px-1 w-full",
-        focused && "bg-accent/50",
+        "flex items-stretch gap-1 font-mono text-sm h-6 shrink-0 select-none ring-0 outline-0 cursor-default px-1 w-full hover:bg-accent/50",
+        pinned && "bg-accent/50",
       )}
       onMouseEnter={onMouseEnter}
+      onClick={() => onFileClick(row.path)}
     >
       <TreeRowGutter depth={row.depth} isLast={row.isLast} />
-      <span className="flex items-center cursor-pointer hover:underline">
+      <Link
+        href={`/${owner}/${repo}/${row.path}`}
+        className="inline-flex items-center cursor-pointer"
+        onClick={(e) => e.stopPropagation()}
+      >
         {absolutePaths && (
           <span className="text-muted-foreground">
             {row.path.split("/").slice(0, -1).join("/")}/
           </span>
         )}
-        {row.name}
-      </span>
-    </Link>
+        <span className="underline decoration-transparent hover:decoration-current transition-colors duration-300">
+          {row.name}
+        </span>
+      </Link>
+    </button>
   );
 }
 

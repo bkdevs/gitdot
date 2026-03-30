@@ -14,15 +14,19 @@ export function FolderTree({
   repo,
   path,
   paths,
-  previewPath,
-  setPreviewPath,
+  hoveredPath,
+  setHoveredPath,
+  pinnedPath,
+  setPinnedPath,
 }: {
   owner: string;
   repo: string;
   path: string;
   paths: RepositoryPathsResource;
-  previewPath?: string | null;
-  setPreviewPath: (path: string) => void;
+  hoveredPath?: string | null;
+  setHoveredPath: (path: string) => void;
+  pinnedPath: string | null;
+  setPinnedPath: (path: string | null) => void;
 }) {
   const [expandedPaths, setExpandedPaths] = useState<Set<string>>(() =>
     expandPaths(path, paths, 1),
@@ -61,10 +65,11 @@ export function FolderTree({
     >
       <FolderShortcuts
         rows={rows}
-        hoveredPath={previewPath ?? null}
+        hoveredPath={hoveredPath ?? null}
         onHover={(p) => {
+          if (pinnedPath) return;
           mouseMoved.current = false;
-          setPreviewPath(p);
+          setHoveredPath(p);
         }}
         onToggle={toggleFolder}
       />
@@ -76,12 +81,13 @@ export function FolderTree({
           owner={owner}
           repo={repo}
           absolutePaths={false}
-          focused={previewPath === row.path}
+          pinned={pinnedPath === row.path}
           onMouseEnter={() => {
-            if (!mouseMoved.current) return;
-            setPreviewPath(row.path);
+            if (!mouseMoved.current || pinnedPath) return;
+            setHoveredPath(row.path);
           }}
           onClick={toggleFolder}
+          onFileClick={(p) => setPinnedPath(pinnedPath === p ? null : p)}
         />
       ))}
     </div>
