@@ -9,7 +9,11 @@ import {
   mergeHunks,
   renderSpans,
 } from "@/(main)/[owner]/[repo]/util";
-import { getRepositoryCommitDiff, getReviewDiff } from "@/dal";
+import {
+  getRepositoryBlobDiffs,
+  getRepositoryCommitDiff,
+  getReviewDiff,
+} from "@/dal";
 
 export type DiffData =
   | {
@@ -25,6 +29,26 @@ export type DiffEntry = {
   diff: RepositoryDiffFileResource;
   data: DiffData;
 };
+
+export async function renderBlobDiffsAction(
+  owner: string,
+  repo: string,
+  commitShas: string[],
+  path: string,
+): Promise<Record<string, DiffEntry>> {
+  const result = await getRepositoryBlobDiffs(owner, repo, {
+    commit_shas: commitShas,
+    path,
+  });
+  if (!result) return {};
+  const entries = await Promise.all(
+    Object.entries(result.diffs).map(
+      async ([sha, file]) =>
+        [sha, { diff: file, data: await renderDiff(file) }] as const,
+    ),
+  );
+  return Object.fromEntries(entries);
+}
 
 export async function renderCommitDiffAction(
   owner: string,

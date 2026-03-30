@@ -14,6 +14,10 @@ import { formatLineSelection, type LineSelection } from "../util";
 type FileViewerContextType = {
   hast: Root;
   setHast: (hast: Root) => void;
+  hoveredSha: string | null;
+  setHoveredSha: (sha: string | null) => void;
+  selectedSha: string | null;
+  setSelectedSha: (sha: string | null) => void;
   isLineSelected: (lineNumber: number) => boolean;
   handleLineMouseDown: (lineNumber: number) => void;
   handleLineMouseEnter: (lineNumber: number) => void;
@@ -41,6 +45,8 @@ export function FileViewerProvider({
   selectedLines: LineSelection | null;
 }) {
   const [hast, setHastState] = useState<Root>(initialHast);
+  const [selectedSha, setSelectedSha] = useState<string | null>(null);
+  const [hoveredSha, setHoveredSha] = useState<string | null>(null);
   const [selectedLines, setSelectedLines] = useState<LineSelection | null>(
     initialSelectedLines,
   );
@@ -142,6 +148,10 @@ export function FileViewerProvider({
       value={{
         hast,
         setHast,
+        hoveredSha,
+        setHoveredSha,
+        selectedSha,
+        setSelectedSha,
         isLineSelected,
         handleLineMouseDown,
         handleLineMouseEnter,

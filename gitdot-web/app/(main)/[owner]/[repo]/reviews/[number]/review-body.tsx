@@ -1,7 +1,7 @@
 "use client";
 
 import { use } from "react";
-import { DiffBody } from "@/(main)/[owner]/[repo]/commits/[sha]/ui/diff-body";
+import { DiffFile } from "@/(main)/[owner]/[repo]/commits/[sha]/ui/diff-file";
 import type { DiffEntry } from "@/actions";
 import { DiffFileProvider } from "./review-comment-context";
 
@@ -17,7 +17,7 @@ export function ReviewBody({
     <div className="flex flex-col">
       {entries.map(({ diff, data }) => (
         <DiffFileProvider key={diff.path} filePath={diff.path}>
-          <DiffBody diff={diff} data={data} />
+          <DiffFile diff={diff} data={data} />
         </DiffFileProvider>
       ))}
     </div>

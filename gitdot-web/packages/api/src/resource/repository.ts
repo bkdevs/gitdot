@@ -141,6 +141,13 @@ export const RepositoryBlobsResource = z.object({
 });
 export type RepositoryBlobsResource = z.infer<typeof RepositoryBlobsResource>;
 
+export const RepositoryBlobDiffsResource = z.object({
+  diffs: z.record(z.string(), RepositoryDiffFileResource),
+});
+export type RepositoryBlobDiffsResource = z.infer<
+  typeof RepositoryBlobDiffsResource
+>;
+
 export const RepositoryResource = z.object({
   id: z.uuid(),
   name: z.string(),

@@ -5,7 +5,9 @@ use axum::{
 };
 
 use gitdot_api::endpoint::repository::get_repository_blob_diffs as api;
-use gitdot_core::dto::{GetRepositoryBlobDiffsRequest, RepositoryAuthorizationRequest, RepositoryPermission};
+use gitdot_core::dto::{
+    GetRepositoryBlobDiffsRequest, RepositoryAuthorizationRequest, RepositoryPermission,
+};
 
 use crate::{
     app::{AppError, AppResponse, AppState},

@@ -2,11 +2,13 @@ import "server-only";
 
 import {
   type CreateRepositoryRequest,
+  type GetRepositoryBlobDiffsRequest,
   type GetRepositoryBlobRequest,
   type GetRepositoryBlobsRequest,
   type GetRepositoryCommitsRequest,
   type GetRepositoryPathsRequest,
   type GetRepositoryResourcesRequest,
+  RepositoryBlobDiffsResource,
   RepositoryBlobResource,
   RepositoryBlobsResource,
   RepositoryCommitDiffResource,
@@ -101,6 +103,18 @@ export async function getRepositoryBlobs(
     request,
   );
   return await handleResponse(response, RepositoryBlobsResource);
+}
+
+export async function getRepositoryBlobDiffs(
+  owner: string,
+  repo: string,
+  request: GetRepositoryBlobDiffsRequest,
+): Promise<RepositoryBlobDiffsResource | null> {
+  const response = await authPost(
+    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/blob/diffs`,
+    request,
+  );
+  return await handleResponse(response, RepositoryBlobDiffsResource);
 }
 
 export async function getRepositoryCommitDiff(

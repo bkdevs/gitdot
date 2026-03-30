@@ -11,6 +11,7 @@ import { useFileViewerContext } from "./file-viewer-context";
 
 export function FileBody() {
   const { hast } = useFileViewerContext();
+
   const content = toJsxRuntime(
     applyFileBodyTransformers(structuredClone(hast)),
     {
