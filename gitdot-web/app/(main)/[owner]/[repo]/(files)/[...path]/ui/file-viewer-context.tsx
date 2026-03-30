@@ -45,6 +45,10 @@ export function FileViewerProvider({
   selectedLines: LineSelection | null;
 }) {
   const [hast, setHastState] = useState<Root>(initialHast);
+
+  useEffect(() => {
+    setHastState(initialHast);
+  }, [initialHast]);
   const [selectedSha, setSelectedSha] = useState<string | null>(null);
   const [hoveredSha, setHoveredSha] = useState<string | null>(null);
   const [selectedLines, setSelectedLines] = useState<LineSelection | null>(

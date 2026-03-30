@@ -31,10 +31,15 @@ export function FileCommits({
             commit={commit}
             diffStat={i === commits.length - 1 ? null : commitStats[i]}
             isSelected={selectedSha === commit.sha}
-            onHover={() => setHoveredSha(commit.sha)}
-            onClick={() =>
-              setSelectedSha(selectedSha === commit.sha ? null : commit.sha)
-            }
+            onHover={() => !selectedSha && setHoveredSha(commit.sha)}
+            onClick={() => {
+              if (selectedSha === commit.sha) {
+                setHoveredSha(null);
+                setSelectedSha(null);
+              } else {
+                setSelectedSha(commit.sha);
+              }
+            }}
           />
         ))}
       </div>
