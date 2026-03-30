@@ -34,5 +34,5 @@ export function PageClient({
 
 function PageContent({ promises }: { promises: ResourcePromises }) {
   const paths = use(promises.paths);
-  return <FolderViewer path="" paths={paths} />;
+  return <FolderViewer path="" paths={paths} pinFiles={false} />;
 }

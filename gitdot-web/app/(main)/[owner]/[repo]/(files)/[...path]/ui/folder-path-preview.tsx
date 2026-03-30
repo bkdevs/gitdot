@@ -8,20 +8,20 @@ import { jsx, jsxs } from "react/jsx-runtime";
 import { getFolderEntries } from "@/(main)/[owner]/[repo]/util";
 import Link from "@/ui/link";
 import { Loading } from "@/ui/loading";
+import { useFolderViewerContext } from "./folder-viewer-context";
 
 export function FolderPathPreview({
-  previewPath,
   paths,
   owner,
   repo,
   getHast,
 }: {
-  previewPath: string | null;
   paths: RepositoryPathsResource;
   owner: string;
   repo: string;
   getHast: (path: string) => Promise<Root | null>;
 }) {
+  const { previewPath } = useFolderViewerContext();
   const entry = previewPath
     ? paths.entries.find((e) => e.path === previewPath)
     : null;

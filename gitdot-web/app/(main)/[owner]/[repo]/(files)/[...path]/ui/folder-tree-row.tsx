@@ -3,6 +3,7 @@
 import Link from "@/ui/link";
 import { cn } from "@/util";
 import type { FolderTreeRowData } from "../util";
+import { useFolderViewerContext } from "./folder-viewer-context";
 
 export type { FolderTreeRowData as TreeRowData } from "../util";
 
@@ -10,7 +11,6 @@ export function FolderTreeRow({
   row,
   owner,
   repo,
-  pinned,
   onMouseEnter,
   onClick,
   onFileClick,
@@ -19,7 +19,6 @@ export function FolderTreeRow({
   row: FolderTreeRowData;
   owner: string;
   repo: string;
-  pinned: boolean;
   onMouseEnter: () => void;
   onClick: (path: string) => void;
   onFileClick: (path: string) => void;
@@ -39,7 +38,6 @@ export function FolderTreeRow({
       row={row}
       owner={owner}
       repo={repo}
-      pinned={pinned}
       onMouseEnter={onMouseEnter}
       onFileClick={onFileClick}
       absolutePaths={absolutePaths}
@@ -100,7 +98,6 @@ export function TreeRowFile({
   row,
   owner,
   repo,
-  pinned,
   onMouseEnter,
   onFileClick,
   absolutePaths,
@@ -108,19 +105,44 @@ export function TreeRowFile({
   row: FolderTreeRowData;
   owner: string;
   repo: string;
-  pinned: boolean;
   onMouseEnter: () => void;
   onFileClick: (path: string) => void;
   absolutePaths: boolean;
 }) {
+  const { pinFiles, pinnedPath } = useFolderViewerContext();
+  const pinned = pinnedPath === row.path;
+
+  const rowClass = cn(
+    "flex items-stretch gap-1 font-mono text-sm h-6 shrink-0 select-none ring-0 outline-0 cursor-default px-1 w-full hover:bg-accent/50",
+    pinned && "bg-accent/50",
+  );
+
+  if (!pinFiles) {
+    return (
+      <Link
+        href={`/${owner}/${repo}/${row.path}`}
+        data-path={row.path}
+        className={rowClass}
+        onMouseEnter={onMouseEnter}
+      >
+        <TreeRowGutter depth={row.depth} isLast={row.isLast} />
+        {absolutePaths && (
+          <span className="text-muted-foreground">
+            {row.path.split("/").slice(0, -1).join("/")}/
+          </span>
+        )}
+        <span className="underline decoration-transparent hover:decoration-current transition-colors duration-300 flex items-center">
+          {row.name}
+        </span>
+      </Link>
+    );
+  }
+
   return (
     <button
       type="button"
       data-path={row.path}
-      className={cn(
-        "flex items-stretch gap-1 font-mono text-sm h-6 shrink-0 select-none ring-0 outline-0 cursor-default px-1 w-full hover:bg-accent/50",
-        pinned && "bg-accent/50",
-      )}
+      className={rowClass}
       onMouseEnter={onMouseEnter}
       onClick={() => onFileClick(row.path)}
     >

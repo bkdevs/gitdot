@@ -6,6 +6,7 @@ import { buildTreeRows, expandPaths } from "../util";
 import { FolderShortcuts } from "./folder-shortcuts";
 import { FolderTreeHeader } from "./folder-tree-header";
 import { FolderTreeRow } from "./folder-tree-row";
+import { useFolderViewerContext } from "./folder-viewer-context";
 
 export type { TreeRowData } from "./folder-tree-row";
 
@@ -14,20 +15,15 @@ export function FolderTree({
   repo,
   path,
   paths,
-  hoveredPath,
-  setHoveredPath,
-  pinnedPath,
-  setPinnedPath,
 }: {
   owner: string;
   repo: string;
   path: string;
   paths: RepositoryPathsResource;
-  hoveredPath?: string | null;
-  setHoveredPath: (path: string) => void;
-  pinnedPath: string | null;
-  setPinnedPath: (path: string | null) => void;
 }) {
+  const { hoveredPath, setHoveredPath, pinnedPath, setPinnedPath } =
+    useFolderViewerContext();
+
   const [expandedPaths, setExpandedPaths] = useState<Set<string>>(() =>
     expandPaths(path, paths, 1),
   );
@@ -81,7 +77,6 @@ export function FolderTree({
           owner={owner}
           repo={repo}
           absolutePaths={false}
-          pinned={pinnedPath === row.path}
           onMouseEnter={() => {
             if (!mouseMoved.current || pinnedPath) return;
             setHoveredPath(row.path);
