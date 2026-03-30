@@ -324,7 +324,7 @@ where
         for (i, ref_name) in request.commit_shas.iter().enumerate() {
             let diff = self
                 .diff_client
-                .diff_files(files.get(i), files.get(i + 1))
+                .diff_files(files.get(i + 1), files.get(i))
                 .await?;
             diffs.insert(ref_name.clone(), diff);
         }

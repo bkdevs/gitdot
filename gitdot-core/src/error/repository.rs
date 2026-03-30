@@ -28,9 +28,6 @@ pub enum RepositoryError {
     #[error("When 'refs' is specified, 'paths' must contain exactly one entry")]
     TooManyPaths,
 
-    #[error("'refs' must contain at least two entries to compute diffs")]
-    NotEnoughRefs,
-
     #[error("Path '{0}' is not a file")]
     NotAFile(String),
 

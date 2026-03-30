@@ -150,7 +150,6 @@ impl IntoResponse for AppError {
                     RepositoryError::InvalidOwnerType(_) => StatusCode::BAD_REQUEST,
                     RepositoryError::InvalidVisibility(_) => StatusCode::BAD_REQUEST,
                     RepositoryError::TooManyPaths => StatusCode::BAD_REQUEST,
-                    RepositoryError::NotEnoughRefs => StatusCode::BAD_REQUEST,
                     RepositoryError::NotAFile(_) => StatusCode::BAD_REQUEST,
                     RepositoryError::GitError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                     RepositoryError::DiffError(_) => StatusCode::INTERNAL_SERVER_ERROR,

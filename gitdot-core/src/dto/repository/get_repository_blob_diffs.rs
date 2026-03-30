@@ -20,9 +20,6 @@ impl GetRepositoryBlobDiffsRequest {
         commit_shas: Vec<String>,
         path: String,
     ) -> Result<Self, RepositoryError> {
-        if commit_shas.len() < 2 {
-            return Err(RepositoryError::NotEnoughRefs);
-        }
         Ok(Self {
             name: RepositoryName::try_new(repo_name)
                 .map_err(|e| RepositoryError::InvalidRepositoryName(e.to_string()))?,
