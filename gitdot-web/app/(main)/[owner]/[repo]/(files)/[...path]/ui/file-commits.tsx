@@ -65,7 +65,7 @@ function FileCommit({
   return (
     <button
       type="button"
-      className={`flex w-full border-b select-none cursor-default text-left h-16 py-1 px-2 focus:outline-none hover:bg-accent/50 ${isSelected ? "bg-accent/50 shadow-[inset_2px_0_0_color-mix(in_oklch,var(--color-foreground)_60%,transparent)]" : ""}`}
+      className={`flex w-full border-b select-none cursor-default text-left h-16 py-1 px-2 focus:outline-none ${isSelected ? "bg-accent/50" : "hover:bg-accent/50"}`}
       onMouseEnter={onHover}
       onClick={onClick}
     >
