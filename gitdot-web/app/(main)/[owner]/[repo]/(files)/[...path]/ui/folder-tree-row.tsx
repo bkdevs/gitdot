@@ -60,10 +60,16 @@ function TreeRowFolder({
   onClick: (path: string) => void;
   absolutePaths: boolean;
 }) {
+  const { hoveredPath } = useFolderViewerContext();
+  const isActive = hoveredPath === row.path;
+
   return (
     <button
       type="button"
-      className="flex items-stretch gap-1 font-mono text-sm h-6 shrink-0 select-none ring-0 outline-0 w-full pl-1 pr-2 hover:bg-accent/50"
+      className={cn(
+        "flex items-stretch gap-1 font-mono text-sm h-6 shrink-0 select-none ring-0 outline-0 w-full pl-1 pr-2",
+        isActive && "bg-accent/50",
+      )}
       onMouseEnter={onMouseEnter}
       onClick={() => onClick(row.path)}
     >
@@ -109,12 +115,13 @@ export function TreeRowFile({
   onFileClick: (path: string) => void;
   absolutePaths: boolean;
 }) {
-  const { pinFiles, pinnedPath } = useFolderViewerContext();
+  const { pinFiles, pinnedPath, hoveredPath } = useFolderViewerContext();
   const pinned = pinnedPath === row.path;
+  const isActive = pinned || hoveredPath === row.path;
 
   const rowClass = cn(
-    "flex items-stretch gap-1 font-mono text-sm h-6 shrink-0 select-none ring-0 outline-0 cursor-default px-1 w-full hover:bg-accent/50",
-    pinned && "bg-accent/50",
+    "flex items-stretch gap-1 font-mono text-sm h-6 shrink-0 select-none ring-0 outline-0 cursor-default px-1 w-full",
+    isActive && "bg-accent/50",
   );
 
   if (!pinFiles) {

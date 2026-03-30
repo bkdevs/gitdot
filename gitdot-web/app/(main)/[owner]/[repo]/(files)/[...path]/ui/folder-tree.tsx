@@ -63,7 +63,6 @@ export function FolderTree({
         rows={rows}
         hoveredPath={hoveredPath ?? null}
         onHover={(p) => {
-          if (pinnedPath) return;
           mouseMoved.current = false;
           setHoveredPath(p);
         }}
@@ -78,7 +77,7 @@ export function FolderTree({
           repo={repo}
           absolutePaths={false}
           onMouseEnter={() => {
-            if (!mouseMoved.current || pinnedPath) return;
+            if (!mouseMoved.current) return;
             setHoveredPath(row.path);
           }}
           onClick={toggleFolder}
