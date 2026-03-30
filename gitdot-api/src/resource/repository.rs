@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -148,6 +150,11 @@ pub enum SyntaxHighlight {
     Comment,
     Keyword,
     TreeSitterError,
+}
+
+#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RepositoryBlobDiffsResource {
+    pub diffs: HashMap<String, RepositoryDiffFileResource>,
 }
 
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

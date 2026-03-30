@@ -1,13 +1,16 @@
+use std::collections::HashMap;
+
 use async_trait::async_trait;
 use uuid::Uuid;
 
 use crate::{
-    client::{Git2Client, GitClient},
+    client::{DiffClient, DifftClient, Git2Client, GitClient},
     dto::{
-        CreateRepositoryRequest, DeleteRepositoryRequest, GetRepositoryBlobRequest,
-        GetRepositoryBlobsRequest, GetRepositoryPathsRequest, GetRepositorySettingsRequest,
-        RepositoryBlobResponse, RepositoryBlobsResponse, RepositoryPathsResponse,
-        RepositoryResponse, RepositorySettingsResponse, UpdateRepositorySettingsRequest,
+        CreateRepositoryRequest, DeleteRepositoryRequest, GetRepositoryBlobDiffsRequest,
+        GetRepositoryBlobRequest, GetRepositoryBlobsRequest, GetRepositoryPathsRequest,
+        GetRepositorySettingsRequest, RepositoryBlobDiffsResponse, RepositoryBlobResponse,
+        RepositoryBlobsResponse, RepositoryPathsResponse, RepositoryResponse,
+        RepositorySettingsResponse, UpdateRepositorySettingsRequest,
     },
     error::RepositoryError,
     model::{RepositoryOwnerType, RepositorySettings},
@@ -54,6 +57,11 @@ pub trait RepositoryService: Send + Sync + 'static {
         ref_name: &str,
     ) -> Result<String, RepositoryError>;
 
+    async fn get_repository_blob_diffs(
+        &self,
+        request: GetRepositoryBlobDiffsRequest,
+    ) -> Result<RepositoryBlobDiffsResponse, RepositoryError>;
+
     async fn get_repository_settings(
         &self,
         request: GetRepositorySettingsRequest,
@@ -66,38 +74,50 @@ pub trait RepositoryService: Send + Sync + 'static {
 }
 
 #[derive(Debug, Clone)]
-pub struct RepositoryServiceImpl<G, O, R>
+pub struct RepositoryServiceImpl<G, O, R, D>
 where
     G: GitClient,
     O: OrganizationRepository,
     R: RepositoryRepository,
+    D: DiffClient,
 {
     git_client: G,
     org_repo: O,
     repo_repo: R,
+    diff_client: D,
 }
 
-impl RepositoryServiceImpl<Git2Client, OrganizationRepositoryImpl, RepositoryRepositoryImpl> {
+impl
+    RepositoryServiceImpl<
+        Git2Client,
+        OrganizationRepositoryImpl,
+        RepositoryRepositoryImpl,
+        DifftClient,
+    >
+{
     pub fn new(
         git_client: Git2Client,
         org_repo: OrganizationRepositoryImpl,
         repo_repo: RepositoryRepositoryImpl,
+        diff_client: DifftClient,
     ) -> Self {
         Self {
             git_client,
             org_repo,
             repo_repo,
+            diff_client,
         }
     }
 }
 
 #[crate::instrument_all]
 #[async_trait]
-impl<G, O, R> RepositoryService for RepositoryServiceImpl<G, O, R>
+impl<G, O, R, D> RepositoryService for RepositoryServiceImpl<G, O, R, D>
 where
     G: GitClient,
     O: OrganizationRepository,
     R: RepositoryRepository,
+    D: DiffClient,
 {
     async fn create_repository(
         &self,
@@ -273,6 +293,43 @@ where
             .resolve_ref_sha(owner, repo, ref_name)
             .await
             .map_err(Into::into)
+    }
+
+    async fn get_repository_blob_diffs(
+        &self,
+        request: GetRepositoryBlobDiffsRequest,
+    ) -> Result<RepositoryBlobDiffsResponse, RepositoryError> {
+        let blobs = self
+            .git_client
+            .get_repo_blob_at_refs(
+                &request.owner_name,
+                &request.name,
+                &request.path,
+                &request.commit_shas,
+            )
+            .await
+            .map_err(RepositoryError::from)?;
+
+        let mut files = Vec::new();
+        for blob in blobs.blobs {
+            match blob {
+                RepositoryBlobResponse::File(f) => files.push(f),
+                RepositoryBlobResponse::Folder(_) => {
+                    return Err(RepositoryError::NotAFile(request.path.clone()));
+                }
+            }
+        }
+
+        let mut diffs = HashMap::new();
+        for (i, ref_name) in request.commit_shas.iter().enumerate() {
+            let diff = self
+                .diff_client
+                .diff_files(files.get(i), files.get(i + 1))
+                .await?;
+            diffs.insert(ref_name.clone(), diff);
+        }
+
+        Ok(RepositoryBlobDiffsResponse { diffs })
     }
 
     async fn get_repository_settings(

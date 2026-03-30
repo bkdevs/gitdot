@@ -1,6 +1,7 @@
 pub mod create_repository;
 pub mod delete_repository;
 pub mod get_repository_blob;
+pub mod get_repository_blob_diffs;
 pub mod get_repository_blobs;
 pub mod get_repository_commit;
 pub mod get_repository_commit_diff;

@@ -1,6 +1,7 @@
 mod create_repository;
 mod delete_repository;
 mod get_repository_blob;
+mod get_repository_blob_diffs;
 mod get_repository_blobs;
 mod get_repository_commit;
 mod get_repository_file;
@@ -18,6 +19,7 @@ pub use delete_repository::DeleteRepositoryRequest;
 pub use get_repository_blob::{
     GetRepositoryBlobRequest, RepositoryBlobResponse, RepositoryFolderResponse,
 };
+pub use get_repository_blob_diffs::{GetRepositoryBlobDiffsRequest, RepositoryBlobDiffsResponse};
 pub use get_repository_blobs::{GetRepositoryBlobsRequest, RepositoryBlobsResponse};
 pub use get_repository_commit::GetRepositoryCommitRequest;
 pub use get_repository_file::RepositoryFileResponse;

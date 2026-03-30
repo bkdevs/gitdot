@@ -1,0 +1,42 @@
+use axum::{
+    Json,
+    extract::{Path, State},
+    http::StatusCode,
+};
+
+use gitdot_api::endpoint::repository::get_repository_blob_diffs as api;
+use gitdot_core::dto::{GetRepositoryBlobDiffsRequest, RepositoryAuthorizationRequest, RepositoryPermission};
+
+use crate::{
+    app::{AppError, AppResponse, AppState},
+    dto::IntoApi,
+    extract::{Principal, User},
+};
+
+#[axum::debug_handler]
+pub async fn get_repository_blob_diffs(
+    auth_user: Option<Principal<User>>,
+    State(state): State<AppState>,
+    Path((owner, repo)): Path<(String, String)>,
+    Json(params): Json<api::GetRepositoryBlobDiffsRequest>,
+) -> Result<AppResponse<api::GetRepositoryBlobDiffsResponse>, AppError> {
+    let request = RepositoryAuthorizationRequest::new(
+        auth_user.map(|u| u.id),
+        &owner,
+        &repo,
+        RepositoryPermission::Read,
+    )?;
+    state
+        .authorization_service
+        .verify_authorized_for_repository(request)
+        .await?;
+
+    let request =
+        GetRepositoryBlobDiffsRequest::new(&repo, &owner, params.commit_shas, params.path)?;
+    state
+        .repo_service
+        .get_repository_blob_diffs(request)
+        .await
+        .map_err(AppError::from)
+        .map(|diffs| AppResponse::new(StatusCode::OK, diffs.into_api()))
+}

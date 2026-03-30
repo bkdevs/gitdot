@@ -2,10 +2,10 @@ use gitdot_api::resource::repository as api;
 use gitdot_core::{
     dto::{
         CommitAuthorResponse, CommitDiffResponse, CommitResponse, CommitsResponse, PathType,
-        RepositoryBlobResponse, RepositoryBlobsResponse, RepositoryCommitResponse,
-        RepositoryCommitsResponse, RepositoryDiffFileResponse, RepositoryFileResponse,
-        RepositoryFolderResponse, RepositoryPath, RepositoryPathsResponse, RepositoryResponse,
-        RepositorySettingsResponse,
+        RepositoryBlobDiffsResponse, RepositoryBlobResponse, RepositoryBlobsResponse,
+        RepositoryCommitResponse, RepositoryCommitsResponse, RepositoryDiffFileResponse,
+        RepositoryFileResponse, RepositoryFolderResponse, RepositoryPath, RepositoryPathsResponse,
+        RepositoryResponse, RepositorySettingsResponse,
     },
     model::CommitDiff,
 };
@@ -200,6 +200,19 @@ impl IntoApi for RepositorySettingsResponse {
             commit_filters: self
                 .commit_filters
                 .map(|filters| filters.into_iter().map(|f| f.into_api()).collect()),
+        }
+    }
+}
+
+impl IntoApi for RepositoryBlobDiffsResponse {
+    type ApiType = api::RepositoryBlobDiffsResource;
+    fn into_api(self) -> Self::ApiType {
+        api::RepositoryBlobDiffsResource {
+            diffs: self
+                .diffs
+                .into_iter()
+                .map(|(k, v)| (k, v.into_api()))
+                .collect(),
         }
     }
 }
