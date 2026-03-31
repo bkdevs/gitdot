@@ -3,8 +3,18 @@ use axum::{
     http::{HeaderMap, HeaderName, HeaderValue, StatusCode},
     response::{IntoResponse, Response},
 };
+use axum_extra::extract::cookie::{Cookie, SameSite};
 
-use gitdot_api::ApiResource;
+use gitdot_api::{ApiResource, resource::auth::AuthTokensResource};
+use gitdot_core::dto::AuthTokensResponse;
+
+use crate::{
+    consts::{
+        ACCESS_TOKEN_COOKIE, ACCESS_TOKEN_EXPIRY_IN_SECONDS, REFRESH_TOKEN_COOKIE,
+        REFRESH_TOKEN_EXPIRY_IN_SECONDS,
+    },
+    dto::IntoApi,
+};
 
 #[derive(Debug, Clone)]
 pub struct AppResponse<T: ApiResource> {
@@ -22,11 +32,33 @@ impl<T: ApiResource> AppResponse<T> {
         }
     }
 
-    pub fn with_header(mut self, name: &str, value: &str) -> Self {
+    fn with_header(mut self, name: &str, value: &str) -> Self {
         if let (Ok(name), Ok(value)) = (name.parse::<HeaderName>(), value.parse::<HeaderValue>()) {
             self.headers.append(name, value);
         }
         self
+    }
+}
+
+impl AppResponse<AuthTokensResource> {
+    pub fn auth(response: AuthTokensResponse) -> Self {
+        let access_cookie = Cookie::build((ACCESS_TOKEN_COOKIE, response.access_token.clone()))
+            .http_only(true)
+            .secure(true)
+            .same_site(SameSite::Strict)
+            .path("/")
+            .max_age(time::Duration::seconds(ACCESS_TOKEN_EXPIRY_IN_SECONDS));
+
+        let refresh_cookie = Cookie::build((REFRESH_TOKEN_COOKIE, response.refresh_token.clone()))
+            .http_only(true)
+            .secure(true)
+            .same_site(SameSite::Strict)
+            .path("/auth/refresh")
+            .max_age(time::Duration::seconds(REFRESH_TOKEN_EXPIRY_IN_SECONDS));
+
+        Self::new(StatusCode::OK, response.into_api())
+            .with_header("set-cookie", &access_cookie.to_string())
+            .with_header("set-cookie", &refresh_cookie.to_string())
     }
 }
 

@@ -14,6 +14,15 @@ pub enum AuthenticationError {
     #[error("Auth code expired")]
     AuthCodeExpired,
 
+    #[error("Session not found")]
+    SessionNotFound,
+
+    #[error("Session expired")]
+    SessionExpired,
+
+    #[error("Session revoked")]
+    SessionRevoked,
+
     #[error("JWT error: {0}")]
     JwtError(String),
 

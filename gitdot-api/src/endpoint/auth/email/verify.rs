@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::endpoint::Endpoint;
+use crate::{endpoint::Endpoint, resource::auth::AuthTokensResource};
 
 pub struct VerifyAuthCode;
 
@@ -9,16 +9,10 @@ impl Endpoint for VerifyAuthCode {
     const METHOD: http::Method = http::Method::POST;
 
     type Request = VerifyAuthCodeRequest;
-    type Response = VerifyAuthCodeResponse;
+    type Response = AuthTokensResource;
 }
 
 #[derive(ApiRequest, Debug, Serialize, Deserialize)]
 pub struct VerifyAuthCodeRequest {
     pub code: String,
-}
-
-#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct VerifyAuthCodeResponse {
-    pub access_token: String,
-    pub refresh_token: String,
 }

@@ -4,9 +4,9 @@ use chrono::{Duration, Utc};
 use crate::{
     client::{EmailClient, ResendClient, TokenClient, TokenClientImpl},
     dto::{
-        GitdotClaims, IssueTaskJwtRequest, IssueTaskJwtResponse, JwtClaims, SendAuthEmailRequest,
-        UserMetadata, ValidateTokenRequest, ValidateTokenResponse, VerifyAuthCodeRequest,
-        VerifyAuthCodeResponse,
+        AuthTokensResponse, GitdotClaims, IssueTaskJwtRequest, IssueTaskJwtResponse, JwtClaims,
+        RefreshSessionRequest, SendAuthEmailRequest, UserMetadata, ValidateTokenRequest,
+        ValidateTokenResponse, VerifyAuthCodeRequest,
     },
     error::{AuthenticationError, AuthorizationError},
     repository::{
@@ -29,7 +29,12 @@ pub trait AuthenticationService: Send + Sync + 'static {
     async fn verify_auth_code(
         &self,
         request: VerifyAuthCodeRequest,
-    ) -> Result<VerifyAuthCodeResponse, AuthenticationError>;
+    ) -> Result<AuthTokensResponse, AuthenticationError>;
+
+    async fn refresh_session(
+        &self,
+        request: RefreshSessionRequest,
+    ) -> Result<AuthTokensResponse, AuthenticationError>;
 
     async fn validate_token(
         &self,
@@ -126,7 +131,7 @@ where
     async fn verify_auth_code(
         &self,
         request: VerifyAuthCodeRequest,
-    ) -> Result<VerifyAuthCodeResponse, AuthenticationError> {
+    ) -> Result<AuthTokensResponse, AuthenticationError> {
         let code_hash = hash_string(&request.code);
         let auth_code = self
             .session_repo
@@ -186,7 +191,78 @@ where
             )
             .await?;
 
-        Ok(VerifyAuthCodeResponse {
+        Ok(AuthTokensResponse {
+            access_token,
+            refresh_token,
+        })
+    }
+
+    async fn refresh_session(
+        &self,
+        request: RefreshSessionRequest,
+    ) -> Result<AuthTokensResponse, AuthenticationError> {
+        let token_hash = hash_string(&request.refresh_token);
+        let session = self
+            .session_repo
+            .get_session_by_refresh_hash(&token_hash)
+            .await?
+            .ok_or(AuthenticationError::SessionNotFound)?;
+
+        if session.revoked_at.is_some() {
+            self.session_repo
+                .revoke_sessions_by_family(session.refresh_token_family)
+                .await?;
+            return Err(AuthenticationError::SessionRevoked);
+        }
+        if session.expires_at < Utc::now() {
+            return Err(AuthenticationError::SessionExpired);
+        }
+
+        self.session_repo.revoke_session(session.id).await?;
+
+        let user = self
+            .user_repo
+            .get_by_id(session.user_id)
+            .await?
+            .ok_or(AuthenticationError::SessionNotFound)?;
+
+        let orgs = self.user_repo.get_org_memberships(session.user_id).await?;
+
+        let now = Utc::now().timestamp() as usize;
+        let claims = GitdotClaims {
+            iss: GITDOT_SERVER_ID.to_string(),
+            aud: vec![GITDOT_SERVER_ID.to_string()],
+            sub: user.id.to_string(),
+            iat: now,
+            exp: now + 3600,
+            user_metadata: UserMetadata {
+                username: user.name,
+                orgs: orgs
+                    .iter()
+                    .map(|(name, role)| format!("{name}:{role}"))
+                    .collect(),
+            },
+        };
+
+        let access_token = self
+            .token_client
+            .generate_jwt(&claims)
+            .map_err(AuthenticationError::JwtError)?;
+
+        let (refresh_token, refresh_token_hash) = self.token_client.generate_high_entropic_code();
+        let refresh_expiry = Utc::now() + Duration::days(30);
+        self.session_repo
+            .create_session(
+                session.user_id,
+                &refresh_token_hash,
+                session.refresh_token_family,
+                request.user_agent.as_deref(),
+                request.ip_address.as_ref().map(|ip| ip.as_ref()),
+                refresh_expiry,
+            )
+            .await?;
+
+        Ok(AuthTokensResponse {
             access_token,
             refresh_token,
         })

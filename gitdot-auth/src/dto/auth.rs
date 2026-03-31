@@ -1,12 +1,12 @@
-use gitdot_api::endpoint::auth::email::verify as api;
-use gitdot_core::dto::VerifyAuthCodeResponse;
+use gitdot_api::resource::auth::AuthTokensResource;
+use gitdot_core::dto::AuthTokensResponse;
 
 use super::IntoApi;
 
-impl IntoApi for VerifyAuthCodeResponse {
-    type ApiType = api::VerifyAuthCodeResponse;
+impl IntoApi for AuthTokensResponse {
+    type ApiType = AuthTokensResource;
     fn into_api(self) -> Self::ApiType {
-        api::VerifyAuthCodeResponse {
+        AuthTokensResource {
             access_token: self.access_token,
             refresh_token: self.refresh_token,
         }

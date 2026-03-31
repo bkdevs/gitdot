@@ -1,12 +1,20 @@
 mod issue_task_jwt;
+mod refresh_session;
 mod send_auth_email;
 mod verify_auth_code;
 
 use serde::{Deserialize, Deserializer, Serialize};
 
 pub use issue_task_jwt::{IssueTaskJwtRequest, IssueTaskJwtResponse};
+pub use refresh_session::RefreshSessionRequest;
 pub use send_auth_email::SendAuthEmailRequest;
-pub use verify_auth_code::{VerifyAuthCodeRequest, VerifyAuthCodeResponse};
+pub use verify_auth_code::VerifyAuthCodeRequest;
+
+#[derive(Debug, Clone)]
+pub struct AuthTokensResponse {
+    pub access_token: String,
+    pub refresh_token: String,
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct JwtClaims {

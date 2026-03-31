@@ -1,3 +1,4 @@
+pub mod auth;
 pub mod build;
 pub mod migration;
 pub mod oauth;
@@ -13,6 +14,7 @@ pub mod webhook;
 
 use serde::{Serialize, de::DeserializeOwned};
 
+pub use auth::*;
 pub use build::*;
 pub use migration::*;
 pub use oauth::*;

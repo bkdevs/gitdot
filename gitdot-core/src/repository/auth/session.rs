@@ -27,6 +27,12 @@ pub trait SessionRepository: Send + Sync + Clone + 'static {
         ip_address: Option<&str>,
         expires_at: DateTime<Utc>,
     ) -> Result<Session, Error>;
+
+    async fn get_session_by_refresh_hash(&self, hash: &str) -> Result<Option<Session>, Error>;
+
+    async fn revoke_session(&self, id: Uuid) -> Result<(), Error>;
+
+    async fn revoke_sessions_by_family(&self, family: Uuid) -> Result<(), Error>;
 }
 
 #[derive(Debug, Clone)]
@@ -117,5 +123,45 @@ impl SessionRepository for SessionRepositoryImpl {
         .await?;
 
         Ok(session)
+    }
+
+    async fn get_session_by_refresh_hash(&self, hash: &str) -> Result<Option<Session>, Error> {
+        let session = sqlx::query_as::<_, Session>(
+            r#"
+            SELECT * FROM sessions WHERE refresh_token_hash = $1
+            "#,
+        )
+        .bind(hash)
+        .fetch_optional(&self.pool)
+        .await?;
+
+        Ok(session)
+    }
+
+    async fn revoke_session(&self, id: Uuid) -> Result<(), Error> {
+        sqlx::query(
+            r#"
+            UPDATE sessions SET revoked_at = NOW() WHERE id = $1
+            "#,
+        )
+        .bind(id)
+        .execute(&self.pool)
+        .await?;
+
+        Ok(())
+    }
+
+    async fn revoke_sessions_by_family(&self, family: Uuid) -> Result<(), Error> {
+        sqlx::query(
+            r#"
+            UPDATE sessions SET revoked_at = NOW()
+            WHERE refresh_token_family = $1 AND revoked_at IS NULL
+            "#,
+        )
+        .bind(family)
+        .execute(&self.pool)
+        .await?;
+
+        Ok(())
     }
 }
