@@ -9,15 +9,15 @@ use crate::model::DeviceAuthorization;
 pub trait CodeRepository: Send + Sync + Clone + 'static {
     async fn create_device_authorization(
         &self,
-        device_code: &str,
+        device_code_hash: &str,
         user_code: &str,
         client_id: &str,
         expires_at: DateTime<Utc>,
     ) -> Result<DeviceAuthorization, Error>;
 
-    async fn get_device_authorization_by_device_code(
+    async fn get_device_authorization_by_device_code_hash(
         &self,
-        device_code: &str,
+        device_code_hash: &str,
     ) -> Result<Option<DeviceAuthorization>, Error>;
 
     async fn get_device_authorization_by_user_code(
@@ -56,19 +56,19 @@ impl CodeRepositoryImpl {
 impl CodeRepository for CodeRepositoryImpl {
     async fn create_device_authorization(
         &self,
-        device_code: &str,
+        device_code_hash: &str,
         user_code: &str,
         client_id: &str,
         expires_at: DateTime<Utc>,
     ) -> Result<DeviceAuthorization, Error> {
         let device_auth = sqlx::query_as::<_, DeviceAuthorization>(
             r#"
-            INSERT INTO device_authorizations (device_code, user_code, client_id, expires_at)
+            INSERT INTO device_authorizations (device_code_hash, user_code, client_id, expires_at)
             VALUES ($1, $2, $3, $4)
-            RETURNING id, device_code, user_code, client_id, user_id, status, expires_at, created_at
+            RETURNING id, device_code_hash, user_code, client_id, user_id, status, expires_at, created_at
             "#,
         )
-        .bind(device_code)
+        .bind(device_code_hash)
         .bind(user_code)
         .bind(client_id)
         .bind(expires_at)
@@ -78,18 +78,18 @@ impl CodeRepository for CodeRepositoryImpl {
         Ok(device_auth)
     }
 
-    async fn get_device_authorization_by_device_code(
+    async fn get_device_authorization_by_device_code_hash(
         &self,
-        device_code: &str,
+        device_code_hash: &str,
     ) -> Result<Option<DeviceAuthorization>, Error> {
         let device_auth = sqlx::query_as::<_, DeviceAuthorization>(
             r#"
-            SELECT id, device_code, user_code, client_id, user_id, status, expires_at, created_at
+            SELECT id, device_code_hash, user_code, client_id, user_id, status, expires_at, created_at
             FROM device_authorizations
-            WHERE device_code = $1
+            WHERE device_code_hash = $1
             "#,
         )
-        .bind(device_code)
+        .bind(device_code_hash)
         .fetch_optional(&self.pool)
         .await?;
 
@@ -102,7 +102,7 @@ impl CodeRepository for CodeRepositoryImpl {
     ) -> Result<Option<DeviceAuthorization>, Error> {
         let device_auth = sqlx::query_as::<_, DeviceAuthorization>(
             r#"
-            SELECT id, device_code, user_code, client_id, user_id, status, expires_at, created_at
+            SELECT id, device_code_hash, user_code, client_id, user_id, status, expires_at, created_at
             FROM device_authorizations
             WHERE user_code = $1
             "#,
@@ -139,7 +139,7 @@ impl CodeRepository for CodeRepositoryImpl {
             UPDATE device_authorizations
             SET status = 'authorized', user_id = $2
             WHERE user_code = $1 AND status = 'pending' AND expires_at > NOW()
-            RETURNING id, device_code, user_code, client_id, user_id, status, expires_at, created_at
+            RETURNING id, device_code_hash, user_code, client_id, user_id, status, expires_at, created_at
             "#,
         )
         .bind(user_code)
@@ -160,7 +160,7 @@ impl CodeRepository for CodeRepositoryImpl {
             UPDATE device_authorizations
             SET status = 'denied', user_id = $2
             WHERE user_code = $1 AND status = 'pending' AND expires_at > NOW()
-            RETURNING id, device_code, user_code, client_id, user_id, status, expires_at, created_at
+            RETURNING id, device_code_hash, user_code, client_id, user_id, status, expires_at, created_at
             "#,
         )
         .bind(user_code)

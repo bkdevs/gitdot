@@ -13,6 +13,7 @@ use crate::{
         CodeRepository, CodeRepositoryImpl, TokenRepository, TokenRepositoryImpl, UserRepository,
         UserRepositoryImpl,
     },
+    util::crypto::hash_string,
 };
 
 #[async_trait]
@@ -72,13 +73,18 @@ where
         &self,
         request: DeviceCodeRequest,
     ) -> Result<DeviceCodeResponse, TokenError> {
-        let (device_code, _) = self.token_client.generate_high_entropic_code();
+        let (device_code, device_code_hash) = self.token_client.generate_high_entropic_code();
         let user_code = self.token_client.generate_readable_code();
         let expiry_secs = self.token_client.get_device_code_expiry_in_seconds();
         let expires_at = Utc::now() + Duration::seconds(expiry_secs as i64);
 
         self.code_repo
-            .create_device_authorization(&device_code, &user_code, &request.client_id, expires_at)
+            .create_device_authorization(
+                &device_code_hash,
+                &user_code,
+                &request.client_id,
+                expires_at,
+            )
             .await?;
 
         Ok(DeviceCodeResponse {
@@ -91,9 +97,10 @@ where
     }
 
     async fn poll_token(&self, request: PollTokenRequest) -> Result<TokenResponse, TokenError> {
+        let device_code_hash = hash_string(&request.device_code);
         let device_auth = self
             .code_repo
-            .get_device_authorization_by_device_code(&request.device_code)
+            .get_device_authorization_by_device_code_hash(&device_code_hash)
             .await?
             .ok_or(TokenError::InvalidDeviceCode)?;
 

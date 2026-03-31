@@ -5,7 +5,7 @@ use uuid::Uuid;
 #[derive(Debug, Clone, FromRow)]
 pub struct DeviceAuthorization {
     pub id: Uuid,
-    pub device_code: String,
+    pub device_code_hash: String,
     pub user_code: String,
     pub client_id: String,
     pub user_id: Option<Uuid>,
