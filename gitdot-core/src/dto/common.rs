@@ -20,6 +20,10 @@ fn is_valid_url(s: &str) -> bool {
     url::Url::parse(s).is_ok()
 }
 
+fn is_valid_email(s: &str) -> bool {
+    !s.is_empty() && s.contains('@')
+}
+
 #[nutype(
     sanitize(trim, lowercase),
     validate(predicate = is_valid_slug),
@@ -47,6 +51,13 @@ pub struct RepositoryName(String);
     derive(Debug, Clone, PartialEq, Eq, AsRef, Deref)
 )]
 pub struct WebhookUrl(String);
+
+#[nutype(
+    sanitize(trim, lowercase),
+    validate(predicate = is_valid_email),
+    derive(Debug, Clone, PartialEq, Eq, AsRef, Deref)
+)]
+pub struct Email(String);
 
 #[cfg(test)]
 mod tests {

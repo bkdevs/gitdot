@@ -1,8 +1,10 @@
 mod issue_task_jwt;
+mod send_auth_email;
 
 use serde::{Deserialize, Deserializer, Serialize};
 
 pub use issue_task_jwt::{IssueTaskJwtRequest, IssueTaskJwtResponse};
+pub use send_auth_email::SendAuthEmailRequest;
 
 pub const GITDOT_SERVER_ID: &str = "gitdot-server";
 pub const S2_SERVER_ID: &str = "s2-server";

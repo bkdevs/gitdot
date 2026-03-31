@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use rand::RngExt as _;
 use sqlx::{Error, PgPool, Row as _};
 use uuid::Uuid;
 
@@ -6,11 +7,15 @@ use crate::model::{User, UserSettings};
 
 #[async_trait]
 pub trait UserRepository: Send + Sync + Clone + 'static {
+    async fn create(&self, email: &str) -> Result<User, Error>;
+
     async fn get(&self, user_name: &str) -> Result<Option<User>, Error>;
 
     async fn update(&self, id: Uuid, name: &str) -> Result<User, Error>;
 
     async fn get_by_id(&self, id: Uuid) -> Result<Option<User>, Error>;
+
+    async fn get_by_email(&self, email: &str) -> Result<Option<User>, Error>;
 
     async fn get_by_emails(&self, emails: &[String]) -> Result<Vec<User>, Error>;
 
@@ -41,6 +46,28 @@ impl UserRepositoryImpl {
 #[crate::instrument_all(level = "debug")]
 #[async_trait]
 impl UserRepository for UserRepositoryImpl {
+    async fn create(&self, email: &str) -> Result<User, Error> {
+        let suffix: String = {
+            let mut rng = rand::rng();
+            let bytes: [u8; 4] = rng.random();
+            hex::encode(bytes)
+        };
+        let name = format!("user_{suffix}");
+        let user = sqlx::query_as::<_, User>(
+            r#"
+            INSERT INTO users (email, name, is_email_verified)
+            VALUES ($1, $2, false)
+            RETURNING *
+            "#,
+        )
+        .bind(email)
+        .bind(name)
+        .fetch_one(&self.pool)
+        .await?;
+
+        Ok(user)
+    }
+
     async fn get(&self, user_name: &str) -> Result<Option<User>, Error> {
         let user = sqlx::query_as::<_, User>(
             "SELECT id, email, name, created_at FROM users WHERE name = $1",
@@ -69,6 +96,17 @@ impl UserRepository for UserRepositoryImpl {
             "SELECT id, email, name, created_at FROM users WHERE id = $1",
         )
         .bind(id)
+        .fetch_optional(&self.pool)
+        .await?;
+
+        Ok(user)
+    }
+
+    async fn get_by_email(&self, email: &str) -> Result<Option<User>, Error> {
+        let user = sqlx::query_as::<_, User>(
+            "SELECT id, email, name, created_at FROM users WHERE email = $1",
+        )
+        .bind(email)
         .fetch_optional(&self.pool)
         .await?;
 

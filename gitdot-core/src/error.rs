@@ -1,3 +1,4 @@
+mod authentication;
 mod authorization;
 mod build;
 mod commit;
@@ -17,6 +18,7 @@ mod token;
 mod user;
 mod webhook;
 
+pub use authentication::AuthenticationError;
 pub use authorization::AuthorizationError;
 pub use build::BuildError;
 pub use commit::CommitError;

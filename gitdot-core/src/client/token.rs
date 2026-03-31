@@ -3,6 +3,7 @@ use rand::RngExt as _;
 
 use crate::{model::TokenType, util::crypto::hash_string};
 
+const AUTH_CODE_EXPIRY_MINUTES: i64 = 10;
 const DEVICE_CODE_EXPIRY_MINUTES: i64 = 10;
 const POLLING_INTERVAL_SECONDS: u64 = 1;
 
@@ -11,6 +12,10 @@ const BODY_LEN: usize = BODY_HALF_LEN * 2; // two u128 halves = 44 chars
 const CHECKSUM_LEN: usize = 6; // base62(u32::MAX) = 6 chars
 
 pub trait TokenClient: Send + Sync + Clone + 'static {
+    // Auth operations
+    fn generate_auth_token(&self) -> (String, String);
+    fn get_auth_code_expiry_in_seconds(&self) -> u64;
+
     // Token operations
     fn generate_access_token(&self, token_type: &TokenType) -> (String, String);
     fn validate_token_format(&self, token: &str) -> bool;
@@ -38,6 +43,16 @@ impl TokenClientImpl {
 }
 
 impl TokenClient for TokenClientImpl {
+    fn generate_auth_token(&self) -> (String, String) {
+        let raw_code = self.generate_url_safe_high_entropic_string();
+        let hashed_code = hash_string(&raw_code);
+        (raw_code, hashed_code)
+    }
+
+    fn get_auth_code_expiry_in_seconds(&self) -> u64 {
+        (AUTH_CODE_EXPIRY_MINUTES * 60) as u64
+    }
+
     fn generate_access_token(&self, token_type: &TokenType) -> (String, String) {
         let mut rng = rand::rng();
         let bytes: [u8; 32] = rng.random();

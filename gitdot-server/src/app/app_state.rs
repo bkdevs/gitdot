@@ -6,14 +6,15 @@ use sqlx::PgPool;
 
 use gitdot_core::{
     client::{
-        DifftClient, Git2Client, GitHttpClientImpl, OctocrabClient, S2ClientImpl, SecretClient,
-        TokenClientImpl,
+        DifftClient, Git2Client, GitHttpClientImpl, OctocrabClient, ResendClient, S2ClientImpl,
+        SecretClient, TokenClientImpl,
     },
     repository::{
         BuildRepositoryImpl, CodeRepositoryImpl, CommitRepositoryImpl, GitHubRepositoryImpl,
         MigrationRepositoryImpl, OrganizationRepositoryImpl, QuestionRepositoryImpl,
-        RepositoryRepositoryImpl, ReviewRepositoryImpl, RunnerRepositoryImpl, TaskRepositoryImpl,
-        TokenRepositoryImpl, UserRepositoryImpl, WebhookRepositoryImpl,
+        RepositoryRepositoryImpl, ReviewRepositoryImpl, RunnerRepositoryImpl,
+        SessionRepositoryImpl, TaskRepositoryImpl, TokenRepositoryImpl, UserRepositoryImpl,
+        WebhookRepositoryImpl,
     },
     service::{
         AuthenticationService, AuthenticationServiceImpl, AuthorizationService,
@@ -74,6 +75,7 @@ impl AppState {
         let build_repo = BuildRepositoryImpl::new(pool.clone());
         let runner_repo = RunnerRepositoryImpl::new(pool.clone());
         let task_repo = TaskRepositoryImpl::new(pool.clone());
+        let session_repo = SessionRepositoryImpl::new(pool.clone());
 
         let git_client = Git2Client::new(settings.git_project_root.clone());
         let git_http_client = GitHttpClientImpl::new(settings.git_project_root.clone());
@@ -85,6 +87,7 @@ impl AppState {
         let gitdot_private_key = secret_client.get_gitdot_private_key().await?;
         let s2_client = S2ClientImpl::new(&settings.s2_server_url, gitdot_private_key.clone());
         let token_client = TokenClientImpl::new();
+        let email_client = ResendClient::new(&settings.resend_api_key);
 
         let vercel_jwks = {
             let jwks_url = format!("{}/.well-known/jwks", settings.vercel_oidc_url);
@@ -100,7 +103,10 @@ impl AppState {
                 token_client.clone(),
             )),
             authentication_service: Arc::new(AuthenticationServiceImpl::new(
+                session_repo.clone(),
                 token_repo.clone(),
+                user_repo.clone(),
+                email_client.clone(),
                 token_client.clone(),
                 gitdot_private_key,
             )),
