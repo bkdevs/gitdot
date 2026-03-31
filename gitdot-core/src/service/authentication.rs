@@ -4,9 +4,9 @@ use chrono::{Duration, Utc};
 use crate::{
     client::{EmailClient, ResendClient, TokenClient, TokenClientImpl},
     dto::{
-        AuthTokensResponse, GitdotClaims, IssueTaskJwtRequest, IssueTaskJwtResponse, JwtClaims,
-        RefreshSessionRequest, SendAuthEmailRequest, UserMetadata, ValidateTokenRequest,
-        ValidateTokenResponse, VerifyAuthCodeRequest,
+        AuthTokensResponse, IssueTaskJwtRequest, IssueTaskJwtResponse, JwtClaims,
+        RefreshSessionRequest, SendAuthEmailRequest, ValidateTokenRequest, ValidateTokenResponse,
+        VerifyAuthCodeRequest,
     },
     error::{AuthenticationError, AuthorizationError},
     repository::{
@@ -158,28 +158,14 @@ where
             .user_repo
             .get_org_memberships(auth_code.user_id)
             .await?;
-        let now = Utc::now().timestamp() as usize;
-        let claims = GitdotClaims {
-            iss: GITDOT_SERVER_ID.to_string(),
-            aud: vec![GITDOT_SERVER_ID.to_string()],
-            sub: user.id.to_string(),
-            iat: now,
-            exp: now + 3600,
-            user_metadata: UserMetadata {
-                username: user.name,
-                orgs: orgs
-                    .iter()
-                    .map(|(name, role)| format!("{name}:{role}"))
-                    .collect(),
-            },
-        };
         let access_token = self
             .token_client
-            .generate_jwt(&claims)
+            .generate_gitdot_jwt(user.id, &user.name, &orgs)
             .map_err(AuthenticationError::JwtError)?;
 
         let (refresh_token, refresh_token_hash) = self.token_client.generate_high_entropic_code();
-        let refresh_expiry = Utc::now() + Duration::days(30);
+        let refresh_expiry_secs = self.token_client.get_refresh_token_expiry_in_seconds();
+        let refresh_expiry = Utc::now() + Duration::seconds(refresh_expiry_secs as i64);
         self.session_repo
             .create_session(
                 auth_code.user_id,
@@ -194,6 +180,8 @@ where
         Ok(AuthTokensResponse {
             access_token,
             refresh_token,
+            access_token_expires_in: self.token_client.get_access_token_expiry_in_seconds(),
+            refresh_token_expires_in: refresh_expiry_secs,
         })
     }
 
@@ -225,32 +213,15 @@ where
             .get_by_id(session.user_id)
             .await?
             .ok_or(AuthenticationError::SessionNotFound)?;
-
         let orgs = self.user_repo.get_org_memberships(session.user_id).await?;
-
-        let now = Utc::now().timestamp() as usize;
-        let claims = GitdotClaims {
-            iss: GITDOT_SERVER_ID.to_string(),
-            aud: vec![GITDOT_SERVER_ID.to_string()],
-            sub: user.id.to_string(),
-            iat: now,
-            exp: now + 3600,
-            user_metadata: UserMetadata {
-                username: user.name,
-                orgs: orgs
-                    .iter()
-                    .map(|(name, role)| format!("{name}:{role}"))
-                    .collect(),
-            },
-        };
-
         let access_token = self
             .token_client
-            .generate_jwt(&claims)
+            .generate_gitdot_jwt(user.id, &user.name, &orgs)
             .map_err(AuthenticationError::JwtError)?;
 
         let (refresh_token, refresh_token_hash) = self.token_client.generate_high_entropic_code();
-        let refresh_expiry = Utc::now() + Duration::days(30);
+        let refresh_expiry_secs = self.token_client.get_refresh_token_expiry_in_seconds();
+        let refresh_expiry = Utc::now() + Duration::seconds(refresh_expiry_secs as i64);
         self.session_repo
             .create_session(
                 session.user_id,
@@ -265,6 +236,8 @@ where
         Ok(AuthTokensResponse {
             access_token,
             refresh_token,
+            access_token_expires_in: self.token_client.get_access_token_expiry_in_seconds(),
+            refresh_token_expires_in: refresh_expiry_secs,
         })
     }
 

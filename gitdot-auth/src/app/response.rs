@@ -9,10 +9,7 @@ use gitdot_api::{ApiResource, resource::auth::AuthTokensResource};
 use gitdot_core::dto::AuthTokensResponse;
 
 use crate::{
-    consts::{
-        ACCESS_TOKEN_COOKIE, ACCESS_TOKEN_EXPIRY_IN_SECONDS, REFRESH_TOKEN_COOKIE,
-        REFRESH_TOKEN_EXPIRY_IN_SECONDS,
-    },
+    consts::{ACCESS_TOKEN_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME},
     dto::IntoApi,
 };
 
@@ -42,19 +39,25 @@ impl<T: ApiResource> AppResponse<T> {
 
 impl AppResponse<AuthTokensResource> {
     pub fn auth(response: AuthTokensResponse) -> Self {
-        let access_cookie = Cookie::build((ACCESS_TOKEN_COOKIE, response.access_token.clone()))
-            .http_only(true)
-            .secure(true)
-            .same_site(SameSite::Strict)
-            .path("/")
-            .max_age(time::Duration::seconds(ACCESS_TOKEN_EXPIRY_IN_SECONDS));
+        let access_cookie =
+            Cookie::build((ACCESS_TOKEN_COOKIE_NAME, response.access_token.clone()))
+                .http_only(true)
+                .secure(true)
+                .same_site(SameSite::Strict)
+                .path("/")
+                .max_age(time::Duration::seconds(
+                    response.access_token_expires_in as i64,
+                ));
 
-        let refresh_cookie = Cookie::build((REFRESH_TOKEN_COOKIE, response.refresh_token.clone()))
-            .http_only(true)
-            .secure(true)
-            .same_site(SameSite::Strict)
-            .path("/auth/refresh")
-            .max_age(time::Duration::seconds(REFRESH_TOKEN_EXPIRY_IN_SECONDS));
+        let refresh_cookie =
+            Cookie::build((REFRESH_TOKEN_COOKIE_NAME, response.refresh_token.clone()))
+                .http_only(true)
+                .secure(true)
+                .same_site(SameSite::Strict)
+                .path("/auth/refresh")
+                .max_age(time::Duration::seconds(
+                    response.refresh_token_expires_in as i64,
+                ));
 
         Self::new(StatusCode::OK, response.into_api())
             .with_header("set-cookie", &access_cookie.to_string())

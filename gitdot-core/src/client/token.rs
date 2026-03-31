@@ -1,11 +1,20 @@
 use base64::{Engine, engine::general_purpose::URL_SAFE_NO_PAD};
+use chrono::Utc;
 use jsonwebtoken::{Algorithm, EncodingKey, Header, encode};
 use rand::RngExt as _;
 use serde::Serialize;
+use uuid::Uuid;
 
-use crate::{model::TokenType, util::crypto::hash_string};
+use crate::{
+    dto::{GitdotClaims, UserMetadata},
+    model::TokenType,
+    util::{auth::GITDOT_SERVER_ID, crypto::hash_string},
+};
 
 const AUTH_CODE_EXPIRY_MINUTES: i64 = 10;
+const ACCESS_TOKEN_EXPIRY_SECONDS: u64 = 3600;
+const REFRESH_TOKEN_EXPIRY_SECONDS: u64 = 30 * 24 * 3600;
+
 const DEVICE_CODE_EXPIRY_MINUTES: i64 = 10;
 const POLLING_INTERVAL_SECONDS: u64 = 1;
 
@@ -20,6 +29,8 @@ pub trait TokenClient: Send + Sync + Clone + 'static {
 
     // Expiry operations
     fn get_auth_code_expiry_in_seconds(&self) -> u64;
+    fn get_access_token_expiry_in_seconds(&self) -> u64;
+    fn get_refresh_token_expiry_in_seconds(&self) -> u64;
     fn get_device_code_expiry_in_seconds(&self) -> u64;
     fn get_polling_interval_in_seconds(&self) -> u64;
 
@@ -29,6 +40,12 @@ pub trait TokenClient: Send + Sync + Clone + 'static {
 
     // JWT operations
     fn generate_jwt<T: Serialize + Send + Sync>(&self, claims: &T) -> Result<String, String>;
+    fn generate_gitdot_jwt(
+        &self,
+        user_id: Uuid,
+        username: &str,
+        orgs: &[(String, String)],
+    ) -> Result<String, String>;
 }
 
 #[derive(Debug, Clone)]
@@ -66,6 +83,14 @@ impl TokenClient for TokenClientImpl {
 
     fn get_auth_code_expiry_in_seconds(&self) -> u64 {
         (AUTH_CODE_EXPIRY_MINUTES * 60) as u64
+    }
+
+    fn get_access_token_expiry_in_seconds(&self) -> u64 {
+        ACCESS_TOKEN_EXPIRY_SECONDS
+    }
+
+    fn get_refresh_token_expiry_in_seconds(&self) -> u64 {
+        REFRESH_TOKEN_EXPIRY_SECONDS
     }
 
     fn get_device_code_expiry_in_seconds(&self) -> u64 {
@@ -135,6 +160,30 @@ impl TokenClient for TokenClientImpl {
         let encoding_key = EncodingKey::from_ed_pem(self.gitdot_private_key.as_bytes())
             .map_err(|e| e.to_string())?;
         encode(&Header::new(Algorithm::EdDSA), claims, &encoding_key).map_err(|e| e.to_string())
+    }
+
+    fn generate_gitdot_jwt(
+        &self,
+        user_id: Uuid,
+        username: &str,
+        orgs: &[(String, String)],
+    ) -> Result<String, String> {
+        let now = Utc::now().timestamp() as usize;
+        let claims = GitdotClaims {
+            iss: GITDOT_SERVER_ID.to_string(),
+            aud: vec![GITDOT_SERVER_ID.to_string()],
+            sub: user_id.to_string(),
+            iat: now,
+            exp: now + ACCESS_TOKEN_EXPIRY_SECONDS as usize,
+            user_metadata: UserMetadata {
+                username: username.to_string(),
+                orgs: orgs
+                    .iter()
+                    .map(|(name, role)| format!("{name}:{role}"))
+                    .collect(),
+            },
+        };
+        self.generate_jwt(&claims)
     }
 }
 

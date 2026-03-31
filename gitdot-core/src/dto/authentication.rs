@@ -14,6 +14,8 @@ pub use verify_auth_code::VerifyAuthCodeRequest;
 pub struct AuthTokensResponse {
     pub access_token: String,
     pub refresh_token: String,
+    pub access_token_expires_in: u64,
+    pub refresh_token_expires_in: u64,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

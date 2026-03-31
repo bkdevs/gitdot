@@ -1,6 +1,6 @@
 use axum::{extract::FromRequestParts, http::request::Parts};
 
-use crate::{app::error::AppError, consts::REFRESH_TOKEN_COOKIE};
+use crate::{app::error::AppError, consts::REFRESH_TOKEN_COOKIE_NAME};
 
 pub struct RefreshToken(pub String);
 
@@ -17,7 +17,7 @@ impl<S: Send + Sync> FromRequestParts<S> for RefreshToken {
         let token = cookie_header
             .split(';')
             .map(|s| s.trim())
-            .find_map(|s| s.strip_prefix(&format!("{REFRESH_TOKEN_COOKIE}=")))
+            .find_map(|s| s.strip_prefix(&format!("{REFRESH_TOKEN_COOKIE_NAME}=")))
             .ok_or(AppError::Authentication(
                 gitdot_core::error::AuthenticationError::SessionNotFound,
             ))?;
