@@ -72,8 +72,8 @@ where
         &self,
         request: DeviceCodeRequest,
     ) -> Result<DeviceCodeResponse, TokenError> {
-        let device_code = self.token_client.generate_device_code();
-        let user_code = self.token_client.generate_user_code();
+        let (device_code, _) = self.token_client.generate_high_entropic_code();
+        let user_code = self.token_client.generate_readable_code();
         let expiry_secs = self.token_client.get_device_code_expiry_in_seconds();
         let expires_at = Utc::now() + Duration::seconds(expiry_secs as i64);
 

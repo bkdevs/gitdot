@@ -12,19 +12,18 @@ const BODY_LEN: usize = BODY_HALF_LEN * 2; // two u128 halves = 44 chars
 const CHECKSUM_LEN: usize = 6; // base62(u32::MAX) = 6 chars
 
 pub trait TokenClient: Send + Sync + Clone + 'static {
-    // Auth operations
-    fn generate_auth_token(&self) -> (String, String);
+    // Code operations
+    fn generate_high_entropic_code(&self) -> (String, String);
+    fn generate_readable_code(&self) -> String;
+
+    // Expiry operations
     fn get_auth_code_expiry_in_seconds(&self) -> u64;
+    fn get_device_code_expiry_in_seconds(&self) -> u64;
+    fn get_polling_interval_in_seconds(&self) -> u64;
 
     // Token operations
     fn generate_access_token(&self, token_type: &TokenType) -> (String, String);
     fn validate_token_format(&self, token: &str) -> bool;
-
-    // Code operations
-    fn generate_device_code(&self) -> String;
-    fn generate_user_code(&self) -> String;
-    fn get_device_code_expiry_in_seconds(&self) -> u64;
-    fn get_polling_interval_in_seconds(&self) -> u64;
 }
 
 #[derive(Debug, Clone)]
@@ -35,22 +34,39 @@ impl TokenClientImpl {
         Self
     }
 
-    fn generate_url_safe_high_entropic_string(&self) -> String {
-        let mut rng = rand::rng();
-        let bytes: [u8; 32] = rng.random();
-        URL_SAFE_NO_PAD.encode(&bytes)
+    fn base62_encode_padded(&self, value: u128, width: usize) -> String {
+        let encoded = base62::encode(value);
+        format!("{:0>width$}", encoded, width = width)
     }
 }
 
 impl TokenClient for TokenClientImpl {
-    fn generate_auth_token(&self) -> (String, String) {
-        let raw_code = self.generate_url_safe_high_entropic_string();
+    fn generate_high_entropic_code(&self) -> (String, String) {
+        let mut rng = rand::rng();
+        let bytes: [u8; 32] = rng.random();
+        let raw_code = URL_SAFE_NO_PAD.encode(&bytes);
         let hashed_code = hash_string(&raw_code);
         (raw_code, hashed_code)
     }
 
+    fn generate_readable_code(&self) -> String {
+        let mut rng = rand::rng();
+        let chars: Vec<char> = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789".chars().collect();
+        (0..6)
+            .map(|_| chars[rng.random_range(0..chars.len())])
+            .collect()
+    }
+
     fn get_auth_code_expiry_in_seconds(&self) -> u64 {
         (AUTH_CODE_EXPIRY_MINUTES * 60) as u64
+    }
+
+    fn get_device_code_expiry_in_seconds(&self) -> u64 {
+        (DEVICE_CODE_EXPIRY_MINUTES * 60) as u64
+    }
+
+    fn get_polling_interval_in_seconds(&self) -> u64 {
+        POLLING_INTERVAL_SECONDS
     }
 
     fn generate_access_token(&self, token_type: &TokenType) -> (String, String) {
@@ -62,11 +78,11 @@ impl TokenClient for TokenClientImpl {
         let lo = u128::from_be_bytes(bytes[16..].try_into().unwrap());
         let body = format!(
             "{}{}",
-            base62_encode_padded(hi, BODY_HALF_LEN),
-            base62_encode_padded(lo, BODY_HALF_LEN)
+            self.base62_encode_padded(hi, BODY_HALF_LEN),
+            self.base62_encode_padded(lo, BODY_HALF_LEN)
         );
         let crc = crc32fast::hash(&bytes);
-        let checksum = base62_encode_padded(crc as u128, CHECKSUM_LEN);
+        let checksum = self.base62_encode_padded(crc as u128, CHECKSUM_LEN);
 
         let raw_token = format!("{prefix}{body}{checksum}");
         let hashed_token = hash_string(&raw_token);
@@ -107,31 +123,6 @@ impl TokenClient for TokenClientImpl {
         let expected_crc = crc32fast::hash(&body_bytes);
         expected_crc as u128 == crc_val
     }
-
-    fn generate_device_code(&self) -> String {
-        self.generate_url_safe_high_entropic_string()
-    }
-
-    fn generate_user_code(&self) -> String {
-        let mut rng = rand::rng();
-        let chars: Vec<char> = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789".chars().collect();
-        (0..6)
-            .map(|_| chars[rng.random_range(0..chars.len())])
-            .collect()
-    }
-
-    fn get_device_code_expiry_in_seconds(&self) -> u64 {
-        (DEVICE_CODE_EXPIRY_MINUTES * 60) as u64
-    }
-
-    fn get_polling_interval_in_seconds(&self) -> u64 {
-        POLLING_INTERVAL_SECONDS
-    }
-}
-
-fn base62_encode_padded(value: u128, width: usize) -> String {
-    let encoded = base62::encode(value);
-    format!("{:0>width$}", encoded, width = width)
 }
 
 #[cfg(test)]

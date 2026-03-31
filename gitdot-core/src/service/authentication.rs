@@ -105,7 +105,7 @@ where
             }
         };
 
-        let (code, code_hash) = self.token_client.generate_auth_token();
+        let (code, code_hash) = self.token_client.generate_high_entropic_code();
         let expiry_secs = self.token_client.get_auth_code_expiry_in_seconds();
         let expires_at = Utc::now() + Duration::seconds(expiry_secs as i64);
         self.session_repo
