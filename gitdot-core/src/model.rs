@@ -11,8 +11,6 @@ mod review;
 mod runner;
 mod settings;
 mod task;
-mod token;
-mod user;
 mod webhook;
 
 pub use auth::*;
@@ -28,6 +26,4 @@ pub use review::*;
 pub use runner::*;
 pub use settings::*;
 pub use task::*;
-pub use token::*;
-pub use user::*;
 pub use webhook::*;

@@ -10,8 +10,6 @@ mod repository;
 mod review;
 mod runner;
 mod task;
-mod token;
-mod user;
 mod webhook;
 
 pub use auth::*;
@@ -26,6 +24,4 @@ pub use repository::{RepositoryRepository, RepositoryRepositoryImpl};
 pub use review::{ReviewRepository, ReviewRepositoryImpl};
 pub use runner::{RunnerRepository, RunnerRepositoryImpl};
 pub use task::{TaskRepository, TaskRepositoryImpl};
-pub use token::{TokenRepository, TokenRepositoryImpl};
-pub use user::{UserRepository, UserRepositoryImpl};
 pub use webhook::{WebhookRepository, WebhookRepositoryImpl};
