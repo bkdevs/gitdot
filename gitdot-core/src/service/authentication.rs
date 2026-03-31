@@ -10,6 +10,7 @@ use crate::{
     },
     error::AuthorizationError,
     repository::{TokenRepository, TokenRepositoryImpl},
+    util::crypto::hash_string,
 };
 
 #[async_trait]
@@ -68,7 +69,7 @@ where
             return Err(AuthorizationError::Unauthorized);
         }
 
-        let token_hash = self.token_client.hash_token(&request.token);
+        let token_hash = hash_string(&request.token);
         let access_token = self
             .token_repo
             .get_token_by_hash(&token_hash)

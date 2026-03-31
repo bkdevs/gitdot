@@ -1,4 +1,8 @@
+mod issue_task_jwt;
+
 use serde::{Deserialize, Deserializer, Serialize};
+
+pub use issue_task_jwt::{IssueTaskJwtRequest, IssueTaskJwtResponse};
 
 pub const GITDOT_SERVER_ID: &str = "gitdot-server";
 pub const S2_SERVER_ID: &str = "s2-server";
@@ -25,6 +29,3 @@ fn deserialize_aud<'de, D: Deserializer<'de>>(d: D) -> Result<Vec<String>, D::Er
         OneOrMany::Many(v) => v,
     })
 }
-
-mod issue_task_jwt;
-pub use issue_task_jwt::{IssueTaskJwtRequest, IssueTaskJwtResponse};

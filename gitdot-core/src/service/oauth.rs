@@ -125,10 +125,9 @@ where
                     .map_err(|e| TokenError::InvalidRequest(e.to_string()))?
                     .ok_or(TokenError::InvalidRequest("User not found".to_string()))?;
 
-                let access_token = self
+                let (access_token, token_hash) = self
                     .token_client
                     .generate_access_token(&TokenType::Personal);
-                let token_hash = self.token_client.hash_token(&access_token);
 
                 self.token_repo
                     .create_token(

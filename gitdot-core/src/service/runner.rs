@@ -186,8 +186,7 @@ where
 
         self.token_repo.delete_token_by_principal(runner.id).await?;
 
-        let raw_token = self.token_client.generate_access_token(&TokenType::Runner);
-        let token_hash = self.token_client.hash_token(&raw_token);
+        let (raw_token, token_hash) = self.token_client.generate_access_token(&TokenType::Runner);
 
         let client_id = format!(
             "gitdot-runner/{}/{}",

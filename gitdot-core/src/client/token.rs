@@ -1,8 +1,7 @@
 use base64::{Engine, engine::general_purpose::URL_SAFE_NO_PAD};
 use rand::RngExt as _;
-use sha2::{Digest, Sha256};
 
-use crate::model::TokenType;
+use crate::{model::TokenType, util::crypto::hash_string};
 
 const DEVICE_CODE_EXPIRY_MINUTES: i64 = 10;
 const POLLING_INTERVAL_SECONDS: u64 = 1;
@@ -13,9 +12,8 @@ const CHECKSUM_LEN: usize = 6; // base62(u32::MAX) = 6 chars
 
 pub trait TokenClient: Send + Sync + Clone + 'static {
     // Token operations
-    fn generate_access_token(&self, token_type: &TokenType) -> String;
+    fn generate_access_token(&self, token_type: &TokenType) -> (String, String);
     fn validate_token_format(&self, token: &str) -> bool;
-    fn hash_token(&self, token: &str) -> String;
 
     // Code operations
     fn generate_device_code(&self) -> String;
@@ -40,7 +38,7 @@ impl TokenClientImpl {
 }
 
 impl TokenClient for TokenClientImpl {
-    fn generate_access_token(&self, token_type: &TokenType) -> String {
+    fn generate_access_token(&self, token_type: &TokenType) -> (String, String) {
         let mut rng = rand::rng();
         let bytes: [u8; 32] = rng.random();
 
@@ -55,7 +53,9 @@ impl TokenClient for TokenClientImpl {
         let crc = crc32fast::hash(&bytes);
         let checksum = base62_encode_padded(crc as u128, CHECKSUM_LEN);
 
-        format!("{prefix}{body}{checksum}")
+        let raw_token = format!("{prefix}{body}{checksum}");
+        let hashed_token = hash_string(&raw_token);
+        (raw_token, hashed_token)
     }
 
     fn validate_token_format(&self, token: &str) -> bool {
@@ -91,12 +91,6 @@ impl TokenClient for TokenClientImpl {
 
         let expected_crc = crc32fast::hash(&body_bytes);
         expected_crc as u128 == crc_val
-    }
-
-    fn hash_token(&self, token: &str) -> String {
-        let mut hasher = Sha256::new();
-        hasher.update(token.as_bytes());
-        hex::encode(hasher.finalize())
     }
 
     fn generate_device_code(&self) -> String {
@@ -136,7 +130,7 @@ mod tests {
     #[test]
     fn test_generated_personal_token_has_correct_format() {
         let c = client();
-        let token = c.generate_access_token(&TokenType::Personal);
+        let (token, _) = c.generate_access_token(&TokenType::Personal);
         assert!(token.starts_with("gdp_"));
         assert_eq!(token.len(), 54);
         assert!(c.validate_token_format(&token));
@@ -145,7 +139,7 @@ mod tests {
     #[test]
     fn test_generated_runner_token_has_correct_format() {
         let c = client();
-        let token = c.generate_access_token(&TokenType::Runner);
+        let (token, _) = c.generate_access_token(&TokenType::Runner);
         assert!(token.starts_with("gdr_"));
         assert_eq!(token.len(), 54);
         assert!(c.validate_token_format(&token));
@@ -154,7 +148,7 @@ mod tests {
     #[test]
     fn test_token_is_alphanumeric() {
         let c = client();
-        let token = c.generate_access_token(&TokenType::Personal);
+        let (token, _) = c.generate_access_token(&TokenType::Personal);
         let body = &token[4..]; // strip prefix
         assert!(body.chars().all(|c| c.is_alphanumeric()));
     }
@@ -168,7 +162,7 @@ mod tests {
     #[test]
     fn test_validate_rejects_corrupted_checksum() {
         let c = client();
-        let mut token = c.generate_access_token(&TokenType::Personal);
+        let (mut token, _) = c.generate_access_token(&TokenType::Personal);
         // Flip last character
         let last = token.pop().unwrap();
         let replacement = if last == 'A' { 'B' } else { 'A' };
