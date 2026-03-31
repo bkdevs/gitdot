@@ -1,3 +1,4 @@
+use base64::{Engine, engine::general_purpose::URL_SAFE_NO_PAD};
 use rand::RngExt as _;
 use sha2::{Digest, Sha256};
 
@@ -29,6 +30,12 @@ pub struct TokenClientImpl;
 impl TokenClientImpl {
     pub fn new() -> Self {
         Self
+    }
+
+    fn generate_url_safe_high_entropic_string(&self) -> String {
+        let mut rng = rand::rng();
+        let bytes: [u8; 32] = rng.random();
+        URL_SAFE_NO_PAD.encode(&bytes)
     }
 }
 
@@ -93,17 +100,7 @@ impl TokenClient for TokenClientImpl {
     }
 
     fn generate_device_code(&self) -> String {
-        let mut rng = rand::rng();
-        (0..32)
-            .map(|_| {
-                let idx = rng.random_range(0..36u8);
-                if idx < 10 {
-                    (b'0' + idx) as char
-                } else {
-                    (b'a' + idx - 10) as char
-                }
-            })
-            .collect()
+        self.generate_url_safe_high_entropic_string()
     }
 
     fn generate_user_code(&self) -> String {
