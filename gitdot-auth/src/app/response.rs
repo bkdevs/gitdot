@@ -65,6 +65,28 @@ impl AppResponse<AuthTokensResource> {
     }
 }
 
+impl AppResponse<()> {
+    pub fn clear_auth_cookies() -> Self {
+        let access_cookie = Cookie::build((ACCESS_TOKEN_COOKIE_NAME, ""))
+            .http_only(true)
+            .secure(true)
+            .same_site(SameSite::Strict)
+            .path("/")
+            .max_age(time::Duration::ZERO);
+
+        let refresh_cookie = Cookie::build((REFRESH_TOKEN_COOKIE_NAME, ""))
+            .http_only(true)
+            .secure(true)
+            .same_site(SameSite::Strict)
+            .path("/auth/refresh")
+            .max_age(time::Duration::ZERO);
+
+        Self::new(StatusCode::OK, ())
+            .with_header("set-cookie", &access_cookie.to_string())
+            .with_header("set-cookie", &refresh_cookie.to_string())
+    }
+}
+
 impl<T: ApiResource> IntoResponse for AppResponse<T> {
     fn into_response(self) -> Response {
         (self.status, self.headers, Json(self.data)).into_response()

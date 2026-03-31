@@ -4,7 +4,7 @@ use chrono::{Duration, Utc};
 use crate::{
     client::{EmailClient, ResendClient, TokenClient, TokenClientImpl},
     dto::{
-        AuthTokensResponse, IssueTaskJwtRequest, IssueTaskJwtResponse, JwtClaims,
+        AuthTokensResponse, IssueTaskJwtRequest, IssueTaskJwtResponse, JwtClaims, LogoutRequest,
         RefreshSessionRequest, SendAuthEmailRequest, ValidateTokenRequest, ValidateTokenResponse,
         VerifyAuthCodeRequest,
     },
@@ -35,6 +35,8 @@ pub trait AuthenticationService: Send + Sync + 'static {
         &self,
         request: RefreshSessionRequest,
     ) -> Result<AuthTokensResponse, AuthenticationError>;
+
+    async fn logout(&self, request: LogoutRequest) -> Result<(), AuthenticationError>;
 
     async fn validate_token(
         &self,
@@ -239,6 +241,19 @@ where
             access_token_expires_in: self.token_client.get_access_token_expiry_in_seconds(),
             refresh_token_expires_in: refresh_expiry_secs,
         })
+    }
+
+    async fn logout(&self, request: LogoutRequest) -> Result<(), AuthenticationError> {
+        let token_hash = hash_string(&request.refresh_token);
+        let session = self
+            .session_repo
+            .get_session_by_refresh_hash(&token_hash)
+            .await?
+            .ok_or(AuthenticationError::SessionNotFound)?;
+
+        self.session_repo.revoke_session(session.id).await?;
+
+        Ok(())
     }
 
     async fn validate_token(

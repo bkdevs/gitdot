@@ -1,4 +1,5 @@
 mod issue_task_jwt;
+mod logout;
 mod refresh_session;
 mod send_auth_email;
 mod verify_auth_code;
@@ -6,6 +7,7 @@ mod verify_auth_code;
 use serde::{Deserialize, Deserializer, Serialize};
 
 pub use issue_task_jwt::{IssueTaskJwtRequest, IssueTaskJwtResponse};
+pub use logout::LogoutRequest;
 pub use refresh_session::RefreshSessionRequest;
 pub use send_auth_email::SendAuthEmailRequest;
 pub use verify_auth_code::VerifyAuthCodeRequest;
