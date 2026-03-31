@@ -14,6 +14,9 @@ pub enum AuthenticationError {
     #[error("Auth code expired")]
     AuthCodeExpired,
 
+    #[error("JWT error: {0}")]
+    JwtError(String),
+
     #[error("Email error: {0}")]
     EmailError(String),
 

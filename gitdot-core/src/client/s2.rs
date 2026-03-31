@@ -1,13 +1,17 @@
 use async_trait::async_trait;
 use chrono::Utc;
 use jsonwebtoken::{Algorithm, EncodingKey, Header, encode};
+use uuid::Uuid;
+
 use s2_sdk::{
     S2,
     types::{BasinName, CreateBasinInput, CreateStreamInput, ErrorResponse, S2Error, StreamName},
 };
-use uuid::Uuid;
 
-use crate::dto::{GITDOT_SERVER_ID, JwtClaims, S2_SERVER_ID};
+use crate::{
+    dto::JwtClaims,
+    util::auth::{GITDOT_SERVER_ID, S2_SERVER_ID},
+};
 
 #[async_trait]
 pub trait S2Client: Send + Sync + Clone + 'static {

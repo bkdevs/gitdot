@@ -1,12 +1,11 @@
 use async_trait::async_trait;
 use chrono::{Duration, Utc};
-use jsonwebtoken::{Algorithm, EncodingKey, Header, encode};
 
 use crate::{
     client::{EmailClient, ResendClient, TokenClient, TokenClientImpl},
     dto::{
-        GITDOT_SERVER_ID, IssueTaskJwtRequest, IssueTaskJwtResponse, JwtClaims, S2_SERVER_ID,
-        SendAuthEmailRequest, ValidateTokenRequest, ValidateTokenResponse, VerifyAuthCodeRequest,
+        GitdotClaims, IssueTaskJwtRequest, IssueTaskJwtResponse, JwtClaims, SendAuthEmailRequest,
+        UserMetadata, ValidateTokenRequest, ValidateTokenResponse, VerifyAuthCodeRequest,
         VerifyAuthCodeResponse,
     },
     error::{AuthenticationError, AuthorizationError},
@@ -15,7 +14,7 @@ use crate::{
         UserRepository, UserRepositoryImpl,
     },
     util::{
-        auth::{NOREPLY_EMAIL, get_auth_email},
+        auth::{GITDOT_SERVER_ID, NOREPLY_EMAIL, S2_SERVER_ID, get_auth_email},
         crypto::hash_string,
     },
 };
@@ -57,7 +56,6 @@ where
     user_repo: UR,
     email_client: EC,
     token_client: TC,
-    gitdot_private_key: String,
 }
 
 impl
@@ -75,7 +73,6 @@ impl
         user_repo: UserRepositoryImpl,
         email_client: ResendClient,
         token_client: TokenClientImpl,
-        gitdot_private_key: String,
     ) -> Self {
         Self {
             session_repo,
@@ -83,7 +80,6 @@ impl
             user_repo,
             email_client,
             token_client,
-            gitdot_private_key,
         }
     }
 }
@@ -148,19 +144,34 @@ where
         self.session_repo.mark_auth_code_used(auth_code.id).await?;
         self.user_repo.verify_email(auth_code.user_id).await?;
 
-        // TODO: add gitdot specific fields and move this logic into the token client
+        let user = self
+            .user_repo
+            .get_by_id(auth_code.user_id)
+            .await?
+            .ok_or(AuthenticationError::AuthCodeNotFound)?;
+        let orgs = self
+            .user_repo
+            .get_org_memberships(auth_code.user_id)
+            .await?;
         let now = Utc::now().timestamp() as usize;
-        let claims = JwtClaims {
+        let claims = GitdotClaims {
             iss: GITDOT_SERVER_ID.to_string(),
             aud: vec![GITDOT_SERVER_ID.to_string()],
-            sub: auth_code.user_id.to_string(),
+            sub: user.id.to_string(),
             iat: now,
-            exp: now + 3600, // 1 hour
+            exp: now + 3600,
+            user_metadata: UserMetadata {
+                username: user.name,
+                orgs: orgs
+                    .iter()
+                    .map(|(name, role)| format!("{name}:{role}"))
+                    .collect(),
+            },
         };
-        let encoding_key = EncodingKey::from_ed_pem(self.gitdot_private_key.as_bytes())
-            .map_err(|e| AuthenticationError::EmailError(e.to_string()))?;
-        let access_token = encode(&Header::new(Algorithm::EdDSA), &claims, &encoding_key)
-            .map_err(|e| AuthenticationError::EmailError(e.to_string()))?;
+        let access_token = self
+            .token_client
+            .generate_jwt(&claims)
+            .map_err(AuthenticationError::JwtError)?;
 
         let (refresh_token, refresh_token_hash) = self.token_client.generate_high_entropic_code();
         let refresh_expiry = Utc::now() + Duration::days(30);
@@ -218,12 +229,10 @@ where
             iat: now,
             exp: now + request.duration.as_secs() as usize,
         };
-
-        let encoding_key = EncodingKey::from_ed_pem(self.gitdot_private_key.as_bytes())
-            .map_err(|e| AuthorizationError::InvalidPublicKey(e.to_string()))?;
-
-        let token = encode(&Header::new(Algorithm::EdDSA), &claims, &encoding_key)
-            .map_err(|e| AuthorizationError::InvalidToken(e.to_string()))?;
+        let token = self
+            .token_client
+            .generate_jwt(&claims)
+            .map_err(AuthorizationError::InvalidToken)?;
 
         Ok(IssueTaskJwtResponse { token })
     }

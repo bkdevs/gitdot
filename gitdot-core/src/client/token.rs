@@ -1,5 +1,7 @@
 use base64::{Engine, engine::general_purpose::URL_SAFE_NO_PAD};
+use jsonwebtoken::{Algorithm, EncodingKey, Header, encode};
 use rand::RngExt as _;
+use serde::Serialize;
 
 use crate::{model::TokenType, util::crypto::hash_string};
 
@@ -24,14 +26,19 @@ pub trait TokenClient: Send + Sync + Clone + 'static {
     // Token operations
     fn generate_access_token(&self, token_type: &TokenType) -> (String, String);
     fn validate_token_format(&self, token: &str) -> bool;
+
+    // JWT operations
+    fn generate_jwt<T: Serialize + Send + Sync>(&self, claims: &T) -> Result<String, String>;
 }
 
 #[derive(Debug, Clone)]
-pub struct TokenClientImpl;
+pub struct TokenClientImpl {
+    gitdot_private_key: String,
+}
 
 impl TokenClientImpl {
-    pub fn new() -> Self {
-        Self
+    pub fn new(gitdot_private_key: String) -> Self {
+        Self { gitdot_private_key }
     }
 
     fn base62_encode_padded(&self, value: u128, width: usize) -> String {
@@ -123,6 +130,12 @@ impl TokenClient for TokenClientImpl {
         let expected_crc = crc32fast::hash(&body_bytes);
         expected_crc as u128 == crc_val
     }
+
+    fn generate_jwt<T: Serialize + Send + Sync>(&self, claims: &T) -> Result<String, String> {
+        let encoding_key = EncodingKey::from_ed_pem(self.gitdot_private_key.as_bytes())
+            .map_err(|e| e.to_string())?;
+        encode(&Header::new(Algorithm::EdDSA), claims, &encoding_key).map_err(|e| e.to_string())
+    }
 }
 
 #[cfg(test)]
@@ -130,7 +143,7 @@ mod tests {
     use super::*;
 
     fn client() -> TokenClientImpl {
-        TokenClientImpl::new()
+        TokenClientImpl::new(String::new())
     }
 
     #[test]

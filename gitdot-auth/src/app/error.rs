@@ -28,6 +28,7 @@ impl IntoResponse for AppError {
                     AuthenticationError::AuthCodeNotFound => StatusCode::NOT_FOUND,
                     AuthenticationError::AuthCodeAlreadyUsed => StatusCode::GONE,
                     AuthenticationError::AuthCodeExpired => StatusCode::GONE,
+                    AuthenticationError::JwtError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                     AuthenticationError::EmailError(_) => StatusCode::BAD_GATEWAY,
                     AuthenticationError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                 };

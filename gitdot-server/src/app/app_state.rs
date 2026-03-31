@@ -86,7 +86,7 @@ impl AppState {
         );
         let gitdot_private_key = secret_client.get_gitdot_private_key().await?;
         let s2_client = S2ClientImpl::new(&settings.s2_server_url, gitdot_private_key.clone());
-        let token_client = TokenClientImpl::new();
+        let token_client = TokenClientImpl::new(gitdot_private_key.clone());
         let email_client = ResendClient::new(&settings.resend_api_key);
 
         let vercel_jwks = {
@@ -108,7 +108,6 @@ impl AppState {
                 user_repo.clone(),
                 email_client.clone(),
                 token_client.clone(),
-                gitdot_private_key,
             )),
             authorization_service: Arc::new(AuthorizationServiceImpl::new(
                 org_repo.clone(),

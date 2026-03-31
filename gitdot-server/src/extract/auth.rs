@@ -10,9 +10,10 @@ use jsonwebtoken::{Algorithm, DecodingKey, Validation, decode};
 use uuid::Uuid;
 
 use gitdot_core::{
-    dto::{GITDOT_SERVER_ID, JwtClaims, ValidateTokenRequest},
+    dto::{JwtClaims, ValidateTokenRequest},
     error::AuthorizationError,
     model::TokenType,
+    util::auth::GITDOT_SERVER_ID,
 };
 
 use crate::app::{AppError, AppState};

@@ -1,5 +1,8 @@
 use std::{collections::HashSet, sync::LazyLock};
 
+pub const GITDOT_SERVER_ID: &str = "gitdot-server";
+pub const S2_SERVER_ID: &str = "s2-server";
+
 // TODO: make configurable
 pub const NOREPLY_EMAIL: &str = "gitdot <noreply@gitdot.io>";
 pub const SITE_URL: &str = "https://gitdot.io";

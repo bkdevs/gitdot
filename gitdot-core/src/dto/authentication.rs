@@ -8,9 +8,6 @@ pub use issue_task_jwt::{IssueTaskJwtRequest, IssueTaskJwtResponse};
 pub use send_auth_email::SendAuthEmailRequest;
 pub use verify_auth_code::{VerifyAuthCodeRequest, VerifyAuthCodeResponse};
 
-pub const GITDOT_SERVER_ID: &str = "gitdot-server";
-pub const S2_SERVER_ID: &str = "s2-server";
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct JwtClaims {
     pub iss: String,
@@ -19,6 +16,22 @@ pub struct JwtClaims {
     pub sub: String,
     pub exp: usize,
     pub iat: usize,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct GitdotClaims {
+    pub iss: String,
+    pub aud: Vec<String>,
+    pub sub: String,
+    pub iat: usize,
+    pub exp: usize,
+    pub user_metadata: UserMetadata,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct UserMetadata {
+    pub username: String,
+    pub orgs: Vec<String>,
 }
 
 fn deserialize_aud<'de, D: Deserializer<'de>>(d: D) -> Result<Vec<String>, D::Error> {

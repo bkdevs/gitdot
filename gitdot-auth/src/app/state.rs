@@ -23,7 +23,7 @@ impl AppState {
         let user_repo = UserRepositoryImpl::new(pool.clone());
 
         let email_client = ResendClient::new(&settings.resend_api_key);
-        let token_client = TokenClientImpl::new();
+        let token_client = TokenClientImpl::new(settings.gitdot_private_key.clone());
 
         let authentication_service = Arc::new(AuthenticationServiceImpl::new(
             session_repo,
@@ -31,7 +31,6 @@ impl AppState {
             user_repo,
             email_client,
             token_client,
-            settings.gitdot_private_key.clone(),
         ));
 
         Self {
