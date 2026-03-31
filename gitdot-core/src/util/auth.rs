@@ -1,7 +1,7 @@
 use std::{collections::HashSet, sync::LazyLock};
 
 // TODO: make configurable
-pub const NOREPLY_EMAIL: &str = "noreply@gitdot.io";
+pub const NOREPLY_EMAIL: &str = "gitdot <noreply@gitdot.io>";
 pub const SITE_URL: &str = "https://gitdot.io";
 
 /// Reserved usernames that cannot be used for user or organization names.
