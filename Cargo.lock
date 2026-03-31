@@ -2263,6 +2263,7 @@ dependencies = [
  "anyhow",
  "axum",
  "dotenvy",
+ "gitdot-api",
  "gitdot-core",
  "http 1.4.0",
  "serde",

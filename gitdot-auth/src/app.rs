@@ -1,4 +1,5 @@
 mod bootstrap;
+pub mod error;
 mod settings;
 mod state;
 
@@ -24,7 +25,7 @@ impl GitdotAuthServer {
         let settings = Settings::new()?;
         let pool = PgPool::connect(&settings.database_url).await?;
 
-        let state = AppState::new(pool);
+        let state = AppState::new(pool, &settings);
         let router = create_router(state);
         let listener = net::TcpListener::bind(&settings.get_server_address()).await?;
 
