@@ -12,6 +12,7 @@ pub struct User {
     pub id: Uuid,
     pub name: String,
     pub email: String,
+    pub is_email_verified: bool,
     pub created_at: DateTime<Utc>,
 
     #[sqlx(json(nullable), default)]

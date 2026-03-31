@@ -16,3 +16,14 @@ pub struct Session {
     pub expires_at: DateTime<Utc>,
     pub revoked_at: Option<DateTime<Utc>>,
 }
+
+#[derive(Debug, Clone, FromRow)]
+pub struct AuthCode {
+    pub id: Uuid,
+    pub user_id: Uuid,
+    pub code_hash: String,
+
+    pub created_at: DateTime<Utc>,
+    pub expires_at: DateTime<Utc>,
+    pub used_at: Option<DateTime<Utc>>,
+}
