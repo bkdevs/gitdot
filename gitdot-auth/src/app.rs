@@ -1,5 +1,6 @@
 mod bootstrap;
 pub mod error;
+mod response;
 mod settings;
 mod state;
 
@@ -10,6 +11,7 @@ use tokio::net;
 
 use crate::handler::create_auth_router;
 
+pub use response::AppResponse;
 pub use settings::Settings;
 pub use state::AppState;
 
