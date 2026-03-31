@@ -1,4 +1,5 @@
 mod diff;
+mod email;
 mod git;
 mod git_http;
 mod github;
@@ -7,6 +8,7 @@ mod secret;
 mod token;
 
 pub use diff::{DiffClient, DifftClient};
+pub use email::{EmailClient, ResendClient};
 pub use git::{Git2Client, GitClient};
 pub use git_http::{GitHttpClient, GitHttpClientImpl};
 pub use github::{GitHubClient, OctocrabClient};
