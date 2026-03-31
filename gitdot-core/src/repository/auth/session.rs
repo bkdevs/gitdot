@@ -1,0 +1,91 @@
+use async_trait::async_trait;
+use chrono::{DateTime, Utc};
+use sqlx::{Error, PgPool};
+use uuid::Uuid;
+
+use crate::model::{AuthCode, Session};
+
+#[async_trait]
+pub trait SessionRepository: Send + Sync + Clone + 'static {
+    async fn create_auth_code(
+        &self,
+        user_id: Uuid,
+        code_hash: &str,
+        expires_at: DateTime<Utc>,
+    ) -> Result<AuthCode, Error>;
+
+    async fn create_session(
+        &self,
+        user_id: Uuid,
+        refresh_token_hash: &str,
+        refresh_token_family: Uuid,
+        user_agent: Option<&str>,
+        ip_address: Option<&str>,
+        expires_at: DateTime<Utc>,
+    ) -> Result<Session, Error>;
+}
+
+#[derive(Debug, Clone)]
+pub struct SessionRepositoryImpl {
+    pool: PgPool,
+}
+
+impl SessionRepositoryImpl {
+    pub fn new(pool: PgPool) -> SessionRepositoryImpl {
+        SessionRepositoryImpl { pool }
+    }
+}
+
+#[crate::instrument_all(level = "debug")]
+#[async_trait]
+impl SessionRepository for SessionRepositoryImpl {
+    async fn create_auth_code(
+        &self,
+        user_id: Uuid,
+        code_hash: &str,
+        expires_at: DateTime<Utc>,
+    ) -> Result<AuthCode, Error> {
+        let auth_code = sqlx::query_as::<_, AuthCode>(
+            r#"
+            INSERT INTO auth_codes (user_id, code_hash, expires_at)
+            VALUES ($1, $2, $3)
+            RETURNING *
+            "#,
+        )
+        .bind(user_id)
+        .bind(code_hash)
+        .bind(expires_at)
+        .fetch_one(&self.pool)
+        .await?;
+
+        Ok(auth_code)
+    }
+
+    async fn create_session(
+        &self,
+        user_id: Uuid,
+        refresh_token_hash: &str,
+        refresh_token_family: Uuid,
+        user_agent: Option<&str>,
+        ip_address: Option<&str>,
+        expires_at: DateTime<Utc>,
+    ) -> Result<Session, Error> {
+        let session = sqlx::query_as::<_, Session>(
+            r#"
+            INSERT INTO sessions (user_id, refresh_token_hash, refresh_token_family, user_agent, ip_address, expires_at)
+            VALUES ($1, $2, $3, $4, $5, $6)
+            RETURNING *
+            "#,
+        )
+        .bind(user_id)
+        .bind(refresh_token_hash)
+        .bind(refresh_token_family)
+        .bind(user_agent)
+        .bind(ip_address)
+        .bind(expires_at)
+        .fetch_one(&self.pool)
+        .await?;
+
+        Ok(session)
+    }
+}
