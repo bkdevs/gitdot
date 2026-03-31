@@ -81,7 +81,7 @@ impl AppResponse<()> {
             .path("/auth/refresh")
             .max_age(time::Duration::ZERO);
 
-        Self::new(StatusCode::OK, ())
+        Self::new(StatusCode::NO_CONTENT, ())
             .with_header("set-cookie", &access_cookie.to_string())
             .with_header("set-cookie", &refresh_cookie.to_string())
     }
