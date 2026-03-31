@@ -4,10 +4,21 @@ mod response;
 mod settings;
 mod state;
 
+use std::time::Duration;
+
 use anyhow::Context;
 use axum::{Router, routing::get};
+use http::StatusCode;
 use sqlx::PgPool;
 use tokio::net;
+use tower::ServiceBuilder;
+use tower_governor::{GovernorLayer, governor::GovernorConfigBuilder};
+use tower_http::{
+    cors::{AllowOrigin, CorsLayer},
+    request_id::{MakeRequestUuid, PropagateRequestIdLayer, SetRequestIdLayer},
+    timeout::TimeoutLayer,
+    trace::TraceLayer,
+};
 
 use crate::handler::create_auth_router;
 
@@ -47,8 +58,37 @@ impl GitdotAuthServer {
 }
 
 fn create_router(state: AppState) -> Router {
+    let governor_config = GovernorConfigBuilder::default()
+        .per_second(2)
+        .burst_size(10)
+        .finish()
+        .expect("Failed to build governor config");
+
+    let middleware = ServiceBuilder::new()
+        .layer(SetRequestIdLayer::x_request_id(MakeRequestUuid))
+        .layer(TraceLayer::new_for_http())
+        .layer(
+            CorsLayer::new()
+                .allow_origin(AllowOrigin::list([
+                    "https://gitdot.io".parse().unwrap(),
+                    "http://localhost:3000".parse().unwrap(),
+                ]))
+                .allow_methods([http::Method::GET, http::Method::POST])
+                .allow_headers([http::header::CONTENT_TYPE, http::header::COOKIE])
+                .allow_credentials(true),
+        )
+        .layer(TimeoutLayer::with_status_code(
+            StatusCode::REQUEST_TIMEOUT,
+            Duration::from_secs(10),
+        ))
+        .layer(GovernorLayer {
+            config: governor_config.into(),
+        })
+        .layer(PropagateRequestIdLayer::x_request_id());
+
     Router::new()
         .route("/health", get(|| async { "OK" }))
         .merge(create_auth_router())
+        .layer(middleware)
         .with_state(state)
 }
