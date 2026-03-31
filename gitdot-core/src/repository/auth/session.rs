@@ -14,6 +14,10 @@ pub trait SessionRepository: Send + Sync + Clone + 'static {
         expires_at: DateTime<Utc>,
     ) -> Result<AuthCode, Error>;
 
+    async fn get_auth_code_by_hash(&self, code_hash: &str) -> Result<Option<AuthCode>, Error>;
+
+    async fn mark_auth_code_used(&self, id: Uuid) -> Result<(), Error>;
+
     async fn create_session(
         &self,
         user_id: Uuid,
@@ -59,6 +63,32 @@ impl SessionRepository for SessionRepositoryImpl {
         .await?;
 
         Ok(auth_code)
+    }
+
+    async fn get_auth_code_by_hash(&self, code_hash: &str) -> Result<Option<AuthCode>, Error> {
+        let auth_code = sqlx::query_as::<_, AuthCode>(
+            r#"
+            SELECT * FROM auth_codes WHERE code_hash = $1
+            "#,
+        )
+        .bind(code_hash)
+        .fetch_optional(&self.pool)
+        .await?;
+
+        Ok(auth_code)
+    }
+
+    async fn mark_auth_code_used(&self, id: Uuid) -> Result<(), Error> {
+        sqlx::query(
+            r#"
+            UPDATE auth_codes SET used_at = NOW() WHERE id = $1
+            "#,
+        )
+        .bind(id)
+        .execute(&self.pool)
+        .await?;
+
+        Ok(())
     }
 
     async fn create_session(

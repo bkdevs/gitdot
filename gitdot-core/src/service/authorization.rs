@@ -453,6 +453,7 @@ mod tests {
             async fn get_by_id(&self, id: Uuid) -> Result<Option<User>, sqlx::Error>;
             async fn get_by_email(&self, email: &str) -> Result<Option<User>, sqlx::Error>;
             async fn get_by_emails(&self, emails: &[String]) -> Result<Vec<User>, sqlx::Error>;
+            async fn verify_email(&self, id: Uuid) -> Result<(), sqlx::Error>;
             async fn get_settings(&self, id: Uuid) -> Result<Option<UserSettings>, sqlx::Error>;
             async fn update_settings(&self, id: Uuid, settings: UserSettings) -> Result<Option<UserSettings>, sqlx::Error>;
             async fn is_name_taken(&self, name: &str) -> Result<bool, sqlx::Error>;

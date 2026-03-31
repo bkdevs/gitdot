@@ -6,7 +6,8 @@ use crate::{
     client::{EmailClient, ResendClient, TokenClient, TokenClientImpl},
     dto::{
         GITDOT_SERVER_ID, IssueTaskJwtRequest, IssueTaskJwtResponse, JwtClaims, S2_SERVER_ID,
-        SendAuthEmailRequest, ValidateTokenRequest, ValidateTokenResponse,
+        SendAuthEmailRequest, ValidateTokenRequest, ValidateTokenResponse, VerifyAuthCodeRequest,
+        VerifyAuthCodeResponse,
     },
     error::{AuthenticationError, AuthorizationError},
     repository::{
@@ -25,6 +26,11 @@ pub trait AuthenticationService: Send + Sync + 'static {
         &self,
         request: SendAuthEmailRequest,
     ) -> Result<(), AuthenticationError>;
+
+    async fn verify_auth_code(
+        &self,
+        request: VerifyAuthCodeRequest,
+    ) -> Result<VerifyAuthCodeResponse, AuthenticationError>;
 
     async fn validate_token(
         &self,
@@ -119,6 +125,60 @@ where
             .map_err(|e| AuthenticationError::EmailError(e.to_string()))?;
 
         Ok(())
+    }
+
+    async fn verify_auth_code(
+        &self,
+        request: VerifyAuthCodeRequest,
+    ) -> Result<VerifyAuthCodeResponse, AuthenticationError> {
+        let code_hash = hash_string(&request.code);
+        let auth_code = self
+            .session_repo
+            .get_auth_code_by_hash(&code_hash)
+            .await?
+            .ok_or(AuthenticationError::AuthCodeNotFound)?;
+
+        if auth_code.used_at.is_some() {
+            return Err(AuthenticationError::AuthCodeAlreadyUsed);
+        }
+        if auth_code.expires_at < Utc::now() {
+            return Err(AuthenticationError::AuthCodeExpired);
+        }
+
+        self.session_repo.mark_auth_code_used(auth_code.id).await?;
+        self.user_repo.verify_email(auth_code.user_id).await?;
+
+        // TODO: add gitdot specific fields and move this logic into the token client
+        let now = Utc::now().timestamp() as usize;
+        let claims = JwtClaims {
+            iss: GITDOT_SERVER_ID.to_string(),
+            aud: vec![GITDOT_SERVER_ID.to_string()],
+            sub: auth_code.user_id.to_string(),
+            iat: now,
+            exp: now + 3600, // 1 hour
+        };
+        let encoding_key = EncodingKey::from_ed_pem(self.gitdot_private_key.as_bytes())
+            .map_err(|e| AuthenticationError::EmailError(e.to_string()))?;
+        let access_token = encode(&Header::new(Algorithm::EdDSA), &claims, &encoding_key)
+            .map_err(|e| AuthenticationError::EmailError(e.to_string()))?;
+
+        let (refresh_token, refresh_token_hash) = self.token_client.generate_high_entropic_code();
+        let refresh_expiry = Utc::now() + Duration::days(30);
+        self.session_repo
+            .create_session(
+                auth_code.user_id,
+                &refresh_token_hash,
+                uuid::Uuid::new_v4(),
+                request.user_agent.as_deref(),
+                request.ip_address.as_ref().map(|ip| ip.as_ref()),
+                refresh_expiry,
+            )
+            .await?;
+
+        Ok(VerifyAuthCodeResponse {
+            access_token,
+            refresh_token,
+        })
     }
 
     async fn validate_token(

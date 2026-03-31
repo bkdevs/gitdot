@@ -27,6 +27,8 @@ pub trait UserRepository: Send + Sync + Clone + 'static {
         settings: UserSettings,
     ) -> Result<Option<UserSettings>, Error>;
 
+    async fn verify_email(&self, id: Uuid) -> Result<(), Error>;
+
     async fn is_name_taken(&self, name: &str) -> Result<bool, Error>;
 
     async fn is_email_taken(&self, email: &str) -> Result<bool, Error>;
@@ -159,6 +161,19 @@ impl UserRepository for UserRepositoryImpl {
             json.and_then(|v| serde_json::from_value(v).ok())
                 .unwrap_or_default(),
         ))
+    }
+
+    async fn verify_email(&self, id: Uuid) -> Result<(), Error> {
+        sqlx::query(
+            r#"
+            UPDATE users SET is_email_verified = true WHERE id = $1
+            "#,
+        )
+        .bind(id)
+        .execute(&self.pool)
+        .await?;
+
+        Ok(())
     }
 
     async fn is_name_taken(&self, name: &str) -> Result<bool, Error> {

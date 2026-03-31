@@ -5,6 +5,15 @@ pub enum AuthenticationError {
     #[error("Invalid email: {0}")]
     InvalidEmail(String),
 
+    #[error("Auth code not found")]
+    AuthCodeNotFound,
+
+    #[error("Auth code already used")]
+    AuthCodeAlreadyUsed,
+
+    #[error("Auth code expired")]
+    AuthCodeExpired,
+
     #[error("Email error: {0}")]
     EmailError(String),
 
