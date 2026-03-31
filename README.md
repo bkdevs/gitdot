@@ -34,7 +34,7 @@ We view AI as an implementation detail, not as a feature. We also question some 
 
 **6. When will gitdot be ready?**
 
-March 31st, 2026. \
+May 1st, 2026. \
 Every week, we will publish a developer log to detail not only our progress, but our thinking in full. These will be strikingly forthright; we want the *why* behind our product decisions to be critiqued and understood.
 
 ---

@@ -93,7 +93,7 @@ export default function Home() {
         <div className="mb-4">
           <p className="font-semibold text-lg">6. When will gitdot be ready?</p>
           <p>
-            March 31st, 2026. <br />
+            May 1st, 2026. <br />
             Every week, we will publish a developer log to detail not only our
             progress, but our thinking in full. These will be strikingly
             forthright; we want the <i>why</i> behind our product decisions to
