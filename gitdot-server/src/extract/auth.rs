@@ -111,10 +111,11 @@ impl Authenticator for UserJwt {
         let jwt = header
             .strip_prefix("Bearer ")
             .ok_or(AuthorizationError::InvalidHeaderFormat)?;
-        let mut validation = Validation::new(Algorithm::ES256);
-        validation.set_audience(&["authenticated"]);
 
-        let key = DecodingKey::from_ec_pem(app_state.settings.supabase_jwt_public_key.as_bytes())
+        let mut validation = Validation::new(Algorithm::EdDSA);
+        validation.set_audience(&[GITDOT_SERVER_ID]);
+
+        let key = DecodingKey::from_ed_pem(app_state.settings.gitdot_public_key.as_bytes())
             .map_err(|e| AuthorizationError::InvalidPublicKey(e.to_string()))?;
         let jwt_data = decode::<JwtClaims>(jwt, &key, &validation)
             .map_err(|e| AuthorizationError::InvalidToken(e.to_string()))?;
