@@ -9,6 +9,9 @@ impl IntoApi for AuthTokensResponse {
         AuthTokensResource {
             access_token: self.access_token,
             refresh_token: self.refresh_token,
+            access_token_expires_in: self.access_token_expires_in,
+            refresh_token_expires_in: self.refresh_token_expires_in,
+            is_new: self.is_new,
         }
     }
 }

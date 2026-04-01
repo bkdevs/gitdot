@@ -11,7 +11,7 @@ use axum::{
 use crate::app::AppState;
 
 use email::{send::send_auth_email, verify::verify_auth_code};
-use github::redirect::redirect_to_github_auth;
+use github::{exchange::exchange_github_code, redirect::redirect_to_github_auth};
 use logout::logout;
 use refresh_session::refresh_session;
 
@@ -20,6 +20,7 @@ pub fn create_auth_router() -> Router<AppState> {
         .route("/auth/email/send", post(send_auth_email))
         .route("/auth/email/verify", post(verify_auth_code))
         .route("/auth/github/redirect", get(redirect_to_github_auth))
+        .route("/auth/github/exchange", post(exchange_github_code))
         .route("/auth/refresh", post(refresh_session))
         .route("/auth/logout", post(logout))
 }

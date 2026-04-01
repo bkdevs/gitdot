@@ -32,10 +32,11 @@ impl AppState {
             settings.github_app_id,
             settings.github_app_private_key.clone(),
             settings.github_client_id.clone(),
+            settings.github_client_secret.clone(),
         );
 
         let authentication_service = Arc::new(AuthenticationServiceImpl::new(
-            session_repo,
+            session_repo.clone(),
             token_repo.clone(),
             user_repo.clone(),
             email_client,
@@ -43,6 +44,7 @@ impl AppState {
         ));
         let oauth_service = Arc::new(OAuthServiceImpl::new(
             code_repo,
+            session_repo,
             token_repo,
             user_repo,
             github_client,

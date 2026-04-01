@@ -84,6 +84,7 @@ impl AppState {
             secret_client.get_github_app_id().await?,
             secret_client.get_github_app_private_key().await?,
             String::new(), // TODO: add github_client_id from settings
+            String::new(), // TODO: add github_client_secret from settings
         );
         let gitdot_private_key = secret_client.get_gitdot_private_key().await?;
         let s2_client = S2ClientImpl::new(&settings.s2_server_url, gitdot_private_key.clone());
@@ -99,6 +100,7 @@ impl AppState {
             settings,
             oauth_service: Arc::new(OAuthServiceImpl::new(
                 code_repo.clone(),
+                session_repo.clone(),
                 token_repo.clone(),
                 user_repo.clone(),
                 github_client.clone(),
