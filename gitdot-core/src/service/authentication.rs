@@ -169,8 +169,7 @@ where
         let (subject, html) = get_auth_email(is_signup, &code);
         self.email_client
             .send_email(NOREPLY_EMAIL, &email, &subject, &html)
-            .await
-            .map_err(|e| AuthenticationError::EmailError(e.to_string()))?;
+            .await?;
 
         Ok(())
     }

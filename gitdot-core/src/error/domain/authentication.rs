@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-use crate::error::{GitHubError, InputError};
+use crate::error::{EmailError, GitHubError, InputError};
 
 #[derive(Debug, Error)]
 pub enum AuthenticationError {
@@ -43,10 +43,10 @@ pub enum AuthenticationError {
     #[error("JWT error: {0}")]
     JwtError(String),
 
-    #[error("Email error: {0}")]
-    EmailError(String),
+    #[error(transparent)]
+    EmailError(#[from] EmailError),
 
-    #[error("GitHub error: {0}")]
+    #[error(transparent)]
     GitHubError(#[from] GitHubError),
 
     #[error("Database error: {0}")]

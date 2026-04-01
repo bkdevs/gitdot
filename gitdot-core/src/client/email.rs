@@ -1,5 +1,7 @@
 use async_trait::async_trait;
-use resend_rs::{Error, Resend, types::CreateEmailBaseOptions};
+use resend_rs::{Resend, types::CreateEmailBaseOptions};
+
+use crate::error::EmailError;
 
 #[async_trait]
 pub trait EmailClient: Send + Sync + Clone + 'static {
@@ -9,7 +11,7 @@ pub trait EmailClient: Send + Sync + Clone + 'static {
         to: &str,
         subject: &str,
         html: &str,
-    ) -> Result<(), Error>;
+    ) -> Result<(), EmailError>;
 }
 
 #[derive(Debug, Clone)]
@@ -33,7 +35,7 @@ impl EmailClient for ResendClient {
         to: &str,
         subject: &str,
         html: &str,
-    ) -> Result<(), Error> {
+    ) -> Result<(), EmailError> {
         let options = CreateEmailBaseOptions::new(from, [to], subject).with_html(html);
         self.resend.emails.send(options).await?;
         Ok(())
