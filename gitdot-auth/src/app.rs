@@ -50,9 +50,13 @@ impl GitdotAuthServer {
             "Starting auth server on {}",
             self.listener.local_addr().unwrap()
         );
-        axum::serve(self.listener, self.router)
-            .await
-            .context("Failed to start auth server")?;
+        axum::serve(
+            self.listener,
+            self.router
+                .into_make_service_with_connect_info::<std::net::SocketAddr>(),
+        )
+        .await
+        .context("Failed to start auth server")?;
         Ok(())
     }
 }
