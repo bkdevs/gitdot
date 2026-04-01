@@ -1,29 +1,17 @@
 use thiserror::Error;
 
-use crate::error::{DiffError, GitError as Git2Error};
+use crate::error::{ConflictError, DiffError, GitError as Git2Error, InputError, NotFoundError};
 
 #[derive(Debug, Error)]
 pub enum RepositoryError {
-    #[error("Repository '{0}' already exists for this owner")]
-    Duplicate(String),
+    #[error(transparent)]
+    Input(#[from] InputError),
 
-    #[error("Repository not found: {0}")]
-    NotFound(String),
+    #[error(transparent)]
+    NotFound(#[from] NotFoundError),
 
-    #[error("Owner not found: {0}")]
-    OwnerNotFound(String),
-
-    #[error("Invalid owner name: {0}")]
-    InvalidOwnerName(String),
-
-    #[error("Invalid repository name: {0}")]
-    InvalidRepositoryName(String),
-
-    #[error("Invalid owner type: {0}")]
-    InvalidOwnerType(String),
-
-    #[error("Invalid visibility: {0}")]
-    InvalidVisibility(String),
+    #[error(transparent)]
+    Conflict(#[from] ConflictError),
 
     #[error("When 'refs' is specified, 'paths' must contain exactly one entry")]
     TooManyPaths,
@@ -44,7 +32,9 @@ pub enum RepositoryError {
 impl From<Git2Error> for RepositoryError {
     fn from(e: Git2Error) -> Self {
         match e {
-            Git2Error::NotFound(path) => RepositoryError::NotFound(path),
+            Git2Error::NotFound(path) => {
+                RepositoryError::NotFound(NotFoundError::new("repository", path))
+            }
             other => RepositoryError::GitError(other),
         }
     }

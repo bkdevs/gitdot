@@ -1,23 +1,14 @@
 use thiserror::Error;
 
-use crate::error::{DiffError, GitError};
+use crate::error::{DiffError, GitError, InputError, NotFoundError};
 
 #[derive(Debug, Error)]
 pub enum CommitError {
-    #[error("Invalid owner name: {0}")]
-    InvalidOwnerName(String),
+    #[error(transparent)]
+    Input(#[from] InputError),
 
-    #[error("Invalid repository name: {0}")]
-    InvalidRepositoryName(String),
-
-    #[error("Invalid date range: {0}")]
-    InvalidDateRange(String),
-
-    #[error("Commit not found: {0}")]
-    NotFound(String),
-
-    #[error("Repository not found: {0}")]
-    RepositoryNotFound(String),
+    #[error(transparent)]
+    NotFound(#[from] NotFoundError),
 
     #[error("Git error: {0}")]
     GitError(#[from] GitError),

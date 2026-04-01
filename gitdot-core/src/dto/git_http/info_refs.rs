@@ -1,6 +1,6 @@
 use crate::{
     dto::{GitService, OwnerName, RepositoryName},
-    error::GitHttpError,
+    error::{GitHttpError, InputError},
 };
 
 #[derive(Debug, Clone)]
@@ -13,12 +13,11 @@ pub struct InfoRefsRequest {
 impl InfoRefsRequest {
     pub fn new(owner: &str, repo: &str, service: &str) -> Result<Self, GitHttpError> {
         Ok(Self {
-            owner: OwnerName::try_new(owner)
-                .map_err(|e| GitHttpError::InvalidOwnerName(e.to_string()))?,
+            owner: OwnerName::try_new(owner).map_err(|e| InputError::new("owner name", e))?,
             repo: RepositoryName::try_new(repo)
-                .map_err(|e| GitHttpError::InvalidRepositoryName(e.to_string()))?,
+                .map_err(|e| InputError::new("repository name", e))?,
             service: GitService::try_new(service.to_string())
-                .map_err(|e| GitHttpError::InvalidService(e.to_string()))?,
+                .map_err(|e| InputError::new("service", e))?,
         })
     }
 }
@@ -58,31 +57,28 @@ mod tests {
         fn rejects_invalid_owner() {
             let result = InfoRefsRequest::new("invalid@owner", "my-repo", "git-upload-pack");
 
-            assert!(matches!(result, Err(GitHttpError::InvalidOwnerName(_))));
+            assert!(matches!(result, Err(GitHttpError::Input(_))));
         }
 
         #[test]
         fn rejects_invalid_repo() {
             let result = InfoRefsRequest::new("johndoe", "invalid/repo", "git-upload-pack");
 
-            assert!(matches!(
-                result,
-                Err(GitHttpError::InvalidRepositoryName(_))
-            ));
+            assert!(matches!(result, Err(GitHttpError::Input(_))));
         }
 
         #[test]
         fn rejects_invalid_service() {
             let result = InfoRefsRequest::new("johndoe", "my-repo", "invalid-service");
 
-            assert!(matches!(result, Err(GitHttpError::InvalidService(_))));
+            assert!(matches!(result, Err(GitHttpError::Input(_))));
         }
 
         #[test]
         fn rejects_empty_service() {
             let result = InfoRefsRequest::new("johndoe", "my-repo", "");
 
-            assert!(matches!(result, Err(GitHttpError::InvalidService(_))));
+            assert!(matches!(result, Err(GitHttpError::Input(_))));
         }
     }
 }

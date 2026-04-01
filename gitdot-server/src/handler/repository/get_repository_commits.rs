@@ -7,7 +7,7 @@ use chrono::Utc;
 use gitdot_api::endpoint::get_repository_commits as api;
 use gitdot_core::{
     dto::{GetCommitsRequest, RepositoryAuthorizationRequest, RepositoryPermission},
-    error::CommitError,
+    error::{CommitError, InputError},
 };
 
 use crate::{
@@ -36,9 +36,9 @@ pub async fn get_repository_commits(
         .await?;
 
     if params.to.is_some() && params.from.is_none() {
-        return Err(AppError::Commit(CommitError::InvalidDateRange(
-            "`to` requires `from` to be set".into(),
-        )));
+        let err: CommitError =
+            InputError::new("date range", "`to` requires `from` to be set").into();
+        return Err(err.into());
     }
 
     let now = Utc::now();

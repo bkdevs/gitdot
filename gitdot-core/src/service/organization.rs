@@ -6,7 +6,7 @@ use crate::{
         ListOrganizationRepositoriesRequest, OrganizationMemberResponse, OrganizationResponse,
         RepositoryResponse,
     },
-    error::OrganizationError,
+    error::{ConflictError, NotFoundError, OrganizationError},
     repository::{
         OrganizationRepository, OrganizationRepositoryImpl, RepositoryRepository,
         RepositoryRepositoryImpl, UserRepository, UserRepositoryImpl,
@@ -89,10 +89,10 @@ where
     ) -> Result<OrganizationResponse, OrganizationError> {
         let org_name = request.org_name.to_string();
         if self.org_repo.get(&org_name).await?.is_some() {
-            return Err(OrganizationError::Duplicate(org_name));
+            return Err(ConflictError::new("organization", &org_name).into());
         }
         if self.user_repo.get(&org_name).await?.is_some() {
-            return Err(OrganizationError::Duplicate(org_name));
+            return Err(ConflictError::new("organization", &org_name).into());
         }
 
         let org = self.org_repo.create(&org_name, request.owner_id).await?;
@@ -108,7 +108,7 @@ where
             .org_repo
             .get(&org_name)
             .await?
-            .ok_or_else(|| OrganizationError::NotFound(org_name))?;
+            .ok_or_else(|| NotFoundError::new("organization", &org_name))?;
         Ok(org.into())
     }
 
@@ -128,12 +128,12 @@ where
             Some(m) => Ok(m.into()),
             None => {
                 if self.org_repo.get(&org_name).await?.is_none() {
-                    return Err(OrganizationError::NotFound(org_name));
+                    return Err(NotFoundError::new("organization", &org_name).into());
                 }
                 if self.user_repo.get(&user_name).await?.is_none() {
-                    return Err(OrganizationError::UserNotFound(user_name));
+                    return Err(NotFoundError::new("user", &user_name).into());
                 }
-                Err(OrganizationError::MemberAlreadyExists(user_name))
+                Err(ConflictError::new("member", &user_name).into())
             }
         }
     }
@@ -152,7 +152,7 @@ where
             .org_repo
             .get(&org_name)
             .await?
-            .ok_or_else(|| OrganizationError::NotFound(org_name.clone()))?;
+            .ok_or_else(|| NotFoundError::new("organization", &org_name))?;
 
         let repositories = self.repo_repo.list_by_owner(&org_name).await?;
 
@@ -177,7 +177,7 @@ where
         self.org_repo
             .get(&org_name)
             .await?
-            .ok_or_else(|| OrganizationError::NotFound(org_name.clone()))?;
+            .ok_or_else(|| NotFoundError::new("organization", &org_name))?;
 
         let members = self.org_repo.list_members(&org_name, request.role).await?;
         Ok(members.into_iter().map(|m| m.into()).collect())

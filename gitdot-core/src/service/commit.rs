@@ -10,7 +10,7 @@ use crate::{
         CommitDiffResponse, CommitResponse, CommitsResponse, CreateCommitsRequest,
         GetCommitDiffRequest, GetCommitRequest, GetCommitsRequest,
     },
-    error::CommitError,
+    error::{CommitError, NotFoundError},
     model,
     repository::{
         CommitRepository, CommitRepositoryImpl, RepositoryRepository, RepositoryRepositoryImpl,
@@ -96,13 +96,13 @@ where
             .repo_repo
             .get(&owner, &repo_name)
             .await?
-            .ok_or_else(|| CommitError::RepositoryNotFound(format!("{}/{}", owner, repo_name)))?;
+            .ok_or_else(|| NotFoundError::new("repository", format!("{}/{}", owner, repo_name)))?;
 
         self.commit_repo
             .get_commit(repository.id, &request.sha)
             .await?
             .map(Into::into)
-            .ok_or_else(|| CommitError::NotFound(request.sha))
+            .ok_or_else(|| CommitError::NotFound(NotFoundError::new("commit", &request.sha)))
     }
 
     async fn get_commit_diff(
@@ -116,13 +116,13 @@ where
             .repo_repo
             .get(&owner, &repo_name)
             .await?
-            .ok_or_else(|| CommitError::RepositoryNotFound(format!("{}/{}", owner, repo_name)))?;
+            .ok_or_else(|| NotFoundError::new("repository", format!("{}/{}", owner, repo_name)))?;
 
         let commit = self
             .commit_repo
             .get_commit(repository.id, &request.sha)
             .await?
-            .ok_or_else(|| CommitError::NotFound(request.sha.clone()))?;
+            .ok_or_else(|| NotFoundError::new("commit", &request.sha))?;
 
         let sha = commit.sha.clone();
         let parent_sha = commit.parent_sha.clone();
@@ -167,7 +167,7 @@ where
             .repo_repo
             .get(&owner, &repo_name)
             .await?
-            .ok_or_else(|| CommitError::RepositoryNotFound(format!("{}/{}", owner, repo_name)))?;
+            .ok_or_else(|| NotFoundError::new("repository", format!("{}/{}", owner, repo_name)))?;
 
         tracing::debug!(
             repo_id = %repository.id,
@@ -204,7 +204,7 @@ where
             .repo_repo
             .get(&owner, &repo_name)
             .await?
-            .ok_or_else(|| CommitError::RepositoryNotFound(format!("{}/{}", owner, repo_name)))?;
+            .ok_or_else(|| NotFoundError::new("repository", format!("{}/{}", owner, repo_name)))?;
         let repo_id = repository.id;
 
         let git_commits = self

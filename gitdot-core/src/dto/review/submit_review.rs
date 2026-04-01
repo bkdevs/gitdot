@@ -1,6 +1,9 @@
 use uuid::Uuid;
 
-use crate::{error::ReviewError, model::CommentSide};
+use crate::{
+    error::{InputError, ReviewError},
+    model::CommentSide,
+};
 
 use super::super::common::{OwnerName, RepositoryName};
 
@@ -47,17 +50,20 @@ impl SubmitReviewRequest {
             "request_changes" => SubmitAction::RequestChanges,
             "comment" => SubmitAction::Comment,
             _ => {
-                return Err(ReviewError::InvalidComment(format!(
-                    "Invalid action: {action}. Must be approve, request_changes, or comment"
-                )));
+                return Err(InputError::new(
+                    "comment",
+                    format!(
+                        "Invalid action: {action}. Must be approve, request_changes, or comment"
+                    ),
+                )
+                .into());
             }
         };
 
         Ok(Self {
-            owner: OwnerName::try_new(owner)
-                .map_err(|e| ReviewError::InvalidOwnerName(e.to_string()))?,
+            owner: OwnerName::try_new(owner).map_err(|e| InputError::new("owner name", e))?,
             repo: RepositoryName::try_new(repo)
-                .map_err(|e| ReviewError::InvalidRepositoryName(e.to_string()))?,
+                .map_err(|e| InputError::new("repository name", e))?,
             number,
             position,
             reviewer_id,
@@ -77,12 +83,16 @@ impl SubmitComment {
         side: Option<&str>,
     ) -> Result<Self, ReviewError> {
         let side = side
-            .map(|s| match s {
-                "old" => Ok(CommentSide::Old),
-                "new" => Ok(CommentSide::New),
-                _ => Err(ReviewError::InvalidComment(format!(
-                    "Invalid side: {s}. Must be old or new"
-                ))),
+            .map(|s| -> Result<CommentSide, ReviewError> {
+                match s {
+                    "old" => Ok(CommentSide::Old),
+                    "new" => Ok(CommentSide::New),
+                    _ => Err(InputError::new(
+                        "comment",
+                        format!("Invalid side: {s}. Must be old or new"),
+                    )
+                    .into()),
+                }
             })
             .transpose()?;
 

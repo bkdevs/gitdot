@@ -3,7 +3,10 @@ use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, Type};
 use uuid::Uuid;
 
-use crate::{error::RepositoryError, model::CommitFilter};
+use crate::{
+    error::{InputError, RepositoryError},
+    model::CommitFilter,
+};
 
 #[derive(Debug, Clone, FromRow)]
 pub struct Repository {
@@ -51,7 +54,7 @@ impl TryFrom<&str> for RepositoryOwnerType {
         match owner_type {
             "user" => Ok(RepositoryOwnerType::User),
             "organization" => Ok(RepositoryOwnerType::Organization),
-            _ => Err(RepositoryError::InvalidOwnerType(owner_type.to_string())),
+            _ => Err(InputError::new("owner type", owner_type).into()),
         }
     }
 }
@@ -80,7 +83,7 @@ impl TryFrom<&str> for RepositoryVisibility {
         match visibility {
             "public" => Ok(RepositoryVisibility::Public),
             "private" => Ok(RepositoryVisibility::Private),
-            _ => Err(RepositoryError::InvalidVisibility(visibility.to_string())),
+            _ => Err(InputError::new("visibility", visibility).into()),
         }
     }
 }

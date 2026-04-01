@@ -1,6 +1,9 @@
 use uuid::Uuid;
 
-use crate::{dto::OwnerName, error::OrganizationError};
+use crate::{
+    dto::OwnerName,
+    error::{InputError, OrganizationError},
+};
 
 #[derive(Debug, Clone)]
 pub struct CreateOrganizationRequest {
@@ -12,7 +15,7 @@ impl CreateOrganizationRequest {
     pub fn new(org_name: &str, owner_id: Uuid) -> Result<Self, OrganizationError> {
         Ok(Self {
             org_name: OwnerName::try_new(org_name)
-                .map_err(|e| OrganizationError::InvalidOrganizationName(e.to_string()))?,
+                .map_err(|e| InputError::new("organization name", e))?,
             owner_id,
         })
     }
@@ -60,10 +63,7 @@ mod tests {
         let owner_id = Uuid::new_v4();
         let result = CreateOrganizationRequest::new("", owner_id);
 
-        assert!(matches!(
-            result,
-            Err(OrganizationError::InvalidOrganizationName(_))
-        ));
+        assert!(matches!(result, Err(OrganizationError::Input(_))));
     }
 
     #[test]
@@ -71,10 +71,7 @@ mod tests {
         let owner_id = Uuid::new_v4();
         let result = CreateOrganizationRequest::new("my@org", owner_id);
 
-        assert!(matches!(
-            result,
-            Err(OrganizationError::InvalidOrganizationName(_))
-        ));
+        assert!(matches!(result, Err(OrganizationError::Input(_))));
     }
 
     #[test]
@@ -82,9 +79,6 @@ mod tests {
         let owner_id = Uuid::new_v4();
         let result = CreateOrganizationRequest::new("-myorg", owner_id);
 
-        assert!(matches!(
-            result,
-            Err(OrganizationError::InvalidOrganizationName(_))
-        ));
+        assert!(matches!(result, Err(OrganizationError::Input(_))));
     }
 }

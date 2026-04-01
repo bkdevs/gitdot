@@ -1,6 +1,6 @@
 use crate::{
     dto::{OwnerName, RepositoryBlobResponse, RepositoryName},
-    error::RepositoryError,
+    error::{InputError, RepositoryError},
 };
 
 #[derive(Debug, Clone)]
@@ -23,9 +23,9 @@ impl GetRepositoryBlobsRequest {
         }
         Ok(Self {
             name: RepositoryName::try_new(repo_name)
-                .map_err(|e| RepositoryError::InvalidRepositoryName(e.to_string()))?,
+                .map_err(|e| InputError::new("repository name", e))?,
             owner_name: OwnerName::try_new(owner_name)
-                .map_err(|e| RepositoryError::InvalidOwnerName(e.to_string()))?,
+                .map_err(|e| InputError::new("owner name", e))?,
             refs,
             paths,
         })

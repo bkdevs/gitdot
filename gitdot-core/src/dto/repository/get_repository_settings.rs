@@ -1,6 +1,6 @@
 use crate::{
     dto::{OwnerName, RepositoryName},
-    error::RepositoryError,
+    error::{InputError, RepositoryError},
     model::CommitFilter,
 };
 
@@ -12,10 +12,9 @@ pub struct GetRepositorySettingsRequest {
 impl GetRepositorySettingsRequest {
     pub fn new(owner: &str, repo: &str) -> Result<Self, RepositoryError> {
         Ok(Self {
-            owner: OwnerName::try_new(owner)
-                .map_err(|e| RepositoryError::InvalidOwnerName(e.to_string()))?,
+            owner: OwnerName::try_new(owner).map_err(|e| InputError::new("owner name", e))?,
             repo: RepositoryName::try_new(repo)
-                .map_err(|e| RepositoryError::InvalidRepositoryName(e.to_string()))?,
+                .map_err(|e| InputError::new("repository name", e))?,
         })
     }
 }

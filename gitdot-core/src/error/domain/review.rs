@@ -1,50 +1,23 @@
 use thiserror::Error;
 
-use crate::error::{DiffError, GitError};
+use crate::error::{ConflictError, DiffError, GitError, InputError, NotFoundError};
 
 #[derive(Debug, Error)]
 pub enum ReviewError {
-    #[error("Invalid owner name: {0}")]
-    InvalidOwnerName(String),
+    #[error(transparent)]
+    Input(#[from] InputError),
 
-    #[error("Invalid repository name: {0}")]
-    InvalidRepositoryName(String),
+    #[error(transparent)]
+    NotFound(#[from] NotFoundError),
 
-    #[error("Invalid ref name: {0}")]
-    InvalidRefName(String),
-
-    #[error("Review not found: {0}")]
-    ReviewNotFound(String),
-
-    #[error("Repository not found: {0}")]
-    RepositoryNotFound(String),
-
-    #[error("User not found: {0}")]
-    UserNotFound(String),
+    #[error(transparent)]
+    Conflict(#[from] ConflictError),
 
     #[error("Cannot add review author as reviewer: {0}")]
     CannotReviewOwnReview(String),
 
-    #[error("Reviewer already exists: {0}")]
-    ReviewerAlreadyExists(String),
-
     #[error("Review is not publishable: {0}")]
     ReviewNotPublishable(String),
-
-    #[error("Reviewer not found: {0}")]
-    ReviewerNotFound(String),
-
-    #[error("Diff not found: {0}")]
-    DiffNotFound(String),
-
-    #[error("Revision not found: {0}")]
-    RevisionNotFound(String),
-
-    #[error("Comment not found: {0}")]
-    CommentNotFound(String),
-
-    #[error("Invalid comment: {0}")]
-    InvalidComment(String),
 
     #[error("Diff is not mergeable: {0}")]
     DiffNotMergeable(String),

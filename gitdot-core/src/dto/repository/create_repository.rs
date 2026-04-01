@@ -2,7 +2,7 @@ use uuid::Uuid;
 
 use crate::{
     dto::{OwnerName, RepositoryName},
-    error::RepositoryError,
+    error::{InputError, RepositoryError},
     model::{RepositoryOwnerType, RepositoryVisibility},
 };
 
@@ -25,10 +25,10 @@ impl CreateRepositoryRequest {
     ) -> Result<Self, RepositoryError> {
         Ok(Self {
             name: RepositoryName::try_new(repo_name)
-                .map_err(|e| RepositoryError::InvalidRepositoryName(e.to_string()))?,
+                .map_err(|e| InputError::new("repository name", e))?,
             user_id,
             owner_name: OwnerName::try_new(owner_name)
-                .map_err(|e| RepositoryError::InvalidOwnerName(e.to_string()))?,
+                .map_err(|e| InputError::new("owner name", e))?,
             owner_type: owner_type.try_into()?,
             visibility: visibility.try_into()?,
         })
@@ -79,10 +79,7 @@ mod tests {
         let result =
             CreateRepositoryRequest::new("invalid/repo", user_id, "johndoe", "user", "public");
 
-        assert!(matches!(
-            result,
-            Err(RepositoryError::InvalidRepositoryName(_))
-        ));
+        assert!(matches!(result, Err(RepositoryError::Input(_))));
     }
 
     #[test]
@@ -91,7 +88,7 @@ mod tests {
         let result =
             CreateRepositoryRequest::new("my-repo", user_id, "invalid@owner", "user", "public");
 
-        assert!(matches!(result, Err(RepositoryError::InvalidOwnerName(_))));
+        assert!(matches!(result, Err(RepositoryError::Input(_))));
     }
 
     #[test]
@@ -100,7 +97,7 @@ mod tests {
         let result =
             CreateRepositoryRequest::new("my-repo", user_id, "johndoe", "invalid", "public");
 
-        assert!(matches!(result, Err(RepositoryError::InvalidOwnerType(_))));
+        assert!(matches!(result, Err(RepositoryError::Input(_))));
     }
 
     #[test]
@@ -108,6 +105,6 @@ mod tests {
         let user_id = Uuid::new_v4();
         let result = CreateRepositoryRequest::new("my-repo", user_id, "johndoe", "user", "invalid");
 
-        assert!(matches!(result, Err(RepositoryError::InvalidVisibility(_))));
+        assert!(matches!(result, Err(RepositoryError::Input(_))));
     }
 }

@@ -1,18 +1,17 @@
 use thiserror::Error;
 
+use crate::error::{ConflictError, InputError, NotFoundError};
+
 #[derive(Debug, Error)]
 pub enum UserError {
-    #[error("Invalid user name: {0}")]
-    InvalidUserName(String),
+    #[error(transparent)]
+    Input(#[from] InputError),
 
-    #[error("User not found: {0}")]
-    NotFound(String),
+    #[error(transparent)]
+    NotFound(#[from] NotFoundError),
 
-    #[error("Name already taken: {0}")]
-    NameTaken(String),
-
-    #[error("Reserved name: {0}")]
-    ReservedName(String),
+    #[error(transparent)]
+    Conflict(#[from] ConflictError),
 
     #[error("Database error: {0}")]
     DatabaseError(#[from] sqlx::Error),

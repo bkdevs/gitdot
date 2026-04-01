@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 use sqlx::{FromRow, Type};
 use uuid::Uuid;
 
-use crate::error::BuildError;
+use crate::error::InputError;
 
 #[derive(Debug, Clone, FromRow)]
 pub struct Build {
@@ -65,14 +65,14 @@ pub enum BuildStatus {
 }
 
 impl TryFrom<&str> for BuildStatus {
-    type Error = BuildError;
+    type Error = InputError;
 
     fn try_from(status: &str) -> Result<Self, Self::Error> {
         match status {
             "running" => Ok(BuildStatus::Running),
             "success" => Ok(BuildStatus::Success),
             "failure" => Ok(BuildStatus::Failure),
-            _ => Err(BuildError::InvalidStatus(status.to_string())),
+            _ => Err(InputError::new("build status", status)),
         }
     }
 }

@@ -1,6 +1,6 @@
 use uuid::Uuid;
 
-use crate::error::ReviewError;
+use crate::error::{InputError, ReviewError};
 
 use super::super::common::{OwnerName, RepositoryName};
 
@@ -24,10 +24,9 @@ impl ResolveReviewCommentRequest {
         resolved: bool,
     ) -> Result<Self, ReviewError> {
         Ok(Self {
-            owner: OwnerName::try_new(owner)
-                .map_err(|e| ReviewError::InvalidOwnerName(e.to_string()))?,
+            owner: OwnerName::try_new(owner).map_err(|e| InputError::new("owner name", e))?,
             repo: RepositoryName::try_new(repo)
-                .map_err(|e| ReviewError::InvalidRepositoryName(e.to_string()))?,
+                .map_err(|e| InputError::new("repository name", e))?,
             number,
             comment_id,
             user_id,

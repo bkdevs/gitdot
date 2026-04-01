@@ -1,6 +1,9 @@
 use uuid::Uuid;
 
-use crate::{dto::OwnerName, error::UserError};
+use crate::{
+    dto::OwnerName,
+    error::{InputError, UserError},
+};
 
 #[derive(Debug, Clone)]
 pub struct ListUserReviewsRequest {
@@ -21,7 +24,7 @@ impl ListUserReviewsRequest {
     ) -> Result<Self, UserError> {
         Ok(Self {
             user_name: OwnerName::try_new(user_name)
-                .map_err(|e| UserError::InvalidUserName(e.to_string()))?,
+                .map_err(|e| InputError::new("user name", e))?,
             viewer_id,
             status,
             owner,

@@ -7,7 +7,7 @@ use crate::{
         OrganizationResponse, RepositoryResponse, ReviewResponse, UpdateCurrentUserRequest,
         UpdateCurrentUserSettingsRequest, UserResponse, UserSettingsResponse,
     },
-    error::UserError,
+    error::{ConflictError, NotFoundError, UserError},
     model::UserSettings,
     repository::{
         OrganizationRepository, OrganizationRepositoryImpl, RepositoryRepository,
@@ -113,7 +113,7 @@ where
             .user_repo
             .get_by_id(request.user_id)
             .await?
-            .ok_or_else(|| UserError::NotFound(request.user_id.to_string()))?;
+            .ok_or_else(|| NotFoundError::new("user", request.user_id))?;
         Ok(user.into())
     }
 
@@ -124,11 +124,11 @@ where
         let name = request.name.to_string();
 
         if is_reserved_name(&name) {
-            return Err(UserError::ReservedName(name));
+            return Err(ConflictError::new("user name", format!("{name} is reserved")).into());
         }
 
         if self.user_repo.is_name_taken(&name).await? {
-            return Err(UserError::NameTaken(name));
+            return Err(ConflictError::new("user name", format!("{name} is already taken")).into());
         }
 
         let user = self.user_repo.update(request.user_id, &name).await?;
@@ -141,7 +141,7 @@ where
         if is_reserved_name(&name) || self.user_repo.is_name_taken(&name).await? {
             return Ok(());
         }
-        Err(UserError::NotFound(name))
+        Err(NotFoundError::new("user", name).into())
     }
 
     async fn get_user(&self, request: GetUserRequest) -> Result<UserResponse, UserError> {
@@ -150,7 +150,7 @@ where
             .user_repo
             .get(&user_name)
             .await?
-            .ok_or_else(|| UserError::NotFound(user_name))?;
+            .ok_or_else(|| NotFoundError::new("user", &user_name))?;
         Ok(user.into())
     }
 
@@ -163,7 +163,7 @@ where
             .user_repo
             .get(&user_name)
             .await?
-            .ok_or_else(|| UserError::NotFound(user_name.clone()))?;
+            .ok_or_else(|| NotFoundError::new("user", &user_name))?;
 
         let repositories = self.repo_repo.list_by_owner(&user_name).await?;
 
@@ -186,7 +186,7 @@ where
             .user_repo
             .get(&user_name)
             .await?
-            .ok_or_else(|| UserError::NotFound(user_name))?;
+            .ok_or_else(|| NotFoundError::new("user", &user_name))?;
 
         let orgs = self.org_repo.list_by_user_id(user.id).await?;
         Ok(orgs.into_iter().map(|o| o.into()).collect())
@@ -229,7 +229,7 @@ where
             .user_repo
             .update_settings(request.user_id, patch)
             .await?
-            .ok_or_else(|| UserError::NotFound(request.user_id.to_string()))?;
+            .ok_or_else(|| NotFoundError::new("user", request.user_id))?;
         Ok(settings.into())
     }
 }

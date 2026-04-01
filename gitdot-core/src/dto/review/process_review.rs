@@ -2,7 +2,7 @@ use uuid::Uuid;
 
 use crate::{
     dto::{OwnerName, RepositoryName},
-    error::ReviewError,
+    error::{InputError, ReviewError},
     util::review::MAGIC_REF_PREFIX,
 };
 
@@ -27,10 +27,9 @@ impl ProcessReviewRequest {
         let (target_branch, review_number) = Self::parse_ref(ref_name)?;
 
         Ok(Self {
-            owner: OwnerName::try_new(owner)
-                .map_err(|e| ReviewError::InvalidOwnerName(e.to_string()))?,
+            owner: OwnerName::try_new(owner).map_err(|e| InputError::new("owner name", e))?,
             repo: RepositoryName::try_new(repo)
-                .map_err(|e| ReviewError::InvalidRepositoryName(e.to_string()))?,
+                .map_err(|e| InputError::new("repository name", e))?,
             target_branch,
             review_number,
             new_sha,
@@ -50,15 +49,17 @@ impl ProcessReviewRequest {
             .and_then(|r| r.strip_prefix('/'))
             .filter(|r| !r.is_empty())
             .ok_or_else(|| {
-                ReviewError::InvalidRefName(format!("invalid review ref: {ref_name}"))
+                InputError::new("ref name", format!("invalid review ref: {ref_name}"))
             })?;
 
         match rest.rsplit_once('/') {
             Some((branch, number)) if number.parse::<i64>().is_ok() => {
                 if branch.is_empty() {
-                    return Err(ReviewError::InvalidRefName(format!(
-                        "invalid review ref: {ref_name}"
-                    )));
+                    return Err(InputError::new(
+                        "ref name",
+                        format!("invalid review ref: {ref_name}"),
+                    )
+                    .into());
                 }
                 Ok((branch.to_string(), Some(number.parse().unwrap())))
             }
@@ -162,30 +163,30 @@ mod tests {
     #[test]
     fn rejects_invalid_ref_no_prefix() {
         let req = ProcessReviewRequest::new("owner", "repo", "refs/heads/main", sha(), pusher_id());
-        assert!(matches!(req, Err(ReviewError::InvalidRefName(_))));
+        assert!(matches!(req, Err(ReviewError::Input(_))));
     }
 
     #[test]
     fn rejects_invalid_ref_empty_branch() {
         let req = ProcessReviewRequest::new("owner", "repo", "refs/for/", sha(), pusher_id());
-        assert!(matches!(req, Err(ReviewError::InvalidRefName(_))));
+        assert!(matches!(req, Err(ReviewError::Input(_))));
     }
 
     #[test]
     fn rejects_invalid_ref_just_prefix() {
         let req = ProcessReviewRequest::new("owner", "repo", "refs/for", sha(), pusher_id());
-        assert!(matches!(req, Err(ReviewError::InvalidRefName(_))));
+        assert!(matches!(req, Err(ReviewError::Input(_))));
     }
 
     #[test]
     fn rejects_invalid_owner() {
         let req = ProcessReviewRequest::new("", "repo", "refs/for/main", sha(), pusher_id());
-        assert!(matches!(req, Err(ReviewError::InvalidOwnerName(_))));
+        assert!(matches!(req, Err(ReviewError::Input(_))));
     }
 
     #[test]
     fn rejects_invalid_repo() {
         let req = ProcessReviewRequest::new("owner", "", "refs/for/main", sha(), pusher_id());
-        assert!(matches!(req, Err(ReviewError::InvalidRepositoryName(_))));
+        assert!(matches!(req, Err(ReviewError::Input(_))));
     }
 }

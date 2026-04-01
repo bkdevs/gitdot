@@ -1,18 +1,11 @@
 use thiserror::Error;
 
+use crate::error::InputError;
+
 #[derive(Debug, Error)]
 pub enum GitHttpError {
-    #[error("Invalid owner name: {0}")]
-    InvalidOwnerName(String),
-
-    #[error("Invalid repository name: {0}")]
-    InvalidRepositoryName(String),
-
-    #[error("Invalid service: {0}")]
-    InvalidService(String),
-
-    #[error("Invalid content type: {0}")]
-    InvalidContentType(String),
+    #[error(transparent)]
+    Input(#[from] InputError),
 
     #[error("Failed to spawn git http-backend: {0}")]
     SpawnError(#[source] std::io::Error),

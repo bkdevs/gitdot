@@ -1,29 +1,14 @@
 use thiserror::Error;
 
-use crate::error::GitError;
+use crate::error::{GitError, InputError, NotFoundError};
 
 #[derive(Debug, Error)]
 pub enum BuildError {
-    #[error("Invalid owner name: {0}")]
-    InvalidOwnerName(String),
+    #[error(transparent)]
+    Input(#[from] InputError),
 
-    #[error("Invalid repository name: {0}")]
-    InvalidRepositoryName(String),
-
-    #[error("Invalid trigger: {0}")]
-    InvalidTrigger(String),
-
-    #[error("Repository not found: {0}")]
-    RepositoryNotFound(String),
-
-    #[error("Build not found: {0}")]
-    NotFound(String),
-
-    #[error("Invalid build status: {0}")]
-    InvalidStatus(String),
-
-    #[error(".gitdot-ci.toml not found at ref '{0}'")]
-    ConfigNotFound(String),
+    #[error(transparent)]
+    NotFound(#[from] NotFoundError),
 
     #[error("Invalid build config: {0}")]
     InvalidConfig(String),

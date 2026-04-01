@@ -1,11 +1,11 @@
 use thiserror::Error;
 
-use crate::error::GitHubError;
+use crate::error::{GitHubError, InputError};
 
 #[derive(Debug, Error)]
 pub enum AuthenticationError {
-    #[error("Invalid email: {0}")]
-    InvalidEmail(String),
+    #[error(transparent)]
+    Input(#[from] InputError),
 
     #[error("Auth code not found")]
     AuthCodeNotFound,

@@ -68,275 +68,194 @@ pub struct AppErrorMessage {
 }
 impl ApiResource for AppErrorMessage {}
 
+pub trait HttpStatus {
+    fn status_code(&self) -> StatusCode;
+}
+
+impl HttpStatus for AuthorizationError {
+    fn status_code(&self) -> StatusCode {
+        match self {
+            Self::InvalidRequest(_) => StatusCode::BAD_REQUEST,
+            Self::NotFound(_) => StatusCode::NOT_FOUND,
+            Self::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            _ => StatusCode::UNAUTHORIZED,
+        }
+    }
+}
+
+impl HttpStatus for TokenError {
+    fn status_code(&self) -> StatusCode {
+        match self {
+            Self::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            _ => StatusCode::BAD_REQUEST,
+        }
+    }
+}
+
+impl HttpStatus for UserError {
+    fn status_code(&self) -> StatusCode {
+        match self {
+            Self::Input(_) => StatusCode::BAD_REQUEST,
+            Self::NotFound(_) => StatusCode::NOT_FOUND,
+            Self::Conflict(_) => StatusCode::CONFLICT,
+            Self::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+        }
+    }
+}
+
+impl HttpStatus for OrganizationError {
+    fn status_code(&self) -> StatusCode {
+        match self {
+            Self::Input(_) => StatusCode::BAD_REQUEST,
+            Self::NotFound(_) => StatusCode::NOT_FOUND,
+            Self::Conflict(_) => StatusCode::CONFLICT,
+            Self::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+        }
+    }
+}
+
+impl HttpStatus for RepositoryError {
+    fn status_code(&self) -> StatusCode {
+        match self {
+            Self::Input(_) | Self::TooManyPaths | Self::NotAFile(_) => StatusCode::BAD_REQUEST,
+            Self::NotFound(_) => StatusCode::NOT_FOUND,
+            Self::Conflict(_) => StatusCode::CONFLICT,
+            Self::GitError(_) | Self::DiffError(_) | Self::DatabaseError(_) => {
+                StatusCode::INTERNAL_SERVER_ERROR
+            }
+        }
+    }
+}
+
+impl HttpStatus for CommitError {
+    fn status_code(&self) -> StatusCode {
+        match self {
+            Self::Input(_) => StatusCode::BAD_REQUEST,
+            Self::NotFound(_) => StatusCode::NOT_FOUND,
+            Self::GitError(_) | Self::DiffError(_) | Self::DatabaseError(_) => {
+                StatusCode::INTERNAL_SERVER_ERROR
+            }
+        }
+    }
+}
+
+impl HttpStatus for QuestionError {
+    fn status_code(&self) -> StatusCode {
+        match self {
+            Self::Input(_) => StatusCode::BAD_REQUEST,
+            Self::NotFound(_) => StatusCode::NOT_FOUND,
+            Self::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+        }
+    }
+}
+
+impl HttpStatus for ReviewError {
+    fn status_code(&self) -> StatusCode {
+        match self {
+            Self::Input(_)
+            | Self::CannotReviewOwnReview(_)
+            | Self::ReviewNotPublishable(_)
+            | Self::CommitsNotFound => StatusCode::BAD_REQUEST,
+            Self::NotFound(_) => StatusCode::NOT_FOUND,
+            Self::Conflict(_) | Self::DiffNotMergeable(_) => StatusCode::CONFLICT,
+            Self::NotOrgAdmin(_) | Self::Unauthorized(_) => StatusCode::FORBIDDEN,
+            Self::GitError(_) | Self::DiffError(_) | Self::DatabaseError(_) => {
+                StatusCode::INTERNAL_SERVER_ERROR
+            }
+        }
+    }
+}
+
+impl HttpStatus for MigrationError {
+    fn status_code(&self) -> StatusCode {
+        match self {
+            Self::Input(_) => StatusCode::BAD_REQUEST,
+            Self::NotFound(_) => StatusCode::NOT_FOUND,
+            Self::Conflict(_) => StatusCode::CONFLICT,
+            Self::GitError(_) | Self::GitHubError(_) | Self::DatabaseError(_) => {
+                StatusCode::INTERNAL_SERVER_ERROR
+            }
+        }
+    }
+}
+
+impl HttpStatus for GitHttpError {
+    fn status_code(&self) -> StatusCode {
+        match self {
+            Self::Input(_) => StatusCode::BAD_REQUEST,
+            _ => StatusCode::INTERNAL_SERVER_ERROR,
+        }
+    }
+}
+
+impl HttpStatus for RunnerError {
+    fn status_code(&self) -> StatusCode {
+        match self {
+            Self::Input(_) => StatusCode::BAD_REQUEST,
+            Self::NotFound(_) => StatusCode::NOT_FOUND,
+            Self::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+        }
+    }
+}
+
+impl HttpStatus for BuildError {
+    fn status_code(&self) -> StatusCode {
+        match self {
+            Self::Input(_) => StatusCode::BAD_REQUEST,
+            Self::NotFound(_) => StatusCode::NOT_FOUND,
+            Self::InvalidConfig(_) => StatusCode::UNPROCESSABLE_ENTITY,
+            Self::GitError(_) | Self::JoinError(_) | Self::DatabaseError(_) | Self::S2Error(_) => {
+                StatusCode::INTERNAL_SERVER_ERROR
+            }
+        }
+    }
+}
+
+impl HttpStatus for TaskError {
+    fn status_code(&self) -> StatusCode {
+        match self {
+            Self::Input(_) => StatusCode::BAD_REQUEST,
+            Self::NotFound(_) => StatusCode::NOT_FOUND,
+            Self::NoBuildConfig => StatusCode::UNPROCESSABLE_ENTITY,
+            Self::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+        }
+    }
+}
+
+impl HttpStatus for WebhookError {
+    fn status_code(&self) -> StatusCode {
+        match self {
+            Self::Input(_) => StatusCode::BAD_REQUEST,
+            Self::NotFound(_) => StatusCode::NOT_FOUND,
+            Self::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+        }
+    }
+}
+
+fn error_response(status_code: StatusCode, message: String) -> Response {
+    AppResponse::new(status_code, AppErrorMessage { message }).into_response()
+}
+
 impl IntoResponse for AppError {
     fn into_response(self) -> Response {
         match self {
-            AppError::Authorization(e) => {
-                let status_code = match e {
-                    AuthorizationError::InvalidRequest(_) => StatusCode::BAD_REQUEST,
-                    AuthorizationError::NotFound(_) => StatusCode::NOT_FOUND,
-                    AuthorizationError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
-                    _ => StatusCode::UNAUTHORIZED,
-                };
-                let response = AppResponse::new(
-                    status_code,
-                    AppErrorMessage {
-                        message: e.to_string(),
-                    },
-                );
-                response.into_response()
-            }
-            AppError::Token(e) => {
-                let status_code = match &e {
-                    TokenError::AuthorizationPending => StatusCode::BAD_REQUEST,
-                    TokenError::ExpiredToken => StatusCode::BAD_REQUEST,
-                    TokenError::AccessDenied => StatusCode::BAD_REQUEST,
-                    TokenError::InvalidTokenType => StatusCode::BAD_REQUEST,
-                    TokenError::InvalidDeviceCode => StatusCode::BAD_REQUEST,
-                    TokenError::InvalidUserCode(_) => StatusCode::BAD_REQUEST,
-                    TokenError::InvalidRequest(_) => StatusCode::BAD_REQUEST,
-                    TokenError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
-                };
-                let response = AppResponse::new(
-                    status_code,
-                    AppErrorMessage {
-                        message: e.to_string(),
-                    },
-                );
-                response.into_response()
-            }
-            AppError::User(e) => {
-                let status_code = match e {
-                    UserError::NotFound(_) => StatusCode::NOT_FOUND,
-                    UserError::InvalidUserName(_) => StatusCode::BAD_REQUEST,
-                    UserError::NameTaken(_) => StatusCode::CONFLICT,
-                    UserError::ReservedName(_) => StatusCode::CONFLICT,
-                    UserError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
-                };
-                let response = AppResponse::new(
-                    status_code,
-                    AppErrorMessage {
-                        message: e.to_string(),
-                    },
-                );
-                response.into_response()
-            }
-            AppError::Organization(e) => {
-                let status_code = match e {
-                    OrganizationError::Duplicate(_) => StatusCode::CONFLICT,
-                    OrganizationError::MemberAlreadyExists(_) => StatusCode::CONFLICT,
-                    OrganizationError::NotFound(_) => StatusCode::NOT_FOUND,
-                    OrganizationError::UserNotFound(_) => StatusCode::NOT_FOUND,
-                    OrganizationError::InvalidOrganizationName(_) => StatusCode::BAD_REQUEST,
-                    OrganizationError::InvalidUserName(_) => StatusCode::BAD_REQUEST,
-                    OrganizationError::InvalidRole(_) => StatusCode::BAD_REQUEST,
-                    OrganizationError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
-                };
-                let response = AppResponse::new(
-                    status_code,
-                    AppErrorMessage {
-                        message: e.to_string(),
-                    },
-                );
-                response.into_response()
-            }
-            AppError::Repository(e) => {
-                let status_code = match e {
-                    RepositoryError::Duplicate(_) => StatusCode::CONFLICT,
-                    RepositoryError::NotFound(_) => StatusCode::NOT_FOUND,
-                    RepositoryError::OwnerNotFound(_) => StatusCode::NOT_FOUND,
-                    RepositoryError::InvalidOwnerName(_) => StatusCode::BAD_REQUEST,
-                    RepositoryError::InvalidRepositoryName(_) => StatusCode::BAD_REQUEST,
-                    RepositoryError::InvalidOwnerType(_) => StatusCode::BAD_REQUEST,
-                    RepositoryError::InvalidVisibility(_) => StatusCode::BAD_REQUEST,
-                    RepositoryError::TooManyPaths => StatusCode::BAD_REQUEST,
-                    RepositoryError::NotAFile(_) => StatusCode::BAD_REQUEST,
-                    RepositoryError::GitError(_) => StatusCode::INTERNAL_SERVER_ERROR,
-                    RepositoryError::DiffError(_) => StatusCode::INTERNAL_SERVER_ERROR,
-                    RepositoryError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
-                };
-                let response = AppResponse::new(
-                    status_code,
-                    AppErrorMessage {
-                        message: e.to_string(),
-                    },
-                );
-                response.into_response()
-            }
-            AppError::Commit(e) => {
-                let status_code = match e {
-                    CommitError::InvalidOwnerName(_) => StatusCode::BAD_REQUEST,
-                    CommitError::InvalidRepositoryName(_) => StatusCode::BAD_REQUEST,
-                    CommitError::InvalidDateRange(_) => StatusCode::BAD_REQUEST,
-                    CommitError::NotFound(_) => StatusCode::NOT_FOUND,
-                    CommitError::RepositoryNotFound(_) => StatusCode::NOT_FOUND,
-                    CommitError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
-                    CommitError::GitError(_) => StatusCode::INTERNAL_SERVER_ERROR,
-                    CommitError::DiffError(_) => StatusCode::INTERNAL_SERVER_ERROR,
-                };
-                let response = AppResponse::new(
-                    status_code,
-                    AppErrorMessage {
-                        message: e.to_string(),
-                    },
-                );
-                response.into_response()
-            }
-            AppError::Question(e) => {
-                let status_code = match e {
-                    QuestionError::Input(_) => StatusCode::BAD_REQUEST,
-                    QuestionError::NotFound(_) => StatusCode::NOT_FOUND,
-                    QuestionError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
-                };
-                let response = AppResponse::new(
-                    status_code,
-                    AppErrorMessage {
-                        message: e.to_string(),
-                    },
-                );
-                response.into_response()
-            }
-            AppError::Review(e) => {
-                let status_code = match e {
-                    ReviewError::InvalidOwnerName(_) => StatusCode::BAD_REQUEST,
-                    ReviewError::InvalidRepositoryName(_) => StatusCode::BAD_REQUEST,
-                    ReviewError::InvalidRefName(_) => StatusCode::BAD_REQUEST,
-                    ReviewError::ReviewNotFound(_) => StatusCode::NOT_FOUND,
-                    ReviewError::RepositoryNotFound(_) => StatusCode::NOT_FOUND,
-                    ReviewError::UserNotFound(_) => StatusCode::NOT_FOUND,
-                    ReviewError::CannotReviewOwnReview(_) => StatusCode::BAD_REQUEST,
-                    ReviewError::ReviewerAlreadyExists(_) => StatusCode::CONFLICT,
-                    ReviewError::ReviewNotPublishable(_) => StatusCode::BAD_REQUEST,
-                    ReviewError::ReviewerNotFound(_) => StatusCode::NOT_FOUND,
-                    ReviewError::DiffNotFound(_) => StatusCode::NOT_FOUND,
-                    ReviewError::RevisionNotFound(_) => StatusCode::NOT_FOUND,
-                    ReviewError::CommentNotFound(_) => StatusCode::NOT_FOUND,
-                    ReviewError::InvalidComment(_) => StatusCode::BAD_REQUEST,
-                    ReviewError::DiffNotMergeable(_) => StatusCode::CONFLICT,
-                    ReviewError::NotOrgAdmin(_) => StatusCode::FORBIDDEN,
-                    ReviewError::CommitsNotFound => StatusCode::BAD_REQUEST,
-                    ReviewError::Unauthorized(_) => StatusCode::FORBIDDEN,
-                    ReviewError::GitError(_) => StatusCode::INTERNAL_SERVER_ERROR,
-                    ReviewError::DiffError(_) => StatusCode::INTERNAL_SERVER_ERROR,
-                    ReviewError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
-                };
-                let response = AppResponse::new(
-                    status_code,
-                    AppErrorMessage {
-                        message: e.to_string(),
-                    },
-                );
-                response.into_response()
-            }
-            AppError::Migration(e) => {
-                let status_code = match e {
-                    MigrationError::UserNotFound(_) => StatusCode::NOT_FOUND,
-                    MigrationError::OwnerNotFound(_) => StatusCode::NOT_FOUND,
-                    MigrationError::MigrationNotFound(_) => StatusCode::NOT_FOUND,
-                    MigrationError::InvalidRepositoryName(_) => StatusCode::BAD_REQUEST,
-                    MigrationError::RepositoryAlreadyExists(_) => StatusCode::CONFLICT,
-                    MigrationError::GitError(_) => StatusCode::INTERNAL_SERVER_ERROR,
-                    MigrationError::GitHubError(_) => StatusCode::INTERNAL_SERVER_ERROR,
-                    MigrationError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
-                };
-                let response = AppResponse::new(
-                    status_code,
-                    AppErrorMessage {
-                        message: e.to_string(),
-                    },
-                );
-                response.into_response()
-            }
-            AppError::GitHttp(e) => {
-                let status_code = match e {
-                    GitHttpError::InvalidOwnerName(_) => StatusCode::BAD_REQUEST,
-                    GitHttpError::InvalidRepositoryName(_) => StatusCode::BAD_REQUEST,
-                    GitHttpError::InvalidService(_) => StatusCode::BAD_REQUEST,
-                    _ => StatusCode::INTERNAL_SERVER_ERROR,
-                };
-                let response = AppResponse::new(
-                    status_code,
-                    AppErrorMessage {
-                        message: e.to_string(),
-                    },
-                );
-                response.into_response()
-            }
-            AppError::Runner(e) => {
-                let status_code = match e {
-                    RunnerError::Input(_) => StatusCode::BAD_REQUEST,
-                    RunnerError::NotFound(_) => StatusCode::NOT_FOUND,
-                    RunnerError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
-                };
-                let response = AppResponse::new(
-                    status_code,
-                    AppErrorMessage {
-                        message: e.to_string(),
-                    },
-                );
-                response.into_response()
-            }
-            AppError::Build(e) => {
-                let status_code = match e {
-                    BuildError::InvalidOwnerName(_) => StatusCode::BAD_REQUEST,
-                    BuildError::InvalidRepositoryName(_) => StatusCode::BAD_REQUEST,
-                    BuildError::InvalidTrigger(_) => StatusCode::BAD_REQUEST,
-                    BuildError::RepositoryNotFound(_) => StatusCode::NOT_FOUND,
-                    BuildError::NotFound(_) => StatusCode::NOT_FOUND,
-                    BuildError::ConfigNotFound(_) => StatusCode::NOT_FOUND,
-                    BuildError::InvalidConfig(_) => StatusCode::UNPROCESSABLE_ENTITY,
-                    BuildError::GitError(_) => StatusCode::INTERNAL_SERVER_ERROR,
-                    BuildError::JoinError(_) => StatusCode::INTERNAL_SERVER_ERROR,
-                    BuildError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
-                    BuildError::S2Error(_) => StatusCode::INTERNAL_SERVER_ERROR,
-                    BuildError::InvalidStatus(_) => StatusCode::BAD_REQUEST,
-                };
-                let response = AppResponse::new(
-                    status_code,
-                    AppErrorMessage {
-                        message: e.to_string(),
-                    },
-                );
-                response.into_response()
-            }
-            AppError::Task(e) => {
-                let status_code = match e {
-                    TaskError::Input(_) => StatusCode::BAD_REQUEST,
-                    TaskError::NotFound(_) => StatusCode::NOT_FOUND,
-                    TaskError::NoBuildConfig => StatusCode::UNPROCESSABLE_ENTITY,
-                    TaskError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
-                };
-                let response = AppResponse::new(
-                    status_code,
-                    AppErrorMessage {
-                        message: e.to_string(),
-                    },
-                );
-                response.into_response()
-            }
-            AppError::Webhook(e) => {
-                let status_code = match e {
-                    WebhookError::Input(_) => StatusCode::BAD_REQUEST,
-                    WebhookError::NotFound(_) => StatusCode::NOT_FOUND,
-                    WebhookError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
-                };
-                let response = AppResponse::new(
-                    status_code,
-                    AppErrorMessage {
-                        message: e.to_string(),
-                    },
-                );
-                response.into_response()
-            }
+            AppError::Authorization(e) => error_response(e.status_code(), e.to_string()),
+            AppError::Token(e) => error_response(e.status_code(), e.to_string()),
+            AppError::User(e) => error_response(e.status_code(), e.to_string()),
+            AppError::Organization(e) => error_response(e.status_code(), e.to_string()),
+            AppError::Repository(e) => error_response(e.status_code(), e.to_string()),
+            AppError::Commit(e) => error_response(e.status_code(), e.to_string()),
+            AppError::Question(e) => error_response(e.status_code(), e.to_string()),
+            AppError::Review(e) => error_response(e.status_code(), e.to_string()),
+            AppError::Migration(e) => error_response(e.status_code(), e.to_string()),
+            AppError::GitHttp(e) => error_response(e.status_code(), e.to_string()),
+            AppError::Runner(e) => error_response(e.status_code(), e.to_string()),
+            AppError::Build(e) => error_response(e.status_code(), e.to_string()),
+            AppError::Task(e) => error_response(e.status_code(), e.to_string()),
+            AppError::Webhook(e) => error_response(e.status_code(), e.to_string()),
             AppError::Internal(e) => {
                 tracing::error!("{}", e);
-                let response = AppResponse::new(
-                    StatusCode::INTERNAL_SERVER_ERROR,
-                    AppErrorMessage {
-                        message: e.to_string(),
-                    },
-                );
-                response.into_response()
+                error_response(StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
             }
         }
     }

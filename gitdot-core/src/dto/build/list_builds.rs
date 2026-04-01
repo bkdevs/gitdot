@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 
 use crate::{
     dto::common::{OwnerName, RepositoryName},
-    error::BuildError,
+    error::{BuildError, InputError},
 };
 
 #[derive(Debug, Clone)]
@@ -22,9 +22,9 @@ impl ListBuildsRequest {
     ) -> Result<Self, BuildError> {
         Ok(Self {
             repo_owner: OwnerName::try_new(repo_owner)
-                .map_err(|e| BuildError::InvalidOwnerName(e.to_string()))?,
+                .map_err(|e| InputError::new("owner name", e))?,
             repo_name: RepositoryName::try_new(repo_name)
-                .map_err(|e| BuildError::InvalidRepositoryName(e.to_string()))?,
+                .map_err(|e| InputError::new("repository name", e))?,
             from,
             to,
         })

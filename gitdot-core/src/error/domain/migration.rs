@@ -1,23 +1,17 @@
 use thiserror::Error;
 
-use crate::error::{GitError, GitHubError};
+use crate::error::{ConflictError, GitError, GitHubError, InputError, NotFoundError};
 
 #[derive(Debug, Error)]
 pub enum MigrationError {
-    #[error("User not found: {0}")]
-    UserNotFound(String),
+    #[error(transparent)]
+    Input(#[from] InputError),
 
-    #[error("Owner not found: {0}")]
-    OwnerNotFound(String),
+    #[error(transparent)]
+    NotFound(#[from] NotFoundError),
 
-    #[error("Invalid repository name: {0}")]
-    InvalidRepositoryName(String),
-
-    #[error("Migration not found: #{0}")]
-    MigrationNotFound(i32),
-
-    #[error("Repository with the same name already exists: {0}")]
-    RepositoryAlreadyExists(String),
+    #[error(transparent)]
+    Conflict(#[from] ConflictError),
 
     #[error("Git error: {0}")]
     GitError(#[from] GitError),

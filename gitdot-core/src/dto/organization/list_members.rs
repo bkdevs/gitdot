@@ -1,4 +1,8 @@
-use crate::{dto::OwnerName, error::OrganizationError, model::OrganizationRole};
+use crate::{
+    dto::OwnerName,
+    error::{InputError, OrganizationError},
+    model::OrganizationRole,
+};
 
 #[derive(Debug, Clone)]
 pub struct ListMembersRequest {
@@ -12,13 +16,13 @@ impl ListMembersRequest {
             .map(|r| match r {
                 "admin" => Ok(OrganizationRole::Admin),
                 "member" => Ok(OrganizationRole::Member),
-                _ => Err(OrganizationError::InvalidRole(r.to_string())),
+                _ => Err(OrganizationError::Input(InputError::new("role", r))),
             })
             .transpose()?;
 
         Ok(Self {
             org_name: OwnerName::try_new(org_name)
-                .map_err(|e| OrganizationError::InvalidOrganizationName(e.to_string()))?,
+                .map_err(|e| InputError::new("organization name", e))?,
             role,
         })
     }

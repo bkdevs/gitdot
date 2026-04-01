@@ -9,7 +9,7 @@ use crate::{
         ReviewerResponse, ReviewsResponse, SubmitAction, SubmitReviewRequest, UpdateDiffRequest,
         UpdateReviewCommentRequest, UpdateReviewRequest,
     },
-    error::ReviewError,
+    error::{ConflictError, InputError, NotFoundError, ReviewError},
     model::{DiffStatus, OrganizationRole, ReviewStatus, Verdict},
     repository::{
         OrganizationRepository, OrganizationRepositoryImpl, RepositoryRepository,
@@ -183,7 +183,7 @@ where
                 request.number,
             )
             .await?
-            .ok_or_else(|| ReviewError::ReviewNotFound(request.get_review_path()))?;
+            .ok_or_else(|| NotFoundError::new("review", request.get_review_path()))?;
 
         Ok(review.into())
     }
@@ -232,7 +232,7 @@ where
             .repo_repo
             .get(owner, repo)
             .await?
-            .ok_or_else(|| ReviewError::RepositoryNotFound(format!("{}/{}", owner, repo)))?;
+            .ok_or_else(|| NotFoundError::new("repository", format!("{}/{}", owner, repo)))?;
         let review = self
             .review_repo
             .create_review(repository.id, request.pusher_id, &request.target_branch)
@@ -291,7 +291,7 @@ where
         let repo = request.repo.as_ref();
         let review_number = request
             .review_number
-            .ok_or_else(|| ReviewError::InvalidRefName("missing review number".to_string()))?
+            .ok_or_else(|| InputError::new("ref name", "missing review number"))?
             as i32;
 
         let review = self
@@ -299,7 +299,10 @@ where
             .get_review(owner, repo, review_number)
             .await?
             .ok_or_else(|| {
-                ReviewError::ReviewNotFound(format!("{}/{}/review/{}", owner, repo, review_number))
+                NotFoundError::new(
+                    "review",
+                    format!("{}/{}/review/{}", owner, repo, review_number),
+                )
             })?;
 
         let target_sha = self
@@ -329,10 +332,13 @@ where
                     .cloned()
                     .unwrap_or_default();
                 let latest_revision = revisions.first().ok_or_else(|| {
-                    ReviewError::RevisionNotFound(format!(
-                        "{}/{}/review/{}/diff/{} has no revisions",
-                        owner, repo, review_number, diff_position
-                    ))
+                    NotFoundError::new(
+                        "revision",
+                        format!(
+                            "{}/{}/review/{}/diff/{} has no revisions",
+                            owner, repo, review_number, diff_position
+                        ),
+                    )
                 })?;
 
                 let old_patch_id = self
@@ -455,7 +461,10 @@ where
             .get_review(owner, repo, review_number)
             .await?
             .ok_or_else(|| {
-                ReviewError::ReviewNotFound(format!("{}/{}/review/{}", owner, repo, review_number))
+                NotFoundError::new(
+                    "review",
+                    format!("{}/{}/review/{}", owner, repo, review_number),
+                )
             })?;
 
         Ok(updated.into())
@@ -474,12 +483,15 @@ where
             )
             .await?
             .ok_or_else(|| {
-                ReviewError::ReviewNotFound(format!(
-                    "{}/{}/review/{}",
-                    request.owner.as_ref(),
-                    request.repo.as_ref(),
-                    request.number
-                ))
+                NotFoundError::new(
+                    "review",
+                    format!(
+                        "{}/{}/review/{}",
+                        request.owner.as_ref(),
+                        request.repo.as_ref(),
+                        request.number
+                    ),
+                )
             })?;
 
         if review.status != ReviewStatus::Draft {
@@ -531,12 +543,15 @@ where
             )
             .await?
             .ok_or_else(|| {
-                ReviewError::ReviewNotFound(format!(
-                    "{}/{}/review/{}",
-                    request.owner.as_ref(),
-                    request.repo.as_ref(),
-                    request.number
-                ))
+                NotFoundError::new(
+                    "review",
+                    format!(
+                        "{}/{}/review/{}",
+                        request.owner.as_ref(),
+                        request.repo.as_ref(),
+                        request.number
+                    ),
+                )
             })?;
 
         Ok(updated.into())
@@ -554,7 +569,10 @@ where
             .get_review(owner, repo, request.number)
             .await?
             .ok_or_else(|| {
-                ReviewError::ReviewNotFound(format!("{}/{}/review/{}", owner, repo, request.number))
+                NotFoundError::new(
+                    "review",
+                    format!("{}/{}/review/{}", owner, repo, request.number),
+                )
             })?;
 
         self.review_repo
@@ -566,7 +584,10 @@ where
             .get_review(owner, repo, request.number)
             .await?
             .ok_or_else(|| {
-                ReviewError::ReviewNotFound(format!("{}/{}/review/{}", owner, repo, request.number))
+                NotFoundError::new(
+                    "review",
+                    format!("{}/{}/review/{}", owner, repo, request.number),
+                )
             })?;
 
         Ok(updated.into())
@@ -584,7 +605,10 @@ where
             .get_review(owner, repo, request.number)
             .await?
             .ok_or_else(|| {
-                ReviewError::ReviewNotFound(format!("{}/{}/review/{}", owner, repo, request.number))
+                NotFoundError::new(
+                    "review",
+                    format!("{}/{}/review/{}", owner, repo, request.number),
+                )
             })?;
 
         let diffs = review.diffs.unwrap_or_default();
@@ -592,10 +616,13 @@ where
             .iter()
             .find(|d| d.position == request.position)
             .ok_or_else(|| {
-                ReviewError::DiffNotFound(format!(
-                    "{}/{}/review/{}/diff/{}",
-                    owner, repo, request.number, request.position
-                ))
+                NotFoundError::new(
+                    "diff",
+                    format!(
+                        "{}/{}/review/{}/diff/{}",
+                        owner, repo, request.number, request.position
+                    ),
+                )
             })?;
 
         let revisions = diff.revisions.as_ref().cloned().unwrap_or_default();
@@ -604,17 +631,23 @@ where
                 .iter()
                 .find(|r| r.number == rev_num)
                 .ok_or_else(|| {
-                    ReviewError::RevisionNotFound(format!(
-                        "{}/{}/review/{}/diff/{}/revision/{}",
-                        owner, repo, request.number, request.position, rev_num
-                    ))
+                    NotFoundError::new(
+                        "revision",
+                        format!(
+                            "{}/{}/review/{}/diff/{}/revision/{}",
+                            owner, repo, request.number, request.position, rev_num
+                        ),
+                    )
                 })?
         } else {
             revisions.first().ok_or_else(|| {
-                ReviewError::RevisionNotFound(format!(
-                    "{}/{}/review/{}/diff/{} has no revisions",
-                    owner, repo, request.number, request.position
-                ))
+                NotFoundError::new(
+                    "revision",
+                    format!(
+                        "{}/{}/review/{}/diff/{} has no revisions",
+                        owner, repo, request.number, request.position
+                    ),
+                )
             })?
         };
 
@@ -624,10 +657,13 @@ where
                 .iter()
                 .find(|r| r.number == compare_to)
                 .ok_or_else(|| {
-                    ReviewError::RevisionNotFound(format!(
-                        "{}/{}/review/{}/diff/{}/revision/{}",
-                        owner, repo, request.number, request.position, compare_to
-                    ))
+                    NotFoundError::new(
+                        "revision",
+                        format!(
+                            "{}/{}/review/{}/diff/{}/revision/{}",
+                            owner, repo, request.number, request.position, compare_to
+                        ),
+                    )
                 })?;
             compare_rev.commit_hash.clone()
         } else {
@@ -661,7 +697,10 @@ where
             .get_review(owner, repo, request.number)
             .await?
             .ok_or_else(|| {
-                ReviewError::ReviewNotFound(format!("{}/{}/review/{}", owner, repo, request.number))
+                NotFoundError::new(
+                    "review",
+                    format!("{}/{}/review/{}", owner, repo, request.number),
+                )
             })?;
 
         if review.status != ReviewStatus::InProgress {
@@ -674,12 +713,12 @@ where
         let diff = diffs
             .iter()
             .find(|d| d.position == request.position)
-            .ok_or_else(|| ReviewError::DiffNotFound(format!("position {}", request.position)))?;
+            .ok_or_else(|| NotFoundError::new("diff", format!("position {}", request.position)))?;
 
         let revisions = diff.revisions.as_ref().map(|r| r.as_slice()).unwrap_or(&[]);
         let latest_revision = revisions
             .first()
-            .ok_or_else(|| ReviewError::RevisionNotFound("No revisions found".to_string()))?;
+            .ok_or_else(|| NotFoundError::new("revision", "No revisions found"))?;
 
         // Create verdict and update diff status
         if request.action != SubmitAction::Comment {
@@ -732,7 +771,10 @@ where
             .get_review(owner, repo, request.number)
             .await?
             .ok_or_else(|| {
-                ReviewError::ReviewNotFound(format!("{}/{}/review/{}", owner, repo, request.number))
+                NotFoundError::new(
+                    "review",
+                    format!("{}/{}/review/{}", owner, repo, request.number),
+                )
             })?;
 
         Ok(updated.into())
@@ -747,7 +789,10 @@ where
             .get_review(owner, repo, request.number)
             .await?
             .ok_or_else(|| {
-                ReviewError::ReviewNotFound(format!("{}/{}/review/{}", owner, repo, request.number))
+                NotFoundError::new(
+                    "review",
+                    format!("{}/{}/review/{}", owner, repo, request.number),
+                )
             })?;
 
         if review.status != ReviewStatus::InProgress {
@@ -763,10 +808,14 @@ where
             .collect();
 
         if diffs_to_merge.is_empty() {
-            return Err(ReviewError::DiffNotFound(format!(
-                "no open diffs found at or before position {}",
-                request.position
-            )));
+            return Err(NotFoundError::new(
+                "diff",
+                format!(
+                    "no open diffs found at or before position {}",
+                    request.position
+                ),
+            )
+            .into());
         }
 
         for diff in &diffs_to_merge {
@@ -785,10 +834,10 @@ where
         for diff in &diffs_to_merge {
             let revisions = diff.revisions.as_ref().cloned().unwrap_or_default();
             let revision = revisions.first().ok_or_else(|| {
-                ReviewError::RevisionNotFound(format!(
-                    "diff at position {} has no revisions",
-                    diff.position
-                ))
+                NotFoundError::new(
+                    "revision",
+                    format!("diff at position {} has no revisions", diff.position),
+                )
             })?;
             diff_revisions.push((diff, revision.clone()));
         }
@@ -875,7 +924,10 @@ where
             .get_review(owner, repo, request.number)
             .await?
             .ok_or_else(|| {
-                ReviewError::ReviewNotFound(format!("{}/{}/review/{}", owner, repo, request.number))
+                NotFoundError::new(
+                    "review",
+                    format!("{}/{}/review/{}", owner, repo, request.number),
+                )
             })?;
 
         Ok(updated.into())
@@ -890,24 +942,33 @@ where
             .get_review(owner, repo, request.number)
             .await?
             .ok_or_else(|| {
-                ReviewError::ReviewNotFound(format!("{}/{}/review/{}", owner, repo, request.number))
+                NotFoundError::new(
+                    "review",
+                    format!("{}/{}/review/{}", owner, repo, request.number),
+                )
             })?;
 
         let diffs = review.diffs.as_ref().ok_or_else(|| {
-            ReviewError::DiffNotFound(format!(
-                "{}/{}/review/{}/diff/{}",
-                owner, repo, request.number, request.position
-            ))
+            NotFoundError::new(
+                "diff",
+                format!(
+                    "{}/{}/review/{}/diff/{}",
+                    owner, repo, request.number, request.position
+                ),
+            )
         })?;
 
         let diff = diffs
             .iter()
             .find(|d| d.position == request.position)
             .ok_or_else(|| {
-                ReviewError::DiffNotFound(format!(
-                    "{}/{}/review/{}/diff/{}",
-                    owner, repo, request.number, request.position
-                ))
+                NotFoundError::new(
+                    "diff",
+                    format!(
+                        "{}/{}/review/{}/diff/{}",
+                        owner, repo, request.number, request.position
+                    ),
+                )
             })?;
 
         self.review_repo
@@ -923,7 +984,10 @@ where
             .get_review(owner, repo, request.number)
             .await?
             .ok_or_else(|| {
-                ReviewError::ReviewNotFound(format!("{}/{}/review/{}", owner, repo, request.number))
+                NotFoundError::new(
+                    "review",
+                    format!("{}/{}/review/{}", owner, repo, request.number),
+                )
             })?;
 
         Ok(updated.into())
@@ -937,7 +1001,7 @@ where
             .user_repo
             .get(request.user_name.as_ref())
             .await?
-            .ok_or_else(|| ReviewError::UserNotFound(request.user_name.to_string()))?;
+            .ok_or_else(|| NotFoundError::new("user", request.user_name.as_ref()))?;
 
         let review = self
             .review_repo
@@ -948,12 +1012,15 @@ where
             )
             .await?
             .ok_or_else(|| {
-                ReviewError::ReviewNotFound(format!(
-                    "{}/{}/review/{}",
-                    request.owner.as_ref(),
-                    request.repo.as_ref(),
-                    request.number
-                ))
+                NotFoundError::new(
+                    "review",
+                    format!(
+                        "{}/{}/review/{}",
+                        request.owner.as_ref(),
+                        request.repo.as_ref(),
+                        request.number
+                    ),
+                )
             })?;
 
         if user.id == review.author_id {
@@ -975,7 +1042,7 @@ where
             .review_repo
             .add_reviewer(review.id, user.id)
             .await?
-            .ok_or_else(|| ReviewError::ReviewerAlreadyExists(request.user_name.to_string()))?;
+            .ok_or_else(|| ConflictError::new("reviewer", request.user_name.as_ref()))?;
 
         Ok(reviewer.into())
     }
@@ -985,7 +1052,7 @@ where
             .user_repo
             .get(request.reviewer_name.as_ref())
             .await?
-            .ok_or_else(|| ReviewError::UserNotFound(request.reviewer_name.to_string()))?;
+            .ok_or_else(|| NotFoundError::new("user", request.reviewer_name.as_ref()))?;
 
         let review = self
             .review_repo
@@ -996,19 +1063,20 @@ where
             )
             .await?
             .ok_or_else(|| {
-                ReviewError::ReviewNotFound(format!(
-                    "{}/{}/review/{}",
-                    request.owner.as_ref(),
-                    request.repo.as_ref(),
-                    request.number
-                ))
+                NotFoundError::new(
+                    "review",
+                    format!(
+                        "{}/{}/review/{}",
+                        request.owner.as_ref(),
+                        request.repo.as_ref(),
+                        request.number
+                    ),
+                )
             })?;
 
         let removed = self.review_repo.remove_reviewer(review.id, user.id).await?;
         if !removed {
-            return Err(ReviewError::ReviewerNotFound(
-                request.reviewer_name.to_string(),
-            ));
+            return Err(NotFoundError::new("reviewer", request.reviewer_name.as_ref()).into());
         }
 
         Ok(())
@@ -1034,12 +1102,14 @@ where
             .review_repo
             .get_comment(request.comment_id)
             .await?
-            .ok_or_else(|| ReviewError::CommentNotFound(request.comment_id.to_string()))?;
+            .ok_or_else(|| NotFoundError::new("comment", request.comment_id.to_string()))?;
 
         if comment.parent_id.is_some() {
-            return Err(ReviewError::InvalidComment(
-                "Cannot resolve a reply directly, resolve the parent comment instead".to_string(),
-            ));
+            return Err(InputError::new(
+                "comment",
+                "Cannot resolve a reply directly, resolve the parent comment instead",
+            )
+            .into());
         }
 
         self.review_repo
@@ -1050,7 +1120,7 @@ where
             .review_repo
             .get_comment(request.comment_id)
             .await?
-            .ok_or_else(|| ReviewError::CommentNotFound(request.comment_id.to_string()))?;
+            .ok_or_else(|| NotFoundError::new("comment", request.comment_id.to_string()))?;
 
         Ok(updated.into())
     }

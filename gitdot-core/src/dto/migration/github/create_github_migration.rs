@@ -2,7 +2,7 @@ use uuid::Uuid;
 
 use crate::{
     dto::OwnerName,
-    error::MigrationError,
+    error::{InputError, MigrationError},
     model::{Migration, RepositoryOwnerType},
 };
 
@@ -32,11 +32,11 @@ impl CreateGitHubMigrationRequest {
             installation_id,
             origin: origin.to_string(),
             origin_type: RepositoryOwnerType::try_from(origin_type)
-                .map_err(|e| MigrationError::OwnerNotFound(e.to_string()))?,
+                .map_err(|e| InputError::new("origin type", e))?,
             destination: OwnerName::try_new(destination)
-                .map_err(|e| MigrationError::OwnerNotFound(e.to_string()))?,
+                .map_err(|e| InputError::new("destination", e))?,
             destination_type: RepositoryOwnerType::try_from(destination_type)
-                .map_err(|e| MigrationError::OwnerNotFound(e.to_string()))?,
+                .map_err(|e| InputError::new("destination type", e))?,
             repositories,
         })
     }

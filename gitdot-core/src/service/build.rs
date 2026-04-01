@@ -10,7 +10,7 @@ use crate::{
         BuildResponse, BuildsResponse, CiConfig, CreateBuildRequest, ListBuildsRequest,
         RepositoryBlobResponse, TaskResponse,
     },
-    error::{BuildError, GitError},
+    error::{BuildError, GitError, NotFoundError},
     model::{BuildStatus, TaskStatus},
     repository::{
         BuildRepository, BuildRepositoryImpl, RepositoryRepository, RepositoryRepositoryImpl,
@@ -101,7 +101,9 @@ where
             .get(owner, repo)
             .await
             .map_err(BuildError::DatabaseError)?
-            .ok_or_else(|| BuildError::RepositoryNotFound(format!("{owner}/{repo}")))?;
+            .ok_or_else(|| {
+                BuildError::NotFound(NotFoundError::new("repository", format!("{owner}/{repo}")))
+            })?;
         let commit = self
             .git_client
             .get_repo_commit(owner, repo, &request.commit_sha)
@@ -114,14 +116,19 @@ where
             .get_repo_blob(owner, repo, &resolved_sha, ".gitdot-ci.toml")
             .await
             .map_err(|e: GitError| match e {
-                GitError::NotFound(_) => BuildError::ConfigNotFound(request.commit_sha.clone()),
+                GitError::NotFound(_) => {
+                    BuildError::NotFound(NotFoundError::new("config", request.commit_sha.clone()))
+                }
                 other => BuildError::GitError(other),
             })?;
 
         let file_content = match blob {
             RepositoryBlobResponse::File(f) => f.content,
             RepositoryBlobResponse::Folder(_) => {
-                return Err(BuildError::ConfigNotFound(request.commit_sha.clone()));
+                return Err(BuildError::NotFound(NotFoundError::new(
+                    "config",
+                    request.commit_sha.clone(),
+                )));
             }
         };
 
@@ -228,7 +235,9 @@ where
             .get(owner, repo)
             .await
             .map_err(BuildError::DatabaseError)?
-            .ok_or_else(|| BuildError::RepositoryNotFound(format!("{owner}/{repo}")))?;
+            .ok_or_else(|| {
+                BuildError::NotFound(NotFoundError::new("repository", format!("{owner}/{repo}")))
+            })?;
 
         let builds = self
             .build_repo
@@ -252,14 +261,21 @@ where
             .get(owner, repo)
             .await
             .map_err(BuildError::DatabaseError)?
-            .ok_or_else(|| BuildError::RepositoryNotFound(format!("{owner}/{repo}")))?;
+            .ok_or_else(|| {
+                BuildError::NotFound(NotFoundError::new("repository", format!("{owner}/{repo}")))
+            })?;
 
         let build = self
             .build_repo
             .get(repository.id, number)
             .await
             .map_err(BuildError::DatabaseError)?
-            .ok_or_else(|| BuildError::NotFound(format!("{owner}/{repo}#{number}")))?;
+            .ok_or_else(|| {
+                BuildError::NotFound(NotFoundError::new(
+                    "build",
+                    format!("{owner}/{repo}#{number}"),
+                ))
+            })?;
 
         let tasks = self
             .task_repo
@@ -314,14 +330,21 @@ where
             .get(owner, repo)
             .await
             .map_err(BuildError::DatabaseError)?
-            .ok_or_else(|| BuildError::RepositoryNotFound(format!("{owner}/{repo}")))?;
+            .ok_or_else(|| {
+                BuildError::NotFound(NotFoundError::new("repository", format!("{owner}/{repo}")))
+            })?;
 
         let build = self
             .build_repo
             .get(repository.id, number)
             .await
             .map_err(BuildError::DatabaseError)?
-            .ok_or_else(|| BuildError::NotFound(format!("{owner}/{repo}#{number}")))?;
+            .ok_or_else(|| {
+                BuildError::NotFound(NotFoundError::new(
+                    "build",
+                    format!("{owner}/{repo}#{number}"),
+                ))
+            })?;
 
         let tasks = self
             .task_repo

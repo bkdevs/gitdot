@@ -11,7 +11,7 @@ use crate::{
         MigrateGitHubRepositoriesRequest, MigrateGitHubRepositoriesResponse,
         MigratedRepositoryInfo, MigrationResponse,
     },
-    error::MigrationError,
+    error::{ConflictError, InputError, MigrationError, NotFoundError},
     model::{
         GitHubInstallationType, MigrationOriginService, MigrationRepositoryStatus, MigrationStatus,
         Repository, RepositoryOwnerType, RepositoryVisibility,
@@ -133,13 +133,12 @@ where
         let repo_name = full_name
             .split('/')
             .nth(1)
-            .ok_or_else(|| MigrationError::InvalidRepositoryName(full_name.to_string()))?;
+            .ok_or_else(|| InputError::new("repository name", full_name))?;
 
         if self.repo_repo.get(owner_name, repo_name).await?.is_some() {
-            return Err(MigrationError::RepositoryAlreadyExists(format!(
-                "{}/{}",
-                owner_name, repo_name
-            )));
+            return Err(
+                ConflictError::new("repository", format!("{}/{}", owner_name, repo_name)).into(),
+            );
         }
 
         let clone_url = get_github_clone_url(token, full_name);
@@ -226,7 +225,7 @@ where
             .migration_repo
             .get(request.user_id, request.number)
             .await?
-            .ok_or(MigrationError::MigrationNotFound(request.number))?;
+            .ok_or(NotFoundError::new("migration", request.number))?;
 
         Ok(migration.into())
     }
@@ -298,9 +297,7 @@ where
                     .org_repo
                     .get(request.destination.as_ref())
                     .await?
-                    .ok_or_else(|| {
-                        MigrationError::OwnerNotFound(request.destination.to_string())
-                    })?;
+                    .ok_or_else(|| NotFoundError::new("owner", request.destination.as_ref()))?;
                 org.id
             }
         };

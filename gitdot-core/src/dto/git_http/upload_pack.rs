@@ -2,7 +2,7 @@ use tokio::io::AsyncRead;
 
 use crate::{
     dto::{GitContentType, OwnerName, RepositoryName},
-    error::GitHttpError,
+    error::{GitHttpError, InputError},
 };
 
 pub struct UploadPackRequest {
@@ -20,12 +20,11 @@ impl UploadPackRequest {
         body: Box<dyn AsyncRead + Unpin + Send>,
     ) -> Result<Self, GitHttpError> {
         Ok(Self {
-            owner: OwnerName::try_new(owner)
-                .map_err(|e| GitHttpError::InvalidOwnerName(e.to_string()))?,
+            owner: OwnerName::try_new(owner).map_err(|e| InputError::new("owner name", e))?,
             repo: RepositoryName::try_new(repo)
-                .map_err(|e| GitHttpError::InvalidRepositoryName(e.to_string()))?,
+                .map_err(|e| InputError::new("repository name", e))?,
             content_type: GitContentType::try_new(content_type.to_string())
-                .map_err(|e| GitHttpError::InvalidContentType(e.to_string()))?,
+                .map_err(|e| InputError::new("content type", e))?,
             body,
         })
     }

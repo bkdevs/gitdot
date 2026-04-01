@@ -24,7 +24,7 @@ impl IntoResponse for AppError {
         match self {
             AppError::Authentication(e) => {
                 let status_code = match &e {
-                    AuthenticationError::InvalidEmail(_) => StatusCode::BAD_REQUEST,
+                    AuthenticationError::Input(_) => StatusCode::BAD_REQUEST,
                     AuthenticationError::AuthCodeNotFound => StatusCode::NOT_FOUND,
                     AuthenticationError::AuthCodeAlreadyUsed => StatusCode::GONE,
                     AuthenticationError::AuthCodeExpired => StatusCode::GONE,

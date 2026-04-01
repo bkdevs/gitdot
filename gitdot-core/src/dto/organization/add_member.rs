@@ -3,7 +3,7 @@ use uuid::Uuid;
 
 use crate::{
     dto::OwnerName,
-    error::OrganizationError,
+    error::{InputError, OrganizationError},
     model::{OrganizationMember, OrganizationRole},
 };
 
@@ -19,14 +19,14 @@ impl AddMemberRequest {
         let role = match role {
             "admin" => OrganizationRole::Admin,
             "member" => OrganizationRole::Member,
-            _ => return Err(OrganizationError::InvalidRole(role.to_string())),
+            _ => return Err(InputError::new("role", role).into()),
         };
 
         Ok(Self {
             org_name: OwnerName::try_new(org_name)
-                .map_err(|e| OrganizationError::InvalidOrganizationName(e.to_string()))?,
+                .map_err(|e| InputError::new("organization name", e))?,
             user_name: OwnerName::try_new(user_name)
-                .map_err(|e| OrganizationError::InvalidUserName(e.to_string()))?,
+                .map_err(|e| InputError::new("user name", e))?,
             role,
         })
     }
