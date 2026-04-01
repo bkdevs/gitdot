@@ -1,3 +1,4 @@
+export * from "./auth";
 export * from "./build";
 export type { Endpoint } from "./endpoint";
 export * from "./migration";

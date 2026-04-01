@@ -1,4 +1,4 @@
-import { getUserMetadata } from "@/lib/supabase";
+import { getUserMetadata } from "@/lib/auth";
 import { LayoutClient } from "./layout.client";
 
 export default async function Layout({

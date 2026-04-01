@@ -7,7 +7,7 @@ import {
 } from "gitdot-api";
 import { notFound } from "next/navigation";
 import { z } from "zod";
-import { getSession } from "@/lib/supabase";
+import { getSession } from "@/lib/auth";
 import {
   authFetch,
   authHead,

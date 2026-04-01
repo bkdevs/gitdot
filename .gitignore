@@ -34,3 +34,4 @@ s2/target
 
 # front-end
 node_modules/
+.vercel

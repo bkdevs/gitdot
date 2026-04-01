@@ -1,10 +1,11 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { updateSession } from "@/lib/supabase";
+import { updateSession } from "@/lib/auth";
 
 const ORG_SLUGS = ["gitdot"];
 
 export async function proxy(request: NextRequest) {
-  const { user, response } = await updateSession(request);
+  const { user } = await updateSession(request);
+  const response = NextResponse.next({ request });
 
   const pathname = request.nextUrl.pathname;
   if (user && (pathname === "/login" || pathname === "/signup")) {

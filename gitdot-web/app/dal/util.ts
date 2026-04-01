@@ -2,7 +2,7 @@ import "server-only";
 
 import { getVercelOidcToken } from "@vercel/oidc";
 import type { ZodType } from "zod";
-import { getSession } from "@/lib/supabase";
+import { getSession } from "@/lib/auth";
 
 export const GITDOT_SERVER_URL =
   process.env.GITDOT_SERVER_URL || "http://localhost:8080";

@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { listRunners, listWebhooks } from "@/dal";
-import { getUserMetadata } from "@/lib/supabase";
+import { getUserMetadata } from "@/lib/auth";
 import { RepositorySettingsGeneral } from "./ui/repository-settings-general";
 import { RepositorySettingsRunners } from "./ui/repository-settings-runners";
 import { RepositorySettingsWebhooks } from "./ui/repository-settings-webhooks";
