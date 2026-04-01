@@ -18,6 +18,7 @@ pub struct AuthTokensResponse {
     pub refresh_token: String,
     pub access_token_expires_in: u64,
     pub refresh_token_expires_in: u64,
+    pub is_new: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

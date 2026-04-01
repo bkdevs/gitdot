@@ -447,7 +447,7 @@ mod tests {
         }
         #[async_trait]
         impl UserRepository for UserRepo {
-            async fn create(&self, email: &str) -> Result<User, sqlx::Error>;
+            async fn create(&self, email: &str, is_email_verified: bool) -> Result<User, sqlx::Error>;
             async fn get(&self, user_name: &str) -> Result<Option<User>, sqlx::Error>;
             async fn update(&self, id: Uuid, name: &str) -> Result<User, sqlx::Error>;
             async fn get_by_id(&self, id: Uuid) -> Result<Option<User>, sqlx::Error>;

@@ -4,46 +4,48 @@ use chrono::{Duration, Utc};
 use crate::{
     client::{GitHubClient, OctocrabClient, TokenClient, TokenClientImpl},
     dto::{
-        AuthorizeDeviceRequest, DeviceCodeRequest, DeviceCodeResponse, OAuthRedirectResponse,
-        PollTokenRequest, TokenResponse,
+        AuthTokensResponse, AuthorizeDeviceRequest, DeviceCodeRequest, DeviceCodeResponse,
+        ExchangeGitHubCodeRequest, OAuthRedirectResponse, PollTokenRequest, TokenResponse,
     },
-    error::TokenError,
+    error::{AuthenticationError, TokenError},
     model::{DeviceAuthorizationStatus, TokenType},
     repository::{
-        CodeRepository, CodeRepositoryImpl, TokenRepository, TokenRepositoryImpl, UserRepository,
-        UserRepositoryImpl,
+        CodeRepository, CodeRepositoryImpl, SessionRepository, SessionRepositoryImpl,
+        TokenRepository, TokenRepositoryImpl, UserRepository, UserRepositoryImpl,
     },
     util::crypto::hash_string,
 };
 
 #[async_trait]
 pub trait OAuthService: Send + Sync + 'static {
-    // --- GitHub OAuth operations ---
-
+    // GitHub OAuth operations
     fn get_github_authorization_url(&self) -> OAuthRedirectResponse;
+    async fn exchange_github_code(
+        &self,
+        request: ExchangeGitHubCodeRequest,
+    ) -> Result<AuthTokensResponse, AuthenticationError>;
 
-    // --- Device flow operations ---
-
+    // Device flow operations
     async fn request_device_code(
         &self,
         request: DeviceCodeRequest,
     ) -> Result<DeviceCodeResponse, TokenError>;
-
     async fn poll_token(&self, request: PollTokenRequest) -> Result<TokenResponse, TokenError>;
-
     async fn authorize_device(&self, request: AuthorizeDeviceRequest) -> Result<(), TokenError>;
 }
 
 #[derive(Debug, Clone)]
-pub struct OAuthServiceImpl<D, T, U, GH, TC>
+pub struct OAuthServiceImpl<D, S, T, U, GH, TC>
 where
     D: CodeRepository,
+    S: SessionRepository,
     T: TokenRepository,
     U: UserRepository,
     GH: GitHubClient,
     TC: TokenClient,
 {
     code_repo: D,
+    session_repo: S,
     token_repo: T,
     user_repo: U,
     github_client: GH,
@@ -53,6 +55,7 @@ where
 impl
     OAuthServiceImpl<
         CodeRepositoryImpl,
+        SessionRepositoryImpl,
         TokenRepositoryImpl,
         UserRepositoryImpl,
         OctocrabClient,
@@ -61,6 +64,7 @@ impl
 {
     pub fn new(
         code_repo: CodeRepositoryImpl,
+        session_repo: SessionRepositoryImpl,
         token_repo: TokenRepositoryImpl,
         user_repo: UserRepositoryImpl,
         github_client: OctocrabClient,
@@ -68,6 +72,7 @@ impl
     ) -> Self {
         Self {
             code_repo,
+            session_repo,
             token_repo,
             user_repo,
             github_client,
@@ -78,9 +83,10 @@ impl
 
 #[crate::instrument_all]
 #[async_trait]
-impl<D, T, U, GH, TC> OAuthService for OAuthServiceImpl<D, T, U, GH, TC>
+impl<D, S, T, U, GH, TC> OAuthService for OAuthServiceImpl<D, S, T, U, GH, TC>
 where
     D: CodeRepository,
+    S: SessionRepository,
     T: TokenRepository,
     U: UserRepository,
     GH: GitHubClient,
@@ -93,6 +99,53 @@ where
             authorize_url,
             state,
         }
+    }
+
+    async fn exchange_github_code(
+        &self,
+        request: ExchangeGitHubCodeRequest,
+    ) -> Result<AuthTokensResponse, AuthenticationError> {
+        self.token_client
+            .verify_oauth_state(&request.state)
+            .map_err(AuthenticationError::InvalidOAuthState)?;
+
+        let github_token = self.github_client.exchange_code(&request.code).await?;
+        let email = self.github_client.get_user_email(&github_token).await?;
+        let (user, is_new) = match self.user_repo.get_by_email(&email).await? {
+            Some(user) => (user, false),
+            None => {
+                let user = self.user_repo.create(&email, true).await?;
+                (user, true)
+            }
+        };
+
+        let orgs = self.user_repo.get_org_memberships(user.id).await?;
+        let access_token = self
+            .token_client
+            .generate_gitdot_jwt(user.id, &user.name, &orgs)
+            .map_err(AuthenticationError::JwtError)?;
+
+        let (refresh_token, refresh_token_hash) = self.token_client.generate_high_entropic_code();
+        let refresh_expiry_secs = self.token_client.get_refresh_token_expiry_in_seconds();
+        let refresh_expiry = Utc::now() + Duration::seconds(refresh_expiry_secs as i64);
+        self.session_repo
+            .create_session(
+                user.id,
+                &refresh_token_hash,
+                uuid::Uuid::new_v4(),
+                request.user_agent.as_deref(),
+                request.ip_address.as_ref().map(|ip| ip.as_ref()),
+                refresh_expiry,
+            )
+            .await?;
+
+        Ok(AuthTokensResponse {
+            access_token,
+            refresh_token,
+            access_token_expires_in: self.token_client.get_access_token_expiry_in_seconds(),
+            refresh_token_expires_in: refresh_expiry_secs,
+            is_new,
+        })
     }
 
     async fn request_device_code(

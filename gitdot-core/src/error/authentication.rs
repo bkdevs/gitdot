@@ -1,5 +1,7 @@
 use thiserror::Error;
 
+use crate::error::GitHubError;
+
 #[derive(Debug, Error)]
 pub enum AuthenticationError {
     #[error("Invalid email: {0}")]
@@ -23,11 +25,17 @@ pub enum AuthenticationError {
     #[error("Session revoked")]
     SessionRevoked,
 
+    #[error("Invalid OAuth state: {0}")]
+    InvalidOAuthState(String),
+
     #[error("JWT error: {0}")]
     JwtError(String),
 
     #[error("Email error: {0}")]
     EmailError(String),
+
+    #[error("GitHub error: {0}")]
+    GitHubError(#[from] GitHubError),
 
     #[error("Database error: {0}")]
     DatabaseError(#[from] sqlx::Error),

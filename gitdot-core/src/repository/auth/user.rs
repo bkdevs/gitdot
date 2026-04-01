@@ -7,7 +7,7 @@ use crate::model::{User, UserSettings};
 
 #[async_trait]
 pub trait UserRepository: Send + Sync + Clone + 'static {
-    async fn create(&self, email: &str) -> Result<User, Error>;
+    async fn create(&self, email: &str, is_email_verified: bool) -> Result<User, Error>;
 
     async fn get(&self, user_name: &str) -> Result<Option<User>, Error>;
 
@@ -50,7 +50,7 @@ impl UserRepositoryImpl {
 #[crate::instrument_all(level = "debug")]
 #[async_trait]
 impl UserRepository for UserRepositoryImpl {
-    async fn create(&self, email: &str) -> Result<User, Error> {
+    async fn create(&self, email: &str, is_email_verified: bool) -> Result<User, Error> {
         let suffix: String = {
             let mut rng = rand::rng();
             let bytes: [u8; 4] = rng.random();
@@ -60,12 +60,13 @@ impl UserRepository for UserRepositoryImpl {
         let user = sqlx::query_as::<_, User>(
             r#"
             INSERT INTO users (email, name, is_email_verified)
-            VALUES ($1, $2, false)
+            VALUES ($1, $2, $3)
             RETURNING *
             "#,
         )
         .bind(email)
         .bind(name)
+        .bind(is_email_verified)
         .fetch_one(&self.pool)
         .await?;
 

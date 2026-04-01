@@ -109,7 +109,7 @@ where
         let (user, is_signup) = match self.user_repo.get_by_email(&email).await? {
             Some(user) => (user, false),
             None => {
-                let user = self.user_repo.create(&email).await?;
+                let user = self.user_repo.create(&email, false).await?;
                 (user, true)
             }
         };
@@ -184,6 +184,7 @@ where
             refresh_token,
             access_token_expires_in: self.token_client.get_access_token_expiry_in_seconds(),
             refresh_token_expires_in: refresh_expiry_secs,
+            is_new: false,
         })
     }
 
@@ -240,6 +241,7 @@ where
             refresh_token,
             access_token_expires_in: self.token_client.get_access_token_expiry_in_seconds(),
             refresh_token_expires_in: refresh_expiry_secs,
+            is_new: false,
         })
     }
 
