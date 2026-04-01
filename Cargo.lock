@@ -2310,6 +2310,7 @@ dependencies = [
  "gitdot-api",
  "gitdot-core",
  "http 1.4.0",
+ "jsonwebtoken",
  "rustls",
  "serde",
  "serde_json",
@@ -2322,6 +2323,7 @@ dependencies = [
  "tower_governor",
  "tracing",
  "tracing-subscriber",
+ "uuid",
 ]
 
 [[package]]

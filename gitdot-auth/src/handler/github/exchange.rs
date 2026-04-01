@@ -4,7 +4,7 @@ use gitdot_api::{endpoint::auth::github::exchange as api, resource::auth::AuthTo
 use gitdot_core::dto::ExchangeGitHubCodeRequest;
 
 use crate::{
-    app::{AppResponse, AppState, error::AppError},
+    app::{AppError, AppResponse, AppState},
     dto::IntoApi,
     extract::{ClientIp, UserAgent},
 };

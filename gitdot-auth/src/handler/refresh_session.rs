@@ -4,7 +4,7 @@ use gitdot_api::{endpoint::auth::refresh as api, resource::auth::AuthTokensResou
 use gitdot_core::dto::RefreshSessionRequest;
 
 use crate::{
-    app::{AppResponse, AppState, error::AppError},
+    app::{AppError, AppResponse, AppState},
     dto::IntoApi,
     extract::{ClientIp, UserAgent},
 };

@@ -1,10 +1,10 @@
 mod bootstrap;
-pub mod error;
+mod error;
 mod response;
 mod settings;
 mod state;
 
-use std::time::Duration;
+use std::{sync::Arc, time::Duration};
 
 use anyhow::Context;
 use axum::{Router, routing::get};
@@ -22,6 +22,7 @@ use tower_http::{
 
 use crate::handler::create_auth_router;
 
+pub use error::AppError;
 pub use response::AppResponse;
 pub use settings::Settings;
 pub use state::AppState;
@@ -35,10 +36,10 @@ impl GitdotAuthServer {
     pub async fn new() -> anyhow::Result<Self> {
         bootstrap::bootstrap()?;
 
-        let settings = Settings::new()?;
+        let settings = Arc::new(Settings::new()?);
         let pool = PgPool::connect(&settings.database_url).await?;
 
-        let state = AppState::new(pool, &settings);
+        let state = AppState::new(pool, settings.clone());
         let router = create_router(state);
         let listener = net::TcpListener::bind(&settings.get_server_address()).await?;
 

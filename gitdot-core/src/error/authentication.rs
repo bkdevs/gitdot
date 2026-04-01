@@ -28,6 +28,18 @@ pub enum AuthenticationError {
     #[error("Invalid OAuth state: {0}")]
     InvalidOAuthState(String),
 
+    #[error("Missing authorization header")]
+    MissingAuthHeader,
+
+    #[error("Invalid authorization header format")]
+    InvalidAuthHeaderFormat,
+
+    #[error("Invalid public key: {0}")]
+    InvalidPublicKey(String),
+
+    #[error("Invalid token: {0}")]
+    InvalidToken(String),
+
     #[error("JWT error: {0}")]
     JwtError(String),
 

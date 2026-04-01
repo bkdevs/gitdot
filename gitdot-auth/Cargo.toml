@@ -15,6 +15,7 @@ dotenvy = { workspace = true }
 gitdot-api = { workspace = true }
 gitdot-core = { workspace = true }
 http = { workspace = true }
+jsonwebtoken = { workspace = true }
 rustls = { workspace = true, features = ["aws-lc-rs"] }
 serde = { workspace = true }
 serde_json = { workspace = true }
@@ -27,3 +28,4 @@ tower-http = { workspace = true, features = ["cors", "timeout", "trace", "reques
 tower_governor = "0.6"
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true, features = ["env-filter"] }
+uuid = { workspace = true }

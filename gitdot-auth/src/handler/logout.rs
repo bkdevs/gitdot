@@ -3,7 +3,7 @@ use axum::{Json, extract::State, http::StatusCode};
 use gitdot_api::endpoint::auth::logout as api;
 use gitdot_core::dto::LogoutRequest;
 
-use crate::app::{AppResponse, AppState, error::AppError};
+use crate::app::{AppError, AppResponse, AppState};
 
 pub async fn logout(
     State(state): State<AppState>,

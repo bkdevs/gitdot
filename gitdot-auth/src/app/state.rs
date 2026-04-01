@@ -15,12 +15,14 @@ use super::Settings;
 
 #[derive(FromRef, Clone)]
 pub struct AppState {
+    pub settings: Arc<Settings>,
+
     pub authentication_service: Arc<dyn AuthenticationService>,
     pub oauth_service: Arc<dyn OAuthService>,
 }
 
 impl AppState {
-    pub fn new(pool: PgPool, settings: &Settings) -> Self {
+    pub fn new(pool: PgPool, settings: Arc<Settings>) -> Self {
         let session_repo = SessionRepositoryImpl::new(pool.clone());
         let token_repo = TokenRepositoryImpl::new(pool.clone());
         let user_repo = UserRepositoryImpl::new(pool.clone());
@@ -52,6 +54,7 @@ impl AppState {
         ));
 
         Self {
+            settings,
             authentication_service,
             oauth_service,
         }

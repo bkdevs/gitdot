@@ -4,7 +4,7 @@ use gitdot_api::{endpoint::auth::email::verify as api, resource::auth::AuthToken
 use gitdot_core::dto::VerifyAuthCodeRequest;
 
 use crate::{
-    app::{AppResponse, AppState, error::AppError},
+    app::{AppError, AppResponse, AppState},
     dto::IntoApi,
     extract::{ClientIp, UserAgent},
 };

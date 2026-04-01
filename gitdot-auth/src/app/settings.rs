@@ -6,6 +6,7 @@ pub struct Settings {
     pub database_url: String,
     pub resend_api_key: String,
     pub gitdot_private_key: String,
+    pub gitdot_public_key: String,
     pub github_client_id: String,
     pub github_client_secret: String,
     pub github_app_id: u64,
@@ -22,6 +23,8 @@ impl Settings {
             resend_api_key: env::var("RESEND_API_KEY").expect("RESEND_API_KEY must be set"),
             gitdot_private_key: env::var("GITDOT_PRIVATE_KEY")
                 .expect("GITDOT_PRIVATE_KEY must be set"),
+            gitdot_public_key: env::var("GITDOT_PUBLIC_KEY")
+                .expect("GITDOT_PUBLIC_KEY must be set"),
             github_client_id: env::var("GITHUB_CLIENT_ID").expect("GITHUB_CLIENT_ID must be set"),
             github_client_secret: env::var("GITHUB_CLIENT_SECRET")
                 .expect("GITHUB_CLIENT_SECRET must be set"),

@@ -3,7 +3,7 @@ use axum::{extract::State, http::StatusCode};
 use gitdot_api::resource::auth::GitHubAuthRedirectResource;
 
 use crate::{
-    app::{AppResponse, AppState, error::AppError},
+    app::{AppError, AppResponse, AppState},
     dto::IntoApi,
 };
 
