@@ -10,7 +10,7 @@ use crate::{
     error::{AuthenticationError, TokenError},
     model::{AuthProvider, DeviceAuthorizationStatus, TokenType},
     repository::{
-        CodeRepository, CodeRepositoryImpl, SessionRepository, SessionRepositoryImpl,
+        DeviceRepository, DeviceRepositoryImpl, SessionRepository, SessionRepositoryImpl,
         TokenRepository, TokenRepositoryImpl, UserRepository, UserRepositoryImpl,
     },
     util::crypto::hash_string,
@@ -37,7 +37,7 @@ pub trait OAuthService: Send + Sync + 'static {
 #[derive(Debug, Clone)]
 pub struct OAuthServiceImpl<D, S, T, U, GH, TC>
 where
-    D: CodeRepository,
+    D: DeviceRepository,
     S: SessionRepository,
     T: TokenRepository,
     U: UserRepository,
@@ -54,7 +54,7 @@ where
 
 impl
     OAuthServiceImpl<
-        CodeRepositoryImpl,
+        DeviceRepositoryImpl,
         SessionRepositoryImpl,
         TokenRepositoryImpl,
         UserRepositoryImpl,
@@ -63,7 +63,7 @@ impl
     >
 {
     pub fn new(
-        code_repo: CodeRepositoryImpl,
+        code_repo: DeviceRepositoryImpl,
         session_repo: SessionRepositoryImpl,
         token_repo: TokenRepositoryImpl,
         user_repo: UserRepositoryImpl,
@@ -85,7 +85,7 @@ impl
 #[async_trait]
 impl<D, S, T, U, GH, TC> OAuthService for OAuthServiceImpl<D, S, T, U, GH, TC>
 where
-    D: CodeRepository,
+    D: DeviceRepository,
     S: SessionRepository,
     T: TokenRepository,
     U: UserRepository,

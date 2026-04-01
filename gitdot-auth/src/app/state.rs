@@ -6,7 +6,7 @@ use sqlx::PgPool;
 use gitdot_core::{
     client::{OctocrabClient, ResendClient, TokenClientImpl},
     repository::{
-        CodeRepositoryImpl, SessionRepositoryImpl, TokenRepositoryImpl, UserRepositoryImpl,
+        DeviceRepositoryImpl, SessionRepositoryImpl, TokenRepositoryImpl, UserRepositoryImpl,
     },
     service::{AuthenticationService, AuthenticationServiceImpl, OAuthService, OAuthServiceImpl},
 };
@@ -26,7 +26,7 @@ impl AppState {
         let session_repo = SessionRepositoryImpl::new(pool.clone());
         let token_repo = TokenRepositoryImpl::new(pool.clone());
         let user_repo = UserRepositoryImpl::new(pool.clone());
-        let code_repo = CodeRepositoryImpl::new(pool.clone());
+        let code_repo = DeviceRepositoryImpl::new(pool.clone());
 
         let email_client = ResendClient::new(&settings.resend_api_key);
         let token_client = TokenClientImpl::new(settings.gitdot_private_key.clone());

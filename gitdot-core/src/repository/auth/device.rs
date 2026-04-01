@@ -6,7 +6,7 @@ use uuid::Uuid;
 use crate::model::DeviceAuthorization;
 
 #[async_trait]
-pub trait CodeRepository: Send + Sync + Clone + 'static {
+pub trait DeviceRepository: Send + Sync + Clone + 'static {
     async fn create_device_authorization(
         &self,
         device_code_hash: &str,
@@ -41,11 +41,11 @@ pub trait CodeRepository: Send + Sync + Clone + 'static {
 }
 
 #[derive(Debug, Clone)]
-pub struct CodeRepositoryImpl {
+pub struct DeviceRepositoryImpl {
     pool: PgPool,
 }
 
-impl CodeRepositoryImpl {
+impl DeviceRepositoryImpl {
     pub fn new(pool: PgPool) -> Self {
         Self { pool }
     }
@@ -53,7 +53,7 @@ impl CodeRepositoryImpl {
 
 #[crate::instrument_all(level = "debug")]
 #[async_trait]
-impl CodeRepository for CodeRepositoryImpl {
+impl DeviceRepository for DeviceRepositoryImpl {
     async fn create_device_authorization(
         &self,
         device_code_hash: &str,

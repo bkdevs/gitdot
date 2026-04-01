@@ -10,7 +10,7 @@ use gitdot_core::{
         SecretClient, TokenClientImpl,
     },
     repository::{
-        BuildRepositoryImpl, CodeRepositoryImpl, CommitRepositoryImpl, GitHubRepositoryImpl,
+        BuildRepositoryImpl, CommitRepositoryImpl, DeviceRepositoryImpl, GitHubRepositoryImpl,
         MigrationRepositoryImpl, OrganizationRepositoryImpl, QuestionRepositoryImpl,
         RepositoryRepositoryImpl, ReviewRepositoryImpl, RunnerRepositoryImpl,
         SessionRepositoryImpl, TaskRepositoryImpl, TokenRepositoryImpl, UserRepositoryImpl,
@@ -61,7 +61,7 @@ impl AppState {
         pool: PgPool,
         secret_client: impl SecretClient,
     ) -> anyhow::Result<Self> {
-        let code_repo = CodeRepositoryImpl::new(pool.clone());
+        let code_repo = DeviceRepositoryImpl::new(pool.clone());
         let token_repo = TokenRepositoryImpl::new(pool.clone());
         let user_repo = UserRepositoryImpl::new(pool.clone());
         let org_repo = OrganizationRepositoryImpl::new(pool.clone());
