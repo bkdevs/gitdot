@@ -86,7 +86,7 @@ impl UserRepository for UserRepositoryImpl {
 
     async fn update(&self, id: Uuid, name: &str) -> Result<User, Error> {
         let user = sqlx::query_as::<_, User>(
-            "UPDATE users SET name = $1 WHERE id = $2 RETURNING id, email, name, created_at",
+            "UPDATE users SET name = $1 WHERE id = $2 RETURNING id, email, name, is_email_verified, created_at",
         )
         .bind(name)
         .bind(id)
@@ -135,7 +135,7 @@ impl UserRepository for UserRepositoryImpl {
 
     async fn get_settings(&self, id: Uuid) -> Result<Option<UserSettings>, Error> {
         let user = sqlx::query_as::<_, User>(
-            "SELECT id, email, name, created_at, settings FROM users WHERE id = $1",
+            "SELECT id, email, name, is_email_verified, created_at, settings FROM users WHERE id = $1",
         )
         .bind(id)
         .fetch_optional(&self.pool)
