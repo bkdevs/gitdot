@@ -1,4 +1,4 @@
-use crate::endpoint::Endpoint;
+use crate::{endpoint::Endpoint, resource::auth::GitHubAuthRedirectResource};
 
 pub struct RedirectToGitHubAuth;
 
@@ -7,5 +7,5 @@ impl Endpoint for RedirectToGitHubAuth {
     const METHOD: http::Method = http::Method::GET;
 
     type Request = ();
-    type Response = ();
+    type Response = GitHubAuthRedirectResource;
 }

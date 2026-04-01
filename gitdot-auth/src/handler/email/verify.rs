@@ -1,10 +1,11 @@
-use axum::{Json, extract::State};
+use axum::{Json, extract::State, http::StatusCode};
 
 use gitdot_api::{endpoint::auth::email::verify as api, resource::auth::AuthTokensResource};
 use gitdot_core::dto::VerifyAuthCodeRequest;
 
 use crate::{
     app::{AppResponse, AppState, error::AppError},
+    dto::IntoApi,
     extract::{ClientIp, UserAgent},
 };
 
@@ -20,5 +21,5 @@ pub async fn verify_auth_code(
         .verify_auth_code(request)
         .await
         .map_err(AppError::from)
-        .map(AppResponse::auth)
+        .map(|r| AppResponse::new(StatusCode::OK, r.into_api()))
 }
