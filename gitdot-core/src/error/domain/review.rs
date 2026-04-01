@@ -31,10 +31,10 @@ pub enum ReviewError {
     #[error("Unauthorized: {0}")]
     Unauthorized(String),
 
-    #[error("Git error: {0}")]
+    #[error(transparent)]
     GitError(#[from] GitError),
 
-    #[error("Diff rendering error: {0}")]
+    #[error(transparent)]
     DiffError(#[from] DiffError),
 
     #[error("Database error: {0}")]

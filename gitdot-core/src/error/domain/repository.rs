@@ -19,10 +19,10 @@ pub enum RepositoryError {
     #[error("Path '{0}' is not a file")]
     NotAFile(String),
 
-    #[error("Git error: {0}")]
+    #[error(transparent)]
     GitError(Git2Error),
 
-    #[error("Diff error: {0}")]
+    #[error(transparent)]
     DiffError(#[from] DiffError),
 
     #[error("Database error: {0}")]

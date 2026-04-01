@@ -13,7 +13,7 @@ pub enum BuildError {
     #[error("Invalid build config: {0}")]
     InvalidConfig(String),
 
-    #[error("Git error: {0}")]
+    #[error(transparent)]
     GitError(GitError),
 
     #[error("Task join error: {0}")]

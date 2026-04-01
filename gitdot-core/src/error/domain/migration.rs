@@ -13,10 +13,10 @@ pub enum MigrationError {
     #[error(transparent)]
     Conflict(#[from] ConflictError),
 
-    #[error("Git error: {0}")]
+    #[error(transparent)]
     GitError(#[from] GitError),
 
-    #[error("GitHub error: {0}")]
+    #[error(transparent)]
     GitHubError(#[from] GitHubError),
 
     #[error("Database error: {0}")]

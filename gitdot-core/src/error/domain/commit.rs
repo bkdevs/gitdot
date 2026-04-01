@@ -10,10 +10,10 @@ pub enum CommitError {
     #[error(transparent)]
     NotFound(#[from] NotFoundError),
 
-    #[error("Git error: {0}")]
+    #[error(transparent)]
     GitError(#[from] GitError),
 
-    #[error("Diff error: {0}")]
+    #[error(transparent)]
     DiffError(#[from] DiffError),
 
     #[error("Database error: {0}")]
