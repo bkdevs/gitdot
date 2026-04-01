@@ -108,7 +108,7 @@ impl GitHubClient for OctocrabClient {
             .into_iter()
             .find(|e| e.primary && e.verified)
             .map(|e| e.email)
-            .ok_or_else(|| GitHubError::HttpError("No verified primary email found".to_string()))
+            .ok_or_else(|| GitHubError::Other("No verified primary email found".to_string()))
     }
 
     async fn get_installation(&self, installation_id: u64) -> Result<Installation, GitHubError> {
