@@ -61,7 +61,7 @@ impl AppState {
         pool: PgPool,
         secret_client: impl SecretClient,
     ) -> anyhow::Result<Self> {
-        let code_repo = DeviceRepositoryImpl::new(pool.clone());
+        let device_repo = DeviceRepositoryImpl::new(pool.clone());
         let token_repo = TokenRepositoryImpl::new(pool.clone());
         let user_repo = UserRepositoryImpl::new(pool.clone());
         let org_repo = OrganizationRepositoryImpl::new(pool.clone());
@@ -99,7 +99,7 @@ impl AppState {
         Ok(Self {
             settings,
             oauth_service: Arc::new(OAuthServiceImpl::new(
-                code_repo.clone(),
+                device_repo.clone(),
                 session_repo.clone(),
                 token_repo.clone(),
                 user_repo.clone(),

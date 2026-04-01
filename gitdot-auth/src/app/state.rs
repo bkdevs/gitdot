@@ -26,7 +26,7 @@ impl AppState {
         let session_repo = SessionRepositoryImpl::new(pool.clone());
         let token_repo = TokenRepositoryImpl::new(pool.clone());
         let user_repo = UserRepositoryImpl::new(pool.clone());
-        let code_repo = DeviceRepositoryImpl::new(pool.clone());
+        let device_repo = DeviceRepositoryImpl::new(pool.clone());
 
         let email_client = ResendClient::new(&settings.resend_api_key);
         let token_client = TokenClientImpl::new(settings.gitdot_private_key.clone());
@@ -45,7 +45,7 @@ impl AppState {
             token_client.clone(),
         ));
         let oauth_service = Arc::new(OAuthServiceImpl::new(
-            code_repo,
+            device_repo,
             session_repo,
             token_repo,
             user_repo,

@@ -22,6 +22,8 @@ use crate::{
 
 #[async_trait]
 pub trait AuthenticationService: Send + Sync + 'static {
+    // --- Auth operations ---
+
     async fn send_auth_email(
         &self,
         request: SendAuthEmailRequest,
@@ -38,6 +40,12 @@ pub trait AuthenticationService: Send + Sync + 'static {
     ) -> Result<AuthTokensResponse, AuthenticationError>;
 
     async fn logout(&self, request: LogoutRequest) -> Result<(), AuthenticationError>;
+
+    // --- OAuth operations ---
+
+    // --- Device flow operations ---
+
+    // --- Token operations ---
 
     async fn validate_token(
         &self,

@@ -1,6 +1,5 @@
 mod auth;
 mod build;
-mod code;
 mod commit;
 mod github;
 mod migration;
@@ -15,7 +14,6 @@ mod webhook;
 
 pub use auth::*;
 pub use build::*;
-pub use code::*;
 pub use commit::*;
 pub use github::*;
 pub use migration::*;

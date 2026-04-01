@@ -44,7 +44,7 @@ where
     GH: GitHubClient,
     TC: TokenClient,
 {
-    code_repo: D,
+    device_repo: D,
     session_repo: S,
     token_repo: T,
     user_repo: U,
@@ -63,7 +63,7 @@ impl
     >
 {
     pub fn new(
-        code_repo: DeviceRepositoryImpl,
+        device_repo: DeviceRepositoryImpl,
         session_repo: SessionRepositoryImpl,
         token_repo: TokenRepositoryImpl,
         user_repo: UserRepositoryImpl,
@@ -71,7 +71,7 @@ impl
         token_client: TokenClientImpl,
     ) -> Self {
         Self {
-            code_repo,
+            device_repo,
             session_repo,
             token_repo,
             user_repo,
@@ -160,7 +160,7 @@ where
         let expiry_secs = self.token_client.get_device_code_expiry_in_seconds();
         let expires_at = Utc::now() + Duration::seconds(expiry_secs as i64);
 
-        self.code_repo
+        self.device_repo
             .create_device_authorization(
                 &device_code_hash,
                 &user_code,
@@ -181,7 +181,7 @@ where
     async fn poll_token(&self, request: PollTokenRequest) -> Result<TokenResponse, TokenError> {
         let device_code_hash = hash_string(&request.device_code);
         let device_auth = self
-            .code_repo
+            .device_repo
             .get_device_authorization_by_device_code_hash(&device_code_hash)
             .await?
             .ok_or(TokenError::InvalidDeviceCode)?;
@@ -189,7 +189,7 @@ where
         if device_auth.expires_at < Utc::now()
             && device_auth.status == DeviceAuthorizationStatus::Pending
         {
-            self.code_repo
+            self.device_repo
                 .expire_device_authorization(device_auth.id)
                 .await?;
             return Err(TokenError::ExpiredToken);
@@ -227,7 +227,7 @@ where
                     )
                     .await?;
 
-                self.code_repo
+                self.device_repo
                     .expire_device_authorization(device_auth.id)
                     .await?;
 
@@ -241,7 +241,7 @@ where
     }
 
     async fn authorize_device(&self, request: AuthorizeDeviceRequest) -> Result<(), TokenError> {
-        self.code_repo
+        self.device_repo
             .authorize_device(&request.user_code, request.user_id)
             .await?
             .ok_or(TokenError::InvalidUserCode(
