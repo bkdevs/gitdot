@@ -97,7 +97,7 @@ where
                     .org_repo
                     .get(request.owner_name.as_ref())
                     .await?
-                    .ok_or_else(|| NotFoundError::new("owner", &request.owner_name))?;
+                    .ok_or_else(|| NotFoundError::new("owner", request.owner_name.as_ref()))?;
                 org.id
             }
         };
@@ -138,7 +138,7 @@ where
             .get(request.owner_name.as_ref(), request.name.as_ref())
             .await
             .map_err(RunnerError::DatabaseError)?
-            .ok_or_else(|| NotFoundError::new("runner", &request.name))?;
+            .ok_or_else(|| NotFoundError::new("runner", request.name.as_ref()))?;
 
         Ok(runner.into())
     }
@@ -149,14 +149,14 @@ where
             .get(request.owner_name.as_ref(), request.name.as_ref())
             .await
             .map_err(RunnerError::DatabaseError)?
-            .ok_or_else(|| NotFoundError::new("runner", &request.name))?;
+            .ok_or_else(|| NotFoundError::new("runner", request.name.as_ref()))?;
 
         self.runner_repo
             .delete(runner.id)
             .await
             .map_err(|e| match e {
                 sqlx::Error::RowNotFound => {
-                    RunnerError::NotFound(NotFoundError::new("runner", &request.name))
+                    RunnerError::NotFound(NotFoundError::new("runner", request.name.as_ref()))
                 }
                 e => RunnerError::DatabaseError(e),
             })?;
@@ -186,7 +186,7 @@ where
             .get(request.owner_name.as_ref(), request.runner_name.as_ref())
             .await
             .map_err(RunnerError::DatabaseError)?
-            .ok_or_else(|| NotFoundError::new("runner", &request.runner_name))?;
+            .ok_or_else(|| NotFoundError::new("runner", request.runner_name.as_ref()))?;
 
         self.token_repo.delete_token_by_principal(runner.id).await?;
 

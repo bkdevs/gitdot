@@ -3,7 +3,7 @@ use uuid::Uuid;
 
 use crate::{
     dto::{OwnerName, RepositoryName},
-    error::QuestionError,
+    error::{InputError, QuestionError},
 };
 
 #[derive(Debug, Clone)]
@@ -24,10 +24,8 @@ impl ListQuestionsRequest {
         to: DateTime<Utc>,
     ) -> Result<Self, QuestionError> {
         Ok(Self {
-            owner: OwnerName::try_new(owner)
-                .map_err(|e| QuestionError::InvalidOwnerName(e.to_string()))?,
-            repo: RepositoryName::try_new(repo)
-                .map_err(|e| QuestionError::InvalidOwnerName(e.to_string()))?,
+            owner: OwnerName::try_new(owner).map_err(|e| InputError::new("owner name", e))?,
+            repo: RepositoryName::try_new(repo).map_err(|e| InputError::new("owner name", e))?,
             user_id,
             from,
             to,

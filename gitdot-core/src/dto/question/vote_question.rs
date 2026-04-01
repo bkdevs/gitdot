@@ -2,7 +2,7 @@ use uuid::Uuid;
 
 use crate::{
     dto::{OwnerName, RepositoryName},
-    error::QuestionError,
+    error::{InputError, QuestionError},
 };
 
 #[derive(Debug, Clone)]
@@ -23,13 +23,14 @@ impl VoteQuestionRequest {
         value: i16,
     ) -> Result<Self, QuestionError> {
         if !(-1..=1).contains(&value) {
-            return Err(QuestionError::InvalidVoteValue(value));
+            return Err(
+                InputError::new("vote value", format!("{value}. Must be -1, 0, or 1")).into(),
+            );
         }
         Ok(Self {
-            owner: OwnerName::try_new(owner)
-                .map_err(|e| QuestionError::InvalidOwnerName(e.to_string()))?,
+            owner: OwnerName::try_new(owner).map_err(|e| InputError::new("owner name", e))?,
             repo: RepositoryName::try_new(repo)
-                .map_err(|e| QuestionError::InvalidRepositoryName(e.to_string()))?,
+                .map_err(|e| InputError::new("repository name", e))?,
             number,
             user_id,
             value,

@@ -2,7 +2,7 @@ use uuid::Uuid;
 
 use crate::{
     dto::{OwnerName, RepositoryName},
-    error::QuestionError,
+    error::{InputError, QuestionError},
 };
 
 #[derive(Debug, Clone)]
@@ -24,10 +24,8 @@ impl CreateQuestionRequest {
     ) -> Result<Self, QuestionError> {
         Ok(Self {
             author_id,
-            owner: OwnerName::try_new(owner)
-                .map_err(|e| QuestionError::InvalidOwnerName(e.to_string()))?,
-            repo: RepositoryName::try_new(repo)
-                .map_err(|e| QuestionError::InvalidOwnerName(e.to_string()))?,
+            owner: OwnerName::try_new(owner).map_err(|e| InputError::new("owner name", e))?,
+            repo: RepositoryName::try_new(repo).map_err(|e| InputError::new("owner name", e))?,
             title,
             body,
         })
@@ -102,7 +100,7 @@ mod tests {
             "Body".to_string(),
         );
 
-        assert!(matches!(result, Err(QuestionError::InvalidOwnerName(_))));
+        assert!(matches!(result, Err(QuestionError::Input(_))));
     }
 
     #[test]
@@ -116,6 +114,6 @@ mod tests {
             "Body".to_string(),
         );
 
-        assert!(matches!(result, Err(QuestionError::InvalidOwnerName(_))));
+        assert!(matches!(result, Err(QuestionError::Input(_))));
     }
 }

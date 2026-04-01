@@ -1,6 +1,6 @@
 use uuid::Uuid;
 
-use crate::error::QuestionError;
+use crate::error::{InputError, QuestionError};
 
 #[derive(Debug, Clone)]
 pub struct VoteCommentRequest {
@@ -12,7 +12,9 @@ pub struct VoteCommentRequest {
 impl VoteCommentRequest {
     pub fn new(comment_id: Uuid, user_id: Uuid, value: i16) -> Result<Self, QuestionError> {
         if !(-1..=1).contains(&value) {
-            return Err(QuestionError::InvalidVoteValue(value));
+            return Err(
+                InputError::new("vote value", format!("{value}. Must be -1, 0, or 1")).into(),
+            );
         }
         Ok(Self {
             comment_id,
