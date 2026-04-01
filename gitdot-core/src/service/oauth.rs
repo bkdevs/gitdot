@@ -87,7 +87,7 @@ where
     TC: TokenClient,
 {
     fn get_github_authorization_url(&self) -> OAuthRedirectResponse {
-        let state = uuid::Uuid::new_v4().to_string();
+        let state = self.token_client.generate_oauth_state();
         let authorize_url = self.github_client.get_authorization_url(&state);
         OAuthRedirectResponse {
             authorize_url,

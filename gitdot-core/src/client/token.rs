@@ -1,12 +1,14 @@
 use base64::{Engine, engine::general_purpose::URL_SAFE_NO_PAD};
 use chrono::Utc;
+use hmac::{Hmac, Mac};
 use jsonwebtoken::{Algorithm, EncodingKey, Header, encode};
 use rand::RngExt as _;
 use serde::Serialize;
+use sha2::Sha256;
 use uuid::Uuid;
 
 use crate::{
-    dto::{GitdotClaims, UserMetadata},
+    dto::{GitdotClaims, OAuthStatePayload, UserMetadata},
     model::TokenType,
     util::{auth::GITDOT_SERVER_ID, crypto::hash_string},
 };
@@ -14,7 +16,7 @@ use crate::{
 const AUTH_CODE_EXPIRY_MINUTES: i64 = 10;
 const ACCESS_TOKEN_EXPIRY_SECONDS: u64 = 3600;
 const REFRESH_TOKEN_EXPIRY_SECONDS: u64 = 30 * 24 * 3600;
-
+const OAUTH_STATE_EXPIRY_SECONDS: u64 = 600;
 const DEVICE_CODE_EXPIRY_MINUTES: i64 = 10;
 const POLLING_INTERVAL_SECONDS: u64 = 1;
 
@@ -37,6 +39,10 @@ pub trait TokenClient: Send + Sync + Clone + 'static {
     // Token operations
     fn generate_access_token(&self, token_type: &TokenType) -> (String, String);
     fn validate_token_format(&self, token: &str) -> bool;
+
+    // OAuth state operations
+    fn generate_oauth_state(&self) -> String;
+    fn verify_oauth_state(&self, state: &str) -> Result<(), String>;
 
     // JWT operations
     fn generate_jwt<T: Serialize + Send + Sync>(&self, claims: &T) -> Result<String, String>;
@@ -154,6 +160,47 @@ impl TokenClient for TokenClientImpl {
 
         let expected_crc = crc32fast::hash(&body_bytes);
         expected_crc as u128 == crc_val
+    }
+
+    fn generate_oauth_state(&self) -> String {
+        let payload = OAuthStatePayload {
+            nonce: Uuid::new_v4().to_string(),
+            exp: Utc::now().timestamp() as u64 + OAUTH_STATE_EXPIRY_SECONDS,
+        };
+        let payload_json = serde_json::to_string(&payload).unwrap();
+        let payload_b64 = URL_SAFE_NO_PAD.encode(payload_json.as_bytes());
+
+        let mut mac = Hmac::<Sha256>::new_from_slice(self.gitdot_private_key.as_bytes())
+            .expect("HMAC accepts any key length");
+        mac.update(payload_b64.as_bytes());
+        let sig = URL_SAFE_NO_PAD.encode(mac.finalize().into_bytes());
+
+        format!("{payload_b64}.{sig}")
+    }
+
+    fn verify_oauth_state(&self, state: &str) -> Result<(), String> {
+        let (payload_b64, sig_b64) = state.split_once('.').ok_or("Invalid state format")?;
+
+        let mut mac = Hmac::<Sha256>::new_from_slice(self.gitdot_private_key.as_bytes())
+            .expect("HMAC accepts any key length");
+        mac.update(payload_b64.as_bytes());
+
+        let sig = URL_SAFE_NO_PAD
+            .decode(sig_b64)
+            .map_err(|_| "Invalid signature encoding")?;
+        mac.verify_slice(&sig).map_err(|_| "Invalid signature")?;
+
+        let payload_json = URL_SAFE_NO_PAD
+            .decode(payload_b64)
+            .map_err(|_| "Invalid payload encoding")?;
+        let payload: OAuthStatePayload =
+            serde_json::from_slice(&payload_json).map_err(|_| "Invalid payload")?;
+
+        if payload.exp < Utc::now().timestamp() as u64 {
+            return Err("State expired".to_string());
+        }
+
+        Ok(())
     }
 
     fn generate_jwt<T: Serialize + Send + Sync>(&self, claims: &T) -> Result<String, String> {
