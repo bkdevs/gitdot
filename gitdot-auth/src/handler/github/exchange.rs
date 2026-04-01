@@ -18,7 +18,7 @@ pub async fn exchange_github_code(
     let request =
         ExchangeGitHubCodeRequest::new(body.code, body.state, user_agent, ip_address.as_deref());
     state
-        .oauth_service
+        .authentication_service
         .exchange_github_code(request)
         .await
         .map_err(AppError::from)

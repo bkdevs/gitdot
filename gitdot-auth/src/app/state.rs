@@ -8,7 +8,7 @@ use gitdot_core::{
     repository::{
         DeviceRepositoryImpl, SessionRepositoryImpl, TokenRepositoryImpl, UserRepositoryImpl,
     },
-    service::{AuthenticationService, AuthenticationServiceImpl, OAuthService, OAuthServiceImpl},
+    service::{AuthenticationService, AuthenticationServiceImpl},
 };
 
 use super::Settings;
@@ -18,7 +18,6 @@ pub struct AppState {
     pub settings: Arc<Settings>,
 
     pub authentication_service: Arc<dyn AuthenticationService>,
-    pub oauth_service: Arc<dyn OAuthService>,
 }
 
 impl AppState {
@@ -38,17 +37,11 @@ impl AppState {
         );
 
         let authentication_service = Arc::new(AuthenticationServiceImpl::new(
-            session_repo.clone(),
-            token_repo.clone(),
-            user_repo.clone(),
-            email_client,
-            token_client.clone(),
-        ));
-        let oauth_service = Arc::new(OAuthServiceImpl::new(
             device_repo,
             session_repo,
             token_repo,
             user_repo,
+            email_client,
             github_client,
             token_client,
         ));
@@ -56,7 +49,6 @@ impl AppState {
         Self {
             settings,
             authentication_service,
-            oauth_service,
         }
     }
 }

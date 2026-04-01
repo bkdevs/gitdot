@@ -19,11 +19,11 @@ use gitdot_core::{
     service::{
         AuthenticationService, AuthenticationServiceImpl, AuthorizationService,
         AuthorizationServiceImpl, BuildService, BuildServiceImpl, CommitService, CommitServiceImpl,
-        GitHttpService, GitHttpServiceImpl, MigrationService, MigrationServiceImpl, OAuthService,
-        OAuthServiceImpl, OrganizationService, OrganizationServiceImpl, QuestionService,
-        QuestionServiceImpl, RepositoryService, RepositoryServiceImpl, ReviewService,
-        ReviewServiceImpl, RunnerService, RunnerServiceImpl, TaskService, TaskServiceImpl,
-        UserService, UserServiceImpl, WebhookService, WebhookServiceImpl,
+        GitHttpService, GitHttpServiceImpl, MigrationService, MigrationServiceImpl,
+        OrganizationService, OrganizationServiceImpl, QuestionService, QuestionServiceImpl,
+        RepositoryService, RepositoryServiceImpl, ReviewService, ReviewServiceImpl, RunnerService,
+        RunnerServiceImpl, TaskService, TaskServiceImpl, UserService, UserServiceImpl,
+        WebhookService, WebhookServiceImpl,
     },
 };
 
@@ -33,7 +33,6 @@ use super::Settings;
 pub struct AppState {
     pub settings: Arc<Settings>,
 
-    pub oauth_service: Arc<dyn OAuthService>,
     pub authentication_service: Arc<dyn AuthenticationService>,
     pub authorization_service: Arc<dyn AuthorizationService>,
 
@@ -98,19 +97,13 @@ impl AppState {
 
         Ok(Self {
             settings,
-            oauth_service: Arc::new(OAuthServiceImpl::new(
+            authentication_service: Arc::new(AuthenticationServiceImpl::new(
                 device_repo.clone(),
                 session_repo.clone(),
                 token_repo.clone(),
                 user_repo.clone(),
-                github_client.clone(),
-                token_client.clone(),
-            )),
-            authentication_service: Arc::new(AuthenticationServiceImpl::new(
-                session_repo.clone(),
-                token_repo.clone(),
-                user_repo.clone(),
                 email_client.clone(),
+                github_client.clone(),
                 token_client.clone(),
             )),
             authorization_service: Arc::new(AuthorizationServiceImpl::new(
