@@ -75,7 +75,7 @@ impl UserRepository for UserRepositoryImpl {
 
     async fn get(&self, user_name: &str) -> Result<Option<User>, Error> {
         let user = sqlx::query_as::<_, User>(
-            "SELECT id, email, name, created_at FROM users WHERE name = $1",
+            "SELECT id, email, name, is_email_verified, created_at FROM users WHERE name = $1",
         )
         .bind(user_name)
         .fetch_optional(&self.pool)
@@ -98,7 +98,7 @@ impl UserRepository for UserRepositoryImpl {
 
     async fn get_by_id(&self, id: Uuid) -> Result<Option<User>, Error> {
         let user = sqlx::query_as::<_, User>(
-            "SELECT id, email, name, created_at FROM users WHERE id = $1",
+            "SELECT id, email, name, is_email_verified, created_at FROM users WHERE id = $1",
         )
         .bind(id)
         .fetch_optional(&self.pool)
@@ -109,7 +109,7 @@ impl UserRepository for UserRepositoryImpl {
 
     async fn get_by_email(&self, email: &str) -> Result<Option<User>, Error> {
         let user = sqlx::query_as::<_, User>(
-            "SELECT id, email, name, created_at FROM users WHERE email = $1",
+            "SELECT id, email, name, is_email_verified, created_at FROM users WHERE email = $1",
         )
         .bind(email)
         .fetch_optional(&self.pool)
@@ -124,7 +124,7 @@ impl UserRepository for UserRepositoryImpl {
         }
 
         let users = sqlx::query_as::<_, User>(
-            "SELECT id, email, name, created_at FROM users WHERE email = ANY($1)",
+            "SELECT id, email, name, is_email_verified, created_at FROM users WHERE email = ANY($1)",
         )
         .bind(emails)
         .fetch_all(&self.pool)

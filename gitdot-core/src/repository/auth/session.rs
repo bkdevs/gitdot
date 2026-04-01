@@ -109,7 +109,7 @@ impl SessionRepository for SessionRepositoryImpl {
         let session = sqlx::query_as::<_, Session>(
             r#"
             INSERT INTO sessions (user_id, refresh_token_hash, refresh_token_family, user_agent, ip_address, expires_at)
-            VALUES ($1, $2, $3, $4, $5, $6)
+            VALUES ($1, $2, $3, $4, $5::inet, $6)
             RETURNING *
             "#,
         )
