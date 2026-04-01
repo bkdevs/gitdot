@@ -1,39 +1,11 @@
-mod authentication;
-mod authorization;
-mod build;
-mod commit;
-mod diff;
-mod git;
-mod git_http;
-mod github;
-mod migration;
-mod organization;
-mod question;
-mod repository;
-mod review;
-mod runner;
-mod secret;
-mod task;
-mod token;
-mod user;
-mod webhook;
+mod client;
+mod common;
+mod domain;
 
-pub use authentication::AuthenticationError;
-pub use authorization::AuthorizationError;
-pub use build::BuildError;
-pub use commit::CommitError;
-pub use diff::DiffError;
-pub use git::GitError;
-pub use git_http::GitHttpError;
-pub use github::GitHubError;
-pub use migration::MigrationError;
-pub use organization::OrganizationError;
-pub use question::QuestionError;
-pub use repository::RepositoryError;
-pub use review::ReviewError;
-pub use runner::RunnerError;
-pub use secret::SecretError;
-pub use task::TaskError;
-pub use token::TokenError;
-pub use user::UserError;
-pub use webhook::WebhookError;
+pub use client::{DiffError, GitError, GitHubError, SecretError};
+pub use common::{ConflictError, InputError, NotFoundError};
+pub use domain::{
+    AuthenticationError, AuthorizationError, BuildError, CommitError, GitHttpError, MigrationError,
+    OrganizationError, QuestionError, RepositoryError, ReviewError, RunnerError, TaskError,
+    TokenError, UserError, WebhookError,
+};

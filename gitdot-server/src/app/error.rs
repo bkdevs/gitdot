@@ -327,13 +327,8 @@ impl IntoResponse for AppError {
             }
             AppError::Webhook(e) => {
                 let status_code = match e {
-                    WebhookError::InvalidOwnerName(_) => StatusCode::BAD_REQUEST,
-                    WebhookError::InvalidRepositoryName(_) => StatusCode::BAD_REQUEST,
-                    WebhookError::InvalidUrl(_) => StatusCode::BAD_REQUEST,
-                    WebhookError::InvalidSecret(_) => StatusCode::BAD_REQUEST,
-                    WebhookError::InvalidEventType(_) => StatusCode::BAD_REQUEST,
+                    WebhookError::Input(_) => StatusCode::BAD_REQUEST,
                     WebhookError::NotFound(_) => StatusCode::NOT_FOUND,
-                    WebhookError::RepositoryNotFound(_) => StatusCode::NOT_FOUND,
                     WebhookError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                 };
                 let response = AppResponse::new(

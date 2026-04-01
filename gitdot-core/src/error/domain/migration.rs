@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-use super::{GitError, GitHubError};
+use crate::error::{GitError, GitHubError};
 
 #[derive(Debug, Error)]
 pub enum MigrationError {

@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-use super::{DiffError, GitError};
+use crate::error::{DiffError, GitError};
 
 #[derive(Debug, Error)]
 pub enum ReviewError {

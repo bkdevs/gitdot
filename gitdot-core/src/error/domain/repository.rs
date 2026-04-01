@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-use super::{DiffError, GitError as Git2Error};
+use crate::error::{DiffError, GitError as Git2Error};
 
 #[derive(Debug, Error)]
 pub enum RepositoryError {

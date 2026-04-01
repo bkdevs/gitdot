@@ -1,27 +1,29 @@
 use thiserror::Error;
 
+use crate::error::{DiffError, GitError};
+
 #[derive(Debug, Error)]
-pub enum WebhookError {
+pub enum CommitError {
     #[error("Invalid owner name: {0}")]
     InvalidOwnerName(String),
 
     #[error("Invalid repository name: {0}")]
     InvalidRepositoryName(String),
 
-    #[error("Webhook not found: {0}")]
+    #[error("Invalid date range: {0}")]
+    InvalidDateRange(String),
+
+    #[error("Commit not found: {0}")]
     NotFound(String),
 
     #[error("Repository not found: {0}")]
     RepositoryNotFound(String),
 
-    #[error("Invalid webhook URL: {0}")]
-    InvalidUrl(String),
+    #[error("Git error: {0}")]
+    GitError(#[from] GitError),
 
-    #[error("Invalid secret: {0}")]
-    InvalidSecret(String),
-
-    #[error("Invalid event type: {0}")]
-    InvalidEventType(String),
+    #[error("Diff error: {0}")]
+    DiffError(#[from] DiffError),
 
     #[error("Database error: {0}")]
     DatabaseError(#[from] sqlx::Error),
