@@ -8,8 +8,10 @@ use axum_extra::extract::cookie::{Cookie, SameSite};
 use gitdot_api::{ApiResource, resource::auth::AuthTokensResource};
 use gitdot_core::dto::AuthTokensResponse;
 
+use gitdot_core::dto::OAuthRedirectResponse;
+
 use crate::{
-    consts::{ACCESS_TOKEN_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME},
+    consts::{ACCESS_TOKEN_COOKIE_NAME, OAUTH_STATE_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME},
     dto::IntoApi,
 };
 
@@ -66,6 +68,19 @@ impl AppResponse<AuthTokensResource> {
 }
 
 impl AppResponse<()> {
+    pub fn oauth_redirect(response: OAuthRedirectResponse) -> Self {
+        let state_cookie = Cookie::build((OAUTH_STATE_COOKIE_NAME, response.state))
+            .http_only(true)
+            .secure(true)
+            .same_site(SameSite::Lax)
+            .path("/auth/github")
+            .max_age(time::Duration::minutes(10));
+
+        Self::new(StatusCode::FOUND, ())
+            .with_header("set-cookie", &state_cookie.to_string())
+            .with_header("location", &response.authorize_url)
+    }
+
     pub fn clear_auth_cookies() -> Self {
         let access_cookie = Cookie::build((ACCESS_TOKEN_COOKIE_NAME, ""))
             .http_only(true)

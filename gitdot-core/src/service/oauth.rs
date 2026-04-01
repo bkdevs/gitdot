@@ -2,10 +2,10 @@ use async_trait::async_trait;
 use chrono::{Duration, Utc};
 
 use crate::{
-    client::{TokenClient, TokenClientImpl},
+    client::{GitHubClient, OctocrabClient, TokenClient, TokenClientImpl},
     dto::{
-        AuthorizeDeviceRequest, DeviceCodeRequest, DeviceCodeResponse, PollTokenRequest,
-        TokenResponse,
+        AuthorizeDeviceRequest, DeviceCodeRequest, DeviceCodeResponse, OAuthRedirectResponse,
+        PollTokenRequest, TokenResponse,
     },
     error::TokenError,
     model::{DeviceAuthorizationStatus, TokenType},
@@ -18,6 +18,12 @@ use crate::{
 
 #[async_trait]
 pub trait OAuthService: Send + Sync + 'static {
+    // --- GitHub OAuth operations ---
+
+    fn get_github_authorization_url(&self) -> OAuthRedirectResponse;
+
+    // --- Device flow operations ---
+
     async fn request_device_code(
         &self,
         request: DeviceCodeRequest,
@@ -29,32 +35,42 @@ pub trait OAuthService: Send + Sync + 'static {
 }
 
 #[derive(Debug, Clone)]
-pub struct OAuthServiceImpl<D, T, U, TC>
+pub struct OAuthServiceImpl<D, T, U, GH, TC>
 where
     D: CodeRepository,
     T: TokenRepository,
     U: UserRepository,
+    GH: GitHubClient,
     TC: TokenClient,
 {
     code_repo: D,
     token_repo: T,
     user_repo: U,
+    github_client: GH,
     token_client: TC,
 }
 
 impl
-    OAuthServiceImpl<CodeRepositoryImpl, TokenRepositoryImpl, UserRepositoryImpl, TokenClientImpl>
+    OAuthServiceImpl<
+        CodeRepositoryImpl,
+        TokenRepositoryImpl,
+        UserRepositoryImpl,
+        OctocrabClient,
+        TokenClientImpl,
+    >
 {
     pub fn new(
         code_repo: CodeRepositoryImpl,
         token_repo: TokenRepositoryImpl,
         user_repo: UserRepositoryImpl,
+        github_client: OctocrabClient,
         token_client: TokenClientImpl,
     ) -> Self {
         Self {
             code_repo,
             token_repo,
             user_repo,
+            github_client,
             token_client,
         }
     }
@@ -62,13 +78,23 @@ impl
 
 #[crate::instrument_all]
 #[async_trait]
-impl<D, T, U, TC> OAuthService for OAuthServiceImpl<D, T, U, TC>
+impl<D, T, U, GH, TC> OAuthService for OAuthServiceImpl<D, T, U, GH, TC>
 where
     D: CodeRepository,
     T: TokenRepository,
     U: UserRepository,
+    GH: GitHubClient,
     TC: TokenClient,
 {
+    fn get_github_authorization_url(&self) -> OAuthRedirectResponse {
+        let state = uuid::Uuid::new_v4().to_string();
+        let authorize_url = self.github_client.get_authorization_url(&state);
+        OAuthRedirectResponse {
+            authorize_url,
+            state,
+        }
+    }
+
     async fn request_device_code(
         &self,
         request: DeviceCodeRequest,

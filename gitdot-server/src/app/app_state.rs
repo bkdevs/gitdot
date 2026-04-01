@@ -83,6 +83,7 @@ impl AppState {
         let github_client = OctocrabClient::new(
             secret_client.get_github_app_id().await?,
             secret_client.get_github_app_private_key().await?,
+            String::new(), // TODO: add github_client_id from settings
         );
         let gitdot_private_key = secret_client.get_gitdot_private_key().await?;
         let s2_client = S2ClientImpl::new(&settings.s2_server_url, gitdot_private_key.clone());
@@ -100,6 +101,7 @@ impl AppState {
                 code_repo.clone(),
                 token_repo.clone(),
                 user_repo.clone(),
+                github_client.clone(),
                 token_client.clone(),
             )),
             authentication_service: Arc::new(AuthenticationServiceImpl::new(

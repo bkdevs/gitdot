@@ -6,6 +6,12 @@ use crate::error::GitHubError;
 
 #[async_trait]
 pub trait GitHubClient: Send + Sync + Clone + 'static {
+    // --- OAuth operations ---
+
+    fn get_authorization_url(&self, state: &str) -> String;
+
+    // --- GitHub App operations ---
+
     async fn get_installation(&self, installation_id: u64) -> Result<Installation, GitHubError>;
 
     async fn get_installation_access_token(
@@ -22,10 +28,11 @@ pub trait GitHubClient: Send + Sync + Clone + 'static {
 #[derive(Debug, Clone)]
 pub struct OctocrabClient {
     client: octocrab::Octocrab,
+    client_id: String,
 }
 
 impl OctocrabClient {
-    pub fn new(app_id: u64, private_key: String) -> Self {
+    pub fn new(app_id: u64, private_key: String, client_id: String) -> Self {
         let key = jsonwebtoken::EncodingKey::from_rsa_pem(private_key.as_bytes())
             .expect("Invalid RSA private key PEM");
 
@@ -34,13 +41,22 @@ impl OctocrabClient {
             .build()
             .expect("Failed to build Octocrab client");
 
-        Self { client: client }
+        Self { client, client_id }
     }
 }
 
 #[crate::instrument_all(level = "debug")]
 #[async_trait]
 impl GitHubClient for OctocrabClient {
+    fn get_authorization_url(&self, state: &str) -> String {
+        let mut url = url::Url::parse("https://github.com/login/oauth/authorize").unwrap();
+        url.query_pairs_mut()
+            .append_pair("client_id", &self.client_id)
+            .append_pair("scope", "user:email")
+            .append_pair("state", state);
+        url.to_string()
+    }
+
     async fn get_installation(&self, installation_id: u64) -> Result<Installation, GitHubError> {
         let installation = self
             .client
