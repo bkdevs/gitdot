@@ -15,6 +15,7 @@ dotenvy = { workspace = true }
 gitdot-api = { workspace = true }
 gitdot-core = { workspace = true }
 http = { workspace = true }
+rustls = { workspace = true, features = ["aws-lc-rs"] }
 serde = { workspace = true }
 serde_json = { workspace = true }
 sqlx = { workspace = true }

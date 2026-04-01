@@ -2310,6 +2310,7 @@ dependencies = [
  "gitdot-api",
  "gitdot-core",
  "http 1.4.0",
+ "rustls",
  "serde",
  "serde_json",
  "sqlx",

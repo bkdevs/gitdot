@@ -11,5 +11,9 @@ pub fn bootstrap() -> anyhow::Result<()> {
         .with(tracing_subscriber::fmt::layer().with_target(true))
         .init();
 
+    rustls::crypto::aws_lc_rs::default_provider()
+        .install_default()
+        .expect("failed to install rustls crypto provider");
+
     Ok(())
 }
