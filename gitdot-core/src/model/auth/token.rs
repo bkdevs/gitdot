@@ -4,6 +4,17 @@ use uuid::Uuid;
 
 use crate::error::TokenError;
 
+#[derive(Debug, Clone, FromRow)]
+pub struct AccessToken {
+    pub id: Uuid,
+    pub principal_id: Uuid,
+    pub client_id: String,
+    pub token_hash: String,
+    pub token_type: TokenType,
+    pub created_at: DateTime<Utc>,
+    pub last_used_at: Option<DateTime<Utc>>,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Type)]
 #[sqlx(type_name = "token_type", rename_all = "lowercase")]
 pub enum TokenType {
@@ -42,15 +53,4 @@ impl Into<String> for TokenType {
             TokenType::Runner => "runner".to_string(),
         }
     }
-}
-
-#[derive(Debug, Clone, FromRow)]
-pub struct AccessToken {
-    pub id: Uuid,
-    pub principal_id: Uuid,
-    pub client_id: String,
-    pub token_hash: String,
-    pub token_type: TokenType,
-    pub created_at: DateTime<Utc>,
-    pub last_used_at: Option<DateTime<Utc>>,
 }

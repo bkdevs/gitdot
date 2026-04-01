@@ -3,11 +3,16 @@ use rand::RngExt as _;
 use sqlx::{Error, PgPool, Row as _};
 use uuid::Uuid;
 
-use crate::model::{User, UserSettings};
+use crate::model::{AuthProvider, User, UserSettings};
 
 #[async_trait]
 pub trait UserRepository: Send + Sync + Clone + 'static {
-    async fn create(&self, email: &str, is_email_verified: bool) -> Result<User, Error>;
+    async fn create(
+        &self,
+        email: &str,
+        is_email_verified: bool,
+        provider: AuthProvider,
+    ) -> Result<User, Error>;
 
     async fn get(&self, user_name: &str) -> Result<Option<User>, Error>;
 
@@ -50,7 +55,12 @@ impl UserRepositoryImpl {
 #[crate::instrument_all(level = "debug")]
 #[async_trait]
 impl UserRepository for UserRepositoryImpl {
-    async fn create(&self, email: &str, is_email_verified: bool) -> Result<User, Error> {
+    async fn create(
+        &self,
+        email: &str,
+        is_email_verified: bool,
+        provider: AuthProvider,
+    ) -> Result<User, Error> {
         let suffix: String = {
             let mut rng = rand::rng();
             let bytes: [u8; 4] = rng.random();
@@ -59,14 +69,15 @@ impl UserRepository for UserRepositoryImpl {
         let name = format!("user_{suffix}");
         let user = sqlx::query_as::<_, User>(
             r#"
-            INSERT INTO users (email, name, is_email_verified)
-            VALUES ($1, $2, $3)
+            INSERT INTO users (email, name, is_email_verified, provider)
+            VALUES ($1, $2, $3, $4)
             RETURNING *
             "#,
         )
         .bind(email)
         .bind(name)
         .bind(is_email_verified)
+        .bind(provider)
         .fetch_one(&self.pool)
         .await?;
 
@@ -75,7 +86,11 @@ impl UserRepository for UserRepositoryImpl {
 
     async fn get(&self, user_name: &str) -> Result<Option<User>, Error> {
         let user = sqlx::query_as::<_, User>(
-            "SELECT id, email, name, is_email_verified, created_at FROM users WHERE name = $1",
+            r#"
+            SELECT id, email, name, is_email_verified, provider, created_at, settings
+            FROM users
+            WHERE name = $1
+            "#,
         )
         .bind(user_name)
         .fetch_optional(&self.pool)
@@ -86,7 +101,11 @@ impl UserRepository for UserRepositoryImpl {
 
     async fn update(&self, id: Uuid, name: &str) -> Result<User, Error> {
         let user = sqlx::query_as::<_, User>(
-            "UPDATE users SET name = $1 WHERE id = $2 RETURNING id, email, name, is_email_verified, created_at",
+            r#"
+            UPDATE users SET name = $1
+            WHERE id = $2
+            RETURNING id, email, name, is_email_verified, provider, created_at, settings
+            "#,
         )
         .bind(name)
         .bind(id)
@@ -98,7 +117,11 @@ impl UserRepository for UserRepositoryImpl {
 
     async fn get_by_id(&self, id: Uuid) -> Result<Option<User>, Error> {
         let user = sqlx::query_as::<_, User>(
-            "SELECT id, email, name, is_email_verified, created_at FROM users WHERE id = $1",
+            r#"
+            SELECT id, email, name, is_email_verified, provider, created_at, settings
+            FROM users
+            WHERE id = $1
+            "#,
         )
         .bind(id)
         .fetch_optional(&self.pool)
@@ -109,7 +132,11 @@ impl UserRepository for UserRepositoryImpl {
 
     async fn get_by_email(&self, email: &str) -> Result<Option<User>, Error> {
         let user = sqlx::query_as::<_, User>(
-            "SELECT id, email, name, is_email_verified, created_at FROM users WHERE email = $1",
+            r#"
+            SELECT id, email, name, is_email_verified, provider, created_at, settings
+            FROM users
+            WHERE email = $1
+            "#,
         )
         .bind(email)
         .fetch_optional(&self.pool)
@@ -124,7 +151,11 @@ impl UserRepository for UserRepositoryImpl {
         }
 
         let users = sqlx::query_as::<_, User>(
-            "SELECT id, email, name, is_email_verified, created_at FROM users WHERE email = ANY($1)",
+            r#"
+            SELECT id, email, name, is_email_verified, provider, created_at, settings
+            FROM users
+            WHERE email = ANY($1)
+            "#,
         )
         .bind(emails)
         .fetch_all(&self.pool)
@@ -135,7 +166,11 @@ impl UserRepository for UserRepositoryImpl {
 
     async fn get_settings(&self, id: Uuid) -> Result<Option<UserSettings>, Error> {
         let user = sqlx::query_as::<_, User>(
-            "SELECT id, email, name, is_email_verified, created_at, settings FROM users WHERE id = $1",
+            r#"
+            SELECT id, email, name, is_email_verified, provider, created_at, settings
+            FROM users
+            WHERE id = $1
+            "#,
         )
         .bind(id)
         .fetch_optional(&self.pool)
@@ -151,7 +186,11 @@ impl UserRepository for UserRepositoryImpl {
     ) -> Result<Option<UserSettings>, Error> {
         let settings = serde_json::to_value(&settings).unwrap();
         let row = sqlx::query(
-            "UPDATE users SET settings = COALESCE(settings, '{}'::jsonb) || $2::jsonb WHERE id = $1 RETURNING settings",
+            r#"
+            UPDATE users SET settings = COALESCE(settings, '{}'::jsonb) || $2::jsonb
+            WHERE id = $1
+            RETURNING settings
+            "#,
         )
         .bind(id)
         .bind(settings)
@@ -213,11 +252,14 @@ impl UserRepository for UserRepositoryImpl {
     }
 
     async fn is_email_taken(&self, email: &str) -> Result<bool, Error> {
-        let exists =
-            sqlx::query_scalar::<_, bool>("SELECT EXISTS(SELECT 1 FROM users WHERE email = $1)")
-                .bind(email)
-                .fetch_one(&self.pool)
-                .await?;
+        let exists = sqlx::query_scalar::<_, bool>(
+            r#"
+            SELECT EXISTS(SELECT 1 FROM users WHERE email = $1)
+            "#,
+        )
+        .bind(email)
+        .fetch_one(&self.pool)
+        .await?;
 
         Ok(exists)
     }

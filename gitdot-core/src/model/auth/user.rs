@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use sqlx::FromRow;
+use sqlx::{FromRow, Type};
 use uuid::Uuid;
 
 use crate::model::CommitFilter;
@@ -13,10 +13,18 @@ pub struct User {
     pub name: String,
     pub email: String,
     pub is_email_verified: bool,
+    pub provider: AuthProvider,
     pub created_at: DateTime<Utc>,
 
     #[sqlx(json(nullable), default)]
     pub settings: Option<UserSettings>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Type, Serialize, Deserialize)]
+#[sqlx(type_name = "auth_provider", rename_all = "lowercase")]
+pub enum AuthProvider {
+    Email,
+    GitHub,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]

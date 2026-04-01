@@ -9,6 +9,7 @@ use crate::{
         VerifyAuthCodeRequest,
     },
     error::{AuthenticationError, AuthorizationError},
+    model::AuthProvider,
     repository::{
         SessionRepository, SessionRepositoryImpl, TokenRepository, TokenRepositoryImpl,
         UserRepository, UserRepositoryImpl,
@@ -109,7 +110,10 @@ where
         let (user, is_signup) = match self.user_repo.get_by_email(&email).await? {
             Some(user) => (user, false),
             None => {
-                let user = self.user_repo.create(&email, false).await?;
+                let user = self
+                    .user_repo
+                    .create(&email, false, AuthProvider::Email)
+                    .await?;
                 (user, true)
             }
         };

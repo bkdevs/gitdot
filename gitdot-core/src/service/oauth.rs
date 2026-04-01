@@ -8,7 +8,7 @@ use crate::{
         ExchangeGitHubCodeRequest, OAuthRedirectResponse, PollTokenRequest, TokenResponse,
     },
     error::{AuthenticationError, TokenError},
-    model::{DeviceAuthorizationStatus, TokenType},
+    model::{AuthProvider, DeviceAuthorizationStatus, TokenType},
     repository::{
         CodeRepository, CodeRepositoryImpl, SessionRepository, SessionRepositoryImpl,
         TokenRepository, TokenRepositoryImpl, UserRepository, UserRepositoryImpl,
@@ -114,7 +114,10 @@ where
         let (user, is_new) = match self.user_repo.get_by_email(&email).await? {
             Some(user) => (user, false),
             None => {
-                let user = self.user_repo.create(&email, true).await?;
+                let user = self
+                    .user_repo
+                    .create(&email, true, AuthProvider::GitHub)
+                    .await?;
                 (user, true)
             }
         };
