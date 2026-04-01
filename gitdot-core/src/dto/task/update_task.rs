@@ -1,6 +1,9 @@
 use uuid::Uuid;
 
-use crate::{error::TaskError, model::TaskStatus};
+use crate::{
+    error::{InputError, TaskError},
+    model::TaskStatus,
+};
 
 #[derive(Debug, Clone)]
 pub struct UpdateTaskRequest {
@@ -15,7 +18,7 @@ impl UpdateTaskRequest {
             TaskStatus::Running | TaskStatus::Success | TaskStatus::Failure => {
                 Ok(Self { id, status })
             }
-            _ => Err(TaskError::InvalidStatus(status.into())),
+            _ => Err(InputError::new("task status", Into::<String>::into(status)).into()),
         }
     }
 }

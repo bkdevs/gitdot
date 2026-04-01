@@ -1,6 +1,6 @@
 use crate::{
     dto::{OwnerName, common::RunnerName},
-    error::RunnerError,
+    error::{InputError, RunnerError},
 };
 
 #[derive(Debug, Clone)]
@@ -13,9 +13,9 @@ impl CreateRunnerTokenRequest {
     pub fn new(owner_name: &str, name: &str) -> Result<Self, RunnerError> {
         Ok(Self {
             owner_name: OwnerName::try_new(owner_name)
-                .map_err(|e| RunnerError::InvalidOwnerName(e.to_string()))?,
+                .map_err(|e| InputError::new("owner name", e))?,
             runner_name: RunnerName::try_new(name)
-                .map_err(|e| RunnerError::InvalidRunnerName(e.to_string()))?,
+                .map_err(|e| InputError::new("runner name", e))?,
         })
     }
 }

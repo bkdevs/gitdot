@@ -6,7 +6,7 @@ use uuid::Uuid;
 
 use crate::{
     dto::{TaskResponse, UpdateTaskRequest},
-    error::TaskError,
+    error::{NotFoundError, TaskError},
     model::TaskStatus,
     repository::{
         RepositoryRepository, RepositoryRepositoryImpl, RunnerRepository, RunnerRepositoryImpl,
@@ -73,7 +73,7 @@ where
             .update_task(req.id, req.status)
             .await
             .map_err(|e| match e {
-                sqlx::Error::RowNotFound => TaskError::NotFound(req.id.to_string()),
+                sqlx::Error::RowNotFound => TaskError::NotFound(NotFoundError::new("task", req.id)),
                 e => TaskError::DatabaseError(e),
             })?;
 
@@ -98,7 +98,7 @@ where
             .get_by_id(runner_id)
             .await
             .map_err(TaskError::DatabaseError)?
-            .ok_or_else(|| TaskError::NotFound(runner_id.to_string()))?;
+            .ok_or_else(|| NotFoundError::new("runner", runner_id))?;
 
         let repos = self
             .repository_repo

@@ -1,4 +1,7 @@
-use crate::{dto::OwnerName, error::RunnerError};
+use crate::{
+    dto::OwnerName,
+    error::{InputError, RunnerError},
+};
 
 #[derive(Debug, Clone)]
 pub struct ListRunnersRequest {
@@ -9,7 +12,7 @@ impl ListRunnersRequest {
     pub fn new(owner_name: &str) -> Result<Self, RunnerError> {
         Ok(Self {
             owner_name: OwnerName::try_new(owner_name)
-                .map_err(|e| RunnerError::InvalidOwnerName(e.to_string()))?,
+                .map_err(|e| InputError::new("owner name", e))?,
         })
     }
 }

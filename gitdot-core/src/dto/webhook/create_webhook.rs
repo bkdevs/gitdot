@@ -32,14 +32,12 @@ impl CreateWebhookRequest {
         let events = events
             .iter()
             .map(|e| {
-                WebhookEventType::try_from(e.as_str())
-                    .map_err(|e| InputError::new("event type", e))
+                WebhookEventType::try_from(e.as_str()).map_err(|e| InputError::new("event type", e))
             })
             .collect::<Result<Vec<_>, _>>()?;
 
         Ok(Self {
-            owner_name: OwnerName::try_new(owner)
-                .map_err(|e| InputError::new("owner name", e))?,
+            owner_name: OwnerName::try_new(owner).map_err(|e| InputError::new("owner name", e))?,
             repo_name: RepositoryName::try_new(repo)
                 .map_err(|e| InputError::new("repository name", e))?,
             url: WebhookUrl::try_new(url).map_err(|e| InputError::new("url", e))?,

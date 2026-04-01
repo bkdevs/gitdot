@@ -270,11 +270,8 @@ impl IntoResponse for AppError {
             }
             AppError::Runner(e) => {
                 let status_code = match e {
-                    RunnerError::InvalidRunnerName(_) => StatusCode::BAD_REQUEST,
-                    RunnerError::InvalidOwnerName(_) => StatusCode::BAD_REQUEST,
-                    RunnerError::InvalidOwnerType(_) => StatusCode::BAD_REQUEST,
+                    RunnerError::Input(_) => StatusCode::BAD_REQUEST,
                     RunnerError::NotFound(_) => StatusCode::NOT_FOUND,
-                    RunnerError::OwnerNotFound(_) => StatusCode::NOT_FOUND,
                     RunnerError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                 };
                 let response = AppResponse::new(
@@ -310,9 +307,7 @@ impl IntoResponse for AppError {
             }
             AppError::Task(e) => {
                 let status_code = match e {
-                    TaskError::InvalidStatus(_) => StatusCode::BAD_REQUEST,
-                    TaskError::InvalidOwnerName(_) => StatusCode::BAD_REQUEST,
-                    TaskError::InvalidRepositoryName(_) => StatusCode::BAD_REQUEST,
+                    TaskError::Input(_) => StatusCode::BAD_REQUEST,
                     TaskError::NotFound(_) => StatusCode::NOT_FOUND,
                     TaskError::NoBuildConfig => StatusCode::UNPROCESSABLE_ENTITY,
                     TaskError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,

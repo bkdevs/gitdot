@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 use sqlx::{FromRow, Type};
 use uuid::Uuid;
 
-use crate::error::TaskError;
+use crate::error::{InputError, TaskError};
 
 #[derive(Debug, Clone, FromRow)]
 pub struct Task {
@@ -45,7 +45,7 @@ impl TryFrom<&str> for TaskStatus {
             "running" => Ok(TaskStatus::Running),
             "success" => Ok(TaskStatus::Success),
             "failure" => Ok(TaskStatus::Failure),
-            _ => Err(TaskError::InvalidStatus(status.to_string())),
+            _ => Err(InputError::new("task status", status).into()),
         }
     }
 }

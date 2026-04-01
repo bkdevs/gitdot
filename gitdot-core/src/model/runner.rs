@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 use sqlx::{FromRow, Type};
 use uuid::Uuid;
 
-use crate::error::RunnerError;
+use crate::error::{InputError, RunnerError};
 
 #[derive(Debug, Clone, FromRow)]
 pub struct Runner {
@@ -29,7 +29,7 @@ impl TryFrom<&str> for RunnerOwnerType {
         match owner_type {
             "user" => Ok(RunnerOwnerType::User),
             "organization" => Ok(RunnerOwnerType::Organization),
-            _ => Err(RunnerError::InvalidOwnerType(owner_type.to_string())),
+            _ => Err(InputError::new("owner type", owner_type).into()),
         }
     }
 }

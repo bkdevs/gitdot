@@ -7,7 +7,7 @@ use uuid::Uuid;
 use gitdot_api::{endpoint::task::issue_task_token as api, resource::task as resource};
 use gitdot_core::{
     dto::{IssueTaskJwtRequest, RepositoryAuthorizationRequest, RepositoryPermission},
-    error::TaskError,
+    error::NotFoundError,
 };
 
 use crate::{
@@ -26,7 +26,7 @@ pub async fn issue_task_token(
         .get_task(task_id)
         .await
         .map_err(AppError::from)?
-        .ok_or_else(|| AppError::Task(TaskError::NotFound(task_id.to_string())))?;
+        .ok_or_else(|| AppError::Task(NotFoundError::new("task", task_id).into()))?;
 
     let repository = state
         .repo_service

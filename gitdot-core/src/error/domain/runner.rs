@@ -1,21 +1,14 @@
 use thiserror::Error;
 
+use crate::error::{InputError, NotFoundError};
+
 #[derive(Debug, Error)]
 pub enum RunnerError {
-    #[error("Invalid runner name: {0}")]
-    InvalidRunnerName(String),
+    #[error(transparent)]
+    Input(#[from] InputError),
 
-    #[error("Invalid owner name: {0}")]
-    InvalidOwnerName(String),
-
-    #[error("Invalid owner type: {0}")]
-    InvalidOwnerType(String),
-
-    #[error("Runner not found: {0}")]
-    NotFound(String),
-
-    #[error("Owner not found: {0}")]
-    OwnerNotFound(String),
+    #[error(transparent)]
+    NotFound(#[from] NotFoundError),
 
     #[error("Database error: {0}")]
     DatabaseError(#[from] sqlx::Error),

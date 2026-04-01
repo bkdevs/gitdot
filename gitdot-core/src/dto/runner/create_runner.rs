@@ -2,7 +2,7 @@ use uuid::Uuid;
 
 use crate::{
     dto::{OwnerName, common::RunnerName},
-    error::RunnerError,
+    error::{InputError, RunnerError},
     model::RunnerOwnerType,
 };
 
@@ -22,11 +22,10 @@ impl CreateRunnerRequest {
         owner_type: &str,
     ) -> Result<Self, RunnerError> {
         Ok(Self {
-            name: RunnerName::try_new(name)
-                .map_err(|e| RunnerError::InvalidRunnerName(e.to_string()))?,
+            name: RunnerName::try_new(name).map_err(|e| InputError::new("runner name", e))?,
             user_id,
             owner_name: OwnerName::try_new(owner_name)
-                .map_err(|e| RunnerError::InvalidOwnerName(e.to_string()))?,
+                .map_err(|e| InputError::new("owner name", e))?,
             owner_type: owner_type.try_into()?,
         })
     }
@@ -60,7 +59,7 @@ mod tests {
         let user_id = Uuid::new_v4();
         let result = CreateRunnerRequest::new("invalid/runner", user_id, "johndoe", "user");
 
-        assert!(matches!(result, Err(RunnerError::InvalidRunnerName(_))));
+        assert!(matches!(result, Err(RunnerError::Input(_))));
     }
 
     #[test]
@@ -68,7 +67,7 @@ mod tests {
         let user_id = Uuid::new_v4();
         let result = CreateRunnerRequest::new("", user_id, "johndoe", "user");
 
-        assert!(matches!(result, Err(RunnerError::InvalidRunnerName(_))));
+        assert!(matches!(result, Err(RunnerError::Input(_))));
     }
 
     #[test]
@@ -76,7 +75,7 @@ mod tests {
         let user_id = Uuid::new_v4();
         let result = CreateRunnerRequest::new("my-runner", user_id, "invalid@owner", "user");
 
-        assert!(matches!(result, Err(RunnerError::InvalidOwnerName(_))));
+        assert!(matches!(result, Err(RunnerError::Input(_))));
     }
 
     #[test]
@@ -84,6 +83,6 @@ mod tests {
         let user_id = Uuid::new_v4();
         let result = CreateRunnerRequest::new("my-runner", user_id, "johndoe", "invalid");
 
-        assert!(matches!(result, Err(RunnerError::InvalidOwnerType(_))));
+        assert!(matches!(result, Err(RunnerError::Input(_))));
     }
 }

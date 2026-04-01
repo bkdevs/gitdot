@@ -1,18 +1,14 @@
 use thiserror::Error;
 
+use crate::error::{InputError, NotFoundError};
+
 #[derive(Debug, Error)]
 pub enum TaskError {
-    #[error("Invalid owner name: {0}")]
-    InvalidOwnerName(String),
+    #[error(transparent)]
+    Input(#[from] InputError),
 
-    #[error("Invalid repository name: {0}")]
-    InvalidRepositoryName(String),
-
-    #[error("Invalid task status: {0}")]
-    InvalidStatus(String),
-
-    #[error("Task not found: {0}")]
-    NotFound(String),
+    #[error(transparent)]
+    NotFound(#[from] NotFoundError),
 
     #[error("No matching build config for trigger")]
     NoBuildConfig,
