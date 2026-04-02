@@ -1,21 +1,23 @@
 use crate::error::{InputError, ReviewError};
 
-use super::super::common::{OwnerName, RepositoryName};
+use crate::dto::common::{OwnerName, RepositoryName};
 
 #[derive(Debug, Clone)]
-pub struct UpdateReviewRequest {
+pub struct UpdateDiffRequest {
     pub owner: OwnerName,
     pub repo: RepositoryName,
     pub number: i32,
+    pub position: i32,
     pub title: Option<String>,
     pub description: Option<String>,
 }
 
-impl UpdateReviewRequest {
+impl UpdateDiffRequest {
     pub fn new(
         owner: &str,
         repo: &str,
         number: i32,
+        position: i32,
         title: Option<String>,
         description: Option<String>,
     ) -> Result<Self, ReviewError> {
@@ -24,6 +26,7 @@ impl UpdateReviewRequest {
             repo: RepositoryName::try_new(repo)
                 .map_err(|e| InputError::new("repository name", e))?,
             number,
+            position,
             title,
             description,
         })

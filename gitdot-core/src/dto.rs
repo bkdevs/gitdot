@@ -1,18 +1,8 @@
 mod authentication;
 mod authorization;
-mod build;
-mod commit;
-mod git_http;
+mod ci;
+mod core;
 mod migration;
-mod oauth;
-mod organization;
-mod question;
-mod repository;
-mod review;
-mod runner;
-mod task;
-mod user;
-mod webhook;
 
 pub(crate) mod common;
 
@@ -22,16 +12,6 @@ use common::*;
 /// Re-export to expose flattened namespace to public
 pub use authentication::*;
 pub use authorization::*;
-pub use build::*;
-pub use commit::*;
-pub use git_http::*;
+pub use ci::*;
+pub use core::*;
 pub use migration::*;
-pub use oauth::*;
-pub use organization::*;
-pub use question::*;
-pub use repository::*;
-pub use review::*;
-pub use runner::*;
-pub use task::*;
-pub use user::*;
-pub use webhook::*;

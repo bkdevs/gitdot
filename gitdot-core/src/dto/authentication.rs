@@ -1,16 +1,20 @@
+mod device;
+mod email;
+mod github;
 mod issue_task_jwt;
 mod logout;
 mod refresh_session;
-mod send_auth_email;
-mod verify_auth_code;
+mod validate_token;
 
 use serde::{Deserialize, Deserializer, Serialize};
 
+pub use device::*;
+pub use email::*;
+pub use github::*;
 pub use issue_task_jwt::{IssueTaskJwtRequest, IssueTaskJwtResponse};
 pub use logout::LogoutRequest;
 pub use refresh_session::RefreshSessionRequest;
-pub use send_auth_email::SendAuthEmailRequest;
-pub use verify_auth_code::VerifyAuthCodeRequest;
+pub use validate_token::{ValidateTokenRequest, ValidateTokenResponse};
 
 #[derive(Debug, Clone)]
 pub struct AuthTokensResponse {

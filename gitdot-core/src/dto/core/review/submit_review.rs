@@ -5,7 +5,7 @@ use crate::{
     model::CommentSide,
 };
 
-use super::super::common::{OwnerName, RepositoryName};
+use crate::dto::common::{OwnerName, RepositoryName};
 
 #[derive(Debug, Clone)]
 pub struct SubmitReviewRequest {

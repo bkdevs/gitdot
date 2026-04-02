@@ -2,26 +2,26 @@ use uuid::Uuid;
 
 use crate::error::{InputError, ReviewError};
 
-use super::super::common::{OwnerName, RepositoryName};
+use crate::dto::common::{OwnerName, RepositoryName};
 
 #[derive(Debug, Clone)]
-pub struct UpdateReviewCommentRequest {
+pub struct ResolveReviewCommentRequest {
     pub owner: OwnerName,
     pub repo: RepositoryName,
     pub number: i32,
     pub comment_id: Uuid,
     pub user_id: Uuid,
-    pub body: String,
+    pub resolved: bool,
 }
 
-impl UpdateReviewCommentRequest {
+impl ResolveReviewCommentRequest {
     pub fn new(
         owner: &str,
         repo: &str,
         number: i32,
         comment_id: Uuid,
         user_id: Uuid,
-        body: String,
+        resolved: bool,
     ) -> Result<Self, ReviewError> {
         Ok(Self {
             owner: OwnerName::try_new(owner).map_err(|e| InputError::new("owner name", e))?,
@@ -30,7 +30,7 @@ impl UpdateReviewCommentRequest {
             number,
             comment_id,
             user_id,
-            body,
+            resolved,
         })
     }
 }

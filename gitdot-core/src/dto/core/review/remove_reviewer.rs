@@ -1,36 +1,29 @@
-use uuid::Uuid;
-
 use crate::error::{InputError, ReviewError};
 
-use super::super::common::{OwnerName, RepositoryName};
+use crate::dto::common::{OwnerName, RepositoryName};
 
 #[derive(Debug, Clone)]
-pub struct ResolveReviewCommentRequest {
+pub struct RemoveReviewerRequest {
     pub owner: OwnerName,
     pub repo: RepositoryName,
     pub number: i32,
-    pub comment_id: Uuid,
-    pub user_id: Uuid,
-    pub resolved: bool,
+    pub reviewer_name: OwnerName,
 }
 
-impl ResolveReviewCommentRequest {
+impl RemoveReviewerRequest {
     pub fn new(
         owner: &str,
         repo: &str,
         number: i32,
-        comment_id: Uuid,
-        user_id: Uuid,
-        resolved: bool,
+        reviewer_name: &str,
     ) -> Result<Self, ReviewError> {
         Ok(Self {
             owner: OwnerName::try_new(owner).map_err(|e| InputError::new("owner name", e))?,
             repo: RepositoryName::try_new(repo)
                 .map_err(|e| InputError::new("repository name", e))?,
             number,
-            comment_id,
-            user_id,
-            resolved,
+            reviewer_name: OwnerName::try_new(reviewer_name)
+                .map_err(|e| InputError::new("owner name", e))?,
         })
     }
 }

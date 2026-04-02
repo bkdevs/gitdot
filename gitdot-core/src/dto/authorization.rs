@@ -1,4 +1,3 @@
-mod validate_token;
 mod verify_authorized_for_answer;
 mod verify_authorized_for_comment;
 mod verify_authorized_for_migration;
@@ -10,7 +9,6 @@ mod verify_authorized_for_review;
 mod verify_authorized_for_review_comment;
 mod verify_authorized_for_reviewing;
 
-pub use validate_token::{ValidateTokenRequest, ValidateTokenResponse};
 pub use verify_authorized_for_answer::AnswerAuthorizationRequest;
 pub use verify_authorized_for_comment::CommentAuthorizationRequest;
 pub use verify_authorized_for_migration::MigrationAuthorizationRequest;
