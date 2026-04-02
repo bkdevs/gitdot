@@ -1,8 +1,8 @@
-mod app_state;
 mod bootstrap;
 mod error;
 mod response;
 mod settings;
+mod state;
 
 use std::{sync::Arc, time::Duration};
 
@@ -33,10 +33,10 @@ use crate::{
     layer::GitdotLayer,
 };
 
-pub use app_state::AppState;
 pub use error::AppError;
 pub use response::AppResponse;
 pub use settings::Settings;
+pub use state::AppState;
 
 pub struct GitdotServer {
     router: axum::Router,
