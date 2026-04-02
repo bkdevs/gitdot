@@ -1,18 +1,11 @@
 use thiserror::Error;
 
+use crate::error::JwtError;
+
 #[derive(Debug, Error)]
 pub enum AuthorizationError {
-    #[error("Missing Authorization header")]
-    MissingHeader,
-
-    #[error("Invalid Authorization header format")]
-    InvalidHeaderFormat,
-
-    #[error("Invalid public key: {0}")]
-    InvalidPublicKey(String),
-
-    #[error("Invalid token: {0}")]
-    InvalidToken(String),
+    #[error(transparent)]
+    Jwt(#[from] JwtError),
 
     #[error("Invalid request: {0}")]
     InvalidRequest(String),

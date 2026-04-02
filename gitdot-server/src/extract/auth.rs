@@ -11,7 +11,7 @@ use uuid::Uuid;
 
 use gitdot_core::{
     dto::{JwtClaims, ValidateTokenRequest},
-    error::AuthorizationError,
+    error::{AuthenticationError, JwtError},
     model::TokenType,
     util::auth::GITDOT_SERVER_ID,
 };
@@ -71,7 +71,7 @@ pub trait Authenticator: Send + Sync + 'static {
     async fn authenticate(
         parts: &Parts,
         app_state: &AppState,
-    ) -> Result<Principal<Self>, AuthorizationError>
+    ) -> Result<Principal<Self>, AuthenticationError>
     where
         Self: Sized;
 }
@@ -83,7 +83,7 @@ impl Authenticator for User {
     async fn authenticate(
         parts: &Parts,
         app_state: &AppState,
-    ) -> Result<Principal<Self>, AuthorizationError> {
+    ) -> Result<Principal<Self>, AuthenticationError> {
         let header = extract_auth_header(parts)?;
 
         if header.starts_with("Bearer ") {
@@ -95,7 +95,7 @@ impl Authenticator for User {
             return Ok(Principal::new(token_user.id));
         }
 
-        Err(AuthorizationError::InvalidHeaderFormat)
+        Err(JwtError::InvalidHeaderFormat.into())
     }
 }
 
@@ -106,21 +106,21 @@ impl Authenticator for UserJwt {
     async fn authenticate(
         parts: &Parts,
         app_state: &AppState,
-    ) -> Result<Principal<Self>, AuthorizationError> {
+    ) -> Result<Principal<Self>, AuthenticationError> {
         let header = extract_auth_header(parts)?;
         let jwt = header
             .strip_prefix("Bearer ")
-            .ok_or(AuthorizationError::InvalidHeaderFormat)?;
+            .ok_or(JwtError::InvalidHeaderFormat)?;
 
         let mut validation = Validation::new(Algorithm::EdDSA);
         validation.set_audience(&[GITDOT_SERVER_ID]);
 
         let key = DecodingKey::from_ed_pem(app_state.settings.gitdot_public_key.as_bytes())
-            .map_err(|e| AuthorizationError::InvalidPublicKey(e.to_string()))?;
+            .map_err(|e| JwtError::InvalidPublicKey(e.to_string()))?;
         let jwt_data = decode::<JwtClaims>(jwt, &key, &validation)
-            .map_err(|e| AuthorizationError::InvalidToken(e.to_string()))?;
+            .map_err(|e| JwtError::InvalidToken(e.to_string()))?;
         let id = Uuid::parse_str(&jwt_data.claims.sub)
-            .map_err(|e| AuthorizationError::InvalidToken(e.to_string()))?;
+            .map_err(|e| JwtError::InvalidToken(e.to_string()))?;
 
         Ok(Principal::new(id))
     }
@@ -133,7 +133,7 @@ impl Authenticator for UserToken {
     async fn authenticate(
         parts: &Parts,
         app_state: &AppState,
-    ) -> Result<Principal<Self>, AuthorizationError> {
+    ) -> Result<Principal<Self>, AuthenticationError> {
         let header = extract_auth_header(parts)?;
         let token = extract_token(header)?;
 
@@ -145,7 +145,7 @@ impl Authenticator for UserToken {
             .authentication_service
             .validate_token(request)
             .await
-            .map_err(|_| AuthorizationError::Unauthorized)?;
+            .map_err(|_| AuthenticationError::Unauthorized)?;
 
         Ok(Principal::new(response.principal_id))
     }
@@ -158,7 +158,7 @@ impl Authenticator for RunnerToken {
     async fn authenticate(
         parts: &Parts,
         app_state: &AppState,
-    ) -> Result<Principal<Self>, AuthorizationError> {
+    ) -> Result<Principal<Self>, AuthenticationError> {
         let header = extract_auth_header(parts)?;
         let token = extract_token(header)?;
 
@@ -170,7 +170,7 @@ impl Authenticator for RunnerToken {
             .authentication_service
             .validate_token(request)
             .await
-            .map_err(|_| AuthorizationError::Unauthorized)?;
+            .map_err(|_| AuthenticationError::Unauthorized)?;
 
         Ok(Principal::new(response.principal_id))
     }
@@ -183,50 +183,48 @@ impl Authenticator for TaskJwt {
     async fn authenticate(
         parts: &Parts,
         app_state: &AppState,
-    ) -> Result<Principal<Self>, AuthorizationError> {
+    ) -> Result<Principal<Self>, AuthenticationError> {
         let header = extract_auth_header(parts)?;
         let jwt = header
             .strip_prefix("Bearer ")
-            .ok_or(AuthorizationError::InvalidHeaderFormat)?;
+            .ok_or(JwtError::InvalidHeaderFormat)?;
 
         let mut validation = Validation::new(Algorithm::EdDSA);
         validation.set_audience(&[GITDOT_SERVER_ID]);
 
         let key = DecodingKey::from_ed_pem(app_state.settings.gitdot_public_key.as_bytes())
-            .map_err(|e| AuthorizationError::InvalidPublicKey(e.to_string()))?;
+            .map_err(|e| JwtError::InvalidPublicKey(e.to_string()))?;
         let jwt_data = decode::<JwtClaims>(jwt, &key, &validation)
-            .map_err(|e| AuthorizationError::InvalidToken(e.to_string()))?;
+            .map_err(|e| JwtError::InvalidToken(e.to_string()))?;
         let id = Uuid::parse_str(&jwt_data.claims.sub)
-            .map_err(|e| AuthorizationError::InvalidToken(e.to_string()))?;
+            .map_err(|e| JwtError::InvalidToken(e.to_string()))?;
 
         Ok(Principal::new(id))
     }
 }
 
-fn extract_token(header: &str) -> Result<String, AuthorizationError> {
+fn extract_token(header: &str) -> Result<String, AuthenticationError> {
     let token = header
         .strip_prefix("Basic ")
-        .ok_or(AuthorizationError::InvalidHeaderFormat)?;
+        .ok_or(JwtError::InvalidHeaderFormat)?;
 
     let decoded = base64::engine::general_purpose::STANDARD
         .decode(token)
-        .map_err(|e| AuthorizationError::InvalidToken(e.to_string()))?;
+        .map_err(|e| JwtError::InvalidToken(e.to_string()))?;
     let token_str =
-        String::from_utf8(decoded).map_err(|e| AuthorizationError::InvalidToken(e.to_string()))?;
+        String::from_utf8(decoded).map_err(|e| JwtError::InvalidToken(e.to_string()))?;
 
     let (_, token) = token_str
         .split_once(':')
-        .ok_or(AuthorizationError::InvalidToken(
-            "Invalid token format".to_string(),
-        ))?;
+        .ok_or(JwtError::InvalidToken("Invalid token format".to_string()))?;
 
     Ok(token.to_string())
 }
 
-fn extract_auth_header(parts: &Parts) -> Result<&str, AuthorizationError> {
+fn extract_auth_header(parts: &Parts) -> Result<&str, AuthenticationError> {
     parts
         .headers
         .get("Authorization")
         .and_then(|value| value.to_str().ok())
-        .ok_or(AuthorizationError::MissingHeader)
+        .ok_or(AuthenticationError::Jwt(JwtError::MissingHeader))
 }

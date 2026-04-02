@@ -25,19 +25,16 @@ impl IntoResponse for AppError {
             AppError::Authentication(e) => {
                 let status_code = match &e {
                     AuthenticationError::Input(_) => StatusCode::BAD_REQUEST,
+                    AuthenticationError::Jwt(_) => StatusCode::UNAUTHORIZED,
+                    AuthenticationError::Unauthorized => StatusCode::UNAUTHORIZED,
                     AuthenticationError::AuthCodeNotFound => StatusCode::NOT_FOUND,
                     AuthenticationError::AuthCodeAlreadyUsed => StatusCode::GONE,
                     AuthenticationError::AuthCodeExpired => StatusCode::GONE,
                     AuthenticationError::SessionNotFound => StatusCode::UNAUTHORIZED,
                     AuthenticationError::SessionExpired => StatusCode::UNAUTHORIZED,
                     AuthenticationError::SessionRevoked => StatusCode::UNAUTHORIZED,
-                    AuthenticationError::MissingAuthHeader => StatusCode::UNAUTHORIZED,
-                    AuthenticationError::InvalidAuthHeaderFormat => StatusCode::UNAUTHORIZED,
-                    AuthenticationError::InvalidPublicKey(_) => StatusCode::INTERNAL_SERVER_ERROR,
-                    AuthenticationError::InvalidToken(_) => StatusCode::UNAUTHORIZED,
                     AuthenticationError::InvalidOAuthState(_) => StatusCode::BAD_REQUEST,
                     AuthenticationError::GitHubError(_) => StatusCode::BAD_GATEWAY,
-                    AuthenticationError::JwtError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                     AuthenticationError::EmailError(_) => StatusCode::BAD_GATEWAY,
                     AuthenticationError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                 };

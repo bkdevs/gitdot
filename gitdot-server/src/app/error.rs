@@ -7,15 +7,18 @@ use thiserror::Error;
 
 use gitdot_api::ApiResource;
 use gitdot_core::error::{
-    AuthorizationError, BuildError, CommitError, GitHttpError, MigrationError, OrganizationError,
-    QuestionError, RepositoryError, ReviewError, RunnerError, TaskError, TokenError, UserError,
-    WebhookError,
+    AuthenticationError, AuthorizationError, BuildError, CommitError, GitHttpError, MigrationError,
+    OrganizationError, QuestionError, RepositoryError, ReviewError, RunnerError, TaskError,
+    TokenError, UserError, WebhookError,
 };
 
 use super::AppResponse;
 
 #[derive(Debug, Error)]
 pub enum AppError {
+    #[error(transparent)]
+    Authentication(#[from] AuthenticationError),
+
     #[error(transparent)]
     Authorization(#[from] AuthorizationError),
 
@@ -72,13 +75,33 @@ pub trait HttpStatus {
     fn status_code(&self) -> StatusCode;
 }
 
+impl HttpStatus for AuthenticationError {
+    fn status_code(&self) -> StatusCode {
+        match self {
+            Self::Input(_) => StatusCode::BAD_REQUEST,
+            Self::Jwt(_)
+            | Self::Unauthorized
+            | Self::AuthCodeNotFound
+            | Self::AuthCodeAlreadyUsed
+            | Self::AuthCodeExpired
+            | Self::SessionNotFound
+            | Self::SessionExpired
+            | Self::SessionRevoked
+            | Self::InvalidOAuthState(_) => StatusCode::UNAUTHORIZED,
+            Self::EmailError(_) | Self::GitHubError(_) | Self::DatabaseError(_) => {
+                StatusCode::INTERNAL_SERVER_ERROR
+            }
+        }
+    }
+}
+
 impl HttpStatus for AuthorizationError {
     fn status_code(&self) -> StatusCode {
         match self {
+            Self::Jwt(_) | Self::Unauthorized => StatusCode::UNAUTHORIZED,
             Self::InvalidRequest(_) => StatusCode::BAD_REQUEST,
             Self::NotFound(_) => StatusCode::NOT_FOUND,
             Self::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
-            _ => StatusCode::UNAUTHORIZED,
         }
     }
 }
@@ -239,6 +262,7 @@ fn error_response(status_code: StatusCode, message: String) -> Response {
 impl IntoResponse for AppError {
     fn into_response(self) -> Response {
         match self {
+            AppError::Authentication(e) => error_response(e.status_code(), e.to_string()),
             AppError::Authorization(e) => error_response(e.status_code(), e.to_string()),
             AppError::Token(e) => error_response(e.status_code(), e.to_string()),
             AppError::User(e) => error_response(e.status_code(), e.to_string()),

@@ -12,7 +12,7 @@ use crate::{
         SendAuthEmailRequest, TokenResponse, ValidateTokenRequest, ValidateTokenResponse,
         VerifyAuthCodeRequest,
     },
-    error::{AuthenticationError, AuthorizationError, TokenError},
+    error::{AuthenticationError, AuthorizationError, JwtError, TokenError},
     model::{AuthProvider, DeviceAuthorizationStatus, TokenType},
     repository::{
         DeviceRepository, DeviceRepositoryImpl, SessionRepository, SessionRepositoryImpl,
@@ -207,7 +207,7 @@ where
         let access_token = self
             .token_client
             .generate_gitdot_jwt(user.id, &user.name, &orgs)
-            .map_err(AuthenticationError::JwtError)?;
+            .map_err(JwtError::SigningError)?;
 
         let (refresh_token, refresh_token_hash) = self.token_client.generate_high_entropic_code();
         let refresh_expiry_secs = self.token_client.get_refresh_token_expiry_in_seconds();
@@ -264,7 +264,7 @@ where
         let access_token = self
             .token_client
             .generate_gitdot_jwt(user.id, &user.name, &orgs)
-            .map_err(AuthenticationError::JwtError)?;
+            .map_err(JwtError::SigningError)?;
 
         let (refresh_token, refresh_token_hash) = self.token_client.generate_high_entropic_code();
         let refresh_expiry_secs = self.token_client.get_refresh_token_expiry_in_seconds();
@@ -336,7 +336,7 @@ where
         let access_token = self
             .token_client
             .generate_gitdot_jwt(user.id, &user.name, &orgs)
-            .map_err(AuthenticationError::JwtError)?;
+            .map_err(JwtError::SigningError)?;
 
         let (refresh_token, refresh_token_hash) = self.token_client.generate_high_entropic_code();
         let refresh_expiry_secs = self.token_client.get_refresh_token_expiry_in_seconds();
@@ -501,7 +501,7 @@ where
         let token = self
             .token_client
             .generate_jwt(&claims)
-            .map_err(AuthorizationError::InvalidToken)?;
+            .map_err(JwtError::SigningError)?;
 
         Ok(IssueTaskJwtResponse { token })
     }

@@ -5,7 +5,11 @@ use axum::{
 use jsonwebtoken::{Algorithm, DecodingKey, Validation, decode};
 use uuid::Uuid;
 
-use gitdot_core::{dto::JwtClaims, error::AuthenticationError, util::auth::GITDOT_SERVER_ID};
+use gitdot_core::{
+    dto::JwtClaims,
+    error::{AuthenticationError, JwtError},
+    util::auth::GITDOT_SERVER_ID,
+};
 
 use crate::app::{AppError, AppState};
 
@@ -32,21 +36,21 @@ fn authenticate(parts: &Parts, app_state: &AppState) -> Result<Principal, Authen
         .headers
         .get("Authorization")
         .and_then(|value| value.to_str().ok())
-        .ok_or(AuthenticationError::MissingAuthHeader)?;
+        .ok_or(JwtError::MissingHeader)?;
 
     let jwt = header
         .strip_prefix("Bearer ")
-        .ok_or(AuthenticationError::InvalidAuthHeaderFormat)?;
+        .ok_or(JwtError::InvalidHeaderFormat)?;
 
     let mut validation = Validation::new(Algorithm::EdDSA);
     validation.set_audience(&[GITDOT_SERVER_ID]);
 
     let key = DecodingKey::from_ed_pem(app_state.settings.gitdot_public_key.as_bytes())
-        .map_err(|e| AuthenticationError::InvalidPublicKey(e.to_string()))?;
+        .map_err(|e| JwtError::InvalidPublicKey(e.to_string()))?;
     let jwt_data = decode::<JwtClaims>(jwt, &key, &validation)
-        .map_err(|e| AuthenticationError::InvalidToken(e.to_string()))?;
-    let id = Uuid::parse_str(&jwt_data.claims.sub)
-        .map_err(|e| AuthenticationError::InvalidToken(e.to_string()))?;
+        .map_err(|e| JwtError::InvalidToken(e.to_string()))?;
+    let id =
+        Uuid::parse_str(&jwt_data.claims.sub).map_err(|e| JwtError::InvalidToken(e.to_string()))?;
 
     Ok(Principal { id })
 }

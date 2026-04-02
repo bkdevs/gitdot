@@ -7,7 +7,10 @@ use axum::{
 };
 use jsonwebtoken::{Algorithm, DecodingKey, Validation, decode, decode_header};
 
-use gitdot_core::{dto::JwtClaims, error::AuthorizationError};
+use gitdot_core::{
+    dto::JwtClaims,
+    error::{AuthenticationError, JwtError},
+};
 
 use crate::app::{AppError, AppState};
 
@@ -38,35 +41,34 @@ where
 
 #[async_trait]
 pub trait Authenticator: Send + Sync + 'static {
-    async fn authenticate(parts: &Parts, app_state: &AppState) -> Result<(), AuthorizationError>;
+    async fn authenticate(parts: &Parts, app_state: &AppState) -> Result<(), AuthenticationError>;
 }
 
 pub struct Vercel;
 
 #[async_trait]
 impl Authenticator for Vercel {
-    async fn authenticate(parts: &Parts, app_state: &AppState) -> Result<(), AuthorizationError> {
+    async fn authenticate(parts: &Parts, app_state: &AppState) -> Result<(), AuthenticationError> {
         let token = parts
             .headers
             .get("x-vercel-oidc-token")
             .and_then(|v| v.to_str().ok())
-            .ok_or(AuthorizationError::MissingHeader)?;
+            .ok_or(JwtError::MissingHeader)?;
 
-        let jwt_header =
-            decode_header(token).map_err(|e| AuthorizationError::InvalidToken(e.to_string()))?;
+        let jwt_header = decode_header(token).map_err(|e| JwtError::InvalidToken(e.to_string()))?;
         let kid = jwt_header
             .kid
-            .ok_or(AuthorizationError::InvalidToken("missing kid".to_string()))?;
+            .ok_or(JwtError::InvalidToken("missing kid".to_string()))?;
 
         let jwk = app_state
             .vercel_jwks
             .find(&kid)
-            .ok_or(AuthorizationError::InvalidToken(format!(
+            .ok_or(JwtError::InvalidToken(format!(
                 "no matching key for kid: {kid}"
             )))?;
 
-        let key = DecodingKey::from_jwk(jwk)
-            .map_err(|e| AuthorizationError::InvalidPublicKey(e.to_string()))?;
+        let key =
+            DecodingKey::from_jwk(jwk).map_err(|e| JwtError::InvalidPublicKey(e.to_string()))?;
 
         let issuer = &app_state.settings.vercel_oidc_url;
         let audience = issuer.replace("oidc.vercel.com", "vercel.com");
@@ -76,7 +78,7 @@ impl Authenticator for Vercel {
         validation.set_issuer(&[issuer]);
 
         decode::<JwtClaims>(token, &key, &validation)
-            .map_err(|e| AuthorizationError::InvalidToken(e.to_string()))?;
+            .map_err(|e| JwtError::InvalidToken(e.to_string()))?;
 
         Ok(())
     }

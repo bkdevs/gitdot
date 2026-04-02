@@ -1,11 +1,17 @@
 use thiserror::Error;
 
-use crate::error::{EmailError, GitHubError, InputError};
+use crate::error::{EmailError, GitHubError, InputError, JwtError};
 
 #[derive(Debug, Error)]
 pub enum AuthenticationError {
     #[error(transparent)]
     Input(#[from] InputError),
+
+    #[error(transparent)]
+    Jwt(#[from] JwtError),
+
+    #[error("Unauthorized")]
+    Unauthorized,
 
     #[error("Auth code not found")]
     AuthCodeNotFound,
@@ -27,21 +33,6 @@ pub enum AuthenticationError {
 
     #[error("Invalid OAuth state: {0}")]
     InvalidOAuthState(String),
-
-    #[error("Missing authorization header")]
-    MissingAuthHeader,
-
-    #[error("Invalid authorization header format")]
-    InvalidAuthHeaderFormat,
-
-    #[error("Invalid public key: {0}")]
-    InvalidPublicKey(String),
-
-    #[error("Invalid token: {0}")]
-    InvalidToken(String),
-
-    #[error("JWT error: {0}")]
-    JwtError(String),
 
     #[error(transparent)]
     EmailError(#[from] EmailError),
