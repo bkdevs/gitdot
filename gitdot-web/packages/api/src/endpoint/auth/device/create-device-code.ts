@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { DeviceCodeResource } from "../../resource";
-import type { Endpoint } from "../endpoint";
+import { DeviceCodeResource } from "../../../resource";
+import type { Endpoint } from "../../endpoint";
 
 export const CreateDeviceCodeRequest = z.object({
   client_id: z.string(),
@@ -11,7 +11,7 @@ export const CreateDeviceCodeResponse = DeviceCodeResource;
 export type CreateDeviceCodeResponse = z.infer<typeof CreateDeviceCodeResponse>;
 
 export const CreateDeviceCode = {
-  path: "/oauth/device",
+  path: "/auth/device/code",
   method: "POST",
   request: CreateDeviceCodeRequest,
   response: CreateDeviceCodeResponse,

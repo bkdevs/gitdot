@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { TokenResource } from "../../resource";
-import type { Endpoint } from "../endpoint";
+import { TokenResource } from "../../../resource";
+import type { Endpoint } from "../../endpoint";
 
 export const PollTokenRequest = z.object({
   device_code: z.string(),
@@ -12,7 +12,7 @@ export const PollTokenResponse = TokenResource;
 export type PollTokenResponse = z.infer<typeof PollTokenResponse>;
 
 export const PollToken = {
-  path: "/oauth/token",
+  path: "/auth/device/token",
   method: "POST",
   request: PollTokenRequest,
   response: PollTokenResponse,

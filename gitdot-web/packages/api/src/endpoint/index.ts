@@ -2,7 +2,6 @@ export * from "./auth";
 export * from "./build";
 export type { Endpoint } from "./endpoint";
 export * from "./migration";
-export * from "./oauth";
 export * from "./organization";
 export * from "./otel";
 export * from "./question";

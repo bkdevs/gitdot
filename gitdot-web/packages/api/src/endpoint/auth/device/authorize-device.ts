@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { Endpoint } from "../endpoint";
+import type { Endpoint } from "../../endpoint";
 
 export const AuthorizeDeviceRequest = z.object({
   user_code: z.string(),
@@ -10,7 +10,7 @@ export const AuthorizeDeviceResponse = z.void();
 export type AuthorizeDeviceResponse = z.infer<typeof AuthorizeDeviceResponse>;
 
 export const AuthorizeDevice = {
-  path: "/oauth/authorize",
+  path: "/auth/device/authorize",
   method: "POST",
   request: AuthorizeDeviceRequest,
   response: AuthorizeDeviceResponse,
