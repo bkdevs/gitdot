@@ -69,7 +69,7 @@ impl UserRepository for UserRepositoryImpl {
         let name = format!("user_{suffix}");
         let user = sqlx::query_as::<_, User>(
             r#"
-            INSERT INTO users (email, name, is_email_verified, provider)
+            INSERT INTO core.users (email, name, is_email_verified, provider)
             VALUES ($1, $2, $3, $4)
             RETURNING *
             "#,
@@ -88,7 +88,7 @@ impl UserRepository for UserRepositoryImpl {
         let user = sqlx::query_as::<_, User>(
             r#"
             SELECT id, email, name, is_email_verified, provider, created_at, settings
-            FROM users
+            FROM core.users
             WHERE name = $1
             "#,
         )
@@ -102,7 +102,7 @@ impl UserRepository for UserRepositoryImpl {
     async fn update(&self, id: Uuid, name: &str) -> Result<User, Error> {
         let user = sqlx::query_as::<_, User>(
             r#"
-            UPDATE users SET name = $1
+            UPDATE core.users SET name = $1
             WHERE id = $2
             RETURNING id, email, name, is_email_verified, provider, created_at, settings
             "#,
@@ -119,7 +119,7 @@ impl UserRepository for UserRepositoryImpl {
         let user = sqlx::query_as::<_, User>(
             r#"
             SELECT id, email, name, is_email_verified, provider, created_at, settings
-            FROM users
+            FROM core.users
             WHERE id = $1
             "#,
         )
@@ -134,7 +134,7 @@ impl UserRepository for UserRepositoryImpl {
         let user = sqlx::query_as::<_, User>(
             r#"
             SELECT id, email, name, is_email_verified, provider, created_at, settings
-            FROM users
+            FROM core.users
             WHERE email = $1
             "#,
         )
@@ -153,7 +153,7 @@ impl UserRepository for UserRepositoryImpl {
         let users = sqlx::query_as::<_, User>(
             r#"
             SELECT id, email, name, is_email_verified, provider, created_at, settings
-            FROM users
+            FROM core.users
             WHERE email = ANY($1)
             "#,
         )
@@ -168,7 +168,7 @@ impl UserRepository for UserRepositoryImpl {
         let user = sqlx::query_as::<_, User>(
             r#"
             SELECT id, email, name, is_email_verified, provider, created_at, settings
-            FROM users
+            FROM core.users
             WHERE id = $1
             "#,
         )
@@ -187,7 +187,7 @@ impl UserRepository for UserRepositoryImpl {
         let settings = serde_json::to_value(&settings).unwrap();
         let row = sqlx::query(
             r#"
-            UPDATE users SET settings = COALESCE(settings, '{}'::jsonb) || $2::jsonb
+            UPDATE core.users SET settings = COALESCE(settings, '{}'::jsonb) || $2::jsonb
             WHERE id = $1
             RETURNING settings
             "#,
@@ -208,7 +208,7 @@ impl UserRepository for UserRepositoryImpl {
     async fn verify_email(&self, id: Uuid) -> Result<(), Error> {
         sqlx::query(
             r#"
-            UPDATE users SET is_email_verified = true WHERE id = $1
+            UPDATE core.users SET is_email_verified = true WHERE id = $1
             "#,
         )
         .bind(id)
@@ -222,8 +222,8 @@ impl UserRepository for UserRepositoryImpl {
         let rows = sqlx::query_as::<_, (String, String)>(
             r#"
             SELECT o.name, om.role::text
-            FROM organization_members om
-            JOIN organizations o ON o.id = om.organization_id
+            FROM core.organization_members om
+            JOIN core.organizations o ON o.id = om.organization_id
             WHERE om.user_id = $1
             "#,
         )
@@ -238,9 +238,9 @@ impl UserRepository for UserRepositoryImpl {
         let exists = sqlx::query_scalar::<_, bool>(
             r#"
             SELECT EXISTS(
-                SELECT 1 FROM users WHERE name = $1
+                SELECT 1 FROM core.users WHERE name = $1
                 UNION
-                SELECT 1 FROM organizations WHERE name = $1
+                SELECT 1 FROM core.organizations WHERE name = $1
             )
             "#,
         )
@@ -254,7 +254,7 @@ impl UserRepository for UserRepositoryImpl {
     async fn is_email_taken(&self, email: &str) -> Result<bool, Error> {
         let exists = sqlx::query_scalar::<_, bool>(
             r#"
-            SELECT EXISTS(SELECT 1 FROM users WHERE email = $1)
+            SELECT EXISTS(SELECT 1 FROM core.users WHERE email = $1)
             "#,
         )
         .bind(email)

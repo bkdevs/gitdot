@@ -23,7 +23,7 @@ SELECT
     -- Author
     (SELECT json_build_object(
         'id', u.id, 'name', u.name, 'email', u.email, 'created_at', u.created_at
-    ) FROM users u WHERE u.id = r.author_id) AS author,
+    ) FROM core.users u WHERE u.id = r.author_id) AS author,
 
     -- Diffs with nested revisions
     COALESCE(
@@ -60,21 +60,21 @@ SELECT
                                                     'created_at', v.created_at
                                                 ) ORDER BY v.created_at ASC
                                             )
-                                            FROM review_verdicts v
+                                            FROM core.review_verdicts v
                                             WHERE v.revision_id = rev.id
                                         ),
                                         '[]'::json
                                     )
                                 ) ORDER BY rev.number DESC
                             )
-                            FROM revisions rev
+                            FROM core.revisions rev
                             WHERE rev.diff_id = d.id
                         ),
                         '[]'::json
                     )
                 ) ORDER BY d.position ASC
             )
-            FROM diffs d
+            FROM core.diffs d
             WHERE d.review_id = r.id
         ),
         '[]'::json
@@ -90,10 +90,10 @@ SELECT
                     'reviewer_id', rv.reviewer_id,
                     'created_at', rv.created_at,
                     'user', (SELECT json_build_object('id', u.id, 'name', u.name, 'email', u.email, 'created_at', u.created_at)
-                             FROM users u WHERE u.id = rv.reviewer_id)
+                             FROM core.users u WHERE u.id = rv.reviewer_id)
                 )
             )
-            FROM reviewers rv
+            FROM core.reviewers rv
             WHERE rv.review_id = r.id
         ),
         '[]'::json
@@ -119,15 +119,15 @@ SELECT
                     'created_at', c.created_at,
                     'updated_at', c.updated_at,
                     'author', (SELECT json_build_object('id', u.id, 'name', u.name, 'email', u.email, 'created_at', u.created_at)
-                               FROM users u WHERE u.id = c.author_id)
+                               FROM core.users u WHERE u.id = c.author_id)
                 ) ORDER BY c.created_at ASC
             )
-            FROM review_comments c
+            FROM core.review_comments c
             WHERE c.review_id = r.id
         ),
         '[]'::json
     ) AS comments
-FROM reviews r
+FROM core.reviews r
 "#;
 
 #[async_trait]
@@ -261,7 +261,7 @@ impl ReviewRepository for ReviewRepositoryImpl {
         number: i32,
     ) -> Result<Option<Review>, Error> {
         let query = format!(
-            "{} JOIN repositories repo ON r.repository_id = repo.id WHERE repo.owner_name = $1 AND repo.name = $2 AND r.number = $3",
+            "{} JOIN core.repositories repo ON r.repository_id = repo.id WHERE repo.owner_name = $1 AND repo.name = $2 AND r.number = $3",
             REVIEW_DETAILS_QUERY
         );
 
@@ -287,8 +287,8 @@ impl ReviewRepository for ReviewRepositoryImpl {
                 r.id, r.repository_id, r.number, r.author_id, r.title, r.description,
                 r.target_branch, r.status, r.created_at, r.updated_at,
                 NULL AS author, NULL AS diffs, NULL AS reviewers, NULL AS comments
-            FROM reviews r
-            JOIN repositories repo ON r.repository_id = repo.id
+            FROM core.reviews r
+            JOIN core.repositories repo ON r.repository_id = repo.id
             WHERE repo.owner_name = $1 AND repo.name = $2
                 AND (r.status != 'draft' OR r.author_id = $3)
                 AND r.updated_at >= $4 AND r.updated_at <= $5
@@ -318,9 +318,9 @@ impl ReviewRepository for ReviewRepositoryImpl {
                 r.id, r.repository_id, r.number, r.author_id, r.title, r.description,
                 r.target_branch, r.status, r.created_at, r.updated_at,
                 NULL AS author, NULL AS diffs, NULL AS reviewers, NULL AS comments
-            FROM reviews r
-            JOIN users u ON r.author_id = u.id
-            JOIN repositories repo ON r.repository_id = repo.id
+            FROM core.reviews r
+            JOIN core.users u ON r.author_id = u.id
+            JOIN core.repositories repo ON r.repository_id = repo.id
             WHERE u.name = $1
               AND (r.author_id = $2 OR (r.status != 'draft' AND repo.visibility = 'public'))
             "#,
@@ -328,7 +328,10 @@ impl ReviewRepository for ReviewRepositoryImpl {
 
         let mut param_index = 3;
         if status.is_some() {
-            query.push_str(&format!(" AND r.status = ${}::review_status", param_index));
+            query.push_str(&format!(
+                " AND r.status = ${}::core.review_status",
+                param_index
+            ));
             param_index += 1;
         }
         if owner.is_some() {
@@ -365,10 +368,10 @@ impl ReviewRepository for ReviewRepositoryImpl {
             r#"
             WITH next_number AS (
                 SELECT COALESCE(MAX(number), 0) + 1 AS number
-                FROM reviews
+                FROM core.reviews
                 WHERE repository_id = $1
             )
-            INSERT INTO reviews (repository_id, number, author_id, title, description, target_branch)
+            INSERT INTO core.reviews (repository_id, number, author_id, title, description, target_branch)
             SELECT $1, next_number.number, $2, '', '', $3
             FROM next_number
             RETURNING
@@ -393,7 +396,7 @@ impl ReviewRepository for ReviewRepositoryImpl {
     ) -> Result<(), Error> {
         sqlx::query(
             r#"
-            UPDATE reviews
+            UPDATE core.reviews
             SET status = COALESCE($2, status),
                 title = COALESCE($3, title),
                 description = COALESCE($4, description),
@@ -420,7 +423,7 @@ impl ReviewRepository for ReviewRepositoryImpl {
     ) -> Result<Diff, Error> {
         sqlx::query_as::<_, Diff>(
             r#"
-            INSERT INTO diffs (review_id, position, title, description)
+            INSERT INTO core.diffs (review_id, position, title, description)
             VALUES ($1, $2, $3, $4)
             RETURNING
                 id, review_id, position, title, description,
@@ -445,7 +448,7 @@ impl ReviewRepository for ReviewRepositoryImpl {
     ) -> Result<(), Error> {
         sqlx::query(
             r#"
-            UPDATE diffs
+            UPDATE core.diffs
             SET status = COALESCE($2, status),
                 title = COALESCE($3, title),
                 description = COALESCE($4, description),
@@ -472,7 +475,7 @@ impl ReviewRepository for ReviewRepositoryImpl {
     ) -> Result<Revision, Error> {
         sqlx::query_as::<_, Revision>(
             r#"
-            INSERT INTO revisions (diff_id, number, commit_hash, parent_hash)
+            INSERT INTO core.revisions (diff_id, number, commit_hash, parent_hash)
             VALUES ($1, $2, $3, $4)
             RETURNING id, diff_id, number, commit_hash, parent_hash, created_at, NULL AS verdicts
             "#,
@@ -493,7 +496,7 @@ impl ReviewRepository for ReviewRepositoryImpl {
     ) -> Result<(), Error> {
         sqlx::query(
             r#"
-            UPDATE revisions
+            UPDATE core.revisions
             SET commit_hash = $2,
                 parent_hash = $3
             WHERE id = $1
@@ -515,13 +518,13 @@ impl ReviewRepository for ReviewRepositoryImpl {
     ) -> Result<Option<Reviewer>, Error> {
         sqlx::query_as::<_, Reviewer>(
             r#"
-            INSERT INTO reviewers (review_id, reviewer_id)
+            INSERT INTO core.reviewers (review_id, reviewer_id)
             VALUES ($1, $2)
             ON CONFLICT (review_id, reviewer_id) DO NOTHING
             RETURNING
                 id, review_id, reviewer_id, created_at,
                 (SELECT json_build_object('id', u.id, 'name', u.name, 'email', u.email, 'created_at', u.created_at)
-                 FROM users u WHERE u.id = reviewer_id) AS user
+                 FROM core.users u WHERE u.id = reviewer_id) AS user
             "#,
         )
         .bind(review_id)
@@ -533,7 +536,7 @@ impl ReviewRepository for ReviewRepositoryImpl {
     async fn remove_reviewer(&self, review_id: Uuid, reviewer_id: Uuid) -> Result<bool, Error> {
         let result = sqlx::query(
             r#"
-            DELETE FROM reviewers
+            DELETE FROM core.reviewers
             WHERE review_id = $1 AND reviewer_id = $2
             "#,
         )
@@ -554,7 +557,7 @@ impl ReviewRepository for ReviewRepositoryImpl {
     ) -> Result<(), Error> {
         sqlx::query(
             r#"
-            INSERT INTO review_verdicts (diff_id, revision_id, reviewer_id, verdict)
+            INSERT INTO core.review_verdicts (diff_id, revision_id, reviewer_id, verdict)
             VALUES ($1, $2, $3, $4)
             "#,
         )
@@ -583,7 +586,7 @@ impl ReviewRepository for ReviewRepositoryImpl {
     ) -> Result<(), Error> {
         sqlx::query(
             r#"
-            INSERT INTO review_comments (review_id, diff_id, revision_id, author_id, body, parent_id, file_path, line_number_start, line_number_end, side)
+            INSERT INTO core.review_comments (review_id, diff_id, revision_id, author_id, body, parent_id, file_path, line_number_start, line_number_end, side)
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
             "#,
         )
@@ -611,8 +614,8 @@ impl ReviewRepository for ReviewRepositoryImpl {
                 c.body, c.file_path, c.line_number_start, c.line_number_end, c.side,
                 c.resolved, c.created_at, c.updated_at,
                 (SELECT json_build_object('id', u.id, 'name', u.name, 'email', u.email, 'created_at', u.created_at)
-                 FROM users u WHERE u.id = c.author_id) AS author
-            FROM review_comments c
+                 FROM core.users u WHERE u.id = c.author_id) AS author
+            FROM core.review_comments c
             WHERE c.id = $1
             "#,
         )
@@ -624,7 +627,7 @@ impl ReviewRepository for ReviewRepositoryImpl {
     async fn update_comment(&self, comment_id: Uuid, body: &str) -> Result<ReviewComment, Error> {
         sqlx::query_as::<_, ReviewComment>(
             r#"
-            UPDATE review_comments
+            UPDATE core.review_comments
             SET body = $2, updated_at = NOW()
             WHERE id = $1
             RETURNING
@@ -632,7 +635,7 @@ impl ReviewRepository for ReviewRepositoryImpl {
                 body, file_path, line_number_start, line_number_end, side,
                 resolved, created_at, updated_at,
                 (SELECT json_build_object('id', u.id, 'name', u.name, 'email', u.email, 'created_at', u.created_at)
-                 FROM users u WHERE u.id = author_id) AS author
+                 FROM core.users u WHERE u.id = author_id) AS author
             "#,
         )
         .bind(comment_id)
@@ -644,7 +647,7 @@ impl ReviewRepository for ReviewRepositoryImpl {
     async fn resolve_comment(&self, comment_id: Uuid, resolved: bool) -> Result<(), Error> {
         sqlx::query(
             r#"
-            UPDATE review_comments
+            UPDATE core.review_comments
             SET resolved = $2, updated_at = NOW()
             WHERE id = $1 OR parent_id = $1
             "#,

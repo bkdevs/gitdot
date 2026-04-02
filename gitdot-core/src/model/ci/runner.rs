@@ -16,7 +16,7 @@ pub struct Runner {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Type)]
-#[sqlx(type_name = "runner_owner_type", rename_all = "lowercase")]
+#[sqlx(type_name = "ci.runner_owner_type", rename_all = "lowercase")]
 pub enum RunnerOwnerType {
     User,
     Organization,

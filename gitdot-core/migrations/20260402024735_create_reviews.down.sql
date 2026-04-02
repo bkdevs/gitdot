@@ -1,0 +1,6 @@
+DROP TABLE IF EXISTS core.review_comments CASCADE;
+DROP TABLE IF EXISTS core.review_verdicts CASCADE;
+DROP TABLE IF EXISTS core.reviewers CASCADE;
+DROP TABLE IF EXISTS core.revisions CASCADE;
+DROP TABLE IF EXISTS core.diffs CASCADE;
+DROP TABLE IF EXISTS core.reviews CASCADE;

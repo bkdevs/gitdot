@@ -19,7 +19,7 @@ pub struct OrganizationMember {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Type)]
-#[sqlx(type_name = "organization_role", rename_all = "lowercase")]
+#[sqlx(type_name = "core.organization_role", rename_all = "lowercase")]
 pub enum OrganizationRole {
     Admin,
     Member,

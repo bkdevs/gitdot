@@ -24,7 +24,7 @@ pub struct Task {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Type)]
-#[sqlx(type_name = "task_status", rename_all = "lowercase")]
+#[sqlx(type_name = "ci.task_status", rename_all = "lowercase")]
 pub enum TaskStatus {
     Blocked,
     Pending,

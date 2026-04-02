@@ -60,7 +60,7 @@ impl TaskRepository for TaskRepositoryImpl {
     ) -> Result<Task, Error> {
         let task = sqlx::query_as::<_, Task>(
             r#"
-            INSERT INTO tasks (id, repository_id, name, command, build_id, s2_uri, status, waits_for)
+            INSERT INTO ci.tasks (id, repository_id, name, command, build_id, s2_uri, status, waits_for)
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
             RETURNING id, repository_id, build_id, s2_uri, name, command, status, waits_for, runner_id, created_at, updated_at
             "#,
@@ -83,7 +83,7 @@ impl TaskRepository for TaskRepositoryImpl {
         let task = sqlx::query_as::<_, Task>(
             r#"
             SELECT id, repository_id, build_id, s2_uri, name, command, status, waits_for, runner_id, created_at, updated_at
-            FROM tasks WHERE id = $1
+            FROM ci.tasks WHERE id = $1
             "#,
         )
         .bind(id)
@@ -97,7 +97,7 @@ impl TaskRepository for TaskRepositoryImpl {
         let tasks = sqlx::query_as::<_, Task>(
             r#"
             SELECT id, repository_id, build_id, s2_uri, name, command, status, waits_for, runner_id, created_at, updated_at
-            FROM tasks WHERE build_id = $1
+            FROM ci.tasks WHERE build_id = $1
             ORDER BY created_at ASC
             "#,
         )
@@ -111,7 +111,7 @@ impl TaskRepository for TaskRepositoryImpl {
     async fn update_task(&self, id: Uuid, status: TaskStatus) -> Result<Task, Error> {
         let task = sqlx::query_as::<_, Task>(
             r#"
-            UPDATE tasks SET status = $1, updated_at = NOW()
+            UPDATE ci.tasks SET status = $1, updated_at = NOW()
             WHERE id = $2
             RETURNING id, repository_id, build_id, s2_uri, name, command, status, waits_for, runner_id, created_at, updated_at
             "#,
@@ -131,9 +131,9 @@ impl TaskRepository for TaskRepositoryImpl {
     ) -> Result<Option<Task>, Error> {
         let task = sqlx::query_as::<_, Task>(
             r#"
-            UPDATE tasks SET status = 'assigned', runner_id = $1, updated_at = NOW()
+            UPDATE ci.tasks SET status = 'assigned', runner_id = $1, updated_at = NOW()
             WHERE id = (
-                SELECT id FROM tasks
+                SELECT id FROM ci.tasks
                 WHERE status = 'pending'
                   AND repository_id = ANY($2)
                 ORDER BY created_at ASC
@@ -154,13 +154,13 @@ impl TaskRepository for TaskRepositoryImpl {
     async fn unblock_tasks(&self, build_id: Uuid) -> Result<Vec<Task>, Error> {
         let tasks = sqlx::query_as::<_, Task>(
             r#"
-            UPDATE tasks
+            UPDATE ci.tasks
             SET status = 'pending', updated_at = NOW()
             WHERE build_id = $1
               AND status = 'blocked'
               AND NOT EXISTS (
                 SELECT 1 FROM unnest(waits_for) AS dep_id
-                JOIN tasks t2 ON t2.id = dep_id
+                JOIN ci.tasks t2 ON t2.id = dep_id
                 WHERE t2.status != 'success'
               )
             RETURNING id, repository_id, build_id, s2_uri, name, command, status, waits_for, runner_id, created_at, updated_at

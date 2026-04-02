@@ -61,7 +61,7 @@ impl RepositoryRepository for RepositoryRepositoryImpl {
     ) -> Result<Repository, Error> {
         let repository = sqlx::query_as::<_, Repository>(
             r#"
-            INSERT INTO repositories (name, owner_id, owner_name, owner_type, visibility)
+            INSERT INTO core.repositories (name, owner_id, owner_name, owner_type, visibility)
             VALUES ($1, $2, $3, $4, $5)
             RETURNING id, name, owner_id, owner_name, owner_type, visibility, created_at
             "#,
@@ -81,7 +81,7 @@ impl RepositoryRepository for RepositoryRepositoryImpl {
         let repository = sqlx::query_as::<_, Repository>(
             r#"
             SELECT id, name, owner_id, owner_name, owner_type, visibility, created_at
-            FROM repositories
+            FROM core.repositories
             WHERE owner_name = $1 AND name = $2
             "#,
         )
@@ -97,7 +97,7 @@ impl RepositoryRepository for RepositoryRepositoryImpl {
         let repository = sqlx::query_as::<_, Repository>(
             r#"
             SELECT id, name, owner_id, owner_name, owner_type, visibility, created_at
-            FROM repositories
+            FROM core.repositories
             WHERE id = $1
             "#,
         )
@@ -112,7 +112,7 @@ impl RepositoryRepository for RepositoryRepositoryImpl {
         let repositories = sqlx::query_as::<_, Repository>(
             r#"
             SELECT id, name, owner_id, owner_name, owner_type, visibility, created_at
-            FROM repositories
+            FROM core.repositories
             WHERE owner_name = $1
             ORDER BY created_at DESC
             "#,
@@ -125,7 +125,7 @@ impl RepositoryRepository for RepositoryRepositoryImpl {
     }
 
     async fn delete(&self, id: Uuid) -> Result<(), Error> {
-        sqlx::query("DELETE FROM repositories WHERE id = $1")
+        sqlx::query("DELETE FROM core.repositories WHERE id = $1")
             .bind(id)
             .execute(&self.pool)
             .await?;
@@ -138,12 +138,13 @@ impl RepositoryRepository for RepositoryRepositoryImpl {
         owner: &str,
         repo: &str,
     ) -> Result<Option<RepositorySettings>, Error> {
-        let row =
-            sqlx::query("SELECT settings FROM repositories WHERE owner_name = $1 AND name = $2")
-                .bind(owner)
-                .bind(repo)
-                .fetch_optional(&self.pool)
-                .await?;
+        let row = sqlx::query(
+            "SELECT settings FROM core.repositories WHERE owner_name = $1 AND name = $2",
+        )
+        .bind(owner)
+        .bind(repo)
+        .fetch_optional(&self.pool)
+        .await?;
 
         let Some(row) = row else { return Ok(None) };
         let json: Option<serde_json::Value> = row.try_get("settings")?;
@@ -163,7 +164,7 @@ impl RepositoryRepository for RepositoryRepositoryImpl {
     ) -> Result<Option<RepositorySettings>, Error> {
         let settings = serde_json::to_value(&settings).unwrap();
         let row = sqlx::query(
-            "UPDATE repositories SET settings = COALESCE(settings, '{}'::jsonb) || $3::jsonb WHERE owner_name = $1 AND name = $2 RETURNING settings",
+            "UPDATE core.repositories SET settings = COALESCE(settings, '{}'::jsonb) || $3::jsonb WHERE owner_name = $1 AND name = $2 RETURNING settings",
         )
         .bind(owner)
         .bind(repo)

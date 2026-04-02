@@ -63,7 +63,7 @@ impl DeviceRepository for DeviceRepositoryImpl {
     ) -> Result<DeviceAuthorization, Error> {
         let device_auth = sqlx::query_as::<_, DeviceAuthorization>(
             r#"
-            INSERT INTO device_authorizations (device_code_hash, user_code, client_id, expires_at)
+            INSERT INTO auth.device_authorizations (device_code_hash, user_code, client_id, expires_at)
             VALUES ($1, $2, $3, $4)
             RETURNING id, device_code_hash, user_code, client_id, user_id, status, expires_at, created_at
             "#,
@@ -85,7 +85,7 @@ impl DeviceRepository for DeviceRepositoryImpl {
         let device_auth = sqlx::query_as::<_, DeviceAuthorization>(
             r#"
             SELECT id, device_code_hash, user_code, client_id, user_id, status, expires_at, created_at
-            FROM device_authorizations
+            FROM auth.device_authorizations
             WHERE device_code_hash = $1
             "#,
         )
@@ -103,7 +103,7 @@ impl DeviceRepository for DeviceRepositoryImpl {
         let device_auth = sqlx::query_as::<_, DeviceAuthorization>(
             r#"
             SELECT id, device_code_hash, user_code, client_id, user_id, status, expires_at, created_at
-            FROM device_authorizations
+            FROM auth.device_authorizations
             WHERE user_code = $1
             "#,
         )
@@ -117,7 +117,7 @@ impl DeviceRepository for DeviceRepositoryImpl {
     async fn expire_device_authorization(&self, id: Uuid) -> Result<(), Error> {
         sqlx::query(
             r#"
-            UPDATE device_authorizations
+            UPDATE auth.device_authorizations
             SET status = 'expired'
             WHERE id = $1
             "#,
@@ -136,7 +136,7 @@ impl DeviceRepository for DeviceRepositoryImpl {
     ) -> Result<Option<DeviceAuthorization>, Error> {
         let device_auth = sqlx::query_as::<_, DeviceAuthorization>(
             r#"
-            UPDATE device_authorizations
+            UPDATE auth.device_authorizations
             SET status = 'authorized', user_id = $2
             WHERE user_code = $1 AND status = 'pending' AND expires_at > NOW()
             RETURNING id, device_code_hash, user_code, client_id, user_id, status, expires_at, created_at
@@ -157,7 +157,7 @@ impl DeviceRepository for DeviceRepositoryImpl {
     ) -> Result<Option<DeviceAuthorization>, Error> {
         let device_auth = sqlx::query_as::<_, DeviceAuthorization>(
             r#"
-            UPDATE device_authorizations
+            UPDATE auth.device_authorizations
             SET status = 'denied', user_id = $2
             WHERE user_code = $1 AND status = 'pending' AND expires_at > NOW()
             RETURNING id, device_code_hash, user_code, client_id, user_id, status, expires_at, created_at

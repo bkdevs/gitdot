@@ -66,9 +66,9 @@ impl MigrationRepository for MigrationRepositoryImpl {
     ) -> Result<Migration, Error> {
         sqlx::query_as::<_, Migration>(
             r#"
-            INSERT INTO migrations (number, author_id, origin_service, origin, origin_type, destination, destination_type)
+            INSERT INTO migration.migrations (number, author_id, origin_service, origin, origin_type, destination, destination_type)
             VALUES (
-                COALESCE((SELECT MAX(number) FROM migrations WHERE author_id = $1), 0) + 1,
+                COALESCE((SELECT MAX(number) FROM migration.migrations WHERE author_id = $1), 0) + 1,
                 $1, $2, $3, $4, $5, $6
             )
             RETURNING id, number, author_id, origin_service, origin, origin_type, destination, destination_type, status, created_at, updated_at, NULL AS repositories
@@ -101,10 +101,10 @@ impl MigrationRepository for MigrationRepositoryImpl {
                            'created_at', mr.created_at,
                            'updated_at', mr.updated_at
                        ) ORDER BY mr.created_at ASC)
-                       FROM migration_repositories mr WHERE mr.migration_id = m.id),
+                       FROM migration.migration_repositories mr WHERE mr.migration_id = m.id),
                        '[]'::json
                    ) AS repositories
-            FROM migrations m
+            FROM migration.migrations m
             WHERE m.author_id = $1 AND m.number = $2
             "#,
         )
@@ -131,10 +131,10 @@ impl MigrationRepository for MigrationRepositoryImpl {
                            'created_at', mr.created_at,
                            'updated_at', mr.updated_at
                        ) ORDER BY mr.created_at ASC)
-                       FROM migration_repositories mr WHERE mr.migration_id = m.id),
+                       FROM migration.migration_repositories mr WHERE mr.migration_id = m.id),
                        '[]'::json
                    ) AS repositories
-            FROM migrations m
+            FROM migration.migrations m
             WHERE m.author_id = $1
             ORDER BY m.created_at DESC
             "#,
@@ -147,7 +147,7 @@ impl MigrationRepository for MigrationRepositoryImpl {
     async fn update_status(&self, id: Uuid, status: MigrationStatus) -> Result<Migration, Error> {
         sqlx::query_as::<_, Migration>(
             r#"
-            UPDATE migrations SET status = $2, updated_at = NOW()
+            UPDATE migration.migrations SET status = $2, updated_at = NOW()
             WHERE id = $1
             RETURNING id, number, author_id, origin_service, origin, origin_type, destination, destination_type, status, created_at, updated_at, NULL AS repositories
             "#,
@@ -167,7 +167,7 @@ impl MigrationRepository for MigrationRepositoryImpl {
     ) -> Result<MigrationRepositoryModel, Error> {
         sqlx::query_as::<_, MigrationRepositoryModel>(
             r#"
-            INSERT INTO migration_repositories (migration_id, origin_full_name, destination_full_name, visibility)
+            INSERT INTO migration.migration_repositories (migration_id, origin_full_name, destination_full_name, visibility)
             VALUES ($1, $2, $3, $4)
             RETURNING id, migration_id, origin_full_name, destination_full_name, visibility, status, error, created_at, updated_at
             "#,
@@ -188,7 +188,7 @@ impl MigrationRepository for MigrationRepositoryImpl {
     ) -> Result<MigrationRepositoryModel, Error> {
         sqlx::query_as::<_, MigrationRepositoryModel>(
             r#"
-            UPDATE migration_repositories
+            UPDATE migration.migration_repositories
             SET status = $2, error = $3, updated_at = NOW()
             WHERE id = $1
             RETURNING id, migration_id, origin_full_name, destination_full_name, visibility, status, error, created_at, updated_at

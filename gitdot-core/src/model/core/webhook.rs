@@ -15,7 +15,7 @@ pub struct Webhook {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Type, Serialize, Deserialize)]
-#[sqlx(type_name = "webhook_event_type", rename_all = "snake_case")]
+#[sqlx(type_name = "core.webhook_event_type", rename_all = "snake_case")]
 pub enum WebhookEventType {
     Push,
 }

@@ -13,7 +13,10 @@ pub struct GitHubInstallation {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Type)]
-#[sqlx(type_name = "github_installation_type", rename_all = "lowercase")]
+#[sqlx(
+    type_name = "migration.github_installation_type",
+    rename_all = "lowercase"
+)]
 pub enum GitHubInstallationType {
     User,
     Organization,

@@ -32,7 +32,7 @@ pub struct BuildWithStats {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Type)]
-#[sqlx(type_name = "build_trigger", rename_all = "snake_case")]
+#[sqlx(type_name = "ci.build_trigger", rename_all = "snake_case")]
 pub enum BuildTrigger {
     PullRequest,
     PushToMain,
@@ -57,7 +57,7 @@ impl From<gitdot_config::ci::BuildTrigger> for BuildTrigger {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Type)]
-#[sqlx(type_name = "build_status", rename_all = "lowercase")]
+#[sqlx(type_name = "ci.build_status", rename_all = "lowercase")]
 pub enum BuildStatus {
     Running,
     Success,

@@ -15,7 +15,10 @@ pub struct DeviceAuthorization {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Type)]
-#[sqlx(type_name = "device_authorization_status", rename_all = "lowercase")]
+#[sqlx(
+    type_name = "auth.device_authorization_status",
+    rename_all = "lowercase"
+)]
 pub enum DeviceAuthorizationStatus {
     Pending,
     Authorized,

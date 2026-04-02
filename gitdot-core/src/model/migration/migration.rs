@@ -26,13 +26,16 @@ pub struct Migration {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Type)]
-#[sqlx(type_name = "migration_origin_service", rename_all = "lowercase")]
+#[sqlx(
+    type_name = "migration.migration_origin_service",
+    rename_all = "lowercase"
+)]
 pub enum MigrationOriginService {
     GitHub,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Type)]
-#[sqlx(type_name = "migration_status", rename_all = "lowercase")]
+#[sqlx(type_name = "migration.migration_status", rename_all = "lowercase")]
 pub enum MigrationStatus {
     Pending,
     Running,
@@ -56,7 +59,10 @@ pub struct MigrationRepository {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Type, Serialize, Deserialize)]
-#[sqlx(type_name = "migration_repository_status", rename_all = "lowercase")]
+#[sqlx(
+    type_name = "migration.migration_repository_status",
+    rename_all = "lowercase"
+)]
 #[serde(rename_all = "lowercase")]
 pub enum MigrationRepositoryStatus {
     Pending,

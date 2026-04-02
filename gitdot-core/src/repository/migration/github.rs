@@ -40,7 +40,7 @@ impl GitHubRepository for GitHubRepositoryImpl {
     ) -> Result<GitHubInstallation, Error> {
         sqlx::query_as::<_, GitHubInstallation>(
             r#"
-            INSERT INTO github_installations (installation_id, owner_id, type, github_login)
+            INSERT INTO migration.github_installations (installation_id, owner_id, type, github_login)
             VALUES ($1, $2, $3, $4)
             RETURNING id, installation_id, owner_id, type, github_login, created_at
             "#,
@@ -57,7 +57,7 @@ impl GitHubRepository for GitHubRepositoryImpl {
         sqlx::query_as::<_, GitHubInstallation>(
             r#"
             SELECT id, installation_id, owner_id, type, github_login, created_at
-            FROM github_installations
+            FROM migration.github_installations
             WHERE owner_id = $1
             ORDER BY created_at DESC
             "#,

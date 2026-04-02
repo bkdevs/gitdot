@@ -41,7 +41,7 @@ impl Repository {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Type)]
-#[sqlx(type_name = "repository_owner_type", rename_all = "lowercase")]
+#[sqlx(type_name = "core.repository_owner_type", rename_all = "lowercase")]
 pub enum RepositoryOwnerType {
     User,
     Organization,
@@ -69,7 +69,7 @@ impl Into<String> for RepositoryOwnerType {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Type, Serialize, Deserialize)]
-#[sqlx(type_name = "repository_visibility", rename_all = "lowercase")]
+#[sqlx(type_name = "core.repository_visibility", rename_all = "lowercase")]
 #[serde(rename_all = "lowercase")]
 pub enum RepositoryVisibility {
     Public,

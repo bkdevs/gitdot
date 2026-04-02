@@ -52,7 +52,7 @@ impl CommitRepository for CommitRepositoryImpl {
 
         sqlx::query_as::<_, Commit>(
             r#"
-            SELECT * FROM commits
+            SELECT * FROM core.commits
             WHERE repo_id = $1 AND sha_short = $2
             "#,
         )
@@ -70,7 +70,7 @@ impl CommitRepository for CommitRepositoryImpl {
     ) -> Result<Vec<Commit>, Error> {
         sqlx::query_as::<_, Commit>(
             r#"
-            SELECT * FROM commits
+            SELECT * FROM core.commits
             WHERE repo_id = $1 AND created_at >= $2 AND created_at <= $3
             ORDER BY created_at DESC
             "#,
@@ -108,7 +108,7 @@ impl CommitRepository for CommitRepositoryImpl {
 
         let rows = sqlx::query_as::<_, Commit>(
             r#"
-            INSERT INTO commits (author_id, git_author_name, git_author_email, repo_id, ref_name, sha, parent_sha, message, created_at, diffs, review_number, diff_position)
+            INSERT INTO core.commits (author_id, git_author_name, git_author_email, repo_id, ref_name, sha, parent_sha, message, created_at, diffs, review_number, diff_position)
             SELECT * FROM UNNEST($1::uuid[], $2::text[], $3::text[], $4::uuid[], $5::varchar[], $6::varchar[], $7::varchar[], $8::text[], $9::timestamptz[], $10::jsonb[], $11::int[], $12::int[])
             ON CONFLICT (repo_id, sha) DO NOTHING
             RETURNING *

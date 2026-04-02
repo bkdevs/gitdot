@@ -16,7 +16,7 @@ pub struct AccessToken {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Type)]
-#[sqlx(type_name = "token_type", rename_all = "lowercase")]
+#[sqlx(type_name = "auth.token_type", rename_all = "lowercase")]
 pub enum TokenType {
     Personal,
     Runner,

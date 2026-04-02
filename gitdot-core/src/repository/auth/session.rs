@@ -57,7 +57,7 @@ impl SessionRepository for SessionRepositoryImpl {
     ) -> Result<AuthCode, Error> {
         let auth_code = sqlx::query_as::<_, AuthCode>(
             r#"
-            INSERT INTO auth_codes (user_id, code_hash, expires_at)
+            INSERT INTO auth.auth_codes (user_id, code_hash, expires_at)
             VALUES ($1, $2, $3)
             RETURNING *
             "#,
@@ -74,7 +74,7 @@ impl SessionRepository for SessionRepositoryImpl {
     async fn get_auth_code_by_hash(&self, code_hash: &str) -> Result<Option<AuthCode>, Error> {
         let auth_code = sqlx::query_as::<_, AuthCode>(
             r#"
-            SELECT * FROM auth_codes WHERE code_hash = $1
+            SELECT * FROM auth.auth_codes WHERE code_hash = $1
             "#,
         )
         .bind(code_hash)
@@ -87,7 +87,7 @@ impl SessionRepository for SessionRepositoryImpl {
     async fn mark_auth_code_used(&self, id: Uuid) -> Result<(), Error> {
         sqlx::query(
             r#"
-            UPDATE auth_codes SET used_at = NOW() WHERE id = $1
+            UPDATE auth.auth_codes SET used_at = NOW() WHERE id = $1
             "#,
         )
         .bind(id)
@@ -108,7 +108,7 @@ impl SessionRepository for SessionRepositoryImpl {
     ) -> Result<Session, Error> {
         let session = sqlx::query_as::<_, Session>(
             r#"
-            INSERT INTO sessions (user_id, refresh_token_hash, refresh_token_family, user_agent, ip_address, expires_at)
+            INSERT INTO auth.sessions (user_id, refresh_token_hash, refresh_token_family, user_agent, ip_address, expires_at)
             VALUES ($1, $2, $3, $4, $5::inet, $6)
             RETURNING *
             "#,
@@ -128,7 +128,7 @@ impl SessionRepository for SessionRepositoryImpl {
     async fn get_session_by_refresh_hash(&self, hash: &str) -> Result<Option<Session>, Error> {
         let session = sqlx::query_as::<_, Session>(
             r#"
-            SELECT * FROM sessions WHERE refresh_token_hash = $1
+            SELECT * FROM auth.sessions WHERE refresh_token_hash = $1
             "#,
         )
         .bind(hash)
@@ -141,7 +141,7 @@ impl SessionRepository for SessionRepositoryImpl {
     async fn revoke_session(&self, id: Uuid) -> Result<(), Error> {
         sqlx::query(
             r#"
-            UPDATE sessions SET revoked_at = NOW() WHERE id = $1
+            UPDATE auth.sessions SET revoked_at = NOW() WHERE id = $1
             "#,
         )
         .bind(id)
@@ -154,7 +154,7 @@ impl SessionRepository for SessionRepositoryImpl {
     async fn revoke_sessions_by_family(&self, family: Uuid) -> Result<(), Error> {
         sqlx::query(
             r#"
-            UPDATE sessions SET revoked_at = NOW()
+            UPDATE auth.sessions SET revoked_at = NOW()
             WHERE refresh_token_family = $1 AND revoked_at IS NULL
             "#,
         )

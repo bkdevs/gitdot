@@ -54,14 +54,14 @@ impl OrganizationRepository for OrganizationRepositoryImpl {
         let mut tx = self.pool.begin().await?;
 
         let org = sqlx::query_as::<_, Organization>(
-            "INSERT INTO organizations (name) VALUES ($1) RETURNING id, name, created_at",
+            "INSERT INTO core.organizations (name) VALUES ($1) RETURNING id, name, created_at",
         )
         .bind(org_name)
         .fetch_one(&mut *tx)
         .await?;
 
         sqlx::query(
-            "INSERT INTO organization_members (user_id, organization_id, role) VALUES ($1, $2, 'admin')",
+            "INSERT INTO core.organization_members (user_id, organization_id, role) VALUES ($1, $2, 'admin')",
         )
         .bind(owner_id)
         .bind(org.id)
@@ -75,7 +75,7 @@ impl OrganizationRepository for OrganizationRepositoryImpl {
 
     async fn get(&self, org_name: &str) -> Result<Option<Organization>, Error> {
         let org = sqlx::query_as::<_, Organization>(
-            "SELECT id, name, created_at FROM organizations WHERE name = $1",
+            "SELECT id, name, created_at FROM core.organizations WHERE name = $1",
         )
         .bind(org_name)
         .fetch_optional(&self.pool)
@@ -88,7 +88,7 @@ impl OrganizationRepository for OrganizationRepositoryImpl {
         let result = sqlx::query_scalar::<_, bool>(
             r#"
             SELECT EXISTS(
-                SELECT 1 FROM organization_members
+                SELECT 1 FROM core.organization_members
                 WHERE organization_id = $1 AND user_id = $2
             )
             "#,
@@ -109,9 +109,9 @@ impl OrganizationRepository for OrganizationRepositoryImpl {
     ) -> Result<Option<OrganizationMember>, Error> {
         let member = sqlx::query_as::<_, OrganizationMember>(
             r#"
-            INSERT INTO organization_members (user_id, organization_id, role)
+            INSERT INTO core.organization_members (user_id, organization_id, role)
             SELECT u.id, o.id, $3
-            FROM users u, organizations o
+            FROM core.users u, core.organizations o
             WHERE u.name = $1 AND o.name = $2
             ON CONFLICT (user_id, organization_id) DO NOTHING
             RETURNING id, user_id, organization_id, role, created_at
@@ -134,8 +134,8 @@ impl OrganizationRepository for OrganizationRepositoryImpl {
         let role = sqlx::query_scalar::<_, OrganizationRole>(
             r#"
             SELECT om.role
-            FROM organization_members om
-            JOIN organizations o ON om.organization_id = o.id
+            FROM core.organization_members om
+            JOIN core.organizations o ON om.organization_id = o.id
             WHERE o.name = $1 AND om.user_id = $2
             "#,
         )
@@ -149,7 +149,7 @@ impl OrganizationRepository for OrganizationRepositoryImpl {
 
     async fn list(&self) -> Result<Vec<Organization>, Error> {
         sqlx::query_as::<_, Organization>(
-            "SELECT id, name, created_at FROM organizations ORDER BY created_at DESC",
+            "SELECT id, name, created_at FROM core.organizations ORDER BY created_at DESC",
         )
         .fetch_all(&self.pool)
         .await
@@ -159,8 +159,8 @@ impl OrganizationRepository for OrganizationRepositoryImpl {
         sqlx::query_as::<_, Organization>(
             r#"
             SELECT o.id, o.name, o.created_at
-            FROM organizations o
-            JOIN organization_members om ON o.id = om.organization_id
+            FROM core.organizations o
+            JOIN core.organization_members om ON o.id = om.organization_id
             WHERE om.user_id = $1
             ORDER BY o.created_at DESC
             "#,
@@ -178,10 +178,10 @@ impl OrganizationRepository for OrganizationRepositoryImpl {
         sqlx::query_as::<_, OrganizationMember>(
             r#"
             SELECT om.id, om.user_id, om.organization_id, om.role, om.created_at
-            FROM organization_members om
-            JOIN organizations o ON om.organization_id = o.id
+            FROM core.organization_members om
+            JOIN core.organizations o ON om.organization_id = o.id
             WHERE o.name = $1
-            AND ($2::organization_role IS NULL OR om.role = $2)
+            AND ($2::core.organization_role IS NULL OR om.role = $2)
             ORDER BY om.created_at DESC
             "#,
         )

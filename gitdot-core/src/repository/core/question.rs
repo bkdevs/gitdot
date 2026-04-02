@@ -19,12 +19,12 @@ SELECT
     q.updated_at,
 
     -- User's vote on question (NULL if user_id is NULL)
-    (SELECT v.value FROM votes v WHERE v.target_id = q.id AND v.user_id = $3) AS user_vote,
+    (SELECT v.value FROM core.votes v WHERE v.target_id = q.id AND v.user_id = $3) AS user_vote,
 
     -- Question Author
     (SELECT json_build_object(
         'id', u.id, 'name', u.name, 'email', u.email, 'created_at', u.created_at
-    ) FROM users u WHERE u.id = q.author_id) AS author,
+    ) FROM core.users u WHERE u.id = q.author_id) AS author,
 
     -- Question Comments (with user_vote)
     COALESCE(
@@ -36,14 +36,14 @@ SELECT
                     'author_id', c.author_id,
                     'body', c.body,
                     'upvote', c.upvote,
-                    'user_vote', (SELECT v.value FROM votes v WHERE v.target_id = c.id AND v.user_id = $3),
+                    'user_vote', (SELECT v.value FROM core.votes v WHERE v.target_id = c.id AND v.user_id = $3),
                     'created_at', c.created_at,
                     'updated_at', c.updated_at,
                     'author', (SELECT json_build_object('id', cu.id, 'name', cu.name, 'email', cu.email, 'created_at', cu.created_at)
-                               FROM users cu WHERE cu.id = c.author_id)
+                               FROM core.users cu WHERE cu.id = c.author_id)
                 ) ORDER BY c.created_at ASC
             )
-            FROM comments c
+            FROM core.comments c
             WHERE c.parent_id = q.id
         ),
         '[]'::json
@@ -59,11 +59,11 @@ SELECT
                     'author_id', a.author_id,
                     'body', a.body,
                     'upvote', a.upvote,
-                    'user_vote', (SELECT v.value FROM votes v WHERE v.target_id = a.id AND v.user_id = $3),
+                    'user_vote', (SELECT v.value FROM core.votes v WHERE v.target_id = a.id AND v.user_id = $3),
                     'created_at', a.created_at,
                     'updated_at', a.updated_at,
                     'author', (SELECT json_build_object('id', au.id, 'name', au.name, 'email', au.email, 'created_at', au.created_at)
-                               FROM users au WHERE au.id = a.author_id),
+                               FROM core.users au WHERE au.id = a.author_id),
                     'comments', COALESCE(
                         (
                             SELECT json_agg(
@@ -73,26 +73,26 @@ SELECT
                                     'author_id', ac.author_id,
                                     'body', ac.body,
                                     'upvote', ac.upvote,
-                                    'user_vote', (SELECT v.value FROM votes v WHERE v.target_id = ac.id AND v.user_id = $3),
+                                    'user_vote', (SELECT v.value FROM core.votes v WHERE v.target_id = ac.id AND v.user_id = $3),
                                     'created_at', ac.created_at,
                                     'updated_at', ac.updated_at,
                                     'author', (SELECT json_build_object('id', acu.id, 'name', acu.name, 'email', acu.email, 'created_at', acu.created_at)
-                                               FROM users acu WHERE acu.id = ac.author_id)
+                                               FROM core.users acu WHERE acu.id = ac.author_id)
                                 ) ORDER BY ac.created_at ASC
                             )
-                            FROM comments ac
+                            FROM core.comments ac
                             WHERE ac.parent_id = a.id
                         ),
                         '[]'::json
                     )
                 ) ORDER BY a.created_at ASC
             )
-            FROM answers a
+            FROM core.answers a
             WHERE a.question_id = q.id
         ),
         '[]'::json
     ) AS answers
-FROM questions q
+FROM core.questions q
 "#;
 
 // Same as QUESTION_DETAILS_QUERY but uses $4 for user_id (freeing $2/$3 for from/to filters)
@@ -110,12 +110,12 @@ SELECT
     q.updated_at,
 
     -- User's vote on question (NULL if user_id is NULL)
-    (SELECT v.value FROM votes v WHERE v.target_id = q.id AND v.user_id = $4) AS user_vote,
+    (SELECT v.value FROM core.votes v WHERE v.target_id = q.id AND v.user_id = $4) AS user_vote,
 
     -- Question Author
     (SELECT json_build_object(
         'id', u.id, 'name', u.name, 'email', u.email, 'created_at', u.created_at
-    ) FROM users u WHERE u.id = q.author_id) AS author,
+    ) FROM core.users u WHERE u.id = q.author_id) AS author,
 
     -- Question Comments (with user_vote)
     COALESCE(
@@ -127,14 +127,14 @@ SELECT
                     'author_id', c.author_id,
                     'body', c.body,
                     'upvote', c.upvote,
-                    'user_vote', (SELECT v.value FROM votes v WHERE v.target_id = c.id AND v.user_id = $4),
+                    'user_vote', (SELECT v.value FROM core.votes v WHERE v.target_id = c.id AND v.user_id = $4),
                     'created_at', c.created_at,
                     'updated_at', c.updated_at,
                     'author', (SELECT json_build_object('id', cu.id, 'name', cu.name, 'email', cu.email, 'created_at', cu.created_at)
-                               FROM users cu WHERE cu.id = c.author_id)
+                               FROM core.users cu WHERE cu.id = c.author_id)
                 ) ORDER BY c.created_at ASC
             )
-            FROM comments c
+            FROM core.comments c
             WHERE c.parent_id = q.id
         ),
         '[]'::json
@@ -150,11 +150,11 @@ SELECT
                     'author_id', a.author_id,
                     'body', a.body,
                     'upvote', a.upvote,
-                    'user_vote', (SELECT v.value FROM votes v WHERE v.target_id = a.id AND v.user_id = $4),
+                    'user_vote', (SELECT v.value FROM core.votes v WHERE v.target_id = a.id AND v.user_id = $4),
                     'created_at', a.created_at,
                     'updated_at', a.updated_at,
                     'author', (SELECT json_build_object('id', au.id, 'name', au.name, 'email', au.email, 'created_at', au.created_at)
-                               FROM users au WHERE au.id = a.author_id),
+                               FROM core.users au WHERE au.id = a.author_id),
                     'comments', COALESCE(
                         (
                             SELECT json_agg(
@@ -164,26 +164,26 @@ SELECT
                                     'author_id', ac.author_id,
                                     'body', ac.body,
                                     'upvote', ac.upvote,
-                                    'user_vote', (SELECT v.value FROM votes v WHERE v.target_id = ac.id AND v.user_id = $4),
+                                    'user_vote', (SELECT v.value FROM core.votes v WHERE v.target_id = ac.id AND v.user_id = $4),
                                     'created_at', ac.created_at,
                                     'updated_at', ac.updated_at,
                                     'author', (SELECT json_build_object('id', acu.id, 'name', acu.name, 'email', acu.email, 'created_at', acu.created_at)
-                                               FROM users acu WHERE acu.id = ac.author_id)
+                                               FROM core.users acu WHERE acu.id = ac.author_id)
                                 ) ORDER BY ac.created_at ASC
                             )
-                            FROM comments ac
+                            FROM core.comments ac
                             WHERE ac.parent_id = a.id
                         ),
                         '[]'::json
                     )
                 ) ORDER BY a.created_at ASC
             )
-            FROM answers a
+            FROM core.answers a
             WHERE a.question_id = q.id
         ),
         '[]'::json
     ) AS answers
-FROM questions q
+FROM core.questions q
 "#;
 
 #[async_trait]
@@ -300,9 +300,9 @@ impl QuestionRepository for QuestionRepositoryImpl {
     ) -> Result<Question, Error> {
         let question = sqlx::query_as::<_, Question>(
             r#"
-            INSERT INTO questions (number, author_id, repository_id, title, body)
+            INSERT INTO core.questions (number, author_id, repository_id, title, body)
             VALUES (
-                COALESCE((SELECT MAX(number) FROM questions WHERE repository_id = $2), 0) + 1,
+                COALESCE((SELECT MAX(number) FROM core.questions WHERE repository_id = $2), 0) + 1,
                 $1, $2, $3, $4
             )
             RETURNING id, number, author_id, repository_id, title, body, upvote, impression, created_at, updated_at,
@@ -328,7 +328,7 @@ impl QuestionRepository for QuestionRepositoryImpl {
     ) -> Result<Option<Question>, Error> {
         let question = sqlx::query_as::<_, Question>(
             r#"
-            UPDATE questions
+            UPDATE core.questions
             SET title = $3, body = $4, updated_at = NOW()
             WHERE repository_id = $1 AND number = $2
             RETURNING id, number, author_id, repository_id, title, body, upvote, impression, created_at, updated_at,
@@ -375,8 +375,8 @@ impl QuestionRepository for QuestionRepositoryImpl {
         let id = sqlx::query_scalar::<_, Uuid>(
             r#"
             SELECT q.id
-            FROM questions q
-            JOIN repositories r ON q.repository_id = r.id
+            FROM core.questions q
+            JOIN core.repositories r ON q.repository_id = r.id
             WHERE r.owner_name = $1 AND r.name = $2 AND q.number = $3
             "#,
         )
@@ -422,10 +422,10 @@ impl QuestionRepository for QuestionRepositoryImpl {
     ) -> Result<Option<Answer>, Error> {
         let answer = sqlx::query_as::<_, Answer>(
             r#"
-            INSERT INTO answers (question_id, author_id, body)
+            INSERT INTO core.answers (question_id, author_id, body)
             SELECT q.id, $4, $5
-            FROM questions q
-            JOIN repositories r ON q.repository_id = r.id
+            FROM core.questions q
+            JOIN core.repositories r ON q.repository_id = r.id
             WHERE r.owner_name = $1 AND r.name = $2 AND q.number = $3
             RETURNING id, question_id, author_id, body, upvote, created_at, updated_at,
                       NULL::smallint AS user_vote, NULL AS author, NULL AS comments
@@ -445,7 +445,7 @@ impl QuestionRepository for QuestionRepositoryImpl {
     async fn update_answer(&self, id: Uuid, body: &str) -> Result<Option<Answer>, Error> {
         let answer = sqlx::query_as::<_, Answer>(
             r#"
-            UPDATE answers
+            UPDATE core.answers
             SET body = $2, updated_at = NOW()
             WHERE id = $1
             RETURNING id, question_id, author_id, body, upvote, created_at, updated_at,
@@ -468,7 +468,7 @@ impl QuestionRepository for QuestionRepositoryImpl {
     ) -> Result<Comment, Error> {
         let comment = sqlx::query_as::<_, Comment>(
             r#"
-            INSERT INTO comments (parent_id, author_id, body)
+            INSERT INTO core.comments (parent_id, author_id, body)
             VALUES ($1, $2, $3)
             RETURNING id, parent_id, author_id, body, upvote, created_at, updated_at,
                       NULL::smallint AS user_vote, NULL AS author
@@ -493,10 +493,10 @@ impl QuestionRepository for QuestionRepositoryImpl {
     ) -> Result<Option<Comment>, Error> {
         let comment = sqlx::query_as::<_, Comment>(
             r#"
-            INSERT INTO comments (parent_id, author_id, body)
+            INSERT INTO core.comments (parent_id, author_id, body)
             SELECT q.id, $4, $5
-            FROM questions q
-            JOIN repositories r ON q.repository_id = r.id
+            FROM core.questions q
+            JOIN core.repositories r ON q.repository_id = r.id
             WHERE r.owner_name = $1 AND r.name = $2 AND q.number = $3
             RETURNING id, parent_id, author_id, body, upvote, created_at, updated_at,
                       NULL::smallint AS user_vote, NULL AS author
@@ -516,7 +516,7 @@ impl QuestionRepository for QuestionRepositoryImpl {
     async fn update_comment(&self, id: Uuid, body: &str) -> Result<Option<Comment>, Error> {
         let comment = sqlx::query_as::<_, Comment>(
             r#"
-            UPDATE comments
+            UPDATE core.comments
             SET body = $2, updated_at = NOW()
             WHERE id = $1
             RETURNING id, parent_id, author_id, body, upvote, created_at, updated_at,
@@ -540,8 +540,8 @@ impl QuestionRepository for QuestionRepositoryImpl {
         let author_id = sqlx::query_scalar::<_, Uuid>(
             r#"
             SELECT q.author_id
-            FROM questions q
-            JOIN repositories r ON q.repository_id = r.id
+            FROM core.questions q
+            JOIN core.repositories r ON q.repository_id = r.id
             WHERE r.owner_name = $1 AND r.name = $2 AND q.number = $3
             "#,
         )
@@ -555,14 +555,14 @@ impl QuestionRepository for QuestionRepositoryImpl {
     }
 
     async fn get_answer_author_id(&self, id: Uuid) -> Result<Option<Uuid>, Error> {
-        sqlx::query_scalar::<_, Uuid>("SELECT author_id FROM answers WHERE id = $1")
+        sqlx::query_scalar::<_, Uuid>("SELECT author_id FROM core.answers WHERE id = $1")
             .bind(id)
             .fetch_optional(&self.pool)
             .await
     }
 
     async fn get_comment_author_id(&self, id: Uuid) -> Result<Option<Uuid>, Error> {
-        sqlx::query_scalar::<_, Uuid>("SELECT author_id FROM comments WHERE id = $1")
+        sqlx::query_scalar::<_, Uuid>("SELECT author_id FROM core.comments WHERE id = $1")
             .bind(id)
             .fetch_optional(&self.pool)
             .await
@@ -577,26 +577,27 @@ impl QuestionRepository for QuestionRepositoryImpl {
     ) -> Result<VoteResult, Error> {
         let mut tx = self.pool.begin().await?;
 
-        let existing_vote: Option<i16> =
-            sqlx::query_scalar("SELECT value FROM votes WHERE user_id = $1 AND target_id = $2")
-                .bind(user_id)
-                .bind(target_id)
-                .fetch_optional(&mut *tx)
-                .await?;
+        let existing_vote: Option<i16> = sqlx::query_scalar(
+            "SELECT value FROM core.votes WHERE user_id = $1 AND target_id = $2",
+        )
+        .bind(user_id)
+        .bind(target_id)
+        .fetch_optional(&mut *tx)
+        .await?;
 
         let old_value = existing_vote.unwrap_or(0);
         let vote_delta = (value as i32) - (old_value as i32);
         let final_vote: Option<i16>;
 
         if value == 0 {
-            sqlx::query("DELETE FROM votes WHERE user_id = $1 AND target_id = $2")
+            sqlx::query("DELETE FROM core.votes WHERE user_id = $1 AND target_id = $2")
                 .bind(user_id)
                 .bind(target_id)
                 .execute(&mut *tx)
                 .await?;
             final_vote = None;
         } else if existing_vote.is_some() {
-            sqlx::query("UPDATE votes SET value = $3 WHERE user_id = $1 AND target_id = $2")
+            sqlx::query("UPDATE core.votes SET value = $3 WHERE user_id = $1 AND target_id = $2")
                 .bind(user_id)
                 .bind(target_id)
                 .bind(value)
@@ -604,7 +605,7 @@ impl QuestionRepository for QuestionRepositoryImpl {
                 .await?;
             final_vote = Some(value);
         } else {
-            sqlx::query("INSERT INTO votes (user_id, target_id, value) VALUES ($1, $2, $3)")
+            sqlx::query("INSERT INTO core.votes (user_id, target_id, value) VALUES ($1, $2, $3)")
                 .bind(user_id)
                 .bind(target_id)
                 .bind(value)
@@ -615,7 +616,7 @@ impl QuestionRepository for QuestionRepositoryImpl {
 
         let new_score: i32 = match target_type {
             VoteTarget::Question => sqlx::query_scalar::<_, i32>(
-                "UPDATE questions SET upvote = upvote + $2 WHERE id = $1 RETURNING upvote",
+                "UPDATE core.questions SET upvote = upvote + $2 WHERE id = $1 RETURNING upvote",
             )
             .bind(target_id)
             .bind(vote_delta)
@@ -624,7 +625,7 @@ impl QuestionRepository for QuestionRepositoryImpl {
             .ok_or(Error::RowNotFound)?,
 
             VoteTarget::Answer => sqlx::query_scalar::<_, i32>(
-                "UPDATE answers SET upvote = upvote + $2 WHERE id = $1 RETURNING upvote",
+                "UPDATE core.answers SET upvote = upvote + $2 WHERE id = $1 RETURNING upvote",
             )
             .bind(target_id)
             .bind(vote_delta)
@@ -633,7 +634,7 @@ impl QuestionRepository for QuestionRepositoryImpl {
             .ok_or(Error::RowNotFound)?,
 
             VoteTarget::Comment => sqlx::query_scalar::<_, i32>(
-                "UPDATE comments SET upvote = upvote + $2 WHERE id = $1 RETURNING upvote",
+                "UPDATE core.comments SET upvote = upvote + $2 WHERE id = $1 RETURNING upvote",
             )
             .bind(target_id)
             .bind(vote_delta)

@@ -1,0 +1,9 @@
+DROP TYPE IF EXISTS core.webhook_event_type;
+DROP TYPE IF EXISTS core.comment_side;
+DROP TYPE IF EXISTS core.verdict;
+DROP TYPE IF EXISTS core.diff_status;
+DROP TYPE IF EXISTS core.review_status;
+DROP TYPE IF EXISTS core.repository_visibility;
+DROP TYPE IF EXISTS core.repository_owner_type;
+DROP TYPE IF EXISTS core.organization_role;
+DROP TYPE IF EXISTS core.auth_provider;
