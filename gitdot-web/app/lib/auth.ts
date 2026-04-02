@@ -12,7 +12,8 @@ import {
 import { cookies } from "next/headers";
 import type { NextRequest } from "next/server";
 
-const AUTH_URL = process.env.GITDOT_AUTH_URL ?? "http://localhost:8081";
+export const GITDOT_AUTH_SERVER_URL =
+  process.env.GITDOT_AUTH_SERVER_URL ?? "http://localhost:8081";
 
 // As we use SSR, setting cookies in the Rust server does not propagate them to the browser.
 // Therefore, we set the cookies manually in the Next.js server. This is how Supabase does it as well.
@@ -85,7 +86,7 @@ export async function refreshSession(): Promise<{
   if (!refresh_token) return null;
 
   const body: RefreshSessionRequest = { refresh_token };
-  const res = await fetch(`${AUTH_URL}/auth/refresh`, {
+  const res = await fetch(`${GITDOT_AUTH_SERVER_URL}/auth/refresh`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
@@ -115,7 +116,7 @@ export async function updateSession(_request: NextRequest) {
 
 export async function sendAuthEmail(email: string) {
   const body: SendAuthEmailRequest = { email };
-  await fetch(`${AUTH_URL}/auth/email/send`, {
+  await fetch(`${GITDOT_AUTH_SERVER_URL}/auth/email/send`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
@@ -124,7 +125,7 @@ export async function sendAuthEmail(email: string) {
 
 export async function verifyAuthCode(code: string) {
   const body: VerifyAuthCodeRequest = { code };
-  const res = await fetch(`${AUTH_URL}/auth/email/verify`, {
+  const res = await fetch(`${GITDOT_AUTH_SERVER_URL}/auth/email/verify`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
@@ -140,7 +141,7 @@ export async function verifyAuthCode(code: string) {
 // --- GitHub OAuth ---
 
 export async function getGitHubRedirectUrl(): Promise<string | null> {
-  const res = await fetch(`${AUTH_URL}/auth/github/redirect`);
+  const res = await fetch(`${GITDOT_AUTH_SERVER_URL}/auth/github/redirect`);
   if (!res.ok) return null;
   const data = GitHubAuthRedirectResource.parse(await res.json());
   return data.authorize_url;
@@ -148,7 +149,7 @@ export async function getGitHubRedirectUrl(): Promise<string | null> {
 
 export async function exchangeGitHubCode(code: string, state: string) {
   const body: ExchangeGitHubCodeRequest = { code, state };
-  const res = await fetch(`${AUTH_URL}/auth/github/exchange`, {
+  const res = await fetch(`${GITDOT_AUTH_SERVER_URL}/auth/github/exchange`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
@@ -170,7 +171,7 @@ export async function logout() {
 
   if (refresh_token && access_token) {
     const body: LogoutRequest = { refresh_token };
-    await fetch(`${AUTH_URL}/auth/logout`, {
+    await fetch(`${GITDOT_AUTH_SERVER_URL}/auth/logout`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
