@@ -1,5 +1,6 @@
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
+use ipnetwork::IpNetwork;
 use sqlx::{Error, PgPool};
 use uuid::Uuid;
 
@@ -24,7 +25,7 @@ pub trait SessionRepository: Send + Sync + Clone + 'static {
         refresh_token_hash: &str,
         refresh_token_family: Uuid,
         user_agent: Option<&str>,
-        ip_address: Option<&str>,
+        ip_address: Option<IpNetwork>,
         expires_at: DateTime<Utc>,
     ) -> Result<Session, Error>;
 
@@ -103,13 +104,13 @@ impl SessionRepository for SessionRepositoryImpl {
         refresh_token_hash: &str,
         refresh_token_family: Uuid,
         user_agent: Option<&str>,
-        ip_address: Option<&str>,
+        ip_address: Option<IpNetwork>,
         expires_at: DateTime<Utc>,
     ) -> Result<Session, Error> {
         let session = sqlx::query_as::<_, Session>(
             r#"
             INSERT INTO auth.sessions (user_id, refresh_token_hash, refresh_token_family, user_agent, ip_address, expires_at)
-            VALUES ($1, $2, $3, $4, $5::inet, $6)
+            VALUES ($1, $2, $3, $4, $5, $6)
             RETURNING *
             "#,
         )

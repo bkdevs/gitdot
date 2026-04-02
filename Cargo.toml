@@ -82,6 +82,7 @@ sha2 = "0.10.9"
 slatedb = "0.10"
 sqlx = { version = "0.8.6", features = [
   "chrono",
+  "ipnetwork",
   "json",
   "postgres",
   "runtime-tokio",

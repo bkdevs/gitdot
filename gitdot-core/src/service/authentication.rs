@@ -223,7 +223,7 @@ where
                 &refresh_token_hash,
                 uuid::Uuid::new_v4(),
                 request.user_agent.as_deref(),
-                request.ip_address.as_ref().map(|ip| ip.as_ref()),
+                request.ip_address,
                 refresh_expiry,
             )
             .await?;
@@ -279,7 +279,7 @@ where
                 &refresh_token_hash,
                 session.refresh_token_family,
                 request.user_agent.as_deref(),
-                request.ip_address.as_ref().map(|ip| ip.as_ref()),
+                request.ip_address,
                 refresh_expiry,
             )
             .await?;
@@ -350,7 +350,7 @@ where
                 &refresh_token_hash,
                 uuid::Uuid::new_v4(),
                 request.user_agent.as_deref(),
-                request.ip_address.as_ref().map(|ip| ip.as_ref()),
+                request.ip_address,
                 refresh_expiry,
             )
             .await?;

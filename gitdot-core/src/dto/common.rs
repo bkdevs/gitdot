@@ -24,10 +24,6 @@ fn is_valid_email(s: &str) -> bool {
     !s.is_empty() && s.contains('@')
 }
 
-fn is_valid_ip(s: &str) -> bool {
-    s.parse::<std::net::IpAddr>().is_ok()
-}
-
 #[nutype(
     sanitize(trim, lowercase),
     validate(predicate = is_valid_slug),
@@ -62,13 +58,6 @@ pub struct WebhookUrl(String);
     derive(Debug, Clone, PartialEq, Eq, AsRef, Deref)
 )]
 pub struct Email(String);
-
-#[nutype(
-    sanitize(trim),
-    validate(predicate = is_valid_ip),
-    derive(Debug, Clone, PartialEq, Eq, AsRef, Deref)
-)]
-pub struct IpAddress(String);
 
 #[cfg(test)]
 mod tests {

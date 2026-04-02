@@ -22,6 +22,7 @@ http = { workspace = true }
 jsonwebtoken = { workspace = true }
 nutype = { workspace = true }
 octocrab = "0.49.5"
+ipnetwork = "0.20"
 rand = { workspace = true }
 resend-rs = "0.21.1"
 s2-sdk = { workspace = true }
@@ -29,7 +30,7 @@ secrecy = "0.10.3"
 serde = { workspace = true }
 serde_json = { workspace = true }
 sha2 = { workspace = true }
-sqlx = { workspace = true }
+sqlx = { workspace = true, features = ["ipnetwork"] }
 tempfile = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true }

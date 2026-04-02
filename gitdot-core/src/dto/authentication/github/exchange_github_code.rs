@@ -1,11 +1,11 @@
-use crate::dto::IpAddress;
+use ipnetwork::IpNetwork;
 
 #[derive(Debug, Clone)]
 pub struct ExchangeGitHubCodeRequest {
     pub code: String,
     pub state: String,
     pub user_agent: Option<String>,
-    pub ip_address: Option<IpAddress>,
+    pub ip_address: Option<IpNetwork>,
 }
 
 impl ExchangeGitHubCodeRequest {
@@ -19,7 +19,7 @@ impl ExchangeGitHubCodeRequest {
             code,
             state,
             user_agent,
-            ip_address: ip_address.and_then(|ip| IpAddress::try_new(ip).ok()),
+            ip_address: ip_address.and_then(|ip| ip.parse().ok()),
         }
     }
 }
