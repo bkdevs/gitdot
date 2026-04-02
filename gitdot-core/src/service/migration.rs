@@ -11,7 +11,7 @@ use crate::{
         MigrateGitHubRepositoriesRequest, MigrateGitHubRepositoriesResponse,
         MigratedRepositoryInfo, MigrationResponse,
     },
-    error::{ConflictError, InputError, MigrationError, NotFoundError},
+    error::{ConflictError, InputError, MigrationError, OptionNotFoundExt},
     model::{
         GitHubInstallationType, MigrationOriginService, MigrationRepositoryStatus, MigrationStatus,
         Repository, RepositoryOwnerType, RepositoryVisibility,
@@ -225,7 +225,7 @@ where
             .migration_repo
             .get(request.user_id, request.number)
             .await?
-            .ok_or(NotFoundError::new("migration", request.number))?;
+            .or_not_found("migration", request.number)?;
 
         Ok(migration.into())
     }
@@ -297,7 +297,7 @@ where
                     .org_repo
                     .get(request.destination.as_ref())
                     .await?
-                    .ok_or_else(|| NotFoundError::new("owner", request.destination.as_ref()))?;
+                    .or_not_found("owner", request.destination.as_ref())?;
                 org.id
             }
         };

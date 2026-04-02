@@ -12,7 +12,7 @@ use crate::{
         SendAuthEmailRequest, TokenResponse, ValidateTokenRequest, ValidateTokenResponse,
         VerifyAuthCodeRequest,
     },
-    error::{AuthenticationError, InputError, NotFoundError},
+    error::{AuthenticationError, InputError, OptionNotFoundExt},
     model::{AuthProvider, DeviceAuthorizationStatus, TokenType},
     repository::{
         DeviceRepository, DeviceRepositoryImpl, SessionRepository, SessionRepositoryImpl,
@@ -189,7 +189,7 @@ where
             .session_repo
             .get_auth_code_by_hash(&code_hash)
             .await?
-            .ok_or(NotFoundError::new("auth_code", &code_hash))?;
+            .or_not_found("auth_code", &code_hash)?;
 
         if auth_code.used_at.is_some() {
             return Err(AuthenticationError::TokenRevoked("auth_code".into()));
@@ -205,7 +205,7 @@ where
             .user_repo
             .get_by_id(auth_code.user_id)
             .await?
-            .ok_or(NotFoundError::new("user", auth_code.user_id))?;
+            .or_not_found("user", auth_code.user_id)?;
         let orgs = self
             .user_repo
             .get_org_memberships(auth_code.user_id)
@@ -246,7 +246,7 @@ where
             .session_repo
             .get_session_by_refresh_hash(&token_hash)
             .await?
-            .ok_or(NotFoundError::new("session", &token_hash))?;
+            .or_not_found("session", &token_hash)?;
 
         if session.revoked_at.is_some() {
             self.session_repo
@@ -264,7 +264,7 @@ where
             .user_repo
             .get_by_id(session.user_id)
             .await?
-            .ok_or(NotFoundError::new("user", session.user_id))?;
+            .or_not_found("user", session.user_id)?;
         let orgs = self.user_repo.get_org_memberships(session.user_id).await?;
         let access_token = self
             .token_client
@@ -299,7 +299,7 @@ where
             .session_repo
             .get_session_by_refresh_hash(&token_hash)
             .await?
-            .ok_or(NotFoundError::new("session", &token_hash))?;
+            .or_not_found("session", &token_hash)?;
 
         self.session_repo.revoke_session(session.id).await?;
 
@@ -400,7 +400,7 @@ where
             .device_repo
             .get_device_authorization_by_device_code_hash(&device_code_hash)
             .await?
-            .ok_or(NotFoundError::new("device_code", &device_code_hash))?;
+            .or_not_found("device_code", &device_code_hash)?;
 
         if device_auth.expires_at < Utc::now()
             && device_auth.status == DeviceAuthorizationStatus::Pending
@@ -427,7 +427,7 @@ where
                     .user_repo
                     .get_by_id(user_id)
                     .await?
-                    .ok_or(NotFoundError::new("user", user_id))?;
+                    .or_not_found("user", user_id)?;
 
                 let (access_token, token_hash) = self
                     .token_client
@@ -462,7 +462,7 @@ where
         self.device_repo
             .authorize_device(&request.user_code, request.user_id)
             .await?
-            .ok_or(NotFoundError::new("user_code", request.user_code.as_ref()))?;
+            .or_not_found("user_code", request.user_code.as_ref())?;
 
         Ok(())
     }

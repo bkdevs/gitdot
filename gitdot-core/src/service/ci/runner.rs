@@ -7,7 +7,7 @@ use crate::{
         CreateRunnerTokenResponse, DeleteRunnerRequest, GetRunnerRequest, GetRunnerResponse,
         ListRunnersRequest, ListRunnersResponse, VerifyRunnerRequest,
     },
-    error::{NotFoundError, NotFoundExt, RunnerError},
+    error::{NotFoundExt, OptionNotFoundExt, RunnerError},
     model::{RunnerOwnerType, TokenType},
     repository::{
         OrganizationRepository, OrganizationRepositoryImpl, RunnerRepository, RunnerRepositoryImpl,
@@ -97,7 +97,7 @@ where
                     .org_repo
                     .get(request.owner_name.as_ref())
                     .await?
-                    .ok_or_else(|| NotFoundError::new("owner", request.owner_name.as_ref()))?;
+                    .or_not_found("owner", request.owner_name.as_ref())?;
                 org.id
             }
         };
@@ -132,7 +132,7 @@ where
             .runner_repo
             .get(request.owner_name.as_ref(), request.name.as_ref())
             .await?
-            .ok_or_else(|| NotFoundError::new("runner", request.name.as_ref()))?;
+            .or_not_found("runner", request.name.as_ref())?;
 
         Ok(runner.into())
     }
@@ -142,7 +142,7 @@ where
             .runner_repo
             .get(request.owner_name.as_ref(), request.name.as_ref())
             .await?
-            .ok_or_else(|| NotFoundError::new("runner", request.name.as_ref()))?;
+            .or_not_found("runner", request.name.as_ref())?;
 
         self.runner_repo
             .delete(runner.id)
@@ -172,7 +172,7 @@ where
             .runner_repo
             .get(request.owner_name.as_ref(), request.runner_name.as_ref())
             .await?
-            .ok_or_else(|| NotFoundError::new("runner", request.runner_name.as_ref()))?;
+            .or_not_found("runner", request.runner_name.as_ref())?;
 
         self.token_repo.delete_token_by_principal(runner.id).await?;
 

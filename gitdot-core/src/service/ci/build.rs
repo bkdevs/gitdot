@@ -10,7 +10,7 @@ use crate::{
         BuildResponse, BuildsResponse, CiConfig, CreateBuildRequest, ListBuildsRequest,
         RepositoryBlobResponse, TaskResponse,
     },
-    error::{BuildError, GitError, NotFoundError},
+    error::{BuildError, GitError, NotFoundError, OptionNotFoundExt},
     model::{BuildStatus, TaskStatus},
     repository::{
         BuildRepository, BuildRepositoryImpl, RepositoryRepository, RepositoryRepositoryImpl,
@@ -96,9 +96,11 @@ where
         let owner = request.repo_owner.as_ref();
         let repo = request.repo_name.as_ref();
 
-        let repository = self.repo_repo.get(owner, repo).await?.ok_or_else(|| {
-            BuildError::NotFound(NotFoundError::new("repository", format!("{owner}/{repo}")))
-        })?;
+        let repository = self
+            .repo_repo
+            .get(owner, repo)
+            .await?
+            .or_not_found("repository", format!("{owner}/{repo}"))?;
         let commit = self
             .git_client
             .get_repo_commit(owner, repo, &request.commit_sha)
@@ -225,9 +227,11 @@ where
         let owner = request.repo_owner.as_ref();
         let repo = request.repo_name.as_ref();
 
-        let repository = self.repo_repo.get(owner, repo).await?.ok_or_else(|| {
-            BuildError::NotFound(NotFoundError::new("repository", format!("{owner}/{repo}")))
-        })?;
+        let repository = self
+            .repo_repo
+            .get(owner, repo)
+            .await?
+            .or_not_found("repository", format!("{owner}/{repo}"))?;
 
         let builds = self
             .build_repo
@@ -245,20 +249,17 @@ where
         repo: &str,
         number: i32,
     ) -> Result<BuildResponse, BuildError> {
-        let repository = self.repo_repo.get(owner, repo).await?.ok_or_else(|| {
-            BuildError::NotFound(NotFoundError::new("repository", format!("{owner}/{repo}")))
-        })?;
+        let repository = self
+            .repo_repo
+            .get(owner, repo)
+            .await?
+            .or_not_found("repository", format!("{owner}/{repo}"))?;
 
         let build = self
             .build_repo
             .get(repository.id, number)
             .await?
-            .ok_or_else(|| {
-                BuildError::NotFound(NotFoundError::new(
-                    "build",
-                    format!("{owner}/{repo}#{number}"),
-                ))
-            })?;
+            .or_not_found("build", format!("{owner}/{repo}#{number}"))?;
 
         let tasks = self.task_repo.list_by_build_id(build.id).await?;
 
@@ -304,20 +305,17 @@ where
         repo: &str,
         number: i32,
     ) -> Result<Vec<TaskResponse>, BuildError> {
-        let repository = self.repo_repo.get(owner, repo).await?.ok_or_else(|| {
-            BuildError::NotFound(NotFoundError::new("repository", format!("{owner}/{repo}")))
-        })?;
+        let repository = self
+            .repo_repo
+            .get(owner, repo)
+            .await?
+            .or_not_found("repository", format!("{owner}/{repo}"))?;
 
         let build = self
             .build_repo
             .get(repository.id, number)
             .await?
-            .ok_or_else(|| {
-                BuildError::NotFound(NotFoundError::new(
-                    "build",
-                    format!("{owner}/{repo}#{number}"),
-                ))
-            })?;
+            .or_not_found("build", format!("{owner}/{repo}#{number}"))?;
 
         let tasks = self.task_repo.list_by_build_id(build.id).await?;
 

@@ -8,7 +8,7 @@ use crate::{
         UpdateCommentRequest, UpdateQuestionRequest, VoteAnswerRequest, VoteCommentRequest,
         VoteQuestionRequest, VoteResponse,
     },
-    error::{NotFoundError, QuestionError},
+    error::{OptionNotFoundExt, QuestionError},
     model::VoteTarget,
     repository::{
         QuestionRepository, QuestionRepositoryImpl, RepositoryRepository, RepositoryRepositoryImpl,
@@ -109,7 +109,7 @@ where
             .repo_repo
             .get(request.owner.as_ref(), request.repo.as_ref())
             .await?
-            .ok_or_else(|| NotFoundError::new("repository", request.get_repo_path()))?;
+            .or_not_found("repository", request.get_repo_path())?;
 
         let question = self
             .question_repo
@@ -132,13 +132,13 @@ where
             .repo_repo
             .get(request.owner.as_ref(), request.repo.as_ref())
             .await?
-            .ok_or_else(|| NotFoundError::new("repository", request.get_repo_path()))?;
+            .or_not_found("repository", request.get_repo_path())?;
 
         let question = self
             .question_repo
             .update_question(repository.id, request.number, &request.title, &request.body)
             .await?
-            .ok_or_else(|| NotFoundError::new("question", request.get_question_path()))?;
+            .or_not_found("question", request.get_question_path())?;
 
         Ok(question.into())
     }
@@ -151,13 +151,13 @@ where
             .repo_repo
             .get(request.owner.as_ref(), request.repo.as_ref())
             .await?
-            .ok_or_else(|| NotFoundError::new("repository", request.get_repo_path()))?;
+            .or_not_found("repository", request.get_repo_path())?;
 
         let question = self
             .question_repo
             .get_question(repository.id, request.number, request.user_id)
             .await?
-            .ok_or_else(|| NotFoundError::new("question", request.get_question_path()))?;
+            .or_not_found("question", request.get_question_path())?;
 
         Ok(question.into())
     }
@@ -170,7 +170,7 @@ where
             .repo_repo
             .get(request.owner.as_ref(), request.repo.as_ref())
             .await?
-            .ok_or_else(|| NotFoundError::new("repository", request.get_repo_path()))?;
+            .or_not_found("repository", request.get_repo_path())?;
 
         let questions = self
             .question_repo
@@ -196,7 +196,7 @@ where
                 &request.body,
             )
             .await?
-            .ok_or_else(|| NotFoundError::new("question", request.get_question_path()))?;
+            .or_not_found("question", request.get_question_path())?;
 
         Ok(answer.into())
     }
@@ -209,7 +209,7 @@ where
             .question_repo
             .update_answer(request.id, &request.body)
             .await?
-            .ok_or_else(|| NotFoundError::new("answer", request.id))?;
+            .or_not_found("answer", request.id)?;
 
         Ok(answer.into())
     }
@@ -228,7 +228,7 @@ where
                 &request.body,
             )
             .await?
-            .ok_or_else(|| NotFoundError::new("question", request.get_question_path()))?;
+            .or_not_found("question", request.get_question_path())?;
 
         Ok(comment.into())
     }
@@ -253,7 +253,7 @@ where
             .question_repo
             .update_comment(request.id, &request.body)
             .await?
-            .ok_or_else(|| NotFoundError::new("comment", request.id))?;
+            .or_not_found("comment", request.id)?;
 
         Ok(comment.into())
     }
@@ -270,7 +270,7 @@ where
                 request.number,
             )
             .await?
-            .ok_or_else(|| NotFoundError::new("question", request.get_question_path()))?;
+            .or_not_found("question", request.get_question_path())?;
 
         let result = self
             .question_repo

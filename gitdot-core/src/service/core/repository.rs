@@ -12,7 +12,7 @@ use crate::{
         RepositoryBlobsResponse, RepositoryPathsResponse, RepositoryResponse,
         RepositorySettingsResponse, UpdateRepositorySettingsRequest,
     },
-    error::{ConflictError, NotFoundError, RepositoryError},
+    error::{ConflictError, OptionNotFoundExt, RepositoryError},
     model::{RepositoryOwnerType, RepositorySettings},
     repository::{
         OrganizationRepository, OrganizationRepositoryImpl, RepositoryRepository,
@@ -142,12 +142,7 @@ where
                     .org_repo
                     .get(&request.owner_name)
                     .await?
-                    .ok_or_else(|| {
-                        RepositoryError::NotFound(NotFoundError::new(
-                            "owner",
-                            request.owner_name.as_ref(),
-                        ))
-                    })?;
+                    .or_not_found("owner", request.owner_name.as_ref())?;
                 org.id
             }
         };
@@ -265,7 +260,7 @@ where
             .repo_repo
             .get_by_id(id)
             .await?
-            .ok_or_else(|| RepositoryError::NotFound(NotFoundError::new("repository", id)))?;
+            .or_not_found("repository", id)?;
 
         Ok(repository.into())
     }
@@ -277,12 +272,11 @@ where
         let owner = request.owner.as_ref();
         let repo = request.repo.as_ref();
 
-        let repository = self.repo_repo.get(owner, repo).await?.ok_or_else(|| {
-            RepositoryError::NotFound(NotFoundError::new(
-                "repository",
-                format!("{}/{}", owner, repo),
-            ))
-        })?;
+        let repository = self
+            .repo_repo
+            .get(owner, repo)
+            .await?
+            .or_not_found("repository", format!("{}/{}", owner, repo))?;
 
         self.git_client.delete_repo(owner, repo).await?;
         self.repo_repo.delete(repository.id).await?;
@@ -349,12 +343,7 @@ where
             .repo_repo
             .get_settings(owner, repo)
             .await?
-            .ok_or_else(|| {
-                RepositoryError::NotFound(NotFoundError::new(
-                    "repository",
-                    format!("{}/{}", owner, repo),
-                ))
-            })?;
+            .or_not_found("repository", format!("{}/{}", owner, repo))?;
         Ok(RepositorySettingsResponse {
             commit_filters: settings.commit_filters,
         })
@@ -373,12 +362,7 @@ where
             .repo_repo
             .update_settings(owner, repo, patch)
             .await?
-            .ok_or_else(|| {
-                RepositoryError::NotFound(NotFoundError::new(
-                    "repository",
-                    format!("{}/{}", owner, repo),
-                ))
-            })?;
+            .or_not_found("repository", format!("{}/{}", owner, repo))?;
         Ok(RepositorySettingsResponse {
             commit_filters: settings.commit_filters,
         })

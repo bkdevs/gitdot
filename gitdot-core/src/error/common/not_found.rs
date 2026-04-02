@@ -15,3 +15,13 @@ impl NotFoundError {
         }
     }
 }
+
+pub trait OptionNotFoundExt<T> {
+    fn or_not_found(self, entity: &'static str, id: impl ToString) -> Result<T, NotFoundError>;
+}
+
+impl<T> OptionNotFoundExt<T> for Option<T> {
+    fn or_not_found(self, entity: &'static str, id: impl ToString) -> Result<T, NotFoundError> {
+        self.ok_or_else(|| NotFoundError::new(entity, id))
+    }
+}

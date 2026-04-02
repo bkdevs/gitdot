@@ -6,7 +6,7 @@ use uuid::Uuid;
 
 use crate::{
     dto::{TaskResponse, UpdateTaskRequest},
-    error::{NotFoundError, NotFoundExt, TaskError},
+    error::{NotFoundExt, OptionNotFoundExt, TaskError},
     model::TaskStatus,
     repository::{
         RepositoryRepository, RepositoryRepositoryImpl, RunnerRepository, RunnerRepositoryImpl,
@@ -84,7 +84,7 @@ where
             .runner_repo
             .get_by_id(runner_id)
             .await?
-            .ok_or_else(|| NotFoundError::new("runner", runner_id))?;
+            .or_not_found("runner", runner_id)?;
 
         let repos = self
             .repository_repo

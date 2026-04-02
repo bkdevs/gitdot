@@ -7,7 +7,7 @@ use crate::{
         OrganizationResponse, RepositoryResponse, ReviewResponse, UpdateCurrentUserRequest,
         UpdateCurrentUserSettingsRequest, UserResponse, UserSettingsResponse,
     },
-    error::{ConflictError, NotFoundError, UserError},
+    error::{ConflictError, NotFoundError, OptionNotFoundExt, UserError},
     model::UserSettings,
     repository::{
         OrganizationRepository, OrganizationRepositoryImpl, RepositoryRepository,
@@ -113,7 +113,7 @@ where
             .user_repo
             .get_by_id(request.user_id)
             .await?
-            .ok_or_else(|| NotFoundError::new("user", request.user_id))?;
+            .or_not_found("user", request.user_id)?;
         Ok(user.into())
     }
 
@@ -150,7 +150,7 @@ where
             .user_repo
             .get(&user_name)
             .await?
-            .ok_or_else(|| NotFoundError::new("user", &user_name))?;
+            .or_not_found("user", &user_name)?;
         Ok(user.into())
     }
 
@@ -163,7 +163,7 @@ where
             .user_repo
             .get(&user_name)
             .await?
-            .ok_or_else(|| NotFoundError::new("user", &user_name))?;
+            .or_not_found("user", &user_name)?;
 
         let repositories = self.repo_repo.list_by_owner(&user_name).await?;
 
@@ -186,7 +186,7 @@ where
             .user_repo
             .get(&user_name)
             .await?
-            .ok_or_else(|| NotFoundError::new("user", &user_name))?;
+            .or_not_found("user", &user_name)?;
 
         let orgs = self.org_repo.list_by_user_id(user.id).await?;
         Ok(orgs.into_iter().map(|o| o.into()).collect())
@@ -229,7 +229,7 @@ where
             .user_repo
             .update_settings(request.user_id, patch)
             .await?
-            .ok_or_else(|| NotFoundError::new("user", request.user_id))?;
+            .or_not_found("user", request.user_id)?;
         Ok(settings.into())
     }
 }

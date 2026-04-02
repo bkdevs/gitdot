@@ -6,7 +6,7 @@ use crate::{
         ListOrganizationRepositoriesRequest, OrganizationMemberResponse, OrganizationResponse,
         RepositoryResponse,
     },
-    error::{ConflictError, NotFoundError, OrganizationError},
+    error::{ConflictError, NotFoundError, OptionNotFoundExt, OrganizationError},
     repository::{
         OrganizationRepository, OrganizationRepositoryImpl, RepositoryRepository,
         RepositoryRepositoryImpl, UserRepository, UserRepositoryImpl,
@@ -108,7 +108,7 @@ where
             .org_repo
             .get(&org_name)
             .await?
-            .ok_or_else(|| NotFoundError::new("organization", &org_name))?;
+            .or_not_found("organization", &org_name)?;
         Ok(org.into())
     }
 
@@ -152,7 +152,7 @@ where
             .org_repo
             .get(&org_name)
             .await?
-            .ok_or_else(|| NotFoundError::new("organization", &org_name))?;
+            .or_not_found("organization", &org_name)?;
 
         let repositories = self.repo_repo.list_by_owner(&org_name).await?;
 
@@ -177,7 +177,7 @@ where
         self.org_repo
             .get(&org_name)
             .await?
-            .ok_or_else(|| NotFoundError::new("organization", &org_name))?;
+            .or_not_found("organization", &org_name)?;
 
         let members = self.org_repo.list_members(&org_name, request.role).await?;
         Ok(members.into_iter().map(|m| m.into()).collect())

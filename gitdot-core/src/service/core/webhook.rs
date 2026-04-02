@@ -5,7 +5,7 @@ use crate::{
         CreateWebhookRequest, DeleteWebhookRequest, GetWebhookRequest, ListWebhooksRequest,
         UpdateWebhookRequest, WebhookResponse,
     },
-    error::{NotFoundError, WebhookError},
+    error::{NotFoundError, OptionNotFoundExt, WebhookError},
     repository::{
         RepositoryRepository, RepositoryRepositoryImpl, WebhookRepository, WebhookRepositoryImpl,
     },
@@ -73,7 +73,7 @@ where
             .repo_repo
             .get(owner, repo)
             .await?
-            .ok_or_else(|| NotFoundError::new("repository", format!("{owner}/{repo}")))?;
+            .or_not_found("repository", format!("{owner}/{repo}"))?;
 
         let webhook = self
             .webhook_repo
@@ -99,7 +99,7 @@ where
             .repo_repo
             .get(owner, repo)
             .await?
-            .ok_or_else(|| NotFoundError::new("repository", format!("{owner}/{repo}")))?;
+            .or_not_found("repository", format!("{owner}/{repo}"))?;
 
         let webhooks = self.webhook_repo.list_by_repo(repository.id).await?;
 
@@ -117,13 +117,13 @@ where
             .repo_repo
             .get(owner, repo)
             .await?
-            .ok_or_else(|| NotFoundError::new("repository", format!("{owner}/{repo}")))?;
+            .or_not_found("repository", format!("{owner}/{repo}"))?;
 
         let webhook = self
             .webhook_repo
             .get(request.webhook_id)
             .await?
-            .ok_or_else(|| NotFoundError::new("webhook", request.webhook_id))?;
+            .or_not_found("webhook", request.webhook_id)?;
 
         if webhook.repository_id != repository.id {
             return Err(NotFoundError::new("webhook", request.webhook_id).into());
@@ -143,13 +143,13 @@ where
             .repo_repo
             .get(owner, repo)
             .await?
-            .ok_or_else(|| NotFoundError::new("repository", format!("{owner}/{repo}")))?;
+            .or_not_found("repository", format!("{owner}/{repo}"))?;
 
         let existing = self
             .webhook_repo
             .get(request.webhook_id)
             .await?
-            .ok_or_else(|| NotFoundError::new("webhook", request.webhook_id))?;
+            .or_not_found("webhook", request.webhook_id)?;
 
         if existing.repository_id != repository.id {
             return Err(NotFoundError::new("webhook", request.webhook_id).into());
@@ -176,13 +176,13 @@ where
             .repo_repo
             .get(owner, repo)
             .await?
-            .ok_or_else(|| NotFoundError::new("repository", format!("{owner}/{repo}")))?;
+            .or_not_found("repository", format!("{owner}/{repo}"))?;
 
         let existing = self
             .webhook_repo
             .get(request.webhook_id)
             .await?
-            .ok_or_else(|| NotFoundError::new("webhook", request.webhook_id))?;
+            .or_not_found("webhook", request.webhook_id)?;
 
         if existing.repository_id != repository.id {
             return Err(NotFoundError::new("webhook", request.webhook_id).into());
