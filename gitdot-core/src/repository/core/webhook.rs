@@ -1,8 +1,11 @@
 use async_trait::async_trait;
-use sqlx::{Error, PgPool};
+use sqlx::PgPool;
 use uuid::Uuid;
 
-use crate::model::{Webhook, WebhookEventType};
+use crate::{
+    error::DatabaseError,
+    model::{Webhook, WebhookEventType},
+};
 
 #[async_trait]
 pub trait WebhookRepository: Send + Sync + Clone + 'static {
@@ -12,11 +15,11 @@ pub trait WebhookRepository: Send + Sync + Clone + 'static {
         url: &str,
         secret: &str,
         events: &[WebhookEventType],
-    ) -> Result<Webhook, Error>;
+    ) -> Result<Webhook, DatabaseError>;
 
-    async fn get(&self, id: Uuid) -> Result<Option<Webhook>, Error>;
+    async fn get(&self, id: Uuid) -> Result<Option<Webhook>, DatabaseError>;
 
-    async fn list_by_repo(&self, repository_id: Uuid) -> Result<Vec<Webhook>, Error>;
+    async fn list_by_repo(&self, repository_id: Uuid) -> Result<Vec<Webhook>, DatabaseError>;
 
     async fn update(
         &self,
@@ -24,9 +27,9 @@ pub trait WebhookRepository: Send + Sync + Clone + 'static {
         url: Option<&str>,
         secret: Option<&str>,
         events: Option<&[WebhookEventType]>,
-    ) -> Result<Webhook, Error>;
+    ) -> Result<Webhook, DatabaseError>;
 
-    async fn delete(&self, id: Uuid) -> Result<(), Error>;
+    async fn delete(&self, id: Uuid) -> Result<(), DatabaseError>;
 }
 
 #[derive(Debug, Clone)]
@@ -49,7 +52,7 @@ impl WebhookRepository for WebhookRepositoryImpl {
         url: &str,
         secret: &str,
         events: &[WebhookEventType],
-    ) -> Result<Webhook, Error> {
+    ) -> Result<Webhook, DatabaseError> {
         let webhook = sqlx::query_as::<_, Webhook>(
             r#"
             INSERT INTO core.webhooks (repository_id, url, secret, events)
@@ -67,7 +70,7 @@ impl WebhookRepository for WebhookRepositoryImpl {
         Ok(webhook)
     }
 
-    async fn get(&self, id: Uuid) -> Result<Option<Webhook>, Error> {
+    async fn get(&self, id: Uuid) -> Result<Option<Webhook>, DatabaseError> {
         let webhook = sqlx::query_as::<_, Webhook>(
             r#"
             SELECT id, repository_id, url, secret, events, created_at, updated_at
@@ -81,7 +84,7 @@ impl WebhookRepository for WebhookRepositoryImpl {
         Ok(webhook)
     }
 
-    async fn list_by_repo(&self, repository_id: Uuid) -> Result<Vec<Webhook>, Error> {
+    async fn list_by_repo(&self, repository_id: Uuid) -> Result<Vec<Webhook>, DatabaseError> {
         let webhooks = sqlx::query_as::<_, Webhook>(
             r#"
             SELECT id, repository_id, url, secret, events, created_at, updated_at
@@ -102,7 +105,7 @@ impl WebhookRepository for WebhookRepositoryImpl {
         url: Option<&str>,
         secret: Option<&str>,
         events: Option<&[WebhookEventType]>,
-    ) -> Result<Webhook, Error> {
+    ) -> Result<Webhook, DatabaseError> {
         let webhook = sqlx::query_as::<_, Webhook>(
             r#"
             UPDATE core.webhooks
@@ -124,7 +127,7 @@ impl WebhookRepository for WebhookRepositoryImpl {
         Ok(webhook)
     }
 
-    async fn delete(&self, id: Uuid) -> Result<(), Error> {
+    async fn delete(&self, id: Uuid) -> Result<(), DatabaseError> {
         sqlx::query("DELETE FROM core.webhooks WHERE id = $1")
             .bind(id)
             .execute(&self.pool)

@@ -1,9 +1,9 @@
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
-use sqlx::{Error, PgPool};
+use sqlx::PgPool;
 use uuid::Uuid;
 
-use crate::model::DeviceAuthorization;
+use crate::{error::DatabaseError, model::DeviceAuthorization};
 
 #[async_trait]
 pub trait DeviceRepository: Send + Sync + Clone + 'static {
@@ -13,31 +13,31 @@ pub trait DeviceRepository: Send + Sync + Clone + 'static {
         user_code: &str,
         client_id: &str,
         expires_at: DateTime<Utc>,
-    ) -> Result<DeviceAuthorization, Error>;
+    ) -> Result<DeviceAuthorization, DatabaseError>;
 
     async fn get_device_authorization_by_device_code_hash(
         &self,
         device_code_hash: &str,
-    ) -> Result<Option<DeviceAuthorization>, Error>;
+    ) -> Result<Option<DeviceAuthorization>, DatabaseError>;
 
     async fn get_device_authorization_by_user_code(
         &self,
         user_code: &str,
-    ) -> Result<Option<DeviceAuthorization>, Error>;
+    ) -> Result<Option<DeviceAuthorization>, DatabaseError>;
 
-    async fn expire_device_authorization(&self, id: Uuid) -> Result<(), Error>;
+    async fn expire_device_authorization(&self, id: Uuid) -> Result<(), DatabaseError>;
 
     async fn authorize_device(
         &self,
         user_code: &str,
         user_id: Uuid,
-    ) -> Result<Option<DeviceAuthorization>, Error>;
+    ) -> Result<Option<DeviceAuthorization>, DatabaseError>;
 
     async fn deny_device(
         &self,
         user_code: &str,
         user_id: Uuid,
-    ) -> Result<Option<DeviceAuthorization>, Error>;
+    ) -> Result<Option<DeviceAuthorization>, DatabaseError>;
 }
 
 #[derive(Debug, Clone)]
@@ -60,7 +60,7 @@ impl DeviceRepository for DeviceRepositoryImpl {
         user_code: &str,
         client_id: &str,
         expires_at: DateTime<Utc>,
-    ) -> Result<DeviceAuthorization, Error> {
+    ) -> Result<DeviceAuthorization, DatabaseError> {
         let device_auth = sqlx::query_as::<_, DeviceAuthorization>(
             r#"
             INSERT INTO auth.device_authorizations (device_code_hash, user_code, client_id, expires_at)
@@ -81,7 +81,7 @@ impl DeviceRepository for DeviceRepositoryImpl {
     async fn get_device_authorization_by_device_code_hash(
         &self,
         device_code_hash: &str,
-    ) -> Result<Option<DeviceAuthorization>, Error> {
+    ) -> Result<Option<DeviceAuthorization>, DatabaseError> {
         let device_auth = sqlx::query_as::<_, DeviceAuthorization>(
             r#"
             SELECT id, device_code_hash, user_code, client_id, user_id, status, expires_at, created_at
@@ -99,7 +99,7 @@ impl DeviceRepository for DeviceRepositoryImpl {
     async fn get_device_authorization_by_user_code(
         &self,
         user_code: &str,
-    ) -> Result<Option<DeviceAuthorization>, Error> {
+    ) -> Result<Option<DeviceAuthorization>, DatabaseError> {
         let device_auth = sqlx::query_as::<_, DeviceAuthorization>(
             r#"
             SELECT id, device_code_hash, user_code, client_id, user_id, status, expires_at, created_at
@@ -114,7 +114,7 @@ impl DeviceRepository for DeviceRepositoryImpl {
         Ok(device_auth)
     }
 
-    async fn expire_device_authorization(&self, id: Uuid) -> Result<(), Error> {
+    async fn expire_device_authorization(&self, id: Uuid) -> Result<(), DatabaseError> {
         sqlx::query(
             r#"
             UPDATE auth.device_authorizations
@@ -133,7 +133,7 @@ impl DeviceRepository for DeviceRepositoryImpl {
         &self,
         user_code: &str,
         user_id: Uuid,
-    ) -> Result<Option<DeviceAuthorization>, Error> {
+    ) -> Result<Option<DeviceAuthorization>, DatabaseError> {
         let device_auth = sqlx::query_as::<_, DeviceAuthorization>(
             r#"
             UPDATE auth.device_authorizations
@@ -154,7 +154,7 @@ impl DeviceRepository for DeviceRepositoryImpl {
         &self,
         user_code: &str,
         user_id: Uuid,
-    ) -> Result<Option<DeviceAuthorization>, Error> {
+    ) -> Result<Option<DeviceAuthorization>, DatabaseError> {
         let device_auth = sqlx::query_as::<_, DeviceAuthorization>(
             r#"
             UPDATE auth.device_authorizations

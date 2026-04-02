@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-use crate::error::{InputError, NotFoundError};
+use crate::error::{DatabaseError, InputError, NotFoundError};
 
 #[derive(Debug, Error)]
 pub enum QuestionError {
@@ -10,6 +10,6 @@ pub enum QuestionError {
     #[error(transparent)]
     NotFound(#[from] NotFoundError),
 
-    #[error("Database error: {0}")]
-    DatabaseError(#[from] sqlx::Error),
+    #[error(transparent)]
+    DatabaseError(#[from] DatabaseError),
 }

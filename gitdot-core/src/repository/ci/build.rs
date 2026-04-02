@@ -1,9 +1,12 @@
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
-use sqlx::{Error, PgPool};
+use sqlx::PgPool;
 use uuid::Uuid;
 
-use crate::model::{Build, BuildTrigger, BuildWithStats};
+use crate::{
+    error::DatabaseError,
+    model::{Build, BuildTrigger, BuildWithStats},
+};
 
 #[async_trait]
 pub trait BuildRepository: Send + Sync + Clone + 'static {
@@ -13,16 +16,16 @@ pub trait BuildRepository: Send + Sync + Clone + 'static {
         trigger: BuildTrigger,
         commit_sha: &str,
         ref_name: &str,
-    ) -> Result<Build, Error>;
+    ) -> Result<Build, DatabaseError>;
 
-    async fn get(&self, repository_id: Uuid, number: i32) -> Result<Option<Build>, Error>;
+    async fn get(&self, repository_id: Uuid, number: i32) -> Result<Option<Build>, DatabaseError>;
 
     async fn list_by_repo(
         &self,
         repository_id: Uuid,
         from: DateTime<Utc>,
         to: DateTime<Utc>,
-    ) -> Result<Vec<BuildWithStats>, Error>;
+    ) -> Result<Vec<BuildWithStats>, DatabaseError>;
 }
 
 #[derive(Debug, Clone)]
@@ -45,7 +48,7 @@ impl BuildRepository for BuildRepositoryImpl {
         trigger: BuildTrigger,
         commit_sha: &str,
         ref_name: &str,
-    ) -> Result<Build, Error> {
+    ) -> Result<Build, DatabaseError> {
         let build = sqlx::query_as::<_, Build>(
             r#"
             INSERT INTO ci.builds (repository_id, trigger, commit_sha, ref_name, number)
@@ -63,7 +66,7 @@ impl BuildRepository for BuildRepositoryImpl {
         Ok(build)
     }
 
-    async fn get(&self, repository_id: Uuid, number: i32) -> Result<Option<Build>, Error> {
+    async fn get(&self, repository_id: Uuid, number: i32) -> Result<Option<Build>, DatabaseError> {
         let build = sqlx::query_as::<_, Build>(
             r#"
             SELECT id, number, repository_id, ref_name, trigger, commit_sha, status, created_at
@@ -83,7 +86,7 @@ impl BuildRepository for BuildRepositoryImpl {
         repository_id: Uuid,
         from: DateTime<Utc>,
         to: DateTime<Utc>,
-    ) -> Result<Vec<BuildWithStats>, Error> {
+    ) -> Result<Vec<BuildWithStats>, DatabaseError> {
         let builds = sqlx::query_as::<_, BuildWithStats>(
             r#"
             SELECT

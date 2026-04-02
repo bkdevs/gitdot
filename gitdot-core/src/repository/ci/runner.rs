@@ -1,8 +1,11 @@
 use async_trait::async_trait;
-use sqlx::{Error, PgPool};
+use sqlx::PgPool;
 use uuid::Uuid;
 
-use crate::model::{Runner, RunnerOwnerType};
+use crate::{
+    error::DatabaseError,
+    model::{Runner, RunnerOwnerType},
+};
 
 #[async_trait]
 pub trait RunnerRepository: Send + Sync + Clone + 'static {
@@ -12,17 +15,21 @@ pub trait RunnerRepository: Send + Sync + Clone + 'static {
         owner_id: Uuid,
         owner_name: &str,
         owner_type: &RunnerOwnerType,
-    ) -> Result<Runner, Error>;
+    ) -> Result<Runner, DatabaseError>;
 
-    async fn get(&self, owner_name: &str, runner_name: &str) -> Result<Option<Runner>, Error>;
+    async fn get(
+        &self,
+        owner_name: &str,
+        runner_name: &str,
+    ) -> Result<Option<Runner>, DatabaseError>;
 
-    async fn delete(&self, id: Uuid) -> Result<(), Error>;
+    async fn delete(&self, id: Uuid) -> Result<(), DatabaseError>;
 
-    async fn get_by_id(&self, id: Uuid) -> Result<Option<Runner>, Error>;
+    async fn get_by_id(&self, id: Uuid) -> Result<Option<Runner>, DatabaseError>;
 
-    async fn touch(&self, id: Uuid) -> Result<(), Error>;
+    async fn touch(&self, id: Uuid) -> Result<(), DatabaseError>;
 
-    async fn list_by_owner(&self, owner_name: &str) -> Result<Vec<Runner>, Error>;
+    async fn list_by_owner(&self, owner_name: &str) -> Result<Vec<Runner>, DatabaseError>;
 }
 
 #[derive(Debug, Clone)]
@@ -45,7 +52,7 @@ impl RunnerRepository for RunnerRepositoryImpl {
         owner_id: Uuid,
         owner_name: &str,
         owner_type: &RunnerOwnerType,
-    ) -> Result<Runner, Error> {
+    ) -> Result<Runner, DatabaseError> {
         let runner = sqlx::query_as::<_, Runner>(
             r#"
             INSERT INTO ci.runners (name, owner_id, owner_name, owner_type)
@@ -63,7 +70,11 @@ impl RunnerRepository for RunnerRepositoryImpl {
         Ok(runner)
     }
 
-    async fn get(&self, owner_name: &str, runner_name: &str) -> Result<Option<Runner>, Error> {
+    async fn get(
+        &self,
+        owner_name: &str,
+        runner_name: &str,
+    ) -> Result<Option<Runner>, DatabaseError> {
         let runner = sqlx::query_as::<_, Runner>(
             r#"
             SELECT r.id, r.name, r.owner_id, r.owner_name, r.owner_type, r.last_active, r.created_at
@@ -80,20 +91,20 @@ impl RunnerRepository for RunnerRepositoryImpl {
         Ok(runner)
     }
 
-    async fn delete(&self, id: Uuid) -> Result<(), Error> {
+    async fn delete(&self, id: Uuid) -> Result<(), DatabaseError> {
         let result = sqlx::query("DELETE FROM ci.runners WHERE id = $1")
             .bind(id)
             .execute(&self.pool)
             .await?;
 
         if result.rows_affected() == 0 {
-            return Err(Error::RowNotFound);
+            return Err(DatabaseError::RowNotFound);
         }
 
         Ok(())
     }
 
-    async fn get_by_id(&self, id: Uuid) -> Result<Option<Runner>, Error> {
+    async fn get_by_id(&self, id: Uuid) -> Result<Option<Runner>, DatabaseError> {
         let runner = sqlx::query_as::<_, Runner>(
             r#"
             SELECT id, name, owner_id, owner_name, owner_type, last_active, created_at
@@ -106,20 +117,20 @@ impl RunnerRepository for RunnerRepositoryImpl {
         Ok(runner)
     }
 
-    async fn touch(&self, id: Uuid) -> Result<(), Error> {
+    async fn touch(&self, id: Uuid) -> Result<(), DatabaseError> {
         let result = sqlx::query("UPDATE ci.runners SET last_active = NOW() WHERE id = $1")
             .bind(id)
             .execute(&self.pool)
             .await?;
 
         if result.rows_affected() == 0 {
-            return Err(Error::RowNotFound);
+            return Err(DatabaseError::RowNotFound);
         }
 
         Ok(())
     }
 
-    async fn list_by_owner(&self, owner_name: &str) -> Result<Vec<Runner>, Error> {
+    async fn list_by_owner(&self, owner_name: &str) -> Result<Vec<Runner>, DatabaseError> {
         let runners = sqlx::query_as::<_, Runner>(
             r#"
             SELECT id, name, owner_id, owner_name, owner_type, last_active, created_at

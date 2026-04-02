@@ -388,14 +388,14 @@ mod tests {
         }
         #[async_trait]
         impl OrganizationRepository for OrganizationRepo {
-            async fn create(&self, org_name: &str, owner_id: Uuid) -> Result<Organization, sqlx::Error>;
-            async fn get(&self, org_name: &str) -> Result<Option<Organization>, sqlx::Error>;
-            async fn is_member(&self, org_id: Uuid, user_id: Uuid) -> Result<bool, sqlx::Error>;
-            async fn add_member(&self, org_name: &str, user_name: &str, role: OrganizationRole) -> Result<Option<OrganizationMember>, sqlx::Error>;
-            async fn get_member_role(&self, org_name: &str, user_id: Uuid) -> Result<Option<OrganizationRole>, sqlx::Error>;
-            async fn list(&self) -> Result<Vec<Organization>, sqlx::Error>;
-            async fn list_by_user_id(&self, user_id: Uuid) -> Result<Vec<Organization>, sqlx::Error>;
-            async fn list_members(&self, org_name: &str, role: Option<OrganizationRole>) -> Result<Vec<OrganizationMember>, sqlx::Error>;
+            async fn create(&self, org_name: &str, owner_id: Uuid) -> Result<Organization, crate::error::DatabaseError>;
+            async fn get(&self, org_name: &str) -> Result<Option<Organization>, crate::error::DatabaseError>;
+            async fn is_member(&self, org_id: Uuid, user_id: Uuid) -> Result<bool, crate::error::DatabaseError>;
+            async fn add_member(&self, org_name: &str, user_name: &str, role: OrganizationRole) -> Result<Option<OrganizationMember>, crate::error::DatabaseError>;
+            async fn get_member_role(&self, org_name: &str, user_id: Uuid) -> Result<Option<OrganizationRole>, crate::error::DatabaseError>;
+            async fn list(&self) -> Result<Vec<Organization>, crate::error::DatabaseError>;
+            async fn list_by_user_id(&self, user_id: Uuid) -> Result<Vec<Organization>, crate::error::DatabaseError>;
+            async fn list_members(&self, org_name: &str, role: Option<OrganizationRole>) -> Result<Vec<OrganizationMember>, crate::error::DatabaseError>;
         }
     }
 
@@ -406,13 +406,13 @@ mod tests {
         }
         #[async_trait]
         impl RepositoryRepository for RepositoryRepo {
-            async fn create(&self, name: &str, owner_id: Uuid, owner_name: &str, owner_type: &RepositoryOwnerType, visibility: &RepositoryVisibility) -> Result<Repository, sqlx::Error>;
-            async fn get(&self, owner: &str, repo: &str) -> Result<Option<Repository>, sqlx::Error>;
-            async fn get_by_id(&self, id: Uuid) -> Result<Option<Repository>, sqlx::Error>;
-            async fn list_by_owner(&self, owner_name: &str) -> Result<Vec<Repository>, sqlx::Error>;
-            async fn delete(&self, id: Uuid) -> Result<(), sqlx::Error>;
-            async fn get_settings(&self, owner: &str, repo: &str) -> Result<Option<RepositorySettings>, sqlx::Error>;
-            async fn update_settings(&self, owner: &str, repo: &str, settings: RepositorySettings) -> Result<Option<RepositorySettings>, sqlx::Error>;
+            async fn create(&self, name: &str, owner_id: Uuid, owner_name: &str, owner_type: &RepositoryOwnerType, visibility: &RepositoryVisibility) -> Result<Repository, crate::error::DatabaseError>;
+            async fn get(&self, owner: &str, repo: &str) -> Result<Option<Repository>, crate::error::DatabaseError>;
+            async fn get_by_id(&self, id: Uuid) -> Result<Option<Repository>, crate::error::DatabaseError>;
+            async fn list_by_owner(&self, owner_name: &str) -> Result<Vec<Repository>, crate::error::DatabaseError>;
+            async fn delete(&self, id: Uuid) -> Result<(), crate::error::DatabaseError>;
+            async fn get_settings(&self, owner: &str, repo: &str) -> Result<Option<RepositorySettings>, crate::error::DatabaseError>;
+            async fn update_settings(&self, owner: &str, repo: &str, settings: RepositorySettings) -> Result<Option<RepositorySettings>, crate::error::DatabaseError>;
         }
     }
 
@@ -423,20 +423,20 @@ mod tests {
         }
         #[async_trait]
         impl QuestionRepository for QuestionRepo {
-            async fn create_question(&self, author_id: Uuid, repository_id: Uuid, title: &str, body: &str) -> Result<Question, sqlx::Error>;
-            async fn update_question(&self, repository_id: Uuid, number: i32, title: &str, body: &str) -> Result<Option<Question>, sqlx::Error>;
-            async fn get_question(&self, repository_id: Uuid, number: i32, user_id: Option<Uuid>) -> Result<Option<Question>, sqlx::Error>;
-            async fn get_question_id(&self, owner: &str, repo: &str, question_number: i32) -> Result<Option<Uuid>, sqlx::Error>;
-            async fn list_questions(&self, repository_id: Uuid, user_id: Option<Uuid>, from: DateTime<Utc>, to: DateTime<Utc>) -> Result<Vec<Question>, sqlx::Error>;
-            async fn create_answer(&self, owner: &str, repo: &str, question_number: i32, author_id: Uuid, body: &str) -> Result<Option<Answer>, sqlx::Error>;
-            async fn update_answer(&self, id: Uuid, body: &str) -> Result<Option<Answer>, sqlx::Error>;
-            async fn create_comment(&self, parent_id: Uuid, author_id: Uuid, body: &str) -> Result<Comment, sqlx::Error>;
-            async fn create_question_comment(&self, owner: &str, repo: &str, question_number: i32, author_id: Uuid, body: &str) -> Result<Option<Comment>, sqlx::Error>;
-            async fn update_comment(&self, id: Uuid, body: &str) -> Result<Option<Comment>, sqlx::Error>;
-            async fn get_question_author_id(&self, owner: &str, repo: &str, question_number: i32) -> Result<Option<Uuid>, sqlx::Error>;
-            async fn get_answer_author_id(&self, id: Uuid) -> Result<Option<Uuid>, sqlx::Error>;
-            async fn get_comment_author_id(&self, id: Uuid) -> Result<Option<Uuid>, sqlx::Error>;
-            async fn vote(&self, user_id: Uuid, target_id: Uuid, target_type: VoteTarget, value: i16) -> Result<VoteResult, sqlx::Error>;
+            async fn create_question(&self, author_id: Uuid, repository_id: Uuid, title: &str, body: &str) -> Result<Question, crate::error::DatabaseError>;
+            async fn update_question(&self, repository_id: Uuid, number: i32, title: &str, body: &str) -> Result<Option<Question>, crate::error::DatabaseError>;
+            async fn get_question(&self, repository_id: Uuid, number: i32, user_id: Option<Uuid>) -> Result<Option<Question>, crate::error::DatabaseError>;
+            async fn get_question_id(&self, owner: &str, repo: &str, question_number: i32) -> Result<Option<Uuid>, crate::error::DatabaseError>;
+            async fn list_questions(&self, repository_id: Uuid, user_id: Option<Uuid>, from: DateTime<Utc>, to: DateTime<Utc>) -> Result<Vec<Question>, crate::error::DatabaseError>;
+            async fn create_answer(&self, owner: &str, repo: &str, question_number: i32, author_id: Uuid, body: &str) -> Result<Option<Answer>, crate::error::DatabaseError>;
+            async fn update_answer(&self, id: Uuid, body: &str) -> Result<Option<Answer>, crate::error::DatabaseError>;
+            async fn create_comment(&self, parent_id: Uuid, author_id: Uuid, body: &str) -> Result<Comment, crate::error::DatabaseError>;
+            async fn create_question_comment(&self, owner: &str, repo: &str, question_number: i32, author_id: Uuid, body: &str) -> Result<Option<Comment>, crate::error::DatabaseError>;
+            async fn update_comment(&self, id: Uuid, body: &str) -> Result<Option<Comment>, crate::error::DatabaseError>;
+            async fn get_question_author_id(&self, owner: &str, repo: &str, question_number: i32) -> Result<Option<Uuid>, crate::error::DatabaseError>;
+            async fn get_answer_author_id(&self, id: Uuid) -> Result<Option<Uuid>, crate::error::DatabaseError>;
+            async fn get_comment_author_id(&self, id: Uuid) -> Result<Option<Uuid>, crate::error::DatabaseError>;
+            async fn vote(&self, user_id: Uuid, target_id: Uuid, target_type: VoteTarget, value: i16) -> Result<VoteResult, crate::error::DatabaseError>;
         }
     }
 
@@ -447,18 +447,18 @@ mod tests {
         }
         #[async_trait]
         impl UserRepository for UserRepo {
-            async fn create(&self, email: &str, is_email_verified: bool, provider: AuthProvider) -> Result<User, sqlx::Error>;
-            async fn get(&self, user_name: &str) -> Result<Option<User>, sqlx::Error>;
-            async fn update(&self, id: Uuid, name: &str) -> Result<User, sqlx::Error>;
-            async fn get_by_id(&self, id: Uuid) -> Result<Option<User>, sqlx::Error>;
-            async fn get_by_email(&self, email: &str) -> Result<Option<User>, sqlx::Error>;
-            async fn get_by_emails(&self, emails: &[String]) -> Result<Vec<User>, sqlx::Error>;
-            async fn verify_email(&self, id: Uuid) -> Result<(), sqlx::Error>;
-            async fn get_org_memberships(&self, user_id: Uuid) -> Result<Vec<(String, String)>, sqlx::Error>;
-            async fn get_settings(&self, id: Uuid) -> Result<Option<UserSettings>, sqlx::Error>;
-            async fn update_settings(&self, id: Uuid, settings: UserSettings) -> Result<Option<UserSettings>, sqlx::Error>;
-            async fn is_name_taken(&self, name: &str) -> Result<bool, sqlx::Error>;
-            async fn is_email_taken(&self, email: &str) -> Result<bool, sqlx::Error>;
+            async fn create(&self, email: &str, is_email_verified: bool, provider: AuthProvider) -> Result<User, crate::error::DatabaseError>;
+            async fn get(&self, user_name: &str) -> Result<Option<User>, crate::error::DatabaseError>;
+            async fn update(&self, id: Uuid, name: &str) -> Result<User, crate::error::DatabaseError>;
+            async fn get_by_id(&self, id: Uuid) -> Result<Option<User>, crate::error::DatabaseError>;
+            async fn get_by_email(&self, email: &str) -> Result<Option<User>, crate::error::DatabaseError>;
+            async fn get_by_emails(&self, emails: &[String]) -> Result<Vec<User>, crate::error::DatabaseError>;
+            async fn verify_email(&self, id: Uuid) -> Result<(), crate::error::DatabaseError>;
+            async fn get_org_memberships(&self, user_id: Uuid) -> Result<Vec<(String, String)>, crate::error::DatabaseError>;
+            async fn get_settings(&self, id: Uuid) -> Result<Option<UserSettings>, crate::error::DatabaseError>;
+            async fn update_settings(&self, id: Uuid, settings: UserSettings) -> Result<Option<UserSettings>, crate::error::DatabaseError>;
+            async fn is_name_taken(&self, name: &str) -> Result<bool, crate::error::DatabaseError>;
+            async fn is_email_taken(&self, email: &str) -> Result<bool, crate::error::DatabaseError>;
         }
     }
 
@@ -469,22 +469,22 @@ mod tests {
         }
         #[async_trait]
         impl ReviewRepository for ReviewRepo {
-            async fn get_review(&self, owner: &str, repo: &str, number: i32) -> Result<Option<Review>, sqlx::Error>;
-            async fn list_reviews(&self, owner: &str, repo: &str, viewer_id: Option<Uuid>, from: chrono::DateTime<chrono::Utc>, to: chrono::DateTime<chrono::Utc>) -> Result<Vec<Review>, sqlx::Error>;
-            async fn get_reviews_by_user(&self, user_name: &str, viewer_id: Option<Uuid>, status: Option<String>, owner: Option<String>, repo: Option<String>) -> Result<Vec<Review>, sqlx::Error>;
-            async fn create_review(&self, repository_id: Uuid, author_id: Uuid, target_branch: &str) -> Result<Review, sqlx::Error>;
-            async fn update_review(&self, review_id: Uuid, status: Option<ReviewStatus>, title: Option<String>, description: Option<String>) -> Result<(), sqlx::Error>;
-            async fn create_diff(&self, review_id: Uuid, position: i32, title: &str, description: &str) -> Result<Diff, sqlx::Error>;
-            async fn update_diff(&self, diff_id: Uuid, status: Option<DiffStatus>, title: Option<String>, description: Option<String>) -> Result<(), sqlx::Error>;
-            async fn create_revision(&self, diff_id: Uuid, number: i32, commit_hash: &str, parent_hash: &str) -> Result<Revision, sqlx::Error>;
-            async fn update_revision_sha(&self, revision_id: Uuid, commit_hash: &str, parent_hash: &str) -> Result<(), sqlx::Error>;
-            async fn add_reviewer(&self, review_id: Uuid, reviewer_id: Uuid) -> Result<Option<Reviewer>, sqlx::Error>;
-            async fn remove_reviewer(&self, review_id: Uuid, reviewer_id: Uuid) -> Result<bool, sqlx::Error>;
-            async fn create_verdict(&self, diff_id: Uuid, revision_id: Uuid, reviewer_id: Uuid, verdict: Verdict) -> Result<(), sqlx::Error>;
-            async fn create_comment(&self, review_id: Uuid, diff_id: Uuid, revision_id: Uuid, author_id: Uuid, body: &str, parent_id: Option<Uuid>, file_path: Option<String>, line_number_start: Option<i32>, line_number_end: Option<i32>, side: Option<CommentSide>) -> Result<(), sqlx::Error>;
-            async fn get_comment(&self, comment_id: Uuid) -> Result<Option<ReviewComment>, sqlx::Error>;
-            async fn update_comment(&self, comment_id: Uuid, body: &str) -> Result<ReviewComment, sqlx::Error>;
-            async fn resolve_comment(&self, comment_id: Uuid, resolved: bool) -> Result<(), sqlx::Error>;
+            async fn get_review(&self, owner: &str, repo: &str, number: i32) -> Result<Option<Review>, crate::error::DatabaseError>;
+            async fn list_reviews(&self, owner: &str, repo: &str, viewer_id: Option<Uuid>, from: chrono::DateTime<chrono::Utc>, to: chrono::DateTime<chrono::Utc>) -> Result<Vec<Review>, crate::error::DatabaseError>;
+            async fn get_reviews_by_user(&self, user_name: &str, viewer_id: Option<Uuid>, status: Option<String>, owner: Option<String>, repo: Option<String>) -> Result<Vec<Review>, crate::error::DatabaseError>;
+            async fn create_review(&self, repository_id: Uuid, author_id: Uuid, target_branch: &str) -> Result<Review, crate::error::DatabaseError>;
+            async fn update_review(&self, review_id: Uuid, status: Option<ReviewStatus>, title: Option<String>, description: Option<String>) -> Result<(), crate::error::DatabaseError>;
+            async fn create_diff(&self, review_id: Uuid, position: i32, title: &str, description: &str) -> Result<Diff, crate::error::DatabaseError>;
+            async fn update_diff(&self, diff_id: Uuid, status: Option<DiffStatus>, title: Option<String>, description: Option<String>) -> Result<(), crate::error::DatabaseError>;
+            async fn create_revision(&self, diff_id: Uuid, number: i32, commit_hash: &str, parent_hash: &str) -> Result<Revision, crate::error::DatabaseError>;
+            async fn update_revision_sha(&self, revision_id: Uuid, commit_hash: &str, parent_hash: &str) -> Result<(), crate::error::DatabaseError>;
+            async fn add_reviewer(&self, review_id: Uuid, reviewer_id: Uuid) -> Result<Option<Reviewer>, crate::error::DatabaseError>;
+            async fn remove_reviewer(&self, review_id: Uuid, reviewer_id: Uuid) -> Result<bool, crate::error::DatabaseError>;
+            async fn create_verdict(&self, diff_id: Uuid, revision_id: Uuid, reviewer_id: Uuid, verdict: Verdict) -> Result<(), crate::error::DatabaseError>;
+            async fn create_comment(&self, review_id: Uuid, diff_id: Uuid, revision_id: Uuid, author_id: Uuid, body: &str, parent_id: Option<Uuid>, file_path: Option<String>, line_number_start: Option<i32>, line_number_end: Option<i32>, side: Option<CommentSide>) -> Result<(), crate::error::DatabaseError>;
+            async fn get_comment(&self, comment_id: Uuid) -> Result<Option<ReviewComment>, crate::error::DatabaseError>;
+            async fn update_comment(&self, comment_id: Uuid, body: &str) -> Result<ReviewComment, crate::error::DatabaseError>;
+            async fn resolve_comment(&self, comment_id: Uuid, resolved: bool) -> Result<(), crate::error::DatabaseError>;
         }
     }
 
@@ -1036,7 +1036,7 @@ mod tests {
         let mut repo_repo = MockRepositoryRepo::new();
         repo_repo
             .expect_get()
-            .returning(|_, _| Err(sqlx::Error::RowNotFound));
+            .returning(|_, _| Err(crate::error::DatabaseError::RowNotFound));
 
         let service = create_service(MockOrganizationRepo::new(), repo_repo);
         let request = create_repo_auth_request(None, RepositoryPermission::Read);
@@ -1064,7 +1064,7 @@ mod tests {
         let mut org_repo = MockOrganizationRepo::new();
         org_repo
             .expect_is_member()
-            .returning(|_, _| Err(sqlx::Error::RowNotFound));
+            .returning(|_, _| Err(crate::error::DatabaseError::RowNotFound));
 
         let service = create_service(org_repo, repo_repo);
         let request = create_repo_auth_request(Some(user_id), RepositoryPermission::Read);
@@ -1092,7 +1092,7 @@ mod tests {
         let mut org_repo = MockOrganizationRepo::new();
         org_repo
             .expect_get_member_role()
-            .returning(|_, _| Err(sqlx::Error::RowNotFound));
+            .returning(|_, _| Err(crate::error::DatabaseError::RowNotFound));
 
         let service = create_service(org_repo, repo_repo);
         let request = create_repo_auth_request(Some(user_id), RepositoryPermission::Admin);

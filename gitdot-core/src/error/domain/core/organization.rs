@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-use crate::error::{ConflictError, InputError, NotFoundError};
+use crate::error::{ConflictError, DatabaseError, InputError, NotFoundError};
 
 #[derive(Debug, Error)]
 pub enum OrganizationError {
@@ -13,6 +13,6 @@ pub enum OrganizationError {
     #[error(transparent)]
     Conflict(#[from] ConflictError),
 
-    #[error("Database error: {0}")]
-    DatabaseError(#[from] sqlx::Error),
+    #[error(transparent)]
+    DatabaseError(#[from] DatabaseError),
 }

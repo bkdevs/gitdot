@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-use crate::error::{InputError, NotFoundError};
+use crate::error::{DatabaseError, InputError, NotFoundError};
 
 #[derive(Debug, Error)]
 pub enum TaskError {
@@ -13,6 +13,6 @@ pub enum TaskError {
     #[error("No matching build config for trigger")]
     NoBuildConfig,
 
-    #[error("Database error: {0}")]
-    DatabaseError(#[from] sqlx::Error),
+    #[error(transparent)]
+    DatabaseError(#[from] DatabaseError),
 }

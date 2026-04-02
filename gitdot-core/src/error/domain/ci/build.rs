@@ -1,6 +1,7 @@
 use thiserror::Error;
+use tokio::task::JoinError;
 
-use crate::error::{GitError, InputError, NotFoundError};
+use crate::error::{DatabaseError, GitError, InputError, NotFoundError};
 
 #[derive(Debug, Error)]
 pub enum BuildError {
@@ -17,10 +18,10 @@ pub enum BuildError {
     GitError(GitError),
 
     #[error("Task join error: {0}")]
-    JoinError(#[from] tokio::task::JoinError),
+    JoinError(#[from] JoinError),
 
-    #[error("Database error: {0}")]
-    DatabaseError(#[from] sqlx::Error),
+    #[error(transparent)]
+    DatabaseError(#[from] DatabaseError),
 
     #[error("S2 error: {0}")]
     S2Error(String),

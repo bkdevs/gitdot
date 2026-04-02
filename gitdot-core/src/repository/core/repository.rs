@@ -1,8 +1,11 @@
 use async_trait::async_trait;
-use sqlx::{Error, PgPool, Row};
+use sqlx::{PgPool, Row};
 use uuid::Uuid;
 
-use crate::model::{Repository, RepositoryOwnerType, RepositorySettings, RepositoryVisibility};
+use crate::{
+    error::DatabaseError,
+    model::{Repository, RepositoryOwnerType, RepositorySettings, RepositoryVisibility},
+};
 
 #[async_trait]
 pub trait RepositoryRepository: Send + Sync + Clone + 'static {
@@ -13,28 +16,28 @@ pub trait RepositoryRepository: Send + Sync + Clone + 'static {
         owner_name: &str,
         owner_type: &RepositoryOwnerType,
         visibility: &RepositoryVisibility,
-    ) -> Result<Repository, Error>;
+    ) -> Result<Repository, DatabaseError>;
 
-    async fn get(&self, owner: &str, repo: &str) -> Result<Option<Repository>, Error>;
+    async fn get(&self, owner: &str, repo: &str) -> Result<Option<Repository>, DatabaseError>;
 
-    async fn get_by_id(&self, id: Uuid) -> Result<Option<Repository>, Error>;
+    async fn get_by_id(&self, id: Uuid) -> Result<Option<Repository>, DatabaseError>;
 
-    async fn list_by_owner(&self, owner_name: &str) -> Result<Vec<Repository>, Error>;
+    async fn list_by_owner(&self, owner_name: &str) -> Result<Vec<Repository>, DatabaseError>;
 
-    async fn delete(&self, id: Uuid) -> Result<(), Error>;
+    async fn delete(&self, id: Uuid) -> Result<(), DatabaseError>;
 
     async fn get_settings(
         &self,
         owner: &str,
         repo: &str,
-    ) -> Result<Option<RepositorySettings>, Error>;
+    ) -> Result<Option<RepositorySettings>, DatabaseError>;
 
     async fn update_settings(
         &self,
         owner: &str,
         repo: &str,
         settings: RepositorySettings,
-    ) -> Result<Option<RepositorySettings>, Error>;
+    ) -> Result<Option<RepositorySettings>, DatabaseError>;
 }
 
 #[derive(Debug, Clone)]
@@ -58,7 +61,7 @@ impl RepositoryRepository for RepositoryRepositoryImpl {
         owner_name: &str,
         owner_type: &RepositoryOwnerType,
         visibility: &RepositoryVisibility,
-    ) -> Result<Repository, Error> {
+    ) -> Result<Repository, DatabaseError> {
         let repository = sqlx::query_as::<_, Repository>(
             r#"
             INSERT INTO core.repositories (name, owner_id, owner_name, owner_type, visibility)
@@ -77,7 +80,7 @@ impl RepositoryRepository for RepositoryRepositoryImpl {
         Ok(repository)
     }
 
-    async fn get(&self, owner: &str, repo: &str) -> Result<Option<Repository>, Error> {
+    async fn get(&self, owner: &str, repo: &str) -> Result<Option<Repository>, DatabaseError> {
         let repository = sqlx::query_as::<_, Repository>(
             r#"
             SELECT id, name, owner_id, owner_name, owner_type, visibility, created_at
@@ -93,7 +96,7 @@ impl RepositoryRepository for RepositoryRepositoryImpl {
         Ok(repository)
     }
 
-    async fn get_by_id(&self, id: Uuid) -> Result<Option<Repository>, Error> {
+    async fn get_by_id(&self, id: Uuid) -> Result<Option<Repository>, DatabaseError> {
         let repository = sqlx::query_as::<_, Repository>(
             r#"
             SELECT id, name, owner_id, owner_name, owner_type, visibility, created_at
@@ -108,7 +111,7 @@ impl RepositoryRepository for RepositoryRepositoryImpl {
         Ok(repository)
     }
 
-    async fn list_by_owner(&self, owner_name: &str) -> Result<Vec<Repository>, Error> {
+    async fn list_by_owner(&self, owner_name: &str) -> Result<Vec<Repository>, DatabaseError> {
         let repositories = sqlx::query_as::<_, Repository>(
             r#"
             SELECT id, name, owner_id, owner_name, owner_type, visibility, created_at
@@ -124,7 +127,7 @@ impl RepositoryRepository for RepositoryRepositoryImpl {
         Ok(repositories)
     }
 
-    async fn delete(&self, id: Uuid) -> Result<(), Error> {
+    async fn delete(&self, id: Uuid) -> Result<(), DatabaseError> {
         sqlx::query("DELETE FROM core.repositories WHERE id = $1")
             .bind(id)
             .execute(&self.pool)
@@ -137,7 +140,7 @@ impl RepositoryRepository for RepositoryRepositoryImpl {
         &self,
         owner: &str,
         repo: &str,
-    ) -> Result<Option<RepositorySettings>, Error> {
+    ) -> Result<Option<RepositorySettings>, DatabaseError> {
         let row = sqlx::query(
             "SELECT settings FROM core.repositories WHERE owner_name = $1 AND name = $2",
         )
@@ -161,7 +164,7 @@ impl RepositoryRepository for RepositoryRepositoryImpl {
         owner: &str,
         repo: &str,
         settings: RepositorySettings,
-    ) -> Result<Option<RepositorySettings>, Error> {
+    ) -> Result<Option<RepositorySettings>, DatabaseError> {
         let settings = serde_json::to_value(&settings).unwrap();
         let row = sqlx::query(
             "UPDATE core.repositories SET settings = COALESCE(settings, '{}'::jsonb) || $3::jsonb WHERE owner_name = $1 AND name = $2 RETURNING settings",

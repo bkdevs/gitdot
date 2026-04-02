@@ -1,9 +1,12 @@
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
-use sqlx::{Error, PgPool};
+use sqlx::PgPool;
 use uuid::Uuid;
 
-use crate::model::{Answer, Comment, Question, VoteResult, VoteTarget};
+use crate::{
+    error::DatabaseError,
+    model::{Answer, Comment, Question, VoteResult, VoteTarget},
+};
 
 const QUESTION_DETAILS_QUERY: &str = r#"
 SELECT
@@ -194,7 +197,7 @@ pub trait QuestionRepository: Send + Sync + Clone + 'static {
         repository_id: Uuid,
         title: &str,
         body: &str,
-    ) -> Result<Question, Error>;
+    ) -> Result<Question, DatabaseError>;
 
     async fn update_question(
         &self,
@@ -202,21 +205,21 @@ pub trait QuestionRepository: Send + Sync + Clone + 'static {
         number: i32,
         title: &str,
         body: &str,
-    ) -> Result<Option<Question>, Error>;
+    ) -> Result<Option<Question>, DatabaseError>;
 
     async fn get_question(
         &self,
         repository_id: Uuid,
         number: i32,
         user_id: Option<Uuid>,
-    ) -> Result<Option<Question>, Error>;
+    ) -> Result<Option<Question>, DatabaseError>;
 
     async fn get_question_id(
         &self,
         owner: &str,
         repo: &str,
         question_number: i32,
-    ) -> Result<Option<Uuid>, Error>;
+    ) -> Result<Option<Uuid>, DatabaseError>;
 
     async fn list_questions(
         &self,
@@ -224,7 +227,7 @@ pub trait QuestionRepository: Send + Sync + Clone + 'static {
         user_id: Option<Uuid>,
         from: DateTime<Utc>,
         to: DateTime<Utc>,
-    ) -> Result<Vec<Question>, Error>;
+    ) -> Result<Vec<Question>, DatabaseError>;
 
     async fn create_answer(
         &self,
@@ -233,16 +236,16 @@ pub trait QuestionRepository: Send + Sync + Clone + 'static {
         question_number: i32,
         author_id: Uuid,
         body: &str,
-    ) -> Result<Option<Answer>, Error>;
+    ) -> Result<Option<Answer>, DatabaseError>;
 
-    async fn update_answer(&self, id: Uuid, body: &str) -> Result<Option<Answer>, Error>;
+    async fn update_answer(&self, id: Uuid, body: &str) -> Result<Option<Answer>, DatabaseError>;
 
     async fn create_comment(
         &self,
         parent_id: Uuid,
         author_id: Uuid,
         body: &str,
-    ) -> Result<Comment, Error>;
+    ) -> Result<Comment, DatabaseError>;
 
     async fn create_question_comment(
         &self,
@@ -251,20 +254,20 @@ pub trait QuestionRepository: Send + Sync + Clone + 'static {
         question_number: i32,
         author_id: Uuid,
         body: &str,
-    ) -> Result<Option<Comment>, Error>;
+    ) -> Result<Option<Comment>, DatabaseError>;
 
-    async fn update_comment(&self, id: Uuid, body: &str) -> Result<Option<Comment>, Error>;
+    async fn update_comment(&self, id: Uuid, body: &str) -> Result<Option<Comment>, DatabaseError>;
 
     async fn get_question_author_id(
         &self,
         owner: &str,
         repo: &str,
         question_number: i32,
-    ) -> Result<Option<Uuid>, Error>;
+    ) -> Result<Option<Uuid>, DatabaseError>;
 
-    async fn get_answer_author_id(&self, id: Uuid) -> Result<Option<Uuid>, Error>;
+    async fn get_answer_author_id(&self, id: Uuid) -> Result<Option<Uuid>, DatabaseError>;
 
-    async fn get_comment_author_id(&self, id: Uuid) -> Result<Option<Uuid>, Error>;
+    async fn get_comment_author_id(&self, id: Uuid) -> Result<Option<Uuid>, DatabaseError>;
 
     /// Vote on a target (question, answer, or comment)
     /// value: 1 (upvote), -1 (downvote), 0 (remove vote)
@@ -274,7 +277,7 @@ pub trait QuestionRepository: Send + Sync + Clone + 'static {
         target_id: Uuid,
         target_type: VoteTarget,
         value: i16,
-    ) -> Result<VoteResult, Error>;
+    ) -> Result<VoteResult, DatabaseError>;
 }
 
 #[derive(Debug, Clone)]
@@ -297,7 +300,7 @@ impl QuestionRepository for QuestionRepositoryImpl {
         repository_id: Uuid,
         title: &str,
         body: &str,
-    ) -> Result<Question, Error> {
+    ) -> Result<Question, DatabaseError> {
         let question = sqlx::query_as::<_, Question>(
             r#"
             INSERT INTO core.questions (number, author_id, repository_id, title, body)
@@ -325,7 +328,7 @@ impl QuestionRepository for QuestionRepositoryImpl {
         number: i32,
         title: &str,
         body: &str,
-    ) -> Result<Option<Question>, Error> {
+    ) -> Result<Option<Question>, DatabaseError> {
         let question = sqlx::query_as::<_, Question>(
             r#"
             UPDATE core.questions
@@ -350,7 +353,7 @@ impl QuestionRepository for QuestionRepositoryImpl {
         repository_id: Uuid,
         number: i32,
         user_id: Option<Uuid>,
-    ) -> Result<Option<Question>, Error> {
+    ) -> Result<Option<Question>, DatabaseError> {
         let query = format!(
             "{} WHERE q.repository_id = $1 AND q.number = $2",
             QUESTION_DETAILS_QUERY
@@ -371,7 +374,7 @@ impl QuestionRepository for QuestionRepositoryImpl {
         owner: &str,
         repo: &str,
         question_number: i32,
-    ) -> Result<Option<Uuid>, Error> {
+    ) -> Result<Option<Uuid>, DatabaseError> {
         let id = sqlx::query_scalar::<_, Uuid>(
             r#"
             SELECT q.id
@@ -395,7 +398,7 @@ impl QuestionRepository for QuestionRepositoryImpl {
         user_id: Option<Uuid>,
         from: DateTime<Utc>,
         to: DateTime<Utc>,
-    ) -> Result<Vec<Question>, Error> {
+    ) -> Result<Vec<Question>, DatabaseError> {
         let query = format!(
             "{} WHERE q.repository_id = $1 AND q.updated_at >= $2 AND q.updated_at <= $3 ORDER BY q.updated_at ASC",
             QUESTION_LIST_QUERY
@@ -419,7 +422,7 @@ impl QuestionRepository for QuestionRepositoryImpl {
         question_number: i32,
         author_id: Uuid,
         body: &str,
-    ) -> Result<Option<Answer>, Error> {
+    ) -> Result<Option<Answer>, DatabaseError> {
         let answer = sqlx::query_as::<_, Answer>(
             r#"
             INSERT INTO core.answers (question_id, author_id, body)
@@ -442,7 +445,7 @@ impl QuestionRepository for QuestionRepositoryImpl {
         Ok(answer)
     }
 
-    async fn update_answer(&self, id: Uuid, body: &str) -> Result<Option<Answer>, Error> {
+    async fn update_answer(&self, id: Uuid, body: &str) -> Result<Option<Answer>, DatabaseError> {
         let answer = sqlx::query_as::<_, Answer>(
             r#"
             UPDATE core.answers
@@ -465,7 +468,7 @@ impl QuestionRepository for QuestionRepositoryImpl {
         parent_id: Uuid,
         author_id: Uuid,
         body: &str,
-    ) -> Result<Comment, Error> {
+    ) -> Result<Comment, DatabaseError> {
         let comment = sqlx::query_as::<_, Comment>(
             r#"
             INSERT INTO core.comments (parent_id, author_id, body)
@@ -490,7 +493,7 @@ impl QuestionRepository for QuestionRepositoryImpl {
         question_number: i32,
         author_id: Uuid,
         body: &str,
-    ) -> Result<Option<Comment>, Error> {
+    ) -> Result<Option<Comment>, DatabaseError> {
         let comment = sqlx::query_as::<_, Comment>(
             r#"
             INSERT INTO core.comments (parent_id, author_id, body)
@@ -513,7 +516,7 @@ impl QuestionRepository for QuestionRepositoryImpl {
         Ok(comment)
     }
 
-    async fn update_comment(&self, id: Uuid, body: &str) -> Result<Option<Comment>, Error> {
+    async fn update_comment(&self, id: Uuid, body: &str) -> Result<Option<Comment>, DatabaseError> {
         let comment = sqlx::query_as::<_, Comment>(
             r#"
             UPDATE core.comments
@@ -536,7 +539,7 @@ impl QuestionRepository for QuestionRepositoryImpl {
         owner: &str,
         repo: &str,
         question_number: i32,
-    ) -> Result<Option<Uuid>, Error> {
+    ) -> Result<Option<Uuid>, DatabaseError> {
         let author_id = sqlx::query_scalar::<_, Uuid>(
             r#"
             SELECT q.author_id
@@ -554,18 +557,24 @@ impl QuestionRepository for QuestionRepositoryImpl {
         Ok(author_id)
     }
 
-    async fn get_answer_author_id(&self, id: Uuid) -> Result<Option<Uuid>, Error> {
-        sqlx::query_scalar::<_, Uuid>("SELECT author_id FROM core.answers WHERE id = $1")
-            .bind(id)
-            .fetch_optional(&self.pool)
-            .await
+    async fn get_answer_author_id(&self, id: Uuid) -> Result<Option<Uuid>, DatabaseError> {
+        let author_id =
+            sqlx::query_scalar::<_, Uuid>("SELECT author_id FROM core.answers WHERE id = $1")
+                .bind(id)
+                .fetch_optional(&self.pool)
+                .await?;
+
+        Ok(author_id)
     }
 
-    async fn get_comment_author_id(&self, id: Uuid) -> Result<Option<Uuid>, Error> {
-        sqlx::query_scalar::<_, Uuid>("SELECT author_id FROM core.comments WHERE id = $1")
-            .bind(id)
-            .fetch_optional(&self.pool)
-            .await
+    async fn get_comment_author_id(&self, id: Uuid) -> Result<Option<Uuid>, DatabaseError> {
+        let author_id =
+            sqlx::query_scalar::<_, Uuid>("SELECT author_id FROM core.comments WHERE id = $1")
+                .bind(id)
+                .fetch_optional(&self.pool)
+                .await?;
+
+        Ok(author_id)
     }
 
     async fn vote(
@@ -574,7 +583,7 @@ impl QuestionRepository for QuestionRepositoryImpl {
         target_id: Uuid,
         target_type: VoteTarget,
         value: i16,
-    ) -> Result<VoteResult, Error> {
+    ) -> Result<VoteResult, DatabaseError> {
         let mut tx = self.pool.begin().await?;
 
         let existing_vote: Option<i16> = sqlx::query_scalar(
@@ -622,7 +631,7 @@ impl QuestionRepository for QuestionRepositoryImpl {
             .bind(vote_delta)
             .fetch_optional(&mut *tx)
             .await?
-            .ok_or(Error::RowNotFound)?,
+            .ok_or(DatabaseError::RowNotFound)?,
 
             VoteTarget::Answer => sqlx::query_scalar::<_, i32>(
                 "UPDATE core.answers SET upvote = upvote + $2 WHERE id = $1 RETURNING upvote",
@@ -631,7 +640,7 @@ impl QuestionRepository for QuestionRepositoryImpl {
             .bind(vote_delta)
             .fetch_optional(&mut *tx)
             .await?
-            .ok_or(Error::RowNotFound)?,
+            .ok_or(DatabaseError::RowNotFound)?,
 
             VoteTarget::Comment => sqlx::query_scalar::<_, i32>(
                 "UPDATE core.comments SET upvote = upvote + $2 WHERE id = $1 RETURNING upvote",
@@ -640,7 +649,7 @@ impl QuestionRepository for QuestionRepositoryImpl {
             .bind(vote_delta)
             .fetch_optional(&mut *tx)
             .await?
-            .ok_or(Error::RowNotFound)?,
+            .ok_or(DatabaseError::RowNotFound)?,
         };
 
         tx.commit().await?;

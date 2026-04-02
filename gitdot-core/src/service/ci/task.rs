@@ -6,7 +6,7 @@ use uuid::Uuid;
 
 use crate::{
     dto::{TaskResponse, UpdateTaskRequest},
-    error::{NotFoundError, TaskError},
+    error::{NotFoundError, NotFoundExt, TaskError},
     model::TaskStatus,
     repository::{
         RepositoryRepository, RepositoryRepositoryImpl, RunnerRepository, RunnerRepositoryImpl,
@@ -58,11 +58,7 @@ where
     S: RepositoryRepository,
 {
     async fn get_task(&self, id: Uuid) -> Result<Option<TaskResponse>, TaskError> {
-        let task = self
-            .task_repo
-            .get_by_id(id)
-            .await
-            .map_err(TaskError::DatabaseError)?;
+        let task = self.task_repo.get_by_id(id).await?;
 
         Ok(task.map(Into::into))
     }
@@ -72,39 +68,28 @@ where
             .task_repo
             .update_task(req.id, req.status)
             .await
-            .map_err(|e| match e {
-                sqlx::Error::RowNotFound => TaskError::NotFound(NotFoundError::new("task", req.id)),
-                e => TaskError::DatabaseError(e),
-            })?;
+            .or_not_found::<TaskError>("task", req.id)?;
 
         if task.status == TaskStatus::Success {
-            self.task_repo
-                .unblock_tasks(task.build_id)
-                .await
-                .map_err(TaskError::DatabaseError)?;
+            self.task_repo.unblock_tasks(task.build_id).await?;
         }
 
         Ok(task.into())
     }
 
     async fn poll_task(&self, runner_id: Uuid) -> Result<Option<TaskResponse>, TaskError> {
-        self.runner_repo
-            .touch(runner_id)
-            .await
-            .map_err(TaskError::DatabaseError)?;
+        self.runner_repo.touch(runner_id).await?;
 
         let runner = self
             .runner_repo
             .get_by_id(runner_id)
-            .await
-            .map_err(TaskError::DatabaseError)?
+            .await?
             .ok_or_else(|| NotFoundError::new("runner", runner_id))?;
 
         let repos = self
             .repository_repo
             .list_by_owner(&runner.owner_name)
-            .await
-            .map_err(TaskError::DatabaseError)?;
+            .await?;
 
         let repository_ids: Vec<Uuid> = repos.iter().map(|r| r.id).collect();
 
@@ -114,8 +99,7 @@ where
             let task = self
                 .task_repo
                 .claim_task(runner_id, &repository_ids)
-                .await
-                .map_err(TaskError::DatabaseError)?;
+                .await?;
 
             if let Some(task) = task {
                 return Ok(Some(task.into()));

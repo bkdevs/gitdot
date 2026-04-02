@@ -1,9 +1,12 @@
 use async_trait::async_trait;
 use rand::RngExt as _;
-use sqlx::{Error, PgPool, Row as _};
+use sqlx::{PgPool, Row as _};
 use uuid::Uuid;
 
-use crate::model::{AuthProvider, User, UserSettings};
+use crate::{
+    error::DatabaseError,
+    model::{AuthProvider, User, UserSettings},
+};
 
 #[async_trait]
 pub trait UserRepository: Send + Sync + Clone + 'static {
@@ -12,33 +15,36 @@ pub trait UserRepository: Send + Sync + Clone + 'static {
         email: &str,
         is_email_verified: bool,
         provider: AuthProvider,
-    ) -> Result<User, Error>;
+    ) -> Result<User, DatabaseError>;
 
-    async fn get(&self, user_name: &str) -> Result<Option<User>, Error>;
+    async fn get(&self, user_name: &str) -> Result<Option<User>, DatabaseError>;
 
-    async fn update(&self, id: Uuid, name: &str) -> Result<User, Error>;
+    async fn update(&self, id: Uuid, name: &str) -> Result<User, DatabaseError>;
 
-    async fn get_by_id(&self, id: Uuid) -> Result<Option<User>, Error>;
+    async fn get_by_id(&self, id: Uuid) -> Result<Option<User>, DatabaseError>;
 
-    async fn get_by_email(&self, email: &str) -> Result<Option<User>, Error>;
+    async fn get_by_email(&self, email: &str) -> Result<Option<User>, DatabaseError>;
 
-    async fn get_by_emails(&self, emails: &[String]) -> Result<Vec<User>, Error>;
+    async fn get_by_emails(&self, emails: &[String]) -> Result<Vec<User>, DatabaseError>;
 
-    async fn get_settings(&self, id: Uuid) -> Result<Option<UserSettings>, Error>;
+    async fn get_settings(&self, id: Uuid) -> Result<Option<UserSettings>, DatabaseError>;
 
     async fn update_settings(
         &self,
         id: Uuid,
         settings: UserSettings,
-    ) -> Result<Option<UserSettings>, Error>;
+    ) -> Result<Option<UserSettings>, DatabaseError>;
 
-    async fn verify_email(&self, id: Uuid) -> Result<(), Error>;
+    async fn verify_email(&self, id: Uuid) -> Result<(), DatabaseError>;
 
-    async fn get_org_memberships(&self, user_id: Uuid) -> Result<Vec<(String, String)>, Error>;
+    async fn get_org_memberships(
+        &self,
+        user_id: Uuid,
+    ) -> Result<Vec<(String, String)>, DatabaseError>;
 
-    async fn is_name_taken(&self, name: &str) -> Result<bool, Error>;
+    async fn is_name_taken(&self, name: &str) -> Result<bool, DatabaseError>;
 
-    async fn is_email_taken(&self, email: &str) -> Result<bool, Error>;
+    async fn is_email_taken(&self, email: &str) -> Result<bool, DatabaseError>;
 }
 
 #[derive(Debug, Clone)]
@@ -60,7 +66,7 @@ impl UserRepository for UserRepositoryImpl {
         email: &str,
         is_email_verified: bool,
         provider: AuthProvider,
-    ) -> Result<User, Error> {
+    ) -> Result<User, DatabaseError> {
         let suffix: String = {
             let mut rng = rand::rng();
             let bytes: [u8; 4] = rng.random();
@@ -84,7 +90,7 @@ impl UserRepository for UserRepositoryImpl {
         Ok(user)
     }
 
-    async fn get(&self, user_name: &str) -> Result<Option<User>, Error> {
+    async fn get(&self, user_name: &str) -> Result<Option<User>, DatabaseError> {
         let user = sqlx::query_as::<_, User>(
             r#"
             SELECT id, email, name, is_email_verified, provider, created_at, settings
@@ -99,7 +105,7 @@ impl UserRepository for UserRepositoryImpl {
         Ok(user)
     }
 
-    async fn update(&self, id: Uuid, name: &str) -> Result<User, Error> {
+    async fn update(&self, id: Uuid, name: &str) -> Result<User, DatabaseError> {
         let user = sqlx::query_as::<_, User>(
             r#"
             UPDATE core.users SET name = $1
@@ -115,7 +121,7 @@ impl UserRepository for UserRepositoryImpl {
         Ok(user)
     }
 
-    async fn get_by_id(&self, id: Uuid) -> Result<Option<User>, Error> {
+    async fn get_by_id(&self, id: Uuid) -> Result<Option<User>, DatabaseError> {
         let user = sqlx::query_as::<_, User>(
             r#"
             SELECT id, email, name, is_email_verified, provider, created_at, settings
@@ -130,7 +136,7 @@ impl UserRepository for UserRepositoryImpl {
         Ok(user)
     }
 
-    async fn get_by_email(&self, email: &str) -> Result<Option<User>, Error> {
+    async fn get_by_email(&self, email: &str) -> Result<Option<User>, DatabaseError> {
         let user = sqlx::query_as::<_, User>(
             r#"
             SELECT id, email, name, is_email_verified, provider, created_at, settings
@@ -145,7 +151,7 @@ impl UserRepository for UserRepositoryImpl {
         Ok(user)
     }
 
-    async fn get_by_emails(&self, emails: &[String]) -> Result<Vec<User>, Error> {
+    async fn get_by_emails(&self, emails: &[String]) -> Result<Vec<User>, DatabaseError> {
         if emails.is_empty() {
             return Ok(Vec::new());
         }
@@ -164,7 +170,7 @@ impl UserRepository for UserRepositoryImpl {
         Ok(users)
     }
 
-    async fn get_settings(&self, id: Uuid) -> Result<Option<UserSettings>, Error> {
+    async fn get_settings(&self, id: Uuid) -> Result<Option<UserSettings>, DatabaseError> {
         let user = sqlx::query_as::<_, User>(
             r#"
             SELECT id, email, name, is_email_verified, provider, created_at, settings
@@ -183,7 +189,7 @@ impl UserRepository for UserRepositoryImpl {
         &self,
         id: Uuid,
         settings: UserSettings,
-    ) -> Result<Option<UserSettings>, Error> {
+    ) -> Result<Option<UserSettings>, DatabaseError> {
         let settings = serde_json::to_value(&settings).unwrap();
         let row = sqlx::query(
             r#"
@@ -205,7 +211,7 @@ impl UserRepository for UserRepositoryImpl {
         ))
     }
 
-    async fn verify_email(&self, id: Uuid) -> Result<(), Error> {
+    async fn verify_email(&self, id: Uuid) -> Result<(), DatabaseError> {
         sqlx::query(
             r#"
             UPDATE core.users SET is_email_verified = true WHERE id = $1
@@ -218,7 +224,10 @@ impl UserRepository for UserRepositoryImpl {
         Ok(())
     }
 
-    async fn get_org_memberships(&self, user_id: Uuid) -> Result<Vec<(String, String)>, Error> {
+    async fn get_org_memberships(
+        &self,
+        user_id: Uuid,
+    ) -> Result<Vec<(String, String)>, DatabaseError> {
         let rows = sqlx::query_as::<_, (String, String)>(
             r#"
             SELECT o.name, om.role::text
@@ -234,7 +243,7 @@ impl UserRepository for UserRepositoryImpl {
         Ok(rows)
     }
 
-    async fn is_name_taken(&self, name: &str) -> Result<bool, Error> {
+    async fn is_name_taken(&self, name: &str) -> Result<bool, DatabaseError> {
         let exists = sqlx::query_scalar::<_, bool>(
             r#"
             SELECT EXISTS(
@@ -251,7 +260,7 @@ impl UserRepository for UserRepositoryImpl {
         Ok(exists)
     }
 
-    async fn is_email_taken(&self, email: &str) -> Result<bool, Error> {
+    async fn is_email_taken(&self, email: &str) -> Result<bool, DatabaseError> {
         let exists = sqlx::query_scalar::<_, bool>(
             r#"
             SELECT EXISTS(SELECT 1 FROM core.users WHERE email = $1)

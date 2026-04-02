@@ -96,14 +96,9 @@ where
         let owner = request.repo_owner.as_ref();
         let repo = request.repo_name.as_ref();
 
-        let repository = self
-            .repo_repo
-            .get(owner, repo)
-            .await
-            .map_err(BuildError::DatabaseError)?
-            .ok_or_else(|| {
-                BuildError::NotFound(NotFoundError::new("repository", format!("{owner}/{repo}")))
-            })?;
+        let repository = self.repo_repo.get(owner, repo).await?.ok_or_else(|| {
+            BuildError::NotFound(NotFoundError::new("repository", format!("{owner}/{repo}")))
+        })?;
         let commit = self
             .git_client
             .get_repo_commit(owner, repo, &request.commit_sha)
@@ -230,20 +225,14 @@ where
         let owner = request.repo_owner.as_ref();
         let repo = request.repo_name.as_ref();
 
-        let repository = self
-            .repo_repo
-            .get(owner, repo)
-            .await
-            .map_err(BuildError::DatabaseError)?
-            .ok_or_else(|| {
-                BuildError::NotFound(NotFoundError::new("repository", format!("{owner}/{repo}")))
-            })?;
+        let repository = self.repo_repo.get(owner, repo).await?.ok_or_else(|| {
+            BuildError::NotFound(NotFoundError::new("repository", format!("{owner}/{repo}")))
+        })?;
 
         let builds = self
             .build_repo
             .list_by_repo(repository.id, request.from, request.to)
-            .await
-            .map_err(BuildError::DatabaseError)?;
+            .await?;
 
         Ok(BuildsResponse {
             builds: builds.into_iter().map(Into::into).collect(),
@@ -256,20 +245,14 @@ where
         repo: &str,
         number: i32,
     ) -> Result<BuildResponse, BuildError> {
-        let repository = self
-            .repo_repo
-            .get(owner, repo)
-            .await
-            .map_err(BuildError::DatabaseError)?
-            .ok_or_else(|| {
-                BuildError::NotFound(NotFoundError::new("repository", format!("{owner}/{repo}")))
-            })?;
+        let repository = self.repo_repo.get(owner, repo).await?.ok_or_else(|| {
+            BuildError::NotFound(NotFoundError::new("repository", format!("{owner}/{repo}")))
+        })?;
 
         let build = self
             .build_repo
             .get(repository.id, number)
-            .await
-            .map_err(BuildError::DatabaseError)?
+            .await?
             .ok_or_else(|| {
                 BuildError::NotFound(NotFoundError::new(
                     "build",
@@ -277,11 +260,7 @@ where
                 ))
             })?;
 
-        let tasks = self
-            .task_repo
-            .list_by_build_id(build.id)
-            .await
-            .map_err(BuildError::DatabaseError)?;
+        let tasks = self.task_repo.list_by_build_id(build.id).await?;
 
         let total_tasks = tasks.len() as i32;
         let completed_tasks = tasks
@@ -325,20 +304,14 @@ where
         repo: &str,
         number: i32,
     ) -> Result<Vec<TaskResponse>, BuildError> {
-        let repository = self
-            .repo_repo
-            .get(owner, repo)
-            .await
-            .map_err(BuildError::DatabaseError)?
-            .ok_or_else(|| {
-                BuildError::NotFound(NotFoundError::new("repository", format!("{owner}/{repo}")))
-            })?;
+        let repository = self.repo_repo.get(owner, repo).await?.ok_or_else(|| {
+            BuildError::NotFound(NotFoundError::new("repository", format!("{owner}/{repo}")))
+        })?;
 
         let build = self
             .build_repo
             .get(repository.id, number)
-            .await
-            .map_err(BuildError::DatabaseError)?
+            .await?
             .ok_or_else(|| {
                 BuildError::NotFound(NotFoundError::new(
                     "build",
@@ -346,11 +319,7 @@ where
                 ))
             })?;
 
-        let tasks = self
-            .task_repo
-            .list_by_build_id(build.id)
-            .await
-            .map_err(BuildError::DatabaseError)?;
+        let tasks = self.task_repo.list_by_build_id(build.id).await?;
 
         Ok(tasks.into_iter().map(Into::into).collect())
     }

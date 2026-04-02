@@ -1,8 +1,11 @@
 use async_trait::async_trait;
-use sqlx::{Error, PgPool};
+use sqlx::PgPool;
 use uuid::Uuid;
 
-use crate::model::{AccessToken, TokenType};
+use crate::{
+    error::DatabaseError,
+    model::{AccessToken, TokenType},
+};
 
 #[async_trait]
 pub trait TokenRepository: Send + Sync + Clone + 'static {
@@ -12,15 +15,18 @@ pub trait TokenRepository: Send + Sync + Clone + 'static {
         client_id: &str,
         token_hash: &str,
         token_type: TokenType,
-    ) -> Result<AccessToken, Error>;
+    ) -> Result<AccessToken, DatabaseError>;
 
-    async fn get_token_by_hash(&self, token_hash: &str) -> Result<Option<AccessToken>, Error>;
+    async fn get_token_by_hash(
+        &self,
+        token_hash: &str,
+    ) -> Result<Option<AccessToken>, DatabaseError>;
 
-    async fn touch_token(&self, id: Uuid) -> Result<(), Error>;
+    async fn touch_token(&self, id: Uuid) -> Result<(), DatabaseError>;
 
-    async fn delete_token(&self, id: Uuid) -> Result<(), Error>;
+    async fn delete_token(&self, id: Uuid) -> Result<(), DatabaseError>;
 
-    async fn delete_token_by_principal(&self, principal_id: Uuid) -> Result<(), Error>;
+    async fn delete_token_by_principal(&self, principal_id: Uuid) -> Result<(), DatabaseError>;
 }
 
 #[derive(Debug, Clone)]
@@ -43,7 +49,7 @@ impl TokenRepository for TokenRepositoryImpl {
         client_id: &str,
         token_hash: &str,
         token_type: TokenType,
-    ) -> Result<AccessToken, Error> {
+    ) -> Result<AccessToken, DatabaseError> {
         let token = sqlx::query_as::<_, AccessToken>(
             r#"
             INSERT INTO auth.tokens (principal_id, client_id, token_hash, token_type)
@@ -61,7 +67,10 @@ impl TokenRepository for TokenRepositoryImpl {
         Ok(token)
     }
 
-    async fn get_token_by_hash(&self, token_hash: &str) -> Result<Option<AccessToken>, Error> {
+    async fn get_token_by_hash(
+        &self,
+        token_hash: &str,
+    ) -> Result<Option<AccessToken>, DatabaseError> {
         let token = sqlx::query_as::<_, AccessToken>(
             r#"
             SELECT id, principal_id, client_id, token_hash, token_type, created_at, last_used_at
@@ -76,7 +85,7 @@ impl TokenRepository for TokenRepositoryImpl {
         Ok(token)
     }
 
-    async fn touch_token(&self, id: Uuid) -> Result<(), Error> {
+    async fn touch_token(&self, id: Uuid) -> Result<(), DatabaseError> {
         sqlx::query("UPDATE auth.tokens SET last_used_at = NOW() WHERE id = $1")
             .bind(id)
             .execute(&self.pool)
@@ -85,7 +94,7 @@ impl TokenRepository for TokenRepositoryImpl {
         Ok(())
     }
 
-    async fn delete_token(&self, id: Uuid) -> Result<(), Error> {
+    async fn delete_token(&self, id: Uuid) -> Result<(), DatabaseError> {
         sqlx::query("DELETE FROM auth.tokens WHERE id = $1")
             .bind(id)
             .execute(&self.pool)
@@ -94,7 +103,7 @@ impl TokenRepository for TokenRepositoryImpl {
         Ok(())
     }
 
-    async fn delete_token_by_principal(&self, principal_id: Uuid) -> Result<(), Error> {
+    async fn delete_token_by_principal(&self, principal_id: Uuid) -> Result<(), DatabaseError> {
         sqlx::query("DELETE FROM auth.tokens WHERE principal_id = $1")
             .bind(principal_id)
             .execute(&self.pool)

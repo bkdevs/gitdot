@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-use crate::error::{DiffError, GitError, InputError, NotFoundError};
+use crate::error::{DatabaseError, DiffError, GitError, InputError, NotFoundError};
 
 #[derive(Debug, Error)]
 pub enum CommitError {
@@ -16,6 +16,6 @@ pub enum CommitError {
     #[error(transparent)]
     DiffError(#[from] DiffError),
 
-    #[error("Database error: {0}")]
-    DatabaseError(#[from] sqlx::Error),
+    #[error(transparent)]
+    DatabaseError(#[from] DatabaseError),
 }

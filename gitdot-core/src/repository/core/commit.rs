@@ -1,20 +1,23 @@
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
-use sqlx::{Error, PgPool};
+use sqlx::PgPool;
 use uuid::Uuid;
 
-use crate::model::{Commit, CommitDiff};
+use crate::{
+    error::DatabaseError,
+    model::{Commit, CommitDiff},
+};
 
 #[async_trait]
 pub trait CommitRepository: Send + Sync + Clone + 'static {
-    async fn get_commit(&self, repo_id: Uuid, sha: &str) -> Result<Option<Commit>, Error>;
+    async fn get_commit(&self, repo_id: Uuid, sha: &str) -> Result<Option<Commit>, DatabaseError>;
 
     async fn get_commits(
         &self,
         repo_id: Uuid,
         from: DateTime<Utc>,
         to: DateTime<Utc>,
-    ) -> Result<Vec<Commit>, Error>;
+    ) -> Result<Vec<Commit>, DatabaseError>;
 
     async fn create_bulk(
         &self,
@@ -30,7 +33,7 @@ pub trait CommitRepository: Send + Sync + Clone + 'static {
         diffs: &[Vec<CommitDiff>],
         review_numbers: &[Option<i32>],
         diff_positions: &[Option<i32>],
-    ) -> Result<Vec<Commit>, Error>;
+    ) -> Result<Vec<Commit>, DatabaseError>;
 }
 
 #[derive(Debug, Clone)]
@@ -47,10 +50,10 @@ impl CommitRepositoryImpl {
 #[crate::instrument_all(level = "debug")]
 #[async_trait]
 impl CommitRepository for CommitRepositoryImpl {
-    async fn get_commit(&self, repo_id: Uuid, sha: &str) -> Result<Option<Commit>, Error> {
+    async fn get_commit(&self, repo_id: Uuid, sha: &str) -> Result<Option<Commit>, DatabaseError> {
         let short = if sha.len() >= 7 { &sha[..7] } else { sha };
 
-        sqlx::query_as::<_, Commit>(
+        let commit = sqlx::query_as::<_, Commit>(
             r#"
             SELECT * FROM core.commits
             WHERE repo_id = $1 AND sha_short = $2
@@ -59,7 +62,9 @@ impl CommitRepository for CommitRepositoryImpl {
         .bind(repo_id)
         .bind(short)
         .fetch_optional(&self.pool)
-        .await
+        .await?;
+
+        Ok(commit)
     }
 
     async fn get_commits(
@@ -67,8 +72,8 @@ impl CommitRepository for CommitRepositoryImpl {
         repo_id: Uuid,
         from: DateTime<Utc>,
         to: DateTime<Utc>,
-    ) -> Result<Vec<Commit>, Error> {
-        sqlx::query_as::<_, Commit>(
+    ) -> Result<Vec<Commit>, DatabaseError> {
+        let commits = sqlx::query_as::<_, Commit>(
             r#"
             SELECT * FROM core.commits
             WHERE repo_id = $1 AND created_at >= $2 AND created_at <= $3
@@ -79,7 +84,9 @@ impl CommitRepository for CommitRepositoryImpl {
         .bind(from)
         .bind(to)
         .fetch_all(&self.pool)
-        .await
+        .await?;
+
+        Ok(commits)
     }
 
     async fn create_bulk(
@@ -96,7 +103,7 @@ impl CommitRepository for CommitRepositoryImpl {
         diffs: &[Vec<CommitDiff>],
         review_numbers: &[Option<i32>],
         diff_positions: &[Option<i32>],
-    ) -> Result<Vec<Commit>, Error> {
+    ) -> Result<Vec<Commit>, DatabaseError> {
         if shas.is_empty() {
             return Ok(Vec::new());
         }

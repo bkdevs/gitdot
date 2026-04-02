@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-use crate::error::{EmailError, GitHubError, InputError, NotFoundError, TokenError};
+use crate::error::{DatabaseError, EmailError, GitHubError, InputError, NotFoundError, TokenError};
 
 #[derive(Debug, Error)]
 pub enum AuthenticationError {
@@ -34,8 +34,8 @@ pub enum AuthenticationError {
     #[error(transparent)]
     TokenError(#[from] TokenError),
 
-    #[error("Database error: {0}")]
-    DatabaseError(#[from] sqlx::Error),
+    #[error(transparent)]
+    DatabaseError(#[from] DatabaseError),
 }
 
 #[derive(Debug, Error)]

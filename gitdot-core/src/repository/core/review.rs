@@ -1,10 +1,14 @@
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
-use sqlx::{Error, PgPool};
+use sqlx::PgPool;
 use uuid::Uuid;
 
-use crate::model::{
-    CommentSide, Diff, DiffStatus, Review, ReviewComment, ReviewStatus, Reviewer, Revision, Verdict,
+use crate::{
+    error::DatabaseError,
+    model::{
+        CommentSide, Diff, DiffStatus, Review, ReviewComment, ReviewStatus, Reviewer, Revision,
+        Verdict,
+    },
 };
 
 const REVIEW_DETAILS_QUERY: &str = r#"
@@ -137,7 +141,7 @@ pub trait ReviewRepository: Send + Sync + Clone + 'static {
         owner: &str,
         repo: &str,
         number: i32,
-    ) -> Result<Option<Review>, Error>;
+    ) -> Result<Option<Review>, DatabaseError>;
 
     async fn list_reviews(
         &self,
@@ -146,7 +150,7 @@ pub trait ReviewRepository: Send + Sync + Clone + 'static {
         viewer_id: Option<Uuid>,
         from: DateTime<Utc>,
         to: DateTime<Utc>,
-    ) -> Result<Vec<Review>, Error>;
+    ) -> Result<Vec<Review>, DatabaseError>;
 
     async fn get_reviews_by_user(
         &self,
@@ -155,14 +159,14 @@ pub trait ReviewRepository: Send + Sync + Clone + 'static {
         status: Option<String>,
         owner: Option<String>,
         repo: Option<String>,
-    ) -> Result<Vec<Review>, Error>;
+    ) -> Result<Vec<Review>, DatabaseError>;
 
     async fn create_review(
         &self,
         repository_id: Uuid,
         author_id: Uuid,
         target_branch: &str,
-    ) -> Result<Review, Error>;
+    ) -> Result<Review, DatabaseError>;
 
     async fn update_review(
         &self,
@@ -170,7 +174,7 @@ pub trait ReviewRepository: Send + Sync + Clone + 'static {
         status: Option<ReviewStatus>,
         title: Option<String>,
         description: Option<String>,
-    ) -> Result<(), Error>;
+    ) -> Result<(), DatabaseError>;
 
     async fn create_diff(
         &self,
@@ -178,7 +182,7 @@ pub trait ReviewRepository: Send + Sync + Clone + 'static {
         position: i32,
         title: &str,
         description: &str,
-    ) -> Result<Diff, Error>;
+    ) -> Result<Diff, DatabaseError>;
 
     async fn update_diff(
         &self,
@@ -186,7 +190,7 @@ pub trait ReviewRepository: Send + Sync + Clone + 'static {
         status: Option<DiffStatus>,
         title: Option<String>,
         description: Option<String>,
-    ) -> Result<(), Error>;
+    ) -> Result<(), DatabaseError>;
 
     async fn create_revision(
         &self,
@@ -194,22 +198,26 @@ pub trait ReviewRepository: Send + Sync + Clone + 'static {
         number: i32,
         commit_hash: &str,
         parent_hash: &str,
-    ) -> Result<Revision, Error>;
+    ) -> Result<Revision, DatabaseError>;
 
     async fn update_revision_sha(
         &self,
         revision_id: Uuid,
         commit_hash: &str,
         parent_hash: &str,
-    ) -> Result<(), Error>;
+    ) -> Result<(), DatabaseError>;
 
     async fn add_reviewer(
         &self,
         review_id: Uuid,
         reviewer_id: Uuid,
-    ) -> Result<Option<Reviewer>, Error>;
+    ) -> Result<Option<Reviewer>, DatabaseError>;
 
-    async fn remove_reviewer(&self, review_id: Uuid, reviewer_id: Uuid) -> Result<bool, Error>;
+    async fn remove_reviewer(
+        &self,
+        review_id: Uuid,
+        reviewer_id: Uuid,
+    ) -> Result<bool, DatabaseError>;
 
     async fn create_verdict(
         &self,
@@ -217,7 +225,7 @@ pub trait ReviewRepository: Send + Sync + Clone + 'static {
         revision_id: Uuid,
         reviewer_id: Uuid,
         verdict: Verdict,
-    ) -> Result<(), Error>;
+    ) -> Result<(), DatabaseError>;
 
     async fn create_comment(
         &self,
@@ -231,13 +239,17 @@ pub trait ReviewRepository: Send + Sync + Clone + 'static {
         line_number_start: Option<i32>,
         line_number_end: Option<i32>,
         side: Option<CommentSide>,
-    ) -> Result<(), Error>;
+    ) -> Result<(), DatabaseError>;
 
-    async fn get_comment(&self, comment_id: Uuid) -> Result<Option<ReviewComment>, Error>;
+    async fn get_comment(&self, comment_id: Uuid) -> Result<Option<ReviewComment>, DatabaseError>;
 
-    async fn update_comment(&self, comment_id: Uuid, body: &str) -> Result<ReviewComment, Error>;
+    async fn update_comment(
+        &self,
+        comment_id: Uuid,
+        body: &str,
+    ) -> Result<ReviewComment, DatabaseError>;
 
-    async fn resolve_comment(&self, comment_id: Uuid, resolved: bool) -> Result<(), Error>;
+    async fn resolve_comment(&self, comment_id: Uuid, resolved: bool) -> Result<(), DatabaseError>;
 }
 
 #[derive(Debug, Clone)]
@@ -259,18 +271,20 @@ impl ReviewRepository for ReviewRepositoryImpl {
         owner: &str,
         repo: &str,
         number: i32,
-    ) -> Result<Option<Review>, Error> {
+    ) -> Result<Option<Review>, DatabaseError> {
         let query = format!(
             "{} JOIN core.repositories repo ON r.repository_id = repo.id WHERE repo.owner_name = $1 AND repo.name = $2 AND r.number = $3",
             REVIEW_DETAILS_QUERY
         );
 
-        sqlx::query_as::<_, Review>(&query)
+        let review = sqlx::query_as::<_, Review>(&query)
             .bind(owner)
             .bind(repo)
             .bind(number)
             .fetch_optional(&self.pool)
-            .await
+            .await?;
+
+        Ok(review)
     }
 
     async fn list_reviews(
@@ -280,8 +294,8 @@ impl ReviewRepository for ReviewRepositoryImpl {
         viewer_id: Option<Uuid>,
         from: DateTime<Utc>,
         to: DateTime<Utc>,
-    ) -> Result<Vec<Review>, Error> {
-        sqlx::query_as::<_, Review>(
+    ) -> Result<Vec<Review>, DatabaseError> {
+        let reviews = sqlx::query_as::<_, Review>(
             r#"
             SELECT
                 r.id, r.repository_id, r.number, r.author_id, r.title, r.description,
@@ -301,7 +315,9 @@ impl ReviewRepository for ReviewRepositoryImpl {
         .bind(from)
         .bind(to)
         .fetch_all(&self.pool)
-        .await
+        .await?;
+
+        Ok(reviews)
     }
 
     async fn get_reviews_by_user(
@@ -311,7 +327,7 @@ impl ReviewRepository for ReviewRepositoryImpl {
         status: Option<String>,
         owner: Option<String>,
         repo: Option<String>,
-    ) -> Result<Vec<Review>, Error> {
+    ) -> Result<Vec<Review>, DatabaseError> {
         let mut query = String::from(
             r#"
             SELECT
@@ -355,7 +371,9 @@ impl ReviewRepository for ReviewRepositoryImpl {
         if let Some(r) = repo {
             q = q.bind(r);
         }
-        q.fetch_all(&self.pool).await
+        let reviews = q.fetch_all(&self.pool).await?;
+
+        Ok(reviews)
     }
 
     async fn create_review(
@@ -363,8 +381,8 @@ impl ReviewRepository for ReviewRepositoryImpl {
         repository_id: Uuid,
         author_id: Uuid,
         target_branch: &str,
-    ) -> Result<Review, Error> {
-        sqlx::query_as::<_, Review>(
+    ) -> Result<Review, DatabaseError> {
+        let review = sqlx::query_as::<_, Review>(
             r#"
             WITH next_number AS (
                 SELECT COALESCE(MAX(number), 0) + 1 AS number
@@ -384,7 +402,9 @@ impl ReviewRepository for ReviewRepositoryImpl {
         .bind(author_id)
         .bind(target_branch)
         .fetch_one(&self.pool)
-        .await
+        .await?;
+
+        Ok(review)
     }
 
     async fn update_review(
@@ -393,7 +413,7 @@ impl ReviewRepository for ReviewRepositoryImpl {
         status: Option<ReviewStatus>,
         title: Option<String>,
         description: Option<String>,
-    ) -> Result<(), Error> {
+    ) -> Result<(), DatabaseError> {
         sqlx::query(
             r#"
             UPDATE core.reviews
@@ -420,8 +440,8 @@ impl ReviewRepository for ReviewRepositoryImpl {
         position: i32,
         title: &str,
         description: &str,
-    ) -> Result<Diff, Error> {
-        sqlx::query_as::<_, Diff>(
+    ) -> Result<Diff, DatabaseError> {
+        let diff = sqlx::query_as::<_, Diff>(
             r#"
             INSERT INTO core.diffs (review_id, position, title, description)
             VALUES ($1, $2, $3, $4)
@@ -436,7 +456,9 @@ impl ReviewRepository for ReviewRepositoryImpl {
         .bind(title)
         .bind(description)
         .fetch_one(&self.pool)
-        .await
+        .await?;
+
+        Ok(diff)
     }
 
     async fn update_diff(
@@ -445,7 +467,7 @@ impl ReviewRepository for ReviewRepositoryImpl {
         status: Option<DiffStatus>,
         title: Option<String>,
         description: Option<String>,
-    ) -> Result<(), Error> {
+    ) -> Result<(), DatabaseError> {
         sqlx::query(
             r#"
             UPDATE core.diffs
@@ -472,8 +494,8 @@ impl ReviewRepository for ReviewRepositoryImpl {
         number: i32,
         commit_hash: &str,
         parent_hash: &str,
-    ) -> Result<Revision, Error> {
-        sqlx::query_as::<_, Revision>(
+    ) -> Result<Revision, DatabaseError> {
+        let revision = sqlx::query_as::<_, Revision>(
             r#"
             INSERT INTO core.revisions (diff_id, number, commit_hash, parent_hash)
             VALUES ($1, $2, $3, $4)
@@ -485,7 +507,9 @@ impl ReviewRepository for ReviewRepositoryImpl {
         .bind(commit_hash)
         .bind(parent_hash)
         .fetch_one(&self.pool)
-        .await
+        .await?;
+
+        Ok(revision)
     }
 
     async fn update_revision_sha(
@@ -493,7 +517,7 @@ impl ReviewRepository for ReviewRepositoryImpl {
         revision_id: Uuid,
         commit_hash: &str,
         parent_hash: &str,
-    ) -> Result<(), Error> {
+    ) -> Result<(), DatabaseError> {
         sqlx::query(
             r#"
             UPDATE core.revisions
@@ -515,8 +539,8 @@ impl ReviewRepository for ReviewRepositoryImpl {
         &self,
         review_id: Uuid,
         reviewer_id: Uuid,
-    ) -> Result<Option<Reviewer>, Error> {
-        sqlx::query_as::<_, Reviewer>(
+    ) -> Result<Option<Reviewer>, DatabaseError> {
+        let reviewer = sqlx::query_as::<_, Reviewer>(
             r#"
             INSERT INTO core.reviewers (review_id, reviewer_id)
             VALUES ($1, $2)
@@ -530,10 +554,16 @@ impl ReviewRepository for ReviewRepositoryImpl {
         .bind(review_id)
         .bind(reviewer_id)
         .fetch_optional(&self.pool)
-        .await
+        .await?;
+
+        Ok(reviewer)
     }
 
-    async fn remove_reviewer(&self, review_id: Uuid, reviewer_id: Uuid) -> Result<bool, Error> {
+    async fn remove_reviewer(
+        &self,
+        review_id: Uuid,
+        reviewer_id: Uuid,
+    ) -> Result<bool, DatabaseError> {
         let result = sqlx::query(
             r#"
             DELETE FROM core.reviewers
@@ -554,7 +584,7 @@ impl ReviewRepository for ReviewRepositoryImpl {
         revision_id: Uuid,
         reviewer_id: Uuid,
         verdict: Verdict,
-    ) -> Result<(), Error> {
+    ) -> Result<(), DatabaseError> {
         sqlx::query(
             r#"
             INSERT INTO core.review_verdicts (diff_id, revision_id, reviewer_id, verdict)
@@ -583,7 +613,7 @@ impl ReviewRepository for ReviewRepositoryImpl {
         line_number_start: Option<i32>,
         line_number_end: Option<i32>,
         side: Option<CommentSide>,
-    ) -> Result<(), Error> {
+    ) -> Result<(), DatabaseError> {
         sqlx::query(
             r#"
             INSERT INTO core.review_comments (review_id, diff_id, revision_id, author_id, body, parent_id, file_path, line_number_start, line_number_end, side)
@@ -606,8 +636,8 @@ impl ReviewRepository for ReviewRepositoryImpl {
         Ok(())
     }
 
-    async fn get_comment(&self, comment_id: Uuid) -> Result<Option<ReviewComment>, Error> {
-        sqlx::query_as::<_, ReviewComment>(
+    async fn get_comment(&self, comment_id: Uuid) -> Result<Option<ReviewComment>, DatabaseError> {
+        let comment = sqlx::query_as::<_, ReviewComment>(
             r#"
             SELECT
                 c.id, c.review_id, c.diff_id, c.revision_id, c.author_id, c.parent_id,
@@ -621,11 +651,17 @@ impl ReviewRepository for ReviewRepositoryImpl {
         )
         .bind(comment_id)
         .fetch_optional(&self.pool)
-        .await
+        .await?;
+
+        Ok(comment)
     }
 
-    async fn update_comment(&self, comment_id: Uuid, body: &str) -> Result<ReviewComment, Error> {
-        sqlx::query_as::<_, ReviewComment>(
+    async fn update_comment(
+        &self,
+        comment_id: Uuid,
+        body: &str,
+    ) -> Result<ReviewComment, DatabaseError> {
+        let comment = sqlx::query_as::<_, ReviewComment>(
             r#"
             UPDATE core.review_comments
             SET body = $2, updated_at = NOW()
@@ -641,10 +677,12 @@ impl ReviewRepository for ReviewRepositoryImpl {
         .bind(comment_id)
         .bind(body)
         .fetch_one(&self.pool)
-        .await
+        .await?;
+
+        Ok(comment)
     }
 
-    async fn resolve_comment(&self, comment_id: Uuid, resolved: bool) -> Result<(), Error> {
+    async fn resolve_comment(&self, comment_id: Uuid, resolved: bool) -> Result<(), DatabaseError> {
         sqlx::query(
             r#"
             UPDATE core.review_comments

@@ -1,6 +1,8 @@
 use thiserror::Error;
 
-use crate::error::{ConflictError, GitError, GitHubError, InputError, NotFoundError};
+use crate::error::{
+    ConflictError, DatabaseError, GitError, GitHubError, InputError, NotFoundError,
+};
 
 #[derive(Debug, Error)]
 pub enum MigrationError {
@@ -19,6 +21,6 @@ pub enum MigrationError {
     #[error(transparent)]
     GitHubError(#[from] GitHubError),
 
-    #[error("Database error: {0}")]
-    DatabaseError(#[from] sqlx::Error),
+    #[error(transparent)]
+    DatabaseError(#[from] DatabaseError),
 }

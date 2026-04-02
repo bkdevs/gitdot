@@ -1,10 +1,13 @@
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use ipnetwork::IpNetwork;
-use sqlx::{Error, PgPool};
+use sqlx::PgPool;
 use uuid::Uuid;
 
-use crate::model::{AuthCode, Session};
+use crate::{
+    error::DatabaseError,
+    model::{AuthCode, Session},
+};
 
 #[async_trait]
 pub trait SessionRepository: Send + Sync + Clone + 'static {
@@ -13,11 +16,14 @@ pub trait SessionRepository: Send + Sync + Clone + 'static {
         user_id: Uuid,
         code_hash: &str,
         expires_at: DateTime<Utc>,
-    ) -> Result<AuthCode, Error>;
+    ) -> Result<AuthCode, DatabaseError>;
 
-    async fn get_auth_code_by_hash(&self, code_hash: &str) -> Result<Option<AuthCode>, Error>;
+    async fn get_auth_code_by_hash(
+        &self,
+        code_hash: &str,
+    ) -> Result<Option<AuthCode>, DatabaseError>;
 
-    async fn mark_auth_code_used(&self, id: Uuid) -> Result<(), Error>;
+    async fn mark_auth_code_used(&self, id: Uuid) -> Result<(), DatabaseError>;
 
     async fn create_session(
         &self,
@@ -27,13 +33,16 @@ pub trait SessionRepository: Send + Sync + Clone + 'static {
         user_agent: Option<&str>,
         ip_address: Option<IpNetwork>,
         expires_at: DateTime<Utc>,
-    ) -> Result<Session, Error>;
+    ) -> Result<Session, DatabaseError>;
 
-    async fn get_session_by_refresh_hash(&self, hash: &str) -> Result<Option<Session>, Error>;
+    async fn get_session_by_refresh_hash(
+        &self,
+        hash: &str,
+    ) -> Result<Option<Session>, DatabaseError>;
 
-    async fn revoke_session(&self, id: Uuid) -> Result<(), Error>;
+    async fn revoke_session(&self, id: Uuid) -> Result<(), DatabaseError>;
 
-    async fn revoke_sessions_by_family(&self, family: Uuid) -> Result<(), Error>;
+    async fn revoke_sessions_by_family(&self, family: Uuid) -> Result<(), DatabaseError>;
 }
 
 #[derive(Debug, Clone)]
@@ -55,7 +64,7 @@ impl SessionRepository for SessionRepositoryImpl {
         user_id: Uuid,
         code_hash: &str,
         expires_at: DateTime<Utc>,
-    ) -> Result<AuthCode, Error> {
+    ) -> Result<AuthCode, DatabaseError> {
         let auth_code = sqlx::query_as::<_, AuthCode>(
             r#"
             INSERT INTO auth.auth_codes (user_id, code_hash, expires_at)
@@ -72,7 +81,10 @@ impl SessionRepository for SessionRepositoryImpl {
         Ok(auth_code)
     }
 
-    async fn get_auth_code_by_hash(&self, code_hash: &str) -> Result<Option<AuthCode>, Error> {
+    async fn get_auth_code_by_hash(
+        &self,
+        code_hash: &str,
+    ) -> Result<Option<AuthCode>, DatabaseError> {
         let auth_code = sqlx::query_as::<_, AuthCode>(
             r#"
             SELECT * FROM auth.auth_codes WHERE code_hash = $1
@@ -85,7 +97,7 @@ impl SessionRepository for SessionRepositoryImpl {
         Ok(auth_code)
     }
 
-    async fn mark_auth_code_used(&self, id: Uuid) -> Result<(), Error> {
+    async fn mark_auth_code_used(&self, id: Uuid) -> Result<(), DatabaseError> {
         sqlx::query(
             r#"
             UPDATE auth.auth_codes SET used_at = NOW() WHERE id = $1
@@ -106,7 +118,7 @@ impl SessionRepository for SessionRepositoryImpl {
         user_agent: Option<&str>,
         ip_address: Option<IpNetwork>,
         expires_at: DateTime<Utc>,
-    ) -> Result<Session, Error> {
+    ) -> Result<Session, DatabaseError> {
         let session = sqlx::query_as::<_, Session>(
             r#"
             INSERT INTO auth.sessions (user_id, refresh_token_hash, refresh_token_family, user_agent, ip_address, expires_at)
@@ -126,7 +138,10 @@ impl SessionRepository for SessionRepositoryImpl {
         Ok(session)
     }
 
-    async fn get_session_by_refresh_hash(&self, hash: &str) -> Result<Option<Session>, Error> {
+    async fn get_session_by_refresh_hash(
+        &self,
+        hash: &str,
+    ) -> Result<Option<Session>, DatabaseError> {
         let session = sqlx::query_as::<_, Session>(
             r#"
             SELECT * FROM auth.sessions WHERE refresh_token_hash = $1
@@ -139,7 +154,7 @@ impl SessionRepository for SessionRepositoryImpl {
         Ok(session)
     }
 
-    async fn revoke_session(&self, id: Uuid) -> Result<(), Error> {
+    async fn revoke_session(&self, id: Uuid) -> Result<(), DatabaseError> {
         sqlx::query(
             r#"
             UPDATE auth.sessions SET revoked_at = NOW() WHERE id = $1
@@ -152,7 +167,7 @@ impl SessionRepository for SessionRepositoryImpl {
         Ok(())
     }
 
-    async fn revoke_sessions_by_family(&self, family: Uuid) -> Result<(), Error> {
+    async fn revoke_sessions_by_family(&self, family: Uuid) -> Result<(), DatabaseError> {
         sqlx::query(
             r#"
             UPDATE auth.sessions SET revoked_at = NOW()

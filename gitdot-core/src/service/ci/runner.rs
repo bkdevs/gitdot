@@ -7,7 +7,7 @@ use crate::{
         CreateRunnerTokenResponse, DeleteRunnerRequest, GetRunnerRequest, GetRunnerResponse,
         ListRunnersRequest, ListRunnersResponse, VerifyRunnerRequest,
     },
-    error::{NotFoundError, RunnerError},
+    error::{NotFoundError, NotFoundExt, RunnerError},
     model::{RunnerOwnerType, TokenType},
     repository::{
         OrganizationRepository, OrganizationRepositoryImpl, RunnerRepository, RunnerRepositoryImpl,
@@ -119,12 +119,7 @@ where
         self.runner_repo
             .touch(request.runner_id)
             .await
-            .map_err(|e| match e {
-                sqlx::Error::RowNotFound => {
-                    RunnerError::NotFound(NotFoundError::new("runner", request.runner_id))
-                }
-                e => RunnerError::DatabaseError(e),
-            })?;
+            .or_not_found::<RunnerError>("runner", request.runner_id)?;
 
         Ok(())
     }
@@ -136,8 +131,7 @@ where
         let runner = self
             .runner_repo
             .get(request.owner_name.as_ref(), request.name.as_ref())
-            .await
-            .map_err(RunnerError::DatabaseError)?
+            .await?
             .ok_or_else(|| NotFoundError::new("runner", request.name.as_ref()))?;
 
         Ok(runner.into())
@@ -147,19 +141,13 @@ where
         let runner = self
             .runner_repo
             .get(request.owner_name.as_ref(), request.name.as_ref())
-            .await
-            .map_err(RunnerError::DatabaseError)?
+            .await?
             .ok_or_else(|| NotFoundError::new("runner", request.name.as_ref()))?;
 
         self.runner_repo
             .delete(runner.id)
             .await
-            .map_err(|e| match e {
-                sqlx::Error::RowNotFound => {
-                    RunnerError::NotFound(NotFoundError::new("runner", request.name.as_ref()))
-                }
-                e => RunnerError::DatabaseError(e),
-            })?;
+            .or_not_found::<RunnerError>("runner", request.name.as_ref())?;
 
         Ok(())
     }
@@ -171,8 +159,7 @@ where
         let runners = self
             .runner_repo
             .list_by_owner(request.owner_name.as_ref())
-            .await
-            .map_err(RunnerError::DatabaseError)?;
+            .await?;
 
         Ok(runners.into_iter().map(Into::into).collect())
     }
@@ -184,8 +171,7 @@ where
         let runner = self
             .runner_repo
             .get(request.owner_name.as_ref(), request.runner_name.as_ref())
-            .await
-            .map_err(RunnerError::DatabaseError)?
+            .await?
             .ok_or_else(|| NotFoundError::new("runner", request.runner_name.as_ref()))?;
 
         self.token_repo.delete_token_by_principal(runner.id).await?;

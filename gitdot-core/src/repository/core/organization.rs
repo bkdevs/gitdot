@@ -1,39 +1,42 @@
 use async_trait::async_trait;
-use sqlx::{Error, PgPool};
+use sqlx::PgPool;
 use uuid::Uuid;
 
-use crate::model::{Organization, OrganizationMember, OrganizationRole};
+use crate::{
+    error::DatabaseError,
+    model::{Organization, OrganizationMember, OrganizationRole},
+};
 
 #[async_trait]
 pub trait OrganizationRepository: Send + Sync + Clone + 'static {
-    async fn create(&self, org_name: &str, owner_id: Uuid) -> Result<Organization, Error>;
+    async fn create(&self, org_name: &str, owner_id: Uuid) -> Result<Organization, DatabaseError>;
 
-    async fn get(&self, org_name: &str) -> Result<Option<Organization>, Error>;
+    async fn get(&self, org_name: &str) -> Result<Option<Organization>, DatabaseError>;
 
-    async fn is_member(&self, org_id: Uuid, user_id: Uuid) -> Result<bool, Error>;
+    async fn is_member(&self, org_id: Uuid, user_id: Uuid) -> Result<bool, DatabaseError>;
 
     async fn add_member(
         &self,
         org_name: &str,
         user_name: &str,
         role: OrganizationRole,
-    ) -> Result<Option<OrganizationMember>, Error>;
+    ) -> Result<Option<OrganizationMember>, DatabaseError>;
 
     async fn get_member_role(
         &self,
         org_name: &str,
         user_id: Uuid,
-    ) -> Result<Option<OrganizationRole>, Error>;
+    ) -> Result<Option<OrganizationRole>, DatabaseError>;
 
-    async fn list(&self) -> Result<Vec<Organization>, Error>;
+    async fn list(&self) -> Result<Vec<Organization>, DatabaseError>;
 
-    async fn list_by_user_id(&self, user_id: Uuid) -> Result<Vec<Organization>, Error>;
+    async fn list_by_user_id(&self, user_id: Uuid) -> Result<Vec<Organization>, DatabaseError>;
 
     async fn list_members(
         &self,
         org_name: &str,
         role: Option<OrganizationRole>,
-    ) -> Result<Vec<OrganizationMember>, Error>;
+    ) -> Result<Vec<OrganizationMember>, DatabaseError>;
 }
 
 #[derive(Debug, Clone)]
@@ -50,7 +53,7 @@ impl OrganizationRepositoryImpl {
 #[crate::instrument_all(level = "debug")]
 #[async_trait]
 impl OrganizationRepository for OrganizationRepositoryImpl {
-    async fn create(&self, org_name: &str, owner_id: Uuid) -> Result<Organization, Error> {
+    async fn create(&self, org_name: &str, owner_id: Uuid) -> Result<Organization, DatabaseError> {
         let mut tx = self.pool.begin().await?;
 
         let org = sqlx::query_as::<_, Organization>(
@@ -73,7 +76,7 @@ impl OrganizationRepository for OrganizationRepositoryImpl {
         Ok(org)
     }
 
-    async fn get(&self, org_name: &str) -> Result<Option<Organization>, Error> {
+    async fn get(&self, org_name: &str) -> Result<Option<Organization>, DatabaseError> {
         let org = sqlx::query_as::<_, Organization>(
             "SELECT id, name, created_at FROM core.organizations WHERE name = $1",
         )
@@ -84,7 +87,7 @@ impl OrganizationRepository for OrganizationRepositoryImpl {
         Ok(org)
     }
 
-    async fn is_member(&self, org_id: Uuid, user_id: Uuid) -> Result<bool, Error> {
+    async fn is_member(&self, org_id: Uuid, user_id: Uuid) -> Result<bool, DatabaseError> {
         let result = sqlx::query_scalar::<_, bool>(
             r#"
             SELECT EXISTS(
@@ -106,7 +109,7 @@ impl OrganizationRepository for OrganizationRepositoryImpl {
         org_name: &str,
         user_name: &str,
         role: OrganizationRole,
-    ) -> Result<Option<OrganizationMember>, Error> {
+    ) -> Result<Option<OrganizationMember>, DatabaseError> {
         let member = sqlx::query_as::<_, OrganizationMember>(
             r#"
             INSERT INTO core.organization_members (user_id, organization_id, role)
@@ -130,7 +133,7 @@ impl OrganizationRepository for OrganizationRepositoryImpl {
         &self,
         org_name: &str,
         user_id: Uuid,
-    ) -> Result<Option<OrganizationRole>, Error> {
+    ) -> Result<Option<OrganizationRole>, DatabaseError> {
         let role = sqlx::query_scalar::<_, OrganizationRole>(
             r#"
             SELECT om.role
@@ -147,16 +150,18 @@ impl OrganizationRepository for OrganizationRepositoryImpl {
         Ok(role)
     }
 
-    async fn list(&self) -> Result<Vec<Organization>, Error> {
-        sqlx::query_as::<_, Organization>(
+    async fn list(&self) -> Result<Vec<Organization>, DatabaseError> {
+        let orgs = sqlx::query_as::<_, Organization>(
             "SELECT id, name, created_at FROM core.organizations ORDER BY created_at DESC",
         )
         .fetch_all(&self.pool)
-        .await
+        .await?;
+
+        Ok(orgs)
     }
 
-    async fn list_by_user_id(&self, user_id: Uuid) -> Result<Vec<Organization>, Error> {
-        sqlx::query_as::<_, Organization>(
+    async fn list_by_user_id(&self, user_id: Uuid) -> Result<Vec<Organization>, DatabaseError> {
+        let orgs = sqlx::query_as::<_, Organization>(
             r#"
             SELECT o.id, o.name, o.created_at
             FROM core.organizations o
@@ -167,15 +172,17 @@ impl OrganizationRepository for OrganizationRepositoryImpl {
         )
         .bind(user_id)
         .fetch_all(&self.pool)
-        .await
+        .await?;
+
+        Ok(orgs)
     }
 
     async fn list_members(
         &self,
         org_name: &str,
         role: Option<OrganizationRole>,
-    ) -> Result<Vec<OrganizationMember>, Error> {
-        sqlx::query_as::<_, OrganizationMember>(
+    ) -> Result<Vec<OrganizationMember>, DatabaseError> {
+        let members = sqlx::query_as::<_, OrganizationMember>(
             r#"
             SELECT om.id, om.user_id, om.organization_id, om.role, om.created_at
             FROM core.organization_members om
@@ -188,6 +195,8 @@ impl OrganizationRepository for OrganizationRepositoryImpl {
         .bind(org_name)
         .bind(role)
         .fetch_all(&self.pool)
-        .await
+        .await?;
+
+        Ok(members)
     }
 }

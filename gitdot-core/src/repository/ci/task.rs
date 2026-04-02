@@ -1,8 +1,11 @@
 use async_trait::async_trait;
-use sqlx::{Error, PgPool};
+use sqlx::PgPool;
 use uuid::Uuid;
 
-use crate::model::{Task, TaskStatus};
+use crate::{
+    error::DatabaseError,
+    model::{Task, TaskStatus},
+};
 
 #[async_trait]
 pub trait TaskRepository: Send + Sync + Clone + 'static {
@@ -16,21 +19,21 @@ pub trait TaskRepository: Send + Sync + Clone + 'static {
         s2_uri: &str,
         status: TaskStatus,
         waits_for: &[Uuid],
-    ) -> Result<Task, Error>;
+    ) -> Result<Task, DatabaseError>;
 
-    async fn get_by_id(&self, id: Uuid) -> Result<Option<Task>, Error>;
+    async fn get_by_id(&self, id: Uuid) -> Result<Option<Task>, DatabaseError>;
 
-    async fn list_by_build_id(&self, build_id: Uuid) -> Result<Vec<Task>, Error>;
+    async fn list_by_build_id(&self, build_id: Uuid) -> Result<Vec<Task>, DatabaseError>;
 
-    async fn update_task(&self, id: Uuid, status: TaskStatus) -> Result<Task, Error>;
+    async fn update_task(&self, id: Uuid, status: TaskStatus) -> Result<Task, DatabaseError>;
 
     async fn claim_task(
         &self,
         runner_id: Uuid,
         repository_ids: &[Uuid],
-    ) -> Result<Option<Task>, Error>;
+    ) -> Result<Option<Task>, DatabaseError>;
 
-    async fn unblock_tasks(&self, build_id: Uuid) -> Result<Vec<Task>, Error>;
+    async fn unblock_tasks(&self, build_id: Uuid) -> Result<Vec<Task>, DatabaseError>;
 }
 
 #[derive(Debug, Clone)]
@@ -57,7 +60,7 @@ impl TaskRepository for TaskRepositoryImpl {
         s2_uri: &str,
         status: TaskStatus,
         waits_for: &[Uuid],
-    ) -> Result<Task, Error> {
+    ) -> Result<Task, DatabaseError> {
         let task = sqlx::query_as::<_, Task>(
             r#"
             INSERT INTO ci.tasks (id, repository_id, name, command, build_id, s2_uri, status, waits_for)
@@ -79,7 +82,7 @@ impl TaskRepository for TaskRepositoryImpl {
         Ok(task)
     }
 
-    async fn get_by_id(&self, id: Uuid) -> Result<Option<Task>, Error> {
+    async fn get_by_id(&self, id: Uuid) -> Result<Option<Task>, DatabaseError> {
         let task = sqlx::query_as::<_, Task>(
             r#"
             SELECT id, repository_id, build_id, s2_uri, name, command, status, waits_for, runner_id, created_at, updated_at
@@ -93,7 +96,7 @@ impl TaskRepository for TaskRepositoryImpl {
         Ok(task)
     }
 
-    async fn list_by_build_id(&self, build_id: Uuid) -> Result<Vec<Task>, Error> {
+    async fn list_by_build_id(&self, build_id: Uuid) -> Result<Vec<Task>, DatabaseError> {
         let tasks = sqlx::query_as::<_, Task>(
             r#"
             SELECT id, repository_id, build_id, s2_uri, name, command, status, waits_for, runner_id, created_at, updated_at
@@ -108,7 +111,7 @@ impl TaskRepository for TaskRepositoryImpl {
         Ok(tasks)
     }
 
-    async fn update_task(&self, id: Uuid, status: TaskStatus) -> Result<Task, Error> {
+    async fn update_task(&self, id: Uuid, status: TaskStatus) -> Result<Task, DatabaseError> {
         let task = sqlx::query_as::<_, Task>(
             r#"
             UPDATE ci.tasks SET status = $1, updated_at = NOW()
@@ -128,7 +131,7 @@ impl TaskRepository for TaskRepositoryImpl {
         &self,
         runner_id: Uuid,
         repository_ids: &[Uuid],
-    ) -> Result<Option<Task>, Error> {
+    ) -> Result<Option<Task>, DatabaseError> {
         let task = sqlx::query_as::<_, Task>(
             r#"
             UPDATE ci.tasks SET status = 'assigned', runner_id = $1, updated_at = NOW()
@@ -151,7 +154,7 @@ impl TaskRepository for TaskRepositoryImpl {
         Ok(task)
     }
 
-    async fn unblock_tasks(&self, build_id: Uuid) -> Result<Vec<Task>, Error> {
+    async fn unblock_tasks(&self, build_id: Uuid) -> Result<Vec<Task>, DatabaseError> {
         let tasks = sqlx::query_as::<_, Task>(
             r#"
             UPDATE ci.tasks
