@@ -1,11 +1,11 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{endpoint::Endpoint, resource::oauth::TokenResource};
+use crate::{endpoint::Endpoint, resource::auth::TokenResource};
 
 pub struct PollToken;
 
 impl Endpoint for PollToken {
-    const PATH: &'static str = "/oauth/token";
+    const PATH: &'static str = "/auth/device/token";
     const METHOD: http::Method = http::Method::POST;
 
     type Request = PollTokenRequest;

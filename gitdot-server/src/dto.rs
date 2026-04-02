@@ -2,7 +2,6 @@ mod build;
 mod git_http;
 mod internal;
 mod migration;
-mod oauth;
 mod organization;
 mod question;
 mod repository;

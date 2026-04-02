@@ -1,5 +1,9 @@
-use gitdot_api::resource::auth::{AuthTokensResource, GitHubAuthRedirectResource};
-use gitdot_core::dto::{AuthTokensResponse, OAuthRedirectResponse};
+use gitdot_api::resource::auth::{
+    AuthTokensResource, DeviceCodeResource, GitHubAuthRedirectResource, TokenResource,
+};
+use gitdot_core::dto::{
+    AuthTokensResponse, DeviceCodeResponse, OAuthRedirectResponse, TokenResponse,
+};
 
 use super::IntoApi;
 
@@ -22,6 +26,30 @@ impl IntoApi for OAuthRedirectResponse {
         GitHubAuthRedirectResource {
             authorize_url: self.authorize_url,
             state: self.state,
+        }
+    }
+}
+
+impl IntoApi for DeviceCodeResponse {
+    type ApiType = DeviceCodeResource;
+    fn into_api(self) -> Self::ApiType {
+        DeviceCodeResource {
+            device_code: self.device_code,
+            user_code: self.user_code,
+            verification_uri: self.verification_uri,
+            expires_in: self.expires_in,
+            interval: self.interval,
+        }
+    }
+}
+
+impl IntoApi for TokenResponse {
+    type ApiType = TokenResource;
+    fn into_api(self) -> Self::ApiType {
+        TokenResource {
+            access_token: self.access_token,
+            user_name: self.user_name,
+            user_email: self.user_email,
         }
     }
 }

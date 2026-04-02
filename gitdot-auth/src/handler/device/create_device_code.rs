@@ -1,6 +1,6 @@
 use axum::{Json, extract::State, http::StatusCode};
 
-use gitdot_api::endpoint::oauth::create_device_code as api;
+use gitdot_api::endpoint::auth::device::create_device_code as api;
 use gitdot_core::dto::DeviceCodeRequest;
 
 use crate::{
@@ -8,7 +8,6 @@ use crate::{
     dto::IntoApi,
 };
 
-#[axum::debug_handler]
 pub async fn create_device_code(
     State(state): State<AppState>,
     Json(body): Json<api::CreateDeviceCodeRequest>,

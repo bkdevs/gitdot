@@ -1,9 +1,6 @@
-use axum::{
-    extract::{Json, State},
-    http::StatusCode,
-};
+use axum::{Json, extract::State, http::StatusCode};
 
-use gitdot_api::endpoint::oauth::poll_token as api;
+use gitdot_api::endpoint::auth::device::poll_token as api;
 use gitdot_core::dto::PollTokenRequest;
 
 use crate::{
@@ -11,7 +8,6 @@ use crate::{
     dto::IntoApi,
 };
 
-#[axum::debug_handler]
 pub async fn poll_token(
     State(state): State<AppState>,
     Json(body): Json<api::PollTokenRequest>,

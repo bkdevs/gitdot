@@ -1,11 +1,11 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{endpoint::Endpoint, resource::oauth::DeviceCodeResource};
+use crate::{endpoint::Endpoint, resource::auth::DeviceCodeResource};
 
 pub struct CreateDeviceCode;
 
 impl Endpoint for CreateDeviceCode {
-    const PATH: &'static str = "/oauth/device";
+    const PATH: &'static str = "/auth/device/code";
     const METHOD: http::Method = http::Method::POST;
 
     type Request = CreateDeviceCodeRequest;

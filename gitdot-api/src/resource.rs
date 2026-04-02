@@ -1,7 +1,6 @@
 pub mod auth;
 pub mod build;
 pub mod migration;
-pub mod oauth;
 pub mod organization;
 pub mod question;
 pub mod repository;
@@ -17,7 +16,6 @@ use serde::{Serialize, de::DeserializeOwned};
 pub use auth::*;
 pub use build::*;
 pub use migration::*;
-pub use oauth::*;
 pub use organization::*;
 pub use question::*;
 pub use repository::*;
