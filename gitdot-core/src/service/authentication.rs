@@ -12,7 +12,7 @@ use crate::{
         SendAuthEmailRequest, TokenResponse, ValidateTokenRequest, ValidateTokenResponse,
         VerifyAuthCodeRequest,
     },
-    error::{AuthenticationError, AuthorizationError, JwtError, TokenError},
+    error::{AuthenticationError, JwtError, TokenError},
     model::{AuthProvider, DeviceAuthorizationStatus, TokenType},
     repository::{
         DeviceRepository, DeviceRepositoryImpl, SessionRepository, SessionRepositoryImpl,
@@ -70,12 +70,12 @@ pub trait AuthenticationService: Send + Sync + 'static {
     async fn validate_token(
         &self,
         request: ValidateTokenRequest,
-    ) -> Result<ValidateTokenResponse, AuthorizationError>;
+    ) -> Result<ValidateTokenResponse, AuthenticationError>;
 
     async fn issue_task_token(
         &self,
         request: IssueTaskJwtRequest,
-    ) -> Result<IssueTaskJwtResponse, AuthorizationError>;
+    ) -> Result<IssueTaskJwtResponse, AuthenticationError>;
 }
 
 #[derive(Debug, Clone)]
@@ -464,12 +464,12 @@ where
     async fn validate_token(
         &self,
         request: ValidateTokenRequest,
-    ) -> Result<ValidateTokenResponse, AuthorizationError> {
+    ) -> Result<ValidateTokenResponse, AuthenticationError> {
         if !self.token_client.validate_token_format(&request.token) {
-            return Err(AuthorizationError::Unauthorized);
+            return Err(AuthenticationError::Unauthorized);
         }
         if !&request.token.starts_with(request.token_type.prefix()) {
-            return Err(AuthorizationError::Unauthorized);
+            return Err(AuthenticationError::Unauthorized);
         }
 
         let token_hash = hash_string(&request.token);
@@ -477,7 +477,7 @@ where
             .token_repo
             .get_token_by_hash(&token_hash)
             .await?
-            .ok_or(AuthorizationError::Unauthorized)?;
+            .ok_or(AuthenticationError::Unauthorized)?;
 
         self.token_repo.touch_token(access_token.id).await?;
 
@@ -489,7 +489,7 @@ where
     async fn issue_task_token(
         &self,
         request: IssueTaskJwtRequest,
-    ) -> Result<IssueTaskJwtResponse, AuthorizationError> {
+    ) -> Result<IssueTaskJwtResponse, AuthenticationError> {
         let now = Utc::now().timestamp() as usize;
         let claims = JwtClaims {
             iss: GITDOT_SERVER_ID.to_string(),

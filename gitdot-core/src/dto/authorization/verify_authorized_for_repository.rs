@@ -2,7 +2,7 @@ use uuid::Uuid;
 
 use crate::{
     dto::{OwnerName, RepositoryName},
-    error::AuthorizationError,
+    error::{AuthorizationError, InputError},
 };
 
 use super::RepositoryPermission;
@@ -24,10 +24,9 @@ impl RepositoryAuthorizationRequest {
     ) -> Result<Self, AuthorizationError> {
         Ok(Self {
             user_id,
-            owner: OwnerName::try_new(owner)
-                .map_err(|e| AuthorizationError::InvalidRequest(e.to_string()))?,
+            owner: OwnerName::try_new(owner).map_err(|e| InputError::new("owner name", e))?,
             repo: RepositoryName::try_new(repo)
-                .map_err(|e| AuthorizationError::InvalidRequest(e.to_string()))?,
+                .map_err(|e| InputError::new("repository name", e))?,
             permission,
         })
     }
@@ -107,7 +106,7 @@ mod tests {
             RepositoryPermission::Read,
         );
 
-        assert!(matches!(result, Err(AuthorizationError::InvalidRequest(_))));
+        assert!(matches!(result, Err(AuthorizationError::Input(_))));
     }
 
     #[test]
@@ -119,6 +118,6 @@ mod tests {
             RepositoryPermission::Read,
         );
 
-        assert!(matches!(result, Err(AuthorizationError::InvalidRequest(_))));
+        assert!(matches!(result, Err(AuthorizationError::Input(_))));
     }
 }

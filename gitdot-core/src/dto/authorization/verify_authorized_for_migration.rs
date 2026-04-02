@@ -1,6 +1,10 @@
 use uuid::Uuid;
 
-use crate::{dto::OwnerName, error::AuthorizationError, model::RepositoryOwnerType};
+use crate::{
+    dto::OwnerName,
+    error::{AuthorizationError, InputError},
+    model::RepositoryOwnerType,
+};
 
 #[derive(Debug, Clone)]
 pub struct MigrationAuthorizationRequest {
@@ -18,9 +22,9 @@ impl MigrationAuthorizationRequest {
         Ok(Self {
             user_id,
             owner_name: OwnerName::try_new(owner_name)
-                .map_err(|e| AuthorizationError::InvalidRequest(e.to_string()))?,
+                .map_err(|e| InputError::new("owner name", e))?,
             owner_type: RepositoryOwnerType::try_from(owner_type)
-                .map_err(|e| AuthorizationError::InvalidRequest(e.to_string()))?,
+                .map_err(|e| InputError::new("owner type", e))?,
         })
     }
 }

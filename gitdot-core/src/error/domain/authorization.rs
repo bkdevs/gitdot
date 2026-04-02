@@ -1,20 +1,17 @@
 use thiserror::Error;
 
-use crate::error::JwtError;
+use crate::error::{InputError, NotFoundError};
 
 #[derive(Debug, Error)]
 pub enum AuthorizationError {
-    #[error(transparent)]
-    Jwt(#[from] JwtError),
-
-    #[error("Invalid request: {0}")]
-    InvalidRequest(String),
-
-    #[error("Not found: {0}")]
-    NotFound(String),
-
     #[error("Unauthorized")]
     Unauthorized,
+
+    #[error(transparent)]
+    Input(#[from] InputError),
+
+    #[error(transparent)]
+    NotFound(#[from] NotFoundError),
 
     #[error("Database error: {0}")]
     DatabaseError(#[from] sqlx::Error),

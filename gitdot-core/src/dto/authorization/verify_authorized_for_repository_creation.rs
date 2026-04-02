@@ -1,6 +1,10 @@
 use uuid::Uuid;
 
-use crate::{dto::OwnerName, error::AuthorizationError, model::RepositoryOwnerType};
+use crate::{
+    dto::OwnerName,
+    error::{AuthorizationError, InputError},
+    model::RepositoryOwnerType,
+};
 
 #[derive(Debug, Clone)]
 pub struct RepositoryCreationAuthorizationRequest {
@@ -13,10 +17,9 @@ impl RepositoryCreationAuthorizationRequest {
     pub fn new(user_id: Uuid, owner: &str, owner_type: &str) -> Result<Self, AuthorizationError> {
         Ok(Self {
             user_id,
-            owner: OwnerName::try_new(owner)
-                .map_err(|e| AuthorizationError::InvalidRequest(e.to_string()))?,
+            owner: OwnerName::try_new(owner).map_err(|e| InputError::new("owner name", e))?,
             owner_type: RepositoryOwnerType::try_from(owner_type)
-                .map_err(|e| AuthorizationError::InvalidRequest(e.to_string()))?,
+                .map_err(|e| InputError::new("owner type", e))?,
         })
     }
 }

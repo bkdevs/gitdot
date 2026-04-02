@@ -98,8 +98,8 @@ impl HttpStatus for AuthenticationError {
 impl HttpStatus for AuthorizationError {
     fn status_code(&self) -> StatusCode {
         match self {
-            Self::Jwt(_) | Self::Unauthorized => StatusCode::UNAUTHORIZED,
-            Self::InvalidRequest(_) => StatusCode::BAD_REQUEST,
+            Self::Unauthorized => StatusCode::UNAUTHORIZED,
+            Self::Input(_) => StatusCode::BAD_REQUEST,
             Self::NotFound(_) => StatusCode::NOT_FOUND,
             Self::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
         }
@@ -181,7 +181,7 @@ impl HttpStatus for ReviewError {
             | Self::CommitsNotFound => StatusCode::BAD_REQUEST,
             Self::NotFound(_) => StatusCode::NOT_FOUND,
             Self::Conflict(_) | Self::DiffNotMergeable(_) => StatusCode::CONFLICT,
-            Self::NotOrgAdmin(_) | Self::Unauthorized(_) => StatusCode::FORBIDDEN,
+            Self::NotOrgAdmin(_) => StatusCode::FORBIDDEN,
             Self::GitError(_) | Self::DiffError(_) | Self::DatabaseError(_) => {
                 StatusCode::INTERNAL_SERVER_ERROR
             }

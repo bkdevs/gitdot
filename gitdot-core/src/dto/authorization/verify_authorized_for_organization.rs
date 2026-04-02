@@ -1,6 +1,9 @@
 use uuid::Uuid;
 
-use crate::{dto::OwnerName, error::AuthorizationError};
+use crate::{
+    dto::OwnerName,
+    error::{AuthorizationError, InputError},
+};
 
 #[derive(Debug, Clone)]
 pub struct OrganizationAuthorizationRequest {
@@ -13,7 +16,7 @@ impl OrganizationAuthorizationRequest {
         Ok(Self {
             user_id,
             org_name: OwnerName::try_new(org_name)
-                .map_err(|e| AuthorizationError::InvalidRequest(e.to_string()))?,
+                .map_err(|e| InputError::new("organization name", e))?,
         })
     }
 }

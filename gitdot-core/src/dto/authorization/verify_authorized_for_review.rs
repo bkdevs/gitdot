@@ -2,7 +2,7 @@ use uuid::Uuid;
 
 use crate::{
     dto::{OwnerName, RepositoryName},
-    error::AuthorizationError,
+    error::{AuthorizationError, InputError},
 };
 
 #[derive(Debug, Clone)]
@@ -22,10 +22,9 @@ impl ReviewAuthorizationRequest {
     ) -> Result<Self, AuthorizationError> {
         Ok(Self {
             user_id,
-            owner: OwnerName::try_new(owner_name)
-                .map_err(|e| AuthorizationError::InvalidRequest(e.to_string()))?,
+            owner: OwnerName::try_new(owner_name).map_err(|e| InputError::new("owner name", e))?,
             repo: RepositoryName::try_new(repo_name)
-                .map_err(|e| AuthorizationError::InvalidRequest(e.to_string()))?,
+                .map_err(|e| InputError::new("repository name", e))?,
             number,
         })
     }
