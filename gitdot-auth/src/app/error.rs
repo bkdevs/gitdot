@@ -32,7 +32,7 @@ impl IntoResponse for AppError {
                     | AuthenticationError::TokenExpired(_)
                     | AuthenticationError::TokenRevoked(_)
                     | AuthenticationError::Unauthorized => StatusCode::UNAUTHORIZED,
-                    AuthenticationError::TokenClientError(_)
+                    AuthenticationError::TokenError(_)
                     | AuthenticationError::GitHubError(_)
                     | AuthenticationError::EmailError(_)
                     | AuthenticationError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,

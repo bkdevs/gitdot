@@ -81,7 +81,7 @@ impl HttpStatus for AuthenticationError {
             | Self::TokenExpired(_)
             | Self::TokenRevoked(_)
             | Self::Unauthorized => StatusCode::UNAUTHORIZED,
-            Self::TokenClientError(_)
+            Self::TokenError(_)
             | Self::EmailError(_)
             | Self::GitHubError(_)
             | Self::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
