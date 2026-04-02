@@ -4,7 +4,7 @@ mod ci;
 mod core;
 mod migration;
 
-pub use authentication::AuthenticationError;
+pub use authentication::{AuthenticationError, TokenExtractionError};
 pub use authorization::AuthorizationError;
 pub use ci::*;
 pub use core::*;
