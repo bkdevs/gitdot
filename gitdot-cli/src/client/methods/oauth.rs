@@ -1,6 +1,6 @@
 use anyhow::Result;
 
-use gitdot_api::endpoint::oauth::{
+use gitdot_api::endpoint::auth::device::{
     create_device_code::{CreateDeviceCodeRequest, CreateDeviceCodeResponse},
     poll_token::{PollTokenRequest, PollTokenResponse},
 };
@@ -12,7 +12,8 @@ impl GitdotClient {
         let request = CreateDeviceCodeRequest {
             client_id: self.get_client_id().to_string(),
         };
-        self.post("oauth/device".to_string(), request).await
+        self.auth_post("auth/device/code".to_string(), request)
+            .await
     }
 
     pub async fn poll_token(&self, device_code: &str) -> Result<PollTokenResponse> {
@@ -20,6 +21,7 @@ impl GitdotClient {
             client_id: self.get_client_id().to_string(),
             device_code: device_code.to_string(),
         };
-        self.post("oauth/token".to_string(), request).await
+        self.auth_post("auth/device/token".to_string(), request)
+            .await
     }
 }
