@@ -1,6 +1,9 @@
-use std::convert::Infallible;
+use std::{convert::Infallible, net::SocketAddr};
 
-use axum::{extract::FromRequestParts, http::request::Parts};
+use axum::{
+    extract::{ConnectInfo, FromRequestParts},
+    http::request::Parts,
+};
 
 pub struct ClientIp(pub Option<String>);
 
@@ -20,6 +23,12 @@ impl<S: Send + Sync> FromRequestParts<S> for ClientIp {
                     .get("x-real-ip")
                     .and_then(|v| v.to_str().ok())
                     .map(|v| v.to_string())
+            })
+            .or_else(|| {
+                parts
+                    .extensions
+                    .get::<ConnectInfo<SocketAddr>>()
+                    .map(|ci| ci.0.ip().to_string())
             });
 
         Ok(ClientIp(ip))
