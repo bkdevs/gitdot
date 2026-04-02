@@ -91,10 +91,6 @@ impl GitdotClient {
         &self.server_url
     }
 
-    pub fn get_auth_server_url(&self) -> &str {
-        &self.auth_server_url
-    }
-
     pub(crate) async fn get<T, R>(&self, path: String, request: T) -> Result<R, Error>
     where
         T: ApiRequest,
