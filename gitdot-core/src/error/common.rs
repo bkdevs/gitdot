@@ -1,9 +1,9 @@
 mod conflict;
+mod extraction;
 mod input;
-mod jwt;
 mod not_found;
 
 pub use conflict::ConflictError;
+pub use extraction::TokenExtractionError;
 pub use input::InputError;
-pub use jwt::JwtError;
 pub use not_found::NotFoundError;

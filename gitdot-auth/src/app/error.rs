@@ -24,19 +24,18 @@ impl IntoResponse for AppError {
         match self {
             AppError::Authentication(e) => {
                 let status_code = match &e {
-                    AuthenticationError::Input(_) => StatusCode::BAD_REQUEST,
-                    AuthenticationError::Jwt(_) => StatusCode::UNAUTHORIZED,
-                    AuthenticationError::Unauthorized => StatusCode::UNAUTHORIZED,
-                    AuthenticationError::AuthCodeNotFound => StatusCode::NOT_FOUND,
-                    AuthenticationError::AuthCodeAlreadyUsed => StatusCode::GONE,
-                    AuthenticationError::AuthCodeExpired => StatusCode::GONE,
-                    AuthenticationError::SessionNotFound => StatusCode::UNAUTHORIZED,
-                    AuthenticationError::SessionExpired => StatusCode::UNAUTHORIZED,
-                    AuthenticationError::SessionRevoked => StatusCode::UNAUTHORIZED,
-                    AuthenticationError::InvalidOAuthState(_) => StatusCode::BAD_REQUEST,
-                    AuthenticationError::GitHubError(_) => StatusCode::BAD_GATEWAY,
-                    AuthenticationError::EmailError(_) => StatusCode::BAD_GATEWAY,
-                    AuthenticationError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+                    AuthenticationError::Input(_) | AuthenticationError::TokenPending(_) => {
+                        StatusCode::BAD_REQUEST
+                    }
+                    AuthenticationError::NotFound(_) => StatusCode::NOT_FOUND,
+                    AuthenticationError::Extraction(_)
+                    | AuthenticationError::TokenExpired(_)
+                    | AuthenticationError::TokenRevoked(_)
+                    | AuthenticationError::Unauthorized => StatusCode::UNAUTHORIZED,
+                    AuthenticationError::TokenClientError(_)
+                    | AuthenticationError::GitHubError(_)
+                    | AuthenticationError::EmailError(_)
+                    | AuthenticationError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                 };
                 let body = ErrorMessage {
                     message: e.to_string(),

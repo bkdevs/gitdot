@@ -10,7 +10,6 @@ mod repository;
 mod review;
 mod runner;
 mod task;
-mod token;
 mod user;
 mod webhook;
 
@@ -26,6 +25,5 @@ pub use repository::RepositoryError;
 pub use review::ReviewError;
 pub use runner::RunnerError;
 pub use task::TaskError;
-pub use token::TokenError;
 pub use user::UserError;
 pub use webhook::WebhookError;

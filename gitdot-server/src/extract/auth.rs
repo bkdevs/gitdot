@@ -11,7 +11,7 @@ use uuid::Uuid;
 
 use gitdot_core::{
     dto::{JwtClaims, ValidateTokenRequest},
-    error::{AuthenticationError, JwtError},
+    error::{AuthenticationError, TokenExtractionError},
     model::TokenType,
     util::auth::GITDOT_SERVER_ID,
 };
@@ -95,7 +95,7 @@ impl Authenticator for User {
             return Ok(Principal::new(token_user.id));
         }
 
-        Err(JwtError::InvalidHeaderFormat.into())
+        Err(TokenExtractionError::InvalidHeaderFormat.into())
     }
 }
 
@@ -110,17 +110,17 @@ impl Authenticator for UserJwt {
         let header = extract_auth_header(parts)?;
         let jwt = header
             .strip_prefix("Bearer ")
-            .ok_or(JwtError::InvalidHeaderFormat)?;
+            .ok_or(TokenExtractionError::InvalidHeaderFormat)?;
 
         let mut validation = Validation::new(Algorithm::EdDSA);
         validation.set_audience(&[GITDOT_SERVER_ID]);
 
         let key = DecodingKey::from_ed_pem(app_state.settings.gitdot_public_key.as_bytes())
-            .map_err(|e| JwtError::InvalidPublicKey(e.to_string()))?;
+            .map_err(|e| TokenExtractionError::InvalidPublicKey(e.to_string()))?;
         let jwt_data = decode::<JwtClaims>(jwt, &key, &validation)
-            .map_err(|e| JwtError::InvalidToken(e.to_string()))?;
+            .map_err(|e| TokenExtractionError::InvalidToken(e.to_string()))?;
         let id = Uuid::parse_str(&jwt_data.claims.sub)
-            .map_err(|e| JwtError::InvalidToken(e.to_string()))?;
+            .map_err(|e| TokenExtractionError::InvalidToken(e.to_string()))?;
 
         Ok(Principal::new(id))
     }
@@ -187,17 +187,17 @@ impl Authenticator for TaskJwt {
         let header = extract_auth_header(parts)?;
         let jwt = header
             .strip_prefix("Bearer ")
-            .ok_or(JwtError::InvalidHeaderFormat)?;
+            .ok_or(TokenExtractionError::InvalidHeaderFormat)?;
 
         let mut validation = Validation::new(Algorithm::EdDSA);
         validation.set_audience(&[GITDOT_SERVER_ID]);
 
         let key = DecodingKey::from_ed_pem(app_state.settings.gitdot_public_key.as_bytes())
-            .map_err(|e| JwtError::InvalidPublicKey(e.to_string()))?;
+            .map_err(|e| TokenExtractionError::InvalidPublicKey(e.to_string()))?;
         let jwt_data = decode::<JwtClaims>(jwt, &key, &validation)
-            .map_err(|e| JwtError::InvalidToken(e.to_string()))?;
+            .map_err(|e| TokenExtractionError::InvalidToken(e.to_string()))?;
         let id = Uuid::parse_str(&jwt_data.claims.sub)
-            .map_err(|e| JwtError::InvalidToken(e.to_string()))?;
+            .map_err(|e| TokenExtractionError::InvalidToken(e.to_string()))?;
 
         Ok(Principal::new(id))
     }
@@ -206,17 +206,19 @@ impl Authenticator for TaskJwt {
 fn extract_token(header: &str) -> Result<String, AuthenticationError> {
     let token = header
         .strip_prefix("Basic ")
-        .ok_or(JwtError::InvalidHeaderFormat)?;
+        .ok_or(TokenExtractionError::InvalidHeaderFormat)?;
 
     let decoded = base64::engine::general_purpose::STANDARD
         .decode(token)
-        .map_err(|e| JwtError::InvalidToken(e.to_string()))?;
-    let token_str =
-        String::from_utf8(decoded).map_err(|e| JwtError::InvalidToken(e.to_string()))?;
+        .map_err(|e| TokenExtractionError::InvalidToken(e.to_string()))?;
+    let token_str = String::from_utf8(decoded)
+        .map_err(|e| TokenExtractionError::InvalidToken(e.to_string()))?;
 
     let (_, token) = token_str
         .split_once(':')
-        .ok_or(JwtError::InvalidToken("Invalid token format".to_string()))?;
+        .ok_or(TokenExtractionError::InvalidToken(
+            "Invalid token format".to_string(),
+        ))?;
 
     Ok(token.to_string())
 }
@@ -226,5 +228,7 @@ fn extract_auth_header(parts: &Parts) -> Result<&str, AuthenticationError> {
         .headers
         .get("Authorization")
         .and_then(|value| value.to_str().ok())
-        .ok_or(AuthenticationError::Jwt(JwtError::MissingHeader))
+        .ok_or(AuthenticationError::Extraction(
+            TokenExtractionError::MissingHeader,
+        ))
 }

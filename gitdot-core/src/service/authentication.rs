@@ -12,7 +12,7 @@ use crate::{
         SendAuthEmailRequest, TokenResponse, ValidateTokenRequest, ValidateTokenResponse,
         VerifyAuthCodeRequest,
     },
-    error::{AuthenticationError, JwtError, TokenError},
+    error::{AuthenticationError, InputError, NotFoundError},
     model::{AuthProvider, DeviceAuthorizationStatus, TokenType},
     repository::{
         DeviceRepository, DeviceRepositoryImpl, SessionRepository, SessionRepositoryImpl,
@@ -59,11 +59,17 @@ pub trait AuthenticationService: Send + Sync + 'static {
     async fn request_device_code(
         &self,
         request: DeviceCodeRequest,
-    ) -> Result<DeviceCodeResponse, TokenError>;
+    ) -> Result<DeviceCodeResponse, AuthenticationError>;
 
-    async fn poll_token(&self, request: PollTokenRequest) -> Result<TokenResponse, TokenError>;
+    async fn poll_token(
+        &self,
+        request: PollTokenRequest,
+    ) -> Result<TokenResponse, AuthenticationError>;
 
-    async fn authorize_device(&self, request: AuthorizeDeviceRequest) -> Result<(), TokenError>;
+    async fn authorize_device(
+        &self,
+        request: AuthorizeDeviceRequest,
+    ) -> Result<(), AuthenticationError>;
 
     // --- Token operations ---
 
@@ -183,13 +189,13 @@ where
             .session_repo
             .get_auth_code_by_hash(&code_hash)
             .await?
-            .ok_or(AuthenticationError::AuthCodeNotFound)?;
+            .ok_or(NotFoundError::new("auth_code", &code_hash))?;
 
         if auth_code.used_at.is_some() {
-            return Err(AuthenticationError::AuthCodeAlreadyUsed);
+            return Err(AuthenticationError::TokenRevoked("auth_code".into()));
         }
         if auth_code.expires_at < Utc::now() {
-            return Err(AuthenticationError::AuthCodeExpired);
+            return Err(AuthenticationError::TokenExpired("auth_code".into()));
         }
 
         self.session_repo.mark_auth_code_used(auth_code.id).await?;
@@ -199,15 +205,14 @@ where
             .user_repo
             .get_by_id(auth_code.user_id)
             .await?
-            .ok_or(AuthenticationError::AuthCodeNotFound)?;
+            .ok_or(NotFoundError::new("user", auth_code.user_id))?;
         let orgs = self
             .user_repo
             .get_org_memberships(auth_code.user_id)
             .await?;
         let access_token = self
             .token_client
-            .generate_gitdot_jwt(user.id, &user.name, &orgs)
-            .map_err(JwtError::SigningError)?;
+            .generate_gitdot_jwt(user.id, &user.name, &orgs)?;
 
         let (refresh_token, refresh_token_hash) = self.token_client.generate_high_entropic_code();
         let refresh_expiry_secs = self.token_client.get_refresh_token_expiry_in_seconds();
@@ -241,16 +246,16 @@ where
             .session_repo
             .get_session_by_refresh_hash(&token_hash)
             .await?
-            .ok_or(AuthenticationError::SessionNotFound)?;
+            .ok_or(NotFoundError::new("session", &token_hash))?;
 
         if session.revoked_at.is_some() {
             self.session_repo
                 .revoke_sessions_by_family(session.refresh_token_family)
                 .await?;
-            return Err(AuthenticationError::SessionRevoked);
+            return Err(AuthenticationError::TokenRevoked("session".into()));
         }
         if session.expires_at < Utc::now() {
-            return Err(AuthenticationError::SessionExpired);
+            return Err(AuthenticationError::TokenExpired("session".into()));
         }
 
         self.session_repo.revoke_session(session.id).await?;
@@ -259,12 +264,11 @@ where
             .user_repo
             .get_by_id(session.user_id)
             .await?
-            .ok_or(AuthenticationError::SessionNotFound)?;
+            .ok_or(NotFoundError::new("user", session.user_id))?;
         let orgs = self.user_repo.get_org_memberships(session.user_id).await?;
         let access_token = self
             .token_client
-            .generate_gitdot_jwt(user.id, &user.name, &orgs)
-            .map_err(JwtError::SigningError)?;
+            .generate_gitdot_jwt(user.id, &user.name, &orgs)?;
 
         let (refresh_token, refresh_token_hash) = self.token_client.generate_high_entropic_code();
         let refresh_expiry_secs = self.token_client.get_refresh_token_expiry_in_seconds();
@@ -295,7 +299,7 @@ where
             .session_repo
             .get_session_by_refresh_hash(&token_hash)
             .await?
-            .ok_or(AuthenticationError::SessionNotFound)?;
+            .ok_or(NotFoundError::new("session", &token_hash))?;
 
         self.session_repo.revoke_session(session.id).await?;
 
@@ -317,7 +321,7 @@ where
     ) -> Result<AuthTokensResponse, AuthenticationError> {
         self.token_client
             .verify_oauth_state(&request.state)
-            .map_err(AuthenticationError::InvalidOAuthState)?;
+            .map_err(|_| AuthenticationError::Unauthorized)?;
 
         let github_token = self.github_client.exchange_code(&request.code).await?;
         let email = self.github_client.get_user_email(&github_token).await?;
@@ -335,8 +339,7 @@ where
         let orgs = self.user_repo.get_org_memberships(user.id).await?;
         let access_token = self
             .token_client
-            .generate_gitdot_jwt(user.id, &user.name, &orgs)
-            .map_err(JwtError::SigningError)?;
+            .generate_gitdot_jwt(user.id, &user.name, &orgs)?;
 
         let (refresh_token, refresh_token_hash) = self.token_client.generate_high_entropic_code();
         let refresh_expiry_secs = self.token_client.get_refresh_token_expiry_in_seconds();
@@ -364,7 +367,7 @@ where
     async fn request_device_code(
         &self,
         request: DeviceCodeRequest,
-    ) -> Result<DeviceCodeResponse, TokenError> {
+    ) -> Result<DeviceCodeResponse, AuthenticationError> {
         let (device_code, device_code_hash) = self.token_client.generate_high_entropic_code();
         let user_code = self.token_client.generate_readable_code();
         let expiry_secs = self.token_client.get_device_code_expiry_in_seconds();
@@ -388,13 +391,16 @@ where
         })
     }
 
-    async fn poll_token(&self, request: PollTokenRequest) -> Result<TokenResponse, TokenError> {
+    async fn poll_token(
+        &self,
+        request: PollTokenRequest,
+    ) -> Result<TokenResponse, AuthenticationError> {
         let device_code_hash = hash_string(&request.device_code);
         let device_auth = self
             .device_repo
             .get_device_authorization_by_device_code_hash(&device_code_hash)
             .await?
-            .ok_or(TokenError::InvalidDeviceCode)?;
+            .ok_or(NotFoundError::new("device_code", &device_code_hash))?;
 
         if device_auth.expires_at < Utc::now()
             && device_auth.status == DeviceAuthorizationStatus::Pending
@@ -402,27 +408,26 @@ where
             self.device_repo
                 .expire_device_authorization(device_auth.id)
                 .await?;
-            return Err(TokenError::ExpiredToken);
+            return Err(AuthenticationError::TokenExpired("device_code".into()));
         }
 
         match device_auth.status {
             DeviceAuthorizationStatus::Pending => {
-                return Err(TokenError::AuthorizationPending);
+                return Err(AuthenticationError::TokenPending("device_code".into()));
             }
             DeviceAuthorizationStatus::Expired => {
-                return Err(TokenError::ExpiredToken);
+                return Err(AuthenticationError::TokenExpired("device_code".into()));
             }
             DeviceAuthorizationStatus::Authorized => {
                 let user_id = device_auth
                     .user_id
-                    .ok_or(TokenError::InvalidRequest("Missing user_id".to_string()))?;
+                    .ok_or(InputError::new("user_id", "missing"))?;
 
                 let user = self
                     .user_repo
                     .get_by_id(user_id)
-                    .await
-                    .map_err(|e| TokenError::InvalidRequest(e.to_string()))?
-                    .ok_or(TokenError::InvalidRequest("User not found".to_string()))?;
+                    .await?
+                    .ok_or(NotFoundError::new("user", user_id))?;
 
                 let (access_token, token_hash) = self
                     .token_client
@@ -450,13 +455,14 @@ where
         }
     }
 
-    async fn authorize_device(&self, request: AuthorizeDeviceRequest) -> Result<(), TokenError> {
+    async fn authorize_device(
+        &self,
+        request: AuthorizeDeviceRequest,
+    ) -> Result<(), AuthenticationError> {
         self.device_repo
             .authorize_device(&request.user_code, request.user_id)
             .await?
-            .ok_or(TokenError::InvalidUserCode(
-                "User code not found".to_string(),
-            ))?;
+            .ok_or(NotFoundError::new("user_code", request.user_code.as_ref()))?;
 
         Ok(())
     }
@@ -498,10 +504,7 @@ where
             iat: now,
             exp: now + request.duration.as_secs() as usize,
         };
-        let token = self
-            .token_client
-            .generate_jwt(&claims)
-            .map_err(JwtError::SigningError)?;
+        let token = self.token_client.generate_jwt(&claims)?;
 
         Ok(IssueTaskJwtResponse { token })
     }

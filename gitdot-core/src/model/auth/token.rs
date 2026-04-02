@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 use sqlx::{FromRow, Type};
 use uuid::Uuid;
 
-use crate::error::TokenError;
+use crate::error::{AuthenticationError, InputError};
 
 #[derive(Debug, Clone, FromRow)]
 pub struct AccessToken {
@@ -32,16 +32,15 @@ impl TokenType {
 }
 
 impl TryFrom<&str> for TokenType {
-    type Error = TokenError;
+    type Error = AuthenticationError;
 
     fn try_from(token_type: &str) -> Result<Self, Self::Error> {
         match token_type {
             "personal" => Ok(TokenType::Personal),
             "runner" => Ok(TokenType::Runner),
-            _ => Err(TokenError::InvalidRequest(format!(
-                "Invalid token type: {}",
-                token_type
-            ))),
+            _ => Err(
+                InputError::new("token_type", format!("Invalid token type: {}", token_type)).into(),
+            ),
         }
     }
 }

@@ -9,7 +9,7 @@ use gitdot_api::ApiResource;
 use gitdot_core::error::{
     AuthenticationError, AuthorizationError, BuildError, CommitError, GitHttpError, MigrationError,
     OrganizationError, QuestionError, RepositoryError, ReviewError, RunnerError, TaskError,
-    TokenError, UserError, WebhookError,
+    UserError, WebhookError,
 };
 
 use super::AppResponse;
@@ -21,9 +21,6 @@ pub enum AppError {
 
     #[error(transparent)]
     Authorization(#[from] AuthorizationError),
-
-    #[error(transparent)]
-    Token(#[from] TokenError),
 
     #[error(transparent)]
     User(#[from] UserError),
@@ -78,19 +75,16 @@ pub trait HttpStatus {
 impl HttpStatus for AuthenticationError {
     fn status_code(&self) -> StatusCode {
         match self {
-            Self::Input(_) => StatusCode::BAD_REQUEST,
-            Self::Jwt(_)
-            | Self::Unauthorized
-            | Self::AuthCodeNotFound
-            | Self::AuthCodeAlreadyUsed
-            | Self::AuthCodeExpired
-            | Self::SessionNotFound
-            | Self::SessionExpired
-            | Self::SessionRevoked
-            | Self::InvalidOAuthState(_) => StatusCode::UNAUTHORIZED,
-            Self::EmailError(_) | Self::GitHubError(_) | Self::DatabaseError(_) => {
-                StatusCode::INTERNAL_SERVER_ERROR
-            }
+            Self::Input(_) | Self::TokenPending(_) => StatusCode::BAD_REQUEST,
+            Self::NotFound(_) => StatusCode::NOT_FOUND,
+            Self::Extraction(_)
+            | Self::TokenExpired(_)
+            | Self::TokenRevoked(_)
+            | Self::Unauthorized => StatusCode::UNAUTHORIZED,
+            Self::TokenClientError(_)
+            | Self::EmailError(_)
+            | Self::GitHubError(_)
+            | Self::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
 }
@@ -102,15 +96,6 @@ impl HttpStatus for AuthorizationError {
             Self::Input(_) => StatusCode::BAD_REQUEST,
             Self::NotFound(_) => StatusCode::NOT_FOUND,
             Self::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
-        }
-    }
-}
-
-impl HttpStatus for TokenError {
-    fn status_code(&self) -> StatusCode {
-        match self {
-            Self::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
-            _ => StatusCode::BAD_REQUEST,
         }
     }
 }
@@ -264,7 +249,6 @@ impl IntoResponse for AppError {
         match self {
             AppError::Authentication(e) => error_response(e.status_code(), e.to_string()),
             AppError::Authorization(e) => error_response(e.status_code(), e.to_string()),
-            AppError::Token(e) => error_response(e.status_code(), e.to_string()),
             AppError::User(e) => error_response(e.status_code(), e.to_string()),
             AppError::Organization(e) => error_response(e.status_code(), e.to_string()),
             AppError::Repository(e) => error_response(e.status_code(), e.to_string()),

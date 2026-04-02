@@ -9,6 +9,7 @@ use uuid::Uuid;
 
 use crate::{
     dto::{GitdotClaims, OAuthStatePayload, UserMetadata},
+    error::TokenError,
     model::TokenType,
     util::{auth::GITDOT_SERVER_ID, crypto::hash_string},
 };
@@ -45,13 +46,13 @@ pub trait TokenClient: Send + Sync + Clone + 'static {
     fn verify_oauth_state(&self, state: &str) -> Result<(), String>;
 
     // JWT operations
-    fn generate_jwt<T: Serialize + Send + Sync>(&self, claims: &T) -> Result<String, String>;
+    fn generate_jwt<T: Serialize + Send + Sync>(&self, claims: &T) -> Result<String, TokenError>;
     fn generate_gitdot_jwt(
         &self,
         user_id: Uuid,
         username: &str,
         orgs: &[(String, String)],
-    ) -> Result<String, String>;
+    ) -> Result<String, TokenError>;
 }
 
 #[derive(Debug, Clone)]
@@ -203,10 +204,11 @@ impl TokenClient for TokenClientImpl {
         Ok(())
     }
 
-    fn generate_jwt<T: Serialize + Send + Sync>(&self, claims: &T) -> Result<String, String> {
+    fn generate_jwt<T: Serialize + Send + Sync>(&self, claims: &T) -> Result<String, TokenError> {
         let encoding_key = EncodingKey::from_ed_pem(self.gitdot_private_key.as_bytes())
-            .map_err(|e| e.to_string())?;
-        encode(&Header::new(Algorithm::EdDSA), claims, &encoding_key).map_err(|e| e.to_string())
+            .map_err(|e| TokenError::SigningError(e.to_string()))?;
+        encode(&Header::new(Algorithm::EdDSA), claims, &encoding_key)
+            .map_err(|e| TokenError::SigningError(e.to_string()))
     }
 
     fn generate_gitdot_jwt(
@@ -214,7 +216,7 @@ impl TokenClient for TokenClientImpl {
         user_id: Uuid,
         username: &str,
         orgs: &[(String, String)],
-    ) -> Result<String, String> {
+    ) -> Result<String, TokenError> {
         let now = Utc::now().timestamp() as usize;
         let claims = GitdotClaims {
             iss: GITDOT_SERVER_ID.to_string(),

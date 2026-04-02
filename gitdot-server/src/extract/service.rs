@@ -9,7 +9,7 @@ use jsonwebtoken::{Algorithm, DecodingKey, Validation, decode, decode_header};
 
 use gitdot_core::{
     dto::JwtClaims,
-    error::{AuthenticationError, JwtError},
+    error::{AuthenticationError, TokenExtractionError},
 };
 
 use crate::app::{AppError, AppState};
@@ -53,22 +53,23 @@ impl Authenticator for Vercel {
             .headers
             .get("x-vercel-oidc-token")
             .and_then(|v| v.to_str().ok())
-            .ok_or(JwtError::MissingHeader)?;
+            .ok_or(TokenExtractionError::MissingHeader)?;
 
-        let jwt_header = decode_header(token).map_err(|e| JwtError::InvalidToken(e.to_string()))?;
-        let kid = jwt_header
-            .kid
-            .ok_or(JwtError::InvalidToken("missing kid".to_string()))?;
+        let jwt_header =
+            decode_header(token).map_err(|e| TokenExtractionError::InvalidToken(e.to_string()))?;
+        let kid = jwt_header.kid.ok_or(TokenExtractionError::InvalidToken(
+            "missing kid".to_string(),
+        ))?;
 
         let jwk = app_state
             .vercel_jwks
             .find(&kid)
-            .ok_or(JwtError::InvalidToken(format!(
+            .ok_or(TokenExtractionError::InvalidToken(format!(
                 "no matching key for kid: {kid}"
             )))?;
 
-        let key =
-            DecodingKey::from_jwk(jwk).map_err(|e| JwtError::InvalidPublicKey(e.to_string()))?;
+        let key = DecodingKey::from_jwk(jwk)
+            .map_err(|e| TokenExtractionError::InvalidPublicKey(e.to_string()))?;
 
         let issuer = &app_state.settings.vercel_oidc_url;
         let audience = issuer.replace("oidc.vercel.com", "vercel.com");
@@ -78,7 +79,7 @@ impl Authenticator for Vercel {
         validation.set_issuer(&[issuer]);
 
         decode::<JwtClaims>(token, &key, &validation)
-            .map_err(|e| JwtError::InvalidToken(e.to_string()))?;
+            .map_err(|e| TokenExtractionError::InvalidToken(e.to_string()))?;
 
         Ok(())
     }
