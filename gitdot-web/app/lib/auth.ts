@@ -13,7 +13,7 @@ import { cookies } from "next/headers";
 import type { NextRequest } from "next/server";
 
 export const GITDOT_AUTH_SERVER_URL =
-  process.env.GITDOT_AUTH_SERVER_URL ?? "http://localhost:8081";
+  process.env.GITDOT_AUTH_SERVER_URL ?? "http://localhost:8082";
 
 // As we use SSR, setting cookies in the Rust server does not propagate them to the browser.
 // Therefore, we set the cookies manually in the Next.js server. This is how Supabase does it as well.
