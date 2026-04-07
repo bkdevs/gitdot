@@ -6,10 +6,12 @@ alias b := build-all
 alias l:= lint-all
 alias t:= test-all
 
+DB_CONTAINER := "gitdot-db"
+
 
 # ── Install ───────────────────────────────────────────────────────────────────
 
-# Install dependencies and build (requires pnpm and cargo)
+# Install dependencies and build (requires pnpm, cargo, and docker)
 install:
     #!/usr/bin/env bash
     set -e
@@ -23,18 +25,65 @@ install:
         echo "Please install Rust and cargo: https://rustup.rs/"
         exit 1
     fi
+    if ! command -v docker &> /dev/null; then
+        echo "Error: docker is not installed."
+        echo "Please install Docker: https://docs.docker.com/get-docker/"
+        exit 1
+    fi
     echo "Running pnpm install"
     cd gitdot-web && pnpm install
     echo "Running cargo build"
     cd .. && cargo build
+    echo "Starting local Postgres..."
+    just db
+    echo "Running migrations..."
+    just migrate
     echo "Install complete!"
+
+# ── Database ─────────────────────────────────────────────────────────────────
+
+# Start local Postgres in Docker (idempotent)
+db:
+    #!/usr/bin/env bash
+    set -e
+    if ! docker info &>/dev/null; then
+        echo "Error: Docker is not running."
+        exit 1
+    fi
+    if docker ps -q -f name={{DB_CONTAINER}} | grep -q .; then
+        echo "Postgres already running."
+    elif docker ps -aq -f name={{DB_CONTAINER}} | grep -q .; then
+        echo "Starting existing container '{{DB_CONTAINER}}'..."
+        docker start {{DB_CONTAINER}}
+        sleep 1
+    else
+        echo "Creating Postgres container '{{DB_CONTAINER}}'..."
+        docker run -d \
+            --name {{DB_CONTAINER}} \
+            -e POSTGRES_USER=postgres \
+            -e POSTGRES_PASSWORD=postgres \
+            -e POSTGRES_DB=gitdot \
+            -p 5432:5432 \
+            postgres:16
+        echo "Waiting for Postgres to be ready..."
+        sleep 3
+    fi
+
+# Stop local Postgres container
+db-stop:
+    docker stop {{DB_CONTAINER}}
 
 # ── Dev (run services) ──────────────────────────────────────────────────────
 
 # Start frontend, backend, and s2-server in a tmux session
 dev:
     #!/usr/bin/env bash
+    set -e
     SESSION_NAME="gitdot"
+
+    echo "Starting local Postgres..."
+    just db
+
     if tmux has-session -t "$SESSION_NAME" 2>/dev/null; then
         echo "Killing existing tmux session '$SESSION_NAME'..."
         tmux kill-session -t "$SESSION_NAME"
@@ -46,6 +95,7 @@ dev:
 
     tmux new-session -d -s "$SESSION_NAME" -c "$PROJECT_ROOT/gitdot-web" -n "gitdot-web" "pnpm run dev"
     tmux new-window -d -t "${SESSION_NAME}:" -c "$PROJECT_ROOT/gitdot-server" -n "gitdot-server" "cargo run"
+    tmux new-window -d -t "${SESSION_NAME}:" -c "$PROJECT_ROOT/gitdot-auth" -n "gitdot-auth" "PORT=8082 cargo run"
     tmux new-window -d -t "${SESSION_NAME}:" -c "$PROJECT_ROOT/s2-server" -n "s2" "cargo run -- --port 8081"
 
     tmux attach-session -t "$SESSION_NAME"
@@ -57,6 +107,10 @@ web:
 # Run backend server
 server:
     cd gitdot-server && cargo run
+
+# Run auth server
+auth:
+    cd gitdot-auth && PORT=8082 cargo run
 
 # Run s2-server
 s2:

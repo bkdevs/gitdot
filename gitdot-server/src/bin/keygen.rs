@@ -17,14 +17,22 @@ fn main() {
     }
 
     let server_env = Path::new("gitdot-server/.env");
+    let auth_env = Path::new("gitdot-auth/.env");
     let s2_env = Path::new("s2-server/.env");
 
     if server_env.exists() {
         let contents = fs::read_to_string(server_env).expect("failed to read gitdot-server/.env");
-        if contents.contains("GITDOT_PRIVATE_KEY") || contents.contains("GITDOT_PUBLIC_KEY") {
+        if contents.contains("GITDOT_PUBLIC_KEY") {
             eprintln!(
-                "Error: GITDOT_PRIVATE_KEY or GITDOT_PUBLIC_KEY already exists in gitdot-server/.env"
+                "Error: GITDOT_PUBLIC_KEY already exists in gitdot-server/.env"
             );
+            std::process::exit(1);
+        }
+    }
+    if auth_env.exists() {
+        let contents = fs::read_to_string(auth_env).expect("failed to read gitdot-auth/.env");
+        if contents.contains("GITDOT_PRIVATE_KEY") {
+            eprintln!("Error: GITDOT_PRIVATE_KEY already exists in gitdot-auth/.env");
             std::process::exit(1);
         }
     }
@@ -54,16 +62,28 @@ fn main() {
         .expect("failed to open gitdot-server/.env");
     writeln!(
         server_file,
-        "GITDOT_PRIVATE_KEY=\"{}\"",
-        private_pem.as_str().trim_end()
-    )
-    .expect("failed to write to gitdot-server/.env");
-    writeln!(
-        server_file,
         "GITDOT_PUBLIC_KEY=\"{}\"",
         public_pem.trim_end()
     )
     .expect("failed to write to gitdot-server/.env");
+
+    let mut auth_file = OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(auth_env)
+        .expect("failed to open gitdot-auth/.env");
+    writeln!(
+        auth_file,
+        "GITDOT_PRIVATE_KEY=\"{}\"",
+        private_pem.as_str().trim_end()
+    )
+    .expect("failed to write to gitdot-auth/.env");
+    writeln!(
+        auth_file,
+        "GITDOT_PUBLIC_KEY=\"{}\"",
+        public_pem.trim_end()
+    )
+    .expect("failed to write to gitdot-auth/.env");
 
     let mut s2_file = OpenOptions::new()
         .create(true)
@@ -73,6 +93,6 @@ fn main() {
     writeln!(s2_file, "GITDOT_PUBLIC_KEY=\"{}\"", public_pem.trim_end())
         .expect("failed to write to s2-server/.env");
 
-    println!("Public key written to s2-server/.env:");
-    println!("Private key written to gitdot-server/.env");
+    println!("Public key written to gitdot-server/.env and s2-server/.env");
+    println!("Private key written to gitdot-auth/.env");
 }
