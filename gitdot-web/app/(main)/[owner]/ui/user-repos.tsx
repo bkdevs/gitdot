@@ -1,24 +1,21 @@
-const FAKE_REPOS = [
-  { name: "gitdot", stars: 847 },
-  { name: "s2-sdk-rs", stars: 312 },
-  { name: "axum-auth", stars: 204 },
-  { name: "pg-migrate", stars: 178 },
-  { name: "dotfiles", stars: 94 },
-  { name: "advent-of-code", stars: 41 },
-  { name: "til", stars: 29 },
-  { name: "scratchpad", stars: 4 },
-];
+import { listUserRepositories } from "@/dal";
+import Link from "@/ui/link";
 
-export function UserRepos({ owner }: { owner: string }) {
+export async function UserRepos({ owner }: { owner: string }) {
+  const repos = await listUserRepositories(owner);
+
+  if (!repos?.length) return null;
+
   return (
     <div className="flex flex-col items-end">
-      <p className="font-semibold text-sm mb-1">repos</p>
+      <p className="font-semibold text-sm">repos</p>
       <div className="flex flex-col items-end gap-1">
-        {FAKE_REPOS.map((repo) => (
-          <div key={repo.name} className="flex items-baseline gap-1.5">
-            <span className="text-xs">{repo.name}</span>
-            <span className="text-xs text-muted-foreground">({repo.stars})</span>
-          </div>
+        {repos.map((repo) => (
+          <Link key={repo.id} href={`/${owner}/${repo.name}`}>
+            <span className="text-xs underline decoration-transparent hover:decoration-current transition-colors duration-200">
+              {repo.name}
+            </span>
+          </Link>
         ))}
       </div>
     </div>

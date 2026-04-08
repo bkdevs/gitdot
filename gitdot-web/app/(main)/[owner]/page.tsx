@@ -5,17 +5,6 @@ import { UserReadme } from "./ui/user-readme";
 import { UserRepos } from "./ui/user-repos";
 import { UserStatistics } from "./ui/user-statistics";
 
-const FAKE_REPOS = [
-  { name: "gitdot", stars: 847 },
-  { name: "s2-sdk-rs", stars: 312 },
-  { name: "axum-auth", stars: 204 },
-  { name: "pg-migrate", stars: 178 },
-  { name: "dotfiles", stars: 94 },
-  { name: "advent-of-code", stars: 41 },
-  { name: "til", stars: 29 },
-  { name: "scratchpad", stars: 4 },
-];
-
 export default async function Page({
   params,
 }: {

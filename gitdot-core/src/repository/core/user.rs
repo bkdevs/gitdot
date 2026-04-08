@@ -93,7 +93,7 @@ impl UserRepository for UserRepositoryImpl {
     async fn get(&self, user_name: &str) -> Result<Option<User>, DatabaseError> {
         let user = sqlx::query_as::<_, User>(
             r#"
-            SELECT id, email, name, is_email_verified, provider, created_at, settings
+            SELECT id, email, name, is_email_verified, provider, created_at, location, settings
             FROM core.users
             WHERE name = $1
             "#,
@@ -110,7 +110,7 @@ impl UserRepository for UserRepositoryImpl {
             r#"
             UPDATE core.users SET name = $1
             WHERE id = $2
-            RETURNING id, email, name, is_email_verified, provider, created_at, settings
+            RETURNING id, email, name, is_email_verified, provider, created_at, location, settings
             "#,
         )
         .bind(name)
@@ -124,7 +124,7 @@ impl UserRepository for UserRepositoryImpl {
     async fn get_by_id(&self, id: Uuid) -> Result<Option<User>, DatabaseError> {
         let user = sqlx::query_as::<_, User>(
             r#"
-            SELECT id, email, name, is_email_verified, provider, created_at, settings
+            SELECT id, email, name, is_email_verified, provider, created_at, location, settings
             FROM core.users
             WHERE id = $1
             "#,
@@ -139,7 +139,7 @@ impl UserRepository for UserRepositoryImpl {
     async fn get_by_email(&self, email: &str) -> Result<Option<User>, DatabaseError> {
         let user = sqlx::query_as::<_, User>(
             r#"
-            SELECT id, email, name, is_email_verified, provider, created_at, settings
+            SELECT id, email, name, is_email_verified, provider, created_at, location, settings
             FROM core.users
             WHERE email = $1
             "#,
@@ -158,7 +158,7 @@ impl UserRepository for UserRepositoryImpl {
 
         let users = sqlx::query_as::<_, User>(
             r#"
-            SELECT id, email, name, is_email_verified, provider, created_at, settings
+            SELECT id, email, name, is_email_verified, provider, created_at, location, settings
             FROM core.users
             WHERE email = ANY($1)
             "#,
@@ -173,7 +173,7 @@ impl UserRepository for UserRepositoryImpl {
     async fn get_settings(&self, id: Uuid) -> Result<Option<UserSettings>, DatabaseError> {
         let user = sqlx::query_as::<_, User>(
             r#"
-            SELECT id, email, name, is_email_verified, provider, created_at, settings
+            SELECT id, email, name, is_email_verified, provider, created_at, location, settings
             FROM core.users
             WHERE id = $1
             "#,
