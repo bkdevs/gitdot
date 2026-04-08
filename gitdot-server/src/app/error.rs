@@ -106,6 +106,7 @@ impl HttpStatus for UserError {
             Self::Input(_) => StatusCode::BAD_REQUEST,
             Self::NotFound(_) => StatusCode::NOT_FOUND,
             Self::Conflict(_) => StatusCode::CONFLICT,
+            Self::InvalidImage(_) => StatusCode::UNPROCESSABLE_ENTITY,
             Self::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }

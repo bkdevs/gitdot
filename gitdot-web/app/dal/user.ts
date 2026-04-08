@@ -4,6 +4,7 @@ import {
   OrganizationResource,
   RepositoryCommitResource,
   RepositoryResource,
+  UploadUserImageResource,
   UserResource,
 } from "gitdot-api";
 import { notFound } from "next/navigation";
@@ -48,14 +49,14 @@ export async function updateCurrentUser(request: {
 
 export async function uploadUserImage(
   file: File,
-): Promise<UserResource | null> {
+): Promise<UploadUserImageResource | null> {
   const bytes = await file.arrayBuffer();
   const response = await authFetch(`${GITDOT_SERVER_URL}/user/image`, {
     method: "POST",
     headers: { "Content-Type": file.type },
     body: bytes,
   });
-  return await handleResponse(response, UserResource);
+  return await handleResponse(response, UploadUserImageResource);
 }
 
 export async function hasUser(username: string): Promise<boolean> {

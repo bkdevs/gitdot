@@ -14,6 +14,11 @@ export const UserResource = z.object({
 });
 export type UserResource = z.infer<typeof UserResource>;
 
+export const UploadUserImageResource = z.object({
+  bytes: z.string(),
+});
+export type UploadUserImageResource = z.infer<typeof UploadUserImageResource>;
+
 export const UserRepoSettingsResource = z.object({
   commit_filters: z.array(CommitFilterResource).optional(),
 });

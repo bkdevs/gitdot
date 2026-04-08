@@ -54,7 +54,7 @@ export function SettingsProfile({
     if ("error" in result) {
       setUploadError(result.error);
     } else {
-      setImage(result.data.image ?? null);
+      setImage(result.data.bytes);
     }
   }
 
@@ -91,7 +91,9 @@ export function SettingsProfile({
                     unoptimized
                     className={`rounded-full transition-opacity duration-300${uploading ? " opacity-60" : ""}`}
                   />
-                  <div className={`absolute -inset-0.5 rounded-full border border-transparent border-t-foreground/50 animate-spin transition-opacity duration-300${uploading ? "" : " opacity-0"}`} />
+                  <div
+                    className={`absolute -inset-0.5 rounded-full border border-transparent border-t-foreground/50 animate-spin transition-opacity duration-300${uploading ? "" : " opacity-0"}`}
+                  />
                 </div>
               ) : (
                 <button
@@ -99,8 +101,12 @@ export function SettingsProfile({
                   className="relative mb-1.5 cursor-pointer"
                   onClick={() => !uploading && fileInputRef.current?.click()}
                 >
-                  <User className={`size-8 transition-opacity duration-300${uploading ? " opacity-60" : ""}`} />
-                  <div className={`absolute -inset-0.5 rounded-full border border-transparent border-t-foreground/50 animate-spin transition-opacity duration-300${uploading ? "" : " opacity-0"}`} />
+                  <User
+                    className={`size-8 transition-opacity duration-300${uploading ? " opacity-60" : ""}`}
+                  />
+                  <div
+                    className={`absolute -inset-0.5 rounded-full border border-transparent border-t-foreground/50 animate-spin transition-opacity duration-300${uploading ? "" : " opacity-0"}`}
+                  />
                 </button>
               )}
             </TooltipTrigger>

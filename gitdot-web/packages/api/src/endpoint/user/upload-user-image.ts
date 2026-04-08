@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { UserResource } from "../../resource";
+import { UploadUserImageResource } from "../../resource";
 import type { Endpoint } from "../endpoint";
 
-export const UploadUserImageResponse = UserResource;
+export const UploadUserImageResponse = UploadUserImageResource;
 export type UploadUserImageResponse = z.infer<typeof UploadUserImageResponse>;
 
 export const UploadUserImage = {

@@ -13,6 +13,9 @@ pub enum UserError {
     #[error(transparent)]
     Conflict(#[from] ConflictError),
 
+    #[error("Invalid image: {0}")]
+    InvalidImage(String),
+
     #[error(transparent)]
     DatabaseError(#[from] DatabaseError),
 }

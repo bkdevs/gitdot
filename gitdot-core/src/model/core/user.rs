@@ -17,6 +17,7 @@ pub struct User {
     pub created_at: DateTime<Utc>,
     pub location: Option<String>,
     pub readme: Option<String>,
+
     #[sqlx(json)]
     pub links: Vec<String>,
     pub company: Option<String>,

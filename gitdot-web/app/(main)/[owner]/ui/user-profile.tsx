@@ -3,7 +3,6 @@ import { User } from "lucide-react";
 import Image from "next/image";
 
 export function UserProfile({ user }: { user: UserResource }) {
-  console.log(user);
   return (
     <div className="flex flex-col items-end">
       {user.image ? (

@@ -1,4 +1,4 @@
-use crate::{endpoint::Endpoint, resource::user::UserResource};
+use crate::{endpoint::Endpoint, resource::user::UploadUserImageResource};
 
 pub struct UploadUserImage;
 
@@ -7,7 +7,7 @@ impl Endpoint for UploadUserImage {
     const METHOD: http::Method = http::Method::POST;
 
     type Request = ();
-    type Response = UserResource;
+    type Response = UploadUserImageResource;
 }
 
-pub type UploadUserImageResponse = UserResource;
+pub type UploadUserImageResponse = UploadUserImageResource;

@@ -1,6 +1,6 @@
 "use server";
 
-import type { UserResource } from "gitdot-api";
+import type { UploadUserImageResource, UserResource } from "gitdot-api";
 import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 import {
@@ -133,7 +133,7 @@ const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5 MB
 
 export async function uploadUserImageAction(
   formData: FormData,
-): Promise<{ data: UserResource } | { error: string }> {
+): Promise<{ data: UploadUserImageResource } | { error: string }> {
   const file = formData.get("image") as File | null;
   if (!file || file.size === 0) return { error: "No file provided" };
   if (file.size > MAX_IMAGE_BYTES)

@@ -20,6 +20,11 @@ pub struct UserResource {
 }
 
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct UploadUserImageResource {
+    pub bytes: String,
+}
+
+#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct UserSettingsResource {
     pub repos: HashMap<String, UserRepoSettingsResource>,
 }

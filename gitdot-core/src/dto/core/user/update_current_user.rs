@@ -38,4 +38,16 @@ impl UpdateCurrentUserRequest {
             image,
         })
     }
+
+    pub fn with_image(user_id: Uuid, image: String) -> Self {
+        Self {
+            user_id,
+            name: None,
+            location: None,
+            readme: None,
+            links: None,
+            company: None,
+            image: Some(image),
+        }
+    }
 }
