@@ -1,6 +1,7 @@
 "use client";
 
 import { Undo2 } from "lucide-react";
+import { UserImage } from "@/(main)/[owner]/ui/user-image";
 import { useParams } from "next/navigation";
 import { Suspense, use } from "react";
 import {
@@ -98,12 +99,14 @@ function CommitSidebarContent({
         data-sidebar-item
         data-sidebar-item-active={isActive ? "true" : undefined}
       >
-        <div className="flex flex-col w-full justify-start items-start min-w-0">
-          <div className="text-sm truncate mb-0.5 w-full">{commit.message}</div>
-          <div className="text-xs text-muted-foreground flex items-center gap-1 w-full min-w-0">
-            <span className="truncate min-w-0">{author}</span>
-            <span className="shrink-0">•</span>
-            <span className="shrink-0">{timeAgo(new Date(commit.date))}</span>
+        <div className="flex flex-row w-full items-center gap-2 min-w-0">
+          <div className="flex flex-col flex-1 justify-start items-start min-w-0">
+            <div className="text-sm truncate mb-0.5 w-full">{commit.message}</div>
+            <div className="text-xs text-muted-foreground flex items-center gap-1 w-full min-w-0">
+              <UserImage user={commit.author} px={16} />
+              <span className="truncate min-w-0 underline cursor-pointer">{author}</span>
+              <span className="shrink-0">{timeAgo(new Date(commit.date))}</span>
+            </div>
           </div>
         </div>
       </Link>

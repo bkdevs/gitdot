@@ -4,6 +4,7 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import type { RepositoryCommitResource } from "gitdot-api";
 import { useParams } from "next/navigation";
 import { memo, useRef } from "react";
+import { UserImage } from "@/(main)/[owner]/ui/user-image";
 import Link from "@/ui/link";
 import { formatDateTime, timeAgo } from "@/util";
 
@@ -70,6 +71,7 @@ const CommitRow = memo(function CommitRow({
             {commit.message.split("\n")[0]}
           </div>
           <div className="flex items-center text-muted-foreground text-xs gap-1">
+            <UserImage user={commit.author} px={16} />
             <span className="truncate min-w-0 underline transition-colors hover:text-foreground cursor-pointer">
               {commit.author.name}
             </span>
