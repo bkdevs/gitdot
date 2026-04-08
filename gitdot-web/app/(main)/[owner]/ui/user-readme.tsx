@@ -7,7 +7,11 @@ export function UserReadme({ readme }: { readme: string | null | undefined }) {
         <span className="text-foreground/40 select-none"># </span>
         README.md
       </p>
-      <MarkdownBody content={readme ?? "no README.md found"} />
+      {readme ? (
+        <MarkdownBody content={readme} />
+      ) : (
+        <span className="font-mono text-xs">README.md not found</span>
+      )}
     </div>
   );
 }
