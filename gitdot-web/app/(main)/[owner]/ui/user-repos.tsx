@@ -8,7 +8,7 @@ export async function UserRepos({ owner }: { owner: string }) {
 
   return (
     <div className="flex flex-col items-end">
-      <p className="font-semibold text-sm">repos</p>
+      <p className="font-semibold text-sm mb-0.5">repos</p>
       {repos.map((repo) => (
         <Link
           key={repo.id}

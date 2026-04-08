@@ -11,7 +11,7 @@ export function UserProfile({ user }: { user: UserResource }) {
       height={32}
       className="rounded-full"
       />
-      <p className="font-semibold text-sm">{user.name}</p>
+      <p className="font-semibold text-sm mb-0.5">{user.name}</p>
       <p className="text-xs text-muted-foreground">{user.email}</p>
       {user.location && (
         <p className="text-xs text-muted-foreground">{user.location}</p>
