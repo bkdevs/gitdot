@@ -12,6 +12,7 @@ pub struct UpdateCurrentUserRequest {
     pub location: Option<String>,
     pub readme: Option<String>,
     pub website: Option<String>,
+    pub company: Option<String>,
 }
 
 impl UpdateCurrentUserRequest {
@@ -21,6 +22,7 @@ impl UpdateCurrentUserRequest {
         location: Option<String>,
         readme: Option<String>,
         website: Option<String>,
+        company: Option<String>,
     ) -> Result<Self, UserError> {
         Ok(Self {
             user_id,
@@ -30,6 +32,7 @@ impl UpdateCurrentUserRequest {
             location,
             readme,
             website,
+            company,
         })
     }
 }

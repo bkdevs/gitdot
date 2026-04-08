@@ -15,6 +15,7 @@ pub struct UserResource {
     pub location: Option<String>,
     pub readme: Option<String>,
     pub website: Option<String>,
+    pub company: Option<String>,
 }
 
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

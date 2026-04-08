@@ -50,6 +50,7 @@ impl IntoApi for UserResponse {
             location: self.location,
             readme: self.readme,
             website: self.website,
+            company: self.company,
         }
     }
 }

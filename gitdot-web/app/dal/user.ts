@@ -40,6 +40,7 @@ export async function updateCurrentUser(request: {
   location?: string | null;
   readme?: string | null;
   website?: string | null;
+  company?: string | null;
 }): Promise<UserResource | null> {
   const response = await authPatch(`${GITDOT_SERVER_URL}/user`, request);
   return await handleResponse(response, UserResource);

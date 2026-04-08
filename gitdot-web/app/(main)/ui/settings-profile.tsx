@@ -11,6 +11,8 @@ export function SettingsProfile({
   onWebsiteChange,
   readme,
   onReadmeChange,
+  company,
+  onCompanyChange,
 }: {
   user: UserResource | null;
   location: string;
@@ -19,6 +21,8 @@ export function SettingsProfile({
   onWebsiteChange: (v: string) => void;
   readme: string;
   onReadmeChange: (v: string) => void;
+  company: string;
+  onCompanyChange: (v: string) => void;
 }) {
   if (!user) return null;
 
@@ -50,6 +54,29 @@ export function SettingsProfile({
       <div className="space-y-2">
         <p className="text-xs text-muted-foreground font-mono">
           <span className="text-foreground/40 select-none"># </span>
+          about
+        </p>
+        <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 items-end">
+          <span className="text-sm text-muted-foreground">company</span>
+          <input
+            value={company}
+            onChange={(e) => onCompanyChange(e.target.value)}
+            className="text-sm bg-transparent border-b border-border outline-none w-full -mb-px placeholder:text-muted-foreground/40 transition-colors focus:border-foreground"
+            placeholder="company name"
+          />
+          <span className="text-sm text-muted-foreground">location</span>
+          <input
+            value={location}
+            onChange={(e) => onLocationChange(e.target.value)}
+            className="text-sm bg-transparent border-b border-border outline-none w-full -mb-px placeholder:text-muted-foreground/40 transition-colors focus:border-foreground"
+            placeholder="city, country"
+          />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <p className="text-xs text-muted-foreground font-mono">
+          <span className="text-foreground/40 select-none"># </span>
           links
         </p>
         <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 items-end">
@@ -59,13 +86,6 @@ export function SettingsProfile({
             onChange={(e) => onWebsiteChange(e.target.value)}
             className="text-sm bg-transparent border-b border-border outline-none w-full -mb-px placeholder:text-muted-foreground/40 transition-colors focus:border-foreground"
             placeholder="https://..."
-          />
-          <span className="text-sm text-muted-foreground">location</span>
-          <input
-            value={location}
-            onChange={(e) => onLocationChange(e.target.value)}
-            className="text-sm bg-transparent border-b border-border outline-none w-full -mb-px placeholder:text-muted-foreground/40 transition-colors focus:border-foreground"
-            placeholder="city, country"
           />
         </div>
       </div>

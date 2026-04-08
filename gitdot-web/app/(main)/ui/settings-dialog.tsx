@@ -20,11 +20,13 @@ export function SettingsDialog() {
   const [location, setLocation] = useState(user?.location ?? "");
   const [website, setWebsite] = useState(user?.website ?? "");
   const [readme, setReadme] = useState(user?.readme ?? "");
+  const [company, setCompany] = useState(user?.company ?? "");
 
   useEffect(() => {
     setLocation(user?.location ?? "");
     setWebsite(user?.website ?? "");
     setReadme(user?.readme ?? "");
+    setCompany(user?.company ?? "");
   }, [user]);
 
   useShortcuts([
@@ -52,6 +54,7 @@ export function SettingsDialog() {
       formData.set("location", location);
       formData.set("website", website);
       formData.set("readme", readme);
+      formData.set("company", company);
       await updateUserAction(null, formData);
       refreshUser();
       if (pathname === `/${user.name}`) router.refresh();
@@ -80,6 +83,8 @@ export function SettingsDialog() {
                 onWebsiteChange={setWebsite}
                 readme={readme}
                 onReadmeChange={setReadme}
+                company={company}
+                onCompanyChange={setCompany}
               />
             )}
             {tab === "theme" && <SettingsTheme />}

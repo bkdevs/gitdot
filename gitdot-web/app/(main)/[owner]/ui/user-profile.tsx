@@ -5,15 +5,17 @@ export function UserProfile({ user }: { user: UserResource }) {
   return (
     <div className="flex flex-col items-end">
       <Image
-        src="/paul-penguin.jpeg"
-        alt={user.name}
-        width={32}
-        height={32}
-        className="rounded-full"
+      src="/paul-penguin.jpeg"
+      alt={user.name}
+      width={32}
+      height={32}
+      className="rounded-full"
       />
       <p className="font-semibold text-sm mb-0.5">{user.name}</p>
-      <p className="text-xs text-muted-foreground">{user.email}</p>
 
+      {user.company && (
+        <p className="text-xs text-muted-foreground">{user.company}</p>
+      )}
       {user.location && (
         <p className="text-xs text-muted-foreground">{user.location}</p>
       )}

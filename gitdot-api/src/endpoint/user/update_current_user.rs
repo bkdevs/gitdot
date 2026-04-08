@@ -18,6 +18,7 @@ pub struct UpdateCurrentUserRequest {
     pub location: Option<String>,
     pub readme: Option<String>,
     pub website: Option<String>,
+    pub company: Option<String>,
 }
 
 pub type UpdateCurrentUserResponse = UserResource;

@@ -36,6 +36,7 @@ pub struct UserResponse {
     pub location: Option<String>,
     pub readme: Option<String>,
     pub website: Option<String>,
+    pub company: Option<String>,
 }
 
 impl From<User> for UserResponse {
@@ -48,6 +49,7 @@ impl From<User> for UserResponse {
             location: user.location,
             readme: user.readme,
             website: user.website,
+            company: user.company,
         }
     }
 }

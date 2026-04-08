@@ -62,6 +62,7 @@ export async function updateUserAction(
   const location = formData.get("location") as string | null;
   const readme = formData.get("readme") as string | null;
   const website = formData.get("website") as string | null;
+  const company = formData.get("company") as string | null;
   const redirectTo = formData.get("redirect") as string;
 
   let name: string | undefined;
@@ -79,6 +80,7 @@ export async function updateUserAction(
     location: location !== null ? location || "" : undefined,
     readme: readme !== null ? readme || "" : undefined,
     website: website !== null ? website || "" : undefined,
+    company: company !== null ? company || "" : undefined,
   });
 
   if (!result) {

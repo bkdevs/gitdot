@@ -18,6 +18,7 @@ pub struct User {
     pub location: Option<String>,
     pub readme: Option<String>,
     pub website: Option<String>,
+    pub company: Option<String>,
 
     #[sqlx(json(nullable), default)]
     pub settings: Option<UserSettings>,
