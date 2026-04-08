@@ -1,4 +1,4 @@
-import { getUser } from "@/dal";
+import { getUser, listUserCommits } from "@/dal";
 import { UserCommits } from "./ui/user-commits";
 import { UserProfile } from "./ui/user-profile";
 import { UserReadme } from "./ui/user-readme";
@@ -11,7 +11,10 @@ export default async function Page({
   params: Promise<{ owner: string }>;
 }) {
   const { owner } = await params;
-  const user = await getUser(owner);
+  const [user, commits] = await Promise.all([
+    getUser(owner),
+    listUserCommits(owner),
+  ]);
 
   if (!user) {
     return <div className="p-2 text-sm">{owner} not found</div>;
@@ -27,7 +30,7 @@ export default async function Page({
       <div className="px-2 flex flex-col gap-8">
         <UserReadme />
         <UserStatistics />
-        <UserCommits owner={owner} />
+        <UserCommits commits={commits ?? []} />
       </div>
 
       <div />

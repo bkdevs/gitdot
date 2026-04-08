@@ -2,6 +2,7 @@ import "server-only";
 
 import {
   OrganizationResource,
+  RepositoryCommitResource,
   RepositoryResource,
   UserResource,
 } from "gitdot-api";
@@ -69,4 +70,14 @@ export async function listUserOrganizations(
   );
 
   return await handleResponse(response, z.array(OrganizationResource));
+}
+
+export async function listUserCommits(
+  username: string,
+): Promise<RepositoryCommitResource[] | null> {
+  const response = await authFetch(
+    `${GITDOT_SERVER_URL}/user/${username}/commits`,
+  );
+
+  return await handleResponse(response, z.array(RepositoryCommitResource));
 }

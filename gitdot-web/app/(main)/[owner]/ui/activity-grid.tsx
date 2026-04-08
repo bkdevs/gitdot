@@ -12,19 +12,7 @@ type Day = { date: string; count: number };
 type Week = Day[];
 type Month = { label: string; startingWeek: number; numWeeks: number };
 
-// deterministic fake commit count based on date string
-function fakeCount(date: string): number {
-  let h = 0;
-  for (const c of date) h = (h * 31 + c.charCodeAt(0)) & 0xffff;
-  const v = h % 100;
-  if (v < 55) return 0;
-  if (v < 75) return 1;
-  if (v < 88) return 3;
-  if (v < 95) return 5;
-  return 8;
-}
-
-function buildGrid(): { weeks: Week[]; months: Month[] } {
+function buildGrid(counts: Map<string, number>): { weeks: Week[]; months: Month[] } {
   const today = dateOnly(new Date());
   const thisWeekStart = subtractDays(today, today.getDay());
 
@@ -40,7 +28,7 @@ function buildGrid(): { weeks: Week[]; months: Month[] } {
       const d = addDays(weekStart, row);
       if (d > today) break;
       const dateStr = d.toISOString().slice(0, 10);
-      week.push({ date: dateStr, count: fakeCount(dateStr) });
+      week.push({ date: dateStr, count: counts.get(dateStr) ?? 0 });
     }
     weeks.push(week);
 
@@ -61,6 +49,13 @@ function buildGrid(): { weeks: Week[]; months: Month[] } {
       : NUM_WEEKS - months[i].startingWeek;
   }
 
+  // Reverse so oldest week is leftmost, most recent is rightmost
+  weeks.reverse();
+  for (const month of months) {
+    month.startingWeek = NUM_WEEKS - month.startingWeek - month.numWeeks;
+  }
+  months.sort((a, b) => a.startingWeek - b.startingWeek);
+
   return { weeks, months };
 }
 
@@ -73,17 +68,19 @@ function cellColor(count: number): string {
 }
 
 export function ActivityGrid({
+  counts,
   startDate,
   endDate,
   setStartDate,
   setEndDate,
 }: {
+  counts: Map<string, number>;
   startDate: string | null;
   endDate: string | null;
   setStartDate: (d: string | null) => void;
   setEndDate: (d: string | null) => void;
 }) {
-  const { weeks, months } = buildGrid();
+  const { weeks, months } = buildGrid(counts);
   const selectedMonth = startDate ? startDate.slice(0, 7) : null;
 
   return (
