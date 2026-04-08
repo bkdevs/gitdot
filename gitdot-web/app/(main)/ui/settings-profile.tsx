@@ -78,8 +78,7 @@ export function SettingsProfile({
         <textarea
           value={readme}
           onChange={(e) => onReadmeChange(e.target.value)}
-          rows={6}
-          className="text-sm bg-transparent border-b border-border outline-none w-full placeholder:text-muted-foreground/40 transition-colors focus:border-foreground resize-none"
+          className="text-sm bg-transparent border-r border-border outline-none w-full min-h-24 placeholder:text-muted-foreground/40 transition-colors focus:border-foreground resize-none field-sizing-content"
           placeholder="tell us about yourself..."
         />
       </div>
