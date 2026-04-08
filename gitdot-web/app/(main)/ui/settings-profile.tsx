@@ -1,9 +1,9 @@
 "use client";
 
 import type { UserResource } from "gitdot-api";
-import { UserImage } from "@/(main)/[owner]/ui/user-image";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { UserImage } from "@/(main)/[owner]/ui/user-image";
 import { useUserContext } from "@/(main)/context/user";
 import { updateUserAction, uploadUserImageAction } from "@/actions";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/ui/tooltip";
@@ -80,10 +80,11 @@ export function SettingsProfile({
 }
 
 function ProfilePrimary({ user }: { user: UserResource }) {
+  const { refreshUser } = useUserContext();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
-  const [image, setImage] = useState<string | null>(user.image ?? null);
+  const [image, setImage] = useState<string | null | undefined>(user.image);
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -97,6 +98,7 @@ function ProfilePrimary({ user }: { user: UserResource }) {
       setUploadError(result.error);
     } else {
       setImage(result.bytes);
+      refreshUser();
     }
   }
 
@@ -125,7 +127,7 @@ function ProfilePrimary({ user }: { user: UserResource }) {
               <span
                 className={`transition-opacity duration-300${uploading ? " opacity-60" : ""}`}
               >
-                <UserImage image={image} />
+                <UserImage user={{ ...user, image }} />
               </span>
               <div
                 className={`absolute -inset-0.5 rounded-full border border-transparent border-t-foreground/50 animate-spin transition-opacity duration-300${uploading ? "" : " opacity-0"}`}
