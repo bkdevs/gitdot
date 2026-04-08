@@ -1,8 +1,7 @@
 "use client";
 
 import type { UserResource } from "gitdot-api";
-import { User } from "lucide-react";
-import Image from "next/image";
+import { UserImage } from "@/(main)/[owner]/ui/user-image";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useUserContext } from "@/(main)/context/user";
@@ -118,38 +117,20 @@ function ProfilePrimary({ user }: { user: UserResource }) {
         />
         <Tooltip>
           <TooltipTrigger asChild>
-            {image ? (
-              <button
-                type="button"
-                className="relative size-8 mb-1.5 cursor-pointer appearance-none bg-transparent border-none p-0"
-                onClick={() => !uploading && fileInputRef.current?.click()}
+            <button
+              type="button"
+              className="relative size-8 mb-1.5 cursor-pointer appearance-none bg-transparent border-none p-0"
+              onClick={() => !uploading && fileInputRef.current?.click()}
+            >
+              <span
+                className={`transition-opacity duration-300${uploading ? " opacity-60" : ""}`}
               >
-                <Image
-                  src={`data:image/webp;base64,${image}`}
-                  alt="Profile"
-                  width={32}
-                  height={32}
-                  unoptimized
-                  className={`rounded-full transition-opacity duration-300${uploading ? " opacity-60" : ""}`}
-                />
-                <div
-                  className={`absolute -inset-0.5 rounded-full border border-transparent border-t-foreground/50 animate-spin transition-opacity duration-300${uploading ? "" : " opacity-0"}`}
-                />
-              </button>
-            ) : (
-              <button
-                type="button"
-                className="relative mb-1.5 cursor-pointer"
-                onClick={() => !uploading && fileInputRef.current?.click()}
-              >
-                <User
-                  className={`size-8 transition-opacity duration-300${uploading ? " opacity-60" : ""}`}
-                />
-                <div
-                  className={`absolute -inset-0.5 rounded-full border border-transparent border-t-foreground/50 animate-spin transition-opacity duration-300${uploading ? "" : " opacity-0"}`}
-                />
-              </button>
-            )}
+                <UserImage image={image} />
+              </span>
+              <div
+                className={`absolute -inset-0.5 rounded-full border border-transparent border-t-foreground/50 animate-spin transition-opacity duration-300${uploading ? "" : " opacity-0"}`}
+              />
+            </button>
           </TooltipTrigger>
           <TooltipContent>Upload photo</TooltipContent>
         </Tooltip>
