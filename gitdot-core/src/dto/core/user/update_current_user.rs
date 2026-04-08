@@ -10,6 +10,8 @@ pub struct UpdateCurrentUserRequest {
     pub user_id: Uuid,
     pub name: Option<OwnerName>,
     pub location: Option<String>,
+    pub readme: Option<String>,
+    pub website: Option<String>,
 }
 
 impl UpdateCurrentUserRequest {
@@ -17,6 +19,8 @@ impl UpdateCurrentUserRequest {
         user_id: Uuid,
         name: Option<&str>,
         location: Option<String>,
+        readme: Option<String>,
+        website: Option<String>,
     ) -> Result<Self, UserError> {
         Ok(Self {
             user_id,
@@ -24,6 +28,8 @@ impl UpdateCurrentUserRequest {
                 .map(|n| OwnerName::try_new(n).map_err(|e| InputError::new("user name", e)))
                 .transpose()?,
             location,
+            readme,
+            website,
         })
     }
 }

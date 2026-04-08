@@ -2,6 +2,7 @@ import { getUser, listUserCommits } from "@/dal";
 import { getUserMetadata } from "@/lib/auth";
 import Link from "@/ui/link";
 import { UserCommits } from "./ui/user-commits";
+import { UserLinks } from "./ui/user-links";
 import { UserProfile } from "./ui/user-profile";
 import { UserReadme } from "./ui/user-readme";
 import { UserRepos } from "./ui/user-repos";
@@ -28,6 +29,7 @@ export default async function Page({
     <div className="grid grid-cols-[1fr_600px_1fr] items-start py-10">
       <div className="border-r flex flex-col items-end px-4 gap-6">
         <UserProfile user={user} />
+        <UserLinks user={user} />
         <UserRepos owner={owner} />
         {isCurrentUser && (
           <div className="flex flex-col items-end">
@@ -43,7 +45,7 @@ export default async function Page({
       </div>
 
       <div className="px-2 flex flex-col gap-8">
-        <UserReadme />
+        <UserReadme readme={user.readme} />
         <UserStatistics />
         <UserCommits commits={commits ?? []} />
       </div>

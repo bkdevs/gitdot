@@ -7,10 +7,18 @@ export function SettingsProfile({
   user,
   location,
   onLocationChange,
+  website,
+  onWebsiteChange,
+  readme,
+  onReadmeChange,
 }: {
   user: UserResource | null;
   location: string;
   onLocationChange: (v: string) => void;
+  website: string;
+  onWebsiteChange: (v: string) => void;
+  readme: string;
+  onReadmeChange: (v: string) => void;
 }) {
   if (!user) return null;
 
@@ -47,6 +55,8 @@ export function SettingsProfile({
         <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 items-end">
           <span className="text-sm text-muted-foreground">website</span>
           <input
+            value={website}
+            onChange={(e) => onWebsiteChange(e.target.value)}
             className="text-sm bg-transparent border-b border-border outline-none w-full -mb-px placeholder:text-muted-foreground/40 transition-colors focus:border-foreground"
             placeholder="https://..."
           />
@@ -65,16 +75,13 @@ export function SettingsProfile({
           <span className="text-foreground/40 select-none"># </span>
           README.md
         </p>
-        <p className="text-sm">
-          software engineer building tools for open-source maintainers. i care a
-          lot about developer experience, fast feedback loops, and shipping
-          things that actually work.
-        </p>
-        <p className="text-sm">
-          currently working on gitdot — a github alternative built for
-          maintainers who want more control. the stack is rust on the backend
-          (axum + sqlx) and next.js on the frontend.
-        </p>
+        <textarea
+          value={readme}
+          onChange={(e) => onReadmeChange(e.target.value)}
+          rows={6}
+          className="text-sm bg-transparent border-b border-border outline-none w-full placeholder:text-muted-foreground/40 transition-colors focus:border-foreground resize-none"
+          placeholder="tell us about yourself..."
+        />
       </div>
     </div>
   );

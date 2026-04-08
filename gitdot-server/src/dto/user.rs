@@ -48,6 +48,8 @@ impl IntoApi for UserResponse {
             email: self.email,
             created_at: self.created_at,
             location: self.location,
+            readme: self.readme,
+            website: self.website,
         }
     }
 }

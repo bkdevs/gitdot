@@ -16,6 +16,8 @@ impl Endpoint for UpdateCurrentUser {
 pub struct UpdateCurrentUserRequest {
     pub name: Option<String>,
     pub location: Option<String>,
+    pub readme: Option<String>,
+    pub website: Option<String>,
 }
 
 pub type UpdateCurrentUserResponse = UserResource;

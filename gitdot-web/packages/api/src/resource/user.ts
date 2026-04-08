@@ -7,6 +7,8 @@ export const UserResource = z.object({
   email: z.string(),
   created_at: z.iso.datetime(),
   location: z.string().optional(),
+  readme: z.string().nullable().optional(),
+  website: z.string().nullable().optional(),
 });
 export type UserResource = z.infer<typeof UserResource>;
 

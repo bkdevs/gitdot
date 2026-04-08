@@ -156,7 +156,7 @@ where
 
         let user = self
             .user_repo
-            .update(request.user_id, name, request.location)
+            .update(request.user_id, name, request.location, request.readme, request.website)
             .await?;
         Ok(user.into())
     }

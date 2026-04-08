@@ -16,6 +16,8 @@ pub struct User {
     pub provider: AuthProvider,
     pub created_at: DateTime<Utc>,
     pub location: Option<String>,
+    pub readme: Option<String>,
+    pub website: Option<String>,
 
     #[sqlx(json(nullable), default)]
     pub settings: Option<UserSettings>,

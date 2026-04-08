@@ -60,6 +60,8 @@ export async function updateUserAction(
 ): Promise<UpdateUserActionResult> {
   const username = formData.get("username") as string | null;
   const location = formData.get("location") as string | null;
+  const readme = formData.get("readme") as string | null;
+  const website = formData.get("website") as string | null;
   const redirectTo = formData.get("redirect") as string;
 
   let name: string | undefined;
@@ -75,6 +77,8 @@ export async function updateUserAction(
   const result = await updateCurrentUser({
     name,
     location: location !== null ? location || "" : undefined,
+    readme: readme !== null ? readme || "" : undefined,
+    website: website !== null ? website || "" : undefined,
   });
 
   if (!result) {

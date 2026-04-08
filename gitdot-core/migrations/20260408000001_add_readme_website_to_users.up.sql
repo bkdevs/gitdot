@@ -1,0 +1,2 @@
+ALTER TABLE core.users ADD COLUMN readme TEXT;
+ALTER TABLE core.users ADD COLUMN website VARCHAR(255);
