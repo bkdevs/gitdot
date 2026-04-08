@@ -19,6 +19,13 @@ pub trait CommitRepository: Send + Sync + Clone + 'static {
         to: DateTime<Utc>,
     ) -> Result<Vec<Commit>, DatabaseError>;
 
+    async fn list_by_user(
+        &self,
+        author_id: Uuid,
+        from: DateTime<Utc>,
+        to: DateTime<Utc>,
+    ) -> Result<Vec<Commit>, DatabaseError>;
+
     async fn create_bulk(
         &self,
         author_ids: &[Option<Uuid>],
@@ -81,6 +88,28 @@ impl CommitRepository for CommitRepositoryImpl {
             "#,
         )
         .bind(repo_id)
+        .bind(from)
+        .bind(to)
+        .fetch_all(&self.pool)
+        .await?;
+
+        Ok(commits)
+    }
+
+    async fn list_by_user(
+        &self,
+        author_id: Uuid,
+        from: DateTime<Utc>,
+        to: DateTime<Utc>,
+    ) -> Result<Vec<Commit>, DatabaseError> {
+        let commits = sqlx::query_as::<_, Commit>(
+            r#"
+            SELECT * FROM core.commits
+            WHERE author_id = $1 AND created_at >= $2 AND created_at <= $3
+            ORDER BY created_at DESC
+            "#,
+        )
+        .bind(author_id)
         .bind(from)
         .bind(to)
         .fetch_all(&self.pool)

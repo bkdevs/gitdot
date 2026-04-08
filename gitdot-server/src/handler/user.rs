@@ -2,6 +2,7 @@ mod get_current_user;
 mod get_current_user_settings;
 mod get_user;
 mod has_user;
+mod list_user_commits;
 mod list_user_organizations;
 mod list_user_repositories;
 mod list_user_reviews;
@@ -16,6 +17,7 @@ use get_current_user::get_current_user;
 use get_current_user_settings::get_current_user_settings;
 use get_user::get_user;
 use has_user::has_user;
+use list_user_commits::list_user_commits;
 use list_user_organizations::list_user_organizations;
 use list_user_repositories::list_user_repositories;
 use list_user_reviews::list_user_reviews;
@@ -39,4 +41,5 @@ pub fn create_user_router() -> Router<AppState> {
             get(list_user_organizations),
         )
         .route("/user/{user_name}/reviews", get(list_user_reviews))
+        .route("/user/{user_name}/commits", get(list_user_commits))
 }

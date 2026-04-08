@@ -1,18 +1,20 @@
 use async_trait::async_trait;
+use chrono::{Duration, Utc};
 
 use crate::{
     dto::{
-        GetCurrentUserRequest, GetCurrentUserSettingsRequest, GetUserRequest, HasUserRequest,
-        ListUserOrganizationsRequest, ListUserRepositoriesRequest, ListUserReviewsRequest,
-        OrganizationResponse, RepositoryResponse, ReviewResponse, UpdateCurrentUserRequest,
+        CommitResponse, GetCurrentUserRequest, GetCurrentUserSettingsRequest, GetUserRequest,
+        HasUserRequest, ListUserCommitsRequest, ListUserOrganizationsRequest,
+        ListUserRepositoriesRequest, ListUserReviewsRequest, OrganizationResponse,
+        RepositoryResponse, ReviewResponse, UpdateCurrentUserRequest,
         UpdateCurrentUserSettingsRequest, UserResponse, UserSettingsResponse,
     },
     error::{ConflictError, NotFoundError, OptionNotFoundExt, UserError},
     model::UserSettings,
     repository::{
-        OrganizationRepository, OrganizationRepositoryImpl, RepositoryRepository,
-        RepositoryRepositoryImpl, ReviewRepository, ReviewRepositoryImpl, UserRepository,
-        UserRepositoryImpl,
+        CommitRepository, CommitRepositoryImpl, OrganizationRepository, OrganizationRepositoryImpl,
+        RepositoryRepository, RepositoryRepositoryImpl, ReviewRepository, ReviewRepositoryImpl,
+        UserRepository, UserRepositoryImpl,
     },
     util::auth::is_reserved_name,
 };
@@ -48,6 +50,11 @@ pub trait UserService: Send + Sync + 'static {
         request: ListUserReviewsRequest,
     ) -> Result<Vec<ReviewResponse>, UserError>;
 
+    async fn list_commits(
+        &self,
+        request: ListUserCommitsRequest,
+    ) -> Result<Vec<CommitResponse>, UserError>;
+
     async fn get_current_user_settings(
         &self,
         request: GetCurrentUserSettingsRequest,
@@ -60,17 +67,19 @@ pub trait UserService: Send + Sync + 'static {
 }
 
 #[derive(Debug, Clone)]
-pub struct UserServiceImpl<U, R, O, V>
+pub struct UserServiceImpl<U, R, O, V, C>
 where
     U: UserRepository,
     R: RepositoryRepository,
     O: OrganizationRepository,
     V: ReviewRepository,
+    C: CommitRepository,
 {
     user_repo: U,
     repo_repo: R,
     org_repo: O,
     review_repo: V,
+    commit_repo: C,
 }
 
 impl
@@ -79,6 +88,7 @@ impl
         RepositoryRepositoryImpl,
         OrganizationRepositoryImpl,
         ReviewRepositoryImpl,
+        CommitRepositoryImpl,
     >
 {
     pub fn new(
@@ -86,24 +96,27 @@ impl
         repo_repo: RepositoryRepositoryImpl,
         org_repo: OrganizationRepositoryImpl,
         review_repo: ReviewRepositoryImpl,
+        commit_repo: CommitRepositoryImpl,
     ) -> Self {
         Self {
             user_repo,
             repo_repo,
             org_repo,
             review_repo,
+            commit_repo,
         }
     }
 }
 
 #[crate::instrument_all]
 #[async_trait]
-impl<U, R, O, V> UserService for UserServiceImpl<U, R, O, V>
+impl<U, R, O, V, C> UserService for UserServiceImpl<U, R, O, V, C>
 where
     U: UserRepository,
     R: RepositoryRepository,
     O: OrganizationRepository,
     V: ReviewRepository,
+    C: CommitRepository,
 {
     async fn get_current_user(
         &self,
@@ -231,5 +244,22 @@ where
             .await?
             .or_not_found("user", request.user_id)?;
         Ok(settings.into())
+    }
+
+    async fn list_commits(
+        &self,
+        request: ListUserCommitsRequest,
+    ) -> Result<Vec<CommitResponse>, UserError> {
+        let user_name = request.user_name.to_string();
+        let user = self
+            .user_repo
+            .get(&user_name)
+            .await?
+            .or_not_found("user", &user_name)?;
+
+        let now = Utc::now();
+        let from = now - Duration::days(365);
+        let commits = self.commit_repo.list_by_user(user.id, from, now).await?;
+        Ok(commits.into_iter().map(CommitResponse::from).collect())
     }
 }
