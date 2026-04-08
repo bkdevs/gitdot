@@ -3,7 +3,12 @@
 import type { UserResource } from "gitdot-api";
 import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
-import { getCurrentUser, hasUser, updateCurrentUser } from "@/dal";
+import {
+  getCurrentUser,
+  hasUser,
+  updateCurrentUser,
+  uploadUserImage,
+} from "@/dal";
 import { getGitHubRedirectUrl, logout, sendAuthEmail } from "@/lib/auth";
 import { delay, validateEmail } from "../util";
 
@@ -122,6 +127,26 @@ export async function validateUsername(
   }
 
   return null;
+}
+
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5 MB
+
+export async function uploadUserImageAction(
+  formData: FormData,
+): Promise<{ success: true } | { error: string }> {
+  const file = formData.get("image") as File | null;
+  if (!file || file.size === 0) return { error: "No file provided" };
+  if (file.size > MAX_IMAGE_BYTES) return { error: "Image must be under 5 MB" };
+  if (!["image/jpeg", "image/png", "image/webp"].includes(file.type))
+    return { error: "Unsupported image type (JPEG, PNG, WebP only)" };
+
+  try {
+    await uploadUserImage(file);
+    return { success: true };
+  } catch (e) {
+    console.error("uploadUserImageAction failed:", e);
+    return { error: "Failed to upload image" };
+  }
 }
 
 export async function signout() {

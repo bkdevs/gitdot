@@ -2,7 +2,8 @@
 
 import type { UserResource } from "gitdot-api";
 import Image from "next/image";
-import { useRef } from "react";
+import { useRef, useState } from "react";
+import { uploadUserImageAction } from "@/actions";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/ui/tooltip";
 import { formatDate, timeAgo } from "@/util/date";
 
@@ -28,12 +29,41 @@ export function SettingsProfile({
   onCompanyChange: (v: string) => void;
 }) {
   const linkInputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setUploadError(null);
+    if (file.size > MAX_IMAGE_BYTES) {
+      setUploadError("Image must be under 5 MB");
+      return;
+    }
+    setUploading(true);
+    const formData = new FormData();
+    formData.set("image", file);
+    const result = await uploadUserImageAction(formData);
+    setUploading(false);
+    if ("error" in result) setUploadError(result.error);
+  }
 
   if (!user) return null;
 
   return (
     <div className="max-w-lg space-y-6">
       <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-0 items-end">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          className="hidden"
+          onChange={handleFileChange}
+        />
         <Tooltip>
           <TooltipTrigger asChild>
             <Image
@@ -41,12 +71,18 @@ export function SettingsProfile({
               alt="Profile picture"
               width={32}
               height={32}
-              className="rounded-full mb-1.5 cursor-pointer"
+              className={`rounded-full mb-1.5 cursor-pointer${uploading ? " opacity-50" : ""}`}
+              onClick={() => !uploading && fileInputRef.current?.click()}
             />
           </TooltipTrigger>
           <TooltipContent>Upload photo</TooltipContent>
         </Tooltip>
         <span className="text-sm font-semibold mb-1.5">{user.name}</span>
+        {uploadError && (
+          <span className="col-span-2 text-xs text-destructive">
+            {uploadError}
+          </span>
+        )}
         <span className="text-sm text-muted-foreground">email</span>
         <span className="text-sm">{user.email}</span>
         <span className="text-sm text-muted-foreground">joined</span>
@@ -66,7 +102,9 @@ export function SettingsProfile({
           <input
             value={company}
             onChange={(e) => onCompanyChange(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") e.currentTarget.blur();
+            }}
             className="text-sm bg-transparent border-b border-border outline-none w-full -mb-px placeholder:text-muted-foreground/40 transition-colors focus:border-foreground"
             placeholder="company name"
           />
@@ -74,7 +112,9 @@ export function SettingsProfile({
           <input
             value={location}
             onChange={(e) => onLocationChange(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") e.currentTarget.blur();
+            }}
             className="text-sm bg-transparent border-b border-border outline-none w-full -mb-px placeholder:text-muted-foreground/40 transition-colors focus:border-foreground"
             placeholder="city, country"
           />

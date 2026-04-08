@@ -14,6 +14,7 @@ import {
   authHead,
   authPatch,
   GITDOT_SERVER_URL,
+  handleEmptyResponse,
   handleResponse,
 } from "./util";
 
@@ -44,6 +45,16 @@ export async function updateCurrentUser(request: {
 }): Promise<UserResource | null> {
   const response = await authPatch(`${GITDOT_SERVER_URL}/user`, request);
   return await handleResponse(response, UserResource);
+}
+
+export async function uploadUserImage(file: File): Promise<void> {
+  const bytes = await file.arrayBuffer();
+  const response = await authFetch(`${GITDOT_SERVER_URL}/user/image`, {
+    method: "POST",
+    headers: { "Content-Type": file.type },
+    body: bytes,
+  });
+  await handleEmptyResponse(response);
 }
 
 export async function hasUser(username: string): Promise<boolean> {

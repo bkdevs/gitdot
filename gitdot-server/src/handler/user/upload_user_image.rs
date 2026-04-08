@@ -3,6 +3,7 @@ use axum::{
     extract::State,
     http::{HeaderMap, StatusCode, header},
 };
+use base64::prelude::*;
 use image::{ImageFormat, ImageReader};
 use std::io::Cursor;
 
@@ -33,6 +34,7 @@ pub async fn upload_user_image(
             .with_guessed_format()?
             .decode()?;
 
+        let img = img.resize_to_fill(64, 64, image::imageops::FilterType::Lanczos3);
         let mut out = Cursor::new(Vec::new());
         img.write_to(&mut out, ImageFormat::WebP)?;
         Ok(out.into_inner())
@@ -41,7 +43,9 @@ pub async fn upload_user_image(
     .map_err(|e| anyhow::anyhow!("spawn error: {e}"))??;
 
     // TODO: persist webp_bytes + update user avatar_url once repo layer is ready
-    let _ = (auth_user.id, webp_bytes);
+    let b64 = BASE64_STANDARD.encode(&webp_bytes);
+    tracing::info!("webp ({} bytes): data:image/webp;base64,{}", webp_bytes.len(), b64);
+    let _ = auth_user.id;
 
     Ok(AppResponse::new(StatusCode::OK, ()))
 }

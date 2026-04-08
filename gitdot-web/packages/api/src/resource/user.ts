@@ -6,7 +6,7 @@ export const UserResource = z.object({
   name: z.string(),
   email: z.string(),
   created_at: z.iso.datetime(),
-  location: z.string().optional(),
+  location: z.string().nullable().optional(),
   readme: z.string().nullable().optional(),
   links: z.array(z.string()).default([]),
   company: z.string().nullable().optional(),
