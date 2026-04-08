@@ -47,6 +47,7 @@ impl IntoApi for UserResponse {
             name: self.name,
             email: self.email,
             created_at: self.created_at,
+            location: self.location,
         }
     }
 }

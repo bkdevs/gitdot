@@ -12,6 +12,7 @@ pub struct UserResource {
     pub name: String,
     pub email: String,
     pub created_at: DateTime<Utc>,
+    pub location: Option<String>,
 }
 
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

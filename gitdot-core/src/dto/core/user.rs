@@ -31,6 +31,7 @@ pub struct UserResponse {
     pub name: String,
     pub email: String,
     pub created_at: DateTime<Utc>,
+    pub location: Option<String>,
 }
 
 impl From<User> for UserResponse {
@@ -40,6 +41,7 @@ impl From<User> for UserResponse {
             name: user.name,
             email: user.email,
             created_at: user.created_at,
+            location: user.location,
         }
     }
 }

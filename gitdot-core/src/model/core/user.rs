@@ -15,6 +15,7 @@ pub struct User {
     pub is_email_verified: bool,
     pub provider: AuthProvider,
     pub created_at: DateTime<Utc>,
+    pub location: Option<String>,
 
     #[sqlx(json(nullable), default)]
     pub settings: Option<UserSettings>,

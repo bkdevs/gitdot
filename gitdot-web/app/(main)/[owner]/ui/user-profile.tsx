@@ -1,18 +1,21 @@
+import { UserResource } from "gitdot-api";
 import Image from "next/image";
 
-export function UserProfile({ owner }: { owner: string }) {
+export function UserProfile({ user }: { user: UserResource }) {
   return (
     <div className="flex flex-col items-end">
       <Image
       src="/paul-penguin.jpeg"
-      alt={owner}
+      alt={user.name}
       width={32}
       height={32}
       className="rounded-full"
       />
-      <p className="font-semibold text-sm">{owner}</p>
-      <p className="text-sm text-muted-foreground">paul@gitdot.io</p>
-      <p className="text-sm text-muted-foreground">brooklyn, ny</p>
+      <p className="font-semibold text-sm">{user.name}</p>
+      <p className="text-xs text-muted-foreground">{user.email}</p>
+      {user.location && (
+        <p className="text-xs text-muted-foreground">{user.location}</p>
+      )}
     </div>
   );
 }
