@@ -18,7 +18,6 @@ pub struct User {
     pub location: Option<String>,
     pub readme: Option<String>,
 
-    #[sqlx(json)]
     pub links: Vec<String>,
     pub company: Option<String>,
     pub image: Option<String>,

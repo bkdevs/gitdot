@@ -131,20 +131,16 @@ impl UserRepository for UserRepositoryImpl {
             sep.push("name = ").push_bind_unseparated(n);
         }
         if let Some(loc) = location {
-            sep.push("location = ")
-                .push_bind_unseparated(if loc.is_empty() { None } else { Some(loc) });
+            sep.push("location = ").push_bind_unseparated(loc);
         }
         if let Some(r) = readme {
-            sep.push("readme = ")
-                .push_bind_unseparated(if r.is_empty() { None } else { Some(r) });
+            sep.push("readme = ").push_bind_unseparated(r);
         }
         if let Some(l) = links {
-            let val = serde_json::to_value(&l).unwrap_or(serde_json::Value::Array(vec![]));
-            sep.push("links = ").push_bind_unseparated(val);
+            sep.push("links = ").push_bind_unseparated(l);
         }
         if let Some(c) = company {
-            sep.push("company = ")
-                .push_bind_unseparated(if c.is_empty() { None } else { Some(c) });
+            sep.push("company = ").push_bind_unseparated(c);
         }
         if let Some(img) = image {
             sep.push("image = ").push_bind_unseparated(img);
