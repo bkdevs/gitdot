@@ -17,15 +17,6 @@ function inRange(date: string, start: string | null, end: string | null): boolea
   return date >= lo && date <= hi;
 }
 
-function SectionHeader({ label }: { label: string }) {
-  return (
-    <p className="text-xs text-muted-foreground font-mono mb-2">
-      <span className="text-foreground/40 select-none"># </span>
-      {label}
-    </p>
-  );
-}
-
 type FakeCommit = {
   sha: string;
   repo: string;
@@ -112,7 +103,7 @@ const FAKE_LOG: Record<number, FakeCommit[]> = {
   ],
 };
 
-export function OwnerCenter({ owner }: { owner: string }) {
+export function UserCommits({ owner }: { owner: string }) {
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
   const currentYear = new Date().getFullYear();
@@ -131,57 +122,7 @@ export function OwnerCenter({ owner }: { owner: string }) {
       : logDays;
 
   return (
-    <div className="px-2 flex flex-col gap-8">
-      {/* README.md */}
-      <div>
-        <SectionHeader label="README.md" />
-        <p className="text-sm text-muted-foreground">
-          software engineer building tools for open-source maintainers. i care a
-          lot about developer experience, fast feedback loops, and shipping
-          things that actually work.
-        </p>
-        <p className="text-sm text-muted-foreground mt-3">
-          currently working on gitdot — a github alternative built for
-          maintainers who want more control. the stack is rust on the backend
-          (axum + sqlx) and next.js on the frontend.
-        </p>
-        <p className="text-sm text-muted-foreground mt-3">
-          when i&apos;m not coding, you can find me in brooklyn, probably
-          thinking about distributed systems or eating a good sandwich.
-        </p>
-      </div>
-
-      {/* Statistics */}
-      <div className="grid grid-cols-2 gap-8">
-        <div>
-          <p className="text-xs text-muted-foreground font-mono mb-1">
-            <span className="text-foreground/40 select-none"># </span>Streak
-          </p>
-          <div className="grid grid-cols-[auto_auto] gap-x-2 font-mono text-xs">
-            <span className="text-muted-foreground">current</span>
-            <span>12d</span>
-            <span className="text-muted-foreground">longest</span>
-            <span>31d</span>
-            <span className="text-muted-foreground">active days</span>
-            <span>214 / 365</span>
-          </div>
-        </div>
-        <div>
-          <p className="text-xs text-muted-foreground font-mono mb-1">
-            <span className="text-foreground/40 select-none"># </span>Statistics
-          </p>
-          <div className="grid grid-cols-[auto_auto] gap-x-2 font-mono text-xs">
-            <span className="text-muted-foreground">loc</span>
-            <span>184,209</span>
-            <span className="text-muted-foreground">commits</span>
-            <span>2,341</span>
-            <span className="text-muted-foreground">issues</span>
-            <span>847</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Commits */}
+    <>
       <div>
         <div className="flex items-baseline justify-between mb-2">
           <p className="text-xs text-muted-foreground font-mono">
@@ -213,7 +154,6 @@ export function OwnerCenter({ owner }: { owner: string }) {
         />
       </div>
 
-      {/* Log */}
       <div>
         <div className="flex items-baseline justify-between mb-2">
           <p className="text-xs text-muted-foreground font-mono">
@@ -254,6 +194,6 @@ export function OwnerCenter({ owner }: { owner: string }) {
           ))}
         </div>
       </div>
-    </div>
+    </>
   );
 }

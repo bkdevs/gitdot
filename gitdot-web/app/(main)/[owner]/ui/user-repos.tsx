@@ -1,44 +1,26 @@
-import type { RepositoryResource } from "gitdot-api";
-import Link from "@/ui/link";
-import { formatDate } from "@/util";
-import { CreateRepoButton } from "./create-repo-button";
+const FAKE_REPOS = [
+  { name: "gitdot", stars: 847 },
+  { name: "s2-sdk-rs", stars: 312 },
+  { name: "axum-auth", stars: 204 },
+  { name: "pg-migrate", stars: 178 },
+  { name: "dotfiles", stars: 94 },
+  { name: "advent-of-code", stars: 41 },
+  { name: "til", stars: 29 },
+  { name: "scratchpad", stars: 4 },
+];
 
-export function UserRepos({
-  user,
-  repos,
-}: {
-  user: string;
-  repos: RepositoryResource[];
-}) {
+export function UserRepos({ owner }: { owner: string }) {
   return (
-    <div className="flex flex-col w-full">
-      <RepoHeader />
-      {repos.map((repo) => (
-        <Link
-          className="flex flex-row items-center px-2 py-2 border-b hover:bg-accent/50 select-none"
-          key={repo.id}
-          href={`/${user}/${repo.name}`}
-        >
-          <div className="flex flex-col">
-            <div className="flex flex-row text-sm">{repo.name}</div>
-            <div className="flex flex-row text-xs text-muted-foreground pt-0.5">
-              {repo.visibility === "public" ? "Public" : "Private"} •{" "}
-              {formatDate(new Date(repo.created_at))}
-            </div>
+    <div className="flex flex-col items-end">
+      <p className="font-semibold text-sm mb-1">repos</p>
+      <div className="flex flex-col items-end gap-1">
+        {FAKE_REPOS.map((repo) => (
+          <div key={repo.name} className="flex items-baseline gap-1.5">
+            <span className="text-xs">{repo.name}</span>
+            <span className="text-xs text-muted-foreground">({repo.stars})</span>
           </div>
-        </Link>
-      ))}
-    </div>
-  );
-}
-
-function RepoHeader() {
-  return (
-    <div className="flex items-center justify-between border-b pl-2 h-9">
-      <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-        Repos
-      </h3>
-      <CreateRepoButton />
+        ))}
+      </div>
     </div>
   );
 }
