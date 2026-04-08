@@ -15,7 +15,7 @@ path = "src/bin/keygen.rs"
 [dependencies]
 anyhow = { workspace = true }
 async-trait = { workspace = true }
-axum = { version = "0.8.8", features = ["macros"] }
+axum = { version = "0.8.8", features = ["macros", "multipart"] }
 base64 = { workspace = true }
 base64ct = { workspace = true }
 chrono = { workspace = true }
@@ -25,6 +25,7 @@ flate2 = { workspace = true }
 futures = { workspace = true }
 git2 = { workspace = true }
 gitdot-api = { workspace = true }
+image = { workspace = true }
 gitdot-core = { workspace = true }
 http = { workspace = true }
 jsonwebtoken = { workspace = true }

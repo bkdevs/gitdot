@@ -61,7 +61,9 @@ export async function updateUserAction(
   const username = formData.get("username") as string | null;
   const location = formData.get("location") as string | null;
   const readme = formData.get("readme") as string | null;
-  const website = formData.get("website") as string | null;
+  const linksRaw = formData.get("links") as string | null;
+  const links: string[] | undefined =
+    linksRaw !== null ? JSON.parse(linksRaw) : undefined;
   const company = formData.get("company") as string | null;
   const redirectTo = formData.get("redirect") as string;
 
@@ -79,7 +81,7 @@ export async function updateUserAction(
     name,
     location: location !== null ? location || "" : undefined,
     readme: readme !== null ? readme || "" : undefined,
-    website: website !== null ? website || "" : undefined,
+    links,
     company: company !== null ? company || "" : undefined,
   });
 

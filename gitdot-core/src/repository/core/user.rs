@@ -25,7 +25,7 @@ pub trait UserRepository: Send + Sync + Clone + 'static {
         name: Option<String>,
         location: Option<String>,
         readme: Option<String>,
-        website: Option<String>,
+        links: Option<Vec<String>>,
         company: Option<String>,
     ) -> Result<User, DatabaseError>;
 
@@ -101,7 +101,7 @@ impl UserRepository for UserRepositoryImpl {
     async fn get(&self, user_name: &str) -> Result<Option<User>, DatabaseError> {
         let user = sqlx::query_as::<_, User>(
             r#"
-            SELECT id, email, name, is_email_verified, provider, created_at, location, readme, website, company, settings
+            SELECT id, email, name, is_email_verified, provider, created_at, location, readme, links, company, settings
             FROM core.users
             WHERE name = $1
             "#,
@@ -119,10 +119,10 @@ impl UserRepository for UserRepositoryImpl {
         name: Option<String>,
         location: Option<String>,
         readme: Option<String>,
-        website: Option<String>,
+        links: Option<Vec<String>>,
         company: Option<String>,
     ) -> Result<User, DatabaseError> {
-        if name.is_none() && location.is_none() && readme.is_none() && website.is_none() && company.is_none() {
+        if name.is_none() && location.is_none() && readme.is_none() && links.is_none() && company.is_none() {
             unreachable!("update called with no fields to update");
         }
 
@@ -136,8 +136,8 @@ impl UserRepository for UserRepositoryImpl {
         if readme.is_some() {
             sets.push(format!("readme = ${}", sets.len() + 1));
         }
-        if website.is_some() {
-            sets.push(format!("website = ${}", sets.len() + 1));
+        if links.is_some() {
+            sets.push(format!("links = ${}", sets.len() + 1));
         }
         if company.is_some() {
             sets.push(format!("company = ${}", sets.len() + 1));
@@ -145,7 +145,7 @@ impl UserRepository for UserRepositoryImpl {
 
         let sql = format!(
             "UPDATE core.users SET {} WHERE id = ${} \
-             RETURNING id, email, name, is_email_verified, provider, created_at, location, readme, website, company, settings",
+             RETURNING id, email, name, is_email_verified, provider, created_at, location, readme, links, company, settings",
             sets.join(", "),
             sets.len() + 1,
         );
@@ -162,8 +162,8 @@ impl UserRepository for UserRepositoryImpl {
             let val: Option<String> = if r.is_empty() { None } else { Some(r) };
             query = query.bind(val);
         }
-        if let Some(w) = website {
-            let val: Option<String> = if w.is_empty() { None } else { Some(w) };
+        if let Some(l) = links {
+            let val = serde_json::to_value(&l).unwrap_or(serde_json::Value::Array(vec![]));
             query = query.bind(val);
         }
         if let Some(c) = company {
@@ -178,7 +178,7 @@ impl UserRepository for UserRepositoryImpl {
     async fn get_by_id(&self, id: Uuid) -> Result<Option<User>, DatabaseError> {
         let user = sqlx::query_as::<_, User>(
             r#"
-            SELECT id, email, name, is_email_verified, provider, created_at, location, readme, website, company, settings
+            SELECT id, email, name, is_email_verified, provider, created_at, location, readme, links, company, settings
             FROM core.users
             WHERE id = $1
             "#,
@@ -193,7 +193,7 @@ impl UserRepository for UserRepositoryImpl {
     async fn get_by_email(&self, email: &str) -> Result<Option<User>, DatabaseError> {
         let user = sqlx::query_as::<_, User>(
             r#"
-            SELECT id, email, name, is_email_verified, provider, created_at, location, readme, website, company, settings
+            SELECT id, email, name, is_email_verified, provider, created_at, location, readme, links, company, settings
             FROM core.users
             WHERE email = $1
             "#,
@@ -212,7 +212,7 @@ impl UserRepository for UserRepositoryImpl {
 
         let users = sqlx::query_as::<_, User>(
             r#"
-            SELECT id, email, name, is_email_verified, provider, created_at, location, readme, website, company, settings
+            SELECT id, email, name, is_email_verified, provider, created_at, location, readme, links, company, settings
             FROM core.users
             WHERE email = ANY($1)
             "#,
@@ -227,7 +227,7 @@ impl UserRepository for UserRepositoryImpl {
     async fn get_settings(&self, id: Uuid) -> Result<Option<UserSettings>, DatabaseError> {
         let user = sqlx::query_as::<_, User>(
             r#"
-            SELECT id, email, name, is_email_verified, provider, created_at, location, readme, website, company, settings
+            SELECT id, email, name, is_email_verified, provider, created_at, location, readme, links, company, settings
             FROM core.users
             WHERE id = $1
             "#,

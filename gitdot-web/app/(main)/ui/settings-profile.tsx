@@ -1,5 +1,8 @@
+"use client";
+
 import type { UserResource } from "gitdot-api";
 import Image from "next/image";
+import { useRef } from "react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/ui/tooltip";
 import { formatDate, timeAgo } from "@/util/date";
 
@@ -7,8 +10,8 @@ export function SettingsProfile({
   user,
   location,
   onLocationChange,
-  website,
-  onWebsiteChange,
+  links,
+  onLinksChange,
   readme,
   onReadmeChange,
   company,
@@ -17,13 +20,15 @@ export function SettingsProfile({
   user: UserResource | null;
   location: string;
   onLocationChange: (v: string) => void;
-  website: string;
-  onWebsiteChange: (v: string) => void;
+  links: string[];
+  onLinksChange: (v: string[]) => void;
   readme: string;
   onReadmeChange: (v: string) => void;
   company: string;
   onCompanyChange: (v: string) => void;
 }) {
+  const linkInputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
   if (!user) return null;
 
   return (
@@ -61,6 +66,7 @@ export function SettingsProfile({
           <input
             value={company}
             onChange={(e) => onCompanyChange(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
             className="text-sm bg-transparent border-b border-border outline-none w-full -mb-px placeholder:text-muted-foreground/40 transition-colors focus:border-foreground"
             placeholder="company name"
           />
@@ -68,6 +74,7 @@ export function SettingsProfile({
           <input
             value={location}
             onChange={(e) => onLocationChange(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
             className="text-sm bg-transparent border-b border-border outline-none w-full -mb-px placeholder:text-muted-foreground/40 transition-colors focus:border-foreground"
             placeholder="city, country"
           />
@@ -79,14 +86,45 @@ export function SettingsProfile({
           <span className="text-foreground/40 select-none"># </span>
           links
         </p>
-        <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 items-end">
-          <span className="text-sm text-muted-foreground">website</span>
-          <input
-            value={website}
-            onChange={(e) => onWebsiteChange(e.target.value)}
-            className="text-sm bg-transparent border-b border-border outline-none w-full -mb-px placeholder:text-muted-foreground/40 transition-colors focus:border-foreground"
-            placeholder="https://..."
-          />
+        <div className="space-y-1">
+          {links.map((link, i) => (
+            <input
+              // biome-ignore lint/suspicious/noArrayIndexKey: no reordering
+              key={i}
+              ref={(el) => {
+                linkInputRefs.current[i] = el;
+              }}
+              value={link}
+              onChange={(e) => {
+                const next = [...links];
+                next[i] = e.target.value;
+                onLinksChange(next);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") e.currentTarget.blur();
+              }}
+              onBlur={() => {
+                if (!links[i]?.trim()) {
+                  onLinksChange(links.filter((_, j) => j !== i));
+                }
+              }}
+              className="text-sm bg-transparent border-b border-border outline-none w-full placeholder:text-muted-foreground/40 transition-colors focus:border-foreground"
+              placeholder="https://..."
+            />
+          ))}
+          <button
+            type="button"
+            onClick={() => {
+              const next = [...links, ""];
+              onLinksChange(next);
+              setTimeout(() => {
+                linkInputRefs.current[next.length - 1]?.focus();
+              }, 0);
+            }}
+            className="mt-0.5 text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors cursor-pointer block ml-auto"
+          >
+            new link
+          </button>
         </div>
       </div>
 

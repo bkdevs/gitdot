@@ -11,7 +11,7 @@ pub struct UpdateCurrentUserRequest {
     pub name: Option<OwnerName>,
     pub location: Option<String>,
     pub readme: Option<String>,
-    pub website: Option<String>,
+    pub links: Option<Vec<String>>,
     pub company: Option<String>,
 }
 
@@ -21,7 +21,7 @@ impl UpdateCurrentUserRequest {
         name: Option<&str>,
         location: Option<String>,
         readme: Option<String>,
-        website: Option<String>,
+        links: Option<Vec<String>>,
         company: Option<String>,
     ) -> Result<Self, UserError> {
         Ok(Self {
@@ -31,7 +31,7 @@ impl UpdateCurrentUserRequest {
                 .transpose()?,
             location,
             readme,
-            website,
+            links,
             company,
         })
     }

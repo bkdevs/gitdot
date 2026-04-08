@@ -8,8 +8,9 @@ mod list_user_repositories;
 mod list_user_reviews;
 mod update_current_user;
 mod update_current_user_settings;
+mod upload_user_image;
 
-use axum::{Router, routing::get};
+use axum::{Router, routing::{get, post}};
 
 use crate::app::AppState;
 
@@ -23,10 +24,12 @@ use list_user_repositories::list_user_repositories;
 use list_user_reviews::list_user_reviews;
 use update_current_user::update_current_user;
 use update_current_user_settings::update_current_user_settings;
+use upload_user_image::upload_user_image;
 
 pub fn create_user_router() -> Router<AppState> {
     Router::new()
         .route("/user", get(get_current_user).patch(update_current_user))
+        .route("/user/image", post(upload_user_image))
         .route(
             "/user/settings",
             get(get_current_user_settings).patch(update_current_user_settings),

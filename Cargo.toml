@@ -48,6 +48,7 @@ gitdot-config = { path = "gitdot-config" }
 gitdot-core = { path = "gitdot-core" }
 gitdot-core-derive = { path = "gitdot-core/derive" }
 hex = "0.4.3"
+image = { version = "0.25", default-features = false, features = ["jpeg", "png", "webp"] }
 http = "1.4.0"
 humantime = "2.3"
 indexmap = "2.13"

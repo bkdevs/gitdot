@@ -1,6 +1,7 @@
 use axum::{
-    extract::{Multipart, State},
-    http::StatusCode,
+    body::Bytes,
+    extract::State,
+    http::{HeaderMap, StatusCode, header},
 };
 use image::{ImageFormat, ImageReader};
 use std::io::Cursor;
@@ -10,36 +11,23 @@ use crate::{
     extract::{Principal, User},
 };
 
-const MAX_IMAGE_BYTES: usize = 5 * 1024 * 1024; // 5 MB
-
 #[axum::debug_handler]
 pub async fn upload_user_image(
     auth_user: Principal<User>,
     State(_state): State<AppState>,
-    mut multipart: Multipart,
+    headers: HeaderMap,
+    body: Bytes,
 ) -> Result<AppResponse<()>, AppError> {
-    let field = multipart
-        .next_field()
-        .await
-        .map_err(|e| anyhow::anyhow!("multipart error: {e}"))?
-        .ok_or_else(|| anyhow::anyhow!("no file field in multipart body"))?;
+    let content_type = headers
+        .get(header::CONTENT_TYPE)
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("");
 
-    let _content_type = field
-        .content_type()
-        .unwrap_or("application/octet-stream")
-        .to_string();
-
-    let bytes = field
-        .bytes()
-        .await
-        .map_err(|e| anyhow::anyhow!("failed to read field bytes: {e}"))?
-        .to_vec();
-
-    if bytes.len() > MAX_IMAGE_BYTES {
-        return Err(anyhow::anyhow!("image too large (max 5 MB)").into());
+    if !matches!(content_type, "image/jpeg" | "image/png" | "image/webp") {
+        return Err(anyhow::anyhow!("unsupported image type: {content_type}").into());
     }
 
-    // Convert to WebP off the async runtime (CPU-bound)
+    let bytes = body.to_vec();
     let webp_bytes = tokio::task::spawn_blocking(move || -> anyhow::Result<Vec<u8>> {
         let img = ImageReader::new(Cursor::new(&bytes))
             .with_guessed_format()?

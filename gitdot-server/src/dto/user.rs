@@ -49,7 +49,7 @@ impl IntoApi for UserResponse {
             created_at: self.created_at,
             location: self.location,
             readme: self.readme,
-            website: self.website,
+            links: self.links,
             company: self.company,
         }
     }

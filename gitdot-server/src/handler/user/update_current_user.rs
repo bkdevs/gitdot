@@ -20,7 +20,7 @@ pub async fn update_current_user(
         request.name.as_deref(),
         request.location,
         request.readme,
-        request.website,
+        request.links,
         request.company,
     )?;
     state

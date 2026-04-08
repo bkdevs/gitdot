@@ -449,7 +449,7 @@ mod tests {
         impl UserRepository for UserRepo {
             async fn create(&self, email: &str, is_email_verified: bool, provider: AuthProvider) -> Result<User, crate::error::DatabaseError>;
             async fn get(&self, user_name: &str) -> Result<Option<User>, crate::error::DatabaseError>;
-            async fn update(&self, id: Uuid, name: Option<String>, location: Option<String>, readme: Option<String>, website: Option<String>, company: Option<String>) -> Result<User, crate::error::DatabaseError>;
+            async fn update(&self, id: Uuid, name: Option<String>, location: Option<String>, readme: Option<String>, links: Option<Vec<String>>, company: Option<String>) -> Result<User, crate::error::DatabaseError>;
             async fn get_by_id(&self, id: Uuid) -> Result<Option<User>, crate::error::DatabaseError>;
             async fn get_by_email(&self, email: &str) -> Result<Option<User>, crate::error::DatabaseError>;
             async fn get_by_emails(&self, emails: &[String]) -> Result<Vec<User>, crate::error::DatabaseError>;

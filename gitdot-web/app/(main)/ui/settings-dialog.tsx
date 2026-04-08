@@ -18,13 +18,13 @@ export function SettingsDialog() {
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<SettingsTab>("profile");
   const [location, setLocation] = useState(user?.location ?? "");
-  const [website, setWebsite] = useState(user?.website ?? "");
+  const [links, setLinks] = useState<string[]>(user?.links ?? []);
   const [readme, setReadme] = useState(user?.readme ?? "");
   const [company, setCompany] = useState(user?.company ?? "");
 
   useEffect(() => {
     setLocation(user?.location ?? "");
-    setWebsite(user?.website ?? "");
+    setLinks(user?.links ?? []);
     setReadme(user?.readme ?? "");
     setCompany(user?.company ?? "");
   }, [user]);
@@ -52,7 +52,7 @@ export function SettingsDialog() {
     if (!next && user) {
       const formData = new FormData();
       formData.set("location", location);
-      formData.set("website", website);
+      formData.set("links", JSON.stringify(links));
       formData.set("readme", readme);
       formData.set("company", company);
       await updateUserAction(null, formData);
@@ -79,8 +79,8 @@ export function SettingsDialog() {
                 user={user}
                 location={location}
                 onLocationChange={setLocation}
-                website={website}
-                onWebsiteChange={setWebsite}
+                links={links}
+                onLinksChange={setLinks}
                 readme={readme}
                 onReadmeChange={setReadme}
                 company={company}

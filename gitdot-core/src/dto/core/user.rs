@@ -35,7 +35,7 @@ pub struct UserResponse {
     pub created_at: DateTime<Utc>,
     pub location: Option<String>,
     pub readme: Option<String>,
-    pub website: Option<String>,
+    pub links: Vec<String>,
     pub company: Option<String>,
 }
 
@@ -48,7 +48,7 @@ impl From<User> for UserResponse {
             created_at: user.created_at,
             location: user.location,
             readme: user.readme,
-            website: user.website,
+            links: user.links,
             company: user.company,
         }
     }

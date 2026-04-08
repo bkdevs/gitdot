@@ -6,3 +6,4 @@ export * from "./list-user-commits";
 export * from "./list-user-organizations";
 export * from "./list-user-repositories";
 export * from "./update-current-user";
+export * from "./upload-user-image";

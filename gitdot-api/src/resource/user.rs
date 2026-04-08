@@ -14,7 +14,7 @@ pub struct UserResource {
     pub created_at: DateTime<Utc>,
     pub location: Option<String>,
     pub readme: Option<String>,
-    pub website: Option<String>,
+    pub links: Vec<String>,
     pub company: Option<String>,
 }
 
