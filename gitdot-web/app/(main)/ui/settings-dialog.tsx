@@ -36,7 +36,7 @@ export function SettingsDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent
-        className="max-w-[80vw]! h-[85vh]! p-0! gap-0! overflow-hidden flex flex-col"
+        className="max-w-[60vw]! h-[80vh]! p-0! gap-0! overflow-hidden flex flex-col"
         animations={true}
         showOverlay={true}
         aria-describedby={undefined}

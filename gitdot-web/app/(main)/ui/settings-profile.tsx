@@ -192,7 +192,7 @@ function ProfileAbout({
             if (e.key === "Enter") e.currentTarget.blur();
           }}
           className="text-sm bg-transparent border-b border-border outline-none w-full -mb-px placeholder:text-muted-foreground/40 transition-colors focus:border-foreground"
-          placeholder="company name"
+          placeholder="async inc."
         />
         <span className="text-sm text-muted-foreground">location</span>
         <input
@@ -202,7 +202,7 @@ function ProfileAbout({
             if (e.key === "Enter") e.currentTarget.blur();
           }}
           className="text-sm bg-transparent border-b border-border outline-none w-full -mb-px placeholder:text-muted-foreground/40 transition-colors focus:border-foreground"
-          placeholder="city, country"
+          placeholder="brooklyn, ny"
         />
       </div>
     </div>
@@ -217,6 +217,15 @@ function ProfileLinks({
   onLinksChange: (v: string[]) => void;
 }) {
   const linkInputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const draftInputRef = useRef<HTMLInputElement | null>(null);
+  const [draft, setDraft] = useState<string | null>(null);
+
+  function commitDraft() {
+    if (draft?.trim()) {
+      onLinksChange([...links, draft.trim()]);
+    }
+    setDraft(null);
+  }
 
   return (
     <div className="space-y-2">
@@ -238,7 +247,10 @@ function ProfileLinks({
               onLinksChange(next);
             }}
             onKeyDown={(e) => {
-              if (e.key === "Enter") e.currentTarget.blur();
+              if (e.key === "Enter" || e.key === "Escape") {
+                e.stopPropagation();
+                e.currentTarget.blur();
+              }
             }}
             onBlur={() => {
               if (!links[i]?.trim()) {
@@ -246,22 +258,34 @@ function ProfileLinks({
               }
             }}
             className="text-sm bg-transparent border-b border-border outline-none w-full placeholder:text-muted-foreground/40 transition-colors focus:border-foreground"
-            placeholder="https://..."
+            placeholder="mastodon.social/@you"
           />
         ))}
-        <button
-          type="button"
-          onClick={() => {
-            const next = [...links, ""];
-            onLinksChange(next);
-            setTimeout(() => {
-              linkInputRefs.current[next.length - 1]?.focus();
-            }, 0);
-          }}
-          className="mt-0.5 text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors cursor-pointer block"
-        >
-          new link
-        </button>
+        {draft !== null ? (
+          <input
+            ref={draftInputRef}
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === "Escape") {
+                e.stopPropagation();
+                commitDraft();
+              }
+            }}
+            onBlur={commitDraft}
+            autoFocus
+            className="h-5 text-sm bg-transparent border-b border-border outline-none w-full placeholder:text-muted-foreground/40 transition-colors focus:border-foreground"
+            placeholder="mastodon.social/@you"
+          />
+        ) : (
+          <button
+            type="button"
+            onClick={() => setDraft("")}
+            className="h-5 text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors cursor-pointer block border-b border-transparent w-full text-left"
+          >
+            new link
+          </button>
+        )}
       </div>
     </div>
   );
@@ -284,7 +308,7 @@ function ProfileReadme({
         value={readme}
         onChange={(e) => onReadmeChange(e.target.value)}
         className="text-sm bg-transparent border-r border-border outline-none w-full min-h-24 placeholder:text-muted-foreground/40 transition-colors focus:border-foreground resize-none field-sizing-content"
-        placeholder="tell us about yourself..."
+        placeholder="what you love to do..."
       />
     </div>
   );
