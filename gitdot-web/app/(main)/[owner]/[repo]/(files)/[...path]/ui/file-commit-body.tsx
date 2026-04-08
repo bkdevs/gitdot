@@ -12,11 +12,10 @@ export function FileCommitBody({
   commit: RepositoryCommitResource;
   diffEntry: DiffEntry;
 }) {
-
   return (
     <div className="flex flex-col w-full">
       <FileCommitHeader commit={commit} />
       <DiffBody data={diffEntry.data} />
     </div>
-  )
+  );
 }

@@ -3,7 +3,8 @@ import { UserResource } from "../../resource";
 import type { Endpoint } from "../endpoint";
 
 export const UpdateCurrentUserRequest = z.object({
-  name: z.string(),
+  name: z.string().optional(),
+  location: z.string().optional(),
 });
 export type UpdateCurrentUserRequest = z.infer<typeof UpdateCurrentUserRequest>;
 

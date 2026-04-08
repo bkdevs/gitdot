@@ -1,7 +1,7 @@
 "use client";
 
+import type { RepositoryCommitResource } from "gitdot-api";
 import { ChevronDownIcon } from "lucide-react";
-import { type RepositoryCommitResource } from "gitdot-api";
 import { useState } from "react";
 import {
   DropdownMenu,
@@ -11,14 +11,22 @@ import {
 } from "@/ui/dropdown-menu";
 import { ActivityGrid } from "./activity-grid";
 
-function inRange(date: string, start: string | null, end: string | null): boolean {
+function inRange(
+  date: string,
+  start: string | null,
+  end: string | null,
+): boolean {
   if (!start || !end) return false;
   const lo = start <= end ? start : end;
   const hi = start <= end ? end : start;
   return date >= lo && date <= hi;
 }
 
-export function UserCommits({ commits }: { commits: RepositoryCommitResource[] }) {
+export function UserCommits({
+  commits,
+}: {
+  commits: RepositoryCommitResource[];
+}) {
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
   const currentYear = new Date().getFullYear();
@@ -29,7 +37,7 @@ export function UserCommits({ commits }: { commits: RepositoryCommitResource[] }
   for (const c of commits) {
     const day = c.date.slice(0, 10);
     if (!byDate.has(day)) byDate.set(day, []);
-    byDate.get(day)!.push(c);
+    byDate.get(day)?.push(c);
   }
 
   const counts = new Map<string, number>();
@@ -61,7 +69,11 @@ export function UserCommits({ commits }: { commits: RepositoryCommitResource[] }
                 <DropdownMenuItem
                   key={y}
                   className={y === selectedYear ? "text-foreground" : ""}
-                  onSelect={() => { setSelectedYear(y); setStartDate(null); setEndDate(null); }}
+                  onSelect={() => {
+                    setSelectedYear(y);
+                    setStartDate(null);
+                    setEndDate(null);
+                  }}
                 >
                   {y}
                 </DropdownMenuItem>
@@ -84,7 +96,8 @@ export function UserCommits({ commits }: { commits: RepositoryCommitResource[] }
             <span className="text-foreground/40 select-none"># </span>Log
           </p>
           <span className="text-xs font-mono text-muted-foreground/60">
-            {(startDate ?? new Date().toISOString()).slice(0, 7)} ({visibleDays.reduce((n, d) => n + d.commits.length, 0)} commits)
+            {(startDate ?? new Date().toISOString()).slice(0, 7)} (
+            {visibleDays.reduce((n, d) => n + d.commits.length, 0)} commits)
           </span>
         </div>
         <div className="flex flex-col gap-4">
@@ -99,15 +112,29 @@ export function UserCommits({ commits }: { commits: RepositoryCommitResource[] }
               ) : (
                 <div className="flex flex-col gap-1.5">
                   {dayCommits.map((c) => {
-                    const added = c.diffs.reduce((s, d) => s + d.lines_added, 0);
-                    const removed = c.diffs.reduce((s, d) => s + d.lines_removed, 0);
+                    const added = c.diffs.reduce(
+                      (s, d) => s + d.lines_added,
+                      0,
+                    );
+                    const removed = c.diffs.reduce(
+                      (s, d) => s + d.lines_removed,
+                      0,
+                    );
                     return (
                       <div key={c.sha} className="flex items-baseline gap-2">
-                        <span className="text-xs font-mono text-muted-foreground shrink-0">{c.sha.slice(0, 7)}</span>
+                        <span className="text-xs font-mono text-muted-foreground shrink-0">
+                          {c.sha.slice(0, 7)}
+                        </span>
                         <span className="text-xs flex-1">{c.message}</span>
-                        <span className="text-xs font-mono text-muted-foreground/50 shrink-0">{c.diffs.length} files</span>
-                        <span className="text-xs font-mono text-green-600 dark:text-green-500 shrink-0">+{added}</span>
-                        <span className="text-xs font-mono text-red-600 dark:text-red-500 shrink-0">-{removed}</span>
+                        <span className="text-xs font-mono text-muted-foreground/50 shrink-0">
+                          {c.diffs.length} files
+                        </span>
+                        <span className="text-xs font-mono text-green-600 dark:text-green-500 shrink-0">
+                          +{added}
+                        </span>
+                        <span className="text-xs font-mono text-red-600 dark:text-red-500 shrink-0">
+                          -{removed}
+                        </span>
                       </div>
                     );
                   })}

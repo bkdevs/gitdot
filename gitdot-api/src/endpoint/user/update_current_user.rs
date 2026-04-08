@@ -14,7 +14,8 @@ impl Endpoint for UpdateCurrentUser {
 
 #[derive(ApiRequest, Debug, Serialize, Deserialize)]
 pub struct UpdateCurrentUserRequest {
-    pub name: String,
+    pub name: Option<String>,
+    pub location: Option<String>,
 }
 
 pub type UpdateCurrentUserResponse = UserResource;

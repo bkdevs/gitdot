@@ -1,10 +1,10 @@
 "use client";
 
-import Link from "@/ui/link";
-import { formatDateTime } from "@/util";
 import type { RepositoryCommitResource } from "gitdot-api";
 import { File, GitCommitHorizontal, X } from "lucide-react";
 import { useParams, usePathname, useSearchParams } from "next/navigation";
+import Link from "@/ui/link";
+import { formatDateTime } from "@/util";
 import { useFileViewerContext } from "./file-viewer-context";
 
 export function FileCommitHeader({
@@ -43,15 +43,27 @@ export function FileCommitHeader({
         </div>
       </div>
       <div className="flex flex-row gap-4 mt-auto ml-auto shrink-0">
-        <Link href={commitUrl} target="_blank" className="flex flex-row text-muted-foreground hover:text-foreground hover:underline items-center gap-1">
+        <Link
+          href={commitUrl}
+          target="_blank"
+          className="flex flex-row text-muted-foreground hover:text-foreground hover:underline items-center gap-1"
+        >
           <GitCommitHorizontal className="size-2.5" />
           <span className="text-xs font-mono">open commit</span>
         </Link>
-        <Link href={fileUrl} target="_blank" className="flex flex-row text-muted-foreground hover:text-foreground hover:underline items-center gap-1">
+        <Link
+          href={fileUrl}
+          target="_blank"
+          className="flex flex-row text-muted-foreground hover:text-foreground hover:underline items-center gap-1"
+        >
           <File className="size-2.5" />
           <span className="text-xs font-mono">open file</span>
         </Link>
-        <button type="button" onClick={handleDismiss} className="flex flex-row text-muted-foreground hover:text-foreground hover:underline cursor-pointer items-center gap-1">
+        <button
+          type="button"
+          onClick={handleDismiss}
+          className="flex flex-row text-muted-foreground hover:text-foreground hover:underline cursor-pointer items-center gap-1"
+        >
           <X className="size-2.5" />
           <span className="text-xs font-mono">dismiss</span>
         </button>

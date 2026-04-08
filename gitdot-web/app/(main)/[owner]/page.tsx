@@ -28,11 +28,14 @@ export default async function Page({
     <div className="grid grid-cols-[1fr_600px_1fr] items-start py-10">
       <div className="border-r flex flex-col items-end px-4 gap-6">
         <UserProfile user={user} />
-        <UserRepos owner={owner}/>
+        <UserRepos owner={owner} />
         {isCurrentUser && (
           <div className="flex flex-col items-end">
             <p className="font-semibold text-sm mb-0.5">settings</p>
-            <Link href="/settings" className="text-xs underline decoration-transparent hover:decoration-current transition-colors duration-200">
+            <Link
+              href="/settings"
+              className="text-xs underline decoration-transparent hover:decoration-current transition-colors duration-200"
+            >
               profile
             </Link>
           </div>

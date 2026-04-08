@@ -15,7 +15,8 @@ pub async fn update_current_user(
     State(state): State<AppState>,
     Json(request): Json<api::UpdateCurrentUserRequest>,
 ) -> Result<AppResponse<api::UpdateCurrentUserResponse>, AppError> {
-    let request = UpdateCurrentUserRequest::new(auth_user.id, &request.name)?;
+    let request =
+        UpdateCurrentUserRequest::new(auth_user.id, request.name.as_deref(), request.location)?;
     state
         .user_service
         .update_current_user(request)

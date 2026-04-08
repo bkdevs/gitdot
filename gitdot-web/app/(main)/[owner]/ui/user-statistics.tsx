@@ -28,5 +28,5 @@ export function UserStatistics() {
         </div>
       </div>
     </div>
-  )
+  );
 }

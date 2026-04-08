@@ -8,14 +8,22 @@ use crate::{
 #[derive(Debug, Clone)]
 pub struct UpdateCurrentUserRequest {
     pub user_id: Uuid,
-    pub name: OwnerName,
+    pub name: Option<OwnerName>,
+    pub location: Option<String>,
 }
 
 impl UpdateCurrentUserRequest {
-    pub fn new(user_id: Uuid, name: &str) -> Result<Self, UserError> {
+    pub fn new(
+        user_id: Uuid,
+        name: Option<&str>,
+        location: Option<String>,
+    ) -> Result<Self, UserError> {
         Ok(Self {
             user_id,
-            name: OwnerName::try_new(name).map_err(|e| InputError::new("user name", e))?,
+            name: name
+                .map(|n| OwnerName::try_new(n).map_err(|e| InputError::new("user name", e)))
+                .transpose()?,
+            location,
         })
     }
 }

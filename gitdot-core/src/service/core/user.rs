@@ -134,17 +134,30 @@ where
         &self,
         request: UpdateCurrentUserRequest,
     ) -> Result<UserResponse, UserError> {
-        let name = request.name.to_string();
+        let name: Option<String> = match request.name {
+            Some(n) => {
+                let name = n.to_string();
+                if is_reserved_name(&name) {
+                    return Err(
+                        ConflictError::new("user name", format!("{name} is reserved")).into(),
+                    );
+                }
+                if self.user_repo.is_name_taken(&name).await? {
+                    return Err(ConflictError::new(
+                        "user name",
+                        format!("{name} is already taken"),
+                    )
+                    .into());
+                }
+                Some(name)
+            }
+            None => None,
+        };
 
-        if is_reserved_name(&name) {
-            return Err(ConflictError::new("user name", format!("{name} is reserved")).into());
-        }
-
-        if self.user_repo.is_name_taken(&name).await? {
-            return Err(ConflictError::new("user name", format!("{name} is already taken")).into());
-        }
-
-        let user = self.user_repo.update(request.user_id, &name).await?;
+        let user = self
+            .user_repo
+            .update(request.user_id, name, request.location)
+            .await?;
         Ok(user.into())
     }
 

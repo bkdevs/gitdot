@@ -23,9 +23,7 @@ fn main() {
     if server_env.exists() {
         let contents = fs::read_to_string(server_env).expect("failed to read gitdot-server/.env");
         if contents.contains("GITDOT_PUBLIC_KEY") {
-            eprintln!(
-                "Error: GITDOT_PUBLIC_KEY already exists in gitdot-server/.env"
-            );
+            eprintln!("Error: GITDOT_PUBLIC_KEY already exists in gitdot-server/.env");
             std::process::exit(1);
         }
     }
@@ -78,12 +76,8 @@ fn main() {
         private_pem.as_str().trim_end()
     )
     .expect("failed to write to gitdot-auth/.env");
-    writeln!(
-        auth_file,
-        "GITDOT_PUBLIC_KEY=\"{}\"",
-        public_pem.trim_end()
-    )
-    .expect("failed to write to gitdot-auth/.env");
+    writeln!(auth_file, "GITDOT_PUBLIC_KEY=\"{}\"", public_pem.trim_end())
+        .expect("failed to write to gitdot-auth/.env");
 
     let mut s2_file = OpenOptions::new()
         .create(true)

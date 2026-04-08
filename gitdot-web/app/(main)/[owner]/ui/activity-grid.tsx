@@ -1,7 +1,6 @@
 "use client";
 
-import { cn } from "@/util";
-import { addDays, dateOnly, subtractDays } from "@/util";
+import { addDays, cn, dateOnly, subtractDays } from "@/util";
 
 const CELL_HEIGHT = 10;
 const GAP = 1;
@@ -12,7 +11,10 @@ type Day = { date: string; count: number };
 type Week = Day[];
 type Month = { label: string; startingWeek: number; numWeeks: number };
 
-function buildGrid(counts: Map<string, number>): { weeks: Week[]; months: Month[] } {
+function buildGrid(counts: Map<string, number>): {
+  weeks: Week[];
+  months: Month[];
+} {
   const today = dateOnly(new Date());
   const thisWeekStart = subtractDays(today, today.getDay());
 
@@ -86,7 +88,10 @@ export function ActivityGrid({
   return (
     <div className="flex w-full">
       {months.map((m) => {
-        const monthWeeks = weeks.slice(m.startingWeek, m.startingWeek + m.numWeeks);
+        const monthWeeks = weeks.slice(
+          m.startingWeek,
+          m.startingWeek + m.numWeeks,
+        );
         const days = monthWeeks.flat();
         if (days.length === 0) return null;
 
@@ -126,7 +131,10 @@ export function ActivityGrid({
                 week.map((day, row) => (
                   <div
                     key={day.date}
-                    className={cn("w-full h-full rounded-[1px]", cellColor(day.count))}
+                    className={cn(
+                      "w-full h-full rounded-[1px]",
+                      cellColor(day.count),
+                    )}
                     style={{ gridRow: row + 1, gridColumn: col + 1 }}
                     title={`${day.date}: ${day.count} commits`}
                   />

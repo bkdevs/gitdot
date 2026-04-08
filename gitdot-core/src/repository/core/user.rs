@@ -19,7 +19,12 @@ pub trait UserRepository: Send + Sync + Clone + 'static {
 
     async fn get(&self, user_name: &str) -> Result<Option<User>, DatabaseError>;
 
-    async fn update(&self, id: Uuid, name: &str) -> Result<User, DatabaseError>;
+    async fn update(
+        &self,
+        id: Uuid,
+        name: Option<String>,
+        location: Option<String>,
+    ) -> Result<User, DatabaseError>;
 
     async fn get_by_id(&self, id: Uuid) -> Result<Option<User>, DatabaseError>;
 
@@ -105,20 +110,42 @@ impl UserRepository for UserRepositoryImpl {
         Ok(user)
     }
 
-    async fn update(&self, id: Uuid, name: &str) -> Result<User, DatabaseError> {
-        let user = sqlx::query_as::<_, User>(
-            r#"
-            UPDATE core.users SET name = $1
-            WHERE id = $2
-            RETURNING id, email, name, is_email_verified, provider, created_at, location, settings
-            "#,
-        )
-        .bind(name)
-        .bind(id)
-        .fetch_one(&self.pool)
-        .await?;
+    async fn update(
+        &self,
+        id: Uuid,
+        name: Option<String>,
+        location: Option<String>,
+    ) -> Result<User, DatabaseError> {
+        if name.is_none() && location.is_none() {
+            unreachable!("update called with no fields to update");
+        }
 
-        Ok(user)
+        let mut sets = Vec::new();
+        if name.is_some() {
+            sets.push(format!("name = ${}", sets.len() + 1));
+        }
+        if location.is_some() {
+            sets.push(format!("location = ${}", sets.len() + 1));
+        }
+
+        let sql = format!(
+            "UPDATE core.users SET {} WHERE id = ${} \
+             RETURNING id, email, name, is_email_verified, provider, created_at, location, settings",
+            sets.join(", "),
+            sets.len() + 1,
+        );
+
+        let mut query = sqlx::query_as::<_, User>(&sql);
+        if let Some(n) = name {
+            query = query.bind(n);
+        }
+        if let Some(loc) = location {
+            let val: Option<String> = if loc.is_empty() { None } else { Some(loc) };
+            query = query.bind(val);
+        }
+        query = query.bind(id);
+
+        Ok(query.fetch_one(&self.pool).await?)
     }
 
     async fn get_by_id(&self, id: Uuid) -> Result<Option<User>, DatabaseError> {

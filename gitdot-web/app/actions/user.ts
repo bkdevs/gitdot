@@ -58,16 +58,25 @@ export async function updateUserAction(
   _prev: UpdateUserActionResult | null,
   formData: FormData,
 ): Promise<UpdateUserActionResult> {
-  const username = formData.get("username") as string;
+  const username = formData.get("username") as string | null;
+  const location = formData.get("location") as string | null;
   const redirectTo = formData.get("redirect") as string;
 
-  const usernameError = await validateUsername(username);
-  if (usernameError) {
-    console.log(usernameError);
-    return { error: usernameError };
+  let name: string | undefined;
+  if (username) {
+    const usernameError = await validateUsername(username);
+    if (usernameError) {
+      console.log(usernameError);
+      return { error: usernameError };
+    }
+    name = username;
   }
 
-  const result = await updateCurrentUser({ name: username });
+  const result = await updateCurrentUser({
+    name,
+    location: location !== null ? location || "" : undefined,
+  });
+
   if (!result) {
     return { error: "Failed to update user" };
   }
