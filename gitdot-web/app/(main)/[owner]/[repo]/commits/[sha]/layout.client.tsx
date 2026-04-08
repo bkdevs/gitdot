@@ -99,11 +99,13 @@ function CommitSidebarContent({
         data-sidebar-item
         data-sidebar-item-active={isActive ? "true" : undefined}
       >
-        <div className="flex flex-row w-full items-center gap-2 min-w-0">
+        <div className="flex flex-row w-full gap-2 min-w-0">
+          <div className="shrink-0 pt-0.5">
+            <UserImage user={commit.author} px={20} />
+          </div>
           <div className="flex flex-col flex-1 justify-start items-start min-w-0">
             <div className="text-sm truncate mb-0.5 w-full">{commit.message}</div>
             <div className="text-xs text-muted-foreground flex items-center gap-1 w-full min-w-0">
-              <UserImage user={commit.author} px={16} />
               <span className="truncate min-w-0 underline cursor-pointer">{author}</span>
               <span className="shrink-0">{timeAgo(new Date(commit.date))}</span>
             </div>

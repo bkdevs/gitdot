@@ -13,12 +13,12 @@ import { MainToolbar } from "./main-toolbar";
 
 export function MainFooter() {
   return (
-    <div className="shrink-0 flex w-full h-8 items-center border-t bg-sidebar">
-      <div className="text-sm font-mono flex items-center px-2 ml-auto">
+    <div className="relative shrink-0 flex w-full h-8 items-center border-t bg-sidebar">
+      <div className="absolute left-1/2 -translate-x-1/2 text-sm font-mono flex items-center">
         <Breadcrumbs />
         <PageVitals />
       </div>
-      <MainToolbar />
+      <MainToolbar className="ml-auto" />
     </div>
   );
 }
