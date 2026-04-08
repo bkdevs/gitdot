@@ -79,22 +79,28 @@ export function SettingsProfile({
           <Tooltip>
             <TooltipTrigger asChild>
               {image ? (
-                <Image
-                  src={`data:image/webp;base64,${image}`}
-                  alt="Profile"
-                  width={32}
-                  height={32}
-                  unoptimized
-                  className={`rounded-full mb-1.5 cursor-pointer${uploading ? " opacity-50" : ""}`}
+                <div
+                  className="relative size-8 mb-1.5 cursor-pointer"
                   onClick={() => !uploading && fileInputRef.current?.click()}
-                />
+                >
+                  <Image
+                    src={`data:image/webp;base64,${image}`}
+                    alt="Profile"
+                    width={32}
+                    height={32}
+                    unoptimized
+                    className={`rounded-full transition-opacity duration-300${uploading ? " opacity-60" : ""}`}
+                  />
+                  <div className={`absolute -inset-0.5 rounded-full border border-transparent border-t-foreground/50 animate-spin transition-opacity duration-300${uploading ? "" : " opacity-0"}`} />
+                </div>
               ) : (
                 <button
                   type="button"
-                  className={`mb-1.5 cursor-pointer${uploading ? " opacity-50" : ""}`}
+                  className="relative mb-1.5 cursor-pointer"
                   onClick={() => !uploading && fileInputRef.current?.click()}
                 >
-                  <User className="size-8" />
+                  <User className={`size-8 transition-opacity duration-300${uploading ? " opacity-60" : ""}`} />
+                  <div className={`absolute -inset-0.5 rounded-full border border-transparent border-t-foreground/50 animate-spin transition-opacity duration-300${uploading ? "" : " opacity-0"}`} />
                 </button>
               )}
             </TooltipTrigger>
