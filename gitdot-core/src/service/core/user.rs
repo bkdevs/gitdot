@@ -2,12 +2,14 @@ use async_trait::async_trait;
 use chrono::{Duration, Utc};
 
 use crate::{
+    client::{ImageClient, ImageClientImpl},
     dto::{
         CommitResponse, GetCurrentUserRequest, GetCurrentUserSettingsRequest, GetUserRequest,
         HasUserRequest, ListUserCommitsRequest, ListUserOrganizationsRequest,
         ListUserRepositoriesRequest, ListUserReviewsRequest, OrganizationResponse,
-        RepositoryResponse, ReviewResponse, UpdateCurrentUserRequest,
-        UpdateCurrentUserSettingsRequest, UserResponse, UserSettingsResponse,
+        RepositoryResponse, ReviewResponse, UpdateCurrentUserImageRequest,
+        UpdateCurrentUserRequest, UpdateCurrentUserSettingsRequest, UserResponse,
+        UserSettingsResponse,
     },
     error::{ConflictError, NotFoundError, OptionNotFoundExt, UserError},
     model::UserSettings,
@@ -30,6 +32,11 @@ pub trait UserService: Send + Sync + 'static {
         &self,
         request: UpdateCurrentUserRequest,
     ) -> Result<UserResponse, UserError>;
+
+    async fn update_current_user_image(
+        &self,
+        request: UpdateCurrentUserImageRequest,
+    ) -> Result<String, UserError>;
 
     async fn has_user(&self, request: HasUserRequest) -> Result<(), UserError>;
 
@@ -67,19 +74,21 @@ pub trait UserService: Send + Sync + 'static {
 }
 
 #[derive(Debug, Clone)]
-pub struct UserServiceImpl<U, R, O, V, C>
+pub struct UserServiceImpl<U, R, O, V, C, I>
 where
     U: UserRepository,
     R: RepositoryRepository,
     O: OrganizationRepository,
     V: ReviewRepository,
     C: CommitRepository,
+    I: ImageClient,
 {
     user_repo: U,
     repo_repo: R,
     org_repo: O,
     review_repo: V,
     commit_repo: C,
+    image_client: I,
 }
 
 impl
@@ -89,6 +98,7 @@ impl
         OrganizationRepositoryImpl,
         ReviewRepositoryImpl,
         CommitRepositoryImpl,
+        ImageClientImpl,
     >
 {
     pub fn new(
@@ -97,6 +107,7 @@ impl
         org_repo: OrganizationRepositoryImpl,
         review_repo: ReviewRepositoryImpl,
         commit_repo: CommitRepositoryImpl,
+        image_client: ImageClientImpl,
     ) -> Self {
         Self {
             user_repo,
@@ -104,19 +115,21 @@ impl
             org_repo,
             review_repo,
             commit_repo,
+            image_client,
         }
     }
 }
 
 #[crate::instrument_all]
 #[async_trait]
-impl<U, R, O, V, C> UserService for UserServiceImpl<U, R, O, V, C>
+impl<U, R, O, V, C, I> UserService for UserServiceImpl<U, R, O, V, C, I>
 where
     U: UserRepository,
     R: RepositoryRepository,
     O: OrganizationRepository,
     V: ReviewRepository,
     C: CommitRepository,
+    I: ImageClient,
 {
     async fn get_current_user(
         &self,
@@ -167,6 +180,25 @@ where
             )
             .await?;
         Ok(user.into())
+    }
+
+    async fn update_current_user_image(
+        &self,
+        request: UpdateCurrentUserImageRequest,
+    ) -> Result<String, UserError> {
+        let bytes = self.image_client.convert_to_webp(request.bytes).await?;
+        self.user_repo
+            .update(
+                request.user_id,
+                None,
+                None,
+                None,
+                None,
+                None,
+                Some(bytes.clone()),
+            )
+            .await?;
+        Ok(bytes)
     }
 
     async fn has_user(&self, request: HasUserRequest) -> Result<(), UserError> {

@@ -124,69 +124,40 @@ impl UserRepository for UserRepositoryImpl {
         company: Option<String>,
         image: Option<String>,
     ) -> Result<User, DatabaseError> {
-        if name.is_none()
-            && location.is_none()
-            && readme.is_none()
-            && links.is_none()
-            && company.is_none()
-            && image.is_none()
-        {
-            unreachable!("update called with no fields to update");
-        }
+        let mut builder = sqlx::QueryBuilder::new("UPDATE core.users SET ");
+        let mut sep = builder.separated(", ");
 
-        let mut sets = Vec::new();
-        if name.is_some() {
-            sets.push(format!("name = ${}", sets.len() + 1));
-        }
-        if location.is_some() {
-            sets.push(format!("location = ${}", sets.len() + 1));
-        }
-        if readme.is_some() {
-            sets.push(format!("readme = ${}", sets.len() + 1));
-        }
-        if links.is_some() {
-            sets.push(format!("links = ${}", sets.len() + 1));
-        }
-        if company.is_some() {
-            sets.push(format!("company = ${}", sets.len() + 1));
-        }
-        if image.is_some() {
-            sets.push(format!("image = ${}", sets.len() + 1));
-        }
-
-        let sql = format!(
-            "UPDATE core.users SET {} WHERE id = ${} \
-             RETURNING id, email, name, is_email_verified, provider, created_at, location, readme, links, company, image, settings",
-            sets.join(", "),
-            sets.len() + 1,
-        );
-
-        let mut query = sqlx::query_as::<_, User>(&sql);
         if let Some(n) = name {
-            query = query.bind(n);
+            sep.push("name = ").push_bind_unseparated(n);
         }
         if let Some(loc) = location {
-            let val: Option<String> = if loc.is_empty() { None } else { Some(loc) };
-            query = query.bind(val);
+            sep.push("location = ")
+                .push_bind_unseparated(if loc.is_empty() { None } else { Some(loc) });
         }
         if let Some(r) = readme {
-            let val: Option<String> = if r.is_empty() { None } else { Some(r) };
-            query = query.bind(val);
+            sep.push("readme = ")
+                .push_bind_unseparated(if r.is_empty() { None } else { Some(r) });
         }
         if let Some(l) = links {
             let val = serde_json::to_value(&l).unwrap_or(serde_json::Value::Array(vec![]));
-            query = query.bind(val);
+            sep.push("links = ").push_bind_unseparated(val);
         }
         if let Some(c) = company {
-            let val: Option<String> = if c.is_empty() { None } else { Some(c) };
-            query = query.bind(val);
+            sep.push("company = ")
+                .push_bind_unseparated(if c.is_empty() { None } else { Some(c) });
         }
         if let Some(img) = image {
-            query = query.bind(img);
+            sep.push("image = ").push_bind_unseparated(img);
         }
-        query = query.bind(id);
 
-        Ok(query.fetch_one(&self.pool).await?)
+        builder.push(" WHERE id = ").push_bind(id).push(
+            " RETURNING id, email, name, is_email_verified, provider, created_at, location, readme, links, company, image, settings",
+        );
+
+        Ok(builder
+            .build_query_as::<User>()
+            .fetch_one(&self.pool)
+            .await?)
     }
 
     async fn get_by_id(&self, id: Uuid) -> Result<Option<User>, DatabaseError> {

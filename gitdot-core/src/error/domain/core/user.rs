@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-use crate::error::{ConflictError, DatabaseError, InputError, NotFoundError};
+use crate::error::{ConflictError, DatabaseError, ImageError, InputError, NotFoundError};
 
 #[derive(Debug, Error)]
 pub enum UserError {
@@ -13,8 +13,8 @@ pub enum UserError {
     #[error(transparent)]
     Conflict(#[from] ConflictError),
 
-    #[error("Invalid image: {0}")]
-    InvalidImage(String),
+    #[error(transparent)]
+    InvalidImage(#[from] ImageError),
 
     #[error(transparent)]
     DatabaseError(#[from] DatabaseError),

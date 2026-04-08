@@ -6,8 +6,8 @@ use sqlx::PgPool;
 
 use gitdot_core::{
     client::{
-        DifftClient, Git2Client, GitHttpClientImpl, OctocrabClient, ResendClient, S2ClientImpl,
-        SecretClient, TokenClientImpl,
+        DifftClient, Git2Client, GitHttpClientImpl, ImageClientImpl, OctocrabClient, ResendClient,
+        S2ClientImpl, SecretClient, TokenClientImpl,
     },
     repository::{
         BuildRepositoryImpl, CommitRepositoryImpl, DeviceRepositoryImpl, GitHubRepositoryImpl,
@@ -89,6 +89,7 @@ impl AppState {
         let s2_client = S2ClientImpl::new(&settings.s2_server_url, gitdot_private_key.clone());
         let token_client = TokenClientImpl::new(gitdot_private_key.clone());
         let email_client = ResendClient::new(&settings.resend_api_key);
+        let image_client = ImageClientImpl::new();
 
         let vercel_jwks = {
             let jwks_url = format!("{}/.well-known/jwks", settings.vercel_oidc_url);
@@ -119,6 +120,7 @@ impl AppState {
                 org_repo.clone(),
                 review_repo.clone(),
                 commit_repo.clone(),
+                image_client.clone(),
             )),
             org_service: Arc::new(OrganizationServiceImpl::new(
                 org_repo.clone(),
