@@ -58,7 +58,6 @@ export function CommitsGrid({
         >
           {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
             <span
-              // biome-ignore lint/suspicious/noArrayIndexKey: day-of-week labels have intentional duplicates
               key={`${d}-${i}`}
               className={cn(
                 "text-[10px] flex items-center justify-center w-full select-none",

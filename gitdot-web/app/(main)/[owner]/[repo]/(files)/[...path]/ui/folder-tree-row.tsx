@@ -176,7 +176,6 @@ function TreeRowGutter({ depth, isLast }: { depth: number; isLast: boolean }) {
   return (
     <span className="flex items-stretch shrink-0 select-none" aria-hidden>
       {Array.from({ length: depth }, (_, i) => (
-        // biome-ignore lint/suspicious/noArrayIndexKey: stable positional slots
         <span key={i} className="relative w-5">
           <span className="absolute left-2.25 top-0 bottom-0 border-l border-foreground" />
         </span>

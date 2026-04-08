@@ -30,7 +30,6 @@ export function FolderTreeHeader({
         </Link>
         {path?.length > 0 &&
           path?.split("/").map((seg, i, arr) => (
-            // biome-ignore lint/suspicious/noArrayIndexKey: stable path segments
             <span key={i}>
               <span>/</span>
               <Link

@@ -32,7 +32,8 @@
         "noStaticElementInteractions": "off"
       },
       "suspicious": {
-        "noUnknownAtRules": "off"
+        "noUnknownAtRules": "off",
+        "noArrayIndexKey": "off"
       },
       "complexity": {
         "noUselessEscapeInRegex": "off"

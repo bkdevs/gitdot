@@ -72,7 +72,7 @@ function cellColor(count: number): string {
 export function ActivityGrid({
   counts,
   startDate,
-  endDate,
+  endDate: _endDate,
   setStartDate,
   setEndDate,
 }: {
@@ -102,10 +102,11 @@ export function ActivityGrid({
         const isDimmed = selectedMonth !== null && !isSelected;
 
         return (
-          <div
+          <button
             key={m.label}
+            type="button"
             className={cn(
-              "flex flex-col gap-1 transition-opacity duration-200 min-w-0 cursor-pointer",
+              "flex flex-col gap-1 transition-opacity duration-200 min-w-0 cursor-pointer appearance-none bg-transparent border-none p-0 text-left",
               isDimmed && "opacity-25",
             )}
             style={{ flex: m.numWeeks }}
@@ -142,16 +143,15 @@ export function ActivityGrid({
               )}
             </div>
 
-            <button
-              type="button"
+            <span
               className={cn(
-                "text-[10px] text-left truncate transition-colors hover:text-foreground appearance-none bg-transparent border-none p-0 select-none w-full",
+                "text-[10px] text-left truncate transition-colors hover:text-foreground select-none w-full",
                 isSelected ? "text-foreground" : "text-muted-foreground",
               )}
             >
               {m.label}
-            </button>
-          </div>
+            </span>
+          </button>
         );
       })}
     </div>

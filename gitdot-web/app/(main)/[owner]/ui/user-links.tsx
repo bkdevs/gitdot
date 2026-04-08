@@ -8,7 +8,6 @@ export function UserLinks({ user }: { user: UserResource }) {
       <p className="font-semibold text-sm mb-0.5">links</p>
       {user.links.map((link, i) => (
         <a
-          // biome-ignore lint/suspicious/noArrayIndexKey: stable list
           key={i}
           href={/^https?:\/\//.test(link) ? link : `https://${link}`}
           target="_blank"

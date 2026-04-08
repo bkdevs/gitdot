@@ -76,7 +76,6 @@ export async function updateUserAction(
   if (username) {
     const usernameError = await validateUsername(username);
     if (usernameError) {
-      console.log(usernameError);
       return { error: usernameError };
     }
     name = username;
@@ -84,10 +83,10 @@ export async function updateUserAction(
 
   const result = await updateCurrentUser({
     name,
-    location: location !== null ? location || "" : undefined,
-    readme: readme !== null ? readme || "" : undefined,
+    location,
+    readme,
     links,
-    company: company !== null ? company || "" : undefined,
+    company,
   });
 
   if (!result) {
@@ -129,22 +128,21 @@ export async function validateUsername(
   return null;
 }
 
-const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5 MB
-
 export async function uploadUserImageAction(
-  formData: FormData,
-): Promise<{ data: UploadUserImageResource } | { error: string }> {
-  const file = formData.get("image") as File | null;
-  if (!file || file.size === 0) return { error: "No file provided" };
-  if (file.size > MAX_IMAGE_BYTES)
-    return { error: "Image must be under 5 MB — try a smaller file." };
-  if (!["image/jpeg", "image/png", "image/webp"].includes(file.type))
+  file: File,
+): Promise<UploadUserImageResource | { error: string }> {
+  if (!file || file.size === 0) {
+    return { error: "No file provided" };
+  } else if (file.size > 5 * 1024 * 1024) {
+    return { error: "Image must be under 5 MB." };
+  } else if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
     return { error: "Unsupported image type — use JPEG, PNG, or WebP." };
+  }
 
   try {
-    const user = await uploadUserImage(file);
-    if (!user) return { error: "Upload failed — please try again." };
-    return { data: user };
+    const result = await uploadUserImage(file);
+    if (!result) return { error: "Upload failed — please try again." };
+    return result;
   } catch (e) {
     console.error("uploadUserImageAction failed:", e);
     const msg = e instanceof Error ? e.message : "Unknown error";
