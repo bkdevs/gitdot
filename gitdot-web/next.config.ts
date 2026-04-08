@@ -8,6 +8,9 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     proxyClientMaxBodySize: "2gb",
+    serverActions: {
+      bodySizeLimit: "6mb",
+    },
   },
   async redirects() {
     return [

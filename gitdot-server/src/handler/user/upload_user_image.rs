@@ -7,18 +7,21 @@ use base64::prelude::*;
 use image::{ImageFormat, ImageReader};
 use std::io::Cursor;
 
+use gitdot_core::dto::UpdateCurrentUserRequest;
+
 use crate::{
     app::{AppError, AppResponse, AppState},
+    dto::IntoApi,
     extract::{Principal, User},
 };
 
 #[axum::debug_handler]
 pub async fn upload_user_image(
     auth_user: Principal<User>,
-    State(_state): State<AppState>,
+    State(state): State<AppState>,
     headers: HeaderMap,
     body: Bytes,
-) -> Result<AppResponse<()>, AppError> {
+) -> Result<AppResponse<impl gitdot_api::ApiResource>, AppError> {
     let content_type = headers
         .get(header::CONTENT_TYPE)
         .and_then(|v| v.to_str().ok())
@@ -42,10 +45,9 @@ pub async fn upload_user_image(
     .await
     .map_err(|e| anyhow::anyhow!("spawn error: {e}"))??;
 
-    // TODO: persist webp_bytes + update user avatar_url once repo layer is ready
     let b64 = BASE64_STANDARD.encode(&webp_bytes);
-    tracing::info!("webp ({} bytes): data:image/webp;base64,{}", webp_bytes.len(), b64);
-    let _ = auth_user.id;
+    let req = UpdateCurrentUserRequest::new(auth_user.id, None, None, None, None, None, Some(b64))?;
+    let user = state.user_service.update_current_user(req).await?;
 
-    Ok(AppResponse::new(StatusCode::OK, ()))
+    Ok(AppResponse::new(StatusCode::OK, user.into_api()))
 }

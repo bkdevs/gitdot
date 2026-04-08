@@ -22,6 +22,7 @@ pub async fn update_current_user(
         request.readme,
         request.links,
         request.company,
+        None,
     )?;
     state
         .user_service

@@ -13,7 +13,7 @@ export function UserLinks({ user }: { user: UserResource }) {
           href={/^https?:\/\//.test(link) ? link : `https://${link}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-xs text-muted-foreground underline decoration-transparent hover:decoration-current transition-colors duration-200"
+          className="text-xs underline decoration-transparent hover:decoration-current transition-colors duration-200"
         >
           {link.replace(/^https?:\/\//, "")}
         </a>

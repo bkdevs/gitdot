@@ -20,6 +20,7 @@ pub struct User {
     #[sqlx(json)]
     pub links: Vec<String>,
     pub company: Option<String>,
+    pub image: Option<String>,
 
     #[sqlx(json(nullable), default)]
     pub settings: Option<UserSettings>,

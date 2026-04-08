@@ -133,19 +133,22 @@ const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5 MB
 
 export async function uploadUserImageAction(
   formData: FormData,
-): Promise<{ success: true } | { error: string }> {
+): Promise<{ data: UserResource } | { error: string }> {
   const file = formData.get("image") as File | null;
   if (!file || file.size === 0) return { error: "No file provided" };
-  if (file.size > MAX_IMAGE_BYTES) return { error: "Image must be under 5 MB" };
+  if (file.size > MAX_IMAGE_BYTES)
+    return { error: "Image must be under 5 MB — try a smaller file." };
   if (!["image/jpeg", "image/png", "image/webp"].includes(file.type))
-    return { error: "Unsupported image type (JPEG, PNG, WebP only)" };
+    return { error: "Unsupported image type — use JPEG, PNG, or WebP." };
 
   try {
-    await uploadUserImage(file);
-    return { success: true };
+    const user = await uploadUserImage(file);
+    if (!user) return { error: "Upload failed — please try again." };
+    return { data: user };
   } catch (e) {
     console.error("uploadUserImageAction failed:", e);
-    return { error: "Failed to upload image" };
+    const msg = e instanceof Error ? e.message : "Unknown error";
+    return { error: `Upload failed: ${msg}` };
   }
 }
 

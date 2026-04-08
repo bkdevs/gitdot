@@ -10,7 +10,11 @@ mod update_current_user;
 mod update_current_user_settings;
 mod upload_user_image;
 
-use axum::{Router, routing::{get, post}};
+use axum::{
+    Router,
+    extract::DefaultBodyLimit,
+    routing::{get, post},
+};
 
 use crate::app::AppState;
 
@@ -29,7 +33,10 @@ use upload_user_image::upload_user_image;
 pub fn create_user_router() -> Router<AppState> {
     Router::new()
         .route("/user", get(get_current_user).patch(update_current_user))
-        .route("/user/image", post(upload_user_image))
+        .route(
+            "/user/image",
+            post(upload_user_image).layer(DefaultBodyLimit::max(5 * 1024 * 1024)),
+        )
         .route(
             "/user/settings",
             get(get_current_user_settings).patch(update_current_user_settings),

@@ -51,6 +51,7 @@ impl IntoApi for UserResponse {
             readme: self.readme,
             links: self.links,
             company: self.company,
+            image: self.image,
         }
     }
 }
