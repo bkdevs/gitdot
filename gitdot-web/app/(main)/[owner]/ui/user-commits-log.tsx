@@ -15,7 +15,7 @@ export function UserCommitsLog({
   selectedMonth: string | null;
 }) {
   const visibleDays = [...commits.entries()]
-    .sort((a, b) => b[0].localeCompare(a[0]))
+    .sort((a, b) => selectedMonth ? a[0].localeCompare(b[0]) : b[0].localeCompare(a[0]))
     .filter(
       ([date]) =>
       inRange(date, startDate, endDate) &&
@@ -24,17 +24,19 @@ export function UserCommitsLog({
     .map(([date, cs]) => ({ date, commits: cs }));
 
   return (
-    <div className="flex flex-col gap-4 mt-6">
+    <div className="flex flex-col gap-8 mt-6">
       {visibleDays.map(({ date, commits: dayCommits }) => (
         <div key={date}>
-          <p className="text-xs text-muted-foreground font-mono mb-2">
-            <span className="text-foreground/40 select-none">## </span>
-            {date}
+          <p className="text-xs text-muted-foreground font-mono mb-1.5">
+{new Date(`${date}T00:00:00`).toLocaleDateString("en-US", {
+              month: "long",
+              day: "numeric",
+            })}
           </p>
           {dayCommits.length === 0 ? (
             <p className="text-xs text-muted-foreground/50 font-mono">—</p>
           ) : (
-            <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col">
               {dayCommits.map((c) => {
                 const added = c.diffs.reduce((s, d) => s + d.lines_added, 0);
                 const removed = c.diffs.reduce(
@@ -42,20 +44,12 @@ export function UserCommitsLog({
                   0,
                 );
                 return (
-                  <div key={c.sha} className="flex items-baseline gap-2">
-                    <span className="text-xs font-mono text-muted-foreground shrink-0">
-                      {c.sha.slice(0, 7)}
-                    </span>
-                    <span className="text-xs flex-1">{c.message}</span>
-                    <span className="text-xs font-mono text-muted-foreground/50 shrink-0">
-                      {c.diffs.length} files
-                    </span>
-                    <span className="text-xs font-mono text-green-600 dark:text-green-500 shrink-0">
-                      +{added}
-                    </span>
-                    <span className="text-xs font-mono text-red-600 dark:text-red-500 shrink-0">
-                      -{removed}
-                    </span>
+                  <div key={c.sha} className="group flex items-center gap-2 cursor-pointer select-none pb-0">
+                    <span className="text-xs font-mono text-muted-foreground shrink-0">{c.repo_name}</span>
+                    <span className="text-sm flex-1 truncate underline decoration-transparent group-hover:decoration-current">{c.message}</span>
+                    <span className="text-xs font-mono text-muted-foreground/50 shrink-0">{c.diffs.length} files</span>
+                    <span className="text-xs font-mono text-green-600 dark:text-green-500 shrink-0">+{added}</span>
+                    <span className="text-xs font-mono text-red-600 dark:text-red-500 shrink-0">-{removed}</span>
                   </div>
                 );
               })}

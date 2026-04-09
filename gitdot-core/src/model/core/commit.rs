@@ -12,6 +12,9 @@ pub struct Commit {
     pub git_author_name: String,
     pub git_author_email: String,
 
+    pub owner_name: String,
+    pub repo_name: String,
+
     pub ref_name: String,
     pub sha: String,
     pub parent_sha: String,

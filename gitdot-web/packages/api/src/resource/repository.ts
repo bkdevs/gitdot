@@ -77,6 +77,8 @@ export type RepositoryDiffFileResource = z.infer<
 >;
 
 export const RepositoryCommitResource = z.object({
+  owner_name: z.string(),
+  repo_name: z.string(),
   sha: z.string(),
   parent_sha: z.string(),
   message: z.string(),

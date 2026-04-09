@@ -48,6 +48,8 @@ impl IntoApi for CommitResponse {
     type ApiType = api::RepositoryCommitResource;
     fn into_api(self) -> Self::ApiType {
         api::RepositoryCommitResource {
+            owner_name: self.owner_name,
+            repo_name: self.repo_name,
             sha: self.sha,
             parent_sha: self.parent_sha,
             message: self.message,
@@ -68,6 +70,8 @@ impl IntoApi for RepositoryCommitResponse {
     type ApiType = api::RepositoryCommitResource;
     fn into_api(self) -> Self::ApiType {
         api::RepositoryCommitResource {
+            owner_name: String::new(),
+            repo_name: String::new(),
             sha: self.sha,
             parent_sha: self
                 .parent_sha

@@ -77,6 +77,8 @@ pub struct RepositoryCommitsResource {
 
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RepositoryCommitResource {
+    pub owner_name: String,
+    pub repo_name: String,
     pub sha: String,
     pub parent_sha: String,
     pub message: String,

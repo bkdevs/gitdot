@@ -22,6 +22,9 @@ pub struct CommitResponse {
     pub git_author_name: String,
     pub git_author_email: String,
     pub repo_id: Uuid,
+    pub owner_name: String,
+    pub repo_name: String,
+
     pub ref_name: String,
     pub sha: String,
     pub parent_sha: String,
@@ -52,6 +55,8 @@ impl From<Commit> for CommitResponse {
             git_author_name: commit.git_author_name,
             git_author_email: commit.git_author_email,
             repo_id: commit.repo_id,
+            owner_name: commit.owner_name,
+            repo_name: commit.repo_name,
             ref_name: commit.ref_name,
             sha: commit.sha,
             parent_sha: commit.parent_sha,

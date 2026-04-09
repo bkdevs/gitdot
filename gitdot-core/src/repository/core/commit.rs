@@ -32,6 +32,8 @@ pub trait CommitRepository: Send + Sync + Clone + 'static {
         git_author_names: &[String],
         git_author_emails: &[String],
         repo_ids: &[Uuid],
+        owner_names: &[String],
+        repo_names: &[String],
         ref_names: &[String],
         shas: &[String],
         parent_shas: &[String],
@@ -124,6 +126,8 @@ impl CommitRepository for CommitRepositoryImpl {
         git_author_names: &[String],
         git_author_emails: &[String],
         repo_ids: &[Uuid],
+        owner_names: &[String],
+        repo_names: &[String],
         ref_names: &[String],
         shas: &[String],
         parent_shas: &[String],
@@ -144,8 +148,8 @@ impl CommitRepository for CommitRepositoryImpl {
 
         let rows = sqlx::query_as::<_, Commit>(
             r#"
-            INSERT INTO core.commits (author_id, git_author_name, git_author_email, repo_id, ref_name, sha, parent_sha, message, created_at, diffs, review_number, diff_position)
-            SELECT * FROM UNNEST($1::uuid[], $2::text[], $3::text[], $4::uuid[], $5::varchar[], $6::varchar[], $7::varchar[], $8::text[], $9::timestamptz[], $10::jsonb[], $11::int[], $12::int[])
+            INSERT INTO core.commits (author_id, git_author_name, git_author_email, repo_id, owner_name, repo_name, ref_name, sha, parent_sha, message, created_at, diffs, review_number, diff_position)
+            SELECT * FROM UNNEST($1::uuid[], $2::text[], $3::text[], $4::uuid[], $5::text[], $6::text[], $7::varchar[], $8::varchar[], $9::varchar[], $10::text[], $11::timestamptz[], $12::jsonb[], $13::int[], $14::int[])
             ON CONFLICT (repo_id, sha) DO NOTHING
             RETURNING *
             "#,
@@ -154,6 +158,8 @@ impl CommitRepository for CommitRepositoryImpl {
         .bind(git_author_names)
         .bind(git_author_emails)
         .bind(repo_ids)
+        .bind(owner_names)
+        .bind(repo_names)
         .bind(ref_names)
         .bind(shas)
         .bind(parent_shas)

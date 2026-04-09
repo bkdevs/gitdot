@@ -232,6 +232,8 @@ where
         let mut git_author_names = Vec::new();
         let mut git_author_emails = Vec::new();
         let mut repo_ids = Vec::new();
+        let mut owner_names = Vec::new();
+        let mut repo_names = Vec::new();
         let mut ref_names = Vec::new();
         let mut shas = Vec::new();
         let mut parent_shas: Vec<String> = Vec::new();
@@ -268,6 +270,8 @@ where
             git_author_names.push(commit.author.name.clone());
             git_author_emails.push(commit.author.email.clone());
             repo_ids.push(repo_id);
+            owner_names.push(owner.clone());
+            repo_names.push(repo_name.clone());
             ref_names.push(request.ref_name.clone());
             review_numbers.push(request.review_number);
             diff_positions.push(request.diff_positions.get(&commit.sha).copied());
@@ -288,6 +292,8 @@ where
                 &git_author_names,
                 &git_author_emails,
                 &repo_ids,
+                &owner_names,
+                &repo_names,
                 &ref_names,
                 &shas,
                 &parent_shas,
