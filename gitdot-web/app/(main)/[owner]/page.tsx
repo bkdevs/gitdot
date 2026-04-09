@@ -46,8 +46,8 @@ export default async function Page({
 
       <div className="px-2 flex flex-col gap-8">
         <UserReadme readme={user.readme} />
-        <UserStatistics />
         <UserCommits commits={commits ?? []} />
+        <UserStatistics />
       </div>
 
       <div />
