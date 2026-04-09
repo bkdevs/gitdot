@@ -1,7 +1,8 @@
 "use client";
 
+import type { RepositoryCommitResource } from "gitdot-api";
 import { Undo2 } from "lucide-react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { Suspense, use } from "react";
 import {
   type ResourcePromisesType,
@@ -89,31 +90,53 @@ function CommitSidebarContent({
   return commits.map((commit) => {
     const isActive = sha === commit.sha.substring(0, 7);
     return (
-      <Link
+      <CommitSidebarRow
         key={commit.sha}
-        href={`/${owner}/${repo}/commits/${commit.sha.substring(0, 7)}`}
-        className={`flex w-full border-b hover:bg-accent/50 select-none cursor-default py-2 px-2 ${
-          isActive && "bg-sidebar"
-        }`}
-        prefetch={true}
-        data-sidebar-item
-        data-sidebar-item-active={isActive ? "true" : undefined}
-      >
-        <div className="flex flex-row w-full gap-2 min-w-0">
-          <div className="shrink-0 pt-0.5">
-            <UserImage user={commit.author} px={20} />
-          </div>
-          <div className="flex flex-col flex-1 justify-start items-start min-w-0">
-            <div className="text-sm truncate mb-0.5 w-full">
-              {commit.message}
-            </div>
-            <div className="text-xs text-muted-foreground flex items-center gap-1 w-full min-w-0">
-              <UserSlug user={commit.author} />
-              <span className="shrink-0">{timeAgo(new Date(commit.date))}</span>
-            </div>
-          </div>
-        </div>
-      </Link>
+        commit={commit}
+        owner={owner}
+        repo={repo}
+        isActive={isActive}
+      />
     );
   });
+}
+
+function CommitSidebarRow({
+  commit,
+  owner,
+  repo,
+  isActive,
+}: {
+  commit: RepositoryCommitResource;
+  owner: string;
+  repo: string;
+  isActive: boolean;
+}) {
+  const router = useRouter();
+  const href = `/${owner}/${repo}/commits/${commit.sha.substring(0, 7)}`;
+
+  return (
+    <div
+      onClick={() => router.push(href)}
+      onMouseEnter={() => router.prefetch(href)}
+      className={`flex w-full border-b hover:bg-accent/50 select-none cursor-default py-2 px-2 ${
+        isActive && "bg-sidebar"
+      }`}
+      data-sidebar-item
+      data-sidebar-item-active={isActive ? "true" : undefined}
+    >
+      <div className="flex flex-row w-full gap-2 min-w-0">
+        <div className="shrink-0 pt-0.5">
+          <UserImage user={commit.author} px={20} />
+        </div>
+        <div className="flex flex-col flex-1 justify-start items-start min-w-0">
+          <div className="text-sm truncate mb-0.5 w-full">{commit.message}</div>
+          <div className="text-xs text-muted-foreground flex items-center gap-1 w-full min-w-0">
+            <UserSlug user={commit.author} />
+            <span className="shrink-0">{timeAgo(new Date(commit.date))}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }

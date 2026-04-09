@@ -29,7 +29,8 @@
       "recommended": true,
       "a11y": {
         "noAutofocus": "off",
-        "noStaticElementInteractions": "off"
+        "noStaticElementInteractions": "off",
+        "useKeyWithClickEvents": "off"
       },
       "suspicious": {
         "noUnknownAtRules": "off",

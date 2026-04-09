@@ -2,11 +2,10 @@
 
 import { useVirtualizer } from "@tanstack/react-virtual";
 import type { RepositoryCommitResource } from "gitdot-api";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { memo, useRef } from "react";
 import { UserImage } from "@/(main)/[owner]/ui/user-image";
 import { UserSlug } from "@/(main)/[owner]/ui/user-slug";
-import Link from "@/ui/link";
 import { formatDateTime, timeAgo } from "@/util";
 
 import { CommitPathSummary } from "./commit-path-summary";
@@ -53,15 +52,16 @@ const CommitRow = memo(function CommitRow({
   commit: RepositoryCommitResource;
 }) {
   const { owner, repo } = useParams<{ owner: string; repo: string }>();
+  const router = useRouter();
+  const href = `/${owner}/${repo}/commits/${commit.sha.substring(0, 7)}`;
 
   return (
-    <Link
-      key={commit.sha}
-      href={`/${owner}/${repo}/commits/${commit.sha.substring(0, 7)}`}
+    <div
       data-page-item
       tabIndex={-1}
-      className="flex w-full border-b cursor-default focus:bg-accent/50 focus:outline-none select-none"
-      prefetch={true}
+      onClick={() => router.push(href)}
+      onMouseEnter={() => router.prefetch(href)}
+      className="flex w-full border-b cursor-default hover:bg-accent/50 focus:bg-accent/50 focus:outline-none select-none"
     >
       <div className="flex flex-row w-full h-18 justify-between items-start p-2 gap-2">
         <div className="flex flex-col w-full h-full min-w-0">
@@ -84,6 +84,6 @@ const CommitRow = memo(function CommitRow({
           />
         </div>
       </div>
-    </Link>
+    </div>
   );
 });

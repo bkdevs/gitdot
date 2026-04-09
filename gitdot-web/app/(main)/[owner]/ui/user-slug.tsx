@@ -17,6 +17,7 @@ export function UserSlug({
         "truncate min-w-0 underline hover:text-foreground transition-colors",
         className,
       )}
+      onClick={(e) => e.stopPropagation()}
     >
       {user.name}
     </Link>
