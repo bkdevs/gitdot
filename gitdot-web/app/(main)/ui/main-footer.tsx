@@ -14,7 +14,7 @@ import { MainToolbar } from "./main-toolbar";
 export function MainFooter() {
   return (
     <div className="relative shrink-0 flex w-full h-8 items-center border-t bg-sidebar">
-      <div className="absolute left-1/2 -translate-x-1/2 text-sm font-mono flex items-center">
+      <div className="absolute left-1/2 -translate-x-1/2 text-sm font-mono flex items-baseline">
         <Breadcrumbs />
         <PageVitals />
       </div>
@@ -61,7 +61,7 @@ function PageVitals() {
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className="inline-block w-[5ch] text-center text-xs text-muted-foreground font-mono ml-1.5 hover:text-foreground transition-colors outline-none cursor-pointer select-none"
+          className="w-[5ch] text-center text-xs text-muted-foreground font-mono ml-1.5 hover:text-foreground transition-colors outline-none cursor-pointer select-none p-0 leading-none"
         >
           {animatedFCP != null ? `${animatedFCP}ms` : "0ms"}
         </button>
