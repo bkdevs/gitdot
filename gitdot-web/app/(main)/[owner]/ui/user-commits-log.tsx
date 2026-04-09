@@ -37,26 +37,32 @@ export function UserCommitsLog({
             <p className="text-xs text-muted-foreground/50 font-mono">—</p>
           ) : (
             <div className="flex flex-col">
-              {dayCommits.map((c) => {
-                const added = c.diffs.reduce((s, d) => s + d.lines_added, 0);
-                const removed = c.diffs.reduce(
-                  (s, d) => s + d.lines_removed,
-                  0,
-                );
-                return (
-                  <div key={c.sha} className="group flex items-center gap-2 cursor-pointer select-none pb-0">
-                    <span className="text-xs font-mono text-muted-foreground shrink-0">{c.repo_name}</span>
-                    <span className="text-sm flex-1 truncate underline decoration-transparent group-hover:decoration-current">{c.message}</span>
-                    <span className="text-xs font-mono text-muted-foreground/50 shrink-0">{c.diffs.length} files</span>
-                    <span className="text-xs font-mono text-green-600 dark:text-green-500 shrink-0">+{added}</span>
-                    <span className="text-xs font-mono text-red-600 dark:text-red-500 shrink-0">-{removed}</span>
-                  </div>
-                );
-              })}
+              {dayCommits.map((c) => (
+                <CommitLogRow key={c.sha} c={c} />
+              ))}
             </div>
           )}
         </div>
       ))}
+    </div>
+  );
+}
+
+function CommitLogRow({ c }: { c: RepositoryCommitResource }) {
+  const added = c.diffs.reduce((s, d) => s + d.lines_added, 0);
+  const removed = c.diffs.reduce((s, d) => s + d.lines_removed, 0);
+  const url = `/${c.owner_name}/${c.repo_name}/commits/${c.sha}`;
+
+  return (
+    <div
+      className="group flex items-center gap-2 cursor-pointer select-none"
+      onClick={() => window.open(url, "_blank", "noopener,noreferrer")}
+    >
+      <span className="text-xs font-mono text-muted-foreground shrink-0">{c.repo_name}</span>
+      <span className="text-sm flex-1 truncate underline decoration-transparent group-hover:decoration-current">{c.message}</span>
+      <span className="text-xs font-mono text-muted-foreground/50 shrink-0">{c.diffs.length} files</span>
+      <span className="text-xs font-mono text-green-600 dark:text-green-500 shrink-0">+{added}</span>
+      <span className="text-xs font-mono text-red-600 dark:text-red-500 shrink-0">-{removed}</span>
     </div>
   );
 }
