@@ -50,17 +50,6 @@ function filterCommit(
   return true;
 }
 
-export function inRange(
-  date: string,
-  start: string | null,
-  end: string | null,
-): boolean {
-  if (!start || !end) return false;
-  const lo = start <= end ? start : end;
-  const hi = start <= end ? end : start;
-  return date >= lo && date <= hi;
-}
-
 // ---------------------------------------------------------------------------
 // commits-grid utils
 // ---------------------------------------------------------------------------
@@ -136,15 +125,21 @@ export function buildGrid(commits: RepositoryCommitResource[]): {
   return { weeks, months };
 }
 
-export function computeThresholds(weeks: Week[]): Thresholds {
-  const nonZero = weeks
-    .flatMap((w) => w.map((d) => d.commitCount))
-    .filter((c) => c > 0)
-    .sort((a, b) => a - b);
+export function computeThresholds(counts: number[]): Thresholds {
+  const nonZero = counts.filter((c) => c > 0).sort((a, b) => a - b);
   if (nonZero.length === 0) return [1, 2, 3];
 
   const q = (p: number) => nonZero[Math.floor(p * (nonZero.length - 1))];
   return [q(0.25), q(0.5), q(0.75)];
+}
+
+export function cellColor(count: number, thresholds: Thresholds): string {
+  const [low, med, high] = thresholds;
+  if (count === 0) return "bg-commit-grid-empty";
+  if (count <= low) return "bg-commit-grid-low";
+  if (count <= med) return "bg-commit-grid-med";
+  if (count <= high) return "bg-commit-grid-high";
+  return "bg-commit-grid-max";
 }
 
 // ---------------------------------------------------------------------------

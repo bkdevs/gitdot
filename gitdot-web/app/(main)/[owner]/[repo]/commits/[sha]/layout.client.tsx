@@ -1,7 +1,6 @@
 "use client";
 
 import { Undo2 } from "lucide-react";
-import { UserImage } from "@/(main)/[owner]/ui/user-image";
 import { useParams } from "next/navigation";
 import { Suspense, use } from "react";
 import {
@@ -9,6 +8,7 @@ import {
   type ResourceRequestsType,
   useResolvePromises,
 } from "@/(main)/[owner]/[repo]/resources";
+import { UserImage } from "@/(main)/[owner]/ui/user-image";
 import Link from "@/ui/link";
 import { OverlayScroll } from "@/ui/scroll";
 import { Sidebar, SidebarContent } from "@/ui/sidebar";
@@ -104,9 +104,13 @@ function CommitSidebarContent({
             <UserImage user={commit.author} px={20} />
           </div>
           <div className="flex flex-col flex-1 justify-start items-start min-w-0">
-            <div className="text-sm truncate mb-0.5 w-full">{commit.message}</div>
+            <div className="text-sm truncate mb-0.5 w-full">
+              {commit.message}
+            </div>
             <div className="text-xs text-muted-foreground flex items-center gap-1 w-full min-w-0">
-              <span className="truncate min-w-0 underline cursor-pointer">{author}</span>
+              <span className="truncate min-w-0 underline cursor-pointer">
+                {author}
+              </span>
               <span className="shrink-0">{timeAgo(new Date(commit.date))}</span>
             </div>
           </div>

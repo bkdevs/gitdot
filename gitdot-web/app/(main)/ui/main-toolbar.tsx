@@ -12,7 +12,7 @@ export function MainToolbar({ className }: { className?: string }) {
 
   return (
     <div className={cn("flex items-center", className)}>
-<ToolbarButton
+      <ToolbarButton
         icon={Settings}
         label="Settings"
         onClick={() => window.dispatchEvent(new CustomEvent("openSettings"))}
@@ -24,7 +24,10 @@ export function MainToolbar({ className }: { className?: string }) {
       />
       <div className="size-8 border-l border-border flex items-center justify-center shrink-0">
         {user && (
-          <Link href={`/${user.name}`} className="flex items-center justify-center">
+          <Link
+            href={`/${user.name}`}
+            className="flex items-center justify-center"
+          >
             <UserImage user={user} px={20} />
           </Link>
         )}

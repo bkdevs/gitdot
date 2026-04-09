@@ -134,6 +134,17 @@ export function formatDateTime(date: Date): string {
   return `${monthDay}, ${year} ${hours}:${minutes}:${seconds} ${ampm}`;
 }
 
+export function inRange(
+  date: string,
+  start: string | null,
+  end: string | null,
+): boolean {
+  if (!start || !end) return false;
+  const lo = start <= end ? start : end;
+  const hi = start <= end ? end : start;
+  return date >= lo && date <= hi;
+}
+
 export function formatDuration(ms: number): string {
   const totalSeconds = Math.floor(ms / 1000);
   if (totalSeconds < 60) return `${totalSeconds}s`;

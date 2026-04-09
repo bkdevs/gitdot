@@ -3,13 +3,13 @@
 import type { RepositoryCommitResource } from "gitdot-api";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/util";
+import { inRange } from "@/util/date";
 import {
   buildGrid,
+  cellColor,
   computeThresholds,
-  inRange,
   NUM_DAYS,
   NUM_WEEKS,
-  type Thresholds,
 } from "../util";
 
 const CELL_HEIGHT = 20;
@@ -44,7 +44,9 @@ export function CommitsGrid({
   );
 
   const { weeks, months } = buildGrid(commits);
-  const thresholds = computeThresholds(weeks);
+  const thresholds = computeThresholds(
+    weeks.flatMap((w) => w.map((d) => d.commitCount)),
+  );
   const dayOfWeek = new Date().getDay();
   const dimmed = hoverActive || !!(startDate && endDate);
 
@@ -204,13 +206,4 @@ function useDragSelect(
   };
 
   return { onCellMouseDown, onCellMouseEnter };
-}
-
-function cellColor(count: number, thresholds: Thresholds): string {
-  const [low, med, high] = thresholds;
-  if (count === 0) return "bg-commit-grid-empty";
-  if (count <= low) return "bg-commit-grid-low";
-  if (count <= med) return "bg-commit-grid-med";
-  if (count <= high) return "bg-commit-grid-high";
-  return "bg-commit-grid-max";
 }

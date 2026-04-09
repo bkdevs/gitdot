@@ -8,12 +8,13 @@ import {
   useResolvePromises,
 } from "@/(main)/[owner]/[repo]/resources";
 import { Loading } from "@/ui/loading";
+import { inRange } from "@/util/date";
 import type { Resources } from "./page";
 import { CommitsGrid } from "./ui/commits-grid";
 import { CommitsHeader } from "./ui/commits-header";
 import { CommitsList } from "./ui/commits-list";
 import { CommitsShortcuts } from "./ui/commits-shortcuts";
-import { filterCommits, inRange } from "./util";
+import { filterCommits } from "./util";
 
 type ResourceRequests = ResourceRequestsType<Resources>;
 type ResourcePromises = ResourcePromisesType<Resources>;
