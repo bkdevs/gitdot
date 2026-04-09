@@ -6,15 +6,19 @@ import { cellColor, computeThresholds } from "../[repo]/(index)/commits/util";
 
 export function UserCommitsCalendar({
   commits,
+  startDate,
+  endDate,
   selectedMonth,
   setSelectedMonth,
 }: {
   commits: Map<string, RepositoryCommitResource[]>;
+  startDate: string;
+  endDate: string;
   selectedMonth: string | null;
   setSelectedMonth: (month: string | null) => void;
 }) {
   const today = new Date().toISOString().slice(0, 10);
-  const months = trailingMonths();
+  const months = monthsBetween(startDate, endDate);
 
   const counts = new Map<string, number>();
   for (const [day, cs] of commits) counts.set(day, cs.length);
@@ -73,12 +77,18 @@ export function UserCommitsCalendar({
   );
 }
 
-function trailingMonths(): { year: number; month: number }[] {
-  const now = new Date();
-  const result = [];
-  for (let i = 11; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+function monthsBetween(
+  start: string,
+  end: string,
+): { year: number; month: number }[] {
+  const result: { year: number; month: number }[] = [];
+  const [sy, sm] = start.slice(0, 7).split("-").map(Number);
+  const [ey, em] = end.slice(0, 7).split("-").map(Number);
+  let d = new Date(sy, sm - 1, 1);
+  const endD = new Date(ey, em - 1, 1);
+  while (d <= endD) {
     result.push({ year: d.getFullYear(), month: d.getMonth() });
+    d = new Date(d.getFullYear(), d.getMonth() + 1, 1);
   }
   return result;
 }

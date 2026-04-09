@@ -13,12 +13,10 @@ export function UserCommits({
 }: {
   commits: RepositoryCommitResource[];
 }) {
-  const [startDate, _setStartDate] = useState(
+  const [startDate, setStartDate] = useState(
     subtractMonths(new Date(), 11).toISOString().slice(0, 10),
   );
-  const [endDate, _setEndDate] = useState(
-    new Date().toISOString().slice(0, 10),
-  );
+  const [endDate, setEndDate] = useState(new Date().toISOString().slice(0, 10));
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
 
   const commitMap = new Map<string, RepositoryCommitResource[]>();
@@ -33,10 +31,14 @@ export function UserCommits({
       <UserCommitsHeader
         startDate={startDate}
         endDate={endDate}
-        selectedMonth={selectedMonth}
+        setStartDate={setStartDate}
+        setEndDate={setEndDate}
+        setSelectedMonth={setSelectedMonth}
       />
       <UserCommitsCalendar
         commits={commitMap}
+        startDate={startDate}
+        endDate={endDate}
         selectedMonth={selectedMonth}
         setSelectedMonth={setSelectedMonth}
       />

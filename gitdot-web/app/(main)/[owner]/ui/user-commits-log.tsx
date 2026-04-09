@@ -60,7 +60,7 @@ function CommitLogRow({ c }: { c: RepositoryCommitResource }) {
       href={url}
       target="_blank"
       rel="noopener noreferrer"
-      className="group flex items-center gap-2 select-none"
+      className="group flex items-center gap-2"
     >
       <span className="text-xs font-mono text-muted-foreground shrink-0">
         {c.repo_name}
