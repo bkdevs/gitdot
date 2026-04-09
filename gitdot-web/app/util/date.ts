@@ -8,6 +8,10 @@ export function subtractDays(date: Date, days: number): Date {
   return new Date(date.getTime() - days * MS_PER_DAY);
 }
 
+export function subtractMonths(date: Date, months: number): Date {
+  return new Date(date.getFullYear(), date.getMonth() - months, 1);
+}
+
 export function dateOnly(value: string): Date;
 export function dateOnly(value: Date): Date;
 export function dateOnly(value: string | Date): Date {
