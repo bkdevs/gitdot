@@ -2,6 +2,7 @@ import type {
   RepositoryCommitResource,
   RepositoryDiffStatResource,
 } from "gitdot-api";
+import { UserSlug } from "@/(main)/[owner]/ui/user-slug";
 import { formatDateTime } from "@/util";
 import { DiffStatBar } from "./diff-stat-bar";
 
@@ -15,8 +16,6 @@ export function CommitHeader({
   const midpoint = Math.ceil(stats.length / 2);
   const leftColumn = stats.slice(0, midpoint);
   const rightColumn = stats.slice(midpoint);
-  const author = commit.author.name;
-
   const renderStatItem = (stat: RepositoryDiffStatResource) => {
     return (
       <li key={stat.path} className="font-mono text-sm flex items-center">
@@ -39,7 +38,7 @@ export function CommitHeader({
     <div className="shrink-0 border-border border-b p-2">
       <div className="mb-4">
         <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
-          <span className="underline cursor-pointer">{author}</span>
+          <UserSlug user={commit.author} />
           <span>•</span>
           <span>{formatDateTime(new Date(commit.date))}</span>
         </div>

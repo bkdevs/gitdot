@@ -5,6 +5,7 @@ import type { RepositoryCommitResource } from "gitdot-api";
 import { useParams } from "next/navigation";
 import { memo, useRef } from "react";
 import { UserImage } from "@/(main)/[owner]/ui/user-image";
+import { UserSlug } from "@/(main)/[owner]/ui/user-slug";
 import Link from "@/ui/link";
 import { formatDateTime, timeAgo } from "@/util";
 
@@ -72,9 +73,7 @@ const CommitRow = memo(function CommitRow({
           </div>
           <div className="flex items-center text-muted-foreground text-xs gap-1">
             <UserImage user={commit.author} px={16} />
-            <span className="truncate min-w-0 underline transition-colors hover:text-foreground cursor-pointer">
-              {commit.author.name}
-            </span>
+            <UserSlug user={commit.author} />
             <span>{timeAgo(new Date(commit.date))}</span>
           </div>
         </div>

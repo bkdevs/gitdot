@@ -9,6 +9,7 @@ import {
   useResolvePromises,
 } from "@/(main)/[owner]/[repo]/resources";
 import { UserImage } from "@/(main)/[owner]/ui/user-image";
+import { UserSlug } from "@/(main)/[owner]/ui/user-slug";
 import Link from "@/ui/link";
 import { OverlayScroll } from "@/ui/scroll";
 import { Sidebar, SidebarContent } from "@/ui/sidebar";
@@ -87,7 +88,6 @@ function CommitSidebarContent({
 
   return commits.map((commit) => {
     const isActive = sha === commit.sha.substring(0, 7);
-    const author = commit.author.name;
     return (
       <Link
         key={commit.sha}
@@ -108,9 +108,7 @@ function CommitSidebarContent({
               {commit.message}
             </div>
             <div className="text-xs text-muted-foreground flex items-center gap-1 w-full min-w-0">
-              <span className="truncate min-w-0 underline cursor-pointer">
-                {author}
-              </span>
+              <UserSlug user={commit.author} />
               <span className="shrink-0">{timeAgo(new Date(commit.date))}</span>
             </div>
           </div>

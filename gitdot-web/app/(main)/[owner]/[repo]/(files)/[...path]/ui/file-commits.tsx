@@ -2,6 +2,7 @@
 
 import type { RepositoryCommitResource } from "gitdot-api";
 import { UserImage } from "@/(main)/[owner]/ui/user-image";
+import { UserSlug } from "@/(main)/[owner]/ui/user-slug";
 import { useRightSidebar } from "@/(main)/hooks/use-sidebar";
 import { formatDate, timeAgo } from "@/util";
 import { DiffStatBar } from "../../../commits/[sha]/ui/diff-stat-bar";
@@ -83,9 +84,7 @@ function FileCommit({
         <div className="text-sm truncate pb-0.5 w-full">{commit.message}</div>
         <div className="text-xs text-muted-foreground flex items-center w-full min-w-0">
           <UserImage user={commit.author} px={16} />
-          <span className="truncate min-w-0 underline cursor-pointer ml-1">
-            {commit.author.name}
-          </span>
+          <UserSlug user={commit.author} className="ml-1" />
           <span className="ml-auto pl-2 shrink-0">
             {diffStat == null ? (
               <span className="text-green-600 font-mono">created</span>
