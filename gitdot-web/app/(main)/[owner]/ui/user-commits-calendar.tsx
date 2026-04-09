@@ -1,19 +1,15 @@
 "use client";
 
-import { cn } from "@/util";
 import type { RepositoryCommitResource } from "gitdot-api";
+import { cn } from "@/util";
 import { cellColor, computeThresholds } from "../[repo]/(index)/commits/util";
 
 export function UserCommitsCalendar({
   commits,
-  startDate,
-  endDate,
   selectedMonth,
   setSelectedMonth,
 }: {
   commits: Map<string, RepositoryCommitResource[]>;
-  startDate: string;
-  endDate: string;
   selectedMonth: string | null;
   setSelectedMonth: (month: string | null) => void;
 }) {
@@ -25,54 +21,54 @@ export function UserCommitsCalendar({
   const thresholds = computeThresholds([...counts.values()]);
 
   return (
-      <div className="grid grid-cols-6 gap-x-4 gap-y-2">
-        {months.map(({ year, month }) => {
-          const monthStr = `${year}-${String(month + 1).padStart(2, "0")}`;
-          const label = `${new Date(year, month).toLocaleString("en-US", { month: "short" })} '${String(year).slice(2)}`;
-          const cells = monthCells(year, month);
-          const isSelected = selectedMonth === monthStr;
-          const isDimmed = selectedMonth !== null && !isSelected;
+    <div className="grid grid-cols-6 gap-x-4 gap-y-2">
+      {months.map(({ year, month }) => {
+        const monthStr = `${year}-${String(month + 1).padStart(2, "0")}`;
+        const label = `${new Date(year, month).toLocaleString("en-US", { month: "short" })} '${String(year).slice(2)}`;
+        const cells = monthCells(year, month);
+        const isSelected = selectedMonth === monthStr;
+        const isDimmed = selectedMonth !== null && !isSelected;
 
-          return (
-            <button
-              key={monthStr}
-              type="button"
+        return (
+          <button
+            key={monthStr}
+            type="button"
+            className={cn(
+              "flex flex-col gap-1 transition-opacity duration-200 cursor-pointer appearance-none bg-transparent border-none p-0 text-left",
+              isDimmed && "opacity-40",
+            )}
+            onClick={() => setSelectedMonth(isSelected ? null : monthStr)}
+          >
+            <span
               className={cn(
-                "flex flex-col gap-1 transition-opacity duration-200 cursor-pointer appearance-none bg-transparent border-none p-0 text-left",
-                isDimmed && "opacity-40",
+                "text-[10px] font-mono select-none mb-0.5",
+                isSelected ? "text-foreground" : "text-muted-foreground",
               )}
-              onClick={() => setSelectedMonth(isSelected ? null : monthStr)}
             >
-              <span
-                className={cn(
-                  "text-[10px] font-mono select-none mb-0.5",
-                  isSelected ? "text-foreground" : "text-muted-foreground",
-                )}
-              >
-                {label}
-              </span>
-              <div className="grid grid-cols-7 w-full gap-px">
-                {cells.map((dateStr, i) => {
-                  if (dateStr === null) {
-                    return <div key={`e${i}`} className="aspect-square" />;
-                  }
-                  const count = counts.get(dateStr) ?? 0;
-                  const isFuture = dateStr > today;
-                  return (
-                    <div
-                      key={dateStr}
-                      className={cn(
-                        "aspect-square rounded-[1px]",
-                        isFuture ? "opacity-0" : cellColor(count, thresholds),
-                      )}
-                      title={`${dateStr}: ${count} commits`}
-                    />
-                  );
-                })}
-              </div>
-            </button>
-          );
-        })}
+              {label}
+            </span>
+            <div className="grid grid-cols-7 w-full gap-px">
+              {cells.map((dateStr, i) => {
+                if (dateStr === null) {
+                  return <div key={`e${i}`} className="aspect-square" />;
+                }
+                const count = counts.get(dateStr) ?? 0;
+                const isFuture = dateStr > today;
+                return (
+                  <div
+                    key={dateStr}
+                    className={cn(
+                      "aspect-square rounded-[1px]",
+                      isFuture ? "opacity-0" : cellColor(count, thresholds),
+                    )}
+                    title={`${dateStr}: ${count} commits`}
+                  />
+                );
+              })}
+            </div>
+          </button>
+        );
+      })}
     </div>
   );
 }

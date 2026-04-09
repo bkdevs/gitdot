@@ -1,11 +1,12 @@
 "use client";
 
-import { subtractMonths } from "@/util/date";
 import type { RepositoryCommitResource } from "gitdot-api";
 import { useState } from "react";
+import { subtractMonths } from "@/util/date";
+import { UserCommitStatistics } from "./user-commit-statistics";
 import { UserCommitsCalendar } from "./user-commits-calendar";
-import { UserCommitsLog } from "./user-commits-log";
 import { UserCommitsHeader } from "./user-commits-header";
+import { UserCommitsLog } from "./user-commits-log";
 
 export function UserCommits({
   commits,
@@ -30,23 +31,26 @@ export function UserCommits({
   return (
     <div>
       <UserCommitsHeader
-      commits={commitMap}
-      startDate={startDate}
-      endDate={endDate}
-      selectedMonth={selectedMonth}
+        startDate={startDate}
+        endDate={endDate}
+        selectedMonth={selectedMonth}
       />
       <UserCommitsCalendar
-      commits={commitMap}
-      startDate={startDate}
-      endDate={endDate}
-      selectedMonth={selectedMonth}
-      setSelectedMonth={setSelectedMonth}
+        commits={commitMap}
+        selectedMonth={selectedMonth}
+        setSelectedMonth={setSelectedMonth}
+      />
+      <UserCommitStatistics
+        commits={commitMap}
+        startDate={startDate}
+        endDate={endDate}
+        selectedMonth={selectedMonth}
       />
       <UserCommitsLog
-      commits={commitMap}
-      startDate={startDate}
-      endDate={endDate}
-      selectedMonth={selectedMonth}
+        commits={commitMap}
+        startDate={startDate}
+        endDate={endDate}
+        selectedMonth={selectedMonth}
       />
     </div>
   );

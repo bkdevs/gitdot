@@ -6,7 +6,6 @@ import { UserLinks } from "./ui/user-links";
 import { UserProfile } from "./ui/user-profile";
 import { UserReadme } from "./ui/user-readme";
 import { UserRepos } from "./ui/user-repos";
-import { UserStatistics } from "./ui/user-statistics";
 
 export default async function Page({
   params,
@@ -47,7 +46,6 @@ export default async function Page({
       <div className="px-2 flex flex-col gap-8">
         <UserReadme readme={user.readme} />
         <UserCommits commits={commits ?? []} />
-        <UserStatistics />
       </div>
 
       <div />
