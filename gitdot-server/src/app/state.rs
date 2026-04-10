@@ -86,15 +86,17 @@ impl AppState {
             String::new(), // TODO: add github_client_secret from settings
         );
         let gitdot_private_key = secret_client.get_gitdot_private_key().await?;
-        let r2_client = R2ClientImpl::new(
-            secret_client.get_cloudflare_account_id().await?,
-            secret_client.get_cloudflare_r2_access_key_id().await?,
-            secret_client.get_cloudflare_r2_secret_access_key().await?,
-        );
         let s2_client = S2ClientImpl::new(&settings.s2_server_url, gitdot_private_key.clone());
         let token_client = TokenClientImpl::new(gitdot_private_key.clone());
         let email_client = ResendClient::new(&settings.resend_api_key);
         let image_client = ImageClientImpl::new();
+        let r2_client = R2ClientImpl::new(
+            secret_client.get_cloudflare_account_id().await?,
+            secret_client.get_cloudflare_r2_bucket_name().await?,
+            secret_client.get_cloudflare_r2_access_key_id().await?,
+            secret_client.get_cloudflare_r2_secret_access_key().await?,
+        )
+        .await;
 
         let vercel_jwks = {
             let jwks_url = format!("{}/.well-known/jwks", settings.vercel_oidc_url);

@@ -1,7 +1,6 @@
 use std::io::Cursor;
 
 use async_trait::async_trait;
-use base64::prelude::*;
 use bytes::Bytes;
 use image::{ImageFormat, ImageReader};
 
@@ -9,7 +8,7 @@ use crate::error::ImageError;
 
 #[async_trait]
 pub trait ImageClient: Send + Sync + Clone + 'static {
-    async fn convert_to_webp(&self, bytes: Bytes) -> Result<String, ImageError>;
+    async fn convert_to_webp(&self, bytes: Bytes) -> Result<Bytes, ImageError>;
 }
 
 #[derive(Clone)]
@@ -23,7 +22,7 @@ impl ImageClientImpl {
 
 #[async_trait]
 impl ImageClient for ImageClientImpl {
-    async fn convert_to_webp(&self, bytes: Bytes) -> Result<String, ImageError> {
+    async fn convert_to_webp(&self, bytes: Bytes) -> Result<Bytes, ImageError> {
         let webp_bytes = tokio::task::spawn_blocking(move || {
             let img = ImageReader::new(Cursor::new(bytes.as_ref()))
                 .with_guessed_format()
@@ -39,6 +38,6 @@ impl ImageClient for ImageClientImpl {
         .await
         .map_err(|_| ImageError::SpawnError)??;
 
-        Ok(BASE64_STANDARD.encode(&webp_bytes))
+        Ok(Bytes::from(webp_bytes))
     }
 }

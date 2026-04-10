@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use base64::prelude::*;
 use chrono::{Duration, Utc};
 
 use crate::{
@@ -192,7 +193,18 @@ where
         &self,
         request: UpdateCurrentUserImageRequest,
     ) -> Result<String, UserError> {
-        let bytes = self.image_client.convert_to_webp(request.bytes).await?;
+        let user = self
+            .user_repo
+            .get_by_id(request.user_id)
+            .await?
+            .or_not_found("user", request.user_id)?;
+
+        let webp_bytes = self.image_client.convert_to_webp(request.bytes).await?;
+        let webp_base64 = BASE64_STANDARD.encode(&webp_bytes);
+
+        let key = format!("users/{}.webp", user.name);
+        self.r2_client.upload_object(&key, webp_bytes).await?;
+
         self.user_repo
             .update(
                 request.user_id,
@@ -201,10 +213,11 @@ where
                 None,
                 None,
                 None,
-                Some(bytes.clone()),
+                Some(webp_base64.clone()),
             )
             .await?;
-        Ok(bytes)
+
+        Ok(webp_base64)
     }
 
     async fn has_user(&self, request: HasUserRequest) -> Result<(), UserError> {

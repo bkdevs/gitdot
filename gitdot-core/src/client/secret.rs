@@ -10,6 +10,7 @@ const GITDOT_PRIVATE_KEY_SECRET_NAME: &str = "gitdot-private-key";
 const CLOUDFLARE_ACCOUNT_ID_SECRET_NAME: &str = "cloudflare-account-id";
 const CLOUDFLARE_R2_ACCESS_KEY_ID_SECRET_NAME: &str = "cloudflare-r2-access-key-id";
 const CLOUDFLARE_R2_SECRET_ACCESS_KEY_SECRET_NAME: &str = "cloudflare-r2-secret-access-key";
+const CLOUDFLARE_R2_BUCKET_NAME_SECRET_NAME: &str = "cloudflare-r2-bucket-name";
 
 #[async_trait]
 pub trait SecretClient: Send + Sync + Clone + 'static {
@@ -22,6 +23,8 @@ pub trait SecretClient: Send + Sync + Clone + 'static {
     async fn get_gitdot_private_key(&self) -> Result<String, SecretError>;
 
     async fn get_cloudflare_account_id(&self) -> Result<String, SecretError>;
+
+    async fn get_cloudflare_r2_bucket_name(&self) -> Result<String, SecretError>;
 
     async fn get_cloudflare_r2_access_key_id(&self) -> Result<String, SecretError>;
 
@@ -96,6 +99,11 @@ impl SecretClient for GoogleSecretClient {
 
     async fn get_cloudflare_r2_access_key_id(&self) -> Result<String, SecretError> {
         self.access_secret(CLOUDFLARE_R2_ACCESS_KEY_ID_SECRET_NAME)
+            .await
+    }
+
+    async fn get_cloudflare_r2_bucket_name(&self) -> Result<String, SecretError> {
+        self.access_secret(CLOUDFLARE_R2_BUCKET_NAME_SECRET_NAME)
             .await
     }
 
