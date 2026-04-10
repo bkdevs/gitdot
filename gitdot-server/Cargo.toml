@@ -25,9 +25,9 @@ flate2 = { workspace = true }
 futures = { workspace = true }
 git2 = { workspace = true }
 gitdot-api = { workspace = true }
-image = { workspace = true }
 gitdot-core = { workspace = true }
 http = { workspace = true }
+image = { workspace = true }
 jsonwebtoken = { workspace = true }
 opentelemetry = "0.31.0"
 opentelemetry_sdk = { version = "0.31.0", features = ["trace"], optional = true }
