@@ -1,6 +1,7 @@
 "use client";
 
 import { useParams, usePathname } from "next/navigation";
+import { useUserContext } from "@/(main)/context/user";
 import { useMetricsContext } from "@/context/metrics";
 import { useAnimateNumber } from "@/hooks/use-animate-number";
 import { useTypewriter } from "@/hooks/use-typewriter";
@@ -11,7 +12,6 @@ import {
 } from "@/ui/dropdown-menu";
 import Link from "@/ui/link";
 import { MainToolbar } from "./main-toolbar";
-import { useUserContext } from "@/(main)/context/user";
 
 export function MainFooter() {
   return (
@@ -30,7 +30,12 @@ export function MainFooter() {
 
 function UserStatusMessage() {
   const { user } = useUserContext();
-  const fullText = user === undefined ? "" : user ? `logged in as ${user.name}` : "browsing as ghost";
+  const fullText =
+    user === undefined
+      ? ""
+      : user
+        ? `logged in as ${user.name}`
+        : "browsing as ghost";
   const typed = useTypewriter(fullText);
   const done = typed === fullText && fullText !== "";
 

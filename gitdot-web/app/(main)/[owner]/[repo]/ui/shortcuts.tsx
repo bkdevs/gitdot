@@ -200,12 +200,6 @@ export function RepoShortcuts() {
         execute: navPush,
       },
       {
-        name: "GoTo",
-        description: "Open goto dialog",
-        keys: ["g"],
-        execute: () => window.dispatchEvent(new Event("openGotoDialog")),
-      },
-      {
         name: "FuzzyFile",
         description: "Open file dialog",
         keys: ["p"],

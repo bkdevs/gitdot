@@ -2,13 +2,11 @@
 
 import { Suspense } from "react";
 import { RepoFileDialog } from "./repo-file-dialog";
-import { RepoGotoDialog } from "./repo-goto-dialog";
 
 export function RepoDialogs({ owner, repo }: { owner: string; repo: string }) {
   return (
     <Suspense fallback={null}>
       <RepoFileDialog owner={owner} repo={repo} />
-      <RepoGotoDialog />
     </Suspense>
   );
 }
