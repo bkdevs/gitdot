@@ -11,7 +11,7 @@ export function MainToolbar({ className }: { className?: string }) {
   const isRepoPage = segments.length >= 2;
 
   return (
-    <div className={cn("flex items-center gap-1", className)}>
+    <div className={cn("flex items-center gap-0.5", className)}>
       <ToolbarButton
         icon={History}
         label="History"
@@ -51,9 +51,9 @@ function ToolbarButton({
     <button
       type="button"
       onClick={onClick}
-      className="size-5 flex items-center justify-center hover:bg-sidebar-accent transition-colors shrink-0"
+      className="size-6 flex items-center justify-center hover:bg-sidebar-accent transition-colors shrink-0"
     >
-      <Icon className="size-3.5" />
+      <Icon className="size-4" />
       <span className="sr-only">{label}</span>
     </button>
   );

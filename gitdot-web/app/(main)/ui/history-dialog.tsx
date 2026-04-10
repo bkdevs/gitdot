@@ -72,7 +72,7 @@ export function HistoryDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent
-        className="max-w-80! w-full p-3 pt-4 top-[45vh]!"
+        className="max-w-lg! w-full p-3 pt-4 top-[45vh]!"
         aria-describedby={undefined}
         showOverlay={false}
       >
@@ -88,7 +88,7 @@ export function HistoryDialog() {
                 key={path}
                 href={path}
                 onClick={() => setOpen(false)}
-                className="flex items-baseline gap-2"
+                className="flex min-w-0 items-baseline gap-2 hover:underline"
               >
                 <span className="text-muted-foreground shrink-0">
                   {labels[i]}.
