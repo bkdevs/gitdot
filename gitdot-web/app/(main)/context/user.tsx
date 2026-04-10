@@ -12,7 +12,7 @@ import { getCurrentUserAction } from "@/actions";
 import { AuthDialog } from "../ui/auth-dialog";
 
 interface UserContext {
-  user: UserResource | null;
+  user: UserResource | null | undefined;
   refreshUser: () => void;
   requireAuth: () => boolean;
 }
@@ -26,7 +26,7 @@ const UserContext = createContext<UserContext | null>(null);
  * in client-side components
  */
 export function UserProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<UserResource | null>(null);
+  const [user, setUser] = useState<UserResource | null | undefined>(undefined);
   const [open, setOpen] = useState(false);
 
   const requireAuth = useCallback(() => {

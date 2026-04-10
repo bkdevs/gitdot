@@ -3,6 +3,7 @@
 import { useParams, usePathname } from "next/navigation";
 import { useMetricsContext } from "@/context/metrics";
 import { useAnimateNumber } from "@/hooks/use-animate-number";
+import { useTypewriter } from "@/hooks/use-typewriter";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,16 +11,45 @@ import {
 } from "@/ui/dropdown-menu";
 import Link from "@/ui/link";
 import { MainToolbar } from "./main-toolbar";
+import { useUserContext } from "@/(main)/context/user";
 
 export function MainFooter() {
   return (
-    <div className="relative shrink-0 flex w-full h-8 items-center border-t bg-sidebar">
-      <div className="absolute left-1/2 -translate-x-1/2 text-sm font-mono flex items-baseline">
+    <div className="relative shrink-0 flex w-full h-6 items-center border-t bg-sidebar text-xs font-mono">
+      <UserStatusMessage />
+      <div className="absolute left-1/2 -translate-x-1/2">
+        <MainToolbar />
+      </div>
+      <div className="ml-auto flex items-baseline pr-2">
         <Breadcrumbs />
         <PageVitals />
       </div>
-      <MainToolbar className="ml-auto" />
     </div>
+  );
+}
+
+function UserStatusMessage() {
+  const { user } = useUserContext();
+  const fullText = user === undefined ? "" : user ? `logged in as ${user.name}` : "browsing as ghost";
+  const typed = useTypewriter(fullText);
+  const done = typed === fullText && fullText !== "";
+
+  return (
+    <span className="text-muted-foreground px-2">
+      {user === undefined ? null : done && user ? (
+        <>
+          logged in as{" "}
+          <Link
+            href={`/${user.name}`}
+            className="hover:underline hover:text-foreground transition-colors"
+          >
+            {user.name}
+          </Link>
+        </>
+      ) : (
+        typed || null
+      )}
+    </span>
   );
 }
 
@@ -61,7 +91,7 @@ function PageVitals() {
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className="w-[5ch] text-center text-xs text-muted-foreground font-mono ml-1.5 hover:text-foreground transition-colors outline-none cursor-pointer select-none p-0 leading-none"
+          className="w-[5ch] text-center text-muted-foreground ml-1.5 hover:text-foreground transition-colors outline-none cursor-pointer select-none p-0 leading-none"
         >
           {animatedFCP != null ? `${animatedFCP}ms` : "0ms"}
         </button>
