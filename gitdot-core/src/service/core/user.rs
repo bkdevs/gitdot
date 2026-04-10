@@ -1,5 +1,4 @@
 use async_trait::async_trait;
-use base64::prelude::*;
 use chrono::{Duration, Utc};
 
 use crate::{
@@ -37,7 +36,7 @@ pub trait UserService: Send + Sync + 'static {
     async fn update_current_user_image(
         &self,
         request: UpdateCurrentUserImageRequest,
-    ) -> Result<String, UserError>;
+    ) -> Result<(), UserError>;
 
     async fn has_user(&self, request: HasUserRequest) -> Result<(), UserError>;
 
@@ -183,7 +182,6 @@ where
                 request.readme,
                 request.links,
                 request.company,
-                request.image,
             )
             .await?;
         Ok(user.into())
@@ -192,7 +190,7 @@ where
     async fn update_current_user_image(
         &self,
         request: UpdateCurrentUserImageRequest,
-    ) -> Result<String, UserError> {
+    ) -> Result<(), UserError> {
         let user = self
             .user_repo
             .get_by_id(request.user_id)
@@ -200,24 +198,11 @@ where
             .or_not_found("user", request.user_id)?;
 
         let webp_bytes = self.image_client.convert_to_webp(request.bytes).await?;
-        let webp_base64 = BASE64_STANDARD.encode(&webp_bytes);
 
         let key = format!("users/{}.webp", user.name);
         self.r2_client.upload_object(&key, webp_bytes).await?;
 
-        self.user_repo
-            .update(
-                request.user_id,
-                None,
-                None,
-                None,
-                None,
-                None,
-                Some(webp_base64.clone()),
-            )
-            .await?;
-
-        Ok(webp_base64)
+        Ok(())
     }
 
     async fn has_user(&self, request: HasUserRequest) -> Result<(), UserError> {

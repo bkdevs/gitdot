@@ -3,10 +3,6 @@ use axum::{
     extract::State,
     http::{HeaderMap, StatusCode, header},
 };
-use gitdot_api::{
-    endpoint::user::upload_user_image::UploadUserImageResponse,
-    resource::user::UploadUserImageResource,
-};
 
 use gitdot_core::{
     dto::UpdateCurrentUserImageRequest,
@@ -24,7 +20,7 @@ pub async fn upload_user_image(
     State(state): State<AppState>,
     headers: HeaderMap,
     body: Bytes,
-) -> Result<AppResponse<UploadUserImageResponse>, AppError> {
+) -> Result<AppResponse<()>, AppError> {
     let content_type = headers
         .get(header::CONTENT_TYPE)
         .and_then(|v| v.to_str().ok())
@@ -37,13 +33,10 @@ pub async fn upload_user_image(
         .into());
     }
 
-    let bytes = state
+    state
         .user_service
         .update_current_user_image(UpdateCurrentUserImageRequest::new(auth_user.id, body))
         .await?;
 
-    Ok(AppResponse::new(
-        StatusCode::OK,
-        UploadUserImageResource { bytes },
-    ))
+    Ok(AppResponse::new(StatusCode::NO_CONTENT, ()))
 }

@@ -84,7 +84,6 @@ function ProfilePrimary({ user }: { user: UserResource }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
-  const [image, setImage] = useState<string | null | undefined>(user.image);
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -97,7 +96,6 @@ function ProfilePrimary({ user }: { user: UserResource }) {
     if ("error" in result) {
       setUploadError(result.error);
     } else {
-      setImage(result.bytes);
       refreshUser();
     }
   }
@@ -127,7 +125,7 @@ function ProfilePrimary({ user }: { user: UserResource }) {
               <span
                 className={`transition-opacity duration-300${uploading ? " opacity-60" : ""}`}
               >
-                <UserImage user={{ ...user, image }} />
+                <UserImage user={user} />
               </span>
               <div
                 className={`absolute -inset-0.5 rounded-full border border-transparent border-t-foreground/50 animate-spin transition-opacity duration-300${uploading ? "" : " opacity-0"}`}

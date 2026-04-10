@@ -27,7 +27,6 @@ pub trait UserRepository: Send + Sync + Clone + 'static {
         readme: Option<String>,
         links: Option<Vec<String>>,
         company: Option<String>,
-        image: Option<String>,
     ) -> Result<User, DatabaseError>;
 
     async fn get_by_id(&self, id: Uuid) -> Result<Option<User>, DatabaseError>;
@@ -102,7 +101,7 @@ impl UserRepository for UserRepositoryImpl {
     async fn get(&self, user_name: &str) -> Result<Option<User>, DatabaseError> {
         let user = sqlx::query_as::<_, User>(
             r#"
-            SELECT id, email, name, is_email_verified, provider, created_at, location, readme, links, company, image, settings
+            SELECT id, email, name, is_email_verified, provider, created_at, location, readme, links, company, settings
             FROM core.users
             WHERE name = $1
             "#,
@@ -122,7 +121,6 @@ impl UserRepository for UserRepositoryImpl {
         readme: Option<String>,
         links: Option<Vec<String>>,
         company: Option<String>,
-        image: Option<String>,
     ) -> Result<User, DatabaseError> {
         let mut builder = sqlx::QueryBuilder::new("UPDATE core.users SET ");
         let mut sep = builder.separated(", ");
@@ -142,12 +140,9 @@ impl UserRepository for UserRepositoryImpl {
         if let Some(c) = company {
             sep.push("company = ").push_bind_unseparated(c);
         }
-        if let Some(img) = image {
-            sep.push("image = ").push_bind_unseparated(img);
-        }
 
         builder.push(" WHERE id = ").push_bind(id).push(
-            " RETURNING id, email, name, is_email_verified, provider, created_at, location, readme, links, company, image, settings",
+            " RETURNING id, email, name, is_email_verified, provider, created_at, location, readme, links, company, settings",
         );
 
         Ok(builder
@@ -159,7 +154,7 @@ impl UserRepository for UserRepositoryImpl {
     async fn get_by_id(&self, id: Uuid) -> Result<Option<User>, DatabaseError> {
         let user = sqlx::query_as::<_, User>(
             r#"
-            SELECT id, email, name, is_email_verified, provider, created_at, location, readme, links, company, image, settings
+            SELECT id, email, name, is_email_verified, provider, created_at, location, readme, links, company, settings
             FROM core.users
             WHERE id = $1
             "#,
@@ -174,7 +169,7 @@ impl UserRepository for UserRepositoryImpl {
     async fn get_by_email(&self, email: &str) -> Result<Option<User>, DatabaseError> {
         let user = sqlx::query_as::<_, User>(
             r#"
-            SELECT id, email, name, is_email_verified, provider, created_at, location, readme, links, company, image, settings
+            SELECT id, email, name, is_email_verified, provider, created_at, location, readme, links, company, settings
             FROM core.users
             WHERE email = $1
             "#,
@@ -193,7 +188,7 @@ impl UserRepository for UserRepositoryImpl {
 
         let users = sqlx::query_as::<_, User>(
             r#"
-            SELECT id, email, name, is_email_verified, provider, created_at, location, readme, links, company, image, settings
+            SELECT id, email, name, is_email_verified, provider, created_at, location, readme, links, company, settings
             FROM core.users
             WHERE email = ANY($1)
             "#,
@@ -208,7 +203,7 @@ impl UserRepository for UserRepositoryImpl {
     async fn get_settings(&self, id: Uuid) -> Result<Option<UserSettings>, DatabaseError> {
         let user = sqlx::query_as::<_, User>(
             r#"
-            SELECT id, email, name, is_email_verified, provider, created_at, location, readme, links, company, image, settings
+            SELECT id, email, name, is_email_verified, provider, created_at, location, readme, links, company, settings
             FROM core.users
             WHERE id = $1
             "#,

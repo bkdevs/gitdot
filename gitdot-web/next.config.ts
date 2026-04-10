@@ -2,6 +2,14 @@ import path from "node:path";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "images.gitdot.io",
+      },
+    ],
+  },
   reactCompiler: true,
   turbopack: {
     root: path.join(__dirname, ".."),

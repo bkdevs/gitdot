@@ -13,7 +13,6 @@ pub struct UpdateCurrentUserRequest {
     pub readme: Option<String>,
     pub links: Option<Vec<String>>,
     pub company: Option<String>,
-    pub image: Option<String>,
 }
 
 impl UpdateCurrentUserRequest {
@@ -24,7 +23,6 @@ impl UpdateCurrentUserRequest {
         readme: Option<String>,
         links: Option<Vec<String>>,
         company: Option<String>,
-        image: Option<String>,
     ) -> Result<Self, UserError> {
         Ok(Self {
             user_id,
@@ -35,19 +33,6 @@ impl UpdateCurrentUserRequest {
             readme,
             links,
             company,
-            image,
         })
-    }
-
-    pub fn with_image(user_id: Uuid, image: String) -> Self {
-        Self {
-            user_id,
-            name: None,
-            location: None,
-            readme: None,
-            links: None,
-            company: None,
-            image: Some(image),
-        }
     }
 }

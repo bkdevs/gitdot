@@ -1,6 +1,6 @@
 "use server";
 
-import type { UploadUserImageResource, UserResource } from "gitdot-api";
+import type { UserResource } from "gitdot-api";
 import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 import {
@@ -130,7 +130,7 @@ export async function validateUsername(
 
 export async function uploadUserImageAction(
   file: File,
-): Promise<UploadUserImageResource | { error: string }> {
+): Promise<{ success: true } | { error: string }> {
   if (!file || file.size === 0) {
     return { error: "No file provided" };
   } else if (file.size > 5 * 1024 * 1024) {
@@ -140,9 +140,9 @@ export async function uploadUserImageAction(
   }
 
   try {
-    const result = await uploadUserImage(file);
-    if (!result) return { error: "Upload failed — please try again." };
-    return result;
+    const ok = await uploadUserImage(file);
+    if (!ok) return { error: "Upload failed — please try again." };
+    return { success: true };
   } catch (e) {
     console.error("uploadUserImageAction failed:", e);
     const msg = e instanceof Error ? e.message : "Unknown error";

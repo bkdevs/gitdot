@@ -1,39 +1,42 @@
+"use client";
+
 import Image from "next/image";
+import { useState } from "react";
 
 export function UserImage({
   user,
   px = 32,
 }: {
-  user: { name: string; image?: string | null };
+  user: { name: string };
   px?: number;
 }) {
-  const src =
-    user.name === "baepaul"
-      ? "/paul-penguin.jpeg"
-      : user.image
-        ? `data:image/webp;base64,${user.image}`
-        : null;
+  const [imgError, setImgError] = useState(false);
 
-  return src ? (
+  if (imgError) {
+    return (
+      <div
+        className="rounded-full bg-foreground flex items-center justify-center shrink-0"
+        style={{ width: px, height: px }}
+      >
+        <span
+          className={`font-mono font-light text-background leading-none ${px <= 20 ? "text-xs" : "text-sm"}`}
+        >
+          {user.name[0].toUpperCase()}
+        </span>
+      </div>
+    );
+  }
+
+  return (
     <Image
-      src={src}
+      src={`https://images.gitdot.io/users/${user.name}.webp`}
       alt={user.name}
       width={px}
       height={px}
       unoptimized
       className="rounded-full"
       style={{ width: px, height: px }}
+      onError={() => setImgError(true)}
     />
-  ) : (
-    <div
-      className="rounded-full bg-foreground flex items-center justify-center shrink-0"
-      style={{ width: px, height: px }}
-    >
-      <span
-        className={`font-mono font-light text-background leading-none ${px <= 20 ? "text-xs" : "text-sm"}`}
-      >
-        {user.name[0].toUpperCase()}
-      </span>
-    </div>
   );
 }
