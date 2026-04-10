@@ -6,8 +6,8 @@ use sqlx::PgPool;
 
 use gitdot_core::{
     client::{
-        DifftClient, Git2Client, GitHttpClientImpl, ImageClientImpl, OctocrabClient, ResendClient,
-        S2ClientImpl, SecretClient, TokenClientImpl,
+        DifftClient, Git2Client, GitHttpClientImpl, ImageClientImpl, OctocrabClient, R2ClientImpl,
+        ResendClient, S2ClientImpl, SecretClient, TokenClientImpl,
     },
     repository::{
         BuildRepositoryImpl, CommitRepositoryImpl, DeviceRepositoryImpl, GitHubRepositoryImpl,
@@ -86,6 +86,11 @@ impl AppState {
             String::new(), // TODO: add github_client_secret from settings
         );
         let gitdot_private_key = secret_client.get_gitdot_private_key().await?;
+        let r2_client = R2ClientImpl::new(
+            secret_client.get_cloudflare_account_id().await?,
+            secret_client.get_cloudflare_r2_access_key_id().await?,
+            secret_client.get_cloudflare_r2_secret_access_key().await?,
+        );
         let s2_client = S2ClientImpl::new(&settings.s2_server_url, gitdot_private_key.clone());
         let token_client = TokenClientImpl::new(gitdot_private_key.clone());
         let email_client = ResendClient::new(&settings.resend_api_key);
@@ -121,6 +126,7 @@ impl AppState {
                 review_repo.clone(),
                 commit_repo.clone(),
                 image_client.clone(),
+                r2_client.clone(),
             )),
             org_service: Arc::new(OrganizationServiceImpl::new(
                 org_repo.clone(),

@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use chrono::{Duration, Utc};
 
 use crate::{
-    client::{ImageClient, ImageClientImpl},
+    client::{ImageClient, ImageClientImpl, R2Client, R2ClientImpl},
     dto::{
         CommitResponse, GetCurrentUserRequest, GetCurrentUserSettingsRequest, GetUserRequest,
         HasUserRequest, ListUserCommitsRequest, ListUserOrganizationsRequest,
@@ -74,7 +74,7 @@ pub trait UserService: Send + Sync + 'static {
 }
 
 #[derive(Debug, Clone)]
-pub struct UserServiceImpl<U, R, O, V, C, I>
+pub struct UserServiceImpl<U, R, O, V, C, I, R2>
 where
     U: UserRepository,
     R: RepositoryRepository,
@@ -82,6 +82,7 @@ where
     V: ReviewRepository,
     C: CommitRepository,
     I: ImageClient,
+    R2: R2Client,
 {
     user_repo: U,
     repo_repo: R,
@@ -89,6 +90,7 @@ where
     review_repo: V,
     commit_repo: C,
     image_client: I,
+    r2_client: R2,
 }
 
 impl
@@ -99,6 +101,7 @@ impl
         ReviewRepositoryImpl,
         CommitRepositoryImpl,
         ImageClientImpl,
+        R2ClientImpl,
     >
 {
     pub fn new(
@@ -108,6 +111,7 @@ impl
         review_repo: ReviewRepositoryImpl,
         commit_repo: CommitRepositoryImpl,
         image_client: ImageClientImpl,
+        r2_client: R2ClientImpl,
     ) -> Self {
         Self {
             user_repo,
@@ -116,13 +120,14 @@ impl
             review_repo,
             commit_repo,
             image_client,
+            r2_client,
         }
     }
 }
 
 #[crate::instrument_all]
 #[async_trait]
-impl<U, R, O, V, C, I> UserService for UserServiceImpl<U, R, O, V, C, I>
+impl<U, R, O, V, C, I, R2> UserService for UserServiceImpl<U, R, O, V, C, I, R2>
 where
     U: UserRepository,
     R: RepositoryRepository,
@@ -130,6 +135,7 @@ where
     V: ReviewRepository,
     C: CommitRepository,
     I: ImageClient,
+    R2: R2Client,
 {
     async fn get_current_user(
         &self,
