@@ -42,7 +42,7 @@ export function MainCommandBar() {
         {
           name: "Command",
           description: "Open command",
-          keys: [" "],
+          keys: [";", ":", "Mod+k", "Mod+x"],
           execute: () => setOpen(true),
         },
       ],
