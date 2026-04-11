@@ -1,28 +1,15 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import type { OrganizationResource, RepositoryResource } from "gitdot-api";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useShortcuts } from "@/(main)/context/shortcuts";
 import { useUserContext } from "@/(main)/context/user";
+import { useCommands } from "@/(main)/hooks/use-commands";
 import { useTypewriter } from "@/hooks/use-typewriter";
 import Link from "@/ui/link";
 
-const MOCK_REPOS = [
-  { owner: "pybae", name: "gitdot" },
-  { owner: "pybae", name: "dotfiles" },
-  { owner: "pybae", name: "blog" },
-];
-
-const MOCK_ORGS = [{ name: "acme" }, { name: "vercel" }];
-
-type Item = {
-  label: string;
-  type: "repo" | "org" | "action";
-  execute: () => void;
-};
-
 export function MainCommandBar() {
-  const { user } = useUserContext();
+  const { user, repositories, organizations } = useUserContext();
   const username = user === undefined ? null : (user?.name ?? "ghost");
 
   const typed = useTypewriter(username ?? "", 35);
@@ -44,17 +31,27 @@ export function MainCommandBar() {
     );
   }
 
-  return <CommandBar username={username} user={user ?? null} />;
+  return (
+    <CommandBar
+      username={username}
+      user={user ?? null}
+      repositories={repositories}
+      organizations={organizations}
+    />
+  );
 }
 
 function CommandBar({
   username,
   user,
+  repositories,
+  organizations,
 }: {
   username: string;
   user: { name: string } | null;
+  repositories: RepositoryResource[] | null | undefined;
+  organizations: OrganizationResource[] | null | undefined;
 }) {
-  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [hovered, setHovered] = useState(false);
   const [input, setInput] = useState("");
@@ -86,45 +83,13 @@ function CommandBar({
     return () => window.removeEventListener("openCommandBar", handle);
   }, []);
 
-  const allItems = useMemo<Item[]>(() => {
-    const repos: Item[] = MOCK_REPOS.map((r) => ({
-      type: "repo",
-      label: `${r.owner}/${r.name}`,
-      execute: () => router.push(`/${r.owner}/${r.name}`),
-    }));
+  const commands = useCommands({ user, repositories, organizations });
 
-    const orgs: Item[] = MOCK_ORGS.map((o) => ({
-      type: "org",
-      label: o.name,
-      execute: () => router.push(`/${o.name}`),
-    }));
-
-    const actions: Item[] = [
-      {
-        type: "action",
-        label: "profile",
-        execute: () => user && router.push(`/${user.name}`),
-      },
-      {
-        type: "action",
-        label: "settings",
-        execute: () => window.dispatchEvent(new CustomEvent("openSettings")),
-      },
-      {
-        type: "action",
-        label: "history",
-        execute: () => window.dispatchEvent(new Event("openHistoryDialog")),
-      },
-    ];
-
-    return [...repos, ...orgs, ...actions];
-  }, [user, router]);
-
-  const filteredItems = useMemo(() => {
+  const filteredCommands = useMemo(() => {
     const q = input.trim().toLowerCase();
-    if (!q) return allItems;
-    return allItems.filter((item) => item.label.toLowerCase().includes(q));
-  }, [allItems, input]);
+    if (!q) return commands;
+    return commands.filter((item) => item.label.toLowerCase().includes(q));
+  }, [commands, input]);
 
   useEffect(() => {
     if (!open) return;
@@ -138,36 +103,36 @@ function CommandBar({
         setInput("");
       } else if (e.key === "ArrowDown" || (e.ctrlKey && e.key === "n")) {
         e.preventDefault();
-        setSelectedIdx((i) => Math.min(i + 1, filteredItems.length - 1));
+        setSelectedIdx((i) => Math.min(i + 1, filteredCommands.length - 1));
       } else if (e.key === "ArrowUp" || (e.ctrlKey && e.key === "p")) {
         e.preventDefault();
         setSelectedIdx((i) => Math.max(i - 1, 0));
       } else if (e.key === "Tab") {
         e.preventDefault();
-        const selected = filteredItems[selectedIdx];
+        const selected = filteredCommands[selectedIdx];
         if (selected) setInput(selected.label);
       } else if (e.key === "Enter") {
         e.preventDefault();
-        filteredItems[selectedIdx]?.execute();
+        filteredCommands[selectedIdx]?.execute();
         close();
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [open, filteredItems, selectedIdx, close]);
+  }, [open, filteredCommands, selectedIdx, close]);
 
   return (
     <>
       {open && <div className="fixed inset-0 z-40" onClick={close} />}
       {open && (
         <div className="fixed bottom-6 left-0 z-50 flex flex-col border-t border-r bg-background font-mono text-sm">
-          {filteredItems.length === 0 ? (
+          {filteredCommands.length === 0 ? (
             <span className="px-2 py-0.5 text-muted-foreground">
               no results
             </span>
           ) : (
-            filteredItems.map((item, idx) => (
+            filteredCommands.map((item, idx) => (
               <button
                 key={item.label}
                 type="button"

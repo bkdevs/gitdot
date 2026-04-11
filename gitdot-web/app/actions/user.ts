@@ -1,11 +1,17 @@
 "use server";
 
-import type { UserResource } from "gitdot-api";
+import type {
+  OrganizationResource,
+  RepositoryResource,
+  UserResource,
+} from "gitdot-api";
 import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 import {
   getCurrentUser,
   hasUser,
+  listUserOrganizations,
+  listUserRepositories,
   updateCurrentUser,
   uploadUserImage,
 } from "@/dal";
@@ -14,6 +20,18 @@ import { delay, validateEmail } from "../util";
 
 export async function getCurrentUserAction(): Promise<UserResource | null> {
   return await getCurrentUser(false);
+}
+
+export async function listUserRepositoriesAction(
+  username: string,
+): Promise<RepositoryResource[] | null> {
+  return await listUserRepositories(username);
+}
+
+export async function listUserOrganizationsAction(
+  username: string,
+): Promise<OrganizationResource[] | null> {
+  return await listUserOrganizations(username);
 }
 
 export type AuthActionResult = { success: true } | { error: string };

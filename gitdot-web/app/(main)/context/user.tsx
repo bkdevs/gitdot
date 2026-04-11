@@ -1,6 +1,10 @@
 "use client";
 
-import type { UserResource } from "gitdot-api";
+import type {
+  OrganizationResource,
+  RepositoryResource,
+  UserResource,
+} from "gitdot-api";
 import {
   createContext,
   useCallback,
@@ -8,11 +12,17 @@ import {
   useEffect,
   useState,
 } from "react";
-import { getCurrentUserAction } from "@/actions";
+import {
+  getCurrentUserAction,
+  listUserOrganizationsAction,
+  listUserRepositoriesAction,
+} from "@/actions";
 import { AuthDialog } from "../ui/auth-dialog";
 
 interface UserContext {
   user: UserResource | null | undefined;
+  repositories: RepositoryResource[] | null | undefined;
+  organizations: OrganizationResource[] | null | undefined;
   refreshUser: () => void;
   requireAuth: () => boolean;
 }
@@ -27,6 +37,12 @@ const UserContext = createContext<UserContext | null>(null);
  */
 export function UserProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserResource | null | undefined>(undefined);
+  const [repositories, setRepositories] = useState<
+    RepositoryResource[] | null | undefined
+  >(undefined);
+  const [organizations, setOrganizations] = useState<
+    OrganizationResource[] | null | undefined
+  >(undefined);
   const [open, setOpen] = useState(false);
 
   const requireAuth = useCallback(() => {
@@ -42,8 +58,21 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     refreshUser();
   }, [refreshUser]);
 
+  useEffect(() => {
+    if (!user) return;
+    Promise.all([
+      listUserRepositoriesAction(user.name),
+      listUserOrganizationsAction(user.name),
+    ]).then(([repos, orgs]) => {
+      setRepositories(repos);
+      setOrganizations(orgs);
+    });
+  }, [user]);
+
   return (
-    <UserContext value={{ user, refreshUser, requireAuth }}>
+    <UserContext
+      value={{ user, repositories, organizations, refreshUser, requireAuth }}
+    >
       {children}
       <AuthDialog open={open} setOpen={setOpen} />
     </UserContext>
