@@ -1,9 +1,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useShortcuts } from "@/(main)/context/shortcuts";
 import { useUserContext } from "@/(main)/context/user";
+import { useTypewriter } from "@/hooks/use-typewriter";
 import Link from "@/ui/link";
 
 const MOCK_REPOS = [
@@ -21,20 +22,49 @@ type Item = {
 };
 
 export function MainCommandBar() {
+  const { user } = useUserContext();
+  const username = user === undefined ? null : (user?.name ?? "ghost");
+
+  const typed = useTypewriter(username ?? "", 35);
+  const [done, setDone] = useState(false);
+
+  useEffect(() => {
+    if (!username || typed !== username) return;
+    const t = setTimeout(() => setDone(true), 60);
+    return () => clearTimeout(t);
+  }, [typed, username]);
+
+  if (username === null) return null;
+
+  if (!done) {
+    return (
+      <span className="flex flex-1 items-center px-2 text-sm text-muted-foreground">
+        {typed}
+      </span>
+    );
+  }
+
+  return <CommandBar username={username} user={user ?? null} />;
+}
+
+function CommandBar({
+  username,
+  user,
+}: {
+  username: string;
+  user: { name: string } | null;
+}) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [hovered, setHovered] = useState(false);
-  const { user } = useUserContext();
-  const router = useRouter();
   const [input, setInput] = useState("");
   const [selectedIdx, setSelectedIdx] = useState(0);
 
-  const name = user === undefined ? null : (user?.name ?? "ghost");
-
-  const close = () => {
+  const close = useCallback(() => {
     setOpen(false);
     setInput("");
     setSelectedIdx(0);
-  };
+  }, []);
 
   useShortcuts(
     useMemo(
@@ -46,7 +76,7 @@ export function MainCommandBar() {
           execute: () => setOpen(true),
         },
       ],
-      [setOpen],
+      [],
     ),
   );
 
@@ -54,7 +84,7 @@ export function MainCommandBar() {
     const handle = () => setOpen(true);
     window.addEventListener("openCommandBar", handle);
     return () => window.removeEventListener("openCommandBar", handle);
-  }, [setOpen]);
+  }, []);
 
   const allItems = useMemo<Item[]>(() => {
     const repos: Item[] = MOCK_REPOS.map((r) => ({
@@ -97,10 +127,6 @@ export function MainCommandBar() {
   }, [allItems, input]);
 
   useEffect(() => {
-    setSelectedIdx(0);
-  }, [input]);
-
-  useEffect(() => {
     if (!open) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -129,19 +155,17 @@ export function MainCommandBar() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [open, filteredItems, selectedIdx]);
-
-  if (name === null) return null;
+  }, [open, filteredItems, selectedIdx, close]);
 
   return (
     <>
-      {open && (
-        <div className="fixed inset-0 z-40" onClick={close} />
-      )}
+      {open && <div className="fixed inset-0 z-40" onClick={close} />}
       {open && (
         <div className="fixed bottom-6 left-0 z-50 flex flex-col border-t border-r bg-background font-mono text-sm">
           {filteredItems.length === 0 ? (
-            <span className="px-2 py-0.5 text-muted-foreground">no results</span>
+            <span className="px-2 py-0.5 text-muted-foreground">
+              no results
+            </span>
           ) : (
             filteredItems.map((item, idx) => (
               <button
@@ -151,7 +175,10 @@ export function MainCommandBar() {
                   idx === selectedIdx ? "bg-accent text-accent-foreground" : ""
                 }`}
                 onMouseEnter={() => setSelectedIdx(idx)}
-                onClick={() => { item.execute(); close(); }}
+                onClick={() => {
+                  item.execute();
+                  close();
+                }}
               >
                 <span className="truncate">{item.label}</span>
                 <span className="ml-auto shrink-0 pl-4 text-muted-foreground">
@@ -167,9 +194,8 @@ export function MainCommandBar() {
           href={`/${user?.name ?? "ghost"}`}
           className="shrink-0 text-muted-foreground hover:text-foreground hover:underline transition-colors duration-200"
         >
-          {name}
+          {username}
         </Link>
-        {/* biome-ignore lint/a11y/useKeyWithClickEvents: space key handled via useShortcuts */}
         <span
           className={`flex flex-1 items-center transition-colors duration-200 ${open ? "text-foreground cursor-default" : "text-muted-foreground hover:text-foreground cursor-pointer"}`}
           onClick={() => setOpen(true)}
@@ -179,7 +205,6 @@ export function MainCommandBar() {
           <span className="mx-1">$</span>
           {open && (
             <input
-              // biome-ignore lint/a11y/noAutofocus: intentional — opens on keypress
               autoFocus
               className="bg-transparent outline-none"
               style={{ width: `${input.length}ch`, caretColor: "transparent" }}
@@ -196,7 +221,11 @@ export function MainCommandBar() {
           {open || hovered ? (
             <span
               className="inline-block w-[7px] bg-foreground align-text-bottom"
-              style={{ height: "12px", animation: hovered && !open ? "blink 1s step-end infinite" : "none" }}
+              style={{
+                height: "12px",
+                animation:
+                  hovered && !open ? "blink 1s step-end infinite" : "none",
+              }}
             />
           ) : (
             <span className="text-foreground">_</span>
