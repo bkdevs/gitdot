@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { CommandProvider } from "./context/command";
 import { DatabaseProvider } from "./context/database";
 import { HistoryProvider } from "./context/history";
 import { SettingsProvider } from "./context/settings";
@@ -25,14 +24,12 @@ export default function RootLayout({
           <ShortcutsProvider>
             <SettingsProvider>
               <HistoryProvider>
-                <CommandProvider>
-                  <div className="flex flex-col h-screen w-full max-w-screen overflow-hidden">
-                    <main className="flex-1 min-h-0 overflow-y-auto scrollbar-overlay">
-                      {children}
-                    </main>
-                    <MainFooter />
-                  </div>
-                </CommandProvider>
+                <div className="flex flex-col h-screen w-full max-w-screen overflow-hidden">
+                  <main className="flex-1 min-h-0 overflow-y-auto scrollbar-overlay">
+                    {children}
+                  </main>
+                  <MainFooter />
+                </div>
               </HistoryProvider>
             </SettingsProvider>
           </ShortcutsProvider>

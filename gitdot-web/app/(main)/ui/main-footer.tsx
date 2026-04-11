@@ -1,60 +1,25 @@
 "use client";
 
 import { useParams, usePathname } from "next/navigation";
-import { useUserContext } from "@/(main)/context/user";
 import { useMetricsContext } from "@/context/metrics";
 import { useAnimateNumber } from "@/hooks/use-animate-number";
-import { useTypewriter } from "@/hooks/use-typewriter";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/ui/dropdown-menu";
 import Link from "@/ui/link";
-import { MainToolbar } from "./main-toolbar";
+import { MainCommandBar } from "./main-command-bar";
 
 export function MainFooter() {
   return (
     <div className="relative shrink-0 flex w-full h-6 items-center border-t bg-sidebar text-xs font-mono">
-      <UserStatusMessage />
-      <div className="absolute left-1/2 -translate-x-1/2">
-        <MainToolbar />
-      </div>
+      <MainCommandBar />
       <div className="ml-auto flex items-baseline pr-2">
         <Breadcrumbs />
         <PageVitals />
       </div>
     </div>
-  );
-}
-
-function UserStatusMessage() {
-  const { user } = useUserContext();
-  const fullText =
-    user === undefined
-      ? ""
-      : user
-        ? `logged in as ${user.name}`
-        : "browsing as ghost";
-  const typed = useTypewriter(fullText);
-  const done = typed === fullText && fullText !== "";
-
-  return (
-    <span className="text-muted-foreground px-2">
-      {user === undefined ? null : done && user ? (
-        <>
-          logged in as{" "}
-          <Link
-            href={`/${user.name}`}
-            className="hover:underline hover:text-foreground transition-colors"
-          >
-            {user.name}
-          </Link>
-        </>
-      ) : (
-        typed || null
-      )}
-    </span>
   );
 }
 
