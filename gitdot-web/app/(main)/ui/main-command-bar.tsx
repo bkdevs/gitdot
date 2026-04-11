@@ -136,6 +136,9 @@ export function MainCommandBar() {
   return (
     <>
       {open && (
+        <div className="fixed inset-0 z-40" onClick={close} />
+      )}
+      {open && (
         <div className="fixed bottom-6 left-0 z-50 flex flex-col border-t border-r bg-background font-mono text-sm">
           {filteredItems.length === 0 ? (
             <span className="px-2 py-0.5 text-muted-foreground">no results</span>
@@ -168,7 +171,7 @@ export function MainCommandBar() {
         </Link>
         {/* biome-ignore lint/a11y/useKeyWithClickEvents: space key handled via useShortcuts */}
         <span
-          className={`flex flex-1 items-center cursor-pointer transition-colors duration-200 ${open ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+          className={`flex flex-1 items-center transition-colors duration-200 ${open ? "text-foreground cursor-default" : "text-muted-foreground hover:text-foreground cursor-pointer"}`}
           onClick={() => setOpen(true)}
           onMouseEnter={() => setHovered(true)}
           onMouseLeave={() => setHovered(false)}
