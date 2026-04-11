@@ -1,5 +1,6 @@
 "use client";
 
+import { CircleDashedIcon } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Link from "@/ui/link";
 import { OverlayScroll } from "@/ui/scroll";
@@ -56,6 +57,14 @@ function IndexSidebar({
     <Sidebar>
       <SidebarContent className="overflow-auto">
         <div className="flex flex-col w-full">
+          <div className="flex flex-row w-full h-9 items-center border-b bg-background select-none text-sm font-mono tracking-tight">
+            <CircleDashedIcon className="size-3.5 ml-2 shrink-0 text-foreground" />
+            <span className="ml-auto mr-2">
+              <Link href={`/${owner}`} className="text-muted-foreground underline decoration-transparent hover:decoration-current transition-colors duration-200">{owner}</Link>
+              /
+              <Link href={`/${owner}/${repo}`} className="underline decoration-transparent hover:decoration-current transition-colors duration-200">{repo}</Link>
+            </span>
+          </div>
           {items.map((item) => {
             const active = isActive(item.path);
             return (
