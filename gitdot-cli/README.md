@@ -21,69 +21,6 @@ graph LR
     RUNNER -->|"Basic token"| API
 ```
 
-### Class diagram
-
-```mermaid
-classDiagram
-    direction TB
-
-    class Executor {
-        <<interface>>
-        +initialize(config, task) Self
-        +execute()
-        +cleanup()
-    }
-    class LocalExecutor {
-        +working_directory PathBuf
-        +task PollTaskResource
-        +s2 S2
-    }
-    note for LocalExecutor "clones repo to /tmp/gitdot/tasks/{id}\nstreams stdout/stderr as AppendRecords to S2"
-    Executor <|.. LocalExecutor
-
-    class Service {
-        <<interface>>
-        +install()
-        +uninstall()
-        +start()
-        +stop()
-    }
-    class ServiceManager {
-        -binary_path String
-    }
-    note for ServiceManager "dispatches to launchd (macOS) or systemd (Linux) via cfg(target_os)"
-    Service <|.. ServiceManager
-
-    class GitdotClient {
-        +with_jwt(token) Self
-        +with_token(token) Self
-        +from_user_config(config) Self
-        +from_runner_config(config) Self
-        +get()
-        +post()
-        +patch()
-        +delete()
-    }
-
-    class UserConfig {
-        +gitdot_server_url String
-        +gitdot_web_url String
-        +load()
-        +save()
-    }
-
-    class RunnerConfig {
-        +runner_token Option~String~
-        +num_executors i8
-        +load()
-        +save()
-    }
-
-    GitdotClient ..> UserConfig : from_user_config
-    GitdotClient ..> RunnerConfig : from_runner_config
-    LocalExecutor ..> GitdotClient : polls and updates tasks
-```
-
 ### APIs
 
 #### `GitdotClient` — `src/client.rs`
