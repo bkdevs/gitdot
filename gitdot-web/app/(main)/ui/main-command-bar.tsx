@@ -16,6 +16,10 @@ export function MainCommandBar() {
   const [done, setDone] = useState(false);
 
   useEffect(() => {
+    setDone(false);
+  }, [username]);
+
+  useEffect(() => {
     if (!username || typed !== username) return;
     const t = setTimeout(() => setDone(true), 60);
     return () => clearTimeout(t);

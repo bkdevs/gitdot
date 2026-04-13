@@ -2,6 +2,7 @@ import type { OrganizationResource, RepositoryResource } from "gitdot-api";
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 import { signout } from "@/actions";
+import { useUserContext } from "@/(main)/context/user";
 
 export type Command = {
   label: string;
@@ -19,6 +20,7 @@ export function useCommands({
   organizations: OrganizationResource[] | null | undefined;
 }): Command[] {
   const router = useRouter();
+  const { refreshUser } = useUserContext();
 
   return useMemo<Command[]>(() => {
     const repos: Command[] = (repositories ?? []).map((r) => ({
@@ -47,7 +49,7 @@ export function useCommands({
       {
         type: "cmd",
         label: "logout",
-        execute: () => signout(),
+        execute: async () => { await signout(); refreshUser(); },
       },
     ];
 
@@ -78,5 +80,5 @@ export function useCommands({
       ...(user ? authActions : unauthActions),
       ...commonActions,
     ];
-  }, [user, router, repositories, organizations]);
+  }, [user, router, repositories, organizations, refreshUser]);
 }

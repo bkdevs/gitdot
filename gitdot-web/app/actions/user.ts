@@ -15,7 +15,7 @@ import {
   updateCurrentUser,
   uploadUserImage,
 } from "@/dal";
-import { getGitHubRedirectUrl, logout, sendAuthEmail } from "@/lib/auth";
+import { getGitHubRedirectUrl, logout, sendAuthEmail, verifyAuthCode } from "@/lib/auth";
 import { delay, validateEmail } from "../util";
 
 export async function getCurrentUserAction(): Promise<UserResource | null> {
@@ -166,6 +166,17 @@ export async function uploadUserImageAction(
     const msg = e instanceof Error ? e.message : "Unknown error";
     return { error: `Upload failed: ${msg}` };
   }
+}
+
+export async function verifyCode(
+  _prev: AuthActionResult | null,
+  formData: FormData,
+): Promise<AuthActionResult> {
+  const code = formData.get("code") as string;
+  const result = await verifyAuthCode(code);
+  if (!result) return { error: "Invalid or expired code" };
+  if (result.is_new) redirect("/onboarding");
+  return { success: true };
 }
 
 export async function signout() {
