@@ -40,6 +40,10 @@ impl GitWrapper {
         self.run(&["branch", "--show-current"]).await
     }
 
+    pub async fn last_commit_message(&self) -> anyhow::Result<String> {
+        self.run(&["log", "-1", "--format=%s"]).await
+    }
+
     pub async fn log_oneline(&self, range: &str) -> anyhow::Result<Vec<(String, String)>> {
         let stdout = self.run(&["log", range, "--oneline"]).await?;
         Ok(stdout
