@@ -1,8 +1,8 @@
 import type { OrganizationResource, RepositoryResource } from "gitdot-api";
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
-import { signout } from "@/actions";
 import { useUserContext } from "@/(main)/context/user";
+import { signout } from "@/actions";
 
 export type Command = {
   label: string;
@@ -49,7 +49,10 @@ export function useCommands({
       {
         type: "cmd",
         label: "logout",
-        execute: async () => { await signout(); refreshUser(); },
+        execute: async () => {
+          await signout();
+          refreshUser();
+        },
       },
     ];
 
@@ -75,8 +78,8 @@ export function useCommands({
     ];
 
     return [
-      ...repos,
-      ...orgs,
+      ...(user ? repos : []),
+      ...(user ? orgs : []),
       ...(user ? authActions : unauthActions),
       ...commonActions,
     ];

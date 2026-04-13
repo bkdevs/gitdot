@@ -3,10 +3,10 @@
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import Image from "next/image";
 import { useEffect, useState, useTransition } from "react";
+import { useUserContext } from "@/(main)/context/user";
 import { login, loginWithGithub, verifyCode } from "@/actions";
 import { useIsTyping } from "@/hooks/use-is-typing";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
-import { useUserContext } from "@/(main)/context/user";
 import { validateEmail } from "@/util";
 
 export function AuthDialog({

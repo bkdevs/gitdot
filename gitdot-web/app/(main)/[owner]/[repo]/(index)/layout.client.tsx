@@ -60,9 +60,19 @@ function IndexSidebar({
           <div className="flex flex-row w-full h-9 items-center border-b bg-background select-none text-sm font-mono tracking-tight">
             <CircleDashedIcon className="size-3.5 ml-2 shrink-0 text-foreground" />
             <span className="ml-auto mr-2">
-              <Link href={`/${owner}`} className="text-muted-foreground underline decoration-transparent hover:decoration-current transition-colors duration-200">{owner}</Link>
+              <Link
+                href={`/${owner}`}
+                className="text-muted-foreground underline decoration-transparent hover:decoration-current transition-colors duration-200"
+              >
+                {owner}
+              </Link>
               /
-              <Link href={`/${owner}/${repo}`} className="underline decoration-transparent hover:decoration-current transition-colors duration-200">{repo}</Link>
+              <Link
+                href={`/${owner}/${repo}`}
+                className="underline decoration-transparent hover:decoration-current transition-colors duration-200"
+              >
+                {repo}
+              </Link>
             </span>
           </div>
           {items.map((item) => {

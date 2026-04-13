@@ -15,7 +15,12 @@ import {
   updateCurrentUser,
   uploadUserImage,
 } from "@/dal";
-import { getGitHubRedirectUrl, logout, sendAuthEmail, verifyAuthCode } from "@/lib/auth";
+import {
+  getGitHubRedirectUrl,
+  logout,
+  sendAuthEmail,
+  verifyAuthCode,
+} from "@/lib/auth";
 import { delay, validateEmail } from "../util";
 
 export async function getCurrentUserAction(): Promise<UserResource | null> {

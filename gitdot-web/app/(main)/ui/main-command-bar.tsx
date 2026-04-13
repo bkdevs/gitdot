@@ -15,6 +15,7 @@ export function MainCommandBar() {
   const typed = useTypewriter(username ?? "", 35);
   const [done, setDone] = useState(false);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: trigger typewriter when username changes
   useEffect(() => {
     setDone(false);
   }, [username]);
@@ -159,12 +160,22 @@ function CommandBar({
         </div>
       )}
       <span className="flex flex-1 items-center px-2 text-sm">
-        <Link
-          href={`/${user?.name ?? "ghost"}`}
-          className="shrink-0 text-muted-foreground hover:text-foreground hover:underline transition-colors duration-200"
-        >
-          {username}
-        </Link>
+        {user ? (
+          <Link
+            href={`/${user.name}`}
+            className="shrink-0 cursor-pointer text-muted-foreground hover:text-foreground hover:underline transition-colors duration-200"
+          >
+            {username}
+          </Link>
+        ) : (
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new Event("toggleAuthDialog"))}
+            className="shrink-0 cursor-pointer text-muted-foreground hover:text-foreground hover:underline transition-colors duration-200"
+          >
+            {username}
+          </button>
+        )}
         <span
           className={`flex flex-1 items-center transition-colors duration-200 ${open ? "text-foreground cursor-default" : "text-muted-foreground hover:text-foreground cursor-pointer"}`}
           onClick={() => setOpen(true)}
