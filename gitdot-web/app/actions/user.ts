@@ -23,6 +23,53 @@ import {
 } from "@/lib/auth";
 import { delay, validateEmail } from "../util";
 
+// ============
+// auth actions
+// ============
+export type SendCodeResult = { success: true } | { error: string };
+
+export async function sendCode(
+  _prev: SendCodeResult | null,
+  formData: FormData,
+): Promise<SendCodeResult> {
+  const email = formData.get("email") as string;
+  const redirectTo = formData.get("redirect") as string;
+
+  if (!validateEmail(email)) {
+    return await delay(300, { error: "Invalid email" });
+  }
+
+  await sendAuthEmail(email);
+  if (redirectTo) redirect(redirectTo);
+  return { success: true };
+}
+
+export type VerifyCodeResult = { is_new: boolean } | { error: string };
+
+export async function verifyCode(
+  _prev: VerifyCodeResult | null,
+  formData: FormData,
+): Promise<VerifyCodeResult> {
+  const code = formData.get("code") as string;
+  const result = await verifyAuthCode(code);
+  if (!result) return { error: "Invalid or expired code" };
+  return { is_new: true };
+}
+
+export type LoginWithGithubResult = { success: true } | { error: string };
+
+export async function loginWithGithub(): Promise<LoginWithGithubResult> {
+  const url = await getGitHubRedirectUrl();
+  if (!url) return { error: "Failed to initiate GitHub login" };
+  redirect(url);
+}
+
+export async function signout() {
+  await logout();
+}
+// ===========
+// get actions
+// ===========
 export async function getCurrentUserAction(): Promise<UserResource | null> {
   return await getCurrentUser(false);
 }
@@ -39,46 +86,9 @@ export async function listUserOrganizationsAction(
   return await listUserOrganizations(username);
 }
 
-export type AuthActionResult = { success: true } | { error: string };
-
-export async function login(
-  _prev: AuthActionResult | null,
-  formData: FormData,
-): Promise<AuthActionResult> {
-  const email = formData.get("email") as string;
-  const redirectTo = formData.get("redirect") as string;
-
-  if (!validateEmail(email)) {
-    return await delay(300, { error: "Invalid email" });
-  }
-
-  await sendAuthEmail(email);
-  if (redirectTo) redirect(redirectTo);
-  return { success: true };
-}
-
-// TODO: remove this as it's the same as login
-export async function signup(
-  _prev: AuthActionResult | null,
-  formData: FormData,
-): Promise<AuthActionResult> {
-  const email = formData.get("email") as string;
-  const redirectTo = formData.get("redirect") as string;
-
-  if (!validateEmail(email)) {
-    return await delay(300, { error: "Invalid email" });
-  }
-
-  await sendAuthEmail(email);
-  if (redirectTo) redirect(redirectTo);
-  return { success: true };
-}
-
-export async function loginWithGithub(): Promise<AuthActionResult> {
-  const url = await getGitHubRedirectUrl();
-  if (!url) return { error: "Failed to initiate GitHub login" };
-  redirect(url);
-}
+// ==============
+// update actions
+// ==============
 
 export type UpdateUserActionResult = { user: UserResource } | { error: string };
 
@@ -171,19 +181,4 @@ export async function uploadUserImageAction(
     const msg = e instanceof Error ? e.message : "Unknown error";
     return { error: `Upload failed: ${msg}` };
   }
-}
-
-export async function verifyCode(
-  _prev: AuthActionResult | null,
-  formData: FormData,
-): Promise<AuthActionResult> {
-  const code = formData.get("code") as string;
-  const result = await verifyAuthCode(code);
-  if (!result) return { error: "Invalid or expired code" };
-  if (result.is_new) redirect("/onboarding");
-  return { success: true };
-}
-
-export async function signout() {
-  await logout();
 }
