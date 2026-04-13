@@ -55,7 +55,7 @@ export function useCommands({
       {
         type: "cmd",
         label: "login",
-        execute: () => router.push("/login"),
+        execute: () => window.dispatchEvent(new Event("toggleAuthDialog")),
       },
     ];
 

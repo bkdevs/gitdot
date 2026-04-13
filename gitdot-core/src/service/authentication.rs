@@ -154,25 +154,23 @@ where
         request: SendAuthEmailRequest,
     ) -> Result<(), AuthenticationError> {
         let email = request.email.as_ref().to_string();
-        let (user, is_signup) = match self.user_repo.get_by_email(&email).await? {
-            Some(user) => (user, false),
+        let user = match self.user_repo.get_by_email(&email).await? {
+            Some(user) => user,
             None => {
-                let user = self
-                    .user_repo
+                self.user_repo
                     .create(&email, false, AuthProvider::Email)
-                    .await?;
-                (user, true)
+                    .await?
             }
         };
 
-        let (code, code_hash) = self.token_client.generate_high_entropic_code();
+        let code = self.token_client.generate_readable_code();
         let expiry_secs = self.token_client.get_auth_code_expiry_in_seconds();
         let expires_at = Utc::now() + Duration::seconds(expiry_secs as i64);
         self.session_repo
-            .create_auth_code(user.id, &code_hash, expires_at)
+            .create_auth_code(user.id, &code, expires_at)
             .await?;
 
-        let (subject, html) = get_auth_email(is_signup, &code);
+        let (subject, html) = get_auth_email(&code);
         self.email_client
             .send_email(NOREPLY_EMAIL, &email, &subject, &html)
             .await?;
@@ -184,12 +182,11 @@ where
         &self,
         request: VerifyAuthCodeRequest,
     ) -> Result<AuthTokensResponse, AuthenticationError> {
-        let code_hash = hash_string(&request.code);
         let auth_code = self
             .session_repo
-            .get_auth_code_by_hash(&code_hash)
+            .get_auth_code(&request.code)
             .await?
-            .or_not_found("auth_code", &code_hash)?;
+            .or_not_found("auth_code", &request.code)?;
 
         if auth_code.used_at.is_some() {
             return Err(AuthenticationError::TokenRevoked("auth_code".into()));

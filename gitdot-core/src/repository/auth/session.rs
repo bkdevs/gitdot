@@ -14,14 +14,11 @@ pub trait SessionRepository: Send + Sync + Clone + 'static {
     async fn create_auth_code(
         &self,
         user_id: Uuid,
-        code_hash: &str,
+        user_code: &str,
         expires_at: DateTime<Utc>,
     ) -> Result<AuthCode, DatabaseError>;
 
-    async fn get_auth_code_by_hash(
-        &self,
-        code_hash: &str,
-    ) -> Result<Option<AuthCode>, DatabaseError>;
+    async fn get_auth_code(&self, user_code: &str) -> Result<Option<AuthCode>, DatabaseError>;
 
     async fn mark_auth_code_used(&self, id: Uuid) -> Result<(), DatabaseError>;
 
@@ -62,18 +59,18 @@ impl SessionRepository for SessionRepositoryImpl {
     async fn create_auth_code(
         &self,
         user_id: Uuid,
-        code_hash: &str,
+        user_code: &str,
         expires_at: DateTime<Utc>,
     ) -> Result<AuthCode, DatabaseError> {
         let auth_code = sqlx::query_as::<_, AuthCode>(
             r#"
-            INSERT INTO auth.auth_codes (user_id, code_hash, expires_at)
+            INSERT INTO auth.auth_codes (user_id, user_code, expires_at)
             VALUES ($1, $2, $3)
             RETURNING *
             "#,
         )
         .bind(user_id)
-        .bind(code_hash)
+        .bind(user_code)
         .bind(expires_at)
         .fetch_one(&self.pool)
         .await?;
@@ -81,16 +78,13 @@ impl SessionRepository for SessionRepositoryImpl {
         Ok(auth_code)
     }
 
-    async fn get_auth_code_by_hash(
-        &self,
-        code_hash: &str,
-    ) -> Result<Option<AuthCode>, DatabaseError> {
+    async fn get_auth_code(&self, user_code: &str) -> Result<Option<AuthCode>, DatabaseError> {
         let auth_code = sqlx::query_as::<_, AuthCode>(
             r#"
-            SELECT * FROM auth.auth_codes WHERE code_hash = $1
+            SELECT * FROM auth.auth_codes WHERE user_code = $1
             "#,
         )
-        .bind(code_hash)
+        .bind(user_code)
         .fetch_optional(&self.pool)
         .await?;
 

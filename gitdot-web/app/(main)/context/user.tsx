@@ -50,6 +50,12 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     return !user;
   }, [user]);
 
+  useEffect(() => {
+    const handler = () => setOpen((prev) => !prev);
+    window.addEventListener("toggleAuthDialog", handler);
+    return () => window.removeEventListener("toggleAuthDialog", handler);
+  }, []);
+
   const refreshUser = useCallback(() => {
     getCurrentUserAction().then(setUser);
   }, []);

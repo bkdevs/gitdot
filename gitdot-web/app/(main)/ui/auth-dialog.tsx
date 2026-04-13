@@ -4,7 +4,9 @@ import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import Image from "next/image";
 import { useEffect, useState, useTransition } from "react";
 import { login, loginWithGithub } from "@/actions";
+import { useIsTyping } from "@/hooks/use-is-typing";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
+import { cn, validateEmail } from "@/util";
 
 export function AuthDialog({
   open,
@@ -16,17 +18,26 @@ export function AuthDialog({
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [canSubmit, setCanSubmit] = useState(false);
   const [githubPending, setGithubPending] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const isTyping = useIsTyping(email);
 
   useEffect(() => {
     if (open) {
       setEmail("");
       setSent(false);
       setError(null);
+      setCanSubmit(false);
       setGithubPending(false);
     }
   }, [open]);
+
+  useEffect(() => {
+    if (!isTyping) {
+      setCanSubmit(validateEmail(email) && !isPending);
+    }
+  }, [email, isTyping, isPending]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,12 +54,16 @@ export function AuthDialog({
     });
   };
 
-  const isValid = email.trim() !== "";
+  const handleGithubLogin = async () => {
+    setGithubPending(true);
+    await loginWithGithub();
+    setGithubPending(false);
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent
-        className="max-w-md min-w-md border-black rounded-xs shadow-2xl top-[35%] p-0 overflow-hidden"
+        className="max-w-md min-w-md border-black rounded-xs shadow-2xl top-[45%] p-0 overflow-hidden"
         animations={true}
         showOverlay={true}
       >
@@ -56,67 +71,104 @@ export function AuthDialog({
           <DialogTitle>Authenticate</DialogTitle>
         </VisuallyHidden>
         {sent ? (
-          <div className="flex flex-col text-sm p-2">
-            <p>Success.</p>
-            <p className="text-primary/60">
-              We sent a link to your email. Click it to continue.
-            </p>
-          </div>
+          <CodeForm />
         ) : (
-          <>
-            <form onSubmit={handleSubmit}>
-              <p className="p-2 text-sm border-b border-border">
-                Please authenticate to proceed.
-              </p>
-              <input
-                type="email"
-                name="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full p-2 text-sm bg-background outline-none border-b border-border"
-                disabled={isPending}
-                autoFocus
-              />
-              {error && (
-                <p className="text-xs text-red-500 px-2 py-1">{error}</p>
-              )}
-              <div className="flex items-center justify-end h-9">
-                <button
-                  type="submit"
-                  disabled={!isValid || isPending}
-                  className="px-3 py-1.5 h-9 text-xs bg-primary text-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isPending ? "Submitting..." : "Log in"}
-                </button>
-              </div>
-            </form>
-            <div className="flex items-center gap-2 px-2">
-              <div className="flex-1 border-t border-border" />
-              <span className="text-xs text-primary/40">or</span>
-              <div className="flex-1 border-t border-border" />
-            </div>
-            <button
-              type="button"
-              onClick={async () => {
-                setGithubPending(true);
-                await loginWithGithub();
-                setGithubPending(false);
-              }}
-              disabled={githubPending}
-              className="flex items-center justify-center gap-2 mx-2 mb-2 py-1.5 text-xs border border-border cursor-pointer hover:bg-gray-50 transition-colors duration-150"
-            >
-              <Image
-                src="/github-logo.svg"
-                alt="GitHub"
-                width={16}
-                height={16}
-              />
-              {githubPending ? "Redirecting..." : "Continue with GitHub"}
-            </button>
-          </>
+          <EmailForm
+            email={email}
+            setEmail={setEmail}
+            error={error}
+            canSubmit={canSubmit}
+            isPending={isPending}
+            githubPending={githubPending}
+            handleSubmit={handleSubmit}
+            handleGithubLogin={handleGithubLogin}
+          />
         )}
       </DialogContent>
     </Dialog>
+  );
+}
+
+function EmailForm({
+  email,
+  setEmail,
+  error,
+  canSubmit,
+  isPending,
+  githubPending,
+  handleSubmit,
+  handleGithubLogin,
+}: {
+  email: string;
+  setEmail: (v: string) => void;
+  error: string | null;
+  canSubmit: boolean;
+  isPending: boolean;
+  githubPending: boolean;
+  handleSubmit: (e: React.FormEvent) => void;
+  handleGithubLogin: () => void;
+}) {
+  return (
+    <form onSubmit={handleSubmit} className="flex flex-col text-sm" noValidate>
+      <p className="px-2 pt-2 pb-3">Login.</p>
+      <input
+        type="email"
+        name="email"
+        placeholder="Email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        className="w-full px-2 pb-2 border-b border-border ring-0 outline-0"
+        disabled={isPending}
+        autoFocus
+      />
+      <div className="flex items-center justify-end h-8">
+        <button
+          type="button"
+          onClick={handleGithubLogin}
+          disabled={githubPending}
+          className="flex items-center gap-1.5 px-2 h-full text-xs border-l border-border text-primary hover:underline transition-colors"
+        >
+          <Image src="/github-logo.svg" alt="GitHub" width={14} height={14} />
+          {githubPending ? "Redirecting..." : "GitHub"}
+        </button>
+        <button
+          type="submit"
+          disabled={!canSubmit || isPending}
+          className="px-3 h-full text-xs bg-primary text-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed transition-opacity duration-200"
+        >
+          {isPending ? "Submitting..." : "Submit"}
+        </button>
+      </div>
+    </form>
+  );
+}
+
+function CodeForm() {
+  const [code, setCode] = useState("");
+  const isValid = /^[a-zA-Z0-9]{6}$/.test(code);
+
+  return (
+    <form className="flex flex-col text-sm" noValidate>
+      <p className="px-2 pt-2 pb-3">Check your email — we sent a code.</p>
+      <input
+        type="text"
+        name="code"
+        placeholder="Code"
+        value={code}
+        onChange={(e) => setCode(e.target.value)}
+        maxLength={6}
+        className="w-full px-2 pb-2 border-b border-border ring-0 outline-0"
+        autoFocus
+      />
+      <div className="flex items-center justify-end h-8">
+        <button
+          type="submit"
+          disabled={!isValid}
+          className="px-3 h-full text-xs bg-primary text-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed transition-opacity duration-200"
+        >
+          Submit
+        </button>
+      </div>
+    </form>
   );
 }
