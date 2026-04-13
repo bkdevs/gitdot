@@ -83,7 +83,7 @@ function FileCommit({
         </div>
         <div className="text-sm truncate pb-0.5 w-full">{commit.message}</div>
         <div className="text-xs text-muted-foreground flex items-center w-full min-w-0">
-          <UserImage user={commit.author} px={16} />
+          {commit.author.id && <UserImage user={commit.author} px={16} />}
           <UserSlug user={commit.author} className="ml-1" />
           <span className="ml-auto pl-2 shrink-0">
             {diffStat == null ? (

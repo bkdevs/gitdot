@@ -74,6 +74,7 @@ rcgen = { version = "0.14", default-features = false, features = [
   "pem"
 ] }
 reqwest = { version = "0.13.1", features = ["json", "query"] }
+resvg = { version = "0.44", default-features = false }
 rkyv = "0.8"
 rstest = "0.26"
 rustls = "0.23"
@@ -97,6 +98,7 @@ strum = "0.27"
 tempfile = "3.24.0"
 thiserror = "2.0.17"
 time = "0.3"
+tiny-skia = "0.11"
 tokio = { version = "1.49", features = ["full"] }
 tokio-stream = "0.1"
 tokio-util = { version = "0.7.18", features = ["io"] }

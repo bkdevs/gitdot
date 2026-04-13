@@ -191,17 +191,9 @@ where
         &self,
         request: UpdateCurrentUserImageRequest,
     ) -> Result<(), UserError> {
-        let user = self
-            .user_repo
-            .get_by_id(request.user_id)
-            .await?
-            .or_not_found("user", request.user_id)?;
-
         let webp_bytes = self.image_client.convert_to_webp(request.bytes).await?;
-
-        let key = format!("users/{}.webp", user.name);
+        let key = format!("users/{}.webp", request.user_id);
         self.r2_client.upload_object(&key, webp_bytes).await?;
-
         Ok(())
     }
 
