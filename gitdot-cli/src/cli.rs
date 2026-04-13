@@ -3,6 +3,9 @@ use crate::command::Args;
 pub async fn run(args: &Args) -> anyhow::Result<()> {
     match args {
         #[cfg(feature = "main")]
+        Args::Add(add_args) => add_args.execute().await,
+
+        #[cfg(feature = "main")]
         Args::Auth(auth_args) => {
             let config = crate::config::UserConfig::load().await?;
             auth_args.command.execute(config).await

@@ -1,4 +1,6 @@
 #[cfg(feature = "main")]
+mod add;
+#[cfg(feature = "main")]
 mod auth;
 #[cfg(feature = "main")]
 mod ci;
@@ -10,7 +12,7 @@ mod runner;
 use clap::Parser;
 
 #[cfg(feature = "main")]
-use {auth::AuthArgs, ci::CiArgs, review::ReviewArgs};
+use {add::AddArgs, auth::AuthArgs, ci::CiArgs, review::ReviewArgs};
 
 #[cfg(feature = "runner")]
 use runner::RunnerArgs;
@@ -18,6 +20,10 @@ use runner::RunnerArgs;
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 pub enum Args {
+    #[cfg(feature = "main")]
+    /// Stage all changes and commit
+    Add(AddArgs),
+
     #[cfg(feature = "main")]
     /// Manage authentication credentials
     Auth(AuthArgs),

@@ -89,6 +89,12 @@ impl GitWrapper {
             .context("Failed to amend commit")
     }
 
+    pub async fn commit_allow_empty(&self, message: &str) -> anyhow::Result<()> {
+        self.run_status(&["commit", "--allow-empty-message", "-m", message])
+            .await
+            .context("Failed to commit")
+    }
+
     pub async fn rebase_onto(
         &self,
         new_base: &str,
