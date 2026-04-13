@@ -127,7 +127,7 @@ function CommitSidebarRow({
     >
       <div className="flex flex-row w-full gap-2 min-w-0">
         <div className="shrink-0 pt-0.5">
-          {commit.author.id && <UserImage user={commit.author} px={20} />}
+          <UserImage userId={commit.author.id} px={20} />
         </div>
         <div className="flex flex-col flex-1 justify-start items-start min-w-0">
           <div className="text-sm truncate mb-0.5 w-full">{commit.message}</div>

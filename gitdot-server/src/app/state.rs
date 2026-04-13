@@ -113,6 +113,8 @@ impl AppState {
                 email_client.clone(),
                 github_client.clone(),
                 token_client.clone(),
+                image_client.clone(),
+                r2_client.clone(),
             )),
             authorization_service: Arc::new(AuthorizationServiceImpl::new(
                 org_repo.clone(),

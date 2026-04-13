@@ -4,7 +4,9 @@ use axum::extract::FromRef;
 use sqlx::PgPool;
 
 use gitdot_core::{
-    client::{OctocrabClient, ResendClient, TokenClientImpl},
+    client::{
+        ImageClientImpl, OctocrabClient, R2ClientImpl, ResendClient, SecretClient, TokenClientImpl,
+    },
     repository::{
         DeviceRepositoryImpl, SessionRepositoryImpl, TokenRepositoryImpl, UserRepositoryImpl,
     },
@@ -21,7 +23,11 @@ pub struct AppState {
 }
 
 impl AppState {
-    pub fn new(pool: PgPool, settings: Arc<Settings>) -> Self {
+    pub async fn new(
+        pool: PgPool,
+        settings: Arc<Settings>,
+        secret_client: impl SecretClient,
+    ) -> anyhow::Result<Self> {
         let session_repo = SessionRepositoryImpl::new(pool.clone());
         let token_repo = TokenRepositoryImpl::new(pool.clone());
         let user_repo = UserRepositoryImpl::new(pool.clone());
@@ -35,6 +41,14 @@ impl AppState {
             settings.github_client_id.clone(),
             settings.github_client_secret.clone(),
         );
+        let image_client = ImageClientImpl::new();
+        let r2_client = R2ClientImpl::new(
+            secret_client.get_cloudflare_account_id().await?,
+            secret_client.get_cloudflare_r2_bucket_name().await?,
+            secret_client.get_cloudflare_r2_access_key_id().await?,
+            secret_client.get_cloudflare_r2_secret_access_key().await?,
+        )
+        .await;
 
         let authentication_service = Arc::new(AuthenticationServiceImpl::new(
             device_repo,
@@ -44,11 +58,13 @@ impl AppState {
             email_client,
             github_client,
             token_client,
+            image_client,
+            r2_client,
         ));
 
-        Self {
+        Ok(Self {
             settings,
             authentication_service,
-        }
+        })
     }
 }

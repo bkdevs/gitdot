@@ -192,9 +192,10 @@ function CodeForm({
       if ("error" in result) {
         setError(result.error);
       } else if ("is_new" in result) {
+        await refreshUser();
         onWelcome();
       } else {
-        refreshUser();
+        await refreshUser();
         onCancel();
       }
     });
@@ -278,7 +279,7 @@ function WelcomeForm({ onDone }: { open: boolean; onDone: () => void }) {
     if ("error" in result) {
       setUploadError(result.error);
     } else {
-      refreshUser();
+      await refreshUser();
     }
   }
 
@@ -292,7 +293,7 @@ function WelcomeForm({ onDone }: { open: boolean; onDone: () => void }) {
       if ("error" in result) {
         setUsernameError(result.error);
       } else {
-        refreshUser();
+        await refreshUser();
         onDone();
       }
     });
@@ -322,7 +323,7 @@ function WelcomeForm({ onDone }: { open: boolean; onDone: () => void }) {
                 className={`transition-opacity duration-300${uploading ? " opacity-60" : ""}`}
               >
                 {user ? (
-                  <UserImage user={user} px={28} />
+                  <UserImage userId={user.id} px={28} />
                 ) : (
                   <div className="size-7 rounded-full bg-foreground/10" />
                 )}

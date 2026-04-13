@@ -1,36 +1,37 @@
 "use client";
 
+import { Ghost } from "lucide-react";
 import Image from "next/image";
-import { useState } from "react";
 
 export function UserImage({
-  user,
+  userId,
   px = 32,
 }: {
-  user: { id: string };
+  userId?: string;
   px?: number;
 }) {
-  const [imgError, setImgError] = useState(false);
-
-  if (imgError) {
+  if (!userId) {
     return (
       <div
-        className="rounded-full bg-foreground shrink-0"
+        className="rounded-full bg-black shrink-0 flex items-center justify-center"
         style={{ width: px, height: px }}
-      />
+      >
+        <Ghost
+          style={{ width: px * 0.6, height: px * 0.6 }}
+          className="text-white"
+        />
+      </div>
     );
   }
 
   return (
     <Image
-      src={`https://images.gitdot.io/users/${user.id}.webp`}
+      src={`https://images.gitdot.io/users/${userId}.webp`}
       alt="user avatar"
       width={px}
       height={px}
-      unoptimized
       className="rounded-full"
       style={{ width: px, height: px }}
-      onError={() => setImgError(true)}
     />
   );
 }

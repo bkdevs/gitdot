@@ -12,6 +12,7 @@ pub struct Settings {
     pub github_app_id: u64,
     pub github_app_private_key: String,
     pub oauth_device_verification_uri: String,
+    pub gcp_project_id: Option<String>,
 }
 
 impl Settings {
@@ -37,6 +38,7 @@ impl Settings {
                 .expect("GITHUB_APP_PRIVATE_KEY must be set"),
             oauth_device_verification_uri: env::var("OAUTH_DEVICE_VERIFICATION_URI")
                 .expect("OAUTH_DEVICE_VERIFICATION_URI must be set"),
+            gcp_project_id: env::var("GCP_PROJECT_ID").ok(),
         })
     }
 

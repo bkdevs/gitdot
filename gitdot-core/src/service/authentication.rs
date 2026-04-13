@@ -3,7 +3,8 @@ use chrono::{Duration, Utc};
 
 use crate::{
     client::{
-        EmailClient, GitHubClient, OctocrabClient, ResendClient, TokenClient, TokenClientImpl,
+        EmailClient, GitHubClient, ImageClient, ImageClientImpl, OctocrabClient, R2Client,
+        R2ClientImpl, ResendClient, TokenClient, TokenClientImpl,
     },
     dto::{
         AuthTokensResponse, AuthorizeDeviceRequest, DeviceCodeRequest, DeviceCodeResponse,
@@ -85,7 +86,7 @@ pub trait AuthenticationService: Send + Sync + 'static {
 }
 
 #[derive(Debug, Clone)]
-pub struct AuthenticationServiceImpl<DR, SR, TR, UR, EC, GH, TC>
+pub struct AuthenticationServiceImpl<DR, SR, TR, UR, EC, GH, TC, IC, RC>
 where
     DR: DeviceRepository,
     SR: SessionRepository,
@@ -94,6 +95,8 @@ where
     EC: EmailClient,
     GH: GitHubClient,
     TC: TokenClient,
+    IC: ImageClient,
+    RC: R2Client,
 {
     device_repo: DR,
     session_repo: SR,
@@ -102,6 +105,8 @@ where
     email_client: EC,
     github_client: GH,
     token_client: TC,
+    image_client: IC,
+    r2_client: RC,
 }
 
 impl
@@ -113,6 +118,8 @@ impl
         ResendClient,
         OctocrabClient,
         TokenClientImpl,
+        ImageClientImpl,
+        R2ClientImpl,
     >
 {
     pub fn new(
@@ -123,6 +130,8 @@ impl
         email_client: ResendClient,
         github_client: OctocrabClient,
         token_client: TokenClientImpl,
+        image_client: ImageClientImpl,
+        r2_client: R2ClientImpl,
     ) -> Self {
         Self {
             device_repo,
@@ -132,14 +141,16 @@ impl
             email_client,
             github_client,
             token_client,
+            image_client,
+            r2_client,
         }
     }
 }
 
 #[crate::instrument_all]
 #[async_trait]
-impl<DR, SR, TR, UR, EC, GH, TC> AuthenticationService
-    for AuthenticationServiceImpl<DR, SR, TR, UR, EC, GH, TC>
+impl<DR, SR, TR, UR, EC, GH, TC, IC, RC> AuthenticationService
+    for AuthenticationServiceImpl<DR, SR, TR, UR, EC, GH, TC, IC, RC>
 where
     DR: DeviceRepository,
     SR: SessionRepository,
@@ -148,6 +159,8 @@ where
     EC: EmailClient,
     GH: GitHubClient,
     TC: TokenClient,
+    IC: ImageClient,
+    RC: R2Client,
 {
     async fn send_auth_email(
         &self,
@@ -157,9 +170,18 @@ where
         let user = match self.user_repo.get_by_email(&email).await? {
             Some(user) => user,
             None => {
-                self.user_repo
+                let user = self
+                    .user_repo
                     .create(&email, false, AuthProvider::Email)
-                    .await?
+                    .await?;
+
+                if let Ok(image_bytes) = self.image_client.generate_user_image(&email).await {
+                    self.r2_client
+                        .upload_object(&format!("users/{}.webp", user.id), image_bytes)
+                        .await
+                        .ok();
+                }
+                user
             }
         };
 

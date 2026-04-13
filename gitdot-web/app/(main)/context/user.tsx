@@ -23,7 +23,7 @@ interface UserContext {
   user: UserResource | null | undefined;
   repositories: RepositoryResource[] | null | undefined;
   organizations: OrganizationResource[] | null | undefined;
-  refreshUser: () => void;
+  refreshUser: () => Promise<void>;
   requireAuth: () => boolean;
 }
 
@@ -56,8 +56,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener("toggleAuthDialog", handler);
   }, []);
 
-  const refreshUser = useCallback(() => {
-    getCurrentUserAction().then(setUser);
+  const refreshUser = useCallback(async () => {
+    setUser(await getCurrentUserAction());
   }, []);
 
   useEffect(() => {

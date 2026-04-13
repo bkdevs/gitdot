@@ -72,7 +72,7 @@ const CommitRow = memo(function CommitRow({
             {commit.message.split("\n")[0]}
           </div>
           <div className="flex items-center text-muted-foreground text-xs gap-1">
-            {commit.author.id && <UserImage user={commit.author} px={16} />}
+            <UserImage userId={commit.author.id} px={16} />
             <UserSlug user={commit.author} />
             <span>{timeAgo(new Date(commit.date))}</span>
           </div>

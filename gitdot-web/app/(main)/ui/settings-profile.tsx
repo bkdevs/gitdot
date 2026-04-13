@@ -125,7 +125,7 @@ function ProfilePrimary({ user }: { user: UserResource }) {
               <span
                 className={`transition-opacity duration-300${uploading ? " opacity-60" : ""}`}
               >
-                <UserImage user={user} />
+                <UserImage userId={user.id} />
               </span>
               <div
                 className={`absolute -inset-0.5 rounded-full border border-transparent border-t-foreground/50 animate-spin transition-opacity duration-300${uploading ? "" : " opacity-0"}`}
