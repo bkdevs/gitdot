@@ -54,7 +54,7 @@ pub async fn push_for_review(
     git: &GitWrapper,
     branch: &str,
     review_number: Option<i32>,
-) -> anyhow::Result<Option<String>> {
+) -> anyhow::Result<Option<i32>> {
     let refspec = match review_number {
         Some(number) => format!("HEAD:refs/for/{}/{}", branch, number),
         None => format!("HEAD:refs/for/{}", branch),
@@ -62,17 +62,13 @@ pub async fn push_for_review(
 
     let stderr = git.push_refspec(&refspec).await?;
 
-    let review_url = stderr
-        .lines()
-        .find_map(|line| {
-            let trimmed = line.strip_prefix("remote: ")?;
-            trimmed
-                .split_whitespace()
-                .find(|w| w.starts_with("https://"))
-        })
-        .map(|s| s.to_string());
+    let number = stderr.lines().find_map(|line| {
+        let trimmed = line.strip_prefix("remote: ")?;
+        let after_hash = trimmed.strip_prefix("review #")?;
+        after_hash.split_whitespace().next()?.parse::<i32>().ok()
+    });
 
-    Ok(review_url)
+    Ok(number)
 }
 
 async fn get_review_branch_path(git: &GitWrapper) -> anyhow::Result<PathBuf> {

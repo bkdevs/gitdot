@@ -20,8 +20,8 @@ pub async fn update_review(config: UserConfig, git: &GitWrapper) -> anyhow::Resu
             &config.user_name,
             ListUserReviewsRequest {
                 status: Some("in_progress".to_string()),
-                owner: Some(owner),
-                repo: Some(repo),
+                owner: Some(owner.clone()),
+                repo: Some(repo.clone()),
             },
         )
         .await?;
@@ -62,10 +62,19 @@ pub async fn update_review(config: UserConfig, git: &GitWrapper) -> anyhow::Resu
     let review = &reviews[selected];
     let default_branch = git.default_branch().await?;
     git.pull_rebase(&default_branch).await?;
-    let review_url = push_for_review(git, &default_branch, Some(review.number)).await?;
+    let review_number = push_for_review(git, &default_branch, Some(review.number)).await?;
 
-    match review_url {
-        Some(url) => println!("Review updated: {}", url),
+    match review_number {
+        Some(n) => {
+            let url = format!(
+                "{}/{}/{}/reviews/{}",
+                config.gitdot_web_url.trim_end_matches('/'),
+                owner,
+                repo,
+                n
+            );
+            println!("Review updated: {}", url);
+        }
         None => println!("Review updated"),
     }
 
