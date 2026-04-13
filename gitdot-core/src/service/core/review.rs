@@ -979,21 +979,7 @@ where
                 ),
             )?;
 
-        if user.id == review.author_id {
-            return Err(ReviewError::CannotReviewOwnReview(
-                request.user_name.to_string(),
-            ));
-        }
-
-        let role = self
-            .org_repo
-            .get_member_role(request.owner.as_ref(), user.id)
-            .await?;
-        // TODO: temporarily blocking to add reviewer to a personal repository review
-        if role != Some(OrganizationRole::Admin) {
-            return Err(ReviewError::NotOrgAdmin(request.user_name.to_string()));
-        }
-
+        // TODO: add org admin check
         let reviewer = self
             .review_repo
             .add_reviewer(review.id, user.id)
