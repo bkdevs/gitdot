@@ -17,7 +17,7 @@ pub struct Settings {
 impl Settings {
     pub fn new() -> anyhow::Result<Self> {
         Ok(Self {
-            port: env::var("PORT").unwrap_or_else(|_| "8081".to_string()),
+            port: env::var("PORT").unwrap_or_else(|_| "8082".to_string()),
 
             // TODO: move it to secrets
             database_url: env::var("DATABASE_URL").expect("DATABASE_URL must be set"),
