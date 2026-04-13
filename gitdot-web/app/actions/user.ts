@@ -53,6 +53,7 @@ export async function verifyCode(
   const code = formData.get("code") as string;
   const result = await verifyAuthCode(code);
   if (!result) return { error: "Invalid or expired code" };
+  // TODO: remove and return real result below
   return { is_new: true };
 }
 

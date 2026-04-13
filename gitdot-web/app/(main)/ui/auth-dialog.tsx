@@ -192,7 +192,6 @@ function CodeForm({
       if ("error" in result) {
         setError(result.error);
       } else if ("is_new" in result) {
-        refreshUser();
         onWelcome();
       } else {
         refreshUser();
