@@ -293,27 +293,23 @@ impl ReviewRepository for ReviewRepositoryImpl {
         from: DateTime<Utc>,
         to: DateTime<Utc>,
     ) -> Result<Vec<Review>, DatabaseError> {
-        let reviews = sqlx::query_as::<_, Review>(
-            r#"
-            SELECT
-                r.id, r.repository_id, r.number, r.author_id, r.title, r.description,
-                r.target_branch, r.status, r.created_at, r.updated_at,
-                NULL AS author, NULL AS diffs, NULL AS reviewers, NULL AS comments
-            FROM core.reviews r
-            JOIN core.repositories repo ON r.repository_id = repo.id
-            WHERE repo.owner_name = $1 AND repo.name = $2
-                AND (r.status != 'draft' OR r.author_id = $3)
-                AND r.updated_at >= $4 AND r.updated_at <= $5
-            ORDER BY r.created_at DESC
-            "#,
-        )
-        .bind(owner)
-        .bind(repo)
-        .bind(viewer_id.unwrap_or(Uuid::nil()))
-        .bind(from)
-        .bind(to)
-        .fetch_all(&self.pool)
-        .await?;
+        let query = format!(
+            "{} JOIN core.repositories repo ON r.repository_id = repo.id \
+            WHERE repo.owner_name = $1 AND repo.name = $2 \
+            AND (r.status != 'draft' OR r.author_id = $3) \
+            AND r.updated_at >= $4 AND r.updated_at <= $5 \
+            ORDER BY r.created_at DESC",
+            REVIEW_DETAILS_QUERY
+        );
+
+        let reviews = sqlx::query_as::<_, Review>(&query)
+            .bind(owner)
+            .bind(repo)
+            .bind(viewer_id.unwrap_or(Uuid::nil()))
+            .bind(from)
+            .bind(to)
+            .fetch_all(&self.pool)
+            .await?;
 
         Ok(reviews)
     }
