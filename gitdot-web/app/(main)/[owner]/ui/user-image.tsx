@@ -1,7 +1,7 @@
 "use client";
 
-import { AvatarBeam } from "@/ui/avatar-beam";
 import Image from "next/image";
+import { AvatarBeam } from "@/ui/avatar-beam";
 
 export function UserImage({
   userId,

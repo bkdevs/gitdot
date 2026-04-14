@@ -2,18 +2,16 @@
 
 import type { ReviewDiffResource } from "gitdot-api";
 import { Undo2 } from "lucide-react";
-import { Suspense, use } from "react";
 import { useParams } from "next/navigation";
+import { Suspense, use } from "react";
 import {
   type ResourcePromisesType,
   type ResourceRequestsType,
   useResolvePromises,
 } from "@/(main)/[owner]/[repo]/resources";
 import Link from "@/ui/link";
-import { Loading } from "@/ui/loading";
 import { OverlayScroll } from "@/ui/scroll";
 import { Sidebar, SidebarContent } from "@/ui/sidebar";
-import { timeAgo } from "@/util";
 import type { Resources } from "./layout";
 
 type ResourceRequests = ResourceRequestsType<Resources>;
@@ -84,7 +82,14 @@ function ReviewSidebarContent({
   return review.diffs.map((diff) => {
     const isActive = position === String(diff.position);
     return (
-      <ReviewDiffRow key={diff.id} owner={owner} repo={repo} reviewNumber={review.number} diff={diff} isActive={isActive} />
+      <ReviewDiffRow
+        key={diff.id}
+        owner={owner}
+        repo={repo}
+        reviewNumber={review.number}
+        diff={diff}
+        isActive={isActive}
+      />
     );
   });
 }
@@ -107,19 +112,39 @@ function ReviewDiffRow({
     <Link
       href={`/${owner}/${repo}/reviews/${reviewNumber}/diffs/${diff.position}`}
       prefetch={true}
-      className={`flex flex-col pt-1.5 w-full h-16 border-b hover:bg-accent/50 select-none cursor-default px-2 gap-0.5 ${isActive ? "bg-sidebar" : ""}`}
+      className={`flex flex-col py-1 w-full h-16 border-b hover:bg-accent/50 select-none cursor-default px-2 ${isActive ? "bg-sidebar" : ""}`}
       data-sidebar-item
       data-sidebar-item-active={isActive ? "true" : undefined}
     >
-      <span className="text-xs line-clamp-2">{title}</span>
-      <div className="flex pt-1 items-center justify-between w-full font-mono">
-        <span className="text-xs text-muted-foreground">{diff.status}</span>
-        <div className="flex items-center gap-1.5">
-          <span className="text-xs text-muted-foreground">3 files</span>
-          <span className="text-xs font-medium text-green-600">+42</span>
-          <span className="text-xs font-medium text-red-500">−7</span>
-        </div>
+      <span className="text-xs line-clamp-2">
+        <span className="font-mono text-muted-foreground">
+          {diff.position}.
+        </span>{" "}
+        {title}
+      </span>
+      <div className="flex items-center justify-between w-full font-mono mt-auto">
+        <span className="text-xs text-muted-foreground">
+          {Math.random().toString(16).slice(2, 9)}
+        </span>
+        <span className={`text-xs ${diffStatusColor(diff.status)}`}>
+          {diff.status}
+        </span>
       </div>
     </Link>
   );
+}
+
+function diffStatusColor(status: string): string {
+  switch (status) {
+    case "open":
+      return "text-blue-500";
+    case "approved":
+      return "text-green-600";
+    case "changes_requested":
+      return "text-amber-500";
+    case "merged":
+      return "text-green-600";
+    default:
+      return "text-muted-foreground";
+  }
 }
