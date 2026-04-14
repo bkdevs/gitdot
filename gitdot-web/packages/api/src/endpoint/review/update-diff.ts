@@ -3,8 +3,7 @@ import { ReviewResource } from "../../resource";
 import type { Endpoint } from "../endpoint";
 
 export const UpdateDiffRequest = z.object({
-  title: z.string().optional(),
-  description: z.string().optional(),
+  message: z.string().optional(),
 });
 export type UpdateDiffRequest = z.infer<typeof UpdateDiffRequest>;
 

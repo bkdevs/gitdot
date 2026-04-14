@@ -4,8 +4,7 @@ import type { Endpoint } from "../endpoint";
 
 export const DiffUpdate = z.object({
   position: z.number().int(),
-  title: z.string().optional(),
-  description: z.string().optional(),
+  message: z.string().optional(),
 });
 export type DiffUpdate = z.infer<typeof DiffUpdate>;
 
