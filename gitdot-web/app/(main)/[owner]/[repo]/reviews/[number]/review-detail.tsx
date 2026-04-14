@@ -224,10 +224,10 @@ export function ReviewDetail({
         const textarea = diffDescriptionRefs.current.get(diff.position);
         return {
           position: diff.position,
-          description: textarea?.value,
+          message: textarea?.value,
         };
       })
-      .filter((d) => d.description !== undefined);
+      .filter((d) => d.message !== undefined);
 
     await publishReviewAction(owner, repo, number, {
       title: titleRef.current?.value || undefined,
@@ -298,9 +298,9 @@ export function ReviewDetail({
     if (!selectedDiff) return;
     const value = editDiffDescriptionRef.current?.value?.trim();
     setEditingDiffDescription(false);
-    if (value !== undefined && value !== selectedDiff.description) {
+    if (value !== undefined && value !== selectedDiff.message) {
       await updateDiffAction(owner, repo, number, selectedDiff.position, {
-        description: value,
+        message: value,
       });
     }
   }
@@ -423,7 +423,9 @@ export function ReviewDetail({
                   <span className="text-xs text-muted-foreground">
                     #{diff.position}
                   </span>
-                  <span className="text-sm truncate flex-1">{diff.title}</span>
+                  <span className="text-sm truncate flex-1">
+                    {diff.message.split("\n")[0]}
+                  </span>
                   {diff.status === "merged" ? (
                     <span className="size-2 rounded-full bg-purple-500 shrink-0" />
                   ) : diff.status === "approved" ? (
@@ -451,16 +453,16 @@ export function ReviewDetail({
                         }
                       }}
                       key={selectedDiff.id}
-                      defaultValue={selectedDiff.description}
-                      placeholder="Add a description..."
+                      defaultValue={selectedDiff.message}
+                      placeholder="Add a message..."
                       className="text-sm text-muted-foreground bg-transparent border border-border rounded-md p-2 outline-none focus:border-ring resize-none min-h-30"
                     />
                   ) : editingDiffDescription ? (
                     <textarea
                       ref={editDiffDescriptionRef}
                       key={`edit-${selectedDiff.id}`}
-                      defaultValue={selectedDiff.description}
-                      placeholder="Add a description..."
+                      defaultValue={selectedDiff.message}
+                      placeholder="Add a message..."
                       className="text-sm text-muted-foreground bg-transparent border border-border rounded-md p-2 outline-none focus:border-ring resize-none min-h-30"
                       autoFocus
                       onBlur={handleSaveDiffDescription}
@@ -471,18 +473,18 @@ export function ReviewDetail({
                     />
                   ) : isReviewAuthor ? (
                     <p
-                      className="text-sm text-muted-foreground cursor-pointer hover:underline"
+                      className="text-sm text-muted-foreground whitespace-pre-wrap cursor-pointer hover:underline"
                       onClick={() => setEditingDiffDescription(true)}
                       onKeyDown={(e) => {
                         if (e.key === "Enter") setEditingDiffDescription(true);
                       }}
                     >
-                      {selectedDiff.description || "Add a description..."}
+                      {selectedDiff.message || "Add a message..."}
                     </p>
                   ) : (
-                    selectedDiff.description && (
-                      <p className="text-sm text-muted-foreground">
-                        {selectedDiff.description}
+                    selectedDiff.message && (
+                      <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                        {selectedDiff.message}
                       </p>
                     )
                   )}
