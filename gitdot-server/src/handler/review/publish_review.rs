@@ -32,8 +32,7 @@ pub async fn publish_review(
         .into_iter()
         .map(|d| DiffUpdateRequest {
             position: d.position,
-            title: d.title,
-            description: d.description,
+            message: d.message,
         })
         .collect();
     let request = PublishReviewRequest::new(

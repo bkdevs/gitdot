@@ -30,8 +30,7 @@ pub async fn update_diff(
         &repo,
         number,
         position,
-        request.title,
-        request.description,
+        request.message,
     )?;
     state
         .review_service
