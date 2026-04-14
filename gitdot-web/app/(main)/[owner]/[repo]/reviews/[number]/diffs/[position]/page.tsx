@@ -1,4 +1,5 @@
 import type { ReviewResource } from "gitdot-api";
+import { renderReviewDiffAction } from "@/actions";
 import { fetchResources } from "@/provider/server";
 import { PageClient } from "./page.client";
 
@@ -20,6 +21,7 @@ export default async function Page({
   const { requests, promises } = fetchResources(owner, repo, {
     review: (p) => p.getReview(number),
   });
+  const diffPromise = renderReviewDiffAction(owner, repo, Number(number), Number(position));
 
   return (
     <PageClient
@@ -29,6 +31,7 @@ export default async function Page({
       position={position}
       requests={requests}
       promises={promises}
+      diffPromise={diffPromise}
     />
   );
 }

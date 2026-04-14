@@ -106,6 +106,7 @@ function ReviewDiffRow({
   return (
     <Link
       href={`/${owner}/${repo}/reviews/${reviewNumber}/diffs/${diff.position}`}
+      prefetch={true}
       className={`flex flex-col pt-1.5 w-full h-16 border-b hover:bg-accent/50 select-none cursor-default px-2 gap-0.5 ${isActive ? "bg-sidebar" : ""}`}
       data-sidebar-item
       data-sidebar-item-active={isActive ? "true" : undefined}
