@@ -240,16 +240,10 @@ where
 
         let mut previous_sha = target_sha.clone();
         for (position, commit) in commits.iter().rev().enumerate() {
-            let commit_title = commit
-                .message
-                .lines()
-                .next()
-                .unwrap_or(&commit.message)
-                .to_string();
             let diff_position = (position + 1) as i32;
             let diff = self
                 .review_repo
-                .create_diff(review.id, diff_position, &commit_title)
+                .create_diff(review.id, diff_position, &commit.message)
                 .await?;
 
             self.review_repo
@@ -406,16 +400,9 @@ where
                 }
             } else {
                 // New diff position — create diff + revision
-                let commit_title = commit
-                    .message
-                    .lines()
-                    .next()
-                    .unwrap_or(&commit.message)
-                    .to_string();
-
                 let diff = self
                     .review_repo
-                    .create_diff(review.id, diff_position, &commit_title)
+                    .create_diff(review.id, diff_position, &commit.message)
                     .await?;
 
                 self.review_repo

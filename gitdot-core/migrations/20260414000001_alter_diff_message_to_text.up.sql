@@ -1,0 +1,1 @@
+ALTER TABLE core.diffs ALTER COLUMN message TYPE TEXT;
