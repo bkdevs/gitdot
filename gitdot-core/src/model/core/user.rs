@@ -27,6 +27,7 @@ pub struct User {
 
 #[derive(Debug, Clone, PartialEq, Eq, Type, Serialize, Deserialize)]
 #[sqlx(type_name = "core.auth_provider", rename_all = "lowercase")]
+#[serde(rename_all = "lowercase")]
 pub enum AuthProvider {
     Email,
     GitHub,

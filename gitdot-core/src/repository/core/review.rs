@@ -26,7 +26,8 @@ SELECT
 
     -- Author
     (SELECT json_build_object(
-        'id', u.id, 'name', u.name, 'email', u.email, 'created_at', u.created_at
+        'id', u.id, 'name', u.name, 'email', u.email, 'is_email_verified', u.is_email_verified,
+        'provider', u.provider, 'links', u.links, 'created_at', u.created_at
     ) FROM core.users u WHERE u.id = r.author_id) AS author,
 
     -- Diffs with nested revisions
@@ -93,7 +94,7 @@ SELECT
                     'review_id', rv.review_id,
                     'reviewer_id', rv.reviewer_id,
                     'created_at', rv.created_at,
-                    'user', (SELECT json_build_object('id', u.id, 'name', u.name, 'email', u.email, 'created_at', u.created_at)
+                    'user', (SELECT json_build_object('id', u.id, 'name', u.name, 'email', u.email, 'is_email_verified', u.is_email_verified, 'provider', u.provider, 'links', u.links, 'created_at', u.created_at)
                              FROM core.users u WHERE u.id = rv.reviewer_id)
                 )
             )
@@ -122,7 +123,7 @@ SELECT
                     'resolved', c.resolved,
                     'created_at', c.created_at,
                     'updated_at', c.updated_at,
-                    'author', (SELECT json_build_object('id', u.id, 'name', u.name, 'email', u.email, 'created_at', u.created_at)
+                    'author', (SELECT json_build_object('id', u.id, 'name', u.name, 'email', u.email, 'is_email_verified', u.is_email_verified, 'provider', u.provider, 'links', u.links, 'created_at', u.created_at)
                                FROM core.users u WHERE u.id = c.author_id)
                 ) ORDER BY c.created_at ASC
             )
@@ -547,7 +548,7 @@ impl ReviewRepository for ReviewRepositoryImpl {
             ON CONFLICT (review_id, reviewer_id) DO NOTHING
             RETURNING
                 id, review_id, reviewer_id, created_at,
-                (SELECT json_build_object('id', u.id, 'name', u.name, 'email', u.email, 'created_at', u.created_at)
+                (SELECT json_build_object('id', u.id, 'name', u.name, 'email', u.email, 'is_email_verified', u.is_email_verified, 'provider', u.provider, 'links', u.links, 'created_at', u.created_at)
                  FROM core.users u WHERE u.id = reviewer_id) AS user
             "#,
         )
@@ -643,7 +644,7 @@ impl ReviewRepository for ReviewRepositoryImpl {
                 c.id, c.review_id, c.diff_id, c.revision_id, c.author_id, c.parent_id,
                 c.body, c.file_path, c.line_number_start, c.line_number_end, c.side,
                 c.resolved, c.created_at, c.updated_at,
-                (SELECT json_build_object('id', u.id, 'name', u.name, 'email', u.email, 'created_at', u.created_at)
+                (SELECT json_build_object('id', u.id, 'name', u.name, 'email', u.email, 'is_email_verified', u.is_email_verified, 'provider', u.provider, 'links', u.links, 'created_at', u.created_at)
                  FROM core.users u WHERE u.id = c.author_id) AS author
             FROM core.review_comments c
             WHERE c.id = $1
@@ -670,7 +671,7 @@ impl ReviewRepository for ReviewRepositoryImpl {
                 id, review_id, diff_id, revision_id, author_id, parent_id,
                 body, file_path, line_number_start, line_number_end, side,
                 resolved, created_at, updated_at,
-                (SELECT json_build_object('id', u.id, 'name', u.name, 'email', u.email, 'created_at', u.created_at)
+                (SELECT json_build_object('id', u.id, 'name', u.name, 'email', u.email, 'is_email_verified', u.is_email_verified, 'provider', u.provider, 'links', u.links, 'created_at', u.created_at)
                  FROM core.users u WHERE u.id = author_id) AS author
             "#,
         )
