@@ -15,8 +15,7 @@ pub struct PublishReviewRequest {
 #[derive(Debug, Clone)]
 pub struct DiffUpdateRequest {
     pub position: i32,
-    pub title: Option<String>,
-    pub description: Option<String>,
+    pub message: Option<String>,
 }
 
 impl PublishReviewRequest {

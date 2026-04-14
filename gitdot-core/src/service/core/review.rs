@@ -249,7 +249,7 @@ where
             let diff_position = (position + 1) as i32;
             let diff = self
                 .review_repo
-                .create_diff(review.id, diff_position, &commit_title, &commit_title)
+                .create_diff(review.id, diff_position, &commit_title)
                 .await?;
 
             self.review_repo
@@ -401,7 +401,7 @@ where
                         .await?;
 
                     self.review_repo
-                        .update_diff(existing_diff.id, Some(DiffStatus::Open), None, None)
+                        .update_diff(existing_diff.id, Some(DiffStatus::Open), None)
                         .await?;
                 }
             } else {
@@ -415,7 +415,7 @@ where
 
                 let diff = self
                     .review_repo
-                    .create_diff(review.id, diff_position, &commit_title, &commit_title)
+                    .create_diff(review.id, diff_position, &commit_title)
                     .await?;
 
                 self.review_repo
@@ -514,13 +514,9 @@ where
                         diff.id,
                         None,
                         diff_update
-                            .title
+                            .message
                             .clone()
-                            .or_else(|| Some(diff.title.clone())),
-                        diff_update
-                            .description
-                            .clone()
-                            .or_else(|| Some(diff.description.clone())),
+                            .or_else(|| Some(diff.message.clone())),
                     )
                     .await?;
             }
@@ -714,7 +710,7 @@ where
                     SubmitAction::Comment => unreachable!(),
                 };
                 self.review_repo
-                    .update_diff(diff.id, Some(new_status), None, None)
+                    .update_diff(diff.id, Some(new_status), None)
                     .await?;
             }
         }
@@ -866,7 +862,7 @@ where
 
         for (diff, _) in &diff_revisions {
             self.review_repo
-                .update_diff(diff.id, Some(DiffStatus::Merged), None, None)
+                .update_diff(diff.id, Some(DiffStatus::Merged), None)
                 .await?;
         }
 
@@ -932,7 +928,7 @@ where
             )?;
 
         self.review_repo
-            .update_diff(diff.id, None, request.title, request.description)
+            .update_diff(diff.id, None, request.message)
             .await?;
 
         self.review_repo

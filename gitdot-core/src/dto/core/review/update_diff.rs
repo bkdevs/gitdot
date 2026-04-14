@@ -8,8 +8,7 @@ pub struct UpdateDiffRequest {
     pub repo: RepositoryName,
     pub number: i32,
     pub position: i32,
-    pub title: Option<String>,
-    pub description: Option<String>,
+    pub message: Option<String>,
 }
 
 impl UpdateDiffRequest {
@@ -18,8 +17,7 @@ impl UpdateDiffRequest {
         repo: &str,
         number: i32,
         position: i32,
-        title: Option<String>,
-        description: Option<String>,
+        message: Option<String>,
     ) -> Result<Self, ReviewError> {
         Ok(Self {
             owner: OwnerName::try_new(owner).map_err(|e| InputError::new("owner name", e))?,
@@ -27,8 +25,7 @@ impl UpdateDiffRequest {
                 .map_err(|e| InputError::new("repository name", e))?,
             number,
             position,
-            title,
-            description,
+            message,
         })
     }
 }

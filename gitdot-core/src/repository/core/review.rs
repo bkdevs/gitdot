@@ -37,8 +37,7 @@ SELECT
                     'id', d.id,
                     'review_id', d.review_id,
                     'position', d.position,
-                    'title', d.title,
-                    'description', d.description,
+                    'message', d.message,
                     'status', d.status,
                     'created_at', d.created_at,
                     'updated_at', d.updated_at,
@@ -181,16 +180,14 @@ pub trait ReviewRepository: Send + Sync + Clone + 'static {
         &self,
         review_id: Uuid,
         position: i32,
-        title: &str,
-        description: &str,
+        message: &str,
     ) -> Result<Diff, DatabaseError>;
 
     async fn update_diff(
         &self,
         diff_id: Uuid,
         status: Option<DiffStatus>,
-        title: Option<String>,
-        description: Option<String>,
+        message: Option<String>,
     ) -> Result<(), DatabaseError>;
 
     async fn create_revision(
@@ -439,23 +436,21 @@ impl ReviewRepository for ReviewRepositoryImpl {
         &self,
         review_id: Uuid,
         position: i32,
-        title: &str,
-        description: &str,
+        message: &str,
     ) -> Result<Diff, DatabaseError> {
         let diff = sqlx::query_as::<_, Diff>(
             r#"
-            INSERT INTO core.diffs (review_id, position, title, description)
-            VALUES ($1, $2, $3, $4)
+            INSERT INTO core.diffs (review_id, position, message)
+            VALUES ($1, $2, $3)
             RETURNING
-                id, review_id, position, title, description,
+                id, review_id, position, message,
                 status, created_at, updated_at,
                 NULL AS revisions
             "#,
         )
         .bind(review_id)
         .bind(position)
-        .bind(title)
-        .bind(description)
+        .bind(message)
         .fetch_one(&self.pool)
         .await?;
 
@@ -466,23 +461,20 @@ impl ReviewRepository for ReviewRepositoryImpl {
         &self,
         diff_id: Uuid,
         status: Option<DiffStatus>,
-        title: Option<String>,
-        description: Option<String>,
+        message: Option<String>,
     ) -> Result<(), DatabaseError> {
         sqlx::query(
             r#"
             UPDATE core.diffs
             SET status = COALESCE($2, status),
-                title = COALESCE($3, title),
-                description = COALESCE($4, description),
+                message = COALESCE($3, message),
                 updated_at = NOW()
             WHERE id = $1
             "#,
         )
         .bind(diff_id)
         .bind(status)
-        .bind(title)
-        .bind(description)
+        .bind(message)
         .execute(&self.pool)
         .await?;
 
