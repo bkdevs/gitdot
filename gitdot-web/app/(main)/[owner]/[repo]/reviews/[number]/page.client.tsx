@@ -8,8 +8,6 @@ import {
 } from "@/(main)/[owner]/[repo]/resources";
 import { Loading } from "@/ui/loading";
 import type { Resources } from "./page";
-import { ReviewDetail } from "./review-detail";
-import { ReviewDiffContent } from "./review-diff-content";
 
 type ResourceRequests = ResourceRequestsType<Resources>;
 type ResourcePromises = ResourcePromisesType<Resources>;
@@ -54,26 +52,5 @@ function PageContent({
   const review = use(promises.review);
   if (!review) return null;
 
-  const diffContents: Record<number, React.ReactNode> = {};
-  for (const diff of review.diffs) {
-    diffContents[diff.position] = (
-      <ReviewDiffContent
-        key={diff.id}
-        owner={owner}
-        repo={repo}
-        number={number}
-        diff={diff}
-      />
-    );
-  }
-
-  return (
-    <ReviewDetail
-      owner={owner}
-      repo={repo}
-      number={number}
-      review={review}
-      diffContents={diffContents}
-    />
-  );
+  return <>{JSON.stringify(review)}</>;
 }
