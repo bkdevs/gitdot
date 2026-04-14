@@ -22,8 +22,7 @@ pub struct PublishReviewRequest {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DiffUpdate {
     pub position: i32,
-    pub title: Option<String>,
-    pub description: Option<String>,
+    pub message: Option<String>,
 }
 
 pub type PublishReviewResponse = ReviewResource;

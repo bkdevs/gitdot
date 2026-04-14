@@ -14,8 +14,7 @@ impl Endpoint for UpdateDiff {
 
 #[derive(ApiRequest, Debug, Serialize, Deserialize)]
 pub struct UpdateDiffRequest {
-    pub title: Option<String>,
-    pub description: Option<String>,
+    pub message: Option<String>,
 }
 
 pub type UpdateDiffResponse = ReviewResource;
