@@ -16,12 +16,14 @@ export function PageClient({
   owner,
   repo,
   number,
+  position,
   requests,
   promises,
 }: {
   owner: string;
   repo: string;
   number: number;
+  position: number;
   requests: ResourceRequests;
   promises: ResourcePromises;
 }) {
@@ -32,6 +34,7 @@ export function PageClient({
         owner={owner}
         repo={repo}
         number={number}
+        position={position}
         promises={resolvedPromises}
       />
     </Suspense>
@@ -39,18 +42,20 @@ export function PageClient({
 }
 
 function PageContent({
-  owner,
-  repo,
-  number,
+  position,
   promises,
 }: {
   owner: string;
   repo: string;
   number: number;
+  position: number;
   promises: ResourcePromises;
 }) {
   const review = use(promises.review);
   if (!review) return null;
 
-  return <> </>;
+  const diff = review.diffs.find((d) => d.position === Number(position));
+  if (!diff) return null;
+
+  return <>{JSON.stringify(diff)}</>;
 }

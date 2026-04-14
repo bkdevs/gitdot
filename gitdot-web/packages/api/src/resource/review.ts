@@ -27,7 +27,7 @@ export const RevisionResource = z.object({
 });
 export type RevisionResource = z.infer<typeof RevisionResource>;
 
-export const DiffResource = z.object({
+export const ReviewDiffResource = z.object({
   id: z.uuid(),
   review_id: z.uuid(),
   position: z.number().int(),
@@ -37,7 +37,7 @@ export const DiffResource = z.object({
   updated_at: z.iso.datetime(),
   revisions: z.array(RevisionResource),
 });
-export type DiffResource = z.infer<typeof DiffResource>;
+export type ReviewDiffResource = z.infer<typeof ReviewDiffResource>;
 
 export const ReviewerResource = z.object({
   id: z.uuid(),
@@ -79,7 +79,7 @@ export const ReviewResource = z.object({
   created_at: z.iso.datetime(),
   updated_at: z.iso.datetime(),
   author: ReviewAuthorResource.nullable(),
-  diffs: z.array(DiffResource),
+  diffs: z.array(ReviewDiffResource),
   reviewers: z.array(ReviewerResource),
   comments: z.array(ReviewCommentResource),
 });
