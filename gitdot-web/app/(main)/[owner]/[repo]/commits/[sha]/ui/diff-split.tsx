@@ -95,7 +95,7 @@ function DiffSection({
         tagName: "pre",
         properties: {
           className:
-            "flex flex-col w-1/2 overflow-auto scrollbar-none border-border border-r text-sm font-mono",
+            "flex flex-col w-1/2 overflow-auto scrollbar-none border-border border-r text-xs font-mono",
         },
         children: leftSpansChunk,
       },
@@ -104,7 +104,7 @@ function DiffSection({
         tagName: "pre",
         properties: {
           className:
-            "flex flex-col w-1/2 overflow-auto scrollbar-none text-sm font-mono",
+            "flex flex-col w-1/2 overflow-auto scrollbar-none text-xs font-mono",
         },
         children: rightSpansChunk,
       },

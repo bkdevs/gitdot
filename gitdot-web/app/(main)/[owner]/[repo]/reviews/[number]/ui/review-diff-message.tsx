@@ -5,10 +5,10 @@ export function ReviewDiffMessage({ message }: { message: string }) {
   const body = rest.join("\n").trim();
 
   return (
-    <div className="max-w-3xl mx-auto px-1 pt-6">
-      <p className="text-sm font-semibold mb-2">{title}</p>
+    <div className="flex-1 min-w-0">
+      <p className="text-sm font-semibold max-w-xl mb-2">{title}</p>
       {body && (
-        <p className="text-xs text-muted-foreground leading-relaxed">{body}</p>
+        <p className="text-xs text-muted-foreground leading-relaxed max-w-xl">{body}</p>
       )}
     </div>
   );
