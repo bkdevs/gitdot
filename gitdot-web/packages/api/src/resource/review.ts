@@ -27,12 +27,15 @@ export const RevisionResource = z.object({
 });
 export type RevisionResource = z.infer<typeof RevisionResource>;
 
+export const DiffStatus = z.enum(["open", "approved", "changes_requested", "merged"]);
+export type DiffStatus = z.infer<typeof DiffStatus>;
+
 export const ReviewDiffResource = z.object({
   id: z.uuid(),
   review_id: z.uuid(),
   position: z.number().int(),
   message: z.string(),
-  status: z.string(),
+  status: DiffStatus,
   created_at: z.iso.datetime(),
   updated_at: z.iso.datetime(),
   revisions: z.array(RevisionResource),

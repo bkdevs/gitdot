@@ -33,7 +33,13 @@ function slugify(text: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
-export function MarkdownBody({ content }: { content: string }) {
+export function MarkdownBody({
+  content,
+  compact = false,
+}: {
+  content: string;
+  compact?: boolean;
+}) {
   return (
     <Markdown
       remarkPlugins={[remarkGfm]}
@@ -41,7 +47,11 @@ export function MarkdownBody({ content }: { content: string }) {
         h1: ({ node, children, ...props }) => (
           <h1
             id={slugify(extractText(children))}
-            className="text-3xl font-bold mb-4 border-b pb-2"
+            className={
+              compact
+                ? "text-lg font-bold mb-1 border-b pb-1"
+                : "text-3xl font-bold mb-4 border-b pb-2"
+            }
             {...props}
           >
             {children}
@@ -50,7 +60,11 @@ export function MarkdownBody({ content }: { content: string }) {
         h2: ({ node, children, ...props }) => (
           <h2
             id={slugify(extractText(children))}
-            className="text-xl font-semibold mb-3"
+            className={
+              compact
+                ? "text-base font-semibold mb-1"
+                : "text-xl font-semibold mb-3"
+            }
             {...props}
           >
             {children}
@@ -59,7 +73,11 @@ export function MarkdownBody({ content }: { content: string }) {
         h3: ({ node, children, ...props }) => (
           <h3
             id={slugify(extractText(children))}
-            className="text-lg font-medium mb-2"
+            className={
+              compact
+                ? "text-sm font-medium mb-1"
+                : "text-lg font-medium mb-2"
+            }
             {...props}
           >
             {children}
@@ -68,7 +86,11 @@ export function MarkdownBody({ content }: { content: string }) {
         h4: ({ node, children, ...props }) => (
           <h4
             id={slugify(extractText(children))}
-            className="text-base font-medium mb-2"
+            className={
+              compact
+                ? "text-sm font-medium mb-0.5"
+                : "text-base font-medium mb-2"
+            }
             {...props}
           >
             {children}
@@ -77,7 +99,11 @@ export function MarkdownBody({ content }: { content: string }) {
         h5: ({ node, children, ...props }) => (
           <h5
             id={slugify(extractText(children))}
-            className="text-sm font-semibold mb-2"
+            className={
+              compact
+                ? "text-xs font-semibold mb-0.5"
+                : "text-sm font-semibold mb-2"
+            }
             {...props}
           >
             {children}
@@ -85,7 +111,14 @@ export function MarkdownBody({ content }: { content: string }) {
         ),
 
         p: ({ node, ...props }) => (
-          <p className="leading-relaxed text-sm mb-4" {...props} />
+          <p
+            className={
+              compact
+                ? "text-sm mb-1.5"
+                : "leading-relaxed text-sm mb-4"
+            }
+            {...props}
+          />
         ),
         a: ({ node, href, children, ...props }) => (
           <Link
@@ -98,20 +131,32 @@ export function MarkdownBody({ content }: { content: string }) {
         ),
         blockquote: ({ node, ...props }) => (
           <blockquote
-            className="text-sm border-l-4 border-current pl-4 italic my-4 opacity-80"
+            className={
+              compact
+                ? "text-sm border-l-2 border-current pl-2 italic my-1.5 opacity-80"
+                : "text-sm border-l-4 border-current pl-4 italic my-4 opacity-80"
+            }
             {...props}
           />
         ),
 
         ul: ({ node, ...props }) => (
           <ul
-            className="list-disc list-outside ml-6 mb-4 space-y-1"
+            className={
+              compact
+                ? "list-disc list-outside ml-4 mb-1.5 space-y-0"
+                : "list-disc list-outside ml-6 mb-4 space-y-1"
+            }
             {...props}
           />
         ),
         ol: ({ node, ...props }) => (
           <ol
-            className="list-decimal list-outside ml-6 mb-4 space-y-1"
+            className={
+              compact
+                ? "list-decimal list-outside ml-4 mb-1.5 space-y-0"
+                : "list-decimal list-outside ml-6 mb-4 space-y-1"
+            }
             {...props}
           />
         ),
@@ -145,7 +190,11 @@ export function MarkdownBody({ content }: { content: string }) {
 
           return (
             <pre
-              className="bg-black/5 dark:bg-white/10 rounded p-4 mb-4 overflow-x-auto text-sm"
+              className={
+                compact
+                  ? "bg-black/5 dark:bg-white/10 rounded p-2 mb-1.5 overflow-x-auto text-xs"
+                  : "bg-black/5 dark:bg-white/10 rounded p-4 mb-4 overflow-x-auto text-sm"
+              }
               style={{
                 fontFamily:
                   "ui-monospace, 'Cascadia Code', 'Fira Code', Menlo, Consolas, monospace",
@@ -166,7 +215,7 @@ export function MarkdownBody({ content }: { content: string }) {
               });
               return (
                 <div
-                  className="my-4 flex justify-center overflow-x-auto"
+                  className={compact ? "my-1.5 flex justify-center overflow-x-auto" : "my-4 flex justify-center overflow-x-auto"}
                   // biome-ignore lint/security/noDangerouslySetInnerHtml: beautiful-mermaid renders trusted SVG server-side
                   dangerouslySetInnerHTML={{ __html: svg }}
                 />
@@ -181,7 +230,7 @@ export function MarkdownBody({ content }: { content: string }) {
             <code
               className={
                 isBlock
-                  ? "text-sm"
+                  ? compact ? "text-xs" : "text-sm"
                   : "bg-black/5 dark:bg-white/10 px-1.5 py-0.5 rounded font-mono text-sm"
               }
               style={
@@ -189,7 +238,7 @@ export function MarkdownBody({ content }: { content: string }) {
                   ? {
                       fontFamily:
                         "ui-monospace, 'Cascadia Code', 'Fira Code', Menlo, Consolas, monospace",
-                      fontSize: "0.8125rem",
+                      fontSize: compact ? "0.7rem" : "0.8125rem",
                     }
                   : undefined
               }
@@ -201,7 +250,7 @@ export function MarkdownBody({ content }: { content: string }) {
         },
 
         table: ({ node, ...props }) => (
-          <div className="text-sm overflow-x-auto mb-6">
+          <div className={compact ? "text-xs overflow-x-auto mb-2" : "text-sm overflow-x-auto mb-6"}>
             <table
               className="min-w-full divide-y divide-current border border-current/20"
               {...props}
@@ -210,13 +259,21 @@ export function MarkdownBody({ content }: { content: string }) {
         ),
         th: ({ node, ...props }) => (
           <th
-            className="px-3 py-3.5 text-left text-sm font-semibold bg-black/5 dark:bg-white/5"
+            className={
+              compact
+                ? "px-2 py-1.5 text-left text-xs font-semibold bg-black/5 dark:bg-white/5"
+                : "px-3 py-3.5 text-left text-sm font-semibold bg-black/5 dark:bg-white/5"
+            }
             {...props}
           />
         ),
         td: ({ node, ...props }) => (
           <td
-            className="px-3 py-4 text-sm border-t border-current/10"
+            className={
+              compact
+                ? "px-2 py-1.5 text-xs border-t border-current/10"
+                : "px-3 py-4 text-sm border-t border-current/10"
+            }
             {...props}
           />
         ),
@@ -224,12 +281,20 @@ export function MarkdownBody({ content }: { content: string }) {
         img: ({ node, ...props }) => (
           // biome-ignore lint/performance/noImgElement: react-markdown img renderer needs native img; next/image requires known dimensions
           <img
-            className="rounded-xl my-8 mx-auto max-w-full h-auto"
+            className={
+              compact
+                ? "rounded my-2 mx-auto max-w-full h-auto"
+                : "rounded-xl my-8 mx-auto max-w-full h-auto"
+            }
             {...props}
             alt={props.alt || ""}
           />
         ),
-        hr: () => <hr className="my-8 border-t border-current/20" />,
+        hr: () => (
+          <hr
+            className={compact ? "my-2 border-t border-current/20" : "my-8 border-t border-current/20"}
+          />
+        ),
       }}
     >
       {content}

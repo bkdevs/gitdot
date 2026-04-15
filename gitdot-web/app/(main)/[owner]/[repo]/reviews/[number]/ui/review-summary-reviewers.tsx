@@ -21,7 +21,7 @@ export function ReviewSummaryReviewers({
   diffs: ReviewDiffResource[];
 }) {
   return (
-    <section className="flex flex-col gap-1.5">
+    <section className="flex flex-col gap-1">
       <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
         Reviewers
       </h2>

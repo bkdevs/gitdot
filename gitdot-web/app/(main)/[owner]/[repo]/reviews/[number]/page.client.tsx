@@ -66,6 +66,9 @@ function PageContent({
   const review = use(promises.review);
   if (!review) return null;
 
+  const activeDiff = review.diffs.find((d) => d.position === position);
+  if (!activeDiff) return null;
+
   return (
     <div data-diff-top className="flex flex-col w-full">
       <ReviewDiffHeader
@@ -76,7 +79,7 @@ function PageContent({
         number={number}
       />
       <Suspense fallback={<Loading />}>
-        <ReviewDiffBody diffPromise={diffPromise} />
+        <ReviewDiffBody diffPromise={diffPromise} diff={activeDiff} />
       </Suspense>
     </div>
   );
