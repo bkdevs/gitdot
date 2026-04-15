@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReviewResource } from "gitdot-api";
 import { useParams } from "next/navigation";
 import Link from "@/ui/link";
 

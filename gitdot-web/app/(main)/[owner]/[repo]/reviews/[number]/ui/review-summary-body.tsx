@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReviewResource } from "gitdot-api";
 import { ReviewSummaryRationale } from "./review-summary-rationale";
 import { ReviewSummaryReviewers } from "./review-summary-reviewers";
 
