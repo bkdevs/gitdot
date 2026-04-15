@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import {
   type ResourcePromisesType,
   type ResourceRequestsType,
@@ -28,7 +29,9 @@ export function LayoutClient({
   return (
     <div className="flex flex-1 min-w-0 h-full">
       <div className="w-[30%] grow-0 shrink-0 border-r h-full">
-        <ReviewSummary owner={owner} repo={repo} promises={resolvedPromises} />
+        <Suspense>
+          <ReviewSummary owner={owner} repo={repo} promises={resolvedPromises} />
+        </Suspense>
       </div>
       <div className="flex flex-1">{children}</div>
     </div>
