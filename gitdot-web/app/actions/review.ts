@@ -11,6 +11,7 @@ import type {
 } from "gitdot-api";
 import { refresh } from "next/cache";
 import {
+  ApiError,
   addReviewer,
   mergeDiff,
   publishReview,
@@ -36,11 +37,14 @@ export async function addReviewerAction(
     return { error: "Username is required" };
   }
 
-  const result = await addReviewer(owner, repo, number, {
-    user_name: userName,
-  });
+  let result: ReviewerResource | null;
+  try {
+    result = await addReviewer(owner, repo, number, { user_name: userName });
+  } catch (e) {
+    return { error: e instanceof ApiError ? e.message : "addReviewer call failed" };
+  }
   if (!result) {
-    return { error: "addReviewer call failed" };
+    return { error: "User not found" };
   }
 
   refresh();

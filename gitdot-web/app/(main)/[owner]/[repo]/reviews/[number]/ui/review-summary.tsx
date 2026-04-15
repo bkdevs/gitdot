@@ -23,7 +23,7 @@ export function ReviewSummary({
   return (
     <div className="flex flex-col w-full h-full overflow-auto">
       <ReviewSummaryHeader review={review} />
-      <ReviewSummaryBody review={review} />
+      <ReviewSummaryBody owner={owner} repo={repo} review={review} />
     </div>
   );
 }
