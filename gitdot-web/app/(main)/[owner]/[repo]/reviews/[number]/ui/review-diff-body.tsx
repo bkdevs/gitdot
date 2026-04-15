@@ -16,9 +16,9 @@ export function ReviewDiffBody({
   const entries = use(diffPromise);
 
   return (
-    <div className="flex-1 overflow-y-auto">
+    <div>
       <ReviewDiffMessage message={diff.message} />
-      <div className="max-w-3xl mx-auto flex flex-col gap-3 py-4">
+      <div className="max-w-3xl mx-auto flex flex-col gap-6 py-4">
         {entries.map((entry) => (
           <ReviewDiffFile key={entry.diff.path} diff={entry.diff} data={entry.data} />
         ))}

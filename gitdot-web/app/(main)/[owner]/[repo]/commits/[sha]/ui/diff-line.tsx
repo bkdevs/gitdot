@@ -17,7 +17,7 @@ export function DiffLine({
         lineType === "removed" && "bg-diff-red",
       )}
     >
-      <span className="w-9 text-right shrink-0 pr-1.5 mr-1 text-primary/60 select-none">
+      <span className="w-9 text-right shrink-0 pr-1.5 mr-1.5 text-xs leading-5 text-primary/30 select-none">
         {lineType === "sentinel" ? ".." : lineNumber}
       </span>
       {children}

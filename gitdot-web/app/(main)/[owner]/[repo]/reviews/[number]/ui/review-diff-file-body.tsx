@@ -2,13 +2,13 @@
 
 import type { DiffData } from "@/actions";
 import { DiffSingle } from "../../../commits/[sha]/ui/diff-single";
-import { DiffSplit } from "../../../commits/[sha]/ui/diff-split";
+import { DiffUnified } from "../../../commits/[sha]/ui/diff-unified";
 
 export function ReviewDiffFileBody({ data }: { data: DiffData }) {
   return (
-    <div className="w-full border-b border-border">
+    <div className="w-full">
       {data.kind === "split" && (
-        <DiffSplit
+        <DiffUnified
           leftSpans={data.leftSpans}
           rightSpans={data.rightSpans}
           hunks={data.hunks}

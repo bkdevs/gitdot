@@ -70,7 +70,7 @@ function PageContent({
   if (!activeDiff) return null;
 
   return (
-    <div data-diff-top className="flex flex-col w-full">
+    <div data-diff-top className="flex flex-col w-full min-h-full">
       <ReviewDiffHeader
         diffs={review.diffs}
         position={position}

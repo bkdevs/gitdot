@@ -1,13 +1,10 @@
-"use client";
-
 import type {
   RepositoryDiffFileResource,
   RepositoryDiffStatResource,
 } from "gitdot-api";
-import { useState } from "react";
 import type { DiffData } from "@/actions";
-import { DiffHeader } from "../../../commits/[sha]/ui/diff-header";
 import { ReviewDiffFileBody } from "./review-diff-file-body";
+import { ReviewDiffFileHeader } from "./review-diff-file-header";
 
 export function ReviewDiffFile({
   diff,
@@ -16,12 +13,10 @@ export function ReviewDiffFile({
   diff: RepositoryDiffStatResource | RepositoryDiffFileResource;
   data: DiffData;
 }) {
-  const [open, setOpen] = useState(true);
-
   return (
-    <div data-diff-file>
-      <DiffHeader open={open} setOpen={setOpen} diff={diff} />
-      {open && <ReviewDiffFileBody data={data} />}
+    <div data-diff-file className="rounded-sm border border-border overflow-hidden">
+      <ReviewDiffFileHeader diff={diff} />
+      <ReviewDiffFileBody data={data} />
     </div>
   );
 }

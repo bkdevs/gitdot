@@ -33,7 +33,7 @@ export function LayoutClient({
           <ReviewSummary owner={owner} repo={repo} promises={resolvedPromises} />
         </Suspense>
       </div>
-      <div className="flex flex-1 overflow-y-auto">{children}</div>
+      <div className="flex flex-1 overflow-y-auto items-start">{children}</div>
     </div>
   );
 }
