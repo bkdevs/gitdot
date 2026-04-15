@@ -27,13 +27,13 @@ export function LayoutClient({
 }) {
   const resolvedPromises = useResolvePromises(owner, repo, requests, promises);
   return (
-    <div className="flex flex-1 min-w-0 h-full">
+    <div className="flex flex-1 min-w-0 h-full overflow-hidden">
       <div className="w-[30%] grow-0 shrink-0 border-r h-full">
         <Suspense>
           <ReviewSummary owner={owner} repo={repo} promises={resolvedPromises} />
         </Suspense>
       </div>
-      <div className="flex flex-1">{children}</div>
+      <div className="flex flex-1 overflow-y-auto">{children}</div>
     </div>
   );
 }
