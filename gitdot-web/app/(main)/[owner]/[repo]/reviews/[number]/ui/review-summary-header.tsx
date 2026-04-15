@@ -1,6 +1,5 @@
 "use client";
 
-import type { ReviewResource } from "gitdot-api";
 import { UserImage } from "@/(main)/[owner]/ui/user-image";
 import { UserSlug } from "@/(main)/[owner]/ui/user-slug";
 import { formatDate } from "@/util";

@@ -1,22 +1,7 @@
 "use client";
 
-import type { ReviewResource } from "gitdot-api";
-import { MarkdownBody } from "@/(main)/[owner]/[repo]/ui/markdown/markdown-body";
-import { ReviewFiles } from "./review-files";
-import { ReviewReviewers } from "./review-reviewers";
-
-function ReviewRationale({ description }: { description: string }) {
-  return (
-    <section className="flex flex-col gap-1.5">
-      <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-        Rationale
-      </h2>
-      <div className="[&>p:last-child]:mb-0">
-        <MarkdownBody content={description} />
-      </div>
-    </section>
-  );
-}
+import { ReviewSummaryReviewers } from "./review-summary-reviewers";
+import { ReviewSummaryRationale } from "./review-summary-rationale";
 
 export function ReviewSummaryBody({
   owner,
@@ -29,9 +14,8 @@ export function ReviewSummaryBody({
 }) {
   return (
     <div className="flex-1 overflow-y-auto px-6 pt-4 flex flex-col gap-8">
-      <ReviewRationale description={review.description} />
-      {/*<ReviewFiles />*/}
-      <ReviewReviewers
+      <ReviewSummaryRationale description={review.description} />
+      <ReviewSummaryReviewers
         owner={owner}
         repo={repo}
         number={review.number}

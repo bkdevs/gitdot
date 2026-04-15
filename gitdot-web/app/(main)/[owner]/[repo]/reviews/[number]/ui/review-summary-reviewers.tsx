@@ -7,7 +7,7 @@ import { addReviewerAction, removeReviewerAction } from "@/actions/review";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
 
 // TODO: test this more thoroughly, adding reviewer should also refresh the ui.
-export function ReviewReviewers({
+export function ReviewSummaryReviewers({
   owner,
   repo,
   number,

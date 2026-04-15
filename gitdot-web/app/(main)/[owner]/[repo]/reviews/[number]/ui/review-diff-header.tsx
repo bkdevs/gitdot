@@ -68,7 +68,7 @@ export function ReviewDiffHeader({
         return (
           <Link
             key={diff.id}
-            href={`/${owner}/${repo}/reviews/${number}/diffs/${diff.position}`}
+            href={`/${owner}/${repo}/reviews/${number}?diff=${diff.position}`}
             className={cn(
               "w-full flex items-center gap-1.5 px-2 h-8 text-left border-b border-border last:border-b-0 cursor-pointer transition-colors",
               isActive
