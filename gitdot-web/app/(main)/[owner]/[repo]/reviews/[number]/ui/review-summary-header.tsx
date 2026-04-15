@@ -5,20 +5,14 @@ import { UserImage } from "@/(main)/[owner]/ui/user-image";
 import { UserSlug } from "@/(main)/[owner]/ui/user-slug";
 import { formatDate } from "@/util";
 
-export function ReviewSummaryHeader({
-  review,
-}: {
-  review: ReviewResource | null;
-}) {
-  if (!review) return null;
-
+export function ReviewSummaryHeader({ review }: { review: ReviewResource }) {
   return (
     <div className="shrink-0 h-16 border-b border-border flex items-stretch">
-      <div className="flex-1 min-w-0 flex flex-col justify-center px-4 pb-1 gap-0.5">
-        <h1 className="text-sm truncate">{review.title}</h1>
+      <div className="flex-1 min-w-0 flex flex-col justify-center pl-6 pr-2 pb-1 gap-1">
+        <h1 className="text-sm truncate font-medium">{review.title}</h1>
         <div className="flex items-center gap-1 text-xs text-muted-foreground min-w-0">
           <div className="flex items-center gap-1 min-w-0">
-            <UserImage userId={review.author?.id} px={20} />
+            <UserImage userId={review.author?.id} px={16} />
             {review.author && <UserSlug user={review.author} />}
           </div>
           <span className="shrink-0">
