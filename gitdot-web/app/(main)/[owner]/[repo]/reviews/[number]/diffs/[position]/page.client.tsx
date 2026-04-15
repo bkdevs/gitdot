@@ -8,9 +8,9 @@ import {
 } from "@/(main)/[owner]/[repo]/resources";
 import type { DiffEntry } from "@/actions";
 import { Loading } from "@/ui/loading";
+import { ReviewDiffHeader } from "./ui/review-diff-header";
 import type { Resources } from "./page";
 import { ReviewDiffBody } from "./ui/review-diff-body";
-import { ReviewDiffHeader } from "./ui/review-diff-header";
 
 type ResourceRequests = ResourceRequestsType<Resources>;
 type ResourcePromises = ResourcePromisesType<Resources>;
@@ -48,6 +48,9 @@ export function PageClient({
 }
 
 function PageContent({
+  owner,
+  repo,
+  number,
   position,
   promises,
   diffPromise,
@@ -62,12 +65,15 @@ function PageContent({
   const review = use(promises.review);
   if (!review) return null;
 
-  const diff = review.diffs.find((d) => d.position === Number(position));
-  if (!diff) return null;
-
   return (
     <div data-diff-top className="flex flex-col w-full">
-      <ReviewDiffHeader diff={diff} author={review.author} />
+      <ReviewDiffHeader
+        diffs={review.diffs}
+        position={position}
+        owner={owner}
+        repo={repo}
+        number={number}
+      />
       <Suspense fallback={<Loading />}>
         <ReviewDiffBody diffPromise={diffPromise} />
       </Suspense>
