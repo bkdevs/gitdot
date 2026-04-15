@@ -5,10 +5,8 @@ import {
   type ResourceRequestsType,
   useResolvePromises,
 } from "@/(main)/[owner]/[repo]/resources";
-import { OverlayScroll } from "@/ui/scroll";
 import type { Resources } from "./layout";
-import { ReviewActions } from "./ui/review-actions";
-import { ReviewSidebar } from "./ui/review-sidebar";
+import { ReviewSummary } from "./ui/review-summary";
 
 type ResourceRequests = ResourceRequestsType<Resources>;
 type ResourcePromises = ResourcePromisesType<Resources>;
@@ -28,10 +26,11 @@ export function LayoutClient({
 }) {
   const resolvedPromises = useResolvePromises(owner, repo, requests, promises);
   return (
-    <>
-      <ReviewSidebar owner={owner} repo={repo} promises={resolvedPromises} />
-      <OverlayScroll>{children}</OverlayScroll>
-      <ReviewActions promises={resolvedPromises} />
-    </>
+    <div className="flex flex-1 min-w-0 h-full">
+      <div className="w-[30%] grow-0 shrink-0 border-r h-full">
+        <ReviewSummary owner={owner} repo={repo} promises={resolvedPromises} />
+      </div>
+      <div className="flex flex-1">{children}</div>
+    </div>
   );
 }

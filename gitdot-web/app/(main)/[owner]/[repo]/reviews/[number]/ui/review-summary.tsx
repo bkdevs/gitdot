@@ -9,12 +9,11 @@ import { UserImage } from "@/(main)/[owner]/ui/user-image";
 import { UserSlug } from "@/(main)/[owner]/ui/user-slug";
 import Link from "@/ui/link";
 import { timeAgo } from "@/util";
-import { Sidebar, SidebarContent } from "@/ui/sidebar";
 import type { Resources } from "../layout";
 
 type ResourcePromises = ResourcePromisesType<Resources>;
 
-export function ReviewSidebar({
+export function ReviewSummary({
   owner,
   repo,
   promises,
@@ -24,19 +23,15 @@ export function ReviewSidebar({
   promises: ResourcePromises;
 }) {
   return (
-    <Sidebar>
-      <SidebarContent className="overflow-auto">
-        <div className="flex flex-col w-full">
-          <Suspense>
-            <ReviewSidebarContent
-              owner={owner}
-              repo={repo}
-              promises={promises}
-            />
-          </Suspense>
-        </div>
-      </SidebarContent>
-    </Sidebar>
+    <div className="flex flex-col w-full h-full overflow-auto">
+      <Suspense>
+        <ReviewSidebarContent
+          owner={owner}
+          repo={repo}
+          promises={promises}
+        />
+      </Suspense>
+    </div>
   );
 }
 
@@ -74,7 +69,9 @@ function ReviewSidebarContent({
             <UserImage userId={review.author?.id} px={14} />
             {review.author && <UserSlug user={review.author} />}
           </div>
-          <span className="shrink-0">{timeAgo(new Date(review.created_at))}</span>
+          <span className="shrink-0">
+            {timeAgo(new Date(review.created_at))}
+          </span>
         </div>
       </Link>
       <span className="flex items-center h-9 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wide border-b">
