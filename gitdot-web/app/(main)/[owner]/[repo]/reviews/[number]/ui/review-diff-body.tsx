@@ -8,9 +8,15 @@ import { ReviewDiffFile } from "./review-diff-file";
 import { ReviewDiffMessage } from "./review-diff-message";
 
 export function ReviewDiffBody({
+  owner,
+  repo,
+  number,
   diffPromise,
   diff,
 }: {
+  owner: string;
+  repo: string;
+  number: number;
   diffPromise: Promise<DiffEntry[]>;
   diff: ReviewDiffResource;
 }) {
@@ -19,9 +25,17 @@ export function ReviewDiffBody({
 
   return (
     <div>
-      <div className="max-w-4xl mx-auto px-1 pt-6 flex flex-row gap-4">
+      <div className="max-w-4xl mx-auto px-1 pt-8 flex flex-row gap-4">
         <ReviewDiffMessage message={diff.message} />
-        <ReviewDiffActions revision={latestRevision} />
+        <ReviewDiffActions
+          key={diff.position}
+          owner={owner}
+          repo={repo}
+          number={number}
+          position={diff.position}
+          status={diff.status}
+          revision={latestRevision}
+        />
       </div>
       <div className="max-w-4xl mx-auto flex flex-col gap-6 py-4">
         {entries.map((entry) => (

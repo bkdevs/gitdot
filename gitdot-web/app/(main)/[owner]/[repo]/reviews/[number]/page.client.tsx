@@ -79,7 +79,13 @@ function PageContent({
         number={number}
       />
       <Suspense fallback={<Loading />}>
-        <ReviewDiffBody diffPromise={diffPromise} diff={activeDiff} />
+        <ReviewDiffBody
+          owner={owner}
+          repo={repo}
+          number={number}
+          diffPromise={diffPromise}
+          diff={activeDiff}
+        />
       </Suspense>
     </div>
   );
