@@ -9,18 +9,18 @@ export type Resources = {
 export default async function Page({
   params,
 }: {
-  params: Promise<{ owner: string; repo: string; number: number }>;
+  params: Promise<{ owner: string; repo: string; number: string }>;
 }) {
   const { owner, repo, number } = await params;
   const { requests, promises } = fetchResources(owner, repo, {
-    review: (p) => p.getReview(number),
+    review: (p) => p.getReview(Number(number)),
   });
 
   return (
     <PageClient
       owner={owner}
       repo={repo}
-      number={number}
+      number={Number(number)}
       requests={requests}
       promises={promises}
     />

@@ -10,12 +10,12 @@ export default async function Layout({
   params,
   children,
 }: {
-  params: Promise<{ owner: string; repo: string; number: number }>;
+  params: Promise<{ owner: string; repo: string; number: string }>;
   children: React.ReactNode;
 }) {
   const { owner, repo, number } = await params;
   const { requests, promises } = fetchResources(owner, repo, {
-    review: (p) => p.getReview(number),
+    review: (p) => p.getReview(Number(number)),
   });
 
   return (

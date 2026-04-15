@@ -13,13 +13,13 @@ export default async function Page({
   params: Promise<{
     owner: string;
     repo: string;
-    number: number;
-    position: number;
+    number: string;
+    position: string;
   }>;
 }) {
   const { owner, repo, number, position } = await params;
   const { requests, promises } = fetchResources(owner, repo, {
-    review: (p) => p.getReview(number),
+    review: (p) => p.getReview(Number(number)),
   });
   const diffPromise = renderReviewDiffAction(owner, repo, Number(number), Number(position));
 
@@ -27,8 +27,8 @@ export default async function Page({
     <PageClient
       owner={owner}
       repo={repo}
-      number={number}
-      position={position}
+      number={Number(number)}
+      position={Number(position)}
       requests={requests}
       promises={promises}
       diffPromise={diffPromise}
