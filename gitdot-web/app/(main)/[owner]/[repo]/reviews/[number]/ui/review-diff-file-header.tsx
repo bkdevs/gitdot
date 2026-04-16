@@ -3,8 +3,10 @@ import { Maximize2 } from "lucide-react";
 
 export function ReviewDiffFileHeader({
   diff,
+  onClick,
 }: {
   diff: RepositoryDiffFileResource;
+  onClick?: () => void;
 }) {
   const { path, lines_added, lines_removed, left_content, right_content } =
     diff;
@@ -15,6 +17,7 @@ export function ReviewDiffFileHeader({
     <div
       data-diff-toggle
       id={path}
+      onClick={onClick}
       className="group flex flex-row w-full h-7 shrink-0 items-center px-2 text-xs font-mono bg-sidebar hover:bg-sidebar-accent/80 border-b border-border select-none cursor-pointer transition-colors duration-200"
     >
       <div className="flex flex-row items-center gap-2 mr-auto">
