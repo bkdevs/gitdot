@@ -12,20 +12,22 @@ use crate::{
     extract::{Principal, User},
 };
 
+use super::ReviewIdParam;
+
 #[axum::debug_handler]
 pub async fn update_review_diff(
     auth_user: Principal<User>,
     State(state): State<AppState>,
-    Path((owner, repo, number, position)): Path<(String, String, i32, i32)>,
+    Path((owner, repo, id, position)): Path<(String, String, ReviewIdParam, i32)>,
     Json(request): Json<api::UpdateReviewDiffRequest>,
 ) -> Result<AppResponse<api::UpdateReviewDiffResponse>, AppError> {
-    let auth_request = ReviewAuthorizationRequest::new(auth_user.id, &owner, &repo, number)?;
+    let auth_request = ReviewAuthorizationRequest::new(auth_user.id, &owner, &repo, id.0.clone())?;
     state
         .authorization_service
         .verify_authorized_for_review(auth_request)
         .await?;
 
-    let request = UpdateReviewDiffRequest::new(&owner, &repo, number, position, request.message)?;
+    let request = UpdateReviewDiffRequest::new(&owner, &repo, id.0, position, request.message)?;
     state
         .review_service
         .update_review_diff(request)

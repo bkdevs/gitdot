@@ -6,7 +6,7 @@ use crate::{
         OrganizationAuthorizationRequest, QuestionAuthorizationRequest,
         RepositoryAuthorizationRequest, RepositoryCreationAuthorizationRequest,
         RepositoryPermission, ReviewAuthorizationRequest, ReviewCommentAuthorizationRequest,
-        ReviewingAuthorizationRequest,
+        ReviewId, ReviewingAuthorizationRequest,
     },
     error::AuthorizationError,
     model::{OrganizationRole, RepositoryOwnerType},
@@ -268,15 +268,18 @@ where
         &self,
         request: ReviewAuthorizationRequest,
     ) -> Result<(), AuthorizationError> {
-        let review = self
-            .review_repo
-            .get_review_by_number(
-                request.owner.as_ref(),
-                request.repo.as_ref(),
-                request.number,
-            )
-            .await?
-            .ok_or(AuthorizationError::Unauthorized)?;
+        let review = match &request.review_id {
+            ReviewId::Number(n) => self
+                .review_repo
+                .get_review_by_number(request.owner.as_ref(), request.repo.as_ref(), *n)
+                .await?
+                .ok_or(AuthorizationError::Unauthorized)?,
+            ReviewId::Hex(h) => self
+                .review_repo
+                .get_review_by_hex(request.owner.as_ref(), request.repo.as_ref(), h)
+                .await?
+                .ok_or(AuthorizationError::Unauthorized)?,
+        };
 
         if review.author_id != request.user_id {
             return Err(AuthorizationError::Unauthorized);
@@ -306,15 +309,18 @@ where
         &self,
         request: ReviewingAuthorizationRequest,
     ) -> Result<(), AuthorizationError> {
-        let review = self
-            .review_repo
-            .get_review_by_number(
-                request.owner.as_ref(),
-                request.repo.as_ref(),
-                request.number,
-            )
-            .await?
-            .ok_or(AuthorizationError::Unauthorized)?;
+        let review = match &request.review_id {
+            ReviewId::Number(n) => self
+                .review_repo
+                .get_review_by_number(request.owner.as_ref(), request.repo.as_ref(), *n)
+                .await?
+                .ok_or(AuthorizationError::Unauthorized)?,
+            ReviewId::Hex(h) => self
+                .review_repo
+                .get_review_by_hex(request.owner.as_ref(), request.repo.as_ref(), h)
+                .await?
+                .ok_or(AuthorizationError::Unauthorized)?,
+        };
 
         let reviewers = review.reviewers.unwrap_or_default();
         if !reviewers.iter().any(|r| r.reviewer_id == request.user_id) {
@@ -469,7 +475,8 @@ mod tests {
         }
         #[async_trait]
         impl ReviewRepository for ReviewRepo {
-            async fn get_review(&self, owner: &str, repo: &str, number: i32) -> Result<Option<Review>, crate::error::DatabaseError>;
+            async fn get_review_by_number(&self, owner: &str, repo: &str, number: i32) -> Result<Option<Review>, crate::error::DatabaseError>;
+            async fn get_review_by_hex(&self, owner: &str, repo: &str, hex: &str) -> Result<Option<Review>, crate::error::DatabaseError>;
             async fn list_reviews(&self, owner: &str, repo: &str, viewer_id: Option<Uuid>, from: chrono::DateTime<chrono::Utc>, to: chrono::DateTime<chrono::Utc>) -> Result<Vec<Review>, crate::error::DatabaseError>;
             async fn get_reviews_by_user(&self, user_name: &str, viewer_id: Option<Uuid>, status: Option<String>, owner: Option<String>, repo: Option<String>) -> Result<Vec<Review>, crate::error::DatabaseError>;
             async fn create_review(&self, repository_id: Uuid, author_id: Uuid, target_branch: &str) -> Result<Review, crate::error::DatabaseError>;

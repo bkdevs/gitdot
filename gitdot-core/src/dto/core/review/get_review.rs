@@ -1,5 +1,7 @@
-use crate::dto::common::{OwnerName, RepositoryName};
-use crate::error::{InputError, ReviewError};
+use crate::{
+    dto::common::{OwnerName, RepositoryName},
+    error::{InputError, ReviewError},
+};
 
 use super::ReviewId;
 
@@ -25,6 +27,11 @@ impl GetReviewRequest {
             ReviewId::Number(n) => n.to_string(),
             ReviewId::Hex(s) => s.clone(),
         };
-        format!("{}/{}/review/{}", self.owner.as_ref(), self.repo.as_ref(), id)
+        format!(
+            "{}/{}/review/{}",
+            self.owner.as_ref(),
+            self.repo.as_ref(),
+            id
+        )
     }
 }

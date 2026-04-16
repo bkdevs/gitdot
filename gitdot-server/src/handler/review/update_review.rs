@@ -12,21 +12,23 @@ use crate::{
     extract::{Principal, User},
 };
 
+use super::ReviewIdParam;
+
 #[axum::debug_handler]
 pub async fn update_review(
     auth_user: Principal<User>,
     State(state): State<AppState>,
-    Path((owner, repo, number)): Path<(String, String, i32)>,
+    Path((owner, repo, id)): Path<(String, String, ReviewIdParam)>,
     Json(request): Json<api::UpdateReviewRequest>,
 ) -> Result<AppResponse<api::UpdateReviewResponse>, AppError> {
-    let auth_request = ReviewAuthorizationRequest::new(auth_user.id, &owner, &repo, number)?;
+    let auth_request = ReviewAuthorizationRequest::new(auth_user.id, &owner, &repo, id.0.clone())?;
     state
         .authorization_service
         .verify_authorized_for_review(auth_request)
         .await?;
 
     let request =
-        UpdateReviewRequest::new(&owner, &repo, number, request.title, request.description)?;
+        UpdateReviewRequest::new(&owner, &repo, id.0, request.title, request.description)?;
     state
         .review_service
         .update_review(request)

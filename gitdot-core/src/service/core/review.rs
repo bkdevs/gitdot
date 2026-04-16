@@ -492,22 +492,12 @@ where
 
     async fn publish_review(&self, request: PublishReviewRequest) -> Result<(), ReviewError> {
         let review = self
-            .review_repo
-            .get_review_by_number(
+            .get_review_by_id(
                 request.owner.as_ref(),
                 request.repo.as_ref(),
-                request.number,
+                &request.review_id,
             )
-            .await?
-            .or_not_found(
-                "review",
-                format!(
-                    "{}/{}/review/{}",
-                    request.owner.as_ref(),
-                    request.repo.as_ref(),
-                    request.number
-                ),
-            )?;
+            .await?;
 
         if review.status != ReviewStatus::Draft {
             return Err(ReviewError::ReviewNotPublishable(format!(
@@ -534,26 +524,16 @@ where
         let repo = request.repo.as_ref();
 
         let review = self
-            .review_repo
-            .get_review_by_number(owner, repo, request.number)
-            .await?
-            .or_not_found(
-                "review",
-                format!("{}/{}/review/{}", owner, repo, request.number),
-            )?;
+            .get_review_by_id(owner, repo, &request.review_id)
+            .await?;
 
         self.review_repo
             .update_review(review.id, None, request.title, request.description)
             .await?;
 
         let updated = self
-            .review_repo
-            .get_review_by_number(owner, repo, request.number)
-            .await?
-            .or_not_found(
-                "review",
-                format!("{}/{}/review/{}", owner, repo, request.number),
-            )?;
+            .get_review_by_id(owner, repo, &request.review_id)
+            .await?;
 
         Ok(updated.into())
     }
@@ -566,13 +546,9 @@ where
         let repo = request.repo.as_ref();
 
         let review = self
-            .review_repo
-            .get_review_by_number(owner, repo, request.number)
-            .await?
-            .or_not_found(
-                "review",
-                format!("{}/{}/review/{}", owner, repo, request.number),
-            )?;
+            .get_review_by_id(owner, repo, &request.review_id)
+            .await?;
+        let review_number = review.number;
 
         let diffs = review.diffs.unwrap_or_default();
         let diff = diffs
@@ -582,7 +558,7 @@ where
                 "diff",
                 format!(
                     "{}/{}/review/{}/diff/{}",
-                    owner, repo, request.number, request.position
+                    owner, repo, review_number, request.position
                 ),
             )?;
 
@@ -595,7 +571,7 @@ where
                     "revision",
                     format!(
                         "{}/{}/review/{}/diff/{}/revision/{}",
-                        owner, repo, request.number, request.position, rev_num
+                        owner, repo, review_number, request.position, rev_num
                     ),
                 )?
         } else {
@@ -603,7 +579,7 @@ where
                 "revision",
                 format!(
                     "{}/{}/review/{}/diff/{} has no revisions",
-                    owner, repo, request.number, request.position
+                    owner, repo, review_number, request.position
                 ),
             )?
         };
@@ -617,7 +593,7 @@ where
                     "revision",
                     format!(
                         "{}/{}/review/{}/diff/{}/revision/{}",
-                        owner, repo, request.number, request.position, compare_to
+                        owner, repo, review_number, request.position, compare_to
                     ),
                 )?;
             compare_rev.commit_hash.clone()
@@ -648,13 +624,8 @@ where
         let repo = request.repo.as_ref();
 
         let review = self
-            .review_repo
-            .get_review_by_number(owner, repo, request.number)
-            .await?
-            .or_not_found(
-                "review",
-                format!("{}/{}/review/{}", owner, repo, request.number),
-            )?;
+            .get_review_by_id(owner, repo, &request.review_id)
+            .await?;
 
         if review.status != ReviewStatus::InProgress {
             return Err(ReviewError::ReviewNotPublishable(
@@ -720,13 +691,8 @@ where
             .await?;
 
         let updated = self
-            .review_repo
-            .get_review_by_number(owner, repo, request.number)
-            .await?
-            .or_not_found(
-                "review",
-                format!("{}/{}/review/{}", owner, repo, request.number),
-            )?;
+            .get_review_by_id(owner, repo, &request.review_id)
+            .await?;
 
         Ok(updated.into())
     }
@@ -739,13 +705,8 @@ where
         let repo = request.repo.as_ref();
 
         let review = self
-            .review_repo
-            .get_review_by_number(owner, repo, request.number)
-            .await?
-            .or_not_found(
-                "review",
-                format!("{}/{}/review/{}", owner, repo, request.number),
-            )?;
+            .get_review_by_id(owner, repo, &request.review_id)
+            .await?;
 
         if review.status != ReviewStatus::InProgress {
             return Err(ReviewError::DiffNotMergeable(
@@ -870,13 +831,8 @@ where
             .await?;
 
         let updated = self
-            .review_repo
-            .get_review_by_number(owner, repo, request.number)
-            .await?
-            .or_not_found(
-                "review",
-                format!("{}/{}/review/{}", owner, repo, request.number),
-            )?;
+            .get_review_by_id(owner, repo, &request.review_id)
+            .await?;
 
         Ok(updated.into())
     }
@@ -889,19 +845,15 @@ where
         let repo = request.repo.as_ref();
 
         let review = self
-            .review_repo
-            .get_review_by_number(owner, repo, request.number)
-            .await?
-            .or_not_found(
-                "review",
-                format!("{}/{}/review/{}", owner, repo, request.number),
-            )?;
+            .get_review_by_id(owner, repo, &request.review_id)
+            .await?;
+        let review_number = review.number;
 
         let diffs = review.diffs.as_ref().or_not_found(
             "diff",
             format!(
                 "{}/{}/review/{}/diff/{}",
-                owner, repo, request.number, request.position
+                owner, repo, review_number, request.position
             ),
         )?;
 
@@ -912,7 +864,7 @@ where
                 "diff",
                 format!(
                     "{}/{}/review/{}/diff/{}",
-                    owner, repo, request.number, request.position
+                    owner, repo, review_number, request.position
                 ),
             )?;
 
@@ -925,13 +877,8 @@ where
             .await?;
 
         let updated = self
-            .review_repo
-            .get_review_by_number(owner, repo, request.number)
-            .await?
-            .or_not_found(
-                "review",
-                format!("{}/{}/review/{}", owner, repo, request.number),
-            )?;
+            .get_review_by_id(owner, repo, &request.review_id)
+            .await?;
 
         Ok(updated.into())
     }
@@ -947,22 +894,12 @@ where
             .or_not_found("user", request.user_name.as_ref())?;
 
         let review = self
-            .review_repo
-            .get_review_by_number(
+            .get_review_by_id(
                 request.owner.as_ref(),
                 request.repo.as_ref(),
-                request.number,
+                &request.review_id,
             )
-            .await?
-            .or_not_found(
-                "review",
-                format!(
-                    "{}/{}/review/{}",
-                    request.owner.as_ref(),
-                    request.repo.as_ref(),
-                    request.number
-                ),
-            )?;
+            .await?;
 
         // TODO: add org admin check
         let reviewer = self
@@ -985,22 +922,12 @@ where
             .or_not_found("user", request.reviewer_name.as_ref())?;
 
         let review = self
-            .review_repo
-            .get_review_by_number(
+            .get_review_by_id(
                 request.owner.as_ref(),
                 request.repo.as_ref(),
-                request.number,
+                &request.review_id,
             )
-            .await?
-            .or_not_found(
-                "review",
-                format!(
-                    "{}/{}/review/{}",
-                    request.owner.as_ref(),
-                    request.repo.as_ref(),
-                    request.number
-                ),
-            )?;
+            .await?;
 
         if user.id == review.author_id {
             return Err(ReviewError::CannotRemoveReviewAuthor(

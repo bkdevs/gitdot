@@ -14,11 +14,13 @@ use crate::{
     extract::{Principal, User},
 };
 
+use super::ReviewIdParam;
+
 #[axum::debug_handler]
 pub async fn get_review_diff(
     auth_user: Option<Principal<User>>,
     State(state): State<AppState>,
-    Path((owner, repo, number, position)): Path<(String, String, i32, i32)>,
+    Path((owner, repo, id, position)): Path<(String, String, ReviewIdParam, i32)>,
     Query(query): Query<api::GetReviewDiffRequest>,
 ) -> Result<
     AppResponse<gitdot_api::endpoint::review::get_review_diff::GetReviewDiffResponse>,
@@ -35,7 +37,7 @@ pub async fn get_review_diff(
     let request = GetReviewDiffRequest::new(
         &owner,
         &repo,
-        number,
+        id.0,
         position,
         query.revision,
         query.compare_to,

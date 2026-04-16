@@ -16,24 +16,26 @@ use crate::{
     extract::{Principal, User},
 };
 
+use super::ReviewIdParam;
+
 #[axum::debug_handler]
 pub async fn merge_review_diff(
     auth_user: Principal<User>,
     State(state): State<AppState>,
-    Path((owner, repo, number, position)): Path<(String, String, i32, i32)>,
+    Path((owner, repo, id, position)): Path<(String, String, ReviewIdParam, i32)>,
 ) -> Result<AppResponse<api::MergeReviewDiffResponse>, AppError> {
-    let auth_request = ReviewAuthorizationRequest::new(auth_user.id, &owner, &repo, number)?;
+    let auth_request = ReviewAuthorizationRequest::new(auth_user.id, &owner, &repo, id.0.clone())?;
     state
         .authorization_service
         .verify_authorized_for_review(auth_request)
         .await?;
 
-    let request = MergeReviewDiffRequest::new(&owner, &repo, number, position)?;
+    let request = MergeReviewDiffRequest::new(&owner, &repo, id.0, position)?;
     let response = state.review_service.merge_review_diff(request).await?;
 
     // Create commits for all merged diffs, including previously merged ones.
     // ON CONFLICT DO NOTHING in create_bulk skips commits that already exist.
-    if let Some(commit_request) = create_commits_request(&owner, &repo, number, &response)? {
+    if let Some(commit_request) = create_commits_request(&owner, &repo, &response)? {
         state.commit_service.create_commits(commit_request).await?;
     }
 
@@ -43,7 +45,6 @@ pub async fn merge_review_diff(
 fn create_commits_request(
     owner: &str,
     repo: &str,
-    number: i32,
     response: &ReviewResponse,
 ) -> Result<Option<CreateCommitsRequest>, AppError> {
     let merged_diffs: Vec<_> = response
@@ -82,7 +83,7 @@ fn create_commits_request(
         old_sha,
         new_sha,
         ref_name,
-        Some(number),
+        Some(response.number),
         diff_positions,
     )?;
 

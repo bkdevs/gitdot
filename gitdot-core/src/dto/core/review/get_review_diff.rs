@@ -1,12 +1,15 @@
-use crate::error::{InputError, ReviewError};
+use crate::{
+    dto::common::{OwnerName, RepositoryName},
+    error::{InputError, ReviewError},
+};
 
-use crate::dto::common::{OwnerName, RepositoryName};
+use super::ReviewId;
 
 #[derive(Debug, Clone)]
 pub struct GetReviewDiffRequest {
     pub owner: OwnerName,
     pub repo: RepositoryName,
-    pub number: i32,
+    pub review_id: ReviewId,
     pub position: i32,
     pub revision: Option<i32>,
     pub compare_to: Option<i32>,
@@ -16,7 +19,7 @@ impl GetReviewDiffRequest {
     pub fn new(
         owner: &str,
         repo: &str,
-        number: i32,
+        review_id: ReviewId,
         position: i32,
         revision: Option<i32>,
         compare_to: Option<i32>,
@@ -25,7 +28,7 @@ impl GetReviewDiffRequest {
             owner: OwnerName::try_new(owner).map_err(|e| InputError::new("owner name", e))?,
             repo: RepositoryName::try_new(repo)
                 .map_err(|e| InputError::new("repository name", e))?,
-            number,
+            review_id,
             position,
             revision,
             compare_to,
