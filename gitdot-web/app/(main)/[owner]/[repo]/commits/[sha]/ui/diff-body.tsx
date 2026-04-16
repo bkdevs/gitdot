@@ -3,6 +3,7 @@
 import type { DiffData } from "@/actions";
 import { DiffSingle } from "./diff-single";
 import { DiffSplit } from "./diff-split";
+import { DiffUnified } from "./diff-unified";
 
 export function DiffBody({ data }: { data: DiffData }) {
   return (
@@ -13,6 +14,9 @@ export function DiffBody({ data }: { data: DiffData }) {
           rightSpans={data.rightSpans}
           hunks={data.hunks}
         />
+      )}
+      {data.kind === "unified" && (
+        <DiffUnified spans={data.spans} hunks={data.hunks} side={data.side} />
       )}
       {data.kind === "single" && <DiffSingle spans={data.spans} />}
       {(!data || data.kind === "no-change") && (

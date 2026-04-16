@@ -22,6 +22,12 @@ export type DiffData =
       rightSpans: Element[];
       hunks: DiffHunkResource[];
     }
+  | {
+      kind: "unified";
+      spans: Element[];
+      hunks: DiffHunkResource[];
+      side: "left" | "right";
+    }
   | { kind: "single"; spans: Element[] }
   | { kind: "no-change" };
 
@@ -95,6 +101,19 @@ async function renderDiff(file: RepositoryDiffFileResource): Promise<DiffData> {
   const processedHunks = mergeHunks(file.hunks);
 
   if (left && right && file.hunks.length > 0) {
+    const isAllAdditions = processedHunks.every((h) => h.every((p) => !p.lhs));
+    const isAllRemovals = processedHunks.every((h) => h.every((p) => !p.rhs));
+
+    if (isAllAdditions || isAllRemovals) {
+      const side = isAllAdditions ? ("right" as const) : ("left" as const);
+      const content = isAllAdditions ? right : left;
+      const { leftChangeMap, rightChangeMap } =
+        createChangeMaps(processedHunks);
+      const changeMap = isAllAdditions ? rightChangeMap : leftChangeMap;
+      const spans = await renderSpans(side, content, lang, changeMap);
+      return { kind: "unified" as const, spans, hunks: processedHunks, side };
+    }
+
     const { leftChangeMap, rightChangeMap } = createChangeMaps(processedHunks);
     const [leftSpans, rightSpans] = await Promise.all([
       renderSpans("left", left, lang, leftChangeMap),

@@ -34,10 +34,7 @@ function Sidebar({
 
   return (
     <div
-      className={cn(
-        "flex-col h-full! border-r shrink-0",
-        containerClassName,
-      )}
+      className={cn("flex-col h-full! border-r shrink-0", containerClassName)}
     >
       <div
         data-slot="sidebar"

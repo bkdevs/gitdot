@@ -35,7 +35,12 @@ export function ReviewDiffHeader({
             )}
             prefetch={true}
           >
-            <span className={cn("font-mono text-sm shrink-0 w-5 text-right", isActive ? "text-foreground" : "text-muted-foreground")}>
+            <span
+              className={cn(
+                "font-mono text-sm shrink-0 w-5 text-right",
+                isActive ? "text-foreground" : "text-muted-foreground",
+              )}
+            >
               {i + 1}.
             </span>
             <span className="text-xs flex-1 truncate">
