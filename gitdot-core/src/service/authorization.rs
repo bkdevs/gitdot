@@ -270,7 +270,7 @@ where
     ) -> Result<(), AuthorizationError> {
         let review = self
             .review_repo
-            .get_review(
+            .get_review_by_number(
                 request.owner.as_ref(),
                 request.repo.as_ref(),
                 request.number,
@@ -308,7 +308,7 @@ where
     ) -> Result<(), AuthorizationError> {
         let review = self
             .review_repo
-            .get_review(
+            .get_review_by_number(
                 request.owner.as_ref(),
                 request.repo.as_ref(),
                 request.number,

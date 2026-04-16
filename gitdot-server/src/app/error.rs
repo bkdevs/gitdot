@@ -166,7 +166,8 @@ impl HttpStatus for ReviewError {
             | Self::CannotReviewOwnReview(_)
             | Self::CannotRemoveReviewAuthor(_)
             | Self::ReviewNotPublishable(_)
-            | Self::CommitsNotFound => StatusCode::BAD_REQUEST,
+            | Self::CommitsNotFound
+            | Self::InvalidIdentifier => StatusCode::BAD_REQUEST,
             Self::NotFound(_) => StatusCode::NOT_FOUND,
             Self::Conflict(_) | Self::DiffNotMergeable(_) => StatusCode::CONFLICT,
             Self::NotOrgAdmin(_) => StatusCode::FORBIDDEN,

@@ -136,11 +136,18 @@ FROM core.reviews r
 
 #[async_trait]
 pub trait ReviewRepository: Send + Sync + Clone + 'static {
-    async fn get_review(
+    async fn get_review_by_number(
         &self,
         owner: &str,
         repo: &str,
         number: i32,
+    ) -> Result<Option<Review>, DatabaseError>;
+
+    async fn get_review_by_hex(
+        &self,
+        owner: &str,
+        repo: &str,
+        hex: &str,
     ) -> Result<Option<Review>, DatabaseError>;
 
     async fn list_reviews(
@@ -266,7 +273,7 @@ impl ReviewRepositoryImpl {
 #[crate::instrument_all(level = "debug")]
 #[async_trait]
 impl ReviewRepository for ReviewRepositoryImpl {
-    async fn get_review(
+    async fn get_review_by_number(
         &self,
         owner: &str,
         repo: &str,
@@ -281,6 +288,27 @@ impl ReviewRepository for ReviewRepositoryImpl {
             .bind(owner)
             .bind(repo)
             .bind(number)
+            .fetch_optional(&self.pool)
+            .await?;
+
+        Ok(review)
+    }
+
+    async fn get_review_by_hex(
+        &self,
+        owner: &str,
+        repo: &str,
+        hex: &str,
+    ) -> Result<Option<Review>, DatabaseError> {
+        let query = format!(
+            "{} JOIN core.repositories repo ON r.repository_id = repo.id WHERE repo.owner_name = $1 AND repo.name = $2 AND LEFT(REPLACE(r.id::text, '-', ''), 8) = $3",
+            REVIEW_DETAILS_QUERY
+        );
+
+        let review = sqlx::query_as::<_, Review>(&query)
+            .bind(owner)
+            .bind(repo)
+            .bind(hex)
             .fetch_optional(&self.pool)
             .await?;
 

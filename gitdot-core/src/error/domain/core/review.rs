@@ -31,6 +31,9 @@ pub enum ReviewError {
     #[error("No commits found between target branch and pushed ref")]
     CommitsNotFound,
 
+    #[error("Invalid review identifier: expected an integer review number or 8-char hex short ID")]
+    InvalidIdentifier,
+
     #[error(transparent)]
     GitError(#[from] GitError),
 

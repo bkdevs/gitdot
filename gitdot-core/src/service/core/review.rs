@@ -6,11 +6,11 @@ use crate::{
         AddReviewReviewerReqeuest, GetReviewDiffRequest, GetReviewRequest, JudgeAction,
         JudgeReviewDiffRequest, ListReviewsRequest, MergeReviewDiffRequest, ProcessReviewRequest,
         PublishReviewRequest, RemoveReviewReviewerRequest, ResolveReviewCommentRequest,
-        ReviewCommentResponse, ReviewDiffResponse, ReviewResponse, ReviewerResponse,
+        ReviewCommentResponse, ReviewDiffResponse, ReviewId, ReviewResponse, ReviewerResponse,
         ReviewsResponse, UpdateReviewCommentRequest, UpdateReviewDiffRequest, UpdateReviewRequest,
     },
     error::{ConflictError, InputError, NotFoundError, OptionNotFoundExt, ReviewError},
-    model::{DiffStatus, ReviewStatus, Verdict},
+    model::{DiffStatus, Review, ReviewStatus, Verdict},
     repository::{
         RepositoryRepository, RepositoryRepositoryImpl, ReviewRepository, ReviewRepositoryImpl,
         UserRepository, UserRepositoryImpl,
@@ -163,6 +163,44 @@ impl
     }
 }
 
+impl<V, R, U, G, D> ReviewServiceImpl<V, R, U, G, D>
+where
+    V: ReviewRepository,
+    R: RepositoryRepository,
+    U: UserRepository,
+    G: GitClient,
+    D: DiffClient,
+{
+    async fn get_review_by_id(
+        &self,
+        owner: &str,
+        repo: &str,
+        review_id: &ReviewId,
+    ) -> Result<Review, ReviewError> {
+        let path = format!(
+            "{}/{}/review/{}",
+            owner,
+            repo,
+            match review_id {
+                ReviewId::Number(n) => n.to_string(),
+                ReviewId::Hex(s) => s.clone(),
+            }
+        );
+        match review_id {
+            ReviewId::Number(n) => Ok(self
+                .review_repo
+                .get_review_by_number(owner, repo, *n)
+                .await?
+                .or_not_found("review", path)?),
+            ReviewId::Hex(s) => Ok(self
+                .review_repo
+                .get_review_by_hex(owner, repo, s)
+                .await?
+                .or_not_found("review", path)?),
+        }
+    }
+}
+
 #[crate::instrument_all]
 #[async_trait]
 impl<V, R, U, G, D> ReviewService for ReviewServiceImpl<V, R, U, G, D>
@@ -175,14 +213,12 @@ where
 {
     async fn get_review(&self, request: GetReviewRequest) -> Result<ReviewResponse, ReviewError> {
         let review = self
-            .review_repo
-            .get_review(
+            .get_review_by_id(
                 request.owner.as_ref(),
                 request.repo.as_ref(),
-                request.number,
+                &request.review_id,
             )
-            .await?
-            .or_not_found("review", request.get_review_path())?;
+            .await?;
 
         Ok(review.into())
     }
@@ -293,7 +329,7 @@ where
 
         let review = self
             .review_repo
-            .get_review(owner, repo, review_number)
+            .get_review_by_number(owner, repo, review_number)
             .await?
             .or_not_found(
                 "review",
@@ -444,7 +480,7 @@ where
 
         let updated = self
             .review_repo
-            .get_review(owner, repo, review_number)
+            .get_review_by_number(owner, repo, review_number)
             .await?
             .or_not_found(
                 "review",
@@ -457,7 +493,7 @@ where
     async fn publish_review(&self, request: PublishReviewRequest) -> Result<(), ReviewError> {
         let review = self
             .review_repo
-            .get_review(
+            .get_review_by_number(
                 request.owner.as_ref(),
                 request.repo.as_ref(),
                 request.number,
@@ -499,7 +535,7 @@ where
 
         let review = self
             .review_repo
-            .get_review(owner, repo, request.number)
+            .get_review_by_number(owner, repo, request.number)
             .await?
             .or_not_found(
                 "review",
@@ -512,7 +548,7 @@ where
 
         let updated = self
             .review_repo
-            .get_review(owner, repo, request.number)
+            .get_review_by_number(owner, repo, request.number)
             .await?
             .or_not_found(
                 "review",
@@ -531,7 +567,7 @@ where
 
         let review = self
             .review_repo
-            .get_review(owner, repo, request.number)
+            .get_review_by_number(owner, repo, request.number)
             .await?
             .or_not_found(
                 "review",
@@ -613,7 +649,7 @@ where
 
         let review = self
             .review_repo
-            .get_review(owner, repo, request.number)
+            .get_review_by_number(owner, repo, request.number)
             .await?
             .or_not_found(
                 "review",
@@ -685,7 +721,7 @@ where
 
         let updated = self
             .review_repo
-            .get_review(owner, repo, request.number)
+            .get_review_by_number(owner, repo, request.number)
             .await?
             .or_not_found(
                 "review",
@@ -704,7 +740,7 @@ where
 
         let review = self
             .review_repo
-            .get_review(owner, repo, request.number)
+            .get_review_by_number(owner, repo, request.number)
             .await?
             .or_not_found(
                 "review",
@@ -835,7 +871,7 @@ where
 
         let updated = self
             .review_repo
-            .get_review(owner, repo, request.number)
+            .get_review_by_number(owner, repo, request.number)
             .await?
             .or_not_found(
                 "review",
@@ -854,7 +890,7 @@ where
 
         let review = self
             .review_repo
-            .get_review(owner, repo, request.number)
+            .get_review_by_number(owner, repo, request.number)
             .await?
             .or_not_found(
                 "review",
@@ -890,7 +926,7 @@ where
 
         let updated = self
             .review_repo
-            .get_review(owner, repo, request.number)
+            .get_review_by_number(owner, repo, request.number)
             .await?
             .or_not_found(
                 "review",
@@ -912,7 +948,7 @@ where
 
         let review = self
             .review_repo
-            .get_review(
+            .get_review_by_number(
                 request.owner.as_ref(),
                 request.repo.as_ref(),
                 request.number,
@@ -950,7 +986,7 @@ where
 
         let review = self
             .review_repo
-            .get_review(
+            .get_review_by_number(
                 request.owner.as_ref(),
                 request.repo.as_ref(),
                 request.number,
