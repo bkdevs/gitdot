@@ -10,12 +10,12 @@ cargo build -p gitdot-cli            # Build
 cargo run -p gitdot-cli -- <cmd>     # Run (e.g., `-- auth login`)
 cargo test -p gitdot-cli             # Run tests
 cargo +nightly fmt -p gitdot-cli     # Format
-cargo build -p gitdot-cli --release  # Release build (binary: gdot)
+cargo build -p gitdot-cli --release  # Release build (binary: dot)
 ```
 
 ## Architecture
 
-The binary is named `gdot`. Entry point: `src/bin/main.rs` → initializes rustls (`bootstrap::load_rustls()`) → parses CLI args → routes to command.
+The binary is named `dot`. Entry point: `src/bin/main.rs` → initializes rustls (`bootstrap::load_rustls()`) → parses CLI args → routes to command.
 
 ### Feature Flags
 

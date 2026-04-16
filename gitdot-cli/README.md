@@ -1,6 +1,6 @@
 ## gitdot-cli
 
-`gitdot-cli` is the command-line interface for Gitdot, compiled to a binary named `gdot`. It provides user-facing commands for authentication, code review workflows, and CI pipeline management, as well as daemon-mode runner commands for executing CI tasks on self-hosted machines. The CLI is built with Clap and uses compile-time feature flags (`main`, `runner`) to gate entire subcommand trees.
+`gitdot-cli` is the command-line interface for Gitdot, compiled to a binary named `dot`. It provides user-facing commands for authentication, code review workflows, and CI pipeline management, as well as daemon-mode runner commands for executing CI tasks on self-hosted machines. The CLI is built with Clap and uses compile-time feature flags (`main`, `runner`) to gate entire subcommand trees.
 
 Configuration is split between two TOML files: user config at `~/.config/gitdot/config.toml` (auth tokens, server URLs) and runner config at `/etc/gitdot/runner.toml` (runner token, executor count, S2 stream URL). All API calls go through `GitdotClient`, a thin reqwest wrapper that attaches JWT or Basic auth headers and deserializes responses into `gitdot-api` resource types.
 ### APIs
