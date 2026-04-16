@@ -21,6 +21,7 @@ export function ReviewSummaryBody({
         number={review.number}
         reviewers={review.reviewers}
         diffs={review.diffs}
+        author={review.author}
       />
     </div>
   );

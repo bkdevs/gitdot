@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReviewDiffResource, ReviewerResource } from "gitdot-api";
+import type { ReviewAuthorResource, ReviewDiffResource, ReviewerResource } from "gitdot-api";
 import { useRef, useState } from "react";
 import { useRepoContext } from "@/(main)/[owner]/[repo]/resources/context";
 import { UserImage } from "@/(main)/[owner]/ui/user-image";
@@ -14,12 +14,14 @@ export function ReviewSummaryReviewers({
   number,
   reviewers,
   diffs,
+  author,
 }: {
   owner: string;
   repo: string;
   number: number;
   reviewers: ReviewerResource[];
   diffs: ReviewDiffResource[];
+  author?: ReviewAuthorResource | null;
 }) {
   return (
     <section className="flex flex-col gap-1">
@@ -27,6 +29,13 @@ export function ReviewSummaryReviewers({
         Reviewers
       </h2>
       <div className="flex flex-col gap-1.5">
+        {author && (
+          <div className="flex items-center gap-1.5">
+            <UserImage userId={author.id} px={18} />
+            <span className="text-sm text-muted-foreground">{author.name}</span>
+            <span className="text-xs text-muted-foreground/50">(author)</span>
+          </div>
+        )}
         {reviewers.map((reviewer) => {
           const approved = diffs.filter((diff) => {
             const latest = diff.revisions.reduce(
@@ -79,7 +88,7 @@ function ReviewerRow({
     <>
       <div className="group flex items-center gap-1.5">
         <UserImage userId={reviewer.reviewer_id} px={18} />
-        <span className="text-sm text-foreground/70">{name}</span>
+        <span className="text-sm text-muted-foreground">{name}</span>
         <button
           type="button"
           onClick={() => setRemoving(true)}
