@@ -14,12 +14,14 @@ function Sidebar({
   side = "left",
   variant = "sidebar",
   className,
+  containerClassName,
   children,
   style,
   ...props
 }: React.ComponentProps<"div"> & {
   side?: "left" | "right";
   variant?: "sidebar" | "floating" | "inset";
+  containerClassName?: string;
 }) {
   const [open, setOpen] = React.useState(true);
   React.useEffect(() => {
@@ -31,7 +33,12 @@ function Sidebar({
   if (!open) return null;
 
   return (
-    <div className="flex-col h-full! border-r shrink-0">
+    <div
+      className={cn(
+        "flex-col h-full! border-r shrink-0",
+        containerClassName,
+      )}
+    >
       <div
         data-slot="sidebar"
         data-sidebar="sidebar"

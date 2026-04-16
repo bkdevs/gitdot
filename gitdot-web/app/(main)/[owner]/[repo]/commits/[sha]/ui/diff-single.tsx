@@ -22,7 +22,7 @@ export function DiffSingle({ spans }: { spans: Element[] }) {
   }) as JSX.Element;
 
   return (
-    <div className="w-full h-full overflow-auto text-xs scrollbar-none">
+    <div className="w-full h-full overflow-auto text-sm scrollbar-none">
       {content}
     </div>
   );
