@@ -45,5 +45,3 @@ Building software is hard — but it is simply what we love doing.
 —baepaul & mikkelk.
 
 [logs](https://gitdot.io/week)
-
-foo bar
