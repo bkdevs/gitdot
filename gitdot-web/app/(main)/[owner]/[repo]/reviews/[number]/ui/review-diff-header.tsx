@@ -28,14 +28,14 @@ export function ReviewDiffHeader({
             key={diff.id}
             href={`/${owner}/${repo}/reviews/${number}?diff=${diff.position}`}
             className={cn(
-              "w-full flex items-center gap-1.5 px-2 h-8 text-left border-b border-border cursor-default transition-colors",
+              "w-full flex items-center gap-1.5 px-2 h-8 text-left border-b border-border cursor-default",
               isActive
                 ? "sticky top-0 z-10 bg-sidebar text-foreground"
-                : "text-muted-foreground hover:text-foreground hover:bg-sidebar/60",
+                : "text-muted-foreground hover:bg-sidebar",
             )}
             prefetch={true}
           >
-            <span className="font-mono text-sm text-muted-foreground shrink-0 w-5 text-right">
+            <span className={cn("font-mono text-sm shrink-0 w-5 text-right", isActive ? "text-foreground" : "text-muted-foreground")}>
               {i + 1}.
             </span>
             <span className="text-xs flex-1 truncate">

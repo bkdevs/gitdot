@@ -1,7 +1,4 @@
-import type {
-  RepositoryDiffFileResource,
-  RepositoryDiffStatResource,
-} from "gitdot-api";
+import type { RepositoryDiffFileResource } from "gitdot-api";
 import type { DiffData } from "@/actions";
 import { ReviewDiffFileBody } from "./review-diff-file-body";
 import { ReviewDiffFileHeader } from "./review-diff-file-header";
@@ -10,7 +7,7 @@ export function ReviewDiffFile({
   diff,
   data,
 }: {
-  diff: RepositoryDiffStatResource | RepositoryDiffFileResource;
+  diff: RepositoryDiffFileResource;
   data: DiffData;
 }) {
   return (
