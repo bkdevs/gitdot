@@ -28,7 +28,7 @@ export function DiffUnified({
                 <div className="w-20 border-t border-border" />
               </span>
             )}
-            <UnifiedSection hunk={hunk} spans={spans} side={side} />
+            <DiffSection hunk={hunk} spans={spans} side={side} />
           </Fragment>
         );
       })}
@@ -46,7 +46,7 @@ const sentinelSpan: Element = {
   children: [],
 };
 
-function UnifiedSection({
+function DiffSection({
   hunk,
   spans,
   side,
@@ -60,7 +60,6 @@ function UnifiedSection({
     spans.length,
     spans.length,
   );
-
   const lineIndices = expandedLines.map(([left, right]) =>
     side === "right" ? right : left,
   );

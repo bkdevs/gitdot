@@ -25,7 +25,7 @@ export function ReviewDiffActions({
   const [status, setStatus] = useState<DiffStatus>(initialStatus);
 
   return (
-    <div className="shrink-0 flex flex-col justify-between items-end self-stretch pb-2">
+    <div className="shrink-0 flex flex-col justify-between items-end self-stretch gap-2 pb-2">
       {revision && (
         <div className="flex flex-row gap-4">
           <div className="flex flex-col gap-0.5">
