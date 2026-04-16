@@ -1,12 +1,12 @@
 "use server";
 
 import type {
+  JudgeReviewDiffRequest,
   PublishReviewRequest,
   ReviewCommentResource,
   ReviewerResource,
   ReviewResource,
-  SubmitReviewRequest,
-  UpdateDiffRequest,
+  UpdateReviewDiffRequest,
   UpdateReviewRequest,
 } from "gitdot-api";
 import { refresh } from "next/cache";
@@ -80,7 +80,7 @@ export async function updateDiffAction(
   repo: string,
   number: number,
   position: number,
-  request: UpdateDiffRequest,
+  request: UpdateReviewDiffRequest,
 ): Promise<UpdateDiffActionResult> {
   const result = await updateDiff(owner, repo, number, position, request);
   if (!result) {
@@ -138,7 +138,7 @@ export async function submitReviewAction(
   repo: string,
   number: number,
   position: number,
-  request: SubmitReviewRequest,
+  request: JudgeReviewDiffRequest,
 ): Promise<SubmitReviewActionResult> {
   const result = await submitReview(owner, repo, number, position, request);
   if (!result) {

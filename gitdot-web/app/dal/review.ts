@@ -1,9 +1,9 @@
 import "server-only";
 
 import type {
+  JudgeReviewDiffRequest,
   PublishReviewRequest,
-  SubmitReviewRequest,
-  UpdateDiffRequest,
+  UpdateReviewDiffRequest,
   UpdateReviewRequest,
 } from "gitdot-api";
 import {
@@ -98,7 +98,7 @@ export async function updateDiff(
   repo: string,
   number: number,
   position: number,
-  request: UpdateDiffRequest,
+  request: UpdateReviewDiffRequest,
 ): Promise<ReviewResource | null> {
   const response = await authPatch(
     `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/review/${number}/diff/${position}`,
@@ -141,7 +141,7 @@ export async function submitReview(
   repo: string,
   number: number,
   position: number,
-  request: SubmitReviewRequest,
+  request: JudgeReviewDiffRequest,
 ): Promise<ReviewResource | null> {
   const response = await authPost(
     `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/review/${number}/diff/${position}/submit`,

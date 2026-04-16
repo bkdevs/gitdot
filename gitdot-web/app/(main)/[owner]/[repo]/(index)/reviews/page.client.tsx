@@ -13,7 +13,7 @@ import { ReviewRow } from "./ui/review-row";
 type ResourceRequests = ResourceRequestsType<Resources>;
 type ResourcePromises = ResourcePromisesType<Resources>;
 
-export type ReviewsFilter = "open" | "merged" | "all";
+export type ReviewsFilter = "draft" | "in_progress" | "closed" | "all";
 
 function filterReviews(
   reviews: NonNullable<Resources["reviews"]>,
@@ -69,7 +69,7 @@ function PageContent({
   return (
     <div className="flex flex-col">
       <div className="flex flex-row items-center gap-2 px-4 h-10 border-b text-sm">
-        {(["all", "open", "merged"] as const).map((f) => (
+        {(["all", "draft", "in_progress", "closed"] as const).map((f) => (
           <button
             key={f}
             type="button"
