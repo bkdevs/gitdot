@@ -12,7 +12,7 @@ export function DiffLine({
   return (
     <span
       className={cn(
-        "inline-flex items-center w-full",
+        "flex items-center w-full",
         lineType === "added" && "bg-diff-green",
         lineType === "removed" && "bg-diff-red",
       )}

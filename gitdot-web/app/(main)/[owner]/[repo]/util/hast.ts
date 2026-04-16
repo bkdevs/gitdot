@@ -87,7 +87,11 @@ export async function renderSpans(
 
         const changes = changeMap.get(lineNumber - 1);
         if (changes) {
+          node.properties["data-line-type"] =
+            side === "left" ? "removed" : "added";
           highlightWords(side, node, changes);
+        } else {
+          node.properties["data-line-type"] = "normal";
         }
       },
     },
