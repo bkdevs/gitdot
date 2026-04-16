@@ -1,6 +1,10 @@
 "use client";
 
-import type { ReviewAuthorResource, ReviewDiffResource, ReviewerResource } from "gitdot-api";
+import type {
+  ReviewAuthorResource,
+  ReviewDiffResource,
+  ReviewerResource,
+} from "gitdot-api";
 import { useRef, useState } from "react";
 import { useRepoContext } from "@/(main)/[owner]/[repo]/resources/context";
 import { UserImage } from "@/(main)/[owner]/ui/user-image";
@@ -24,7 +28,7 @@ export function ReviewSummaryReviewers({
   author?: ReviewAuthorResource | null;
 }) {
   return (
-    <section className="flex flex-col gap-1">
+    <section className="flex flex-col gap-1.5">
       <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
         Reviewers
       </h2>

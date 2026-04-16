@@ -111,7 +111,7 @@ export function MarkdownBody({
         p: ({ node, ...props }) => (
           <p
             className={
-              compact ? "text-sm mb-1.5" : "leading-relaxed text-sm mb-4"
+              compact ? "leading-relaxed text-sm mb-1.5" : "leading-relaxed text-sm mb-4"
             }
             {...props}
           />
