@@ -168,6 +168,8 @@ pub trait ReviewRepository: Send + Sync + Clone + 'static {
         target_branch: &str,
     ) -> Result<Review, DatabaseError>;
 
+    async fn assign_number(&self, review_id: Uuid) -> Result<i32, DatabaseError>;
+
     async fn update_review(
         &self,
         review_id: Uuid,
@@ -378,14 +380,8 @@ impl ReviewRepository for ReviewRepositoryImpl {
     ) -> Result<Review, DatabaseError> {
         let review = sqlx::query_as::<_, Review>(
             r#"
-            WITH next_number AS (
-                SELECT COALESCE(MAX(number), 0) + 1 AS number
-                FROM core.reviews
-                WHERE repository_id = $1
-            )
             INSERT INTO core.reviews (repository_id, number, author_id, title, description, target_branch)
-            SELECT $1, next_number.number, $2, '', '', $3
-            FROM next_number
+            VALUES ($1, -1, $2, '', '', $3)
             RETURNING
                 id, repository_id, number, author_id, title, description,
                 target_branch, status, created_at, updated_at,
@@ -399,6 +395,45 @@ impl ReviewRepository for ReviewRepositoryImpl {
         .await?;
 
         Ok(review)
+    }
+
+    async fn assign_number(&self, review_id: Uuid) -> Result<i32, DatabaseError> {
+        let mut tx = self.pool.begin().await?;
+
+        // Acquire a per-repository advisory lock so concurrent publishes in the
+        // same repo serialize here rather than racing on the MAX query below.
+        sqlx::query(
+            r#"
+            SELECT pg_advisory_xact_lock(
+                hashtext((SELECT repository_id::text FROM core.reviews WHERE id = $1))::bigint
+            )
+            "#,
+        )
+        .bind(review_id)
+        .execute(&mut *tx)
+        .await?;
+
+        let number = sqlx::query_scalar::<_, i32>(
+            r#"
+            WITH next_number AS (
+                SELECT COALESCE(MAX(number), 0) + 1 AS number
+                FROM core.reviews
+                WHERE repository_id = (SELECT repository_id FROM core.reviews WHERE id = $1)
+                  AND number <> -1
+            )
+            UPDATE core.reviews
+            SET number = next_number.number, updated_at = NOW()
+            FROM next_number
+            WHERE id = $1
+            RETURNING core.reviews.number
+            "#,
+        )
+        .bind(review_id)
+        .fetch_one(&mut *tx)
+        .await?;
+
+        tx.commit().await?;
+        Ok(number)
     }
 
     async fn update_review(

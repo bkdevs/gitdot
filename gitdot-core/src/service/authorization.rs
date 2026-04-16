@@ -473,9 +473,10 @@ mod tests {
             async fn list_reviews(&self, owner: &str, repo: &str, viewer_id: Option<Uuid>, from: chrono::DateTime<chrono::Utc>, to: chrono::DateTime<chrono::Utc>) -> Result<Vec<Review>, crate::error::DatabaseError>;
             async fn get_reviews_by_user(&self, user_name: &str, viewer_id: Option<Uuid>, status: Option<String>, owner: Option<String>, repo: Option<String>) -> Result<Vec<Review>, crate::error::DatabaseError>;
             async fn create_review(&self, repository_id: Uuid, author_id: Uuid, target_branch: &str) -> Result<Review, crate::error::DatabaseError>;
+            async fn assign_number(&self, review_id: Uuid) -> Result<i32, crate::error::DatabaseError>;
             async fn update_review(&self, review_id: Uuid, status: Option<ReviewStatus>, title: Option<String>, description: Option<String>) -> Result<(), crate::error::DatabaseError>;
-            async fn create_diff(&self, review_id: Uuid, position: i32, title: &str, description: &str) -> Result<Diff, crate::error::DatabaseError>;
-            async fn update_diff(&self, diff_id: Uuid, status: Option<DiffStatus>, title: Option<String>, description: Option<String>) -> Result<(), crate::error::DatabaseError>;
+            async fn create_diff(&self, review_id: Uuid, position: i32, message: &str) -> Result<Diff, crate::error::DatabaseError>;
+            async fn update_diff(&self, diff_id: Uuid, status: Option<DiffStatus>, message: Option<String>) -> Result<(), crate::error::DatabaseError>;
             async fn create_revision(&self, diff_id: Uuid, number: i32, commit_hash: &str, parent_hash: &str) -> Result<Revision, crate::error::DatabaseError>;
             async fn update_revision_sha(&self, revision_id: Uuid, commit_hash: &str, parent_hash: &str) -> Result<(), crate::error::DatabaseError>;
             async fn add_reviewer(&self, review_id: Uuid, reviewer_id: Uuid) -> Result<Option<Reviewer>, crate::error::DatabaseError>;

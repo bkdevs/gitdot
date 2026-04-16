@@ -28,7 +28,7 @@ pub use get_review_diff::GetReviewDiffRequest;
 pub use list_reviews::ListReviewsRequest;
 pub use merge_diff::MergeDiffRequest;
 pub use process_review::ProcessReviewRequest;
-pub use publish_review::{DiffUpdateRequest, PublishReviewRequest};
+pub use publish_review::PublishReviewRequest;
 pub use remove_reviewer::RemoveReviewerRequest;
 pub use resolve_review_comment::ResolveReviewCommentRequest;
 pub use submit_review::{SubmitAction, SubmitComment, SubmitReviewRequest};

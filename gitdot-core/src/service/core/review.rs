@@ -74,10 +74,7 @@ pub trait ReviewService: Send + Sync + 'static {
         request: ProcessReviewRequest,
     ) -> Result<ReviewResponse, ReviewError>;
 
-    async fn publish_review(
-        &self,
-        request: PublishReviewRequest,
-    ) -> Result<ReviewResponse, ReviewError>;
+    async fn publish_review(&self, request: PublishReviewRequest) -> Result<(), ReviewError>;
 
     async fn update_review(
         &self,
@@ -455,10 +452,7 @@ where
         Ok(updated.into())
     }
 
-    async fn publish_review(
-        &self,
-        request: PublishReviewRequest,
-    ) -> Result<ReviewResponse, ReviewError> {
+    async fn publish_review(&self, request: PublishReviewRequest) -> Result<(), ReviewError> {
         let review = self
             .review_repo
             .get_review(
@@ -486,52 +480,12 @@ where
             )));
         }
 
-        let title = request.title.unwrap_or(review.title);
-        let description = request.description.unwrap_or(review.description);
+        self.review_repo.assign_number(review.id).await?;
         self.review_repo
-            .update_review(
-                review.id,
-                Some(ReviewStatus::InProgress),
-                Some(title),
-                Some(description),
-            )
+            .update_review(review.id, Some(ReviewStatus::InProgress), None, None)
             .await?;
 
-        let diffs = review.diffs.unwrap_or_default();
-        for diff_update in &request.diffs {
-            if let Some(diff) = diffs.iter().find(|d| d.position == diff_update.position) {
-                self.review_repo
-                    .update_diff(
-                        diff.id,
-                        None,
-                        diff_update
-                            .message
-                            .clone()
-                            .or_else(|| Some(diff.message.clone())),
-                    )
-                    .await?;
-            }
-        }
-
-        let updated = self
-            .review_repo
-            .get_review(
-                request.owner.as_ref(),
-                request.repo.as_ref(),
-                request.number,
-            )
-            .await?
-            .or_not_found(
-                "review",
-                format!(
-                    "{}/{}/review/{}",
-                    request.owner.as_ref(),
-                    request.repo.as_ref(),
-                    request.number
-                ),
-            )?;
-
-        Ok(updated.into())
+        Ok(())
     }
 
     async fn update_review(

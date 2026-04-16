@@ -27,6 +27,9 @@ export const RevisionResource = z.object({
 });
 export type RevisionResource = z.infer<typeof RevisionResource>;
 
+export const ReviewStatus = z.enum(["draft", "in_progress", "closed"]);
+export type ReviewStatus = z.infer<typeof ReviewStatus>;
+
 export const DiffStatus = z.enum([
   "open",
   "approved",
@@ -83,7 +86,7 @@ export const ReviewResource = z.object({
   title: z.string(),
   description: z.string(),
   target_branch: z.string(),
-  status: z.string(),
+  status: ReviewStatus,
   created_at: z.iso.datetime(),
   updated_at: z.iso.datetime(),
   author: ReviewAuthorResource.nullable(),
