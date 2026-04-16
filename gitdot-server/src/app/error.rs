@@ -164,6 +164,7 @@ impl HttpStatus for ReviewError {
         match self {
             Self::Input(_)
             | Self::CannotReviewOwnReview(_)
+            | Self::CannotRemoveReviewAuthor(_)
             | Self::ReviewNotPublishable(_)
             | Self::CommitsNotFound => StatusCode::BAD_REQUEST,
             Self::NotFound(_) => StatusCode::NOT_FOUND,

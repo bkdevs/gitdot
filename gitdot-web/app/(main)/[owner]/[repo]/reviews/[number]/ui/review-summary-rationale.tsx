@@ -8,7 +8,7 @@ export function ReviewSummaryRationale({
   description: string;
 }) {
   return (
-    <section className="flex flex-col gap-1">
+    <section className="flex flex-col gap-1.5">
       <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
         Rationale
       </h2>

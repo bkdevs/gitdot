@@ -2,7 +2,6 @@
 
 import { useParams } from "next/navigation";
 import Link from "@/ui/link";
-import { formatDate } from "@/util";
 
 export function ReviewSummaryHeader({ review }: { review: ReviewResource }) {
   const { owner, repo, number } = useParams<{
@@ -42,9 +41,6 @@ export function ReviewSummaryHeader({ review }: { review: ReviewResource }) {
             {number}
           </Link>
         </div>
-        <span className="text-xs text-muted-foreground font-mono shrink-0">
-          {formatDate(new Date(review.created_at))}
-        </span>
       </div>
     </div>
   );

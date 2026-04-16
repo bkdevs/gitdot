@@ -16,6 +16,9 @@ pub enum ReviewError {
     #[error("Cannot add review author as reviewer: {0}")]
     CannotReviewOwnReview(String),
 
+    #[error("Cannot remove review author as reviewer: {0}")]
+    CannotRemoveReviewAuthor(String),
+
     #[error("Review is not publishable: {0}")]
     ReviewNotPublishable(String),
 

@@ -238,6 +238,10 @@ where
             .create_review(repository.id, request.pusher_id, &request.target_branch)
             .await?;
 
+        self.review_repo
+            .add_reviewer(review.id, request.pusher_id)
+            .await?;
+
         let mut previous_sha = target_sha.clone();
         for (position, commit) in commits.iter().rev().enumerate() {
             let diff_position = (position + 1) as i32;
@@ -996,6 +1000,12 @@ where
                     request.number
                 ),
             )?;
+
+        if user.id == review.author_id {
+            return Err(ReviewError::CannotRemoveReviewAuthor(
+                request.reviewer_name.as_ref().to_string(),
+            ));
+        }
 
         let removed = self.review_repo.remove_reviewer(review.id, user.id).await?;
         if !removed {
