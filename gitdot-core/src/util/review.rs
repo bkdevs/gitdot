@@ -16,8 +16,5 @@ pub fn get_revision_ref(review_id: &str, diff_position: i32, revision_number: i3
 }
 
 pub fn get_current_ref(review_id: &str, diff_position: i32) -> String {
-    format!(
-        "refs/reviews/{}/diffs/{}/current",
-        review_id, diff_position
-    )
+    format!("refs/reviews/{}/diffs/{}/current", review_id, diff_position)
 }
