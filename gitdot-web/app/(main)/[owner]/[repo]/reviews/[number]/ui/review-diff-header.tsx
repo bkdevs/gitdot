@@ -1,22 +1,18 @@
 "use client";
 
 import type { DiffStatus, ReviewDiffResource } from "gitdot-api";
+import { usePathname } from "next/navigation";
 import Link from "@/ui/link";
 import { cn } from "@/util";
 
 export function ReviewDiffHeader({
   diffs,
   position,
-  owner,
-  repo,
-  number,
 }: {
   diffs: ReviewDiffResource[];
   position: number;
-  owner: string;
-  repo: string;
-  number: number;
 }) {
+  const pathname = usePathname();
   const activeIndex = diffs.findIndex((d) => d.position === position);
 
   return (
@@ -26,7 +22,7 @@ export function ReviewDiffHeader({
         return (
           <Link
             key={diff.id}
-            href={`/${owner}/${repo}/reviews/${number}?diff=${diff.position}`}
+            href={`${pathname}?diff=${diff.position}`}
             className={cn(
               "w-full flex items-center gap-1.5 px-2 h-8 text-left border-b border-border cursor-default",
               isActive

@@ -24,9 +24,10 @@ pub async fn process_review(
         request.pusher_id,
     )?;
 
-    let (action, review_number) = if review_request.is_new() {
+    let (action, review_number, review_id) = if review_request.is_new() {
         let review = state.review_service.create_review(review_request).await?;
-        (ReviewAction::Created, review.number)
+        let id = review.id.simple().to_string()[..8].to_string();
+        (ReviewAction::Created, review.number, id)
     } else {
         let review_number = review_request.review_number.unwrap() as i32;
         let auth_request = ReviewAuthorizationRequest::new(
@@ -44,13 +45,15 @@ pub async fn process_review(
             .review_service
             .process_review_update(review_request)
             .await?;
-        (ReviewAction::Updated, review.number)
+        let id = review.id.simple().to_string()[..8].to_string();
+        (ReviewAction::Updated, review.number, id)
     };
 
     Ok(AppResponse::new(
         StatusCode::OK,
         ProcessReviewServerResponse {
             review_number,
+            review_id,
             action,
         },
     ))

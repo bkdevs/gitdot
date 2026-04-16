@@ -133,7 +133,7 @@ export type SubmitReviewActionResult =
   | { review: ReviewResource }
   | { error: string };
 
-export async function submitReviewAction(
+export async function judgeDiffAction(
   owner: string,
   repo: string,
   number: number,

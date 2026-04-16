@@ -1,15 +1,13 @@
 "use client";
 
 import type { ReviewResource } from "gitdot-api";
-import { useParams } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 import Link from "@/ui/link";
 
 export function ReviewSummaryHeader({ review }: { review: ReviewResource }) {
-  const { owner, repo, number } = useParams<{
-    owner: string;
-    repo: string;
-    number: string;
-  }>();
+  const { owner, repo } = useParams<{ owner: string; repo: string }>();
+  const pathname = usePathname();
+  const identifier = pathname.split("/reviews/")[1] ?? "";
 
   return (
     <div className="shrink-0 h-16 justify-center border-b border-border flex flex-col px-6 py-1 overflow-hidden">
@@ -35,11 +33,8 @@ export function ReviewSummaryHeader({ review }: { review: ReviewResource }) {
             reviews
           </Link>
           <span>/</span>
-          <Link
-            className="hover:underline shrink-0"
-            href={`/${owner}/${repo}/reviews/${number}`}
-          >
-            {number}
+          <Link className="hover:underline shrink-0" href={pathname}>
+            {identifier}
           </Link>
         </div>
       </div>

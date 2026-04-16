@@ -8,7 +8,7 @@ use crate::{
     client::GitdotClient,
     config::UserConfig,
     git::GitWrapper,
-    util::review::{get_remote_owner_repo, push_for_review},
+    util::review::{ReviewPushResult, get_remote_owner_repo, push_for_review},
 };
 
 pub async fn update_review(config: UserConfig, git: &GitWrapper) -> anyhow::Result<()> {
@@ -62,16 +62,26 @@ pub async fn update_review(config: UserConfig, git: &GitWrapper) -> anyhow::Resu
     let review = &reviews[selected];
     let default_branch = git.default_branch().await?;
     git.pull_rebase(&default_branch).await?;
-    let review_number = push_for_review(git, &default_branch, Some(review.number)).await?;
+    let result = push_for_review(git, &default_branch, Some(review.number)).await?;
 
-    match review_number {
-        Some(n) => {
+    match result {
+        Some(ReviewPushResult::Draft { id }) => {
+            let url = format!(
+                "{}/{}/{}/reviews/drafts/{}",
+                config.gitdot_web_url.trim_end_matches('/'),
+                owner,
+                repo,
+                id
+            );
+            println!("Review updated: {}", url);
+        }
+        Some(ReviewPushResult::Published { number }) => {
             let url = format!(
                 "{}/{}/{}/reviews/{}",
                 config.gitdot_web_url.trim_end_matches('/'),
                 owner,
                 repo,
-                n
+                number
             );
             println!("Review updated: {}", url);
         }

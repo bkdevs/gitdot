@@ -38,7 +38,7 @@ export async function listReviews(
 export async function getReview(
   owner: string,
   repo: string,
-  number: number,
+  number: number | string,
 ): Promise<ReviewResource | null> {
   const response = await authFetch(
     `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/review/${number}`,
@@ -50,7 +50,7 @@ export async function getReview(
 export async function getReviewDiff(
   owner: string,
   repo: string,
-  number: number,
+  number: number | string,
   position: number,
   revision?: number,
   compareTo?: number,

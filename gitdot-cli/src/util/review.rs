@@ -50,11 +50,16 @@ pub async fn clear_review_branch(git: &GitWrapper) -> anyhow::Result<()> {
     Ok(())
 }
 
+pub enum ReviewPushResult {
+    Draft { id: String },
+    Published { number: i32 },
+}
+
 pub async fn push_for_review(
     git: &GitWrapper,
     branch: &str,
     review_number: Option<i32>,
-) -> anyhow::Result<Option<i32>> {
+) -> anyhow::Result<Option<ReviewPushResult>> {
     let refspec = match review_number {
         Some(number) => format!("HEAD:refs/for/{}/{}", branch, number),
         None => format!("HEAD:refs/for/{}", branch),
@@ -62,13 +67,28 @@ pub async fn push_for_review(
 
     let stderr = git.push_refspec(&refspec).await?;
 
-    let number = stderr.lines().find_map(|line| {
+    let result = stderr.lines().find_map(|line| {
         let trimmed = line.strip_prefix("remote: ")?;
-        let after_hash = trimmed.strip_prefix("review #")?;
-        after_hash.split_whitespace().next()?.parse::<i32>().ok()
+        let rest = trimmed.strip_prefix("review ")?;
+        let number = rest
+            .split_whitespace()
+            .find(|p| p.starts_with("number="))?
+            .strip_prefix("number=")?
+            .parse::<i32>()
+            .ok()?;
+        let id = rest
+            .split_whitespace()
+            .find(|p| p.starts_with("id="))?
+            .strip_prefix("id=")?
+            .to_string();
+        if number == -1 {
+            Some(ReviewPushResult::Draft { id })
+        } else {
+            Some(ReviewPushResult::Published { number })
+        }
     });
 
-    Ok(number)
+    Ok(result)
 }
 
 async fn get_review_branch_path(git: &GitWrapper) -> anyhow::Result<PathBuf> {

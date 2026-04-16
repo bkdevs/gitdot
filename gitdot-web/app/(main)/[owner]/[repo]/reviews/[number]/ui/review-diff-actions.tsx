@@ -1,8 +1,8 @@
 "use client";
 
-import type { DiffStatus, RevisionResource } from "gitdot-api";
+import type { DiffStatus, ReviewResource, RevisionResource } from "gitdot-api";
 import { useState } from "react";
-import { mergeDiffAction, submitReviewAction } from "@/actions/review";
+import { judgeDiffAction, mergeDiffAction } from "@/actions/review";
 import { useTypewriter } from "@/hooks/use-typewriter";
 import { cn } from "@/util";
 import { timeAgo } from "@/util/date";
@@ -10,14 +10,14 @@ import { timeAgo } from "@/util/date";
 export function ReviewDiffActions({
   owner,
   repo,
-  number,
+  review,
   position,
   status: initialStatus,
   revision,
 }: {
   owner: string;
   repo: string;
-  number: number;
+  review: ReviewResource;
   position: number;
   status: DiffStatus;
   revision: RevisionResource | undefined;
@@ -63,13 +63,13 @@ export function ReviewDiffActions({
           </div>
         </div>
       )}
-      {status !== "merged" && (
+      {review.status === "draft" && status !== "merged" && (
         <div className="flex flex-col gap-1 w-full">
           {status === "approved" ? (
             <MergeButton
               onMerge={async () => {
                 await Promise.all([
-                  mergeDiffAction(owner, repo, number, position),
+                  mergeDiffAction(owner, repo, review.number, position),
                   new Promise((r) => setTimeout(r, 1600)),
                 ]);
                 setStatus("merged");
@@ -79,7 +79,7 @@ export function ReviewDiffActions({
             <ApproveButton
               onApprove={async () => {
                 await Promise.all([
-                  submitReviewAction(owner, repo, number, position, {
+                  judgeDiffAction(owner, repo, review.number, position, {
                     action: "approve",
                     comments: [],
                   }),

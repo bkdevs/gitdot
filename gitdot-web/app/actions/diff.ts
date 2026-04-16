@@ -69,7 +69,7 @@ export async function renderCommitDiffAction(
 export async function renderReviewDiffAction(
   owner: string,
   repo: string,
-  number: number,
+  number: number | string,
   position: number,
   revision?: number,
   compareTo?: number,

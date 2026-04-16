@@ -68,9 +68,9 @@ for update in "${updates[@]}"; do
             continue
         }
 
-        review_number=$(echo "$response" | grep -o '"review_number":[0-9]*' | grep -o '[0-9]*')
-        action=$(echo "$response" | grep -o '"action":"[^"]*"' | cut -d'"' -f4)
-        echo "review #${review_number} ${action}" >&2
+        review_number=$(echo "$response" | grep -o '"review_number":-\?[0-9]*' | grep -o -- '-\?[0-9]*')
+        review_id=$(echo "$response" | grep -o '"review_id":"[^"]*"' | cut -d'"' -f4)
+        echo "review number=${review_number} id=${review_id}" >&2
 
         write_pkt_line "ok $ref"
     else

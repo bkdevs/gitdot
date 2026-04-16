@@ -1,47 +1,32 @@
 "use client";
 
+import type { ReviewResource } from "gitdot-api";
 import { Suspense, use } from "react";
-import {
-  type ResourcePromisesType,
-  type ResourceRequestsType,
-  useResolvePromises,
-} from "@/(main)/[owner]/[repo]/resources";
 import type { DiffEntry } from "@/actions";
 import { Loading } from "@/ui/loading";
-import type { Resources } from "./page";
-import { ReviewDiffBody } from "./ui/review-diff-body";
-import { ReviewDiffHeader } from "./ui/review-diff-header";
-
-type ResourceRequests = ResourceRequestsType<Resources>;
-type ResourcePromises = ResourcePromisesType<Resources>;
+import { ReviewDiffBody } from "../../[number]/ui/review-diff-body";
+import { ReviewDiffHeader } from "../../[number]/ui/review-diff-header";
 
 export function PageClient({
   owner,
   repo,
-  number,
   position,
-  requests,
-  promises,
+  reviewPromise,
   diffPromise,
 }: {
   owner: string;
   repo: string;
-  number: number;
   position: number;
-  requests: ResourceRequests;
-  promises: ResourcePromises;
+  reviewPromise: Promise<ReviewResource | null>;
   diffPromise: Promise<DiffEntry[]>;
 }) {
-  const resolvedPromises = useResolvePromises(owner, repo, requests, promises);
-
   return (
     <Suspense fallback={<Loading />}>
       <PageContent
         owner={owner}
         repo={repo}
-        number={number}
         position={position}
-        promises={resolvedPromises}
+        reviewPromise={reviewPromise}
         diffPromise={diffPromise}
       />
     </Suspense>
@@ -51,19 +36,17 @@ export function PageClient({
 function PageContent({
   owner,
   repo,
-  number,
   position,
-  promises,
+  reviewPromise,
   diffPromise,
 }: {
   owner: string;
   repo: string;
-  number: number;
   position: number;
-  promises: ResourcePromises;
+  reviewPromise: Promise<ReviewResource | null>;
   diffPromise: Promise<DiffEntry[]>;
 }) {
-  const review = use(promises.review);
+  const review = use(reviewPromise);
   if (!review) return null;
 
   const activeDiff = review.diffs.find((d) => d.position === position);
