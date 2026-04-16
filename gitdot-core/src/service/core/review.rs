@@ -277,6 +277,7 @@ where
             .add_reviewer(review.id, request.pusher_id)
             .await?;
 
+        let review_ref_id = &review.id.to_string()[..8];
         let mut previous_sha = target_sha.clone();
         for (position, commit) in commits.iter().rev().enumerate() {
             let diff_position = (position + 1) as i32;
@@ -294,7 +295,7 @@ where
                 .create_ref(
                     owner,
                     repo,
-                    &get_revision_ref(review.number, diff_position, 1),
+                    &get_revision_ref(review_ref_id, diff_position, 1),
                     &commit.sha,
                 )
                 .await?;
@@ -303,14 +304,14 @@ where
                 .create_ref(
                     owner,
                     repo,
-                    &get_current_ref(review.number, diff_position),
+                    &get_current_ref(review_ref_id, diff_position),
                     &commit.sha,
                 )
                 .await?;
         }
 
         self.git_client
-            .create_ref(owner, repo, &get_head_ref(review.number), &request.new_sha)
+            .create_ref(owner, repo, &get_head_ref(review_ref_id), &request.new_sha)
             .await?;
 
         Ok(review.into())
@@ -335,6 +336,8 @@ where
                 "review",
                 format!("{}/{}/review/{}", owner, repo, review_number),
             )?;
+        let review_ref_id = review.id.to_string();
+        let review_ref_id = &review_ref_id[..8];
 
         let target_sha = self
             .git_client
@@ -389,7 +392,7 @@ where
                         .update_ref(
                             owner,
                             repo,
-                            &get_revision_ref(review_number, diff_position, latest_revision.number),
+                            &get_revision_ref(review_ref_id, diff_position, latest_revision.number),
                             &commit.sha,
                         )
                         .await?;
@@ -398,7 +401,7 @@ where
                         .update_ref(
                             owner,
                             repo,
-                            &get_current_ref(review_number, diff_position),
+                            &get_current_ref(review_ref_id, diff_position),
                             &commit.sha,
                         )
                         .await?;
@@ -419,7 +422,7 @@ where
                         .create_ref(
                             owner,
                             repo,
-                            &get_revision_ref(review_number, diff_position, new_revision_number),
+                            &get_revision_ref(review_ref_id, diff_position, new_revision_number),
                             &commit.sha,
                         )
                         .await?;
@@ -428,7 +431,7 @@ where
                         .update_ref(
                             owner,
                             repo,
-                            &get_current_ref(review_number, diff_position),
+                            &get_current_ref(review_ref_id, diff_position),
                             &commit.sha,
                         )
                         .await?;
@@ -452,7 +455,7 @@ where
                     .create_ref(
                         owner,
                         repo,
-                        &get_revision_ref(review_number, diff_position, 1),
+                        &get_revision_ref(review_ref_id, diff_position, 1),
                         &commit.sha,
                     )
                     .await?;
@@ -461,7 +464,7 @@ where
                     .create_ref(
                         owner,
                         repo,
-                        &get_current_ref(review_number, diff_position),
+                        &get_current_ref(review_ref_id, diff_position),
                         &commit.sha,
                     )
                     .await?;
@@ -471,7 +474,7 @@ where
         }
 
         self.git_client
-            .update_ref(owner, repo, &get_head_ref(review_number), &request.new_sha)
+            .update_ref(owner, repo, &get_head_ref(review_ref_id), &request.new_sha)
             .await?;
 
         self.review_repo
@@ -788,7 +791,7 @@ where
                     .update_ref(
                         owner,
                         repo,
-                        &get_current_ref(review.number, diff.position),
+                        &get_current_ref(&review.id.to_string()[..8], diff.position),
                         &new_sha,
                     )
                     .await?;
