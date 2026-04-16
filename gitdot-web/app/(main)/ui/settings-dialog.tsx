@@ -47,7 +47,9 @@ export function SettingsDialog() {
           <SettingsSidebar tab={tab} onTabChange={setTab} />
 
           <div className="flex-1 overflow-y-auto scrollbar-thin p-4">
-            {tab === "profile" && <SettingsProfile user={user ?? null} open={open} />}
+            {tab === "profile" && (
+              <SettingsProfile user={user ?? null} open={open} />
+            )}
             {tab === "theme" && <SettingsTheme />}
             {tab === "shortcuts" && <SettingsShortcuts />}
           </div>

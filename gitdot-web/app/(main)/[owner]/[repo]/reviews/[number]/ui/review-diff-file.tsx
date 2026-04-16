@@ -14,7 +14,10 @@ export function ReviewDiffFile({
   data: DiffData;
 }) {
   return (
-    <div data-diff-file className="rounded-sm border border-border overflow-hidden">
+    <div
+      data-diff-file
+      className="rounded-sm border border-border overflow-hidden"
+    >
       <ReviewDiffFileHeader diff={diff} />
       <ReviewDiffFileBody data={data} />
     </div>

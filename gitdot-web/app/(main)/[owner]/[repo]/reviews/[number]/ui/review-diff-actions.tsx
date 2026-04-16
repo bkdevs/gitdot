@@ -2,9 +2,9 @@
 
 import type { DiffStatus, RevisionResource } from "gitdot-api";
 import { useState } from "react";
-import { cn } from "@/util";
 import { mergeDiffAction, submitReviewAction } from "@/actions/review";
 import { useTypewriter } from "@/hooks/use-typewriter";
+import { cn } from "@/util";
 import { timeAgo } from "@/util/date";
 
 export function ReviewDiffActions({

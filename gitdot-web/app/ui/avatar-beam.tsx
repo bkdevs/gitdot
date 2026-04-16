@@ -81,9 +81,10 @@ export function AvatarBeam({ name, size }: { name: string; size: number }) {
 
   return (
     <svg
-      viewBox={"0 0 " + SIZE + " " + SIZE}
+      viewBox={`0 0 ${SIZE} ${SIZE}`}
       fill="none"
       role="img"
+      aria-label={name}
       xmlns="http://www.w3.org/2000/svg"
       width={size}
       height={size}
@@ -140,14 +141,14 @@ export function AvatarBeam({ name, size }: { name: string; size: number }) {
         >
           {data.isMouthOpen ? (
             <path
-              d={"M15 " + (19 + data.mouthSpread) + "c2 1 4 1 6 0"}
+              d={`M15 ${19 + data.mouthSpread}c2 1 4 1 6 0`}
               stroke={data.faceColor}
               fill="none"
               strokeLinecap="round"
             />
           ) : (
             <path
-              d={"M13," + (19 + data.mouthSpread) + " a1,0.75 0 0,0 10,0"}
+              d={`M13,${19 + data.mouthSpread} a1,0.75 0 0,0 10,0`}
               fill={data.faceColor}
             />
           )}

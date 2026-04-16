@@ -25,13 +25,7 @@ pub async fn update_diff(
         .verify_authorized_for_review(auth_request)
         .await?;
 
-    let request = UpdateDiffRequest::new(
-        &owner,
-        &repo,
-        number,
-        position,
-        request.message,
-    )?;
+    let request = UpdateDiffRequest::new(&owner, &repo, number, position, request.message)?;
     state
         .review_service
         .update_diff(request)

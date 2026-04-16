@@ -238,6 +238,11 @@ export function openIdb(): Database {
       await db.put("reviews", review, reviewKey(owner, repo, number));
     },
 
+    async deleteReview(owner, repo, number) {
+      const db = await getDb();
+      await db.delete("reviews", reviewKey(owner, repo, number));
+    },
+
     async getBuilds(owner, repo) {
       const db = await getDb();
       return (await db.get("builds", repoKey(owner, repo))) ?? null;

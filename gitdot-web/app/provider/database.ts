@@ -111,6 +111,10 @@ export class DatabaseProvider extends ClientProvider {
     return this.db.putReview(this.owner, this.repo, number, review);
   }
 
+  async deleteReview(number: number): Promise<void> {
+    return this.db.deleteReview(this.owner, this.repo, number);
+  }
+
   async getBuilds(): Promise<BuildResource[] | null> {
     return this.db.getBuilds(this.owner, this.repo);
   }

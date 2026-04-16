@@ -41,7 +41,9 @@ export async function addReviewerAction(
   try {
     result = await addReviewer(owner, repo, number, { user_name: userName });
   } catch (e) {
-    return { error: e instanceof ApiError ? e.message : "addReviewer call failed" };
+    return {
+      error: e instanceof ApiError ? e.message : "addReviewer call failed",
+    };
   }
   if (!result) {
     return { error: "User not found" };

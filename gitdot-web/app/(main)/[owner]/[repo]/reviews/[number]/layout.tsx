@@ -14,6 +14,7 @@ export default async function Layout({
   children: React.ReactNode;
 }) {
   const { owner, repo, number } = await params;
+
   const { requests, promises } = fetchResources(owner, repo, {
     review: (p) => p.getReview(Number(number)),
   });

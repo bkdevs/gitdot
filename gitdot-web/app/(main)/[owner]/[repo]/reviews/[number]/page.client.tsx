@@ -8,9 +8,9 @@ import {
 } from "@/(main)/[owner]/[repo]/resources";
 import type { DiffEntry } from "@/actions";
 import { Loading } from "@/ui/loading";
+import type { Resources } from "./page";
 import { ReviewDiffBody } from "./ui/review-diff-body";
 import { ReviewDiffHeader } from "./ui/review-diff-header";
-import type { Resources } from "./page";
 
 type ResourceRequests = ResourceRequestsType<Resources>;
 type ResourcePromises = ResourcePromisesType<Resources>;
@@ -33,7 +33,7 @@ export function PageClient({
   diffPromise: Promise<DiffEntry[]>;
 }) {
   const resolvedPromises = useResolvePromises(owner, repo, requests, promises);
-  
+
   return (
     <Suspense fallback={<Loading />}>
       <PageContent

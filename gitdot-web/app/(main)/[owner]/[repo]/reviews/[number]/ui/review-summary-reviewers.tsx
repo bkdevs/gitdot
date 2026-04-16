@@ -2,11 +2,12 @@
 
 import type { ReviewDiffResource, ReviewerResource } from "gitdot-api";
 import { useRef, useState } from "react";
+import { useRepoContext } from "@/(main)/[owner]/[repo]/resources/context";
 import { UserImage } from "@/(main)/[owner]/ui/user-image";
 import { addReviewerAction, removeReviewerAction } from "@/actions/review";
+import { DatabaseProvider } from "@/provider/database";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
 
-// TODO: test this more thoroughly, adding reviewer should also refresh the ui.
 export function ReviewSummaryReviewers({
   owner,
   repo,
@@ -71,6 +72,7 @@ function ReviewerRow({
 }) {
   const [removing, setRemoving] = useState(false);
   const [removeError, setRemoveError] = useState<string | null>(null);
+  const { provider: memoryProvider } = useRepoContext();
   const name = reviewer.user?.name ?? reviewer.reviewer_id;
 
   return (
@@ -138,6 +140,8 @@ function ReviewerRow({
                 if ("error" in result) {
                   setRemoveError(result.error);
                 } else {
+                  memoryProvider.deleteReview(number);
+                  await new DatabaseProvider(owner, repo).deleteReview(number);
                   setRemoving(false);
                   setRemoveError(null);
                 }
@@ -165,6 +169,7 @@ function AddReviewer({
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const { provider: memoryProvider } = useRepoContext();
 
   function handleButtonClick() {
     setAdding(true);
@@ -188,6 +193,8 @@ function AddReviewer({
       if ("error" in result) {
         setError(result.error);
       } else {
+        memoryProvider.deleteReview(number);
+        await new DatabaseProvider(owner, repo).deleteReview(number);
         setAdding(false);
         setError(null);
       }

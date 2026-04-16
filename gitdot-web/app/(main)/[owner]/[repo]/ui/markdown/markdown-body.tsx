@@ -74,9 +74,7 @@ export function MarkdownBody({
           <h3
             id={slugify(extractText(children))}
             className={
-              compact
-                ? "text-sm font-medium mb-1"
-                : "text-lg font-medium mb-2"
+              compact ? "text-sm font-medium mb-1" : "text-lg font-medium mb-2"
             }
             {...props}
           >
@@ -113,9 +111,7 @@ export function MarkdownBody({
         p: ({ node, ...props }) => (
           <p
             className={
-              compact
-                ? "text-sm mb-1.5"
-                : "leading-relaxed text-sm mb-4"
+              compact ? "text-sm mb-1.5" : "leading-relaxed text-sm mb-4"
             }
             {...props}
           />
@@ -215,7 +211,11 @@ export function MarkdownBody({
               });
               return (
                 <div
-                  className={compact ? "my-1.5 flex justify-center overflow-x-auto" : "my-4 flex justify-center overflow-x-auto"}
+                  className={
+                    compact
+                      ? "my-1.5 flex justify-center overflow-x-auto"
+                      : "my-4 flex justify-center overflow-x-auto"
+                  }
                   // biome-ignore lint/security/noDangerouslySetInnerHtml: beautiful-mermaid renders trusted SVG server-side
                   dangerouslySetInnerHTML={{ __html: svg }}
                 />
@@ -230,7 +230,9 @@ export function MarkdownBody({
             <code
               className={
                 isBlock
-                  ? compact ? "text-xs" : "text-sm"
+                  ? compact
+                    ? "text-xs"
+                    : "text-sm"
                   : "bg-black/5 dark:bg-white/10 px-1.5 py-0.5 rounded font-mono text-sm"
               }
               style={
@@ -250,7 +252,13 @@ export function MarkdownBody({
         },
 
         table: ({ node, ...props }) => (
-          <div className={compact ? "text-xs overflow-x-auto mb-2" : "text-sm overflow-x-auto mb-6"}>
+          <div
+            className={
+              compact
+                ? "text-xs overflow-x-auto mb-2"
+                : "text-sm overflow-x-auto mb-6"
+            }
+          >
             <table
               className="min-w-full divide-y divide-current border border-current/20"
               {...props}
@@ -292,7 +300,11 @@ export function MarkdownBody({
         ),
         hr: () => (
           <hr
-            className={compact ? "my-2 border-t border-current/20" : "my-8 border-t border-current/20"}
+            className={
+              compact
+                ? "my-2 border-t border-current/20"
+                : "my-8 border-t border-current/20"
+            }
           />
         ),
       }}

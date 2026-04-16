@@ -16,12 +16,18 @@ export default async function Page({
 }) {
   const { owner, repo, number } = await params;
   const { diff } = await searchParams;
+
   const position = Number(diff ?? 1);
 
   const { requests, promises } = fetchResources(owner, repo, {
     review: (p) => p.getReview(Number(number)),
   });
-  const diffPromise = renderReviewDiffAction(owner, repo, Number(number), position);
+  const diffPromise = renderReviewDiffAction(
+    owner,
+    repo,
+    Number(number),
+    position,
+  );
 
   return (
     <PageClient
