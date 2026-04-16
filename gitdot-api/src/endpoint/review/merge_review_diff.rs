@@ -2,17 +2,17 @@ use serde::{Deserialize, Serialize};
 
 use crate::{endpoint::Endpoint, resource::review::ReviewResource};
 
-pub struct MergeDiff;
+pub struct MergeReviewDiff;
 
-impl Endpoint for MergeDiff {
+impl Endpoint for MergeReviewDiff {
     const PATH: &'static str = "/repository/{owner}/{repo}/review/{number}/diff/{position}/merge";
     const METHOD: http::Method = http::Method::POST;
 
-    type Request = MergeDiffRequest;
-    type Response = MergeDiffResponse;
+    type Request = MergeReviewDiffRequest;
+    type Response = MergeReviewDiffResponse;
 }
 
 #[derive(ApiRequest, Debug, Serialize, Deserialize)]
-pub struct MergeDiffRequest {}
+pub struct MergeReviewDiffRequest {}
 
-pub type MergeDiffResponse = ReviewResource;
+pub type MergeReviewDiffResponse = ReviewResource;

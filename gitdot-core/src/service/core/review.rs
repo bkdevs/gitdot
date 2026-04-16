@@ -3,18 +3,17 @@ use async_trait::async_trait;
 use crate::{
     client::{DiffClient, DifftClient, Git2Client, GitClient},
     dto::{
-        AddReviewerRequest, GetReviewDiffRequest, GetReviewRequest, ListReviewsRequest,
-        MergeDiffRequest, ProcessReviewRequest, PublishReviewRequest, RemoveReviewerRequest,
-        ResolveReviewCommentRequest, ReviewCommentResponse, ReviewDiffResponse, ReviewResponse,
-        ReviewerResponse, ReviewsResponse, SubmitAction, SubmitReviewRequest, UpdateDiffRequest,
-        UpdateReviewCommentRequest, UpdateReviewRequest,
+        AddReviewReviewerReqeuest, GetReviewDiffRequest, GetReviewRequest, JudgeAction,
+        JudgeReviewDiffRequest, ListReviewsRequest, MergeReviewDiffRequest, ProcessReviewRequest,
+        PublishReviewRequest, RemoveReviewReviewerRequest, ResolveReviewCommentRequest,
+        ReviewCommentResponse, ReviewDiffResponse, ReviewResponse, ReviewerResponse,
+        ReviewsResponse, UpdateReviewCommentRequest, UpdateReviewDiffRequest, UpdateReviewRequest,
     },
     error::{ConflictError, InputError, NotFoundError, OptionNotFoundExt, ReviewError},
-    model::{DiffStatus, OrganizationRole, ReviewStatus, Verdict},
+    model::{DiffStatus, ReviewStatus, Verdict},
     repository::{
-        OrganizationRepository, OrganizationRepositoryImpl, RepositoryRepository,
-        RepositoryRepositoryImpl, ReviewRepository, ReviewRepositoryImpl, UserRepository,
-        UserRepositoryImpl,
+        RepositoryRepository, RepositoryRepositoryImpl, ReviewRepository, ReviewRepositoryImpl,
+        UserRepository, UserRepositoryImpl,
     },
     util::review::{get_current_ref, get_head_ref, get_revision_ref, get_target_ref},
 };
@@ -86,21 +85,30 @@ pub trait ReviewService: Send + Sync + 'static {
         request: GetReviewDiffRequest,
     ) -> Result<ReviewDiffResponse, ReviewError>;
 
-    async fn submit_review(
+    async fn update_review_diff(
         &self,
-        request: SubmitReviewRequest,
+        request: UpdateReviewDiffRequest,
     ) -> Result<ReviewResponse, ReviewError>;
 
-    async fn merge_diff(&self, request: MergeDiffRequest) -> Result<ReviewResponse, ReviewError>;
-
-    async fn update_diff(&self, request: UpdateDiffRequest) -> Result<ReviewResponse, ReviewError>;
-
-    async fn add_reviewer(
+    async fn judge_review_diff(
         &self,
-        request: AddReviewerRequest,
+        request: JudgeReviewDiffRequest,
+    ) -> Result<ReviewResponse, ReviewError>;
+
+    async fn merge_review_diff(
+        &self,
+        request: MergeReviewDiffRequest,
+    ) -> Result<ReviewResponse, ReviewError>;
+
+    async fn add_review_reviewer(
+        &self,
+        request: AddReviewReviewerReqeuest,
     ) -> Result<ReviewerResponse, ReviewError>;
 
-    async fn remove_reviewer(&self, request: RemoveReviewerRequest) -> Result<(), ReviewError>;
+    async fn remove_review_reviewer(
+        &self,
+        request: RemoveReviewReviewerRequest,
+    ) -> Result<(), ReviewError>;
 
     async fn update_review_comment(
         &self,
@@ -114,19 +122,17 @@ pub trait ReviewService: Send + Sync + 'static {
 }
 
 #[derive(Debug, Clone)]
-pub struct ReviewServiceImpl<V, R, U, O, G, D>
+pub struct ReviewServiceImpl<V, R, U, G, D>
 where
     V: ReviewRepository,
     R: RepositoryRepository,
     U: UserRepository,
-    O: OrganizationRepository,
     G: GitClient,
     D: DiffClient,
 {
     review_repo: V,
     repo_repo: R,
     user_repo: U,
-    org_repo: O,
     git_client: G,
     diff_client: D,
 }
@@ -136,7 +142,6 @@ impl
         ReviewRepositoryImpl,
         RepositoryRepositoryImpl,
         UserRepositoryImpl,
-        OrganizationRepositoryImpl,
         Git2Client,
         DifftClient,
     >
@@ -145,7 +150,6 @@ impl
         review_repo: ReviewRepositoryImpl,
         repo_repo: RepositoryRepositoryImpl,
         user_repo: UserRepositoryImpl,
-        org_repo: OrganizationRepositoryImpl,
         git_client: Git2Client,
         diff_client: DifftClient,
     ) -> Self {
@@ -153,7 +157,6 @@ impl
             review_repo,
             repo_repo,
             user_repo,
-            org_repo,
             git_client,
             diff_client,
         }
@@ -162,12 +165,11 @@ impl
 
 #[crate::instrument_all]
 #[async_trait]
-impl<V, R, U, O, G, D> ReviewService for ReviewServiceImpl<V, R, U, O, G, D>
+impl<V, R, U, G, D> ReviewService for ReviewServiceImpl<V, R, U, G, D>
 where
     V: ReviewRepository,
     R: RepositoryRepository,
     U: UserRepository,
-    O: OrganizationRepository,
     G: GitClient,
     D: DiffClient,
 {
@@ -602,9 +604,9 @@ where
         Ok(ReviewDiffResponse { files })
     }
 
-    async fn submit_review(
+    async fn judge_review_diff(
         &self,
-        request: SubmitReviewRequest,
+        request: JudgeReviewDiffRequest,
     ) -> Result<ReviewResponse, ReviewError> {
         let owner = request.owner.as_ref();
         let repo = request.repo.as_ref();
@@ -636,11 +638,11 @@ where
             .or_not_found("revision", "No revisions found")?;
 
         // Create verdict and update diff status
-        if request.action != SubmitAction::Comment {
+        if request.action != JudgeAction::Comment {
             let verdict = match request.action {
-                SubmitAction::Approve => Verdict::Approved,
-                SubmitAction::RequestChanges => Verdict::ChangesRequested,
-                SubmitAction::Comment => unreachable!(),
+                JudgeAction::Approve => Verdict::Approved,
+                JudgeAction::RequestChanges => Verdict::ChangesRequested,
+                JudgeAction::Comment => unreachable!(),
             };
             self.review_repo
                 .create_verdict(diff.id, latest_revision.id, request.reviewer_id, verdict)
@@ -650,9 +652,9 @@ where
             // Otherwise, reflect the new action directly.
             if diff.status != DiffStatus::Approved {
                 let new_status = match request.action {
-                    SubmitAction::Approve => DiffStatus::Approved,
-                    SubmitAction::RequestChanges => DiffStatus::ChangesRequested,
-                    SubmitAction::Comment => unreachable!(),
+                    JudgeAction::Approve => DiffStatus::Approved,
+                    JudgeAction::RequestChanges => DiffStatus::ChangesRequested,
+                    JudgeAction::Comment => unreachable!(),
                 };
                 self.review_repo
                     .update_diff(diff.id, Some(new_status), None)
@@ -693,7 +695,10 @@ where
         Ok(updated.into())
     }
 
-    async fn merge_diff(&self, request: MergeDiffRequest) -> Result<ReviewResponse, ReviewError> {
+    async fn merge_review_diff(
+        &self,
+        request: MergeReviewDiffRequest,
+    ) -> Result<ReviewResponse, ReviewError> {
         let owner = request.owner.as_ref();
         let repo = request.repo.as_ref();
 
@@ -840,7 +845,10 @@ where
         Ok(updated.into())
     }
 
-    async fn update_diff(&self, request: UpdateDiffRequest) -> Result<ReviewResponse, ReviewError> {
+    async fn update_review_diff(
+        &self,
+        request: UpdateReviewDiffRequest,
+    ) -> Result<ReviewResponse, ReviewError> {
         let owner = request.owner.as_ref();
         let repo = request.repo.as_ref();
 
@@ -892,9 +900,9 @@ where
         Ok(updated.into())
     }
 
-    async fn add_reviewer(
+    async fn add_review_reviewer(
         &self,
-        request: AddReviewerRequest,
+        request: AddReviewReviewerReqeuest,
     ) -> Result<ReviewerResponse, ReviewError> {
         let user = self
             .user_repo
@@ -930,7 +938,10 @@ where
         Ok(reviewer.into())
     }
 
-    async fn remove_reviewer(&self, request: RemoveReviewerRequest) -> Result<(), ReviewError> {
+    async fn remove_review_reviewer(
+        &self,
+        request: RemoveReviewReviewerRequest,
+    ) -> Result<(), ReviewError> {
         let user = self
             .user_repo
             .get(request.reviewer_name.as_ref())

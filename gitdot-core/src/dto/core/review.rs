@@ -1,16 +1,16 @@
-mod add_reviewer;
+mod add_review_reviewer;
 mod get_review;
 mod get_review_diff;
+mod judge_review_diff;
 mod list_reviews;
-mod merge_diff;
+mod merge_review_diff;
 mod process_review;
 mod publish_review;
-mod remove_reviewer;
+mod remove_review_reviewer;
 mod resolve_review_comment;
-mod submit_review;
-mod update_diff;
 mod update_review;
 mod update_review_comment;
+mod update_review_diff;
 
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
@@ -22,19 +22,19 @@ use crate::model::{
 
 use super::RepositoryDiffFileResponse;
 
-pub use add_reviewer::AddReviewerRequest;
+pub use add_review_reviewer::AddReviewReviewerReqeuest;
 pub use get_review::GetReviewRequest;
 pub use get_review_diff::GetReviewDiffRequest;
+pub use judge_review_diff::{DiffComment, JudgeAction, JudgeReviewDiffRequest};
 pub use list_reviews::ListReviewsRequest;
-pub use merge_diff::MergeDiffRequest;
+pub use merge_review_diff::MergeReviewDiffRequest;
 pub use process_review::ProcessReviewRequest;
 pub use publish_review::PublishReviewRequest;
-pub use remove_reviewer::RemoveReviewerRequest;
+pub use remove_review_reviewer::RemoveReviewReviewerRequest;
 pub use resolve_review_comment::ResolveReviewCommentRequest;
-pub use submit_review::{SubmitAction, SubmitComment, SubmitReviewRequest};
-pub use update_diff::UpdateDiffRequest;
 pub use update_review::UpdateReviewRequest;
 pub use update_review_comment::UpdateReviewCommentRequest;
+pub use update_review_diff::UpdateReviewDiffRequest;
 
 #[derive(Debug, Clone)]
 pub struct ReviewsResponse {

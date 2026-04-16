@@ -5,9 +5,9 @@ use axum::{
     http::StatusCode,
 };
 
-use gitdot_api::endpoint::merge_diff as api;
+use gitdot_api::endpoint::merge_review_diff as api;
 use gitdot_core::dto::{
-    CreateCommitsRequest, MergeDiffRequest, ReviewAuthorizationRequest, ReviewResponse,
+    CreateCommitsRequest, MergeReviewDiffRequest, ReviewAuthorizationRequest, ReviewResponse,
 };
 
 use crate::{
@@ -17,19 +17,19 @@ use crate::{
 };
 
 #[axum::debug_handler]
-pub async fn merge_diff(
+pub async fn merge_review_diff(
     auth_user: Principal<User>,
     State(state): State<AppState>,
     Path((owner, repo, number, position)): Path<(String, String, i32, i32)>,
-) -> Result<AppResponse<api::MergeDiffResponse>, AppError> {
+) -> Result<AppResponse<api::MergeReviewDiffResponse>, AppError> {
     let auth_request = ReviewAuthorizationRequest::new(auth_user.id, &owner, &repo, number)?;
     state
         .authorization_service
         .verify_authorized_for_review(auth_request)
         .await?;
 
-    let request = MergeDiffRequest::new(&owner, &repo, number, position)?;
-    let response = state.review_service.merge_diff(request).await?;
+    let request = MergeReviewDiffRequest::new(&owner, &repo, number, position)?;
+    let response = state.review_service.merge_review_diff(request).await?;
 
     // Create commits for all merged diffs, including previously merged ones.
     // ON CONFLICT DO NOTHING in create_bulk skips commits that already exist.

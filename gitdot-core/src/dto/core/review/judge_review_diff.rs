@@ -8,25 +8,25 @@ use crate::{
 use crate::dto::common::{OwnerName, RepositoryName};
 
 #[derive(Debug, Clone)]
-pub struct SubmitReviewRequest {
+pub struct JudgeReviewDiffRequest {
     pub owner: OwnerName,
     pub repo: RepositoryName,
     pub number: i32,
     pub position: i32,
     pub reviewer_id: Uuid,
-    pub action: SubmitAction,
-    pub comments: Vec<SubmitComment>,
+    pub action: JudgeAction,
+    pub comments: Vec<DiffComment>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum SubmitAction {
+pub enum JudgeAction {
     Approve,
     RequestChanges,
     Comment,
 }
 
 #[derive(Debug, Clone)]
-pub struct SubmitComment {
+pub struct DiffComment {
     pub body: String,
     pub parent_id: Option<Uuid>,
     pub file_path: Option<String>,
@@ -35,7 +35,7 @@ pub struct SubmitComment {
     pub side: Option<CommentSide>,
 }
 
-impl SubmitReviewRequest {
+impl JudgeReviewDiffRequest {
     pub fn new(
         owner: &str,
         repo: &str,
@@ -43,12 +43,12 @@ impl SubmitReviewRequest {
         position: i32,
         reviewer_id: Uuid,
         action: &str,
-        comments: Vec<SubmitComment>,
+        comments: Vec<DiffComment>,
     ) -> Result<Self, ReviewError> {
         let action = match action {
-            "approve" => SubmitAction::Approve,
-            "request_changes" => SubmitAction::RequestChanges,
-            "comment" => SubmitAction::Comment,
+            "approve" => JudgeAction::Approve,
+            "request_changes" => JudgeAction::RequestChanges,
+            "comment" => JudgeAction::Comment,
             _ => {
                 return Err(InputError::new(
                     "comment",
@@ -73,7 +73,7 @@ impl SubmitReviewRequest {
     }
 }
 
-impl SubmitComment {
+impl DiffComment {
     pub fn new(
         body: String,
         parent_id: Option<Uuid>,

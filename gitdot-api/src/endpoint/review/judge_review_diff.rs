@@ -3,24 +3,24 @@ use uuid::Uuid;
 
 use crate::{endpoint::Endpoint, resource::review::ReviewResource};
 
-pub struct SubmitReview;
+pub struct JudgeReviewDiff;
 
-impl Endpoint for SubmitReview {
+impl Endpoint for JudgeReviewDiff {
     const PATH: &'static str = "/repository/{owner}/{repo}/review/{number}/diff/{position}/submit";
     const METHOD: http::Method = http::Method::POST;
 
-    type Request = SubmitReviewRequest;
-    type Response = SubmitReviewResponse;
+    type Request = JudgeReviewDiffRequest;
+    type Response = JudgeReviewDiffResponse;
 }
 
 #[derive(ApiRequest, Debug, Serialize, Deserialize)]
-pub struct SubmitReviewRequest {
+pub struct JudgeReviewDiffRequest {
     pub action: String,
-    pub comments: Vec<SubmitReviewComment>,
+    pub comments: Vec<ReviewDiffComment>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SubmitReviewComment {
+pub struct ReviewDiffComment {
     pub body: String,
     pub parent_id: Option<Uuid>,
     pub file_path: Option<String>,
@@ -29,4 +29,4 @@ pub struct SubmitReviewComment {
     pub side: Option<String>,
 }
 
-pub type SubmitReviewResponse = ReviewResource;
+pub type JudgeReviewDiffResponse = ReviewResource;

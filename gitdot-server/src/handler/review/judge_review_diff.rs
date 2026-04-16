@@ -4,8 +4,8 @@ use axum::{
     http::StatusCode,
 };
 
-use gitdot_api::endpoint::submit_review as api;
-use gitdot_core::dto::{ReviewingAuthorizationRequest, SubmitComment, SubmitReviewRequest};
+use gitdot_api::endpoint::judge_review_diff as api;
+use gitdot_core::dto::{DiffComment, JudgeReviewDiffRequest, ReviewingAuthorizationRequest};
 
 use crate::{
     app::{AppError, AppResponse, AppState},
@@ -14,12 +14,12 @@ use crate::{
 };
 
 #[axum::debug_handler]
-pub async fn submit_review(
+pub async fn judge_review_diff(
     auth_user: Principal<User>,
     State(state): State<AppState>,
     Path((owner, repo, number, position)): Path<(String, String, i32, i32)>,
-    Json(request): Json<api::SubmitReviewRequest>,
-) -> Result<AppResponse<api::SubmitReviewResponse>, AppError> {
+    Json(request): Json<api::JudgeReviewDiffRequest>,
+) -> Result<AppResponse<api::JudgeReviewDiffResponse>, AppError> {
     let auth_request = ReviewingAuthorizationRequest::new(auth_user.id, &owner, &repo, number)?;
     state
         .authorization_service
@@ -30,7 +30,7 @@ pub async fn submit_review(
         .comments
         .into_iter()
         .map(|c| {
-            SubmitComment::new(
+            DiffComment::new(
                 c.body,
                 c.parent_id,
                 c.file_path,
@@ -42,7 +42,7 @@ pub async fn submit_review(
         .collect::<Result<Vec<_>, _>>()
         .map_err(AppError::from)?;
 
-    let request = SubmitReviewRequest::new(
+    let request = JudgeReviewDiffRequest::new(
         &owner,
         &repo,
         number,
@@ -54,7 +54,7 @@ pub async fn submit_review(
 
     state
         .review_service
-        .submit_review(request)
+        .judge_review_diff(request)
         .await
         .map_err(AppError::from)
         .map(|response| AppResponse::new(StatusCode::OK, response.into_api()))

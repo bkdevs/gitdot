@@ -80,10 +80,8 @@ pub trait ReviewService: Send + Sync + 'static {
     async fn update_review(&self, request: UpdateReviewRequest) -> Result<ReviewResponse, ReviewError>;
     async fn get_review_diff(&self, request: GetReviewDiffRequest) -> Result<ReviewDiffResponse, ReviewError>;
     async fn submit_review(&self, request: SubmitReviewRequest) -> Result<ReviewResponse, ReviewError>;
-    async fn merge_diff(&self, request: MergeDiffRequest) -> Result<ReviewResponse, ReviewError>;
     async fn update_diff(&self, request: UpdateDiffRequest) -> Result<ReviewResponse, ReviewError>;
     async fn add_reviewer(&self, request: AddReviewerRequest) -> Result<ReviewerResponse, ReviewError>;
-    async fn remove_reviewer(&self, request: RemoveReviewerRequest) -> Result<(), ReviewError>;
     async fn update_review_comment(&self, request: UpdateReviewCommentRequest) -> Result<ReviewCommentResponse, ReviewError>;
     async fn resolve_review_comment(&self, request: ResolveReviewCommentRequest) -> Result<ReviewCommentResponse, ReviewError>;
 }

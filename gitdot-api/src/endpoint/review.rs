@@ -1,12 +1,12 @@
-pub mod add_reviewer;
+pub mod add_review_reviewer;
 pub mod get_review;
 pub mod get_review_diff;
+pub mod judge_review_diff;
 pub mod list_reviews;
-pub mod merge_diff;
+pub mod merge_review_diff;
 pub mod publish_review;
-pub mod remove_reviewer;
+pub mod remove_review_reviewer;
 pub mod resolve_review_comment;
-pub mod submit_review;
-pub mod update_diff;
 pub mod update_review;
 pub mod update_review_comment;
+pub mod update_review_diff;

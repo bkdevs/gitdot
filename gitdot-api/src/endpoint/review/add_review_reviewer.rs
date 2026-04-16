@@ -2,19 +2,19 @@ use serde::{Deserialize, Serialize};
 
 use crate::{endpoint::Endpoint, resource::review::ReviewerResource};
 
-pub struct AddReviewer;
+pub struct AddReviewReviewer;
 
-impl Endpoint for AddReviewer {
+impl Endpoint for AddReviewReviewer {
     const PATH: &'static str = "/repository/{owner}/{repo}/review/{number}/reviewer";
     const METHOD: http::Method = http::Method::POST;
 
-    type Request = AddReviewerRequest;
-    type Response = AddReviewerResponse;
+    type Request = AddReviewReviewerRequest;
+    type Response = AddReviewReviewerResponse;
 }
 
 #[derive(ApiRequest, Debug, Serialize, Deserialize)]
-pub struct AddReviewerRequest {
+pub struct AddReviewReviewerRequest {
     pub user_name: String,
 }
 
-pub type AddReviewerResponse = ReviewerResource;
+pub type AddReviewReviewerResponse = ReviewerResource;

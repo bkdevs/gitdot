@@ -1,15 +1,15 @@
-mod add_reviewer;
+mod add_review_reviewer;
 mod get_review;
 mod get_review_diff;
+mod judge_review_diff;
 mod list_reviews;
-mod merge_diff;
+mod merge_review_diff;
 mod publish_review;
-mod remove_reviewer;
+mod remove_review_reviewer;
 mod resolve_review_comment;
-mod submit_review;
-mod update_diff;
 mod update_review;
 mod update_review_comment;
+mod update_review_diff;
 
 use axum::{
     Router,
@@ -18,18 +18,18 @@ use axum::{
 
 use crate::app::AppState;
 
-use add_reviewer::add_reviewer;
+use add_review_reviewer::add_review_reviewer;
 use get_review::get_review;
 use get_review_diff::get_review_diff;
+use judge_review_diff::judge_review_diff;
 use list_reviews::list_reviews;
-use merge_diff::merge_diff;
+use merge_review_diff::merge_review_diff;
 use publish_review::publish_review;
-use remove_reviewer::remove_reviewer;
+use remove_review_reviewer::remove_review_reviewer;
 use resolve_review_comment::resolve_review_comment;
-use submit_review::submit_review;
-use update_diff::update_diff;
 use update_review::update_review;
 use update_review_comment::update_review_comment;
+use update_review_diff::update_review_diff;
 
 pub fn create_review_router() -> Router<AppState> {
     Router::new()
@@ -39,28 +39,28 @@ pub fn create_review_router() -> Router<AppState> {
         )
         .route("/repository/{owner}/{repo}/reviews", get(list_reviews))
         .route(
-            "/repository/{owner}/{repo}/review/{number}/diff/{position}",
-            get(get_review_diff).patch(update_diff),
-        )
-        .route(
             "/repository/{owner}/{repo}/review/{number}/publish",
             post(publish_review),
         )
         .route(
             "/repository/{owner}/{repo}/review/{number}/reviewer",
-            post(add_reviewer),
+            post(add_review_reviewer),
         )
         .route(
             "/repository/{owner}/{repo}/review/{number}/reviewer/{reviewer_name}",
-            delete(remove_reviewer),
+            delete(remove_review_reviewer),
+        )
+        .route(
+            "/repository/{owner}/{repo}/review/{number}/diff/{position}",
+            get(get_review_diff).patch(update_review_diff),
         )
         .route(
             "/repository/{owner}/{repo}/review/{number}/diff/{position}/submit",
-            post(submit_review),
+            post(judge_review_diff),
         )
         .route(
             "/repository/{owner}/{repo}/review/{number}/diff/{position}/merge",
-            post(merge_diff),
+            post(merge_review_diff),
         )
         .route(
             "/repository/{owner}/{repo}/review/{number}/comment/{comment_id}",

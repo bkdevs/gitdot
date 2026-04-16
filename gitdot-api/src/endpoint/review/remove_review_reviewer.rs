@@ -2,9 +2,9 @@ use serde::{Deserialize, Serialize};
 
 use crate::endpoint::Endpoint;
 
-pub struct RemoveReviewer;
+pub struct RemoveReviewReviewer;
 
-impl Endpoint for RemoveReviewer {
+impl Endpoint for RemoveReviewReviewer {
     const PATH: &'static str =
         "/repository/{owner}/{repo}/review/{number}/reviewer/{reviewer_name}";
     const METHOD: http::Method = http::Method::DELETE;

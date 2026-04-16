@@ -3,7 +3,7 @@ use axum::{
     http::StatusCode,
 };
 
-use gitdot_core::dto::{RemoveReviewerRequest, ReviewAuthorizationRequest};
+use gitdot_core::dto::{RemoveReviewReviewerRequest, ReviewAuthorizationRequest};
 
 use crate::{
     app::{AppError, AppResponse, AppState},
@@ -11,7 +11,7 @@ use crate::{
 };
 
 #[axum::debug_handler]
-pub async fn remove_reviewer(
+pub async fn remove_review_reviewer(
     auth_user: Principal<User>,
     State(state): State<AppState>,
     Path((owner, repo, number, reviewer_name)): Path<(String, String, i32, String)>,
@@ -22,10 +22,10 @@ pub async fn remove_reviewer(
         .verify_authorized_for_review(auth_request)
         .await?;
 
-    let request = RemoveReviewerRequest::new(&owner, &repo, number, &reviewer_name)?;
+    let request = RemoveReviewReviewerRequest::new(&owner, &repo, number, &reviewer_name)?;
     state
         .review_service
-        .remove_reviewer(request)
+        .remove_review_reviewer(request)
         .await
         .map_err(AppError::from)
         .map(|_| AppResponse::new(StatusCode::OK, ()))
