@@ -15,10 +15,10 @@ export function ReviewLayoutToggles({
     <div className="flex flex-row w-16 h-8 border-t border-r border-border bg-background">
       <button
         type="button"
-        onClick={() => setLayout(layout === "diff" ? "default" : "diff")}
+        onClick={() => setLayout(layout === "diffs" ? "split" : "diffs")}
         className={cn(
           "flex flex-1 items-center justify-center border-r border-border transition-colors",
-          layout === "diff"
+          layout === "diffs"
             ? "bg-primary text-primary-foreground"
             : "text-muted-foreground hover:text-foreground",
         )}
@@ -27,7 +27,7 @@ export function ReviewLayoutToggles({
       </button>
       <button
         type="button"
-        onClick={() => setLayout(layout === "summary" ? "default" : "summary")}
+        onClick={() => setLayout(layout === "summary" ? "split" : "summary")}
         className={cn(
           "flex flex-1 items-center justify-center transition-colors",
           layout === "summary"

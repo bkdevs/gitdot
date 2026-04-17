@@ -25,7 +25,7 @@ export function ReviewDiffFileDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent
-        className="w-[90vw]! h-[90vh]! max-w-[90vw]! max-h-[90vh]! p-0 gap-0 flex flex-col overflow-hidden"
+        className="w-[80vw]! h-[80vh]! max-w-[80vw]! max-h-[80vh]! border-border! rounded-sm! p-0 gap-0 flex flex-col overflow-hidden"
         animations={true}
         showOverlay={true}
         aria-describedby={undefined}

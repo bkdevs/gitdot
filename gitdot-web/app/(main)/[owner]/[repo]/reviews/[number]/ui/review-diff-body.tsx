@@ -25,7 +25,7 @@ export function ReviewDiffBody({
 
   return (
     <div>
-      <div className="mx-24 px-1 pt-8 flex flex-row gap-4">
+      <div className="mx-16 px-1 pt-4 flex flex-row gap-4">
         <ReviewDiffMessage message={diff.message} />
         <ReviewDiffActions
           key={diff.position}
@@ -37,7 +37,7 @@ export function ReviewDiffBody({
           revision={latestRevision}
         />
       </div>
-      <div className="mx-24 flex flex-col gap-6 py-4">
+      <div className="mx-16 flex flex-col gap-6 py-4">
         {entries.map((entry) => (
           <ReviewDiffFile
             key={entry.diff.path}

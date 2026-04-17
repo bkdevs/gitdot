@@ -18,7 +18,7 @@ import { ReviewSummary } from "./ui/review-summary";
 type ResourceRequests = ResourceRequestsType<Resources>;
 type ResourcePromises = ResourcePromisesType<Resources>;
 
-export type PageLayout = "default" | "summary" | "diff";
+export type PageLayout = "split" | "summary" | "diffs";
 
 export function PageClient({
   owner,
@@ -65,7 +65,7 @@ function PageContent({
   promises: ResourcePromises;
   diffPromise: Promise<DiffEntry[]>;
 }) {
-  const [layout, setLayout] = useState<PageLayout>("default");
+  const [layout, setLayout] = useState<PageLayout>("split");
 
   useShortcuts(
     useMemo(
@@ -74,14 +74,14 @@ function PageContent({
           name: "Toggle diffs",
           description: "diffs",
           keys: ["["],
-          execute: () => setLayout((v) => (v === "diff" ? "default" : "diff")),
+          execute: () => setLayout((v) => (v === "diffs" ? "split" : "diffs")),
         },
         {
           name: "Toggle summary",
           description: "summary",
           keys: ["]"],
           execute: () =>
-            setLayout((v) => (v === "summary" ? "default" : "summary")),
+            setLayout((v) => (v === "summary" ? "split" : "summary")),
         },
       ],
       [],
@@ -92,22 +92,27 @@ function PageContent({
   if (!review) return null;
 
   return (
-    <div className="flex flex-1 min-w-0 h-full">
+    <div
+      className={cn(
+        "grid flex-1 min-w-0 h-full",
+        layout === "split" && "grid-cols-[25%_1fr]",
+        layout === "summary" && "grid-cols-1",
+        layout === "diffs" && "grid-cols-1",
+      )}
+    >
       <div
         className={cn(
-          "flex-col h-full! border-r shrink-0",
-          layout === "summary"
-            ? "flex-1"
-            : layout === "diff"
-              ? "hidden"
-              : "w-[30%] grow-0",
+          "h-full border-r overflow-y-auto",
+          layout === "diffs" && "hidden",
         )}
       >
-        <ReviewSummary owner={owner} repo={repo} review={review} />
+        <div className={cn(layout === "summary" && "max-w-2xl mx-auto")}>
+          <ReviewSummary owner={owner} repo={repo} review={review} />
+        </div>
       </div>
       <div
         className={cn(
-          "flex flex-1 scrollbar-thin overflow-y-auto items-start",
+          "scrollbar-thin overflow-y-auto",
           layout === "summary" && "hidden",
         )}
       >
