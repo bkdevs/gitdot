@@ -10,7 +10,7 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from "@/ui/context-menu";
-import { ReviewDiffFileBody } from "./review-diff-file-body";
+import { DiffBody } from "../../../commits/[sha]/ui/diff-body";
 import { ReviewDiffFileDialog } from "./review-diff-file-dialog";
 import { ReviewDiffFileHeader } from "./review-diff-file-header";
 
@@ -33,7 +33,7 @@ export function ReviewDiffFile({
         <ContextMenu>
           <ContextMenuTrigger asChild>
             <div>
-              <ReviewDiffFileBody data={data} />
+              <DiffBody data={data} />
             </div>
           </ContextMenuTrigger>
           <ContextMenuContent>

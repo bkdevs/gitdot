@@ -21,7 +21,7 @@ export function DiffFile({
   return (
     <div data-diff-file>
       <DiffHeader open={open} setOpen={setOpen} diff={diff} />
-      {open && <DiffBody data={data} />}
+      {open && <DiffBody data={data} className="border-b border-border" />}
     </div>
   );
 }

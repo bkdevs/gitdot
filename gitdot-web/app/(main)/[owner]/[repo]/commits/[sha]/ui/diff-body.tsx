@@ -2,16 +2,31 @@
 
 import { preferSplit } from "@/(main)/[owner]/[repo]/util";
 import type { DiffData } from "@/actions";
+import { cn } from "@/util";
 import { DiffCreated } from "./diff-created";
 import { DiffSplit } from "./diff-split";
 import { DiffUnified } from "./diff-unified";
 import { DiffUnilateral } from "./diff-unilateral";
 
-export function DiffBody({ data }: { data: DiffData }) {
+export function DiffBody({
+  data,
+  layout = "heuristic",
+  className,
+}: {
+  data: DiffData;
+  layout?: "split" | "unified" | "heuristic";
+  className?: string;
+}) {
+  const useSplit =
+    data.kind === "split" &&
+    (layout === "split" ||
+      (layout === "heuristic" &&
+        preferSplit(data.leftSpans, data.rightSpans, data.hunks)));
+
   return (
-    <div className="w-full border-b border-border">
+    <div className={cn("w-full", className)}>
       {data.kind === "split" &&
-        (preferSplit(data.leftSpans, data.rightSpans, data.hunks) ? (
+        (useSplit ? (
           <DiffSplit
             leftSpans={data.leftSpans}
             rightSpans={data.rightSpans}
