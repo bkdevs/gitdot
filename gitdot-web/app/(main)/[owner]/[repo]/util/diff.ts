@@ -3,6 +3,7 @@ import type {
   DiffHunkResource,
   DiffPairResource,
 } from "gitdot-api";
+import type { Element } from "hast";
 
 export type LinePair = [number | null, number | null];
 export const CONTEXT_LINES = 4;
@@ -440,4 +441,51 @@ export function createChangeMaps(hunks: DiffHunkResource[]): {
   }
 
   return { leftChangeMap: leftLines, rightChangeMap: rightLines };
+}
+
+// ============================================================================
+// unified vs split diff view heuristics
+// ============================================================================
+
+const SPLIT_MAX_LINE_LENGTH = 80;
+const SPLIT_MIN_MATCH_RATIO = 0.25;
+
+export function preferSplit(
+  leftSpans: Element[],
+  rightSpans: Element[],
+  hunks: DiffHunkResource[],
+): boolean {
+  let maxLen = 0;
+  let matched = 0;
+  let total = 0;
+
+  for (const hunk of hunks) {
+    for (const pair of hunk) {
+      if (pair.lhs) {
+        const span = leftSpans[pair.lhs.line_number - 1];
+        if (span) maxLen = Math.max(maxLen, spanTextLength(span));
+      }
+      if (pair.rhs) {
+        const span = rightSpans[pair.rhs.line_number - 1];
+        if (span) maxLen = Math.max(maxLen, spanTextLength(span));
+      }
+      if (pair.lhs && pair.rhs) matched++;
+      total++;
+    }
+  }
+
+  return (
+    maxLen <= SPLIT_MAX_LINE_LENGTH &&
+    total > 0 &&
+    matched / total >= SPLIT_MIN_MATCH_RATIO
+  );
+}
+
+function spanTextLength(span: Element): number {
+  let len = 0;
+  for (const child of span.children) {
+    if (child.type === "text") len += child.value.length;
+    else if (child.type === "element") len += spanTextLength(child);
+  }
+  return len;
 }

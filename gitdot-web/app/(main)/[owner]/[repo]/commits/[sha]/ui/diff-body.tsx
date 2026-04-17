@@ -1,20 +1,29 @@
 "use client";
 
+import { preferSplit } from "@/(main)/[owner]/[repo]/util";
 import type { DiffData } from "@/actions";
 import { DiffCreated } from "./diff-created";
+import { DiffSplit } from "./diff-split";
 import { DiffUnified } from "./diff-unified";
 import { DiffUnilateral } from "./diff-unilateral";
 
 export function DiffBody({ data }: { data: DiffData }) {
   return (
     <div className="w-full border-b border-border">
-      {data.kind === "split" && (
-        <DiffUnified
-          leftSpans={data.leftSpans}
-          rightSpans={data.rightSpans}
-          hunks={data.hunks}
-        />
-      )}
+      {data.kind === "split" &&
+        (preferSplit(data.leftSpans, data.rightSpans, data.hunks) ? (
+          <DiffSplit
+            leftSpans={data.leftSpans}
+            rightSpans={data.rightSpans}
+            hunks={data.hunks}
+          />
+        ) : (
+          <DiffUnified
+            leftSpans={data.leftSpans}
+            rightSpans={data.rightSpans}
+            hunks={data.hunks}
+          />
+        ))}
       {data.kind === "unilateral" && (
         <DiffUnilateral
           spans={data.spans}
