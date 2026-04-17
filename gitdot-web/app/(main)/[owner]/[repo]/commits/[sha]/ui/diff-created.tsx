@@ -5,7 +5,7 @@ import { Fragment } from "react";
 import { jsx, jsxs } from "react/jsx-runtime";
 import { DiffLine } from "./diff-line";
 
-export function DiffSingle({ spans }: { spans: Element[] }) {
+export function DiffCreated({ spans }: { spans: Element[] }) {
   const container: Element = {
     type: "element",
     tagName: "pre",

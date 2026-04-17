@@ -25,7 +25,7 @@ export function ReviewDiffBody({
 
   return (
     <div>
-      <div className="mx-16 px-1 pt-4 flex flex-row gap-4">
+      <div className="mx-16 px-1 pt-6 flex flex-row gap-4">
         <ReviewDiffMessage message={diff.message} />
         <ReviewDiffActions
           key={diff.position}

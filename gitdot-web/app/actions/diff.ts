@@ -23,12 +23,13 @@ export type DiffData =
       hunks: DiffHunkResource[];
     }
   | {
-      kind: "unified";
+      kind: "unilateral";
       spans: Element[];
       hunks: DiffHunkResource[];
       side: "left" | "right";
     }
-  | { kind: "single"; spans: Element[] }
+  | { kind: "created"; spans: Element[] }
+  | { kind: "deleted" }
   | { kind: "no-change" };
 
 export type DiffEntry = {
@@ -111,7 +112,12 @@ async function renderDiff(file: RepositoryDiffFileResource): Promise<DiffData> {
         createChangeMaps(processedHunks);
       const changeMap = isAllAdditions ? rightChangeMap : leftChangeMap;
       const spans = await renderSpans(side, content, lang, changeMap);
-      return { kind: "unified" as const, spans, hunks: processedHunks, side };
+      return {
+        kind: "unilateral" as const,
+        spans,
+        hunks: processedHunks,
+        side,
+      };
     }
 
     const { leftChangeMap, rightChangeMap } = createChangeMaps(processedHunks);
@@ -145,7 +151,8 @@ async function renderDiff(file: RepositoryDiffFileResource): Promise<DiffData> {
     const spans = code.children.filter(
       (child): child is Element => child.type === "element",
     );
-    return { kind: "single" as const, spans };
+    if (side === "left") return { kind: "deleted" as const };
+    return { kind: "created" as const, spans };
   } else {
     return { kind: "no-change" as const };
   }

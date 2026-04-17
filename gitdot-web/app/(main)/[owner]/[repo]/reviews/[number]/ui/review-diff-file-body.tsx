@@ -1,24 +1,33 @@
 "use client";
 
 import type { DiffData } from "@/actions";
-import { DiffSingle } from "../../../commits/[sha]/ui/diff-single";
-import { DiffSplit } from "../../../commits/[sha]/ui/diff-split";
+import { DiffCreated } from "../../../commits/[sha]/ui/diff-created";
 import { DiffUnified } from "../../../commits/[sha]/ui/diff-unified";
+import { DiffUnilateral } from "../../../commits/[sha]/ui/diff-unilateral";
 
 export function ReviewDiffFileBody({ data }: { data: DiffData }) {
   return (
     <div className="w-full">
       {data.kind === "split" && (
-        <DiffSplit
+        <DiffUnified
           leftSpans={data.leftSpans}
           rightSpans={data.rightSpans}
           hunks={data.hunks}
         />
       )}
-      {data.kind === "unified" && (
-        <DiffUnified spans={data.spans} hunks={data.hunks} side={data.side} />
+      {data.kind === "unilateral" && (
+        <DiffUnilateral
+          spans={data.spans}
+          hunks={data.hunks}
+          side={data.side}
+        />
       )}
-      {data.kind === "single" && <DiffSingle spans={data.spans} />}
+      {data.kind === "created" && <DiffCreated spans={data.spans} />}
+      {data.kind === "deleted" && (
+        <div className="text-sm font-mono px-2 text-primary/50">
+          File deleted.
+        </div>
+      )}
       {(!data || data.kind === "no-change") && (
         <div className="text-sm font-mono px-2">No changes made</div>
       )}
