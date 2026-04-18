@@ -101,9 +101,14 @@ export async function renderSpans(
   const pre = root.children[0] as Element;
   const code = pre.children[0] as Element;
 
-  return code.children.filter(
+  const lines = code.children.filter(
     (child): child is Element => child.type === "element",
   );
+  for (const line of lines) {
+    splitLineByWhitespace(line);
+  }
+
+  return lines;
 }
 
 /**
@@ -142,7 +147,7 @@ export function highlightWords(
       if (coversEntireSpan) {
         addClassToHast(child, colorClass);
       } else {
-        splitSpan(child, spanStart, changesInSpan, colorClass);
+        splitSpanByWord(child, spanStart, changesInSpan, colorClass);
       }
     }
 
@@ -225,7 +230,7 @@ function getSpanText(node: Element): string {
   return child.value;
 }
 
-function splitSpan(
+function splitSpanByWord(
   span: Element,
   spanStart: number,
   changes: DiffChangeResource[],
@@ -266,4 +271,64 @@ function splitSpan(
   }
 
   span.children = newChildren;
+}
+
+function splitLineByWhitespace(lineNode: Element): void {
+  const newChildren: ElementContent[] = [];
+
+  for (const child of lineNode.children) {
+    if (child.type !== "element") {
+      newChildren.push(child);
+      continue;
+    }
+
+    const spanChildren = [...child.children];
+
+    let leadingSpaces = "";
+    const firstChild = spanChildren[0];
+    if (firstChild?.type === "text") {
+      const [spaces, rest] = takeLeadingSpaces(firstChild.value);
+      if (spaces) {
+        leadingSpaces = spaces;
+        if (rest) spanChildren[0] = { type: "text", value: rest };
+        else spanChildren.shift();
+      }
+    }
+
+    let trailingSpaces = "";
+    const lastChild = spanChildren[spanChildren.length - 1];
+    if (lastChild?.type === "text") {
+      const [rest, spaces] = takeTrailingSpaces(lastChild.value);
+      if (spaces) {
+        trailingSpaces = spaces;
+        if (rest)
+          spanChildren[spanChildren.length - 1] = { type: "text", value: rest };
+        else spanChildren.pop();
+      }
+    }
+
+    const wsSpan = (value: string) => ({
+      ...child,
+      children: [{ type: "text" as const, value }],
+    });
+
+    if (leadingSpaces) newChildren.push(wsSpan(leadingSpaces));
+    if (spanChildren.length > 0)
+      newChildren.push({ ...child, children: spanChildren });
+    if (trailingSpaces) newChildren.push(wsSpan(trailingSpaces));
+  }
+
+  lineNode.children = newChildren;
+}
+
+function takeLeadingSpaces(value: string): [spaces: string, rest: string] {
+  let i = 0;
+  while (i < value.length && (value[i] === " " || value[i] === "\t")) i++;
+  return [value.slice(0, i), value.slice(i)];
+}
+
+function takeTrailingSpaces(value: string): [rest: string, spaces: string] {
+  let i = value.length;
+  while (i > 0 && (value[i - 1] === " " || value[i - 1] === "\t")) i--;
+  return [value.slice(0, i), value.slice(i)];
 }

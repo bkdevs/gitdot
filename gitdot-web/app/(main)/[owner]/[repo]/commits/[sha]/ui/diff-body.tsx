@@ -24,7 +24,7 @@ export function DiffBody({
         preferSplit(data.leftSpans, data.rightSpans, data.hunks)));
 
   return (
-    <div className={cn("w-full", className)}>
+    <div className={cn("w-full cursor-default", className)}>
       {data.kind === "split" &&
         (useSplit ? (
           <DiffSplit
