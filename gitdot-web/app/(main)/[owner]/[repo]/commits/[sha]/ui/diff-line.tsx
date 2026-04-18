@@ -12,16 +12,15 @@ export function DiffLine({
   return (
     <span
       className={cn(
-        "diff-line-row flex items-center w-full",
-        "[&_.diff-token]:transition-colors",
-        "[&_.diff-token]:duration-200",
-        "[&_.diff-token:hover]:bg-primary/8",
-        "[&_.diff-token.span-selected]:bg-primary/8",
+        "flex items-center w-full",
+        "[&_.diff-token]:cursor-pointer",
+        "[&_.diff-token]:[transition:background-color_200ms]",
+        "[&_.diff-token:hover,&_.diff-token.span-selected]:bg-primary/8",
         lineType === "added" && "bg-diff-green",
         lineType === "removed" && "bg-diff-red",
       )}
     >
-      <span className="diff-gutter w-7 text-right shrink-0 pr-1 mr-1 text-xs leading-5 text-primary/30 select-none">
+      <span className="w-7 text-right shrink-0 pr-1 mr-1 text-xs leading-5 text-primary/30 select-none">
         {lineType === "sentinel" ? ".." : lineNumber}
       </span>
       {children}

@@ -319,7 +319,11 @@ function splitLineByWhitespace(lineNode: Element): void {
 
     if (leadingSpaces) newChildren.push(wsSpan(leadingSpaces));
     if (spanChildren.length > 0)
-      newChildren.push({ ...child, properties: tokenProps, children: spanChildren });
+      newChildren.push({
+        ...child,
+        properties: tokenProps,
+        children: spanChildren,
+      });
     if (trailingSpaces) newChildren.push(wsSpan(trailingSpaces));
   }
 
