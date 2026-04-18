@@ -1,11 +1,13 @@
 "use client";
 
-import { useCallback, useRef } from "react";
+import { useCallback, useRef, useState } from "react";
 import { DiffCreated } from "@/(main)/[owner]/[repo]/commits/[sha]/ui/diff-created";
 import { DiffSplit } from "@/(main)/[owner]/[repo]/commits/[sha]/ui/diff-split";
 import { DiffUnified } from "@/(main)/[owner]/[repo]/commits/[sha]/ui/diff-unified";
 import { DiffUnilateral } from "@/(main)/[owner]/[repo]/commits/[sha]/ui/diff-unilateral";
 import { preferSplit } from "@/(main)/[owner]/[repo]/util";
+import { useUserContext } from "@/(main)/context/user";
+import { UserImage } from "@/(main)/[owner]/ui/user-image";
 import type { DiffData } from "@/actions";
 import { cn } from "@/util";
 import {
@@ -32,10 +34,12 @@ export function ReviewDiffFileBody({
   layout?: "split" | "unified" | "heuristic";
   className?: string;
 }) {
+  const { user } = useUserContext();
   const containerRef = useRef<HTMLDivElement>(null);
   const startSpanRef = useRef<HTMLElement | null>(null);
   const allSpansRef = useRef<HTMLElement[]>([]);
   const commentRef = useRef<ReviewDiffFileCommentNewHandle | null>(null);
+  const [bubblePos, setBubblePos] = useState<{ top: number; left: number } | null>(null);
 
   const clearSelection = useCallback(() => {
     const container = containerRef.current;
@@ -45,6 +49,7 @@ export function ReviewDiffFileBody({
       .querySelectorAll(".token-selected")
       .forEach((el) => { el.classList.remove("token-selected"); });
     container.classList.remove("has-selection");
+    setBubblePos(null);
   }, []);
 
   const handleMouseDown = useCallback(
@@ -90,6 +95,13 @@ export function ReviewDiffFileBody({
     containerRef.current?.classList.remove("is-dragging");
     if (startSpanRef.current !== null) {
       commentRef.current?.open({ x: e.clientX, y: e.clientY });
+      const line = startSpanRef.current.closest<HTMLElement>(".diff-line");
+      const container = containerRef.current;
+      if (line && container) {
+        const lineRect = line.getBoundingClientRect();
+        const containerRect = container.getBoundingClientRect();
+        setBubblePos({ top: lineRect.top, left: containerRect.right });
+      }
     }
     startSpanRef.current = null;
   }, []);
@@ -149,6 +161,17 @@ export function ReviewDiffFileBody({
         <div className="text-sm font-mono px-2">No changes made</div>
       )}
       <ReviewDiffFileCommentNew ref={commentRef} onClose={clearSelection} />
+      {bubblePos !== null && (
+        <div
+          className="fixed w-16 border-t border-b border-border py-0.5 z-50"
+          style={{ top: bubblePos.top, right: 0 }}
+        >
+          <div className="flex flex-row items-center justify-center gap-1.5 px-2">
+            <UserImage userId={user?.id} px={16} />
+            <span className="text-xs font-sans text-muted-foreground">1</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
