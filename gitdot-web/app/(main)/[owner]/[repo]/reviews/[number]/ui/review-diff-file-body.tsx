@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useRef } from "react";
 import { DiffCreated } from "@/(main)/[owner]/[repo]/commits/[sha]/ui/diff-created";
 import { DiffSplit } from "@/(main)/[owner]/[repo]/commits/[sha]/ui/diff-split";
 import { DiffUnified } from "@/(main)/[owner]/[repo]/commits/[sha]/ui/diff-unified";
@@ -8,6 +8,10 @@ import { DiffUnilateral } from "@/(main)/[owner]/[repo]/commits/[sha]/ui/diff-un
 import { preferSplit } from "@/(main)/[owner]/[repo]/util";
 import type { DiffData } from "@/actions";
 import { cn } from "@/util";
+import {
+  ReviewDiffFileCommentNew,
+  type ReviewDiffFileCommentNewHandle,
+} from "./review-diff-file-comment-new";
 
 const getTokenSpan = (target: EventTarget | null): HTMLElement | null => {
   if (!(target instanceof HTMLElement)) return null;
@@ -31,10 +35,7 @@ export function ReviewDiffFileBody({
   const containerRef = useRef<HTMLDivElement>(null);
   const startSpanRef = useRef<HTMLElement | null>(null);
   const allSpansRef = useRef<HTMLElement[]>([]);
-
-  const [commentOpen, setCommentOpen] = useState(false);
-  const [comment, setComment] = useState("");
-  const [commentPos, setCommentPos] = useState({ x: 0, y: 0 });
+  const commentRef = useRef<ReviewDiffFileCommentNewHandle | null>(null);
 
   const clearSelection = useCallback(() => {
     const container = containerRef.current;
@@ -42,10 +43,8 @@ export function ReviewDiffFileBody({
 
     container
       .querySelectorAll(".token-selected")
-      .forEach((el) => el.classList.remove("token-selected"));
+      .forEach((el) => { el.classList.remove("token-selected"); });
     container.classList.remove("has-selection");
-    setCommentOpen(false);
-    setComment("");
   }, []);
 
   const handleMouseDown = useCallback(
@@ -90,8 +89,7 @@ export function ReviewDiffFileBody({
   const handleMouseUp = useCallback((e: React.MouseEvent) => {
     containerRef.current?.classList.remove("is-dragging");
     if (startSpanRef.current !== null) {
-      setCommentPos({ x: e.clientX, y: e.clientY });
-      setCommentOpen(true);
+      commentRef.current?.open({ x: e.clientX, y: e.clientY });
     }
     startSpanRef.current = null;
   }, []);
@@ -150,31 +148,7 @@ export function ReviewDiffFileBody({
       {(!data || data.kind === "no-change") && (
         <div className="text-sm font-mono px-2">No changes made</div>
       )}
-      {commentOpen && (
-        <>
-          <div className="fixed inset-0 z-40" onMouseDown={clearSelection} />
-          <div
-            className="fixed z-50 w-64 bg-background border border-border shadow-md overflow-hidden"
-            style={{ top: commentPos.y + 12, left: commentPos.x + 12 }}
-            onMouseDown={(e) => e.stopPropagation()}
-          >
-            <textarea
-              autoFocus
-              className="w-full p-2 text-xs bg-background outline-none resize-none min-h-16"
-              placeholder="Leave a comment…"
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey && comment.trim()) {
-                  e.preventDefault();
-                  clearSelection();
-                }
-                if (e.key === "Escape") clearSelection();
-              }}
-            />
-          </div>
-        </>
-      )}
+      <ReviewDiffFileCommentNew ref={commentRef} onClose={clearSelection} />
     </div>
   );
 }
