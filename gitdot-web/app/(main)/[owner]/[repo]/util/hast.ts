@@ -307,14 +307,19 @@ function splitLineByWhitespace(lineNode: Element): void {
       }
     }
 
+    const tokenProps = {
+      ...child.properties,
+      class: [...((child.properties.class as string[]) ?? []), "diff-token"],
+    };
     const wsSpan = (value: string) => ({
       ...child,
+      properties: tokenProps,
       children: [{ type: "text" as const, value }],
     });
 
     if (leadingSpaces) newChildren.push(wsSpan(leadingSpaces));
     if (spanChildren.length > 0)
-      newChildren.push({ ...child, children: spanChildren });
+      newChildren.push({ ...child, properties: tokenProps, children: spanChildren });
     if (trailingSpaces) newChildren.push(wsSpan(trailingSpaces));
   }
 

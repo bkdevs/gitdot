@@ -220,3 +220,13 @@
 [data-diff-path-flash] {
   animation: diff-path-underline 0.3s ease-out;
 }
+
+.has-selection .diff-token:not(.span-selected) {
+  opacity: 0.4;
+  transition: opacity 200ms;
+}
+
+.has-selection .diff-token.span-selected {
+  opacity: 1;
+  transition: opacity 200ms;
+}
