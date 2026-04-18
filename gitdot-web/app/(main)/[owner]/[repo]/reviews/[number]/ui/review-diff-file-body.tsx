@@ -11,7 +11,12 @@ import { cn } from "@/util";
 
 const getTokenSpan = (target: EventTarget | null): HTMLElement | null => {
   if (!(target instanceof HTMLElement)) return null;
-  return target.closest(".diff-token");
+  const direct = target.closest(".diff-token");
+  if (direct) return direct as HTMLElement;
+  const line = target.closest(".diff-line");
+  if (!line) return null;
+  const tokens = line.querySelectorAll<HTMLElement>(".diff-token");
+  return tokens.length ? tokens[tokens.length - 1] : null;
 };
 
 export function ReviewDiffFileBody({
@@ -24,9 +29,9 @@ export function ReviewDiffFileBody({
   className?: string;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const isDraggingRef = useRef(false);
   const startSpanRef = useRef<HTMLElement | null>(null);
   const allSpansRef = useRef<HTMLElement[]>([]);
+
   const [commentOpen, setCommentOpen] = useState(false);
   const [comment, setComment] = useState("");
   const [commentPos, setCommentPos] = useState({ x: 0, y: 0 });
@@ -34,9 +39,10 @@ export function ReviewDiffFileBody({
   const clearSelection = useCallback(() => {
     const container = containerRef.current;
     if (!container) return;
+
     container
-      .querySelectorAll(".span-selected")
-      .forEach((el) => el.classList.remove("span-selected"));
+      .querySelectorAll(".token-selected")
+      .forEach((el) => el.classList.remove("token-selected"));
     container.classList.remove("has-selection");
     setCommentOpen(false);
     setComment("");
@@ -45,17 +51,17 @@ export function ReviewDiffFileBody({
   const handleMouseDown = useCallback(
     (e: React.MouseEvent) => {
       clearSelection();
-      isDraggingRef.current = true;
       containerRef.current?.classList.add("is-dragging");
       startSpanRef.current = null;
       allSpansRef.current = Array.from(
         containerRef.current?.querySelectorAll(".diff-token") ?? [],
       ) as HTMLElement[];
+
       const token = getTokenSpan(e.target);
       if (token) {
         e.preventDefault();
         startSpanRef.current = token;
-        token.classList.add("span-selected");
+        token.classList.add("token-selected");
         containerRef.current?.classList.add("has-selection");
       }
     },
@@ -63,28 +69,25 @@ export function ReviewDiffFileBody({
   );
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!isDraggingRef.current || !(e.buttons & 1)) return;
+    if (!(e.buttons & 1)) return;
+    if (!startSpanRef.current) return;
+
     const token = getTokenSpan(e.target);
     if (!token) return;
-    if (!startSpanRef.current) {
-      startSpanRef.current = token;
-      token.classList.add("span-selected");
-      containerRef.current?.classList.add("has-selection");
-      return;
-    }
+
     const spans = allSpansRef.current;
     const startIdx = spans.indexOf(startSpanRef.current);
     const endIdx = spans.indexOf(token);
     if (startIdx === -1 || endIdx === -1) return;
+
     const [from, to] =
       startIdx <= endIdx ? [startIdx, endIdx] : [endIdx, startIdx];
     for (let i = 0; i < spans.length; i++) {
-      spans[i].classList.toggle("span-selected", i >= from && i <= to);
+      spans[i].classList.toggle("token-selected", i >= from && i <= to);
     }
   }, []);
 
   const handleMouseUp = useCallback((e: React.MouseEvent) => {
-    isDraggingRef.current = false;
     containerRef.current?.classList.remove("is-dragging");
     if (startSpanRef.current !== null) {
       setCommentPos({ x: e.clientX, y: e.clientY });
@@ -105,12 +108,12 @@ export function ReviewDiffFileBody({
       className={cn(
         "w-full cursor-default select-none relative",
         "[&.is-dragging_.diff-token]:cursor-default",
-        "[&.has-selection_.diff-token:not(.span-selected)]:opacity-40",
-        "[&.has-selection_.diff-token:not(.span-selected)]:transition-opacity",
-        "[&.has-selection_.diff-token:not(.span-selected)]:duration-200",
-        "[&.has-selection_.diff-token.span-selected]:opacity-100",
-        "[&.has-selection_.diff-token.span-selected]:transition-opacity",
-        "[&.has-selection_.diff-token.span-selected]:duration-200",
+        "[&.has-selection_.diff-token:not(.token-selected)]:opacity-40",
+        "[&.has-selection_.diff-token:not(.token-selected)]:transition-opacity",
+        "[&.has-selection_.diff-token:not(.token-selected)]:duration-200",
+        "[&.has-selection_.diff-token.token-selected]:opacity-100",
+        "[&.has-selection_.diff-token.token-selected]:transition-opacity",
+        "[&.has-selection_.diff-token.token-selected]:duration-200",
         className,
       )}
       onMouseDown={handleMouseDown}

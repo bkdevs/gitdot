@@ -12,10 +12,11 @@ export function DiffLine({
   return (
     <span
       className={cn(
+        "diff-line",
         "flex items-center w-full",
         "[&_.diff-token]:cursor-pointer",
         "[&_.diff-token]:[transition:background-color_200ms]",
-        "[&_.diff-token:hover,&_.diff-token.span-selected]:bg-primary/8",
+        "[&_.diff-token:hover,&_.diff-token.token-selected]:bg-primary/8",
         lineType === "added" && "bg-diff-green",
         lineType === "removed" && "bg-diff-red",
       )}
