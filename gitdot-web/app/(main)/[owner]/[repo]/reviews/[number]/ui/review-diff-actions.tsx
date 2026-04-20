@@ -80,8 +80,7 @@ export function ReviewDiffActions({
               onApprove={async () => {
                 await Promise.all([
                   judgeDiffAction(owner, repo, review.number, position, {
-                    action: "approve",
-                    comments: [],
+                    verdict: "approve",
                   }),
                   new Promise((r) => setTimeout(r, 1600)),
                 ]);
@@ -89,7 +88,6 @@ export function ReviewDiffActions({
               }}
             />
           )}
-          <CommentButton />
         </div>
       )}
     </div>
@@ -144,17 +142,6 @@ function MergeButton({ onMerge }: { onMerge: () => Promise<void> }) {
       ) : (
         "Merge"
       )}
-    </button>
-  );
-}
-
-function CommentButton() {
-  return (
-    <button
-      type="button"
-      className="text-xs font-mono px-2.5 py-1 bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition-colors rounded-xs border border-border w-full"
-    >
-      Comment
     </button>
   );
 }

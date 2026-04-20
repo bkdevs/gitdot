@@ -59,7 +59,7 @@ pub struct Diff {
 #[serde(rename_all = "snake_case")]
 pub enum DiffStatus {
     Open,
-    ChangesRequested,
+    Rejected,
     Approved,
     Merged,
 }
@@ -103,7 +103,7 @@ pub struct ReviewVerdict {
 #[serde(rename_all = "snake_case")]
 pub enum Verdict {
     Approved,
-    ChangesRequested,
+    Rejected,
 }
 
 #[derive(Debug, Clone, FromRow, Serialize, Deserialize)]

@@ -56,10 +56,8 @@ function ReviewDiffStatus({ status }: { status: DiffStatus }) {
       return <span className="text-xs shrink-0 text-foreground">open</span>;
     case "approved":
       return <span className="text-xs shrink-0 text-green-600">approved</span>;
-    case "changes_requested":
-      return (
-        <span className="text-xs shrink-0 text-red-500">changes requested</span>
-      );
+    case "rejected":
+      return <span className="text-xs shrink-0 text-red-500">rejected</span>;
     case "merged":
       return (
         <span className="text-xs shrink-0 text-muted-foreground underline">

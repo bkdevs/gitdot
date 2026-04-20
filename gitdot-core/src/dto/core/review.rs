@@ -27,7 +27,7 @@ pub use add_review_reviewer::AddReviewReviewerReqeuest;
 pub use create_review_comment::CreateReviewCommentRequest;
 pub use get_review::GetReviewRequest;
 pub use get_review_diff::GetReviewDiffRequest;
-pub use judge_review_diff::{DiffComment, JudgeAction, JudgeReviewDiffRequest};
+pub use judge_review_diff::{JudgeReviewDiffRequest, JudgeVerdict};
 pub use list_reviews::ListReviewsRequest;
 pub use merge_review_diff::MergeReviewDiffRequest;
 pub use process_review::ProcessReviewRequest;
@@ -276,7 +276,7 @@ fn status_to_string(status: ReviewStatus) -> String {
 fn diff_status_to_string(status: DiffStatus) -> String {
     match status {
         DiffStatus::Open => "open".to_string(),
-        DiffStatus::ChangesRequested => "changes_requested".to_string(),
+        DiffStatus::Rejected => "rejected".to_string(),
         DiffStatus::Approved => "approved".to_string(),
         DiffStatus::Merged => "merged".to_string(),
     }
@@ -292,7 +292,7 @@ fn side_to_string(side: CommentSide) -> String {
 fn verdict_to_string(verdict: Verdict) -> String {
     match verdict {
         Verdict::Approved => "approved".to_string(),
-        Verdict::ChangesRequested => "changes_requested".to_string(),
+        Verdict::Rejected => "rejected".to_string(),
     }
 }
 

@@ -4,7 +4,7 @@ use crate::{
     client::{DiffClient, DifftClient, Git2Client, GitClient},
     dto::{
         AddReviewReviewerReqeuest, CreateReviewCommentRequest, GetReviewDiffRequest,
-        GetReviewRequest, JudgeAction, JudgeReviewDiffRequest, ListReviewsRequest,
+        GetReviewRequest, JudgeReviewDiffRequest, JudgeVerdict, ListReviewsRequest,
         MergeReviewDiffRequest, ProcessReviewRequest, PublishReviewRequest,
         RemoveReviewReviewerRequest, ResolveReviewCommentRequest, ReviewCommentResponse,
         ReviewDiffResponse, ReviewId, ReviewResponse, ReviewerResponse, ReviewsResponse,
@@ -653,45 +653,23 @@ where
             .first()
             .or_not_found("revision", "No revisions found")?;
 
-        // Create verdict and update diff status
-        if request.action != JudgeAction::Comment {
-            let verdict = match request.action {
-                JudgeAction::Approve => Verdict::Approved,
-                JudgeAction::RequestChanges => Verdict::ChangesRequested,
-                JudgeAction::Comment => unreachable!(),
+        let verdict = match request.verdict {
+            JudgeVerdict::Approve => Verdict::Approved,
+            JudgeVerdict::Reject => Verdict::Rejected,
+        };
+        self.review_repo
+            .create_verdict(diff.id, latest_revision.id, request.reviewer_id, verdict)
+            .await?;
+
+        // Update diff status: once approved, stays approved.
+        // Otherwise, reflect the new verdict directly.
+        if diff.status != DiffStatus::Approved {
+            let new_status = match request.verdict {
+                JudgeVerdict::Approve => DiffStatus::Approved,
+                JudgeVerdict::Reject => DiffStatus::Rejected,
             };
             self.review_repo
-                .create_verdict(diff.id, latest_revision.id, request.reviewer_id, verdict)
-                .await?;
-
-            // Update diff status: once approved, stays approved.
-            // Otherwise, reflect the new action directly.
-            if diff.status != DiffStatus::Approved {
-                let new_status = match request.action {
-                    JudgeAction::Approve => DiffStatus::Approved,
-                    JudgeAction::RequestChanges => DiffStatus::ChangesRequested,
-                    JudgeAction::Comment => unreachable!(),
-                };
-                self.review_repo
-                    .update_diff(diff.id, Some(new_status), None)
-                    .await?;
-            }
-        }
-
-        for comment in &request.comments {
-            self.review_repo
-                .create_comment(
-                    review.id,
-                    diff.id,
-                    latest_revision.id,
-                    request.reviewer_id,
-                    &comment.body,
-                    comment.parent_id,
-                    comment.file_path.clone(),
-                    comment.line_number_start,
-                    comment.line_number_end,
-                    comment.side.clone(),
-                )
+                .update_diff(diff.id, Some(new_status), None)
                 .await?;
         }
 

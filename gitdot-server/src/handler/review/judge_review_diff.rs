@@ -5,7 +5,7 @@ use axum::{
 };
 
 use gitdot_api::endpoint::judge_review_diff as api;
-use gitdot_core::dto::{DiffComment, JudgeReviewDiffRequest, ReviewingAuthorizationRequest};
+use gitdot_core::dto::{JudgeReviewDiffRequest, ReviewingAuthorizationRequest};
 
 use crate::{
     app::{AppError, AppResponse, AppState},
@@ -29,30 +29,13 @@ pub async fn judge_review_diff(
         .verify_authorized_for_reviewing(auth_request)
         .await?;
 
-    let comments = request
-        .comments
-        .into_iter()
-        .map(|c| {
-            DiffComment::new(
-                c.body,
-                c.parent_id,
-                c.file_path,
-                c.line_number_start,
-                c.line_number_end,
-                c.side.as_deref(),
-            )
-        })
-        .collect::<Result<Vec<_>, _>>()
-        .map_err(AppError::from)?;
-
     let request = JudgeReviewDiffRequest::new(
         &owner,
         &repo,
         id.0,
         position,
         auth_user.id,
-        &request.action,
-        comments,
+        &request.verdict,
     )?;
 
     state

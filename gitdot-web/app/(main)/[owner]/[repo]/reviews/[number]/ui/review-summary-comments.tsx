@@ -64,7 +64,7 @@ export function ReviewSummaryComments() {
       <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
         Comments
       </h2>
-      <div className="flex flex-col gap-3 -ml-1.5">
+      <div className="flex flex-col gap-4 -ml-2">
         {MOCK_COMMENTS.map((comment) => (
           <ReviewSummaryComment key={comment.id} comment={comment} />
         ))}
