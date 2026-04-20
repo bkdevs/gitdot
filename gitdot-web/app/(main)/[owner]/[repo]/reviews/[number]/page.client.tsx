@@ -93,7 +93,7 @@ function PageContent({
   if (!review) return null;
 
   return (
-    <ReviewProvider review={review}>
+    <ReviewProvider owner={owner} repo={repo} review={review}>
       <div
         className={cn(
           "grid flex-1 min-w-0 h-full",
@@ -109,7 +109,7 @@ function PageContent({
           )}
         >
           <div className={cn(layout === "summary" && "max-w-2xl mx-auto")}>
-            <ReviewSummary owner={owner} repo={repo} review={review} />
+            <ReviewSummary review={review} />
           </div>
         </div>
         <div

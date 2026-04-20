@@ -1,32 +1,14 @@
 "use client";
 
-import type {
-  ReviewAuthorResource,
-  ReviewDiffResource,
-  ReviewerResource,
-} from "gitdot-api";
+import type { ReviewDiffResource, ReviewerResource } from "gitdot-api";
 import { useRef, useState } from "react";
-import { useRepoContext } from "@/(main)/[owner]/[repo]/resources/context";
 import { UserImage } from "@/(main)/[owner]/ui/user-image";
-import { addReviewerAction, removeReviewerAction } from "@/actions/review";
-import { DatabaseProvider } from "@/provider/database";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
+import { useReviewContext } from "../context";
 
-export function ReviewSummaryReviewers({
-  owner,
-  repo,
-  number,
-  reviewers,
-  diffs,
-  author,
-}: {
-  owner: string;
-  repo: string;
-  number: number;
-  reviewers: ReviewerResource[];
-  diffs: ReviewDiffResource[];
-  author?: ReviewAuthorResource | null;
-}) {
+export function ReviewSummaryReviewers() {
+  const { reviewers, diffs, review } = useReviewContext();
+
   return (
     <section className="flex flex-col gap-1.5">
       <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -46,34 +28,25 @@ export function ReviewSummaryReviewers({
           return (
             <ReviewerRow
               key={reviewer.id}
-              owner={owner}
-              repo={repo}
-              number={number}
               reviewer={reviewer}
               approvedCount={approved}
               totalDiffs={diffs.length}
-              isAuthor={reviewer.reviewer_id === author?.id}
+              isAuthor={reviewer.reviewer_id === review.author?.id}
             />
           );
         })}
       </div>
-      <AddReviewer owner={owner} repo={repo} number={number} />
+      <AddReviewer />
     </section>
   );
 }
 
 function ReviewerRow({
-  owner,
-  repo,
-  number,
   reviewer,
   approvedCount,
   totalDiffs,
   isAuthor,
 }: {
-  owner: string;
-  repo: string;
-  number: number;
   reviewer: ReviewerResource;
   approvedCount: number;
   totalDiffs: number;
@@ -81,7 +54,7 @@ function ReviewerRow({
 }) {
   const [removing, setRemoving] = useState(false);
   const [removeError, setRemoveError] = useState<string | null>(null);
-  const { provider: memoryProvider } = useRepoContext();
+  const { removeReviewer } = useReviewContext();
   const name = reviewer.user?.name ?? reviewer.reviewer_id;
 
   return (
@@ -145,19 +118,12 @@ function ReviewerRow({
               <button
                 type="button"
                 onClick={async () => {
-                  const result = await removeReviewerAction(
-                    owner,
-                    repo,
-                    number,
+                  const result = await removeReviewer(
                     reviewer.user?.name ?? "",
                   );
                   if ("error" in result) {
                     setRemoveError(result.error);
                   } else {
-                    memoryProvider.deleteReview(number);
-                    await new DatabaseProvider(owner, repo).deleteReview(
-                      number,
-                    );
                     setRemoving(false);
                     setRemoveError(null);
                   }
@@ -174,19 +140,11 @@ function ReviewerRow({
   );
 }
 
-function AddReviewer({
-  owner,
-  repo,
-  number,
-}: {
-  owner: string;
-  repo: string;
-  number: number;
-}) {
+function AddReviewer() {
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { addReviewer } = useReviewContext();
   const inputRef = useRef<HTMLInputElement>(null);
-  const { provider: memoryProvider } = useRepoContext();
 
   function handleButtonClick() {
     setAdding(true);
@@ -204,14 +162,10 @@ function AddReviewer({
     if (e.key === "Enter") {
       const userName = inputRef.current?.value.trim();
       if (!userName) return;
-      const formData = new FormData();
-      formData.set("user_name", userName);
-      const result = await addReviewerAction(owner, repo, number, formData);
+      const result = await addReviewer(userName);
       if ("error" in result) {
         setError(result.error);
       } else {
-        memoryProvider.deleteReview(number);
-        await new DatabaseProvider(owner, repo).deleteReview(number);
         setAdding(false);
         setError(null);
       }

@@ -137,8 +137,6 @@ export interface Database {
     review: ReviewResource,
   ): Promise<void>;
 
-  deleteReview(owner: string, repo: string, number: number): Promise<void>;
-
   getBuilds(owner: string, repo: string): Promise<BuildResource[] | null>;
   putBuilds(
     owner: string,

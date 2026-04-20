@@ -30,13 +30,8 @@ export async function addReviewerAction(
   owner: string,
   repo: string,
   number: number,
-  formData: FormData,
+  userName: string,
 ): Promise<AddReviewerActionResult> {
-  const userName = formData.get("user_name") as string;
-  if (!userName) {
-    return { error: "Username is required" };
-  }
-
   let result: ReviewerResource | null;
   try {
     result = await addReviewer(owner, repo, number, { user_name: userName });
