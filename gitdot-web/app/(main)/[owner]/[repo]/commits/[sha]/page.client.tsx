@@ -35,7 +35,10 @@ export function PageClient({
 
   return (
     <Suspense fallback={<Loading />}>
-      <PageContent promises={resolvedPromises} diffEntriesPromise={diffEntriesPromise} />
+      <PageContent
+        promises={resolvedPromises}
+        diffEntriesPromise={diffEntriesPromise}
+      />
     </Suspense>
   );
 }

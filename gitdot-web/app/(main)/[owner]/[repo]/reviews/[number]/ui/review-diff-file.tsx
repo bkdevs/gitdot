@@ -3,7 +3,6 @@
 import type { RepositoryDiffFileResource } from "gitdot-api";
 import { Maximize2 } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
-import { UserImage } from "@/(main)/[owner]/ui/user-image";
 import { useUserContext } from "@/(main)/context/user";
 import type { DiffSpans } from "@/actions";
 import {
@@ -13,6 +12,7 @@ import {
   ContextMenuTrigger,
 } from "@/ui/context-menu";
 import { ReviewDiffFileBody } from "./review-diff-file-body";
+import { ReviewDiffFileBubbles } from "./review-diff-file-bubbles";
 import { ReviewDiffFileDialog } from "./review-diff-file-dialog";
 import { ReviewDiffFileHeader } from "./review-diff-file-header";
 
@@ -67,15 +67,7 @@ export function ReviewDiffFile({
           </ContextMenuContent>
         </ContextMenu>
       </div>
-      {bubbleTop !== null && (
-        <div
-          className="absolute z-50 flex flex-row items-center gap-1.5 left-full ml-2 px-2 py-0.5 bg-background animate-in fade-in duration-200"
-          style={{ top: bubbleTop }}
-        >
-          <UserImage userId={user?.id} px={16} />
-          <span className="text-xs font-sans text-muted-foreground">1</span>
-        </div>
-      )}
+      <ReviewDiffFileBubbles bubbleTop={bubbleTop} userId={user?.id} />
       <ReviewDiffFileDialog
         diff={diff}
         spans={spans}
