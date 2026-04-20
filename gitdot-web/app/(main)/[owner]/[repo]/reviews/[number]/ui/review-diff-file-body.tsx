@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useRef } from "react";
 import { DiffCreated } from "@/(main)/[owner]/[repo]/commits/[sha]/ui/diff-created";
 import { DiffSplit } from "@/(main)/[owner]/[repo]/commits/[sha]/ui/diff-split";
 import { DiffUnified } from "@/(main)/[owner]/[repo]/commits/[sha]/ui/diff-unified";
@@ -43,9 +43,9 @@ export function ReviewDiffFileBody({
     const container = containerRef.current;
     if (!container) return;
 
-    container
-      .querySelectorAll(".token-selected")
-      .forEach((el) => { el.classList.remove("token-selected"); });
+    container.querySelectorAll(".token-selected").forEach((el) => {
+      el.classList.remove("token-selected");
+    });
     container.classList.remove("has-selection");
     onBubble?.(null);
   }, [onBubble]);
@@ -89,17 +89,20 @@ export function ReviewDiffFileBody({
     }
   }, []);
 
-  const handleMouseUp = useCallback((e: React.MouseEvent) => {
-    containerRef.current?.classList.remove("is-dragging");
-    if (startSpanRef.current !== null) {
-      commentRef.current?.open({ x: e.clientX, y: e.clientY });
-      const line = startSpanRef.current.closest<HTMLElement>(".diff-line");
-      if (line) {
-        onBubble?.(line.getBoundingClientRect().top);
+  const handleMouseUp = useCallback(
+    (e: React.MouseEvent) => {
+      containerRef.current?.classList.remove("is-dragging");
+      if (startSpanRef.current !== null) {
+        commentRef.current?.open({ x: e.clientX, y: e.clientY });
+        const line = startSpanRef.current.closest<HTMLElement>(".diff-line");
+        if (line) {
+          onBubble?.(line.getBoundingClientRect().top);
+        }
       }
-    }
-    startSpanRef.current = null;
-  }, []);
+      startSpanRef.current = null;
+    },
+    [onBubble],
+  );
 
   const useSplit =
     data.kind === "split" &&

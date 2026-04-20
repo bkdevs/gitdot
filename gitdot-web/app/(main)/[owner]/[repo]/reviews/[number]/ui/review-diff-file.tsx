@@ -3,8 +3,8 @@
 import type { RepositoryDiffFileResource } from "gitdot-api";
 import { Maximize2 } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
-import { useUserContext } from "@/(main)/context/user";
 import { UserImage } from "@/(main)/[owner]/ui/user-image";
+import { useUserContext } from "@/(main)/context/user";
 import type { DiffData } from "@/actions";
 import {
   ContextMenu,
@@ -60,7 +60,7 @@ export function ReviewDiffFile({
       </div>
       {bubbleTop !== null && (
         <div
-          className="absolute z-50 flex flex-row items-center gap-1.5 left-full ml-2 border border-border rounded-full px-2 py-0.5 bg-background"
+          className="absolute z-50 flex flex-row items-center gap-1.5 left-full ml-2 px-2 py-0.5 bg-background"
           style={{ top: bubbleTop }}
         >
           <UserImage userId={user?.id} px={16} />
