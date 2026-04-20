@@ -10,6 +10,7 @@ import { useShortcuts } from "@/(main)/context/shortcuts";
 import type { DiffEntry } from "@/actions";
 import { Loading } from "@/ui/loading";
 import { cn } from "@/util";
+import { ReviewProvider } from "./context";
 import type { Resources } from "./page";
 import { ReviewDiff } from "./ui/review-diff";
 import { ReviewLayoutToggles } from "./ui/review-layout-toggles";
@@ -92,41 +93,43 @@ function PageContent({
   if (!review) return null;
 
   return (
-    <div
-      className={cn(
-        "grid flex-1 min-w-0 h-full",
-        layout === "split" && "grid-cols-[25%_1fr]",
-        layout === "summary" && "grid-cols-1",
-        layout === "diffs" && "grid-cols-1",
-      )}
-    >
+    <ReviewProvider review={review}>
       <div
         className={cn(
-          "h-full border-r overflow-y-auto",
-          layout === "diffs" && "hidden",
+          "grid flex-1 min-w-0 h-full",
+          layout === "split" && "grid-cols-[25%_1fr]",
+          layout === "summary" && "grid-cols-1",
+          layout === "diffs" && "grid-cols-1",
         )}
       >
-        <div className={cn(layout === "summary" && "max-w-2xl mx-auto")}>
-          <ReviewSummary owner={owner} repo={repo} review={review} />
+        <div
+          className={cn(
+            "h-full border-r overflow-y-auto",
+            layout === "diffs" && "hidden",
+          )}
+        >
+          <div className={cn(layout === "summary" && "max-w-2xl mx-auto")}>
+            <ReviewSummary owner={owner} repo={repo} review={review} />
+          </div>
+        </div>
+        <div
+          className={cn(
+            "scrollbar-thin overflow-y-auto",
+            layout === "summary" && "hidden",
+          )}
+        >
+          <ReviewDiff
+            owner={owner}
+            repo={repo}
+            position={position}
+            review={review}
+            diffPromise={diffPromise}
+          />
+        </div>
+        <div className="fixed bottom-6 left-0">
+          <ReviewLayoutToggles layout={layout} setLayout={setLayout} />
         </div>
       </div>
-      <div
-        className={cn(
-          "scrollbar-thin overflow-y-auto",
-          layout === "summary" && "hidden",
-        )}
-      >
-        <ReviewDiff
-          owner={owner}
-          repo={repo}
-          position={position}
-          review={review}
-          diffPromise={diffPromise}
-        />
-      </div>
-      <div className="fixed bottom-6 left-0">
-        <ReviewLayoutToggles layout={layout} setLayout={setLayout} />
-      </div>
-    </div>
+    </ReviewProvider>
   );
 }
