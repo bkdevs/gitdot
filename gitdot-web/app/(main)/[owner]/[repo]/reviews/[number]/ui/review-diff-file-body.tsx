@@ -127,11 +127,13 @@ export function ReviewDiffFileBody({
           ? spans[endIdx]
           : spans[Math.max(startIdx, endIdx)];
         const anchorLine = anchorToken.closest<HTMLElement>(".diff-line");
-        if (!anchorLine) throw new Error("anchorToken has no .diff-line ancestor");
+        if (!anchorLine)
+          throw new Error("anchorToken has no .diff-line ancestor");
         const leftmostToken = anchorLine.querySelector<HTMLElement>(
           ".diff-token.token-selected",
         );
-        if (!leftmostToken) throw new Error("anchorLine has no .diff-token.token-selected");
+        if (!leftmostToken)
+          throw new Error("anchorLine has no .diff-token.token-selected");
 
         const rect = leftmostToken.getBoundingClientRect();
 
