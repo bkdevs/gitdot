@@ -20,7 +20,7 @@ export function UserImage({
       alt="user avatar"
       width={px}
       height={px}
-      className="rounded-full"
+      className="rounded-full shrink-0"
       style={{ width: px, height: px }}
     />
   );
