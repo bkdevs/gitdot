@@ -10,13 +10,13 @@ export function ReviewDiff({
   repo,
   position,
   review,
-  diffPromise,
+  diffEntriesPromise,
 }: {
   owner: string;
   repo: string;
   position: number;
   review: ReviewResource;
-  diffPromise: Promise<DiffEntry[]>;
+  diffEntriesPromise: Promise<DiffEntry[]>;
 }) {
   const activeDiff = review.diffs.find((d) => d.position === position);
   if (!activeDiff) return null;
@@ -29,7 +29,7 @@ export function ReviewDiff({
           owner={owner}
           repo={repo}
           review={review}
-          diffPromise={diffPromise}
+          diffEntriesPromise={diffEntriesPromise}
           diff={activeDiff}
         />
       </Suspense>

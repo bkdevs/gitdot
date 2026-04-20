@@ -18,7 +18,7 @@ export default async function Page({
   const { requests, promises } = fetchResources(owner, repo, {
     commit: (p) => p.getCommit(sha),
   });
-  const diffPromise = renderCommitDiffAction(owner, repo, sha);
+  const diffEntriesPromise = renderCommitDiffAction(owner, repo, sha);
 
   return (
     <PageClient
@@ -26,7 +26,7 @@ export default async function Page({
       repo={repo}
       requests={requests}
       promises={promises}
-      diffPromise={diffPromise}
+      diffEntriesPromise={diffEntriesPromise}
     />
   );
 }

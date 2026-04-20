@@ -117,6 +117,8 @@ SELECT
                     'file_path', c.file_path,
                     'line_number_start', c.line_number_start,
                     'line_number_end', c.line_number_end,
+                    'start_character', c.start_character,
+                    'end_character', c.end_character,
                     'side', c.side,
                     'resolved', c.resolved,
                     'created_at', c.created_at,
@@ -245,6 +247,8 @@ pub trait ReviewRepository: Send + Sync + Clone + 'static {
         file_path: Option<String>,
         line_number_start: Option<i32>,
         line_number_end: Option<i32>,
+        start_character: Option<i32>,
+        end_character: Option<i32>,
         side: Option<CommentSide>,
     ) -> Result<ReviewComment, DatabaseError>;
 
@@ -665,15 +669,17 @@ impl ReviewRepository for ReviewRepositoryImpl {
         file_path: Option<String>,
         line_number_start: Option<i32>,
         line_number_end: Option<i32>,
+        start_character: Option<i32>,
+        end_character: Option<i32>,
         side: Option<CommentSide>,
     ) -> Result<ReviewComment, DatabaseError> {
         let comment = sqlx::query_as::<_, ReviewComment>(
             r#"
-            INSERT INTO core.review_comments (review_id, diff_id, revision_id, author_id, body, parent_id, file_path, line_number_start, line_number_end, side)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            INSERT INTO core.review_comments (review_id, diff_id, revision_id, author_id, body, parent_id, file_path, line_number_start, line_number_end, start_character, end_character, side)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
             RETURNING
                 id, review_id, diff_id, revision_id, author_id, parent_id,
-                body, file_path, line_number_start, line_number_end, side,
+                body, file_path, line_number_start, line_number_end, start_character, end_character, side,
                 resolved, created_at, updated_at,
                 (SELECT json_build_object(
                     'id', u.id, 'name', u.name, 'email', u.email, 'is_email_verified', u.is_email_verified, 'provider', u.provider, 'created_at', u.created_at, 'links', u.links)
@@ -689,6 +695,8 @@ impl ReviewRepository for ReviewRepositoryImpl {
         .bind(file_path)
         .bind(line_number_start)
         .bind(line_number_end)
+        .bind(start_character)
+        .bind(end_character)
         .bind(side)
         .fetch_one(&self.pool)
         .await?;
@@ -701,7 +709,7 @@ impl ReviewRepository for ReviewRepositoryImpl {
             r#"
             SELECT
                 c.id, c.review_id, c.diff_id, c.revision_id, c.author_id, c.parent_id,
-                c.body, c.file_path, c.line_number_start, c.line_number_end, c.side,
+                c.body, c.file_path, c.line_number_start, c.line_number_end, c.start_character, c.end_character, c.side,
                 c.resolved, c.created_at, c.updated_at,
                 (SELECT json_build_object(
                     'id', u.id, 'name', u.name, 'email', u.email, 'is_email_verified', u.is_email_verified, 'provider', u.provider, 'created_at', u.created_at, 'links', u.links)
@@ -729,7 +737,7 @@ impl ReviewRepository for ReviewRepositoryImpl {
             WHERE id = $1
             RETURNING
                 id, review_id, diff_id, revision_id, author_id, parent_id,
-                body, file_path, line_number_start, line_number_end, side,
+                body, file_path, line_number_start, line_number_end, start_character, end_character, side,
                 resolved, created_at, updated_at,
                 (SELECT json_build_object(
                     'id', u.id, 'name', u.name, 'email', u.email, 'is_email_verified', u.is_email_verified, 'provider', u.provider, 'created_at', u.created_at, 'links', u.links)

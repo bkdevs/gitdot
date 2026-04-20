@@ -5,7 +5,7 @@ import { Maximize2 } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 import { UserImage } from "@/(main)/[owner]/ui/user-image";
 import { useUserContext } from "@/(main)/context/user";
-import type { DiffData } from "@/actions";
+import type { DiffSpans } from "@/actions";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -17,11 +17,15 @@ import { ReviewDiffFileDialog } from "./review-diff-file-dialog";
 import { ReviewDiffFileHeader } from "./review-diff-file-header";
 
 export function ReviewDiffFile({
+  diffId,
+  revisionId,
   diff,
-  data,
+  spans,
 }: {
+  diffId: string;
+  revisionId: string;
   diff: RepositoryDiffFileResource;
-  data: DiffData;
+  spans: DiffSpans;
 }) {
   const { user } = useUserContext();
   const [open, setOpen] = useState(false);
@@ -47,7 +51,12 @@ export function ReviewDiffFile({
         <ContextMenu>
           <ContextMenuTrigger asChild>
             <div>
-              <ReviewDiffFileBody data={data} onBubble={handleBubble} />
+              <ReviewDiffFileBody
+                diffId={diffId}
+                revisionId={revisionId}
+                spans={spans}
+                onBubble={handleBubble}
+              />
             </div>
           </ContextMenuTrigger>
           <ContextMenuContent>
@@ -69,7 +78,7 @@ export function ReviewDiffFile({
       )}
       <ReviewDiffFileDialog
         diff={diff}
-        data={data}
+        spans={spans}
         open={open}
         setOpen={setOpen}
       />

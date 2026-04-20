@@ -6,7 +6,7 @@ import { DiffSplit } from "@/(main)/[owner]/[repo]/commits/[sha]/ui/diff-split";
 import { DiffUnified } from "@/(main)/[owner]/[repo]/commits/[sha]/ui/diff-unified";
 import { DiffUnilateral } from "@/(main)/[owner]/[repo]/commits/[sha]/ui/diff-unilateral";
 import { preferSplit } from "@/(main)/[owner]/[repo]/util";
-import type { DiffData } from "@/actions";
+import type { DiffSpans } from "@/actions";
 import { cn } from "@/util";
 import {
   ReviewDiffFileCommentNew,
@@ -24,12 +24,16 @@ const getTokenSpan = (target: EventTarget | null): HTMLElement | null => {
 };
 
 export function ReviewDiffFileBody({
-  data,
+  diffId,
+  revisionId,
+  spans,
   layout = "heuristic",
   className,
   onBubble,
 }: {
-  data: DiffData;
+  diffId: string;
+  revisionId: string;
+  spans: DiffSpans;
   layout?: "split" | "unified" | "heuristic";
   className?: string;
   onBubble?: (viewportTop: number | null) => void;
@@ -105,10 +109,10 @@ export function ReviewDiffFileBody({
   );
 
   const useSplit =
-    data.kind === "split" &&
+    spans.kind === "split" &&
     (layout === "split" ||
       (layout === "heuristic" &&
-        preferSplit(data.leftSpans, data.rightSpans, data.hunks)));
+        preferSplit(spans.leftSpans, spans.rightSpans, spans.hunks)));
 
   return (
     <div
@@ -128,37 +132,42 @@ export function ReviewDiffFileBody({
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
     >
-      {data.kind === "split" &&
+      {spans.kind === "split" &&
         (useSplit ? (
           <DiffSplit
-            leftSpans={data.leftSpans}
-            rightSpans={data.rightSpans}
-            hunks={data.hunks}
+            leftSpans={spans.leftSpans}
+            rightSpans={spans.rightSpans}
+            hunks={spans.hunks}
           />
         ) : (
           <DiffUnified
-            leftSpans={data.leftSpans}
-            rightSpans={data.rightSpans}
-            hunks={data.hunks}
+            leftSpans={spans.leftSpans}
+            rightSpans={spans.rightSpans}
+            hunks={spans.hunks}
           />
         ))}
-      {data.kind === "unilateral" && (
+      {spans.kind === "unilateral" && (
         <DiffUnilateral
-          spans={data.spans}
-          hunks={data.hunks}
-          side={data.side}
+          spans={spans.spans}
+          hunks={spans.hunks}
+          side={spans.side}
         />
       )}
-      {data.kind === "created" && <DiffCreated spans={data.spans} />}
-      {data.kind === "deleted" && (
+      {spans.kind === "created" && <DiffCreated spans={spans.spans} />}
+      {spans.kind === "deleted" && (
         <div className="text-sm font-mono px-2 text-primary/50">
           File deleted.
         </div>
       )}
-      {(!data || data.kind === "no-change") && (
+      {(!spans || spans.kind === "no-change") && (
         <div className="text-sm font-mono px-2">No changes made</div>
       )}
-      <ReviewDiffFileCommentNew ref={commentRef} onClose={clearSelection} />
+      <ReviewDiffFileCommentNew
+        ref={commentRef}
+        diffId={diffId}
+        revisionId={revisionId}
+        onClose={clearSelection}
+      />
     </div>
   );
 }

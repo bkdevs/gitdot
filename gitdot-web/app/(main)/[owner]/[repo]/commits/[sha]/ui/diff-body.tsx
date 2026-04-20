@@ -1,7 +1,7 @@
 "use client";
 
 import { preferSplit } from "@/(main)/[owner]/[repo]/util";
-import type { DiffData } from "@/actions";
+import type { DiffSpans } from "@/actions";
 import { cn } from "@/util";
 import { DiffCreated } from "./diff-created";
 import { DiffSplit } from "./diff-split";
@@ -9,50 +9,50 @@ import { DiffUnified } from "./diff-unified";
 import { DiffUnilateral } from "./diff-unilateral";
 
 export function DiffBody({
-  data,
+  spans,
   layout = "heuristic",
   className,
 }: {
-  data: DiffData;
+  spans: DiffSpans;
   layout?: "split" | "unified" | "heuristic";
   className?: string;
 }) {
   const useSplit =
-    data.kind === "split" &&
+    spans.kind === "split" &&
     (layout === "split" ||
       (layout === "heuristic" &&
-        preferSplit(data.leftSpans, data.rightSpans, data.hunks)));
+        preferSplit(spans.leftSpans, spans.rightSpans, spans.hunks)));
 
   return (
     <div className={cn("w-full", className)}>
-      {data.kind === "split" &&
+      {spans.kind === "split" &&
         (useSplit ? (
           <DiffSplit
-            leftSpans={data.leftSpans}
-            rightSpans={data.rightSpans}
-            hunks={data.hunks}
+            leftSpans={spans.leftSpans}
+            rightSpans={spans.rightSpans}
+            hunks={spans.hunks}
           />
         ) : (
           <DiffUnified
-            leftSpans={data.leftSpans}
-            rightSpans={data.rightSpans}
-            hunks={data.hunks}
+            leftSpans={spans.leftSpans}
+            rightSpans={spans.rightSpans}
+            hunks={spans.hunks}
           />
         ))}
-      {data.kind === "unilateral" && (
+      {spans.kind === "unilateral" && (
         <DiffUnilateral
-          spans={data.spans}
-          hunks={data.hunks}
-          side={data.side}
+          spans={spans.spans}
+          hunks={spans.hunks}
+          side={spans.side}
         />
       )}
-      {data.kind === "created" && <DiffCreated spans={data.spans} />}
-      {data.kind === "deleted" && (
+      {spans.kind === "created" && <DiffCreated spans={spans.spans} />}
+      {spans.kind === "deleted" && (
         <div className="text-sm font-mono px-2 text-primary/50">
           File deleted.
         </div>
       )}
-      {(!data || data.kind === "no-change") && (
+      {(!spans || spans.kind === "no-change") && (
         <div className="text-sm font-mono px-2">No changes made</div>
       )}
     </div>

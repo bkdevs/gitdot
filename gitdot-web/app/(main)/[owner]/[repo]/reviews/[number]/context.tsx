@@ -1,6 +1,7 @@
 "use client";
 
 import type {
+  CreateReviewCommentRequest,
   ReviewCommentResource,
   ReviewDiffResource,
   ReviewerResource,
@@ -10,11 +11,18 @@ import { createContext, useContext, useState } from "react";
 import {
   type AddReviewerActionResult,
   addReviewerAction,
+  type CreateReviewCommentActionResult,
+  createReviewCommentAction,
   type RemoveReviewerActionResult,
   removeReviewerAction,
 } from "@/actions/review";
 
-export type { AddReviewerActionResult, RemoveReviewerActionResult };
+export type {
+  AddReviewerActionResult,
+  CreateReviewCommentActionResult,
+  CreateReviewCommentRequest,
+  RemoveReviewerActionResult,
+};
 
 type ReviewContext = {
   review: ReviewResource;
@@ -24,6 +32,9 @@ type ReviewContext = {
 
   addReviewer: (userName: string) => Promise<AddReviewerActionResult>;
   removeReviewer: (reviewerName: string) => Promise<RemoveReviewerActionResult>;
+  addComment: (
+    request: CreateReviewCommentRequest,
+  ) => Promise<CreateReviewCommentActionResult>;
 };
 
 const ReviewContext = createContext<ReviewContext | null>(null);
@@ -74,6 +85,21 @@ export function ReviewProvider({
     return result;
   }
 
+  async function addComment(
+    request: CreateReviewCommentRequest,
+  ): Promise<CreateReviewCommentActionResult> {
+    const result = await createReviewCommentAction(
+      owner,
+      repo,
+      review.number,
+      request,
+    );
+    if ("error" in result) return result;
+
+    setReview((r) => ({ ...r, comments: [...r.comments, result.comment] }));
+    return result;
+  }
+
   return (
     <ReviewContext
       value={{
@@ -83,6 +109,7 @@ export function ReviewProvider({
         comments: review.comments,
         addReviewer,
         removeReviewer,
+        addComment,
       }}
     >
       {children}

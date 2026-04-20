@@ -15,13 +15,13 @@ export function PageClient({
   repo,
   position,
   reviewPromise,
-  diffPromise,
+  diffEntriesPromise,
 }: {
   owner: string;
   repo: string;
   position: number;
   reviewPromise: Promise<ReviewResource | null>;
-  diffPromise: Promise<DiffEntry[]>;
+  diffEntriesPromise: Promise<DiffEntry[]>;
 }) {
   return (
     <Suspense>
@@ -30,7 +30,7 @@ export function PageClient({
         repo={repo}
         position={position}
         reviewPromise={reviewPromise}
-        diffPromise={diffPromise}
+        diffEntriesPromise={diffEntriesPromise}
       />
     </Suspense>
   );
@@ -41,13 +41,13 @@ function PageContent({
   repo,
   position,
   reviewPromise,
-  diffPromise,
+  diffEntriesPromise,
 }: {
   owner: string;
   repo: string;
   position: number;
   reviewPromise: Promise<ReviewResource | null>;
-  diffPromise: Promise<DiffEntry[]>;
+  diffEntriesPromise: Promise<DiffEntry[]>;
 }) {
   const review = use(reviewPromise);
   if (!review) return null;
@@ -76,7 +76,7 @@ function PageContent({
               owner={owner}
               repo={repo}
               review={review}
-              diffPromise={diffPromise}
+              diffEntriesPromise={diffEntriesPromise}
               diff={activeDiff}
             />
           </Suspense>

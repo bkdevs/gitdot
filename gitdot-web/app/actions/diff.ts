@@ -15,7 +15,7 @@ import {
   getReviewDiff,
 } from "@/dal";
 
-export type DiffData =
+export type DiffSpans =
   | {
       kind: "split";
       leftSpans: Element[];
@@ -33,8 +33,8 @@ export type DiffData =
   | { kind: "no-change" };
 
 export type DiffEntry = {
-  diff: RepositoryDiffFileResource;
-  data: DiffData;
+  resource: RepositoryDiffFileResource;
+  spans: DiffSpans;
 };
 
 export async function renderBlobDiffsAction(
@@ -51,7 +51,7 @@ export async function renderBlobDiffsAction(
   const entries = await Promise.all(
     Object.entries(result.diffs).map(
       async ([sha, file]) =>
-        [sha, { diff: file, data: await renderDiff(file) }] as const,
+        [sha, { resource: file, spans: await renderDiff(file) }] as const,
     ),
   );
   return Object.fromEntries(entries);
@@ -91,10 +91,12 @@ async function renderDiffs(
   files: RepositoryDiffFileResource[],
 ): Promise<DiffEntry[]> {
   const datas = await Promise.all(files.map(renderDiff));
-  return files.map((file, i) => ({ diff: file, data: datas[i] }));
+  return files.map((file, i) => ({ resource: file, spans: datas[i] }));
 }
 
-async function renderDiff(file: RepositoryDiffFileResource): Promise<DiffData> {
+async function renderDiff(
+  file: RepositoryDiffFileResource,
+): Promise<DiffSpans> {
   const left = file.left_content ?? null;
   const right = file.right_content ?? null;
 

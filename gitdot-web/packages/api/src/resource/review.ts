@@ -65,6 +65,8 @@ export const ReviewCommentResource = z.object({
   file_path: z.string().nullable(),
   line_number_start: z.number().int().nullable(),
   line_number_end: z.number().int().nullable(),
+  start_character: z.number().int().nullable(),
+  end_character: z.number().int().nullable(),
   side: z.string().nullable(),
   resolved: z.boolean(),
   created_at: z.iso.datetime(),

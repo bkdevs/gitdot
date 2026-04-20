@@ -120,6 +120,8 @@ impl IntoApi for ReviewCommentResponse {
             file_path: self.file_path,
             line_number_start: self.line_number_start,
             line_number_end: self.line_number_end,
+            start_character: self.start_character,
+            end_character: self.end_character,
             side: self.side,
             resolved: self.resolved,
             created_at: self.created_at,

@@ -42,7 +42,7 @@ export function FileViewer({
         className="flex-1 min-w-0 overflow-auto scrollbar-thin"
       >
         {activeCommit && activeDiffEntry ? (
-          <FileCommitBody commit={activeCommit} diffEntry={activeDiffEntry} />
+          <FileCommitBody commit={activeCommit} entry={activeDiffEntry} />
         ) : (
           <FileBody />
         )}

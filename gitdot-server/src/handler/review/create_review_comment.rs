@@ -35,6 +35,8 @@ pub async fn create_review_comment(
         request.file_path,
         request.line_number_start,
         request.line_number_end,
+        request.start_character,
+        request.end_character,
         request.side.as_deref(),
     )?;
 

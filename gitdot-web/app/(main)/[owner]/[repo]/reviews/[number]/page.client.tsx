@@ -28,7 +28,7 @@ export function PageClient({
   position,
   requests,
   promises,
-  diffPromise,
+  diffEntriesPromise,
 }: {
   owner: string;
   repo: string;
@@ -36,7 +36,7 @@ export function PageClient({
   position: number;
   requests: ResourceRequests;
   promises: ResourcePromises;
-  diffPromise: Promise<DiffEntry[]>;
+  diffEntriesPromise: Promise<DiffEntry[]>;
 }) {
   const resolvedPromises = useResolvePromises(owner, repo, requests, promises);
 
@@ -47,7 +47,7 @@ export function PageClient({
         repo={repo}
         position={position}
         promises={resolvedPromises}
-        diffPromise={diffPromise}
+        diffEntriesPromise={diffEntriesPromise}
       />
     </Suspense>
   );
@@ -58,13 +58,13 @@ function PageContent({
   repo,
   position,
   promises,
-  diffPromise,
+  diffEntriesPromise,
 }: {
   owner: string;
   repo: string;
   position: number;
   promises: ResourcePromises;
-  diffPromise: Promise<DiffEntry[]>;
+  diffEntriesPromise: Promise<DiffEntry[]>;
 }) {
   const [layout, setLayout] = useState<PageLayout>("split");
 
@@ -123,7 +123,7 @@ function PageContent({
             repo={repo}
             position={position}
             review={review}
-            diffPromise={diffPromise}
+            diffEntriesPromise={diffEntriesPromise}
           />
         </div>
         <div className="fixed bottom-6 left-0">

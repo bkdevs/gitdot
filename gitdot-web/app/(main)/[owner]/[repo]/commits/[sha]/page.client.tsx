@@ -23,29 +23,29 @@ export function PageClient({
   repo,
   requests,
   promises,
-  diffPromise,
+  diffEntriesPromise,
 }: {
   owner: string;
   repo: string;
   requests: ResourceRequests;
   promises: ResourcePromises;
-  diffPromise: Promise<DiffEntry[]>;
+  diffEntriesPromise: Promise<DiffEntry[]>;
 }) {
   const resolvedPromises = useResolvePromises(owner, repo, requests, promises);
 
   return (
     <Suspense fallback={<Loading />}>
-      <PageContent promises={resolvedPromises} diffPromise={diffPromise} />
+      <PageContent promises={resolvedPromises} diffEntriesPromise={diffEntriesPromise} />
     </Suspense>
   );
 }
 
 function PageContent({
   promises,
-  diffPromise,
+  diffEntriesPromise,
 }: {
   promises: ResourcePromises;
-  diffPromise: Promise<DiffEntry[]>;
+  diffEntriesPromise: Promise<DiffEntry[]>;
 }) {
   const commit = use(promises.commit);
   if (!commit) return null;
@@ -54,7 +54,7 @@ function PageContent({
     <div data-diff-top className="flex flex-col w-full">
       <CommitHeader commit={commit} stats={commit.diffs} />
       <Suspense fallback={<Loading />}>
-        <CommitBody diffPromise={diffPromise} />
+        <CommitBody diffEntriesPromise={diffEntriesPromise} />
       </Suspense>
       <CommitShortcuts />
     </div>

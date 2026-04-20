@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReviewDiffResource, ReviewerResource } from "gitdot-api";
+import type { ReviewerResource } from "gitdot-api";
 import { useRef, useState } from "react";
 import { UserImage } from "@/(main)/[owner]/ui/user-image";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";

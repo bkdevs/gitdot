@@ -7,15 +7,15 @@ import { FileCommitHeader } from "./file-commit-header";
 
 export function FileCommitBody({
   commit,
-  diffEntry,
+  entry,
 }: {
   commit: RepositoryCommitResource;
-  diffEntry: DiffEntry;
+  entry: DiffEntry;
 }) {
   return (
     <div className="flex flex-col w-full">
       <FileCommitHeader commit={commit} />
-      <DiffBody data={diffEntry.data} />
+      <DiffBody spans={entry.spans} />
     </div>
   );
 }

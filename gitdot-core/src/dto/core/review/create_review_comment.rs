@@ -20,6 +20,8 @@ pub struct CreateReviewCommentRequest {
     pub file_path: Option<String>,
     pub line_number_start: Option<i32>,
     pub line_number_end: Option<i32>,
+    pub start_character: Option<i32>,
+    pub end_character: Option<i32>,
     pub side: Option<CommentSide>,
 }
 
@@ -36,6 +38,8 @@ impl CreateReviewCommentRequest {
         file_path: Option<String>,
         line_number_start: Option<i32>,
         line_number_end: Option<i32>,
+        start_character: Option<i32>,
+        end_character: Option<i32>,
         side: Option<&str>,
     ) -> Result<Self, ReviewError> {
         let side = side
@@ -64,6 +68,8 @@ impl CreateReviewCommentRequest {
             file_path,
             line_number_start,
             line_number_end,
+            start_character,
+            end_character,
             side,
         })
     }

@@ -3,16 +3,16 @@ import type { DiffEntry } from "@/actions";
 import { DiffFile } from "./diff-file";
 
 export function CommitBody({
-  diffPromise,
+  diffEntriesPromise,
 }: {
-  diffPromise: Promise<DiffEntry[]>;
+  diffEntriesPromise: Promise<DiffEntry[]>;
 }) {
-  const entries = use(diffPromise);
+  const entries = use(diffEntriesPromise);
 
   return (
     <div className="flex flex-col">
-      {entries.map(({ diff, data }) => (
-        <DiffFile key={diff.path} diff={diff} data={data} />
+      {entries.map((entry) => (
+        <DiffFile key={entry.resource.path} entry={entry} />
       ))}
     </div>
   );

@@ -11,16 +11,16 @@ export function ReviewDiffBody({
   owner,
   repo,
   review,
-  diffPromise,
+  diffEntriesPromise,
   diff,
 }: {
   owner: string;
   repo: string;
   review: ReviewResource;
-  diffPromise: Promise<DiffEntry[]>;
+  diffEntriesPromise: Promise<DiffEntry[]>;
   diff: ReviewDiffResource;
 }) {
-  const entries = use(diffPromise);
+  const entries = use(diffEntriesPromise);
   const latestRevision = diff.revisions[diff.revisions.length - 1];
 
   return (
@@ -40,9 +40,11 @@ export function ReviewDiffBody({
       <div className="mx-16 flex flex-col gap-6 py-4">
         {entries.map((entry) => (
           <ReviewDiffFile
-            key={entry.diff.path}
-            diff={entry.diff}
-            data={entry.data}
+            key={entry.resource.path}
+            diffId={diff.id}
+            revisionId={latestRevision.id}
+            diff={entry.resource}
+            spans={entry.spans}
           />
         ))}
       </div>

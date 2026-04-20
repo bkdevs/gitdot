@@ -15,7 +15,7 @@ export default async function Page({
   const position = Number(diff ?? 1);
 
   const reviewPromise = getReview(owner, repo, hex);
-  const diffPromise = renderReviewDiffAction(owner, repo, hex, position);
+  const diffEntriesPromise = renderReviewDiffAction(owner, repo, hex, position);
 
   return (
     <PageClient
@@ -23,7 +23,7 @@ export default async function Page({
       repo={repo}
       position={position}
       reviewPromise={reviewPromise}
-      diffPromise={diffPromise}
+      diffEntriesPromise={diffEntriesPromise}
     />
   );
 }

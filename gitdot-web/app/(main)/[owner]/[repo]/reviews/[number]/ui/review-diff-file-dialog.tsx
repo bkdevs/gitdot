@@ -2,18 +2,18 @@
 
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import type { RepositoryDiffFileResource } from "gitdot-api";
-import type { DiffData } from "@/actions";
+import type { DiffSpans } from "@/actions";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
 import { DiffBody } from "../../../commits/[sha]/ui/diff-body";
 
 export function ReviewDiffFileDialog({
   diff,
-  data,
+  spans,
   open,
   setOpen,
 }: {
   diff: RepositoryDiffFileResource;
-  data: DiffData;
+  spans: DiffSpans;
   open: boolean;
   setOpen: (open: boolean) => void;
 }) {
@@ -47,7 +47,7 @@ export function ReviewDiffFileDialog({
           </div>
         </div>
         <div className="flex-1 overflow-auto scrollbar-thin pr-px">
-          <DiffBody data={data} layout="split" />
+          <DiffBody spans={spans} layout="split" />
         </div>
       </DialogContent>
     </Dialog>

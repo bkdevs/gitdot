@@ -80,6 +80,8 @@ pub struct ReviewCommentResource {
     pub file_path: Option<String>,
     pub line_number_start: Option<i32>,
     pub line_number_end: Option<i32>,
+    pub start_character: Option<i32>,
+    pub end_character: Option<i32>,
     pub side: Option<String>,
     pub resolved: bool,
     pub created_at: DateTime<Utc>,

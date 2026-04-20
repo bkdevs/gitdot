@@ -1,7 +1,3 @@
-import type {
-  RepositoryDiffFileResource,
-  RepositoryDiffStatResource,
-} from "gitdot-api";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { cn } from "@/util";
 import { DiffStatBar } from "./diff-stat-bar";
@@ -9,18 +5,16 @@ import { DiffStatBar } from "./diff-stat-bar";
 export function DiffHeader({
   open,
   setOpen,
-  diff,
+  path,
+  linesAdded,
+  linesRemoved,
 }: {
   open: boolean;
   setOpen: (open: boolean) => void;
-  diff: RepositoryDiffStatResource | RepositoryDiffFileResource;
+  path: string;
+  linesAdded: number;
+  linesRemoved: number;
 }) {
-  // TODO: renames no longer work
-  const leftPath = diff.path;
-  const rightPath = diff.path;
-  const path = leftPath || rightPath;
-  const { lines_added, lines_removed } = diff;
-
   return (
     <button
       type="button"
@@ -32,32 +26,11 @@ export function DiffHeader({
       )}
       onClick={() => setOpen(!open)}
     >
-      {leftPath && rightPath && leftPath !== rightPath ? (
-        <span className="mr-auto">
-          <span>{leftPath}</span>
-          <span className="mx-1.25">{"→"}</span>
-          {rightPath}
-        </span>
-      ) : (
-        <span data-diff-path className="mr-auto">
-          {path}
-        </span>
-      )}
-
+      <span data-diff-path className="mr-auto">
+        {path}
+      </span>
       <div className="flex flex-row items-center">
-        {leftPath && !rightPath && (
-          <span className="text-red-600">deleted</span>
-        )}
-        {!leftPath && rightPath && (
-          <span className="text-green-600">created</span>
-        )}
-        {leftPath &&
-          rightPath &&
-          (leftPath !== rightPath ? (
-            <span className="text-muted-foreground">renamed</span>
-          ) : (
-            <DiffStatBar added={lines_added} removed={lines_removed} />
-          ))}
+        <DiffStatBar added={linesAdded} removed={linesRemoved} />
         {open ? (
           <ChevronDown className="ml-1.5 mb-px size-3" />
         ) : (
