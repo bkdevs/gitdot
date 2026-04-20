@@ -60,7 +60,7 @@ export function ReviewDiffFile({
       </div>
       {bubbleTop !== null && (
         <div
-          className="absolute z-50 flex flex-row items-center gap-1.5 left-full ml-2 px-2 py-0.5 bg-background"
+          className="absolute z-50 flex flex-row items-center gap-1.5 left-full ml-2 px-2 py-0.5 bg-background animate-in fade-in duration-200"
           style={{ top: bubbleTop }}
         >
           <UserImage userId={user?.id} px={16} />
