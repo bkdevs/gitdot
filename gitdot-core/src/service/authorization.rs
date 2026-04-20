@@ -489,7 +489,7 @@ mod tests {
             async fn add_reviewer(&self, review_id: Uuid, reviewer_id: Uuid) -> Result<Option<Reviewer>, crate::error::DatabaseError>;
             async fn remove_reviewer(&self, review_id: Uuid, reviewer_id: Uuid) -> Result<bool, crate::error::DatabaseError>;
             async fn create_verdict(&self, diff_id: Uuid, revision_id: Uuid, reviewer_id: Uuid, verdict: Verdict) -> Result<(), crate::error::DatabaseError>;
-            async fn create_comment(&self, review_id: Uuid, diff_id: Uuid, revision_id: Uuid, author_id: Uuid, body: &str, parent_id: Option<Uuid>, file_path: Option<String>, line_number_start: Option<i32>, line_number_end: Option<i32>, side: Option<CommentSide>) -> Result<(), crate::error::DatabaseError>;
+            async fn create_comment(&self, review_id: Uuid, diff_id: Uuid, revision_id: Uuid, author_id: Uuid, body: &str, parent_id: Option<Uuid>, file_path: Option<String>, line_number_start: Option<i32>, line_number_end: Option<i32>, side: Option<CommentSide>) -> Result<ReviewComment, crate::error::DatabaseError>;
             async fn get_comment(&self, comment_id: Uuid) -> Result<Option<ReviewComment>, crate::error::DatabaseError>;
             async fn update_comment(&self, comment_id: Uuid, body: &str) -> Result<ReviewComment, crate::error::DatabaseError>;
             async fn resolve_comment(&self, comment_id: Uuid, resolved: bool) -> Result<(), crate::error::DatabaseError>;

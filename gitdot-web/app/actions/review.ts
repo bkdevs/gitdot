@@ -1,11 +1,13 @@
 "use server";
 
 import type {
+  CreateReviewCommentRequest,
   JudgeReviewDiffRequest,
   PublishReviewRequest,
   ReviewCommentResource,
   ReviewerResource,
   ReviewResource,
+  UpdateReviewCommentRequest,
   UpdateReviewDiffRequest,
   UpdateReviewRequest,
 } from "gitdot-api";
@@ -13,6 +15,7 @@ import { refresh } from "next/cache";
 import {
   ApiError,
   addReviewer,
+  createReviewComment,
   mergeDiff,
   publishReview,
   removeReviewer,
@@ -20,6 +23,7 @@ import {
   submitReview,
   updateDiff,
   updateReview,
+  updateReviewComment,
 } from "@/dal";
 
 export type AddReviewerActionResult =
@@ -161,6 +165,51 @@ export async function mergeDiffAction(
 
   refresh();
   return { review: result };
+}
+
+export type CreateReviewCommentActionResult =
+  | { comment: ReviewCommentResource }
+  | { error: string };
+
+export async function createReviewCommentAction(
+  owner: string,
+  repo: string,
+  number: number,
+  request: CreateReviewCommentRequest,
+): Promise<CreateReviewCommentActionResult> {
+  const result = await createReviewComment(owner, repo, number, request);
+  if (!result) {
+    return { error: "createReviewComment call failed" };
+  }
+
+  refresh();
+  return { comment: result };
+}
+
+export type UpdateReviewCommentActionResult =
+  | { comment: ReviewCommentResource }
+  | { error: string };
+
+export async function updateReviewCommentAction(
+  owner: string,
+  repo: string,
+  number: number,
+  commentId: string,
+  request: UpdateReviewCommentRequest,
+): Promise<UpdateReviewCommentActionResult> {
+  const result = await updateReviewComment(
+    owner,
+    repo,
+    number,
+    commentId,
+    request,
+  );
+  if (!result) {
+    return { error: "updateReviewComment call failed" };
+  }
+
+  refresh();
+  return { comment: result };
 }
 
 export type ResolveReviewCommentActionResult =

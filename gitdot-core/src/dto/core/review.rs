@@ -1,4 +1,5 @@
 mod add_review_reviewer;
+mod create_review_comment;
 mod get_review;
 mod get_review_diff;
 mod judge_review_diff;
@@ -23,6 +24,7 @@ use crate::model::{
 use super::RepositoryDiffFileResponse;
 
 pub use add_review_reviewer::AddReviewReviewerReqeuest;
+pub use create_review_comment::CreateReviewCommentRequest;
 pub use get_review::GetReviewRequest;
 pub use get_review_diff::GetReviewDiffRequest;
 pub use judge_review_diff::{DiffComment, JudgeAction, JudgeReviewDiffRequest};

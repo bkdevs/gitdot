@@ -246,7 +246,7 @@ pub trait ReviewRepository: Send + Sync + Clone + 'static {
         line_number_start: Option<i32>,
         line_number_end: Option<i32>,
         side: Option<CommentSide>,
-    ) -> Result<(), DatabaseError>;
+    ) -> Result<ReviewComment, DatabaseError>;
 
     async fn get_comment(&self, comment_id: Uuid) -> Result<Option<ReviewComment>, DatabaseError>;
 
@@ -666,11 +666,18 @@ impl ReviewRepository for ReviewRepositoryImpl {
         line_number_start: Option<i32>,
         line_number_end: Option<i32>,
         side: Option<CommentSide>,
-    ) -> Result<(), DatabaseError> {
-        sqlx::query(
+    ) -> Result<ReviewComment, DatabaseError> {
+        let comment = sqlx::query_as::<_, ReviewComment>(
             r#"
             INSERT INTO core.review_comments (review_id, diff_id, revision_id, author_id, body, parent_id, file_path, line_number_start, line_number_end, side)
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            RETURNING
+                id, review_id, diff_id, revision_id, author_id, parent_id,
+                body, file_path, line_number_start, line_number_end, side,
+                resolved, created_at, updated_at,
+                (SELECT json_build_object(
+                    'id', u.id, 'name', u.name, 'email', u.email, 'is_email_verified', u.is_email_verified, 'provider', u.provider, 'created_at', u.created_at, 'links', u.links)
+                 FROM core.users u WHERE u.id = author_id) AS author
             "#,
         )
         .bind(review_id)
@@ -683,10 +690,10 @@ impl ReviewRepository for ReviewRepositoryImpl {
         .bind(line_number_start)
         .bind(line_number_end)
         .bind(side)
-        .execute(&self.pool)
+        .fetch_one(&self.pool)
         .await?;
 
-        Ok(())
+        Ok(comment)
     }
 
     async fn get_comment(&self, comment_id: Uuid) -> Result<Option<ReviewComment>, DatabaseError> {

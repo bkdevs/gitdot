@@ -1,4 +1,5 @@
 export * from "./add-review-reviewer";
+export * from "./create-review-comment";
 export * from "./get-review";
 export * from "./get-review-diff";
 export * from "./judge-review-diff";
@@ -8,4 +9,5 @@ export * from "./publish-review";
 export * from "./remove-review-reviewer";
 export * from "./resolve-review-comment";
 export * from "./update-review";
+export * from "./update-review-comment";
 export * from "./update-review-diff";

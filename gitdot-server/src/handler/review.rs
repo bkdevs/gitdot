@@ -1,4 +1,5 @@
 mod add_review_reviewer;
+mod create_review_comment;
 mod get_review;
 mod get_review_diff;
 mod judge_review_diff;
@@ -33,6 +34,7 @@ impl<'de> serde::Deserialize<'de> for ReviewIdParam {
 }
 
 use add_review_reviewer::add_review_reviewer;
+use create_review_comment::create_review_comment;
 use get_review::get_review;
 use get_review_diff::get_review_diff;
 use judge_review_diff::judge_review_diff;
@@ -75,6 +77,10 @@ pub fn create_review_router() -> Router<AppState> {
         .route(
             "/repository/{owner}/{repo}/review/{number}/diff/{position}/merge",
             post(merge_review_diff),
+        )
+        .route(
+            "/repository/{owner}/{repo}/review/{number}/comment",
+            post(create_review_comment),
         )
         .route(
             "/repository/{owner}/{repo}/review/{number}/comment/{comment_id}",

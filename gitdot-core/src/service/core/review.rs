@@ -3,11 +3,12 @@ use async_trait::async_trait;
 use crate::{
     client::{DiffClient, DifftClient, Git2Client, GitClient},
     dto::{
-        AddReviewReviewerReqeuest, GetReviewDiffRequest, GetReviewRequest, JudgeAction,
-        JudgeReviewDiffRequest, ListReviewsRequest, MergeReviewDiffRequest, ProcessReviewRequest,
-        PublishReviewRequest, RemoveReviewReviewerRequest, ResolveReviewCommentRequest,
-        ReviewCommentResponse, ReviewDiffResponse, ReviewId, ReviewResponse, ReviewerResponse,
-        ReviewsResponse, UpdateReviewCommentRequest, UpdateReviewDiffRequest, UpdateReviewRequest,
+        AddReviewReviewerReqeuest, CreateReviewCommentRequest, GetReviewDiffRequest,
+        GetReviewRequest, JudgeAction, JudgeReviewDiffRequest, ListReviewsRequest,
+        MergeReviewDiffRequest, ProcessReviewRequest, PublishReviewRequest,
+        RemoveReviewReviewerRequest, ResolveReviewCommentRequest, ReviewCommentResponse,
+        ReviewDiffResponse, ReviewId, ReviewResponse, ReviewerResponse, ReviewsResponse,
+        UpdateReviewCommentRequest, UpdateReviewDiffRequest, UpdateReviewRequest,
     },
     error::{ConflictError, InputError, NotFoundError, OptionNotFoundExt, ReviewError},
     model::{DiffStatus, Review, ReviewStatus, Verdict},
@@ -109,6 +110,11 @@ pub trait ReviewService: Send + Sync + 'static {
         &self,
         request: RemoveReviewReviewerRequest,
     ) -> Result<(), ReviewError>;
+
+    async fn create_review_comment(
+        &self,
+        request: CreateReviewCommentRequest,
+    ) -> Result<ReviewCommentResponse, ReviewError>;
 
     async fn update_review_comment(
         &self,
@@ -944,6 +950,37 @@ where
         }
 
         Ok(())
+    }
+
+    async fn create_review_comment(
+        &self,
+        request: CreateReviewCommentRequest,
+    ) -> Result<ReviewCommentResponse, ReviewError> {
+        let review = self
+            .get_review_by_id(
+                request.owner.as_ref(),
+                request.repo.as_ref(),
+                &request.review_id,
+            )
+            .await?;
+
+        let comment = self
+            .review_repo
+            .create_comment(
+                review.id,
+                request.diff_id,
+                request.revision_id,
+                request.author_id,
+                &request.body,
+                None,
+                request.file_path,
+                request.line_number_start,
+                request.line_number_end,
+                request.side,
+            )
+            .await?;
+
+        Ok(comment.into())
     }
 
     async fn update_review_comment(
