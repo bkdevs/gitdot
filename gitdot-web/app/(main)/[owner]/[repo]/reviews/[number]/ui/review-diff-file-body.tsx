@@ -1,5 +1,6 @@
 "use client";
 
+import type { RepositoryDiffFileResource } from "gitdot-api";
 import { useCallback, useRef } from "react";
 import { DiffCreated } from "@/(main)/[owner]/[repo]/commits/[sha]/ui/diff-created";
 import { DiffSplit } from "@/(main)/[owner]/[repo]/commits/[sha]/ui/diff-split";
@@ -8,7 +9,9 @@ import { DiffUnilateral } from "@/(main)/[owner]/[repo]/commits/[sha]/ui/diff-un
 import { preferSplit } from "@/(main)/[owner]/[repo]/util";
 import type { DiffSpans } from "@/actions";
 import { cn } from "@/util";
+import { useReviewContext } from "../context";
 import {
+  COMMENT_WIDGET_HEIGHT,
   ReviewDiffFileCommentNew,
   type ReviewDiffFileCommentNewHandle,
 } from "./review-diff-file-comment-new";
@@ -26,20 +29,34 @@ const getTokenSpan = (target: EventTarget | null): HTMLElement | null => {
 export function ReviewDiffFileBody({
   diffId,
   revisionId,
-  spans,
+  diffFile,
+  diffSpans,
   layout = "heuristic",
   className,
   onBubble,
 }: {
   diffId: string;
   revisionId: string;
-  spans: DiffSpans;
+  diffFile: RepositoryDiffFileResource;
+  diffSpans: DiffSpans;
   layout?: "split" | "unified" | "heuristic";
   className?: string;
   onBubble?: (viewportTop: number | null) => void;
 }) {
+  const { addComment } = useReviewContext();
+  const onAddComment = useCallback(
+    (body: string) =>
+      addComment({
+        diff_id: diffId,
+        revision_id: revisionId,
+        body,
+        file_path: diffFile.path,
+      }),
+    [addComment, diffId, revisionId, diffFile.path],
+  );
   const containerRef = useRef<HTMLDivElement>(null);
   const startSpanRef = useRef<HTMLElement | null>(null);
+  const endSpanRef = useRef<HTMLElement | null>(null);
   const allSpansRef = useRef<HTMLElement[]>([]);
   const commentRef = useRef<ReviewDiffFileCommentNewHandle | null>(null);
 
@@ -51,6 +68,7 @@ export function ReviewDiffFileBody({
       el.classList.remove("token-selected");
     });
     container.classList.remove("has-selection");
+    endSpanRef.current = null;
     onBubble?.(null);
   }, [onBubble]);
 
@@ -86,6 +104,8 @@ export function ReviewDiffFileBody({
     const endIdx = spans.indexOf(token);
     if (startIdx === -1 || endIdx === -1) return;
 
+    endSpanRef.current = token;
+
     const [from, to] =
       startIdx <= endIdx ? [startIdx, endIdx] : [endIdx, startIdx];
     for (let i = 0; i < spans.length; i++) {
@@ -94,25 +114,54 @@ export function ReviewDiffFileBody({
   }, []);
 
   const handleMouseUp = useCallback(
-    (e: React.MouseEvent) => {
+    (_e: React.MouseEvent) => {
       containerRef.current?.classList.remove("is-dragging");
       if (startSpanRef.current !== null) {
-        commentRef.current?.open({ x: e.clientX, y: e.clientY });
-        const line = startSpanRef.current.closest<HTMLElement>(".diff-line");
-        if (line) {
-          onBubble?.(line.getBoundingClientRect().top);
+        const spans = allSpansRef.current;
+        const startIdx = spans.indexOf(startSpanRef.current);
+        const end = endSpanRef.current ?? startSpanRef.current;
+        const endIdx = spans.indexOf(end);
+
+        const isReversed = endIdx < startIdx;
+        const anchorToken = isReversed
+          ? spans[endIdx]
+          : spans[Math.max(startIdx, endIdx)];
+        const anchorLine = anchorToken.closest<HTMLElement>(".diff-line");
+        if (!anchorLine) throw new Error("anchorToken has no .diff-line ancestor");
+        const leftmostToken = anchorLine.querySelector<HTMLElement>(
+          ".diff-token.token-selected",
+        );
+        if (!leftmostToken) throw new Error("anchorLine has no .diff-token.token-selected");
+
+        const rect = leftmostToken.getBoundingClientRect();
+
+        const pos = isReversed
+          ? { x: rect.left - 16, y: rect.top - COMMENT_WIDGET_HEIGHT + 8 }
+          : { x: rect.left - 16, y: rect.bottom - 8 };
+
+        commentRef.current?.open(pos);
+
+        const bubbleLine =
+          startSpanRef.current.closest<HTMLElement>(".diff-line");
+        if (bubbleLine) {
+          onBubble?.(bubbleLine.getBoundingClientRect().top);
         }
       }
       startSpanRef.current = null;
+      endSpanRef.current = null;
     },
     [onBubble],
   );
 
   const useSplit =
-    spans.kind === "split" &&
+    diffSpans.kind === "split" &&
     (layout === "split" ||
       (layout === "heuristic" &&
-        preferSplit(spans.leftSpans, spans.rightSpans, spans.hunks)));
+        preferSplit(
+          diffSpans.leftSpans,
+          diffSpans.rightSpans,
+          diffSpans.hunks,
+        )));
 
   return (
     <div
@@ -132,40 +181,39 @@ export function ReviewDiffFileBody({
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
     >
-      {spans.kind === "split" &&
+      {diffSpans.kind === "split" &&
         (useSplit ? (
           <DiffSplit
-            leftSpans={spans.leftSpans}
-            rightSpans={spans.rightSpans}
-            hunks={spans.hunks}
+            leftSpans={diffSpans.leftSpans}
+            rightSpans={diffSpans.rightSpans}
+            hunks={diffSpans.hunks}
           />
         ) : (
           <DiffUnified
-            leftSpans={spans.leftSpans}
-            rightSpans={spans.rightSpans}
-            hunks={spans.hunks}
+            leftSpans={diffSpans.leftSpans}
+            rightSpans={diffSpans.rightSpans}
+            hunks={diffSpans.hunks}
           />
         ))}
-      {spans.kind === "unilateral" && (
+      {diffSpans.kind === "unilateral" && (
         <DiffUnilateral
-          spans={spans.spans}
-          hunks={spans.hunks}
-          side={spans.side}
+          spans={diffSpans.spans}
+          hunks={diffSpans.hunks}
+          side={diffSpans.side}
         />
       )}
-      {spans.kind === "created" && <DiffCreated spans={spans.spans} />}
-      {spans.kind === "deleted" && (
+      {diffSpans.kind === "created" && <DiffCreated spans={diffSpans.spans} />}
+      {diffSpans.kind === "deleted" && (
         <div className="text-sm font-mono px-2 text-primary/50">
           File deleted.
         </div>
       )}
-      {(!spans || spans.kind === "no-change") && (
+      {(!diffSpans || diffSpans.kind === "no-change") && (
         <div className="text-sm font-mono px-2">No changes made</div>
       )}
       <ReviewDiffFileCommentNew
         ref={commentRef}
-        diffId={diffId}
-        revisionId={revisionId}
+        onAddComment={onAddComment}
         onClose={clearSelection}
       />
     </div>

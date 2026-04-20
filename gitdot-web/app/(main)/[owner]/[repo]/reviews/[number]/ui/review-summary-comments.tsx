@@ -29,6 +29,13 @@ function ReviewSummaryComment({ comment }: { comment: ReviewCommentResource }) {
         <div className="flex items-center gap-1">
           <AvatarBeam name={name} size={14} />
           <span className="text-xs text-muted-foreground">{name}</span>
+          {comment.file_path && (
+            <span className="text-xs text-muted-foreground">
+              {comment.file_path.split("/").pop()}
+              {comment.line_number_start != null &&
+                `:${comment.line_number_start}${comment.line_number_end != null && comment.line_number_end !== comment.line_number_start ? `-${comment.line_number_end}` : ""}`}
+            </span>
+          )}
           <span className="ml-auto text-xs text-muted-foreground">
             {timeAgo(new Date(comment.created_at))}
           </span>

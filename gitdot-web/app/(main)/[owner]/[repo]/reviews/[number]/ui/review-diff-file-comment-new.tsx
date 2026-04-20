@@ -1,28 +1,22 @@
 "use client";
 
 import { useCallback, useImperativeHandle, useState } from "react";
-import { useReviewContext } from "../context";
+
+export const COMMENT_WIDGET_HEIGHT = 96; // min-h-16 (64) + p-2 padding (16) + border/shadow
 
 export type ReviewDiffFileCommentNewHandle = {
   open: (pos: { x: number; y: number }) => void;
 };
 
 export function ReviewDiffFileCommentNew({
-  diffId,
-  revisionId,
-  startCharacter,
-  endCharacter,
+  onAddComment,
   onClose,
   ref,
 }: {
-  diffId: string;
-  revisionId: string;
-  startCharacter?: number;
-  endCharacter?: number;
+  onAddComment: (body: string) => void;
   onClose: () => void;
   ref: React.Ref<ReviewDiffFileCommentNewHandle>;
 }) {
-  const { addComment } = useReviewContext();
   const [open, setOpen] = useState(false);
   const [comment, setComment] = useState("");
   const [pos, setPos] = useState({ x: 0, y: 0 });
@@ -59,13 +53,7 @@ export function ReviewDiffFileCommentNew({
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey && comment.trim()) {
               e.preventDefault();
-              addComment({
-                diff_id: diffId,
-                revision_id: revisionId,
-                body: comment.trim(),
-                start_character: startCharacter,
-                end_character: endCharacter,
-              });
+              onAddComment(comment.trim());
               close();
             }
             if (e.key === "Escape") close();

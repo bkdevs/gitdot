@@ -43,8 +43,8 @@ export function ReviewDiffBody({
             key={entry.resource.path}
             diffId={diff.id}
             revisionId={latestRevision.id}
-            diff={entry.resource}
-            spans={entry.spans}
+            diffFile={entry.resource}
+            diffSpans={entry.spans}
           />
         ))}
       </div>

@@ -2,14 +2,14 @@ import type { RepositoryDiffFileResource } from "gitdot-api";
 import { Maximize2 } from "lucide-react";
 
 export function ReviewDiffFileHeader({
-  diff,
+  diffFile,
   onClick,
 }: {
-  diff: RepositoryDiffFileResource;
+  diffFile: RepositoryDiffFileResource;
   onClick?: () => void;
 }) {
   const { path, lines_added, lines_removed, left_content, right_content } =
-    diff;
+    diffFile;
   const isCreated = !left_content;
   const isDeleted = !right_content;
 

@@ -19,13 +19,13 @@ import { ReviewDiffFileHeader } from "./review-diff-file-header";
 export function ReviewDiffFile({
   diffId,
   revisionId,
-  diff,
-  spans,
+  diffFile,
+  diffSpans,
 }: {
   diffId: string;
   revisionId: string;
-  diff: RepositoryDiffFileResource;
-  spans: DiffSpans;
+  diffFile: RepositoryDiffFileResource;
+  diffSpans: DiffSpans;
 }) {
   const { user } = useUserContext();
   const [open, setOpen] = useState(false);
@@ -47,14 +47,18 @@ export function ReviewDiffFile({
         data-diff-file
         className="rounded-sm border border-border overflow-hidden"
       >
-        <ReviewDiffFileHeader diff={diff} onClick={() => setOpen(true)} />
+        <ReviewDiffFileHeader
+          diffFile={diffFile}
+          onClick={() => setOpen(true)}
+        />
         <ContextMenu>
           <ContextMenuTrigger asChild>
             <div>
               <ReviewDiffFileBody
                 diffId={diffId}
                 revisionId={revisionId}
-                spans={spans}
+                diffFile={diffFile}
+                diffSpans={diffSpans}
                 onBubble={handleBubble}
               />
             </div>
@@ -69,8 +73,8 @@ export function ReviewDiffFile({
       </div>
       <ReviewDiffFileBubbles bubbleTop={bubbleTop} userId={user?.id} />
       <ReviewDiffFileDialog
-        diff={diff}
-        spans={spans}
+        diff={diffFile}
+        spans={diffSpans}
         open={open}
         setOpen={setOpen}
       />
