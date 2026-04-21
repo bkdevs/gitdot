@@ -1,7 +1,14 @@
 "use client";
 
 import type { ReviewCommentResource } from "gitdot-api";
+import { Pencil, Trash2 } from "lucide-react";
 import { useMemo } from "react";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@/ui/context-menu";
 import { AvatarBeam } from "@/ui/avatar-beam";
 import { timeAgo } from "@/util";
 import { useReviewContext } from "../context";
@@ -39,25 +46,43 @@ function formatLocation(lineStart: number, lineEnd: number | null): string {
 
 function ReviewSummaryComment({ comment }: { comment: ReviewCommentResource }) {
   const name = comment.author?.name ?? comment.author_id;
+
   return (
-    <div className="flex flex-col cursor-pointer">
-      {comment.file_path && (
-        <span className="text-xs font-mono text-muted-foreground truncate">
-          {comment.file_path}
-          {comment.line_number_start != null &&
-            formatLocation(comment.line_number_start, comment.line_number_end)}
-        </span>
-      )}
-      <div className="border-l border-transparent hover:border-black -ml-1.5 pl-1.5 transition-colors duration-200 flex flex-col gap-1 pb-1">
-        <span className="text-sm text-foreground">{comment.body}</span>
-        <div className="flex items-center gap-1 ml-auto">
-          <AvatarBeam name={name} size={14} />
-          <span className="text-xs text-muted-foreground">{name}</span>
-          <span className="text-xs text-muted-foreground">
-            {timeAgo(new Date(comment.created_at))}
-          </span>
+    <ContextMenu>
+      <ContextMenuTrigger asChild>
+        <div className="flex flex-col cursor-pointer">
+          {comment.file_path && (
+            <span className="text-xs font-mono text-muted-foreground truncate">
+              {comment.file_path}
+              {comment.line_number_start != null &&
+                formatLocation(
+                  comment.line_number_start,
+                  comment.line_number_end,
+                )}
+            </span>
+          )}
+          <div className="border-l border-transparent hover:border-black -ml-1.5 pl-1.5 transition-colors duration-200 flex flex-col gap-1 pb-1">
+            <span className="text-sm text-foreground">{comment.body}</span>
+            <div className="flex items-center gap-1 ml-auto">
+              <AvatarBeam name={name} size={14} />
+              <span className="text-xs text-muted-foreground">{name}</span>
+              <span className="text-xs text-muted-foreground">
+                {timeAgo(new Date(comment.created_at))}
+              </span>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
+      </ContextMenuTrigger>
+      <ContextMenuContent>
+        <ContextMenuItem>
+          <Pencil />
+          Edit
+        </ContextMenuItem>
+        <ContextMenuItem variant="destructive">
+          <Trash2 />
+          Delete
+        </ContextMenuItem>
+      </ContextMenuContent>
+    </ContextMenu>
   );
 }

@@ -1,8 +1,11 @@
 "use client";
 
-import type { RepositoryDiffFileResource } from "gitdot-api";
+import type {
+  RepositoryDiffFileResource,
+  ReviewCommentResource,
+} from "gitdot-api";
 import { Maximize2 } from "lucide-react";
-import { useCallback, useRef, useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useUserContext } from "@/(main)/context/user";
 import type { DiffSpans } from "@/actions";
 import {
@@ -21,28 +24,61 @@ export function ReviewDiffFile({
   revisionId,
   diffFile,
   diffSpans,
+  diffComments,
 }: {
   diffId: string;
   revisionId: string;
   diffFile: RepositoryDiffFileResource;
   diffSpans: DiffSpans;
+  diffComments: ReviewCommentResource[];
 }) {
   const { user } = useUserContext();
   const [open, setOpen] = useState(false);
-  const wrapperRef = useRef<HTMLDivElement>(null);
-  const [bubbleTop, setBubbleTop] = useState<number | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  const handleBubble = useCallback((viewportTop: number | null) => {
-    if (viewportTop === null) {
-      setBubbleTop(null);
-      return;
+  const fileComments = useMemo(
+    () => diffComments.filter((c) => c.file_path === diffFile.path),
+    [diffComments, diffFile.path],
+  );
+
+  const [commentPositions, setCommentPositions] = useState<
+    Array<{ top: number; comments: ReviewCommentResource[] }>
+  >([]);
+
+  useLayoutEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const groups = new Map<string, ReviewCommentResource[]>();
+    for (const comment of fileComments) {
+      if (comment.line_number_start === null || comment.side === null) continue;
+      const key = `${comment.line_number_start}:${comment.side}`;
+      const existing = groups.get(key);
+      if (existing) existing.push(comment);
+      else groups.set(key, [comment]);
     }
-    const rect = wrapperRef.current?.getBoundingClientRect();
-    setBubbleTop(rect ? viewportTop - rect.top : null);
-  }, []);
+
+    const containerRect = container.getBoundingClientRect();
+    const positions: Array<{ top: number; comments: ReviewCommentResource[] }> =
+      [];
+
+    for (const [key, comments] of groups) {
+      const [lineNum, side] = key.split(":");
+      const el = container.querySelector<HTMLElement>(
+        `.diff-line[data-line-number="${lineNum}"][data-side="${side}"]`,
+      );
+      if (!el) continue;
+      positions.push({
+        top: el.getBoundingClientRect().top - containerRect.top,
+        comments,
+      });
+    }
+
+    setCommentPositions(positions);
+  }, [fileComments]);
 
   return (
-    <div ref={wrapperRef} className="relative">
+    <div ref={containerRef} className="relative">
       <div
         data-diff-file
         className="rounded-sm border border-border overflow-hidden"
@@ -59,7 +95,6 @@ export function ReviewDiffFile({
                 revisionId={revisionId}
                 diffFile={diffFile}
                 diffSpans={diffSpans}
-                onBubble={handleBubble}
               />
             </div>
           </ContextMenuTrigger>
@@ -71,7 +106,10 @@ export function ReviewDiffFile({
           </ContextMenuContent>
         </ContextMenu>
       </div>
-      <ReviewDiffFileBubbles bubbleTop={bubbleTop} userId={user?.id} />
+      <ReviewDiffFileBubbles
+        commentThreads={commentPositions}
+        userId={user?.id}
+      />
       <ReviewDiffFileDialog
         diff={diffFile}
         spans={diffSpans}

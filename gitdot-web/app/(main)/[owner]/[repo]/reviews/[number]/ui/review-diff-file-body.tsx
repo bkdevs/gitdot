@@ -23,7 +23,6 @@ export function ReviewDiffFileBody({
   diffSpans,
   layout = "heuristic",
   className,
-  onBubble,
 }: {
   diffId: string;
   revisionId: string;
@@ -31,7 +30,6 @@ export function ReviewDiffFileBody({
   diffSpans: DiffSpans;
   layout?: "split" | "unified" | "heuristic";
   className?: string;
-  onBubble?: (viewportTop: number | null) => void;
 }) {
   const { addComment } = useReviewContext();
   const selectionRef = useRef<{
@@ -72,8 +70,7 @@ export function ReviewDiffFileBody({
     container.classList.remove("has-selection");
     endSpanRef.current = null;
     selectionRef.current = null;
-    onBubble?.(null);
-  }, [onBubble]);
+  }, []);
 
   const handleMouseDown = useCallback(
     (e: React.MouseEvent) => {
@@ -145,12 +142,6 @@ export function ReviewDiffFileBody({
 
         commentRef.current?.open(pos);
 
-        const bubbleLine =
-          startSpanRef.current.closest<HTMLElement>(".diff-line");
-        if (bubbleLine) {
-          onBubble?.(bubbleLine.getBoundingClientRect().top);
-        }
-
         const firstToken = isReversed ? end : startSpanRef.current;
         const lastToken = isReversed ? startSpanRef.current : end;
         const firstLine = firstToken.closest<HTMLElement>(".diff-line");
@@ -182,7 +173,7 @@ export function ReviewDiffFileBody({
       startSpanRef.current = null;
       endSpanRef.current = null;
     },
-    [onBubble],
+    [],
   );
 
   const useSplit =

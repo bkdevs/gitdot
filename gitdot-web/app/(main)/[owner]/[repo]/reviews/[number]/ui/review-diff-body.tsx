@@ -1,6 +1,10 @@
 "use client";
 
-import type { ReviewDiffResource, ReviewResource } from "gitdot-api";
+import type {
+  ReviewCommentResource,
+  ReviewDiffResource,
+  ReviewResource,
+} from "gitdot-api";
 import { use } from "react";
 import type { DiffEntry } from "@/actions";
 import { ReviewDiffActions } from "./review-diff-actions";
@@ -22,6 +26,9 @@ export function ReviewDiffBody({
 }) {
   const entries = use(diffEntriesPromise);
   const latestRevision = diff.revisions[diff.revisions.length - 1];
+  const diffComments = review.comments.filter(
+    (c: ReviewCommentResource) => c.diff_id === diff.id,
+  );
 
   return (
     <div>
@@ -45,6 +52,7 @@ export function ReviewDiffBody({
             revisionId={latestRevision.id}
             diffFile={entry.resource}
             diffSpans={entry.spans}
+            diffComments={diffComments}
           />
         ))}
       </div>
