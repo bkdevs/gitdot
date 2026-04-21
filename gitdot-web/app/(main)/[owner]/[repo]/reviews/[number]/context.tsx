@@ -1,7 +1,6 @@
 "use client";
 
 import type {
-  CreateReviewCommentRequest,
   ReviewCommentResource,
   ReviewDiffResource,
   ReviewerResource,
@@ -21,8 +20,17 @@ import {
 export type {
   AddReviewerActionResult,
   CreateReviewCommentActionResult,
-  CreateReviewCommentRequest,
   RemoveReviewerActionResult,
+};
+
+export type AddCommentRequest = {
+  body: string;
+  file_path?: string;
+  line_number_start?: number;
+  line_number_end?: number;
+  start_character?: number;
+  end_character?: number;
+  side?: string;
 };
 
 type ReviewContext = {
@@ -38,7 +46,7 @@ type ReviewContext = {
   addReviewer: (userName: string) => Promise<AddReviewerActionResult>;
   removeReviewer: (reviewerName: string) => Promise<RemoveReviewerActionResult>;
   addComment: (
-    request: CreateReviewCommentRequest,
+    request: AddCommentRequest,
   ) => Promise<CreateReviewCommentActionResult>;
 };
 
@@ -103,13 +111,14 @@ export function ReviewProvider({
   }
 
   async function addComment(
-    request: CreateReviewCommentRequest,
+    request: AddCommentRequest,
   ): Promise<CreateReviewCommentActionResult> {
+    const latestRevision = activeDiff.revisions[activeDiff.revisions.length - 1];
     const result = await createReviewCommentAction(
       owner,
       repo,
       review.number,
-      request,
+      { ...request, diff_id: activeDiff.id, revision_id: latestRevision.id },
     );
     if ("error" in result) return result;
 

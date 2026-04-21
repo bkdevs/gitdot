@@ -20,16 +20,12 @@ import {
 } from "./review-diff-file-comment-new";
 
 export function ReviewDiffFileBody({
-  diffId,
-  revisionId,
   diffFile,
   diffSpans,
   diffFileComments,
   layout = "heuristic",
   className,
 }: {
-  diffId: string;
-  revisionId: string;
   diffFile: RepositoryDiffFileResource;
   diffSpans: DiffSpans;
   diffFileComments: ReviewCommentResource[];
@@ -44,11 +40,10 @@ export function ReviewDiffFileBody({
     endCharacter: number;
     side: "old" | "new";
   } | null>(null);
+
   const onAddComment = useCallback(
     (body: string) =>
       addComment({
-        diff_id: diffId,
-        revision_id: revisionId,
         body,
         file_path: diffFile.path,
         line_number_start: selectionRef.current?.lineNumberStart,
@@ -57,17 +52,18 @@ export function ReviewDiffFileBody({
         end_character: selectionRef.current?.endCharacter,
         side: selectionRef.current?.side,
       }),
-    [addComment, diffId, revisionId, diffFile.path],
+    [addComment, diffFile.path],
   );
+
   const containerRef = useRef<HTMLDivElement>(null);
-  const startSpanRef = useRef<HTMLElement | null>(null);
-  const endSpanRef = useRef<HTMLElement | null>(null);
   const allSpansRef = useRef<HTMLElement[]>([]);
-  const commentRef = useRef<ReviewDiffFileCommentNewHandle | null>(null);
+  const dragStartRef = useRef<HTMLElement | null>(null);
+  const dragEndRef = useRef<HTMLElement | null>(null);
+  const newCommentRef = useRef<ReviewDiffFileCommentNewHandle | null>(null);
 
   useHighlightComments(containerRef, diffFileComments);
 
-  function clearSelection() {
+  const clearSelection = useCallback(() => {
     const container = containerRef.current;
     if (!container) return;
     container.classList.remove("has-selection");
@@ -76,30 +72,23 @@ export function ReviewDiffFileBody({
     )) {
       if (!el.dataset.commentId) el.classList.remove("token-selected");
     }
-    endSpanRef.current = null;
+    dragEndRef.current = null;
     selectionRef.current = null;
-  }
+  }, []);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     const token = getTokenSpan(e.target);
+    if (token?.dataset.commentId) return;
 
-    // clicking on a comment-highlighted token — handle in mouseUp, skip drag setup
-    if (token?.dataset.commentId) {
-      startSpanRef.current = token;
-      endSpanRef.current = null;
-      return;
-    }
-
-    // normal drag selection start
     containerRef.current?.classList.add("is-dragging");
-    startSpanRef.current = null;
+    dragStartRef.current = null;
     allSpansRef.current = Array.from(
       containerRef.current?.querySelectorAll(".diff-token") ?? [],
     ) as HTMLElement[];
 
     if (token) {
       e.preventDefault();
-      startSpanRef.current = token;
+      dragStartRef.current = token;
       token.classList.add("token-selected");
       containerRef.current?.classList.add("has-selection");
     }
@@ -107,39 +96,22 @@ export function ReviewDiffFileBody({
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (!(e.buttons & 1)) return;
-    if (!startSpanRef.current) return;
-    // don't drag when the start was a comment token click
-    if (startSpanRef.current.dataset.commentId && !endSpanRef.current) {
-      const token = getTokenSpan(e.target);
-      if (token && token !== startSpanRef.current) {
-        // user started dragging from a comment token — transition to normal drag
-        delete startSpanRef.current.dataset.commentId;
-        containerRef.current?.classList.add("is-dragging");
-        allSpansRef.current = Array.from(
-          containerRef.current?.querySelectorAll(".diff-token") ?? [],
-        ) as HTMLElement[];
-        startSpanRef.current.classList.add("token-selected");
-        containerRef.current?.classList.add("has-selection");
-      } else {
-        return;
-      }
-    }
+    if (!dragStartRef.current) return;
 
     const token = getTokenSpan(e.target);
     if (!token) return;
 
     const spans = allSpansRef.current;
-    const startIdx = spans.indexOf(startSpanRef.current);
+    const startIdx = spans.indexOf(dragStartRef.current);
     const endIdx = spans.indexOf(token);
     if (startIdx === -1 || endIdx === -1) return;
 
-    endSpanRef.current = token;
+    dragEndRef.current = token;
 
     const [from, to] =
       startIdx <= endIdx ? [startIdx, endIdx] : [endIdx, startIdx];
     for (let i = 0; i < spans.length; i++) {
       const isInRange = i >= from && i <= to;
-      // only set token-selected for drag-range; leave comment tokens as-is
       if (!spans[i].dataset.commentId) {
         spans[i].classList.toggle("token-selected", isInRange);
       }
@@ -149,19 +121,10 @@ export function ReviewDiffFileBody({
   const handleMouseUp = useCallback((_e: React.MouseEvent) => {
     containerRef.current?.classList.remove("is-dragging");
 
-    // comment token click (no drag) — active comment wiring handled elsewhere
-    if (
-      startSpanRef.current?.dataset.commentId &&
-      endSpanRef.current === null
-    ) {
-      startSpanRef.current = null;
-      return;
-    }
-
-    if (startSpanRef.current !== null) {
+    if (dragStartRef.current !== null) {
       const spans = allSpansRef.current;
-      const startIdx = spans.indexOf(startSpanRef.current);
-      const end = endSpanRef.current ?? startSpanRef.current;
+      const startIdx = spans.indexOf(dragStartRef.current);
+      const end = dragEndRef.current ?? dragStartRef.current;
       const endIdx = spans.indexOf(end);
 
       const isReversed = endIdx < startIdx;
@@ -182,10 +145,10 @@ export function ReviewDiffFileBody({
         ? { x: rect.left - 16, y: rect.top - COMMENT_WIDGET_HEIGHT + 6 }
         : { x: rect.left - 16, y: rect.bottom - 8 };
 
-      commentRef.current?.open(pos);
+      newCommentRef.current?.open(pos);
 
-      const firstToken = isReversed ? end : startSpanRef.current;
-      const lastToken = isReversed ? startSpanRef.current : end;
+      const firstToken = isReversed ? end : dragStartRef.current;
+      const lastToken = isReversed ? dragStartRef.current : end;
       const firstLine = firstToken.closest<HTMLElement>(".diff-line");
       const lastLine = lastToken.closest<HTMLElement>(".diff-line");
       const lineNumberStart = firstLine ? readLineNumber(firstLine) : undefined;
@@ -210,8 +173,8 @@ export function ReviewDiffFileBody({
         side: readSide(firstLine!),
       };
     }
-    startSpanRef.current = null;
-    endSpanRef.current = null;
+    dragStartRef.current = null;
+    dragEndRef.current = null;
   }, []);
 
   const useSplit =
@@ -236,6 +199,8 @@ export function ReviewDiffFileBody({
         "[&.has-selection_.diff-token.token-selected]:opacity-100",
         "[&.has-selection_.diff-token.token-selected]:transition-opacity",
         "[&.has-selection_.diff-token.token-selected]:duration-200",
+        "[&.has-selection_.diff-token.token-selected[data-comment-id]]:opacity-40",
+        "[&.has-selection_.diff-token.token-selected[data-comment-id]]:bg-transparent",
         className,
       )}
       onMouseDown={handleMouseDown}
@@ -273,7 +238,7 @@ export function ReviewDiffFileBody({
         <div className="text-sm font-mono px-2">No changes made</div>
       )}
       <ReviewDiffFileCommentNew
-        ref={commentRef}
+        ref={newCommentRef}
         onAddComment={onAddComment}
         onClose={clearSelection}
       />

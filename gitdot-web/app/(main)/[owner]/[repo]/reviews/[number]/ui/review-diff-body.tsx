@@ -40,8 +40,6 @@ export function ReviewDiffBody({
         {entries.map((entry) => (
           <ReviewDiffFile
             key={entry.resource.path}
-            diffId={diff.id}
-            revisionId={latestRevision.id}
             diffFile={entry.resource}
             diffSpans={entry.spans}
           />

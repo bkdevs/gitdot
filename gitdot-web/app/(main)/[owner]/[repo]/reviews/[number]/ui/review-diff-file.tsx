@@ -20,13 +20,9 @@ import { ReviewDiffFileDialog } from "./review-diff-file-dialog";
 import { ReviewDiffFileHeader } from "./review-diff-file-header";
 
 export function ReviewDiffFile({
-  diffId,
-  revisionId,
   diffFile,
   diffSpans,
 }: {
-  diffId: string;
-  revisionId: string;
   diffFile: RepositoryDiffFileResource;
   diffSpans: DiffSpans;
 }) {
@@ -88,8 +84,6 @@ export function ReviewDiffFile({
           <ContextMenuTrigger asChild>
             <div>
               <ReviewDiffFileBody
-                diffId={diffId}
-                revisionId={revisionId}
                 diffFile={diffFile}
                 diffSpans={diffSpans}
                 diffFileComments={diffFileComments}
