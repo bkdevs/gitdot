@@ -18,20 +18,13 @@ import {
   ReviewDiffFileCommentNew,
   type ReviewDiffFileCommentNewHandle,
 } from "./review-diff-file-comment-new";
-import {
-  ReviewDiffFileCommentThread,
-  type ReviewDiffFileCommentThreadHandle,
-} from "./review-diff-file-comment-thread";
 
 export function ReviewDiffFileBody({
   diffId,
   revisionId,
   diffFile,
   diffSpans,
-  fileComments,
-  activeComment,
-  onCommentClick,
-  onCommentClose,
+  diffFileComments,
   layout = "heuristic",
   className,
 }: {
@@ -39,10 +32,7 @@ export function ReviewDiffFileBody({
   revisionId: string;
   diffFile: RepositoryDiffFileResource;
   diffSpans: DiffSpans;
-  fileComments?: ReviewCommentResource[];
-  activeComment?: ReviewCommentResource | null;
-  onCommentClick?: (comment: ReviewCommentResource) => void;
-  onCommentClose?: () => void;
+  diffFileComments: ReviewCommentResource[];
   layout?: "split" | "unified" | "heuristic";
   className?: string;
 }) {
@@ -74,137 +64,21 @@ export function ReviewDiffFileBody({
   const endSpanRef = useRef<HTMLElement | null>(null);
   const allSpansRef = useRef<HTMLElement[]>([]);
   const commentRef = useRef<ReviewDiffFileCommentNewHandle | null>(null);
-  const threadRef = useRef<ReviewDiffFileCommentThreadHandle | null>(null);
 
-  // fileComments/activeComment refs so applyCommentHighlights can always see latest values
-  const fileCommentsRef = useRef(fileComments);
-  fileCommentsRef.current = fileComments;
-  const activeCommentRef = useRef(activeComment);
-  activeCommentRef.current = activeComment;
+  useHighlightComments(containerRef, diffFileComments);
 
-  const applyCommentHighlights = useCallback(() => {
+  function clearSelection() {
     const container = containerRef.current;
     if (!container) return;
-
-    const allSpans = Array.from(
-      container.querySelectorAll<HTMLElement>(".diff-token"),
-    );
-
-    // clear any previous comment highlight classes and data
-    for (const span of allSpans) {
-      span.classList.remove("token-selected", "token-active");
-      delete span.dataset.commentId;
-    }
-
-    const comments = fileCommentsRef.current ?? [];
-    const active = activeCommentRef.current;
-
-    for (const comment of comments) {
-      if (
-        comment.line_number_start == null ||
-        comment.line_number_end == null ||
-        comment.start_character == null ||
-        comment.end_character == null
-      )
-        continue;
-
-      const {
-        line_number_start,
-        line_number_end,
-        start_character,
-        end_character,
-        side,
-      } = comment;
-
-      let startIdx = -1;
-      let endIdx = -1;
-      for (let i = 0; i < allSpans.length; i++) {
-        const span = allSpans[i];
-        const line = span.closest<HTMLElement>(".diff-line");
-        if (!line) continue;
-        if (side && readSide(line) !== side) continue;
-        const lineNum = readLineNumber(line);
-        const charStart = parseInt(span.dataset.charStart ?? "-1", 10);
-        const charEnd = parseInt(span.dataset.charEnd ?? "-1", 10);
-        if (
-          startIdx === -1 &&
-          lineNum === line_number_start &&
-          charStart === start_character
-        ) {
-          startIdx = i;
-        }
-        if (lineNum === line_number_end && charEnd === end_character) {
-          endIdx = i;
-        }
-      }
-
-      if (startIdx === -1 || endIdx === -1) continue;
-
-      const isActive = active != null && comment.id === active.id;
-      for (let i = startIdx; i <= endIdx; i++) {
-        allSpans[i].classList.add(isActive ? "token-active" : "token-selected");
-        allSpans[i].dataset.commentId = comment.id;
-      }
-    }
-  }, []);
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: fileComments/activeComment trigger re-highlight via refs inside applyCommentHighlights
-  useEffect(() => {
-    applyCommentHighlights();
-  }, [fileComments, activeComment, applyCommentHighlights]);
-
-  useEffect(() => {
-    if (!activeComment) {
-      threadRef.current?.close();
-      return;
-    }
-
-    const { line_number_start, start_character, side } = activeComment;
-    if (line_number_start == null || start_character == null) return;
-
-    const container = containerRef.current;
-    if (!container) return;
-
-    const allSpans = container.querySelectorAll<HTMLElement>(".diff-token");
-    let startToken: HTMLElement | null = null;
-    for (const span of allSpans) {
-      const line = span.closest<HTMLElement>(".diff-line");
-      if (!line) continue;
-      if (side && readSide(line) !== side) continue;
-      if (readLineNumber(line) !== line_number_start) continue;
-      if (parseInt(span.dataset.charStart ?? "-1", 10) === start_character) {
-        startToken = span;
-        break;
-      }
-    }
-
-    if (!startToken) return;
-
-    const rect = startToken.getBoundingClientRect();
-    const pos = { x: rect.left - 16, y: rect.bottom - 8 };
-
-    const thread = (fileComments ?? []).filter(
-      (c) => c.line_number_start === line_number_start && c.side === side,
-    );
-
-    threadRef.current?.open(pos, thread);
-  }, [activeComment, fileComments]);
-
-  const clearSelection = useCallback(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    // remove drag-state classes (token-active may have been added by drag)
-    container.querySelectorAll(".token-active").forEach((el) => {
-      el.classList.remove("token-active");
-    });
     container.classList.remove("has-selection");
+    for (const el of container.querySelectorAll<HTMLElement>(
+      ".diff-token.token-selected",
+    )) {
+      if (!el.dataset.commentId) el.classList.remove("token-selected");
+    }
     endSpanRef.current = null;
     selectionRef.current = null;
-
-    // re-apply comment highlights now that drag state is cleared
-    applyCommentHighlights();
-  }, [applyCommentHighlights]);
+  }
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     const token = getTokenSpan(e.target);
@@ -272,83 +146,73 @@ export function ReviewDiffFileBody({
     }
   }, []);
 
-  const handleMouseUp = useCallback(
-    (_e: React.MouseEvent) => {
-      containerRef.current?.classList.remove("is-dragging");
+  const handleMouseUp = useCallback((_e: React.MouseEvent) => {
+    containerRef.current?.classList.remove("is-dragging");
 
-      // comment token click (no drag)
-      if (
-        startSpanRef.current?.dataset.commentId &&
-        endSpanRef.current === null
-      ) {
-        const commentId = startSpanRef.current.dataset.commentId;
-        startSpanRef.current = null;
-        const comment = fileCommentsRef.current?.find(
-          (c) => c.id === commentId,
-        );
-        if (comment) onCommentClick?.(comment);
-        return;
-      }
-
-      if (startSpanRef.current !== null) {
-        const spans = allSpansRef.current;
-        const startIdx = spans.indexOf(startSpanRef.current);
-        const end = endSpanRef.current ?? startSpanRef.current;
-        const endIdx = spans.indexOf(end);
-
-        const isReversed = endIdx < startIdx;
-        const anchorToken = isReversed
-          ? spans[endIdx]
-          : spans[Math.max(startIdx, endIdx)];
-        const anchorLine = anchorToken.closest<HTMLElement>(".diff-line");
-        if (!anchorLine)
-          throw new Error("anchorToken has no .diff-line ancestor");
-        const leftmostToken = anchorLine.querySelector<HTMLElement>(
-          ".diff-token.token-selected",
-        );
-        if (!leftmostToken)
-          throw new Error("anchorLine has no .diff-token.token-selected");
-
-        const rect = leftmostToken.getBoundingClientRect();
-        const pos = isReversed
-          ? { x: rect.left - 16, y: rect.top - COMMENT_WIDGET_HEIGHT + 6 }
-          : { x: rect.left - 16, y: rect.bottom - 8 };
-
-        commentRef.current?.open(pos);
-
-        const firstToken = isReversed ? end : startSpanRef.current;
-        const lastToken = isReversed ? startSpanRef.current : end;
-        const firstLine = firstToken.closest<HTMLElement>(".diff-line");
-        const lastLine = lastToken.closest<HTMLElement>(".diff-line");
-        const lineNumberStart = firstLine
-          ? readLineNumber(firstLine)
-          : undefined;
-        const lineNumberEnd = lastLine ? readLineNumber(lastLine) : undefined;
-        const startCharacter = firstToken.dataset.charStart;
-        const endCharacter = lastToken.dataset.charEnd;
-
-        if (
-          lineNumberStart === undefined ||
-          lineNumberEnd === undefined ||
-          startCharacter === undefined ||
-          endCharacter === undefined
-        ) {
-          throw new Error("diff selection is missing required line/char data");
-        }
-        selectionRef.current = {
-          lineNumberStart,
-          lineNumberEnd,
-          startCharacter: parseInt(startCharacter, 10),
-          endCharacter: parseInt(endCharacter, 10),
-          // biome-ignore lint/style/noNonNullAssertion: firstLine is non-null when lineNumberStart is defined
-          side: readSide(firstLine!),
-        };
-      }
+    // comment token click (no drag) — active comment wiring handled elsewhere
+    if (
+      startSpanRef.current?.dataset.commentId &&
+      endSpanRef.current === null
+    ) {
       startSpanRef.current = null;
-      endSpanRef.current = null;
-    },
-    [onCommentClick],
-  );
+      return;
+    }
+
+    if (startSpanRef.current !== null) {
+      const spans = allSpansRef.current;
+      const startIdx = spans.indexOf(startSpanRef.current);
+      const end = endSpanRef.current ?? startSpanRef.current;
+      const endIdx = spans.indexOf(end);
+
+      const isReversed = endIdx < startIdx;
+      const anchorToken = isReversed
+        ? spans[endIdx]
+        : spans[Math.max(startIdx, endIdx)];
+      const anchorLine = anchorToken.closest<HTMLElement>(".diff-line");
+      if (!anchorLine)
+        throw new Error("anchorToken has no .diff-line ancestor");
+      const leftmostToken = anchorLine.querySelector<HTMLElement>(
+        ".diff-token.token-selected",
+      );
+      if (!leftmostToken)
+        throw new Error("anchorLine has no .diff-token.token-selected");
+
+      const rect = leftmostToken.getBoundingClientRect();
+      const pos = isReversed
+        ? { x: rect.left - 16, y: rect.top - COMMENT_WIDGET_HEIGHT + 6 }
+        : { x: rect.left - 16, y: rect.bottom - 8 };
+
+      commentRef.current?.open(pos);
+
+      const firstToken = isReversed ? end : startSpanRef.current;
+      const lastToken = isReversed ? startSpanRef.current : end;
+      const firstLine = firstToken.closest<HTMLElement>(".diff-line");
+      const lastLine = lastToken.closest<HTMLElement>(".diff-line");
+      const lineNumberStart = firstLine ? readLineNumber(firstLine) : undefined;
+      const lineNumberEnd = lastLine ? readLineNumber(lastLine) : undefined;
+      const startCharacter = firstToken.dataset.charStart;
+      const endCharacter = lastToken.dataset.charEnd;
+
+      if (
+        lineNumberStart === undefined ||
+        lineNumberEnd === undefined ||
+        startCharacter === undefined ||
+        endCharacter === undefined
+      ) {
+        throw new Error("diff selection is missing required line/char data");
+      }
+      selectionRef.current = {
+        lineNumberStart,
+        lineNumberEnd,
+        startCharacter: parseInt(startCharacter, 10),
+        endCharacter: parseInt(endCharacter, 10),
+        // biome-ignore lint/style/noNonNullAssertion: firstLine is non-null when lineNumberStart is defined
+        side: readSide(firstLine!),
+      };
+    }
+    startSpanRef.current = null;
+    endSpanRef.current = null;
+  }, []);
 
   const useSplit =
     diffSpans.kind === "split" &&
@@ -413,12 +277,74 @@ export function ReviewDiffFileBody({
         onAddComment={onAddComment}
         onClose={clearSelection}
       />
-      <ReviewDiffFileCommentThread
-        ref={threadRef}
-        onClose={onCommentClose ?? (() => {})}
-      />
     </div>
   );
+}
+
+function useHighlightComments(
+  containerRef: React.RefObject<HTMLDivElement | null>,
+  diffFileComments: ReviewCommentResource[],
+) {
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const allSpans = Array.from(
+      container.querySelectorAll<HTMLElement>(".diff-token"),
+    );
+
+    for (const span of allSpans) {
+      span.classList.remove("token-selected", "token-active");
+      delete span.dataset.commentId;
+    }
+
+    for (const comment of diffFileComments) {
+      if (
+        comment.line_number_start == null ||
+        comment.line_number_end == null ||
+        comment.start_character == null ||
+        comment.end_character == null
+      )
+        continue;
+
+      const {
+        line_number_start,
+        line_number_end,
+        start_character,
+        end_character,
+        side,
+      } = comment;
+
+      let startIdx = -1;
+      let endIdx = -1;
+      for (let i = 0; i < allSpans.length; i++) {
+        const span = allSpans[i];
+        const line = span.closest<HTMLElement>(".diff-line");
+        if (!line) continue;
+        if (side && readSide(line) !== side) continue;
+        const lineNum = readLineNumber(line);
+        const charStart = parseInt(span.dataset.charStart ?? "-1", 10);
+        const charEnd = parseInt(span.dataset.charEnd ?? "-1", 10);
+        if (
+          startIdx === -1 &&
+          lineNum === line_number_start &&
+          charStart === start_character
+        ) {
+          startIdx = i;
+        }
+        if (lineNum === line_number_end && charEnd === end_character) {
+          endIdx = i;
+        }
+      }
+
+      if (startIdx === -1 || endIdx === -1) continue;
+
+      for (let i = startIdx; i <= endIdx; i++) {
+        allSpans[i].classList.add("token-selected");
+        allSpans[i].dataset.commentId = comment.id;
+      }
+    }
+  }, [containerRef, diffFileComments]);
 }
 
 const readLineNumber = (line: HTMLElement): number | undefined => {

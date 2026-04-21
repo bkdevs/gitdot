@@ -7,7 +7,8 @@ import type {
   ReviewerResource,
   ReviewResource,
 } from "gitdot-api";
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   type AddReviewerActionResult,
   addReviewerAction,
@@ -29,6 +30,10 @@ type ReviewContext = {
   diffs: ReviewDiffResource[];
   reviewers: ReviewerResource[];
   comments: ReviewCommentResource[];
+  activeComment: ReviewCommentResource | null;
+  setActiveComment: (comment: ReviewCommentResource | null) => void;
+  activeDiff: ReviewDiffResource;
+  activeDiffComments: ReviewCommentResource[];
 
   addReviewer: (userName: string) => Promise<AddReviewerActionResult>;
   removeReviewer: (reviewerName: string) => Promise<RemoveReviewerActionResult>;
@@ -51,6 +56,18 @@ export function ReviewProvider({
   children: React.ReactNode;
 }) {
   const [review, setReview] = useState(initialReview);
+  const [activeComment, setActiveComment] =
+    useState<ReviewCommentResource | null>(null);
+  const searchParams = useSearchParams();
+  const activeDiff = useMemo(() => {
+    const position = Number(searchParams.get("diff") ?? 1);
+    return review.diffs.find((d) => d.position === position) ?? review.diffs[0];
+  }, [searchParams, review.diffs]);
+
+  const activeDiffComments = useMemo(
+    () => review.comments.filter((c) => c.diff_id === activeDiff.id),
+    [review.comments, activeDiff.id],
+  );
 
   async function addReviewer(
     userName: string,
@@ -107,6 +124,10 @@ export function ReviewProvider({
         diffs: review.diffs,
         reviewers: review.reviewers,
         comments: review.comments,
+        activeComment,
+        setActiveComment,
+        activeDiff,
+        activeDiffComments,
         addReviewer,
         removeReviewer,
         addComment,

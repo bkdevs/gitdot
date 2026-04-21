@@ -5,9 +5,7 @@ import type {
   ReviewCommentResource,
 } from "gitdot-api";
 import { Maximize2 } from "lucide-react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
-import { useUserContext } from "@/(main)/context/user";
 import type { DiffSpans } from "@/actions";
 import {
   ContextMenu,
@@ -15,6 +13,7 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from "@/ui/context-menu";
+import { useReviewContext } from "../context";
 import { ReviewDiffFileBody } from "./review-diff-file-body";
 import { ReviewDiffFileBubbles } from "./review-diff-file-bubbles";
 import { ReviewDiffFileDialog } from "./review-diff-file-dialog";
@@ -25,45 +24,18 @@ export function ReviewDiffFile({
   revisionId,
   diffFile,
   diffSpans,
-  diffComments,
 }: {
   diffId: string;
   revisionId: string;
   diffFile: RepositoryDiffFileResource;
   diffSpans: DiffSpans;
-  diffComments: ReviewCommentResource[];
 }) {
-  const { user } = useUserContext();
+  const { activeDiffComments } = useReviewContext();
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const commentParam = searchParams.get("comment");
-
-  function handleCommentClick(comment: ReviewCommentResource) {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("comment", comment.id.slice(0, 8));
-    router.push(`${pathname}?${params.toString()}`);
-  }
-
-  function handleCommentClose() {
-    const params = new URLSearchParams(searchParams.toString());
-    params.delete("comment");
-    router.push(`${pathname}?${params.toString()}`);
-  }
-
-  const fileComments = useMemo(
-    () => diffComments.filter((c) => c.file_path === diffFile.path),
-    [diffComments, diffFile.path],
-  );
-
-  const activeComment = useMemo(
-    () =>
-      commentParam
-        ? (fileComments.find((c) => c.id.startsWith(commentParam)) ?? null)
-        : null,
-    [commentParam, fileComments],
+  const diffFileComments = useMemo(
+    () => activeDiffComments.filter((c) => c.file_path === diffFile.path),
+    [activeDiffComments, diffFile.path],
   );
 
   const [commentPositions, setCommentPositions] = useState<
@@ -75,7 +47,7 @@ export function ReviewDiffFile({
     if (!container) return;
 
     const groups = new Map<string, ReviewCommentResource[]>();
-    for (const comment of fileComments) {
+    for (const comment of diffFileComments) {
       if (comment.line_number_start === null || comment.side === null) continue;
       const key = `${comment.line_number_start}:${comment.side}`;
       const existing = groups.get(key);
@@ -100,7 +72,7 @@ export function ReviewDiffFile({
     }
 
     setCommentPositions(positions);
-  }, [fileComments]);
+  }, [diffFileComments]);
 
   return (
     <div ref={containerRef} className="relative">
@@ -120,10 +92,7 @@ export function ReviewDiffFile({
                 revisionId={revisionId}
                 diffFile={diffFile}
                 diffSpans={diffSpans}
-                fileComments={fileComments}
-                activeComment={activeComment}
-                onCommentClick={handleCommentClick}
-                onCommentClose={handleCommentClose}
+                diffFileComments={diffFileComments}
               />
             </div>
           </ContextMenuTrigger>
@@ -135,11 +104,7 @@ export function ReviewDiffFile({
           </ContextMenuContent>
         </ContextMenu>
       </div>
-      <ReviewDiffFileBubbles
-        commentThreads={commentPositions}
-        userId={user?.id}
-        activeComment={activeComment}
-      />
+      <ReviewDiffFileBubbles commentPositions={commentPositions} />
       <ReviewDiffFileDialog
         diff={diffFile}
         spans={diffSpans}
