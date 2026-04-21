@@ -76,7 +76,7 @@ function ReviewBubble({
       onClick={handleClick}
     >
       <UserImage userId={userId} px={16} />
-      <span className={cn("text-xs font-sans", isActive ? "text-foreground" : "text-muted-foreground")}>
+      <span className={cn("text-xs font-sans select-none", isActive ? "text-foreground" : "text-muted-foreground")}>
         {thread.comments.length}
       </span>
     </div>
