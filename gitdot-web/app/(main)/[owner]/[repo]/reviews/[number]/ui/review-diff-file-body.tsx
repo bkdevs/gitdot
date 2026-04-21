@@ -16,16 +16,6 @@ import {
   type ReviewDiffFileCommentNewHandle,
 } from "./review-diff-file-comment-new";
 
-const getTokenSpan = (target: EventTarget | null): HTMLElement | null => {
-  if (!(target instanceof HTMLElement)) return null;
-  const direct = target.closest(".diff-token");
-  if (direct) return direct as HTMLElement;
-  const line = target.closest(".diff-line");
-  if (!line) return null;
-  const tokens = line.querySelectorAll<HTMLElement>(".diff-token");
-  return tokens.length ? tokens[tokens.length - 1] : null;
-};
-
 export function ReviewDiffFileBody({
   diffId,
   revisionId,
@@ -44,6 +34,13 @@ export function ReviewDiffFileBody({
   onBubble?: (viewportTop: number | null) => void;
 }) {
   const { addComment } = useReviewContext();
+  const selectionRef = useRef<{
+    lineNumberStart: number;
+    lineNumberEnd: number;
+    startCharacter: number;
+    endCharacter: number;
+    side: "old" | "new";
+  } | null>(null);
   const onAddComment = useCallback(
     (body: string) =>
       addComment({
@@ -51,6 +48,11 @@ export function ReviewDiffFileBody({
         revision_id: revisionId,
         body,
         file_path: diffFile.path,
+        line_number_start: selectionRef.current?.lineNumberStart,
+        line_number_end: selectionRef.current?.lineNumberEnd,
+        start_character: selectionRef.current?.startCharacter,
+        end_character: selectionRef.current?.endCharacter,
+        side: selectionRef.current?.side,
       }),
     [addComment, diffId, revisionId, diffFile.path],
   );
@@ -69,6 +71,7 @@ export function ReviewDiffFileBody({
     });
     container.classList.remove("has-selection");
     endSpanRef.current = null;
+    selectionRef.current = null;
     onBubble?.(null);
   }, [onBubble]);
 
@@ -136,9 +139,8 @@ export function ReviewDiffFileBody({
           throw new Error("anchorLine has no .diff-token.token-selected");
 
         const rect = leftmostToken.getBoundingClientRect();
-
         const pos = isReversed
-          ? { x: rect.left - 16, y: rect.top - COMMENT_WIDGET_HEIGHT + 8 }
+          ? { x: rect.left - 16, y: rect.top - COMMENT_WIDGET_HEIGHT + 6 }
           : { x: rect.left - 16, y: rect.bottom - 8 };
 
         commentRef.current?.open(pos);
@@ -148,6 +150,34 @@ export function ReviewDiffFileBody({
         if (bubbleLine) {
           onBubble?.(bubbleLine.getBoundingClientRect().top);
         }
+
+        const firstToken = isReversed ? end : startSpanRef.current;
+        const lastToken = isReversed ? startSpanRef.current : end;
+        const firstLine = firstToken.closest<HTMLElement>(".diff-line");
+        const lastLine = lastToken.closest<HTMLElement>(".diff-line");
+        const lineNumberStart = firstLine
+          ? readLineNumber(firstLine)
+          : undefined;
+        const lineNumberEnd = lastLine ? readLineNumber(lastLine) : undefined;
+        const startCharacter = firstToken.dataset.charStart;
+        const endCharacter = lastToken.dataset.charEnd;
+
+        if (
+          lineNumberStart === undefined ||
+          lineNumberEnd === undefined ||
+          startCharacter === undefined ||
+          endCharacter === undefined
+        ) {
+          throw new Error("diff selection is missing required line/char data");
+        }
+        selectionRef.current = {
+          lineNumberStart,
+          lineNumberEnd,
+          startCharacter: parseInt(startCharacter, 10),
+          endCharacter: parseInt(endCharacter, 10),
+          // biome-ignore lint/style/noNonNullAssertion: firstLine is non-null when lineNumberStart is defined
+          side: readSide(firstLine!),
+        };
       }
       startSpanRef.current = null;
       endSpanRef.current = null;
@@ -221,3 +251,32 @@ export function ReviewDiffFileBody({
     </div>
   );
 }
+
+const readLineNumber = (line: HTMLElement): number | undefined => {
+  if (line.dataset.lineNumber) return parseInt(line.dataset.lineNumber, 10);
+  const lineType = line.dataset.lineType;
+  if (lineType === "removed" && line.dataset.leftLineNumber)
+    return parseInt(line.dataset.leftLineNumber, 10);
+  if (line.dataset.rightLineNumber)
+    return parseInt(line.dataset.rightLineNumber, 10);
+  if (line.dataset.leftLineNumber)
+    return parseInt(line.dataset.leftLineNumber, 10);
+  return undefined;
+};
+
+const readSide = (line: HTMLElement): "old" | "new" => {
+  const raw = line.dataset.side;
+  if (raw === "old") return "old";
+  if (raw === "new") return "new";
+  return line.dataset.lineType === "removed" ? "old" : "new";
+};
+
+const getTokenSpan = (target: EventTarget | null): HTMLElement | null => {
+  if (!(target instanceof HTMLElement)) return null;
+  const direct = target.closest(".diff-token");
+  if (direct) return direct as HTMLElement;
+  const line = target.closest(".diff-line");
+  if (!line) return null;
+  const tokens = line.querySelectorAll<HTMLElement>(".diff-token");
+  return tokens.length ? tokens[tokens.length - 1] : null;
+};

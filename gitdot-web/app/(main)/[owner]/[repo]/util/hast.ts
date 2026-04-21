@@ -273,8 +273,17 @@ function splitSpanByWord(
   span.children = newChildren;
 }
 
+function getTextLength(node: ElementContent): number {
+  if (node.type === "text") return node.value.length;
+  if (node.type === "element") {
+    return node.children.reduce((sum, c) => sum + getTextLength(c), 0);
+  }
+  return 0;
+}
+
 function splitLineByWhitespace(lineNode: Element): void {
   const newChildren: ElementContent[] = [];
+  let charOffset = 0;
 
   for (const child of lineNode.children) {
     if (child.type !== "element") {
@@ -307,24 +316,62 @@ function splitLineByWhitespace(lineNode: Element): void {
       }
     }
 
-    const tokenProps = {
-      ...child.properties,
-      class: [...((child.properties.class as string[]) ?? []), "diff-token"],
-    };
-    const wsSpan = (value: string) => ({
+    const contentLength = spanChildren.reduce(
+      (sum, c) => sum + getTextLength(c),
+      0,
+    );
+
+    const makeToken = (
+      props: Record<string, unknown>,
+      c: ElementContent[],
+    ): Element => ({
       ...child,
-      properties: tokenProps,
-      children: [{ type: "text" as const, value }],
+      properties: {
+        ...child.properties,
+        ...(child.properties.class
+          ? { class: [...(child.properties.class as string[]), "diff-token"] }
+          : { class: ["diff-token"] }),
+        ...props,
+      },
+      children: c,
     });
 
-    if (leadingSpaces) newChildren.push(wsSpan(leadingSpaces));
-    if (spanChildren.length > 0)
-      newChildren.push({
-        ...child,
-        properties: tokenProps,
-        children: spanChildren,
-      });
-    if (trailingSpaces) newChildren.push(wsSpan(trailingSpaces));
+    if (leadingSpaces) {
+      newChildren.push(
+        makeToken(
+          {
+            "data-char-start": charOffset,
+            "data-char-end": charOffset + leadingSpaces.length,
+          },
+          [{ type: "text", value: leadingSpaces }],
+        ),
+      );
+      charOffset += leadingSpaces.length;
+    }
+    if (spanChildren.length > 0) {
+      newChildren.push(
+        makeToken(
+          {
+            "data-char-start": charOffset,
+            "data-char-end": charOffset + contentLength,
+          },
+          spanChildren,
+        ),
+      );
+      charOffset += contentLength;
+    }
+    if (trailingSpaces) {
+      newChildren.push(
+        makeToken(
+          {
+            "data-char-start": charOffset,
+            "data-char-end": charOffset + trailingSpaces.length,
+          },
+          [{ type: "text", value: trailingSpaces }],
+        ),
+      );
+      charOffset += trailingSpaces.length;
+    }
   }
 
   lineNode.children = newChildren;

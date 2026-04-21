@@ -176,10 +176,14 @@ function DiffLineUnified({
   return (
     <span
       className={cn(
+        "diff-line",
         "flex items-center w-full",
         lineType === "added" && "bg-diff-green",
         lineType === "removed" && "bg-diff-red",
       )}
+      data-left-line-number={leftNum}
+      data-right-line-number={rightNum}
+      data-line-type={lineType}
     >
       <span className="w-7 text-right shrink-0 pr-1 text-xs leading-5 text-primary/30 select-none">
         {leftNum ?? ""}

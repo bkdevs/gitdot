@@ -52,11 +52,16 @@ function DiffSection({
 }) {
   const pairs = expandLines(pairLines(hunk), spans.length, spans.length);
 
+  const dataSide = side === "left" ? "old" : "new";
   const outputSpans: Element[] = [];
   for (const [L, R] of pairs) {
     const idx = side === "left" ? L : R;
     if (idx === null) continue;
-    outputSpans.push(idx < spans.length ? spans[idx] : sentinelSpan);
+    const span = idx < spans.length ? spans[idx] : sentinelSpan;
+    outputSpans.push({
+      ...span,
+      properties: { ...span.properties, "data-side": dataSide },
+    });
   }
 
   const container: Element = {
