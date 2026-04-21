@@ -18,8 +18,10 @@ export function DiffLine({
         "flex items-center w-full",
         "[&_.diff-token]:cursor-pointer",
         "[&_.diff-token]:[transition:background-color_200ms]",
+        "[&_.diff-token.token-selected]:bg-primary/8",
+        "[&_.diff-token:hover]:bg-primary/8",
         "[&_.diff-token.token-active]:bg-diff-orange",
-        "[&_.diff-token:hover,&_.diff-token.token-selected]:bg-primary/8",
+        "[&_.diff-token.token-active.token-selected]:bg-diff-orange",
         lineType === "added" && "bg-diff-green",
         lineType === "removed" && "bg-diff-red",
       )}

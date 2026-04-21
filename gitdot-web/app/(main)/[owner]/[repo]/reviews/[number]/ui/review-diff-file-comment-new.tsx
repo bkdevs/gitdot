@@ -9,11 +9,11 @@ export type ReviewDiffFileCommentNewHandle = {
 };
 
 export function ReviewDiffFileCommentNew({
-  onAddComment,
+  newComment,
   onClose,
   ref,
 }: {
-  onAddComment: (body: string) => void;
+  newComment: (body: string) => void;
   onClose: () => void;
   ref: React.Ref<ReviewDiffFileCommentNewHandle>;
 }) {
@@ -53,7 +53,7 @@ export function ReviewDiffFileCommentNew({
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey && comment.trim()) {
               e.preventDefault();
-              onAddComment(comment.trim());
+              newComment(comment.trim());
               close();
             }
             if (e.key === "Escape") close();
