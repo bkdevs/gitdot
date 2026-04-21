@@ -2,6 +2,7 @@
 
 import type { ReviewCommentResource } from "gitdot-api";
 import { Pencil, Trash2 } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
 import { useMemo } from "react";
 import { AvatarBeam } from "@/ui/avatar-beam";
 import {
@@ -46,15 +47,23 @@ function formatLocation(lineStart: number, lineEnd: number | null): string {
 
 function ReviewSummaryComment({ comment }: { comment: ReviewCommentResource }) {
   const name = comment.author?.name ?? comment.author_id;
-  const { activeComment, setActiveComment } = useReviewContext();
+  const { activeComment, setActiveComment, diffs } = useReviewContext();
   const isActive = activeComment?.id === comment.id;
+  const router = useRouter();
+  const pathname = usePathname();
+
+  function handleClick() {
+    setActiveComment(comment);
+    const diff = diffs.find((d) => d.id === comment.diff_id);
+    if (diff) router.push(`${pathname}?diff=${diff.position}`);
+  }
 
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
         <div
           className="group flex flex-col cursor-pointer"
-          onClick={() => setActiveComment(comment)}
+          onClick={handleClick}
         >
           {comment.file_path && (
             <span className="text-xs font-mono text-muted-foreground truncate">
