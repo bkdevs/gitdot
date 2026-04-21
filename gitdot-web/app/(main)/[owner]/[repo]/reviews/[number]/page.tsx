@@ -12,7 +12,7 @@ export default async function Page({
   searchParams,
 }: {
   params: Promise<{ owner: string; repo: string; number: string }>;
-  searchParams: Promise<{ diff?: string }>;
+  searchParams: Promise<{ diff?: string; comment?: string }>;
 }) {
   const { owner, repo, number } = await params;
   const { diff } = await searchParams;

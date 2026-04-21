@@ -5,6 +5,7 @@ import type {
   ReviewCommentResource,
 } from "gitdot-api";
 import { Maximize2 } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useUserContext } from "@/(main)/context/user";
 import type { DiffSpans } from "@/actions";
@@ -35,6 +36,7 @@ export function ReviewDiffFile({
   const { user } = useUserContext();
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const commentParam = useSearchParams().get("comment");
 
   const fileComments = useMemo(
     () => diffComments.filter((c) => c.file_path === diffFile.path),
@@ -109,6 +111,7 @@ export function ReviewDiffFile({
       <ReviewDiffFileBubbles
         commentThreads={commentPositions}
         userId={user?.id}
+        activeCommentId={commentParam}
       />
       <ReviewDiffFileDialog
         diff={diffFile}
