@@ -5,7 +5,7 @@ import type {
   ReviewCommentResource,
 } from "gitdot-api";
 import { Maximize2 } from "lucide-react";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useUserContext } from "@/(main)/context/user";
 import type { DiffSpans } from "@/actions";
@@ -36,7 +36,22 @@ export function ReviewDiffFile({
   const { user } = useUserContext();
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const commentParam = useSearchParams().get("comment");
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const commentParam = searchParams.get("comment");
+
+  function handleCommentClick(comment: ReviewCommentResource) {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("comment", comment.id.slice(0, 8));
+    router.push(`${pathname}?${params.toString()}`);
+  }
+
+  function handleCommentClose() {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("comment");
+    router.push(`${pathname}?${params.toString()}`);
+  }
 
   const fileComments = useMemo(
     () => diffComments.filter((c) => c.file_path === diffFile.path),
@@ -46,7 +61,7 @@ export function ReviewDiffFile({
   const activeComment = useMemo(
     () =>
       commentParam
-        ? fileComments.find((c) => c.id.startsWith(commentParam)) ?? null
+        ? (fileComments.find((c) => c.id.startsWith(commentParam)) ?? null)
         : null,
     [commentParam, fileComments],
   );
@@ -105,7 +120,10 @@ export function ReviewDiffFile({
                 revisionId={revisionId}
                 diffFile={diffFile}
                 diffSpans={diffSpans}
+                fileComments={fileComments}
                 activeComment={activeComment}
+                onCommentClick={handleCommentClick}
+                onCommentClose={handleCommentClose}
               />
             </div>
           </ContextMenuTrigger>
