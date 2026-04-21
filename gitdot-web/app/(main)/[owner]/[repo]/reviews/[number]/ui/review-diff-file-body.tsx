@@ -1,7 +1,10 @@
 "use client";
 
-import type { RepositoryDiffFileResource } from "gitdot-api";
-import { useCallback, useRef } from "react";
+import type {
+  RepositoryDiffFileResource,
+  ReviewCommentResource,
+} from "gitdot-api";
+import { useCallback, useEffect, useRef } from "react";
 import { DiffCreated } from "@/(main)/[owner]/[repo]/commits/[sha]/ui/diff-created";
 import { DiffSplit } from "@/(main)/[owner]/[repo]/commits/[sha]/ui/diff-split";
 import { DiffUnified } from "@/(main)/[owner]/[repo]/commits/[sha]/ui/diff-unified";
@@ -21,6 +24,7 @@ export function ReviewDiffFileBody({
   revisionId,
   diffFile,
   diffSpans,
+  activeComment,
   layout = "heuristic",
   className,
 }: {
@@ -28,6 +32,7 @@ export function ReviewDiffFileBody({
   revisionId: string;
   diffFile: RepositoryDiffFileResource;
   diffSpans: DiffSpans;
+  activeComment?: ReviewCommentResource | null;
   layout?: "split" | "unified" | "heuristic";
   className?: string;
 }) {
@@ -72,6 +77,65 @@ export function ReviewDiffFileBody({
     selectionRef.current = null;
   }, []);
 
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    container.querySelectorAll(".token-selected").forEach((el) => {
+      el.classList.remove("token-selected");
+    });
+    container.classList.remove("has-selection");
+
+    if (
+      !activeComment ||
+      activeComment.line_number_start == null ||
+      activeComment.line_number_end == null ||
+      activeComment.start_character == null ||
+      activeComment.end_character == null
+    )
+      return;
+
+    const {
+      line_number_start,
+      line_number_end,
+      start_character,
+      end_character,
+      side,
+    } = activeComment;
+
+    const allSpans = Array.from(
+      container.querySelectorAll<HTMLElement>(".diff-token"),
+    );
+    let startIdx = -1;
+    let endIdx = -1;
+    for (let i = 0; i < allSpans.length; i++) {
+      const span = allSpans[i];
+      const line = span.closest<HTMLElement>(".diff-line");
+      if (!line) continue;
+      if (side && readSide(line) !== side) continue;
+      const lineNum = readLineNumber(line);
+      const charStart = parseInt(span.dataset.charStart ?? "-1", 10);
+      const charEnd = parseInt(span.dataset.charEnd ?? "-1", 10);
+      if (
+        startIdx === -1 &&
+        lineNum === line_number_start &&
+        charStart === start_character
+      ) {
+        startIdx = i;
+      }
+      if (lineNum === line_number_end && charEnd === end_character) {
+        endIdx = i;
+      }
+    }
+
+    if (startIdx === -1 || endIdx === -1) return;
+
+    for (let i = startIdx; i <= endIdx; i++) {
+      allSpans[i].classList.add("token-selected");
+    }
+    container.classList.add("has-selection");
+  }, [activeComment]);
+
   const handleMouseDown = useCallback(
     (e: React.MouseEvent) => {
       clearSelection();
@@ -113,68 +177,63 @@ export function ReviewDiffFileBody({
     }
   }, []);
 
-  const handleMouseUp = useCallback(
-    (_e: React.MouseEvent) => {
-      containerRef.current?.classList.remove("is-dragging");
-      if (startSpanRef.current !== null) {
-        const spans = allSpansRef.current;
-        const startIdx = spans.indexOf(startSpanRef.current);
-        const end = endSpanRef.current ?? startSpanRef.current;
-        const endIdx = spans.indexOf(end);
+  const handleMouseUp = useCallback((_e: React.MouseEvent) => {
+    containerRef.current?.classList.remove("is-dragging");
+    if (startSpanRef.current !== null) {
+      const spans = allSpansRef.current;
+      const startIdx = spans.indexOf(startSpanRef.current);
+      const end = endSpanRef.current ?? startSpanRef.current;
+      const endIdx = spans.indexOf(end);
 
-        const isReversed = endIdx < startIdx;
-        const anchorToken = isReversed
-          ? spans[endIdx]
-          : spans[Math.max(startIdx, endIdx)];
-        const anchorLine = anchorToken.closest<HTMLElement>(".diff-line");
-        if (!anchorLine)
-          throw new Error("anchorToken has no .diff-line ancestor");
-        const leftmostToken = anchorLine.querySelector<HTMLElement>(
-          ".diff-token.token-selected",
-        );
-        if (!leftmostToken)
-          throw new Error("anchorLine has no .diff-token.token-selected");
+      const isReversed = endIdx < startIdx;
+      const anchorToken = isReversed
+        ? spans[endIdx]
+        : spans[Math.max(startIdx, endIdx)];
+      const anchorLine = anchorToken.closest<HTMLElement>(".diff-line");
+      if (!anchorLine)
+        throw new Error("anchorToken has no .diff-line ancestor");
+      const leftmostToken = anchorLine.querySelector<HTMLElement>(
+        ".diff-token.token-selected",
+      );
+      if (!leftmostToken)
+        throw new Error("anchorLine has no .diff-token.token-selected");
 
-        const rect = leftmostToken.getBoundingClientRect();
-        const pos = isReversed
-          ? { x: rect.left - 16, y: rect.top - COMMENT_WIDGET_HEIGHT + 6 }
-          : { x: rect.left - 16, y: rect.bottom - 8 };
+      const rect = leftmostToken.getBoundingClientRect();
+      const pos = isReversed
+        ? { x: rect.left - 16, y: rect.top - COMMENT_WIDGET_HEIGHT + 6 }
+        : { x: rect.left - 16, y: rect.bottom - 8 };
 
-        commentRef.current?.open(pos);
+      commentRef.current?.open(pos);
 
-        const firstToken = isReversed ? end : startSpanRef.current;
-        const lastToken = isReversed ? startSpanRef.current : end;
-        const firstLine = firstToken.closest<HTMLElement>(".diff-line");
-        const lastLine = lastToken.closest<HTMLElement>(".diff-line");
-        const lineNumberStart = firstLine
-          ? readLineNumber(firstLine)
-          : undefined;
-        const lineNumberEnd = lastLine ? readLineNumber(lastLine) : undefined;
-        const startCharacter = firstToken.dataset.charStart;
-        const endCharacter = lastToken.dataset.charEnd;
+      const firstToken = isReversed ? end : startSpanRef.current;
+      const lastToken = isReversed ? startSpanRef.current : end;
+      const firstLine = firstToken.closest<HTMLElement>(".diff-line");
+      const lastLine = lastToken.closest<HTMLElement>(".diff-line");
+      const lineNumberStart = firstLine ? readLineNumber(firstLine) : undefined;
+      const lineNumberEnd = lastLine ? readLineNumber(lastLine) : undefined;
+      const startCharacter = firstToken.dataset.charStart;
+      const endCharacter = lastToken.dataset.charEnd;
 
-        if (
-          lineNumberStart === undefined ||
-          lineNumberEnd === undefined ||
-          startCharacter === undefined ||
-          endCharacter === undefined
-        ) {
-          throw new Error("diff selection is missing required line/char data");
-        }
-        selectionRef.current = {
-          lineNumberStart,
-          lineNumberEnd,
-          startCharacter: parseInt(startCharacter, 10),
-          endCharacter: parseInt(endCharacter, 10),
-          // biome-ignore lint/style/noNonNullAssertion: firstLine is non-null when lineNumberStart is defined
-          side: readSide(firstLine!),
-        };
+      if (
+        lineNumberStart === undefined ||
+        lineNumberEnd === undefined ||
+        startCharacter === undefined ||
+        endCharacter === undefined
+      ) {
+        throw new Error("diff selection is missing required line/char data");
       }
-      startSpanRef.current = null;
-      endSpanRef.current = null;
-    },
-    [],
-  );
+      selectionRef.current = {
+        lineNumberStart,
+        lineNumberEnd,
+        startCharacter: parseInt(startCharacter, 10),
+        endCharacter: parseInt(endCharacter, 10),
+        // biome-ignore lint/style/noNonNullAssertion: firstLine is non-null when lineNumberStart is defined
+        side: readSide(firstLine!),
+      };
+    }
+    startSpanRef.current = null;
+    endSpanRef.current = null;
+  }, []);
 
   const useSplit =
     diffSpans.kind === "split" &&

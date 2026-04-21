@@ -43,6 +43,14 @@ export function ReviewDiffFile({
     [diffComments, diffFile.path],
   );
 
+  const activeComment = useMemo(
+    () =>
+      commentParam
+        ? fileComments.find((c) => c.id.startsWith(commentParam)) ?? null
+        : null,
+    [commentParam, fileComments],
+  );
+
   const [commentPositions, setCommentPositions] = useState<
     Array<{ top: number; comments: ReviewCommentResource[] }>
   >([]);
@@ -97,6 +105,7 @@ export function ReviewDiffFile({
                 revisionId={revisionId}
                 diffFile={diffFile}
                 diffSpans={diffSpans}
+                activeComment={activeComment}
               />
             </div>
           </ContextMenuTrigger>
@@ -111,7 +120,7 @@ export function ReviewDiffFile({
       <ReviewDiffFileBubbles
         commentThreads={commentPositions}
         userId={user?.id}
-        activeCommentId={commentParam}
+        activeComment={activeComment}
       />
       <ReviewDiffFileDialog
         diff={diffFile}

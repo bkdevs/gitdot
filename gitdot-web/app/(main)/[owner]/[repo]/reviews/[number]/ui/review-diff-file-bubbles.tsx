@@ -8,11 +8,11 @@ import { UserImage } from "@/(main)/[owner]/ui/user-image";
 export function ReviewDiffFileBubbles({
   commentThreads,
   userId,
-  activeCommentId,
+  activeComment,
 }: {
   commentThreads: Array<{ top: number; comments: ReviewCommentResource[] }>;
   userId: string | undefined;
-  activeCommentId: string | null;
+  activeComment: ReviewCommentResource | null;
 }) {
   if (commentThreads.length === 0) return null;
 
@@ -20,8 +20,8 @@ export function ReviewDiffFileBubbles({
     <>
       {commentThreads.map((thread) => {
         const isActive =
-          activeCommentId != null &&
-          thread.comments.some((c) => c.id.startsWith(activeCommentId));
+          activeComment != null &&
+          thread.comments.some((c) => c.id === activeComment.id);
         return (
           <ReviewBubble
             key={thread.comments[0].id}
