@@ -5,7 +5,7 @@ import type {
   ReviewCommentResource,
 } from "gitdot-api";
 import { Maximize2 } from "lucide-react";
-import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { DiffSpans } from "@/actions";
 import {
   ContextMenu,
@@ -16,6 +16,10 @@ import {
 import { useReviewContext } from "../context";
 import { ReviewDiffFileBody } from "./review-diff-file-body";
 import { ReviewDiffFileBubbles } from "./review-diff-file-bubbles";
+import {
+  ReviewDiffFileCommentThread,
+  type ReviewDiffFileCommentThreadHandle,
+} from "./review-diff-file-comment-thread";
 import { ReviewDiffFileDialog } from "./review-diff-file-dialog";
 import { ReviewDiffFileHeader } from "./review-diff-file-header";
 
@@ -26,15 +30,44 @@ export function ReviewDiffFile({
   diffFile: RepositoryDiffFileResource;
   diffSpans: DiffSpans;
 }) {
-  const { activeDiffComments } = useReviewContext();
-  const [open, setOpen] = useState(false);
+  const { activeDiffComments, activeComment, setActiveComment } =
+    useReviewContext();
+  const [dialogOpen, setDialogOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const threadRef = useRef<ReviewDiffFileCommentThreadHandle | null>(null);
   const diffFileComments = useMemo(
     () => activeDiffComments.filter((c) => c.file_path === diffFile.path),
     [activeDiffComments, diffFile.path],
   );
 
-  const [commentPositions, setCommentPositions] = useState<
+  useEffect(() => {
+    if (!activeComment || !containerRef.current || !threadRef.current) {
+      threadRef.current?.close();
+      return;
+    }
+    const token = containerRef.current.querySelector<HTMLElement>(
+      `.diff-token[data-comment-id="${activeComment.id}"]`,
+    );
+    if (!token) {
+      threadRef.current.close();
+      return;
+    }
+    const threadComments = diffFileComments.filter(
+      (c) =>
+        c.line_number_start === activeComment.line_number_start &&
+        c.side === activeComment.side,
+    );
+    const rect = token.getBoundingClientRect();
+    threadRef.current.open(
+      { x: rect.left - 16, y: rect.bottom - 8 },
+      threadComments,
+    );
+  }, [activeComment, diffFileComments]);
+
+  const [bubblePositionsLeft, setBubblePositionsLeft] = useState<
+    Array<{ top: number; comments: ReviewCommentResource[] }>
+  >([]);
+  const [bubblePositionsRight, setBubblePositionsRight] = useState<
     Array<{ top: number; comments: ReviewCommentResource[] }>
   >([]);
 
@@ -52,8 +85,8 @@ export function ReviewDiffFile({
     }
 
     const containerRect = container.getBoundingClientRect();
-    const positions: Array<{ top: number; comments: ReviewCommentResource[] }> =
-      [];
+    const left: Array<{ top: number; comments: ReviewCommentResource[] }> = [];
+    const right: Array<{ top: number; comments: ReviewCommentResource[] }> = [];
 
     for (const [key, comments] of groups) {
       const [lineNum, side] = key.split(":");
@@ -61,13 +94,16 @@ export function ReviewDiffFile({
         `.diff-line[data-line-number="${lineNum}"][data-side="${side}"]`,
       );
       if (!el) continue;
-      positions.push({
+      const position = {
         top: el.getBoundingClientRect().top - containerRect.top,
         comments,
-      });
+      };
+      if (side === "old") left.push(position);
+      else right.push(position);
     }
 
-    setCommentPositions(positions);
+    setBubblePositionsLeft(left);
+    setBubblePositionsRight(right);
   }, [diffFileComments]);
 
   return (
@@ -78,7 +114,7 @@ export function ReviewDiffFile({
       >
         <ReviewDiffFileHeader
           diffFile={diffFile}
-          onClick={() => setOpen(true)}
+          onClick={() => setDialogOpen(true)}
         />
         <ContextMenu>
           <ContextMenuTrigger asChild>
@@ -91,19 +127,27 @@ export function ReviewDiffFile({
             </div>
           </ContextMenuTrigger>
           <ContextMenuContent>
-            <ContextMenuItem onSelect={() => setOpen(true)}>
+            <ContextMenuItem onSelect={() => setDialogOpen(true)}>
               <Maximize2 />
               Expand
             </ContextMenuItem>
           </ContextMenuContent>
         </ContextMenu>
       </div>
-      <ReviewDiffFileBubbles commentPositions={commentPositions} />
+      <ReviewDiffFileBubbles side="old" bubblePositions={bubblePositionsLeft} />
+      <ReviewDiffFileBubbles
+        side="new"
+        bubblePositions={bubblePositionsRight}
+      />
+      <ReviewDiffFileCommentThread
+        ref={threadRef}
+        onClose={() => setActiveComment(null)}
+      />
       <ReviewDiffFileDialog
         diff={diffFile}
         spans={diffSpans}
-        open={open}
-        setOpen={setOpen}
+        open={dialogOpen}
+        setOpen={setDialogOpen}
       />
     </div>
   );

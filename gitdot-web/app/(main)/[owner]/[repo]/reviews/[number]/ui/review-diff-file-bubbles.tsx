@@ -7,23 +7,26 @@ import { cn } from "@/util";
 import { useReviewContext } from "../context";
 
 export function ReviewDiffFileBubbles({
-  commentPositions,
+  side,
+  bubblePositions,
 }: {
-  commentPositions: Array<{ top: number; comments: ReviewCommentResource[] }>;
+  side: "old" | "new";
+  bubblePositions: Array<{ top: number; comments: ReviewCommentResource[] }>;
 }) {
   const { activeComment } = useReviewContext();
 
-  if (commentPositions.length === 0) return null;
+  if (bubblePositions.length === 0) return null;
 
   return (
     <>
-      {commentPositions.map((thread) => {
+      {bubblePositions.map((thread) => {
         const isActive =
           activeComment != null &&
           thread.comments.some((c) => c.id === activeComment.id);
         return (
           <ReviewDiffFileBubble
             key={thread.comments[0].id}
+            side={side}
             thread={thread}
             isActive={isActive}
           />
@@ -34,9 +37,11 @@ export function ReviewDiffFileBubbles({
 }
 
 function ReviewDiffFileBubble({
+  side,
   thread,
   isActive,
 }: {
+  side: "old" | "new";
   thread: { top: number; comments: ReviewCommentResource[] };
   isActive: boolean;
 }) {
@@ -54,11 +59,14 @@ function ReviewDiffFileBubble({
       ref={ref}
       id={`comment-${thread.comments[0].id}`}
       className={cn(
-        "absolute z-50 flex flex-row items-center gap-1.5 left-full ml-2 px-2 py-0.5 bg-background border border-border rounded-full animate-in fade-in duration-200 hover:bg-accent",
+        "absolute z-50 flex flex-row items-center gap-1.5 px-2 py-0.5 bg-background border border-border rounded-full animate-in fade-in duration-200 hover:bg-accent",
+        side === "old" ? "right-full mr-2" : "left-full ml-2",
         isActive && "bg-accent",
       )}
       style={{ top: thread.top }}
-      onClick={() => setActiveComment(thread.comments[0])}
+      onClick={() =>
+        isActive ? setActiveComment(null) : setActiveComment(thread.comments[0])
+      }
     >
       <UserImage userId={thread.comments[0].author_id} px={16} />
       <span

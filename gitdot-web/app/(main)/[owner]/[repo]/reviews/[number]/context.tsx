@@ -6,8 +6,8 @@ import type {
   ReviewerResource,
   ReviewResource,
 } from "gitdot-api";
-import { createContext, useContext, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { createContext, useContext, useMemo, useState } from "react";
 import {
   type AddReviewerActionResult,
   addReviewerAction,
@@ -113,13 +113,13 @@ export function ReviewProvider({
   async function addComment(
     request: AddCommentRequest,
   ): Promise<CreateReviewCommentActionResult> {
-    const latestRevision = activeDiff.revisions[activeDiff.revisions.length - 1];
-    const result = await createReviewCommentAction(
-      owner,
-      repo,
-      review.number,
-      { ...request, diff_id: activeDiff.id, revision_id: latestRevision.id },
-    );
+    const latestRevision =
+      activeDiff.revisions[activeDiff.revisions.length - 1];
+    const result = await createReviewCommentAction(owner, repo, review.number, {
+      ...request,
+      diff_id: activeDiff.id,
+      revision_id: latestRevision.id,
+    });
     if ("error" in result) return result;
 
     setReview((r) => ({ ...r, comments: [...r.comments, result.comment] }));

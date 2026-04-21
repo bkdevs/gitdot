@@ -182,7 +182,8 @@ export async function createReviewCommentAction(
     return { error: "createReviewComment call failed" };
   }
 
-  refresh();
+  // TODO: this causes the layout thing to fail, so we can't refresh hrm, but need to mark as stale?
+  // refresh();
   return { comment: result };
 }
 
