@@ -2,6 +2,7 @@
 
 import type { ReviewResource } from "gitdot-api";
 import { useState } from "react";
+import { updateReviewAction } from "@/actions/review";
 import { cn } from "@/util";
 
 export function ReviewSplashPage({
@@ -15,13 +16,21 @@ export function ReviewSplashPage({
 }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [saving, setSaving] = useState(false);
   const publishable = title.trim().length > 0 && description.trim().length > 0;
 
+  async function handleNext() {
+    if (!publishable || saving) return;
+    setSaving(true);
+    await updateReviewAction(owner, repo, review.id.slice(0, 8), { title, description });
+    setSaving(false);
+  }
+
   return (
-    <div className="flex flex-1 flex-col items-center min-h-full animate-in fade-in duration-500">
-      <div className="flex flex-col items-start gap-8 w-full max-w-lg mt-4">
+    <div className="flex flex-1 flex-col items-center justify-center min-h-full pb-[10vh] animate-in fade-in duration-500">
+      <div className="flex flex-col items-start gap-8 w-full max-w-lg">
         <div className="space-y-0.5 w-full">
-          <p className="text-xs text-muted-foreground font-mono mt-2">
+          <p className="text-xs text-muted-foreground font-mono">
             <span className="text-foreground/40 select-none"># </span>
             title
           </p>
@@ -74,14 +83,16 @@ export function ReviewSplashPage({
       <div className="flex justify-end w-full max-w-lg mt-6">
         <button
           type="button"
+          onClick={handleNext}
+          disabled={!publishable || saving}
           className={cn(
             "font-mono text-sm underline transition-all duration-300",
-            publishable
+            publishable && !saving
               ? "text-foreground decoration-current cursor-pointer"
               : "text-muted-foreground/60 decoration-transparent cursor-not-allowed",
           )}
         >
-          Publish.
+          Next.
         </button>
       </div>
     </div>

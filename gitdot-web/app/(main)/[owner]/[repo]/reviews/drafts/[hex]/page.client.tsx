@@ -62,11 +62,7 @@ function PageContent({
   return (
     <div className="flex flex-1 min-w-0 h-full">
       <Sidebar containerClassName="w-[30%] grow-0" style={{ width: "100%" }}>
-        <ReviewSummary
-          owner={owner}
-          repo={repo}
-          promises={{ review: reviewPromise }}
-        />
+        <ReviewSummary promises={{ review: reviewPromise }} />
       </Sidebar>
       <div className="flex flex-1 scrollbar-thin overflow-y-auto items-start">
         <div data-diff-top className="flex flex-col w-full min-h-full">

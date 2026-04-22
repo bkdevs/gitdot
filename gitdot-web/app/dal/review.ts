@@ -115,7 +115,7 @@ export async function updateDiff(
 export async function updateReview(
   owner: string,
   repo: string,
-  number: number,
+  number: string,
   request: UpdateReviewRequest,
 ): Promise<ReviewResource | null> {
   const response = await authPatch(
