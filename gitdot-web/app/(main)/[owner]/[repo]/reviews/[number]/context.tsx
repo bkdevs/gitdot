@@ -8,11 +8,11 @@ import type {
 } from "gitdot-api";
 import { useSearchParams } from "next/navigation";
 import { createContext, useContext, useMemo, useState } from "react";
+import { useUserContext } from "@/(main)/context/user";
 import {
   type AddReviewerActionResult,
   addReviewerAction,
   type CreateReviewCommentActionResult,
-  createReviewCommentAction,
   type PublishReviewActionResult,
   publishReviewAction,
   type RemoveReviewerActionResult,
@@ -44,6 +44,7 @@ type ReviewContext = {
   diffs: ReviewDiffResource[];
   reviewers: ReviewerResource[];
   comments: ReviewCommentResource[];
+  draftComments: ReviewCommentResource[];
   activeComment: ReviewCommentResource | null;
   setActiveComment: (comment: ReviewCommentResource | null) => void;
   activeDiff: ReviewDiffResource;
@@ -75,18 +76,27 @@ export function ReviewProvider({
   review: ReviewResource;
   children: React.ReactNode;
 }) {
+  const { user } = useUserContext();
   const [review, setReview] = useState(initialReview);
   const [activeComment, setActiveComment] =
     useState<ReviewCommentResource | null>(null);
+  const [draftComments, setDraftComments] = useState<ReviewCommentResource[]>(
+    [],
+  );
   const searchParams = useSearchParams();
   const activeDiff = useMemo(() => {
     const position = Number(searchParams.get("diff") ?? 1);
     return review.diffs.find((d) => d.position === position) ?? review.diffs[0];
   }, [searchParams, review.diffs]);
 
+  const comments = useMemo(
+    () => [...review.comments, ...draftComments],
+    [review.comments, draftComments],
+  );
+
   const activeDiffComments = useMemo(
-    () => review.comments.filter((c) => c.diff_id === activeDiff.id),
-    [review.comments, activeDiff.id],
+    () => comments.filter((c) => c.diff_id === activeDiff.id),
+    [comments, activeDiff.id],
   );
 
   async function publishReview(): Promise<PublishReviewActionResult> {
@@ -151,20 +161,35 @@ export function ReviewProvider({
     return result;
   }
 
-  async function addComment(
+  function addComment(
     request: AddCommentRequest,
   ): Promise<CreateReviewCommentActionResult> {
     const latestRevision =
       activeDiff.revisions[activeDiff.revisions.length - 1];
-    const result = await createReviewCommentAction(owner, repo, review.number, {
-      ...request,
+
+    const now = new Date().toISOString();
+    const draftComment: ReviewCommentResource = {
+      id: crypto.randomUUID(),
+      review_id: review.id,
       diff_id: activeDiff.id,
       revision_id: latestRevision.id,
-    });
-    if ("error" in result) return result;
+      author_id: user?.id ?? "00000000-0000-0000-0000-000000000000",
+      parent_id: null,
+      body: request.body,
+      file_path: request.file_path ?? null,
+      line_number_start: request.line_number_start ?? null,
+      line_number_end: request.line_number_end ?? null,
+      start_character: request.start_character ?? null,
+      end_character: request.end_character ?? null,
+      side: request.side ?? null,
+      resolved: false,
+      created_at: now,
+      updated_at: now,
+      author: user ? { id: user.id, name: user.name } : null,
+    };
 
-    setReview((r) => ({ ...r, comments: [...r.comments, result.comment] }));
-    return result;
+    setDraftComments((prev) => [...prev, draftComment]);
+    return Promise.resolve({ comment: draftComment });
   }
 
   return (
@@ -173,7 +198,8 @@ export function ReviewProvider({
         review,
         diffs: review.diffs,
         reviewers: review.reviewers,
-        comments: review.comments,
+        comments,
+        draftComments,
         activeComment,
         setActiveComment,
         activeDiff,
