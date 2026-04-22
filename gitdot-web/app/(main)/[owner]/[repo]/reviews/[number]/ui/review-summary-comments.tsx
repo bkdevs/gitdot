@@ -4,7 +4,7 @@ import type { ReviewCommentResource } from "gitdot-api";
 import { Pencil, Trash2 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useMemo } from "react";
-import { AvatarBeam } from "@/ui/avatar-beam";
+import { UserImage } from "../../../../ui/user-image";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -88,7 +88,7 @@ function ReviewSummaryComment({ comment }: { comment: ReviewCommentResource }) {
           <div className="flex flex-col gap-1 pb-1">
             <span className="text-sm text-foreground">{comment.body}</span>
             <div className="flex items-center gap-1 ml-auto">
-              <AvatarBeam name={name} size={14} />
+              <UserImage userId={comment.author_id} px={14} />
               <span className="text-xs text-muted-foreground">{name}</span>
               <span className="text-xs text-muted-foreground">
                 {timeAgo(new Date(comment.created_at))}
