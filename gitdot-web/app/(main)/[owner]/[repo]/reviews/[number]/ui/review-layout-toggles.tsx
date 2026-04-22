@@ -12,7 +12,7 @@ export function ReviewLayoutToggles({
   setLayout: (layout: PageLayout) => void;
 }) {
   return (
-    <div className="flex flex-row w-16 h-8 border-t border-r border-border bg-background">
+    <div className="flex flex-row w-16 h-8 border-t border-l border-border bg-background">
       <button
         type="button"
         onClick={() => setLayout(layout === "diffs" ? "split" : "diffs")}

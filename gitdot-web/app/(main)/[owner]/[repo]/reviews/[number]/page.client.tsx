@@ -14,6 +14,7 @@ import { ReviewProvider, useReviewContext } from "./context";
 import type { Resources } from "./page";
 import { ReviewActions } from "./ui/review-actions";
 import { ReviewDiff } from "./ui/review-diff";
+import { ReviewLayoutToggles } from "./ui/review-layout-toggles";
 import { ReviewSplash } from "./ui/review-splash";
 import { ReviewSummary } from "./ui/review-summary";
 
@@ -97,6 +98,7 @@ function PageContent({
     <ReviewProvider owner={owner} repo={repo} review={initialReview}>
       <ReviewPage
         layout={layout}
+        setLayout={setLayout}
         owner={owner}
         repo={repo}
         position={position}
@@ -108,12 +110,14 @@ function PageContent({
 
 function ReviewPage({
   layout,
+  setLayout,
   owner,
   repo,
   position,
   diffEntriesPromise,
 }: {
   layout: PageLayout;
+  setLayout: (layout: PageLayout) => void;
   owner: string;
   repo: string;
   position: number;
@@ -128,7 +132,7 @@ function ReviewPage({
   return (
     <div
       className={cn(
-        "grid flex-1 min-w-0 h-full",
+        "relative grid flex-1 min-w-0 h-full overflow-hidden",
         layout === "split" && "grid-cols-[25%_1fr]",
         layout === "summary" && "grid-cols-1",
         layout === "diffs" && "grid-cols-1",
@@ -136,7 +140,7 @@ function ReviewPage({
     >
       <div
         className={cn(
-          "flex flex-col h-full border-r",
+          "flex flex-col min-h-0 border-r",
           layout === "diffs" && "hidden",
         )}
       >
@@ -152,7 +156,7 @@ function ReviewPage({
       </div>
       <div
         className={cn(
-          "scrollbar-thin overflow-y-auto",
+          "overflow-y-auto scrollbar-thin min-h-0",
           layout === "summary" && "hidden",
         )}
       >
@@ -163,6 +167,9 @@ function ReviewPage({
           review={review}
           diffEntriesPromise={diffEntriesPromise}
         />
+      </div>
+      <div className="absolute bottom-0 right-0 z-10">
+        <ReviewLayoutToggles layout={layout} setLayout={setLayout} />
       </div>
     </div>
   );
