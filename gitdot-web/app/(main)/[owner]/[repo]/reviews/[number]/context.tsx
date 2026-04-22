@@ -12,7 +12,6 @@ import { useUserContext } from "@/(main)/context/user";
 import {
   type AddReviewerActionResult,
   addReviewerAction,
-  type CreateReviewCommentActionResult,
   type PublishReviewActionResult,
   publishReviewAction,
   type RemoveReviewerActionResult,
@@ -21,9 +20,12 @@ import {
   updateReviewAction,
 } from "@/actions/review";
 
+export type CreateReviewCommentActionResult =
+  | { comment: ReviewCommentResource }
+  | { error: string };
+
 export type {
   AddReviewerActionResult,
-  CreateReviewCommentActionResult,
   PublishReviewActionResult,
   RemoveReviewerActionResult,
   UpdateReviewActionResult,

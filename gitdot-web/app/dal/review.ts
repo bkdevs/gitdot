@@ -1,7 +1,6 @@
 import "server-only";
 
 import type {
-  CreateReviewCommentRequest,
   PublishReviewRequest,
   ReviewReviewDiffRequest,
   UpdateReviewCommentRequest,
@@ -165,20 +164,6 @@ export async function mergeDiff(
   );
 
   return await handleResponse(response, ReviewResource);
-}
-
-export async function createReviewComment(
-  owner: string,
-  repo: string,
-  number: number,
-  request: CreateReviewCommentRequest,
-): Promise<ReviewCommentResource | null> {
-  const response = await authPost(
-    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/review/${number}/comment`,
-    request,
-  );
-
-  return await handleResponse(response, ReviewCommentResource);
 }
 
 export async function updateReviewComment(

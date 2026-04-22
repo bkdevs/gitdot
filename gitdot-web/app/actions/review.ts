@@ -1,7 +1,6 @@
 "use server";
 
 import type {
-  CreateReviewCommentRequest,
   PublishReviewRequest,
   ReviewCommentResource,
   ReviewerResource,
@@ -15,7 +14,6 @@ import { refresh } from "next/cache";
 import {
   ApiError,
   addReviewer,
-  createReviewComment,
   mergeDiff,
   publishReview,
   removeReviewer,
@@ -165,26 +163,6 @@ export async function mergeDiffAction(
 
   refresh();
   return { review: result };
-}
-
-export type CreateReviewCommentActionResult =
-  | { comment: ReviewCommentResource }
-  | { error: string };
-
-export async function createReviewCommentAction(
-  owner: string,
-  repo: string,
-  number: number,
-  request: CreateReviewCommentRequest,
-): Promise<CreateReviewCommentActionResult> {
-  const result = await createReviewComment(owner, repo, number, request);
-  if (!result) {
-    return { error: "createReviewComment call failed" };
-  }
-
-  // TODO: this causes the layout thing to fail, so we can't refresh hrm, but need to mark as stale?
-  // refresh();
-  return { comment: result };
 }
 
 export type UpdateReviewCommentActionResult =
