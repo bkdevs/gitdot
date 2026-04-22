@@ -25,7 +25,7 @@ export function ReviewDiffActions({
   const [status, setStatus] = useState<DiffStatus>(initialStatus);
 
   return (
-    <div className="shrink-0 flex flex-col justify-between items-end self-stretch gap-2 pb-2">
+    <div className="shrink-0 flex flex-col justify-between items-end self-stretch gap-4 pb-2">
       {revision && (
         <div className="flex flex-row gap-4">
           <div className="flex flex-col gap-0.5">
@@ -63,51 +63,58 @@ export function ReviewDiffActions({
           </div>
         </div>
       )}
-      {review.status === "draft" && status !== "merged" && (
-        <div className="flex flex-col gap-1 w-full">
-          {status === "approved" ? (
-            <MergeButton
-              onMerge={async () => {
-                await Promise.all([
-                  mergeDiffAction(owner, repo, review.number, position),
-                  new Promise((r) => setTimeout(r, 1600)),
-                ]);
-                setStatus("merged");
-              }}
-            />
-          ) : (
-            <ApproveButton
-              onApprove={async () => {
-                await Promise.all([
-                  judgeDiffAction(owner, repo, review.number, position, {
-                    verdict: "approve",
-                  }),
-                  new Promise((r) => setTimeout(r, 1600)),
-                ]);
-                setStatus("approved");
-              }}
-            />
-          )}
-        </div>
-      )}
+      <div className="flex flex-col gap-1 w-full">
+        {status === "approved" ? (
+          <MergeButton
+            disabled={review.status === "draft"}
+            onMerge={async () => {
+              await Promise.all([
+                mergeDiffAction(owner, repo, review.number, position),
+                new Promise((r) => setTimeout(r, 1600)),
+              ]);
+              setStatus("merged");
+            }}
+          />
+        ) : (
+          <ApproveButton
+            disabled={review.status === "draft" || status === "merged"}
+            onApprove={async () => {
+              await Promise.all([
+                judgeDiffAction(owner, repo, review.number, position, {
+                  verdict: "approve",
+                }),
+                new Promise((r) => setTimeout(r, 1600)),
+              ]);
+              setStatus("approved");
+            }}
+          />
+        )}
+        <ReviewButton disabled={review.status === "draft"} />
+      </div>
     </div>
   );
 }
 
-function ApproveButton({ onApprove }: { onApprove: () => Promise<void> }) {
+function ApproveButton({
+  disabled,
+  onApprove,
+}: {
+  disabled: boolean;
+  onApprove: () => Promise<void>;
+}) {
   const [approving, setApproving] = useState(false);
   const typed = useTypewriter(approving ? "Approving..." : "", 50);
 
   return (
     <button
       type="button"
-      disabled={approving}
+      disabled={disabled || approving}
       onClick={async () => {
         setApproving(true);
         await onApprove();
       }}
       className={cn(
-        "text-xs font-mono px-2.5 py-1 text-primary-foreground underline decoration-transparent hover:decoration-current transition-all duration-200 rounded-xs border border-primary w-full disabled:cursor-not-allowed",
+        "text-xs font-mono px-2.5 py-1 text-primary-foreground underline decoration-transparent hover:decoration-current transition-all duration-200 rounded-xs border border-primary w-full disabled:opacity-50 disabled:cursor-not-allowed",
         approving ? "bg-primary/90" : "bg-primary hover:bg-primary/90",
       )}
     >
@@ -120,20 +127,26 @@ function ApproveButton({ onApprove }: { onApprove: () => Promise<void> }) {
   );
 }
 
-function MergeButton({ onMerge }: { onMerge: () => Promise<void> }) {
+function MergeButton({
+  disabled,
+  onMerge,
+}: {
+  disabled: boolean;
+  onMerge: () => Promise<void>;
+}) {
   const [merging, setMerging] = useState(false);
   const typed = useTypewriter(merging ? "Merging..." : "", 50);
 
   return (
     <button
       type="button"
-      disabled={merging}
+      disabled={disabled || merging}
       onClick={async () => {
         setMerging(true);
         await onMerge();
       }}
       className={cn(
-        "text-xs font-mono px-2.5 py-1 text-primary-foreground underline decoration-transparent hover:decoration-current transition-all duration-200 rounded-xs border border-primary w-full disabled:cursor-not-allowed",
+        "text-xs font-mono px-2.5 py-1 text-primary-foreground underline decoration-transparent hover:decoration-current transition-all duration-200 rounded-xs border border-primary w-full disabled:opacity-50 disabled:cursor-not-allowed",
         merging ? "bg-primary/90" : "bg-primary hover:bg-primary/90",
       )}
     >
@@ -142,6 +155,18 @@ function MergeButton({ onMerge }: { onMerge: () => Promise<void> }) {
       ) : (
         "Merge"
       )}
+    </button>
+  );
+}
+
+function ReviewButton({ disabled }: { disabled: boolean }) {
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      className="text-xs font-mono px-2.5 py-1 rounded-xs border border-border bg-background hover:bg-accent w-full transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      Review
     </button>
   );
 }
