@@ -40,7 +40,12 @@ export function ReviewDiffFileBody({
     handleMouseMove,
     handleMouseUp,
   } = useCommentSelection();
-  useHighlightComments(containerRef, diffFileComments, activeComment);
+  useHighlightComments(
+    containerRef,
+    diffFileComments,
+    activeComment,
+    diffSpans,
+  );
 
   const newComment = useCallback(
     (body: string) =>

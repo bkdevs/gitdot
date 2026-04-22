@@ -1,13 +1,15 @@
 import type { ReviewCommentResource } from "gitdot-api";
-import { useEffect } from "react";
+import { useLayoutEffect } from "react";
+import type { DiffSpans } from "@/actions";
 import { readLineNumber, readSide } from "./util";
 
 export function useHighlightComments(
   containerRef: React.RefObject<HTMLDivElement | null>,
   diffFileComments: ReviewCommentResource[],
   activeComment: ReviewCommentResource | null,
+  _spans: DiffSpans,
 ) {
-  useEffect(() => {
+  useLayoutEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
@@ -68,7 +70,7 @@ export function useHighlightComments(
     }
   }, [containerRef, diffFileComments]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const container = containerRef.current;
     if (!container) return;
     for (const span of container.querySelectorAll<HTMLElement>(
