@@ -53,6 +53,11 @@ function ReviewSummaryComment({ comment }: { comment: ReviewCommentResource }) {
   const pathname = usePathname();
 
   function handleClick() {
+    if (isActive) {
+      setActiveComment(null);
+      return;
+    }
+
     setActiveComment(comment);
     const diff = diffs.find((d) => d.id === comment.diff_id);
     if (diff) router.push(`${pathname}?diff=${diff.position}`);
@@ -66,7 +71,12 @@ function ReviewSummaryComment({ comment }: { comment: ReviewCommentResource }) {
           onClick={handleClick}
         >
           {comment.file_path && (
-            <span className="text-xs font-mono text-muted-foreground truncate">
+            <span
+              className={cn(
+                "text-xs font-mono text-muted-foreground truncate underline decoration-transparent group-hover:decoration-current transition-colors duration-200",
+                isActive && "decoration-current",
+              )}
+            >
               {comment.file_path}
               {comment.line_number_start != null &&
                 formatLocation(
@@ -75,12 +85,7 @@ function ReviewSummaryComment({ comment }: { comment: ReviewCommentResource }) {
                 )}
             </span>
           )}
-          <div
-            className={cn(
-              "border-l border-transparent group-hover:border-black -ml-1.5 pl-1.5 transition-colors duration-200 flex flex-col gap-1 pb-1",
-              isActive && "border-black",
-            )}
-          >
+          <div className="flex flex-col gap-1 pb-1">
             <span className="text-sm text-foreground">{comment.body}</span>
             <div className="flex items-center gap-1 ml-auto">
               <AvatarBeam name={name} size={14} />

@@ -49,8 +49,12 @@ function ReviewDiffFileBubble({
   const { setActiveComment } = useReviewContext();
 
   useEffect(() => {
-    if (isActive) {
-      ref.current?.scrollIntoView({ behavior: "instant", block: "center" });
+    if (isActive && ref.current) {
+      const rect = ref.current.getBoundingClientRect();
+      const inViewport = rect.top >= 0 && rect.bottom <= window.innerHeight;
+      if (!inViewport) {
+        ref.current.scrollIntoView({ behavior: "instant", block: "center" });
+      }
     }
   }, [isActive]);
 

@@ -7,8 +7,9 @@ export function useHighlightComments(
   containerRef: React.RefObject<HTMLDivElement | null>,
   diffFileComments: ReviewCommentResource[],
   activeComment: ReviewCommentResource | null,
-  _spans: DiffSpans,
+  spans: DiffSpans,
 ) {
+  // biome-ignore lint/correctness/useExhaustiveDependencies: spans is a cache key that triggers re-run when diff content changes, resetting classes React wiped during reconciliation
   useLayoutEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -68,8 +69,9 @@ export function useHighlightComments(
         allSpans[i].dataset.commentId = comment.id;
       }
     }
-  }, [containerRef, diffFileComments]);
+  }, [containerRef, diffFileComments, spans]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: spans is a cache key that triggers re-run when diff content changes, resetting classes React wiped during reconciliation
   useLayoutEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -85,5 +87,5 @@ export function useHighlightComments(
         span.classList.add("token-active");
       }
     }
-  }, [containerRef, activeComment]);
+  }, [containerRef, activeComment, spans]);
 }
