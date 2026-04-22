@@ -17,7 +17,7 @@ export function ReviewActions() {
       <button
         type="button"
         onClick={() => setPublishing(true)}
-        className="flex w-full h-8 items-center gap-1.5 px-2 border-b border-border text-xs text-primary bg-accent/50 outline-none underline decoration-transparent hover:decoration-current transition-colors duration-200 cursor-pointer"
+        className="flex w-full h-8 items-center justify-start gap-1.5 px-2 border-b border-border text-xs text-primary bg-accent/50 outline-none underline decoration-transparent hover:decoration-current transition-colors duration-200 cursor-pointer"
       >
         <Send className="size-3.5" />
         Publish
@@ -59,7 +59,7 @@ export function ReviewActions() {
                   setPublishError(null);
                 }
               }}
-              className="flex items-center px-3 h-full text-xs text-primary bg-background hover:underline hover:bg-accent/50 border-l border-border transition-colors cursor-pointer"
+              className="flex items-center px-2 h-full text-xs text-primary bg-background hover:underline hover:bg-accent/50 border-l border-border transition-colors cursor-pointer"
             >
               Publish
             </button>
@@ -69,7 +69,7 @@ export function ReviewActions() {
       <button
         type="button"
         onClick={() => setDiscarding(true)}
-        className="flex w-full h-8 items-center gap-1.5 px-2 text-xs text-destructive outline-none underline decoration-transparent hover:decoration-current hover:bg-accent transition-colors duration-200 cursor-pointer"
+        className="flex w-full h-8 items-center justify-start gap-1.5 px-2 text-xs text-destructive outline-none underline decoration-transparent hover:decoration-current hover:bg-accent transition-colors duration-200 cursor-pointer"
       >
         <Trash2 className="size-3.5" />
         Discard
@@ -121,7 +121,7 @@ export function ReviewActions() {
                   setDiscardError(null);
                 }
               }}
-              className="flex items-center px-3 h-full text-xs text-destructive bg-background hover:underline hover:bg-accent/50 border-l border-border transition-colors cursor-pointer"
+              className="flex items-center px-2 h-full text-xs text-destructive bg-background hover:underline hover:bg-accent/50 border-l border-border transition-colors cursor-pointer"
             >
               Discard
             </button>

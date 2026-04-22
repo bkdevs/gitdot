@@ -4,7 +4,6 @@ import type { ReviewCommentResource } from "gitdot-api";
 import { Pencil, Trash2 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useMemo } from "react";
-import { UserImage } from "../../../../ui/user-image";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -12,6 +11,7 @@ import {
   ContextMenuTrigger,
 } from "@/ui/context-menu";
 import { cn, timeAgo } from "@/util";
+import { UserImage } from "../../../../ui/user-image";
 import { useReviewContext } from "../context";
 
 export function ReviewSummaryComments() {

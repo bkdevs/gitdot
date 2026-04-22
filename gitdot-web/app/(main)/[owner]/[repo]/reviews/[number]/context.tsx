@@ -96,7 +96,9 @@ export function ReviewProvider({
     return result;
   }
 
-  async function discardReview(): Promise<{ success: true } | { error: string }> {
+  async function discardReview(): Promise<
+    { success: true } | { error: string }
+  > {
     return { error: "not implemented" };
   }
 
