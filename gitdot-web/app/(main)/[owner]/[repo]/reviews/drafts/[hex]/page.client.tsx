@@ -6,6 +6,7 @@ import type { DiffEntry } from "@/actions";
 import { Loading } from "@/ui/loading";
 import { ReviewSplashPage } from "@/ui/review-splash-page";
 import { Sidebar } from "@/ui/sidebar";
+import { ReviewProvider } from "../../[number]/context";
 import { ReviewDiffBody } from "../../[number]/ui/review-diff-body";
 import { ReviewDiffHeader } from "../../[number]/ui/review-diff-header";
 import { ReviewSummary } from "../../[number]/ui/review-summary";
@@ -51,6 +52,7 @@ function PageContent({
 }) {
   const review = use(reviewPromise);
   if (!review) return null;
+  console.log(review);
 
   if (!review.title && !review.description) {
     return <ReviewSplashPage owner={owner} repo={repo} review={review} />;
@@ -60,24 +62,26 @@ function PageContent({
   if (!activeDiff) return null;
 
   return (
-    <div className="flex flex-1 min-w-0 h-full">
-      <Sidebar containerClassName="w-[30%] grow-0" style={{ width: "100%" }}>
-        <ReviewSummary promises={{ review: reviewPromise }} />
-      </Sidebar>
-      <div className="flex flex-1 scrollbar-thin overflow-y-auto items-start">
-        <div data-diff-top className="flex flex-col w-full min-h-full">
-          <ReviewDiffHeader diffs={review.diffs} position={position} />
-          <Suspense fallback={<Loading />}>
-            <ReviewDiffBody
-              owner={owner}
-              repo={repo}
-              review={review}
-              diffEntriesPromise={diffEntriesPromise}
-              diff={activeDiff}
-            />
-          </Suspense>
+    <ReviewProvider owner={owner} repo={repo} review={review}>
+      <div className="flex flex-1 min-w-0 h-full">
+        <Sidebar containerClassName="w-[30%] grow-0" style={{ width: "100%" }}>
+          <ReviewSummary review={review} />
+        </Sidebar>
+        <div className="flex flex-1 scrollbar-thin overflow-y-auto items-start">
+          <div data-diff-top className="flex flex-col w-full min-h-full">
+            <ReviewDiffHeader diffs={review.diffs} position={position} />
+            <Suspense fallback={<Loading />}>
+              <ReviewDiffBody
+                owner={owner}
+                repo={repo}
+                review={review}
+                diffEntriesPromise={diffEntriesPromise}
+                diff={activeDiff}
+              />
+            </Suspense>
+          </div>
         </div>
       </div>
-    </div>
+    </ReviewProvider>
   );
 }
