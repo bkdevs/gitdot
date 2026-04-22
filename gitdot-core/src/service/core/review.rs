@@ -74,7 +74,10 @@ pub trait ReviewService: Send + Sync + 'static {
         request: ProcessReviewRequest,
     ) -> Result<ReviewResponse, ReviewError>;
 
-    async fn publish_review(&self, request: PublishReviewRequest) -> Result<(), ReviewError>;
+    async fn publish_review(
+        &self,
+        request: PublishReviewRequest,
+    ) -> Result<ReviewResponse, ReviewError>;
 
     async fn update_review(
         &self,
@@ -488,14 +491,14 @@ where
         Ok(updated.into())
     }
 
-    async fn publish_review(&self, request: PublishReviewRequest) -> Result<(), ReviewError> {
-        let review = self
-            .get_review_by_id(
-                request.owner.as_ref(),
-                request.repo.as_ref(),
-                request.number,
-            )
-            .await?;
+    async fn publish_review(
+        &self,
+        request: PublishReviewRequest,
+    ) -> Result<ReviewResponse, ReviewError> {
+        let owner = request.owner.as_ref();
+        let repo = request.repo.as_ref();
+
+        let review = self.get_review_by_id(owner, repo, request.number).await?;
 
         if review.status != ReviewStatus::Draft {
             return Err(ReviewError::ReviewNotPublishable(format!(
@@ -510,7 +513,8 @@ where
             .update_review(review.id, Some(ReviewStatus::InProgress), None, None)
             .await?;
 
-        Ok(())
+        let updated = self.get_review_by_id(owner, repo, request.number).await?;
+        Ok(updated.into())
     }
 
     async fn update_review(

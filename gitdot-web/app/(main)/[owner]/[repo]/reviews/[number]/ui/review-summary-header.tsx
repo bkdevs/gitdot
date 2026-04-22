@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReviewResource } from "gitdot-api";
+import type { ReviewResource, ReviewStatus } from "gitdot-api";
 import { useParams, usePathname } from "next/navigation";
 import Link from "@/ui/link";
 
@@ -38,8 +38,25 @@ export function ReviewSummaryHeader({ review }: { review: ReviewResource }) {
             {identifier}
           </Link>
         </div>
-        {review.status === "draft" && <span className="shrink-0">draft</span>}
+        <ReviewSummaryStatus status={review.status} />
       </div>
     </div>
   );
+}
+
+function ReviewSummaryStatus({ status }: { status: ReviewStatus }) {
+  switch (status) {
+    case "draft":
+      return (
+        <span className="text-xs shrink-0 text-muted-foreground">draft</span>
+      );
+    case "in_progress":
+      return <span className="text-xs shrink-0 text-foreground">open</span>;
+    case "closed":
+      return (
+        <span className="text-xs shrink-0 text-muted-foreground underline">
+          closed
+        </span>
+      );
+  }
 }

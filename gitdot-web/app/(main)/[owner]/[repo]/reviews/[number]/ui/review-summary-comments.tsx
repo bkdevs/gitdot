@@ -31,9 +31,13 @@ export function ReviewSummaryComments() {
         Comments
       </h2>
       <div className="flex flex-col gap-6">
-        {sorted.map((comment) => (
-          <ReviewSummaryComment key={comment.id} comment={comment} />
-        ))}
+        {sorted.length === 0 ? (
+          <span className="text-xs text-muted-foreground">no comments yet</span>
+        ) : (
+          sorted.map((comment) => (
+            <ReviewSummaryComment key={comment.id} comment={comment} />
+          ))
+        )}
       </div>
     </section>
   );
