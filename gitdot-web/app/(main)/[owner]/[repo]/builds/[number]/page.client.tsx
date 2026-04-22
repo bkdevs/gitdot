@@ -76,7 +76,7 @@ function PageContent({
   if (!build) return null;
 
   return (
-    <div className="flex flex-col w-full">
+    <div className="flex flex-col w-full flex-1 min-w-0 overflow-y-auto scrollbar-thin">
       <BuildHeader
         build={build}
         commit={commit}

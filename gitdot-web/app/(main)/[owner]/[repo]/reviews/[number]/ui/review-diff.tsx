@@ -22,7 +22,7 @@ export function ReviewDiff({
   if (!activeDiff) return null;
 
   return (
-    <div data-diff-top className="flex flex-col w-full min-h-full">
+    <div data-diff-top className="flex flex-col w-full min-h-full pb-8">
       <ReviewDiffHeader diffs={review.diffs} position={position} />
       <Suspense fallback={<Loading />}>
         <ReviewDiffBody

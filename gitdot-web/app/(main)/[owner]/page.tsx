@@ -25,7 +25,7 @@ export default async function Page({
   }
 
   return (
-    <div className="grid grid-cols-[1fr_600px_1fr] items-start py-10">
+    <div className="grid grid-cols-[1fr_600px_1fr] items-start py-10 h-full overflow-y-auto scrollbar-thin">
       <div className="border-r flex flex-col items-end px-4 gap-6">
         <UserProfile user={user} />
         <UserLinks user={user} />

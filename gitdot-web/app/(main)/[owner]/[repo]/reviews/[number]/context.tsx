@@ -13,6 +13,8 @@ import {
   addReviewerAction,
   type CreateReviewCommentActionResult,
   createReviewCommentAction,
+  type PublishReviewActionResult,
+  publishReviewAction,
   type RemoveReviewerActionResult,
   removeReviewerAction,
   type UpdateReviewActionResult,
@@ -22,6 +24,7 @@ import {
 export type {
   AddReviewerActionResult,
   CreateReviewCommentActionResult,
+  PublishReviewActionResult,
   RemoveReviewerActionResult,
   UpdateReviewActionResult,
 };
@@ -46,6 +49,8 @@ type ReviewContext = {
   activeDiff: ReviewDiffResource;
   activeDiffComments: ReviewCommentResource[];
 
+  publishReview: () => Promise<PublishReviewActionResult>;
+  discardReview: () => Promise<{ success: true } | { error: string }>;
   addReviewer: (userName: string) => Promise<AddReviewerActionResult>;
   removeReviewer: (reviewerName: string) => Promise<RemoveReviewerActionResult>;
   addComment: (
@@ -83,6 +88,17 @@ export function ReviewProvider({
     () => review.comments.filter((c) => c.diff_id === activeDiff.id),
     [review.comments, activeDiff.id],
   );
+
+  async function publishReview(): Promise<PublishReviewActionResult> {
+    const result = await publishReviewAction(owner, repo, review.number, {});
+    if ("error" in result) return result;
+    setReview(result.review);
+    return result;
+  }
+
+  async function discardReview(): Promise<{ success: true } | { error: string }> {
+    return { error: "not implemented" };
+  }
 
   async function addReviewer(
     userName: string,
@@ -160,6 +176,8 @@ export function ReviewProvider({
         setActiveComment,
         activeDiff,
         activeDiffComments,
+        publishReview,
+        discardReview,
         addReviewer,
         removeReviewer,
         addComment,
