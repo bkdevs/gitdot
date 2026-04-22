@@ -6,7 +6,6 @@ use crate::{
     model::CommentSide,
 };
 
-
 #[derive(Debug, Clone)]
 pub struct CreateReviewCommentRequest {
     pub owner: OwnerName,

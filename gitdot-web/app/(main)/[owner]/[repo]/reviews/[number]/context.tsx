@@ -15,12 +15,15 @@ import {
   createReviewCommentAction,
   type RemoveReviewerActionResult,
   removeReviewerAction,
+  type UpdateReviewActionResult,
+  updateReviewAction,
 } from "@/actions/review";
 
 export type {
   AddReviewerActionResult,
   CreateReviewCommentActionResult,
   RemoveReviewerActionResult,
+  UpdateReviewActionResult,
 };
 
 export type AddCommentRequest = {
@@ -48,6 +51,10 @@ type ReviewContext = {
   addComment: (
     request: AddCommentRequest,
   ) => Promise<CreateReviewCommentActionResult>;
+  updateReview: (request: {
+    title?: string;
+    description?: string;
+  }) => Promise<UpdateReviewActionResult>;
 };
 
 const ReviewContext = createContext<ReviewContext | null>(null);
@@ -110,6 +117,22 @@ export function ReviewProvider({
     return result;
   }
 
+  async function updateReview(request: {
+    title?: string;
+    description?: string;
+  }): Promise<UpdateReviewActionResult> {
+    const result = await updateReviewAction(
+      owner,
+      repo,
+      review.number,
+      request,
+    );
+    if ("error" in result) return result;
+
+    setReview((r) => ({ ...r, ...result.review }));
+    return result;
+  }
+
   async function addComment(
     request: AddCommentRequest,
   ): Promise<CreateReviewCommentActionResult> {
@@ -140,6 +163,7 @@ export function ReviewProvider({
         addReviewer,
         removeReviewer,
         addComment,
+        updateReview,
       }}
     >
       {children}

@@ -3,7 +3,6 @@ use crate::{
     error::{InputError, ReviewError},
 };
 
-
 #[derive(Debug, Clone)]
 pub struct GetReviewDiffRequest {
     pub owner: OwnerName,

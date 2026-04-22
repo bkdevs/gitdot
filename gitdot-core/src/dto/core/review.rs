@@ -40,7 +40,6 @@ pub use update_review::UpdateReviewRequest;
 pub use update_review_comment::UpdateReviewCommentRequest;
 pub use update_review_diff::UpdateReviewDiffRequest;
 
-
 #[derive(Debug, Clone)]
 pub struct ReviewsResponse {
     pub reviews: Vec<ReviewResponse>,

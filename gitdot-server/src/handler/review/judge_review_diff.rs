@@ -20,8 +20,7 @@ pub async fn judge_review_diff(
     Path((owner, repo, number, position)): Path<(String, String, i32, i32)>,
     Json(request): Json<api::JudgeReviewDiffRequest>,
 ) -> Result<AppResponse<api::JudgeReviewDiffResponse>, AppError> {
-    let auth_request =
-        ReviewingAuthorizationRequest::new(auth_user.id, &owner, &repo, number)?;
+    let auth_request = ReviewingAuthorizationRequest::new(auth_user.id, &owner, &repo, number)?;
     state
         .authorization_service
         .verify_authorized_for_reviewing(auth_request)

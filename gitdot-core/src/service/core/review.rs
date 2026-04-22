@@ -192,10 +192,7 @@ where
             .review_repo
             .get_review_by_number(owner, repo, number)
             .await?
-            .or_not_found(
-                "review",
-                format!("{}/{}/review/{}", owner, repo, number),
-            )?)
+            .or_not_found("review", format!("{}/{}/review/{}", owner, repo, number))?)
     }
 }
 
@@ -523,17 +520,13 @@ where
         let owner = request.owner.as_ref();
         let repo = request.repo.as_ref();
 
-        let review = self
-            .get_review_by_id(owner, repo, request.number)
-            .await?;
+        let review = self.get_review_by_id(owner, repo, request.number).await?;
 
         self.review_repo
             .update_review(review.id, None, request.title, request.description)
             .await?;
 
-        let updated = self
-            .get_review_by_id(owner, repo, request.number)
-            .await?;
+        let updated = self.get_review_by_id(owner, repo, request.number).await?;
 
         Ok(updated.into())
     }
@@ -545,9 +538,7 @@ where
         let owner = request.owner.as_ref();
         let repo = request.repo.as_ref();
 
-        let review = self
-            .get_review_by_id(owner, repo, request.number)
-            .await?;
+        let review = self.get_review_by_id(owner, repo, request.number).await?;
         let review_number = review.number;
 
         let diffs = review.diffs.unwrap_or_default();
@@ -623,9 +614,7 @@ where
         let owner = request.owner.as_ref();
         let repo = request.repo.as_ref();
 
-        let review = self
-            .get_review_by_id(owner, repo, request.number)
-            .await?;
+        let review = self.get_review_by_id(owner, repo, request.number).await?;
 
         if review.status != ReviewStatus::InProgress {
             return Err(ReviewError::ReviewNotPublishable(
@@ -668,9 +657,7 @@ where
             .update_review(review.id, None, None, None)
             .await?;
 
-        let updated = self
-            .get_review_by_id(owner, repo, request.number)
-            .await?;
+        let updated = self.get_review_by_id(owner, repo, request.number).await?;
 
         Ok(updated.into())
     }
@@ -682,9 +669,7 @@ where
         let owner = request.owner.as_ref();
         let repo = request.repo.as_ref();
 
-        let review = self
-            .get_review_by_id(owner, repo, request.number)
-            .await?;
+        let review = self.get_review_by_id(owner, repo, request.number).await?;
 
         if review.status != ReviewStatus::InProgress {
             return Err(ReviewError::DiffNotMergeable(
@@ -808,9 +793,7 @@ where
             )
             .await?;
 
-        let updated = self
-            .get_review_by_id(owner, repo, request.number)
-            .await?;
+        let updated = self.get_review_by_id(owner, repo, request.number).await?;
 
         Ok(updated.into())
     }
@@ -822,9 +805,7 @@ where
         let owner = request.owner.as_ref();
         let repo = request.repo.as_ref();
 
-        let review = self
-            .get_review_by_id(owner, repo, request.number)
-            .await?;
+        let review = self.get_review_by_id(owner, repo, request.number).await?;
         let review_number = review.number;
 
         let diffs = review.diffs.as_ref().or_not_found(
@@ -854,9 +835,7 @@ where
             .update_review(review.id, None, None, None)
             .await?;
 
-        let updated = self
-            .get_review_by_id(owner, repo, request.number)
-            .await?;
+        let updated = self.get_review_by_id(owner, repo, request.number).await?;
 
         Ok(updated.into())
     }

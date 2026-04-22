@@ -29,12 +29,8 @@ pub async fn process_review(
         (ReviewAction::Created, review.number)
     } else {
         let review_number = review_request.review_number.unwrap() as i32;
-        let auth_request = ReviewAuthorizationRequest::new(
-            request.pusher_id,
-            &owner,
-            &repo,
-            review_number,
-        )?;
+        let auth_request =
+            ReviewAuthorizationRequest::new(request.pusher_id, &owner, &repo, review_number)?;
         state
             .authorization_service
             .verify_authorized_for_review(auth_request)

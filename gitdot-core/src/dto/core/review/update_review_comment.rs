@@ -5,7 +5,6 @@ use crate::{
     error::{InputError, ReviewError},
 };
 
-
 #[derive(Debug, Clone)]
 pub struct UpdateReviewCommentRequest {
     pub owner: OwnerName,

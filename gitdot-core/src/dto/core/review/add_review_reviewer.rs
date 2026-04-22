@@ -3,7 +3,6 @@ use crate::{
     error::{InputError, ReviewError},
 };
 
-
 #[derive(Debug, Clone)]
 pub struct AddReviewReviewerReqeuest {
     pub owner: OwnerName,
@@ -13,12 +12,7 @@ pub struct AddReviewReviewerReqeuest {
 }
 
 impl AddReviewReviewerReqeuest {
-    pub fn new(
-        owner: &str,
-        repo: &str,
-        number: i32,
-        user_name: &str,
-    ) -> Result<Self, ReviewError> {
+    pub fn new(owner: &str, repo: &str, number: i32, user_name: &str) -> Result<Self, ReviewError> {
         Ok(Self {
             owner: OwnerName::try_new(owner).map_err(|e| InputError::new("owner name", e))?,
             repo: RepositoryName::try_new(repo)

@@ -1,19 +1,11 @@
 "use client";
 
-import type { ReviewResource } from "gitdot-api";
 import { useState } from "react";
-import { updateReviewAction } from "@/actions/review";
 import { cn } from "@/util";
+import { useReviewContext } from "../context";
 
-export function ReviewSplashPage({
-  owner,
-  repo,
-  review,
-}: {
-  owner: string;
-  repo: string;
-  review: ReviewResource;
-}) {
+export function ReviewSplash() {
+  const { review, updateReview } = useReviewContext();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [saving, setSaving] = useState(false);
@@ -22,7 +14,7 @@ export function ReviewSplashPage({
   async function handleNext() {
     if (!publishable || saving) return;
     setSaving(true);
-    await updateReviewAction(owner, repo, review.number, { title, description });
+    await updateReview({ title, description });
     setSaving(false);
   }
 

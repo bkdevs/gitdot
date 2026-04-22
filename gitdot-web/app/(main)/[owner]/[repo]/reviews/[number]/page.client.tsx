@@ -10,11 +10,11 @@ import { useShortcuts } from "@/(main)/context/shortcuts";
 import type { DiffEntry } from "@/actions";
 import { Loading } from "@/ui/loading";
 import { cn } from "@/util";
-import { ReviewProvider } from "./context";
+import { ReviewProvider, useReviewContext } from "./context";
 import type { Resources } from "./page";
 import { ReviewActions } from "./ui/review-actions";
 import { ReviewDiff } from "./ui/review-diff";
-import { ReviewSplashPage } from "./ui/review-splash-page";
+import { ReviewSplash } from "./ui/review-splash";
 import { ReviewSummary } from "./ui/review-summary";
 
 type ResourceRequests = ResourceRequestsType<Resources>;
@@ -90,49 +90,80 @@ function PageContent({
     ),
   );
 
-  const review = use(promises.review);
-  if (!review) return null;
+  const initialReview = use(promises.review);
+  if (!initialReview) return null;
+
+  return (
+    <ReviewProvider owner={owner} repo={repo} review={initialReview}>
+      <ReviewPage
+        layout={layout}
+        owner={owner}
+        repo={repo}
+        position={position}
+        diffEntriesPromise={diffEntriesPromise}
+      />
+    </ReviewProvider>
+  );
+}
+
+function ReviewPage({
+  layout,
+  owner,
+  repo,
+  position,
+  diffEntriesPromise,
+}: {
+  layout: PageLayout;
+  owner: string;
+  repo: string;
+  position: number;
+  diffEntriesPromise: Promise<DiffEntry[]>;
+}) {
+  const { review } = useReviewContext();
 
   if (!review.title && !review.description) {
-    return <ReviewSplashPage owner={owner} repo={repo} review={review} />;
+    return <ReviewSplash />;
   }
 
   return (
-    <ReviewProvider owner={owner} repo={repo} review={review}>
+    <div
+      className={cn(
+        "grid flex-1 min-w-0 h-full",
+        layout === "split" && "grid-cols-[25%_1fr]",
+        layout === "summary" && "grid-cols-1",
+        layout === "diffs" && "grid-cols-1",
+      )}
+    >
       <div
         className={cn(
-          "grid flex-1 min-w-0 h-full",
-          layout === "split" && "grid-cols-[25%_1fr]",
-          layout === "summary" && "grid-cols-1",
-          layout === "diffs" && "grid-cols-1",
+          "flex flex-col h-full border-r",
+          layout === "diffs" && "hidden",
         )}
       >
         <div
           className={cn(
-            "flex flex-col h-full border-r",
-            layout === "diffs" && "hidden",
+            "flex flex-col flex-1 min-h-0",
+            layout === "summary" && "max-w-2xl mx-auto w-full",
           )}
         >
-          <div className={cn("flex flex-col flex-1 min-h-0", layout === "summary" && "max-w-2xl mx-auto w-full")}>
-            <ReviewSummary review={review} />
-            <ReviewActions />
-          </div>
-        </div>
-        <div
-          className={cn(
-            "scrollbar-thin overflow-y-auto",
-            layout === "summary" && "hidden",
-          )}
-        >
-          <ReviewDiff
-            owner={owner}
-            repo={repo}
-            position={position}
-            review={review}
-            diffEntriesPromise={diffEntriesPromise}
-          />
+          <ReviewSummary review={review} />
+          <ReviewActions />
         </div>
       </div>
-    </ReviewProvider>
+      <div
+        className={cn(
+          "scrollbar-thin overflow-y-auto",
+          layout === "summary" && "hidden",
+        )}
+      >
+        <ReviewDiff
+          owner={owner}
+          repo={repo}
+          position={position}
+          review={review}
+          diffEntriesPromise={diffEntriesPromise}
+        />
+      </div>
+    </div>
   );
 }
