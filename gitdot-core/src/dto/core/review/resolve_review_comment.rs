@@ -5,13 +5,12 @@ use crate::{
     error::{InputError, ReviewError},
 };
 
-use super::ReviewId;
 
 #[derive(Debug, Clone)]
 pub struct ResolveReviewCommentRequest {
     pub owner: OwnerName,
     pub repo: RepositoryName,
-    pub review_id: ReviewId,
+    pub number: i32,
     pub comment_id: Uuid,
     pub user_id: Uuid,
     pub resolved: bool,
@@ -21,7 +20,7 @@ impl ResolveReviewCommentRequest {
     pub fn new(
         owner: &str,
         repo: &str,
-        review_id: ReviewId,
+        number: i32,
         comment_id: Uuid,
         user_id: Uuid,
         resolved: bool,
@@ -30,7 +29,7 @@ impl ResolveReviewCommentRequest {
             owner: OwnerName::try_new(owner).map_err(|e| InputError::new("owner name", e))?,
             repo: RepositoryName::try_new(repo)
                 .map_err(|e| InputError::new("repository name", e))?,
-            review_id,
+            number,
             comment_id,
             user_id,
             resolved,

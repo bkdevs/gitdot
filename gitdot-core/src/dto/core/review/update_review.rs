@@ -3,13 +3,12 @@ use crate::{
     error::{InputError, ReviewError},
 };
 
-use super::ReviewId;
 
 #[derive(Debug, Clone)]
 pub struct UpdateReviewRequest {
     pub owner: OwnerName,
     pub repo: RepositoryName,
-    pub review_id: ReviewId,
+    pub number: i32,
     pub title: Option<String>,
     pub description: Option<String>,
 }
@@ -18,7 +17,7 @@ impl UpdateReviewRequest {
     pub fn new(
         owner: &str,
         repo: &str,
-        review_id: ReviewId,
+        number: i32,
         title: Option<String>,
         description: Option<String>,
     ) -> Result<Self, ReviewError> {
@@ -26,7 +25,7 @@ impl UpdateReviewRequest {
             owner: OwnerName::try_new(owner).map_err(|e| InputError::new("owner name", e))?,
             repo: RepositoryName::try_new(repo)
                 .map_err(|e| InputError::new("repository name", e))?,
-            review_id,
+            number,
             title,
             description,
         })

@@ -6,13 +6,12 @@ use crate::{
     model::CommentSide,
 };
 
-use super::ReviewId;
 
 #[derive(Debug, Clone)]
 pub struct CreateReviewCommentRequest {
     pub owner: OwnerName,
     pub repo: RepositoryName,
-    pub review_id: ReviewId,
+    pub number: i32,
     pub author_id: Uuid,
     pub diff_id: Uuid,
     pub revision_id: Uuid,
@@ -30,7 +29,7 @@ impl CreateReviewCommentRequest {
     pub fn new(
         owner: &str,
         repo: &str,
-        review_id: ReviewId,
+        number: i32,
         author_id: Uuid,
         diff_id: Uuid,
         revision_id: Uuid,
@@ -60,7 +59,7 @@ impl CreateReviewCommentRequest {
             owner: OwnerName::try_new(owner).map_err(|e| InputError::new("owner name", e))?,
             repo: RepositoryName::try_new(repo)
                 .map_err(|e| InputError::new("repository name", e))?,
-            review_id,
+            number,
             author_id,
             diff_id,
             revision_id,

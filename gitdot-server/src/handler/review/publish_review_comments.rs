@@ -13,13 +13,11 @@ use crate::{
     extract::{Principal, User},
 };
 
-use super::ReviewIdParam;
-
 #[axum::debug_handler]
 pub async fn publish_review_comments(
     auth_user: Principal<User>,
     State(state): State<AppState>,
-    Path((owner, repo, id)): Path<(String, String, ReviewIdParam)>,
+    Path((owner, repo, number)): Path<(String, String, i32)>,
     Json(request): Json<api::PublishReviewCommentsRequest>,
 ) -> Result<AppResponse<api::PublishReviewCommentsResponse>, AppError> {
     // TODO: authorization check
@@ -42,7 +40,7 @@ pub async fn publish_review_comments(
         })
         .collect();
 
-    let request = PublishReviewCommentsRequest::new(&owner, &repo, id.0, auth_user.id, comments)?;
+    let request = PublishReviewCommentsRequest::new(&owner, &repo, number, auth_user.id, comments)?;
 
     state
         .review_service

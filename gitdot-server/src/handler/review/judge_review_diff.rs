@@ -13,17 +13,15 @@ use crate::{
     extract::{Principal, User},
 };
 
-use super::ReviewIdParam;
-
 #[axum::debug_handler]
 pub async fn judge_review_diff(
     auth_user: Principal<User>,
     State(state): State<AppState>,
-    Path((owner, repo, id, position)): Path<(String, String, ReviewIdParam, i32)>,
+    Path((owner, repo, number, position)): Path<(String, String, i32, i32)>,
     Json(request): Json<api::JudgeReviewDiffRequest>,
 ) -> Result<AppResponse<api::JudgeReviewDiffResponse>, AppError> {
     let auth_request =
-        ReviewingAuthorizationRequest::new(auth_user.id, &owner, &repo, id.0.clone())?;
+        ReviewingAuthorizationRequest::new(auth_user.id, &owner, &repo, number)?;
     state
         .authorization_service
         .verify_authorized_for_reviewing(auth_request)
@@ -32,7 +30,7 @@ pub async fn judge_review_diff(
     let request = JudgeReviewDiffRequest::new(
         &owner,
         &repo,
-        id.0,
+        number,
         position,
         auth_user.id,
         &request.verdict,

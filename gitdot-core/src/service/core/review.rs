@@ -7,7 +7,7 @@ use crate::{
         GetReviewRequest, JudgeReviewDiffRequest, JudgeVerdict, ListReviewsRequest,
         MergeReviewDiffRequest, ProcessReviewRequest, PublishReviewCommentsRequest,
         PublishReviewRequest, RemoveReviewReviewerRequest, ResolveReviewCommentRequest,
-        ReviewCommentResponse, ReviewDiffResponse, ReviewId, ReviewResponse, ReviewerResponse,
+        ReviewCommentResponse, ReviewDiffResponse, ReviewResponse, ReviewerResponse,
         ReviewsResponse, UpdateReviewCommentRequest, UpdateReviewDiffRequest, UpdateReviewRequest,
     },
     error::{ConflictError, InputError, NotFoundError, OptionNotFoundExt, ReviewError},
@@ -186,29 +186,16 @@ where
         &self,
         owner: &str,
         repo: &str,
-        review_id: &ReviewId,
+        number: i32,
     ) -> Result<Review, ReviewError> {
-        let path = format!(
-            "{}/{}/review/{}",
-            owner,
-            repo,
-            match review_id {
-                ReviewId::Number(n) => n.to_string(),
-                ReviewId::Hex(s) => s.clone(),
-            }
-        );
-        match review_id {
-            ReviewId::Number(n) => Ok(self
-                .review_repo
-                .get_review_by_number(owner, repo, *n)
-                .await?
-                .or_not_found("review", path)?),
-            ReviewId::Hex(s) => Ok(self
-                .review_repo
-                .get_review_by_hex(owner, repo, s)
-                .await?
-                .or_not_found("review", path)?),
-        }
+        Ok(self
+            .review_repo
+            .get_review_by_number(owner, repo, number)
+            .await?
+            .or_not_found(
+                "review",
+                format!("{}/{}/review/{}", owner, repo, number),
+            )?)
     }
 }
 
@@ -227,7 +214,7 @@ where
             .get_review_by_id(
                 request.owner.as_ref(),
                 request.repo.as_ref(),
-                &request.review_id,
+                request.number,
             )
             .await?;
 
@@ -509,7 +496,7 @@ where
             .get_review_by_id(
                 request.owner.as_ref(),
                 request.repo.as_ref(),
-                &request.review_id,
+                request.number,
             )
             .await?;
 
@@ -522,7 +509,6 @@ where
             )));
         }
 
-        self.review_repo.assign_number(review.id).await?;
         self.review_repo
             .update_review(review.id, Some(ReviewStatus::InProgress), None, None)
             .await?;
@@ -538,7 +524,7 @@ where
         let repo = request.repo.as_ref();
 
         let review = self
-            .get_review_by_id(owner, repo, &request.review_id)
+            .get_review_by_id(owner, repo, request.number)
             .await?;
 
         self.review_repo
@@ -546,7 +532,7 @@ where
             .await?;
 
         let updated = self
-            .get_review_by_id(owner, repo, &request.review_id)
+            .get_review_by_id(owner, repo, request.number)
             .await?;
 
         Ok(updated.into())
@@ -560,7 +546,7 @@ where
         let repo = request.repo.as_ref();
 
         let review = self
-            .get_review_by_id(owner, repo, &request.review_id)
+            .get_review_by_id(owner, repo, request.number)
             .await?;
         let review_number = review.number;
 
@@ -638,7 +624,7 @@ where
         let repo = request.repo.as_ref();
 
         let review = self
-            .get_review_by_id(owner, repo, &request.review_id)
+            .get_review_by_id(owner, repo, request.number)
             .await?;
 
         if review.status != ReviewStatus::InProgress {
@@ -683,7 +669,7 @@ where
             .await?;
 
         let updated = self
-            .get_review_by_id(owner, repo, &request.review_id)
+            .get_review_by_id(owner, repo, request.number)
             .await?;
 
         Ok(updated.into())
@@ -697,7 +683,7 @@ where
         let repo = request.repo.as_ref();
 
         let review = self
-            .get_review_by_id(owner, repo, &request.review_id)
+            .get_review_by_id(owner, repo, request.number)
             .await?;
 
         if review.status != ReviewStatus::InProgress {
@@ -823,7 +809,7 @@ where
             .await?;
 
         let updated = self
-            .get_review_by_id(owner, repo, &request.review_id)
+            .get_review_by_id(owner, repo, request.number)
             .await?;
 
         Ok(updated.into())
@@ -837,7 +823,7 @@ where
         let repo = request.repo.as_ref();
 
         let review = self
-            .get_review_by_id(owner, repo, &request.review_id)
+            .get_review_by_id(owner, repo, request.number)
             .await?;
         let review_number = review.number;
 
@@ -869,7 +855,7 @@ where
             .await?;
 
         let updated = self
-            .get_review_by_id(owner, repo, &request.review_id)
+            .get_review_by_id(owner, repo, request.number)
             .await?;
 
         Ok(updated.into())
@@ -889,7 +875,7 @@ where
             .get_review_by_id(
                 request.owner.as_ref(),
                 request.repo.as_ref(),
-                &request.review_id,
+                request.number,
             )
             .await?;
 
@@ -917,7 +903,7 @@ where
             .get_review_by_id(
                 request.owner.as_ref(),
                 request.repo.as_ref(),
-                &request.review_id,
+                request.number,
             )
             .await?;
 
@@ -943,7 +929,7 @@ where
             .get_review_by_id(
                 request.owner.as_ref(),
                 request.repo.as_ref(),
-                &request.review_id,
+                request.number,
             )
             .await?;
 
@@ -1019,7 +1005,7 @@ where
             .get_review_by_id(
                 request.owner.as_ref(),
                 request.repo.as_ref(),
-                &request.review_id,
+                request.number,
             )
             .await?;
 

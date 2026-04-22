@@ -97,7 +97,7 @@ export type UpdateReviewActionResult =
 export async function updateReviewAction(
   owner: string,
   repo: string,
-  number: string,
+  number: number,
   request: UpdateReviewRequest,
 ): Promise<UpdateReviewActionResult> {
   const result = await updateReview(owner, repo, number, request);

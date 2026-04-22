@@ -18,21 +18,6 @@ use axum::{
     Router,
     routing::{delete, get, patch, post},
 };
-use gitdot_core::{dto::ReviewId, error::ReviewError};
-
-pub(crate) struct ReviewIdParam(pub ReviewId);
-impl<'de> serde::Deserialize<'de> for ReviewIdParam {
-    fn deserialize<D: serde::Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
-        let s = String::deserialize(d)?;
-        if let Ok(n) = s.parse::<i32>() {
-            return Ok(Self(ReviewId::Number(n)));
-        }
-        if s.len() == 8 && s.chars().all(|c| c.is_ascii_hexdigit()) {
-            return Ok(Self(ReviewId::Hex(s.to_lowercase())));
-        }
-        Err(serde::de::Error::custom(ReviewError::InvalidIdentifier))
-    }
-}
 
 use add_review_reviewer::add_review_reviewer;
 use create_review_comment::create_review_comment;

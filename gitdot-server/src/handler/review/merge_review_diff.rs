@@ -16,21 +16,19 @@ use crate::{
     extract::{Principal, User},
 };
 
-use super::ReviewIdParam;
-
 #[axum::debug_handler]
 pub async fn merge_review_diff(
     auth_user: Principal<User>,
     State(state): State<AppState>,
-    Path((owner, repo, id, position)): Path<(String, String, ReviewIdParam, i32)>,
+    Path((owner, repo, number, position)): Path<(String, String, i32, i32)>,
 ) -> Result<AppResponse<api::MergeReviewDiffResponse>, AppError> {
-    let auth_request = ReviewAuthorizationRequest::new(auth_user.id, &owner, &repo, id.0.clone())?;
+    let auth_request = ReviewAuthorizationRequest::new(auth_user.id, &owner, &repo, number)?;
     state
         .authorization_service
         .verify_authorized_for_review(auth_request)
         .await?;
 
-    let request = MergeReviewDiffRequest::new(&owner, &repo, id.0, position)?;
+    let request = MergeReviewDiffRequest::new(&owner, &repo, number, position)?;
     let response = state.review_service.merge_review_diff(request).await?;
 
     // Create commits for all merged diffs, including previously merged ones.

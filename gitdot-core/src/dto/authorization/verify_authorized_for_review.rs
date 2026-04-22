@@ -1,7 +1,7 @@
 use uuid::Uuid;
 
 use crate::{
-    dto::{OwnerName, RepositoryName, ReviewId},
+    dto::{OwnerName, RepositoryName},
     error::{AuthorizationError, InputError},
 };
 
@@ -10,7 +10,7 @@ pub struct ReviewAuthorizationRequest {
     pub user_id: Uuid,
     pub owner: OwnerName,
     pub repo: RepositoryName,
-    pub review_id: ReviewId,
+    pub number: i32,
 }
 
 impl ReviewAuthorizationRequest {
@@ -18,14 +18,14 @@ impl ReviewAuthorizationRequest {
         user_id: Uuid,
         owner_name: &str,
         repo_name: &str,
-        review_id: ReviewId,
+        number: i32,
     ) -> Result<Self, AuthorizationError> {
         Ok(Self {
             user_id,
             owner: OwnerName::try_new(owner_name).map_err(|e| InputError::new("owner name", e))?,
             repo: RepositoryName::try_new(repo_name)
                 .map_err(|e| InputError::new("repository name", e))?,
-            review_id,
+            number,
         })
     }
 }

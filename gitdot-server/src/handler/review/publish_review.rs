@@ -10,21 +10,19 @@ use crate::{
     extract::{Principal, User},
 };
 
-use super::ReviewIdParam;
-
 #[axum::debug_handler]
 pub async fn publish_review(
     auth_user: Principal<User>,
     State(state): State<AppState>,
-    Path((owner, repo, id)): Path<(String, String, ReviewIdParam)>,
+    Path((owner, repo, number)): Path<(String, String, i32)>,
 ) -> Result<AppResponse<()>, AppError> {
-    let auth_request = ReviewAuthorizationRequest::new(auth_user.id, &owner, &repo, id.0.clone())?;
+    let auth_request = ReviewAuthorizationRequest::new(auth_user.id, &owner, &repo, number)?;
     state
         .authorization_service
         .verify_authorized_for_review(auth_request)
         .await?;
 
-    let request = PublishReviewRequest::new(&owner, &repo, id.0)?;
+    let request = PublishReviewRequest::new(&owner, &repo, number)?;
     state
         .review_service
         .publish_review(request)

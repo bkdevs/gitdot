@@ -12,8 +12,9 @@ import { Loading } from "@/ui/loading";
 import { cn } from "@/util";
 import { ReviewProvider } from "./context";
 import type { Resources } from "./page";
+import { ReviewActions } from "./ui/review-actions";
 import { ReviewDiff } from "./ui/review-diff";
-import { ReviewLayoutToggles } from "./ui/review-layout-toggles";
+import { ReviewSplashPage } from "./ui/review-splash-page";
 import { ReviewSummary } from "./ui/review-summary";
 
 type ResourceRequests = ResourceRequestsType<Resources>;
@@ -92,6 +93,10 @@ function PageContent({
   const review = use(promises.review);
   if (!review) return null;
 
+  if (!review.title && !review.description) {
+    return <ReviewSplashPage owner={owner} repo={repo} review={review} />;
+  }
+
   return (
     <ReviewProvider owner={owner} repo={repo} review={review}>
       <div
@@ -104,12 +109,13 @@ function PageContent({
       >
         <div
           className={cn(
-            "h-full border-r overflow-y-auto",
+            "flex flex-col h-full border-r",
             layout === "diffs" && "hidden",
           )}
         >
-          <div className={cn(layout === "summary" && "max-w-2xl mx-auto")}>
+          <div className={cn("flex flex-col flex-1 min-h-0", layout === "summary" && "max-w-2xl mx-auto w-full")}>
             <ReviewSummary review={review} />
+            <ReviewActions />
           </div>
         </div>
         <div
@@ -125,9 +131,6 @@ function PageContent({
             review={review}
             diffEntriesPromise={diffEntriesPromise}
           />
-        </div>
-        <div className="fixed bottom-6 left-0">
-          <ReviewLayoutToggles layout={layout} setLayout={setLayout} />
         </div>
       </div>
     </ReviewProvider>

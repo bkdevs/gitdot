@@ -13,22 +13,20 @@ use crate::{
     extract::{Principal, User},
 };
 
-use super::ReviewIdParam;
-
 #[axum::debug_handler]
 pub async fn add_review_reviewer(
     auth_user: Principal<User>,
     State(state): State<AppState>,
-    Path((owner, repo, id)): Path<(String, String, ReviewIdParam)>,
+    Path((owner, repo, number)): Path<(String, String, i32)>,
     Json(request): Json<api::AddReviewReviewerRequest>,
 ) -> Result<AppResponse<api::AddReviewReviewerResponse>, AppError> {
-    let auth_request = ReviewAuthorizationRequest::new(auth_user.id, &owner, &repo, id.0.clone())?;
+    let auth_request = ReviewAuthorizationRequest::new(auth_user.id, &owner, &repo, number)?;
     state
         .authorization_service
         .verify_authorized_for_review(auth_request)
         .await?;
 
-    let request = AddReviewReviewerReqeuest::new(&owner, &repo, id.0, &request.user_name)?;
+    let request = AddReviewReviewerReqeuest::new(&owner, &repo, number, &request.user_name)?;
     state
         .review_service
         .add_review_reviewer(request)

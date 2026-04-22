@@ -22,7 +22,7 @@ export function ReviewSplashPage({
   async function handleNext() {
     if (!publishable || saving) return;
     setSaving(true);
-    await updateReviewAction(owner, repo, review.id.slice(0, 8), { title, description });
+    await updateReviewAction(owner, repo, review.number, { title, description });
     setSaving(false);
   }
 

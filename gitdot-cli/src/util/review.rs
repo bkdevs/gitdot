@@ -50,16 +50,11 @@ pub async fn clear_review_branch(git: &GitWrapper) -> anyhow::Result<()> {
     Ok(())
 }
 
-pub enum ReviewPushResult {
-    Draft { id: String },
-    Published { number: i32 },
-}
-
 pub async fn push_for_review(
     git: &GitWrapper,
     branch: &str,
     review_number: Option<i32>,
-) -> anyhow::Result<Option<ReviewPushResult>> {
+) -> anyhow::Result<Option<i32>> {
     let refspec = match review_number {
         Some(number) => format!("HEAD:refs/for/{}/{}", branch, number),
         None => format!("HEAD:refs/for/{}", branch),
@@ -69,23 +64,8 @@ pub async fn push_for_review(
 
     let result = stderr.lines().find_map(|line| {
         let trimmed = line.strip_prefix("remote: ")?;
-        let rest = trimmed.strip_prefix("review ")?;
-        let number = rest
-            .split_whitespace()
-            .find(|p| p.starts_with("number="))?
-            .strip_prefix("number=")?
-            .parse::<i32>()
-            .ok()?;
-        let id = rest
-            .split_whitespace()
-            .find(|p| p.starts_with("id="))?
-            .strip_prefix("id=")?
-            .to_string();
-        if number == -1 {
-            Some(ReviewPushResult::Draft { id })
-        } else {
-            Some(ReviewPushResult::Published { number })
-        }
+        let rest = trimmed.strip_prefix("review #")?;
+        rest.split_whitespace().next()?.parse::<i32>().ok()
     });
 
     Ok(result)

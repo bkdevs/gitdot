@@ -6,7 +6,6 @@ use crate::{
     model::CommentSide,
 };
 
-use super::ReviewId;
 
 #[derive(Debug, Clone)]
 pub struct ReviewCommentInput {
@@ -25,7 +24,7 @@ pub struct ReviewCommentInput {
 pub struct PublishReviewCommentsRequest {
     pub owner: OwnerName,
     pub repo: RepositoryName,
-    pub review_id: ReviewId,
+    pub number: i32,
     pub author_id: Uuid,
     pub comments: Vec<ReviewCommentInput>,
 }
@@ -34,7 +33,7 @@ impl PublishReviewCommentsRequest {
     pub fn new(
         owner: &str,
         repo: &str,
-        review_id: ReviewId,
+        number: i32,
         author_id: Uuid,
         comments: Vec<(
             Uuid,
@@ -96,7 +95,7 @@ impl PublishReviewCommentsRequest {
             owner: OwnerName::try_new(owner).map_err(|e| InputError::new("owner name", e))?,
             repo: RepositoryName::try_new(repo)
                 .map_err(|e| InputError::new("repository name", e))?,
-            review_id,
+            number,
             author_id,
             comments,
         })

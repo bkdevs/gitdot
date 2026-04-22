@@ -12,13 +12,11 @@ use crate::{
     extract::{Principal, User},
 };
 
-use super::ReviewIdParam;
-
 #[axum::debug_handler]
 pub async fn get_review(
     auth_user: Option<Principal<User>>,
     State(state): State<AppState>,
-    Path((owner, repo, review)): Path<(String, String, ReviewIdParam)>,
+    Path((owner, repo, number)): Path<(String, String, i32)>,
 ) -> Result<AppResponse<api::GetReviewResponse>, AppError> {
     let user_id = auth_user.as_ref().map(|u| u.id);
     let auth_request =
@@ -28,7 +26,7 @@ pub async fn get_review(
         .verify_authorized_for_repository(auth_request)
         .await?;
 
-    let request = GetReviewRequest::new(&owner, &repo, review.0)?;
+    let request = GetReviewRequest::new(&owner, &repo, number)?;
     state
         .review_service
         .get_review(request)
