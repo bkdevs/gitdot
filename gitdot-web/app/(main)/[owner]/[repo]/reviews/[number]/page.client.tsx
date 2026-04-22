@@ -151,7 +151,7 @@ function ReviewPage({
           )}
         >
           <ReviewSummary review={review} />
-          <ReviewActions />
+          {review.status === "draft" && <ReviewActions />}
         </div>
       </div>
       <div

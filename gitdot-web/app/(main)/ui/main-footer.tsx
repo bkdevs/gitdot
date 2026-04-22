@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  useParams,
-  usePathname,
-  useSelectedLayoutSegments,
-} from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 import { useMetricsContext } from "@/context/metrics";
 import { useAnimateNumber } from "@/hooks/use-animate-number";
 import {
@@ -16,9 +12,6 @@ import Link from "@/ui/link";
 import { MainCommandBar } from "./main-command-bar";
 
 export function MainFooter() {
-  const segments = useSelectedLayoutSegments();
-  if (segments.at(-2) === "reviews") return null;
-
   return (
     <div className="relative shrink-0 flex w-full h-6 items-center border-t bg-sidebar text-xs font-mono">
       <MainCommandBar />
