@@ -11,7 +11,7 @@ export function ReviewSummaryHeader({ review }: { review: ReviewResource }) {
   const baseHref = `/${owner}/${repo}/reviews/${identifier}`;
 
   return (
-    <div className="shrink-0 h-16 border-b border-border flex flex-col justify-center pl-6 pr-4 py-1 overflow-hidden">
+    <div className="shrink-0 h-16 border-b border-border flex flex-col justify-center px-4 py-1 overflow-hidden">
       <div className="min-h-0 flex items-center overflow-hidden">
         <h1 className="text-sm leading-tight line-clamp-2 font-medium">
           {review.title}

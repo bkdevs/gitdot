@@ -109,12 +109,13 @@ function ApproveButton({
     <button
       type="button"
       disabled={disabled || approving}
+      title={disabled ? "Please publish to approve" : undefined}
       onClick={async () => {
         setApproving(true);
         await onApprove();
       }}
       className={cn(
-        "text-xs font-mono px-2.5 py-1 text-primary-foreground underline decoration-transparent hover:decoration-current transition-all duration-200 rounded-xs border border-primary w-full disabled:opacity-50 disabled:cursor-not-allowed",
+        "text-xs font-mono px-2.5 py-1 text-primary-foreground underline decoration-transparent hover:decoration-current transition-all duration-200 rounded-xs border border-primary w-full disabled:opacity-70 disabled:cursor-not-allowed",
         approving ? "bg-primary/90" : "bg-primary hover:bg-primary/90",
       )}
     >
@@ -141,12 +142,13 @@ function MergeButton({
     <button
       type="button"
       disabled={disabled || merging}
+      title={disabled ? "Please publish to merge" : undefined}
       onClick={async () => {
         setMerging(true);
         await onMerge();
       }}
       className={cn(
-        "text-xs font-mono px-2.5 py-1 text-primary-foreground underline decoration-transparent hover:decoration-current transition-all duration-200 rounded-xs border border-primary w-full disabled:opacity-50 disabled:cursor-not-allowed",
+        "text-xs font-mono px-2.5 py-1 text-primary-foreground underline decoration-transparent hover:decoration-current transition-all duration-200 rounded-xs border border-primary w-full disabled:opacity-70 disabled:cursor-not-allowed",
         merging ? "bg-primary/90" : "bg-primary hover:bg-primary/90",
       )}
     >
@@ -164,7 +166,8 @@ function ReviewButton({ disabled }: { disabled: boolean }) {
     <button
       type="button"
       disabled={disabled}
-      className="text-xs font-mono px-2.5 py-1 rounded-xs border border-border bg-background hover:bg-accent w-full transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+      title={disabled ? "Please publish to review" : undefined}
+      className="text-xs font-mono px-2.5 py-1 rounded-xs border border-border bg-background hover:bg-accent w-full transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
     >
       Review
     </button>
