@@ -2,11 +2,11 @@
 
 import type {
   CreateReviewCommentRequest,
-  JudgeReviewDiffRequest,
   PublishReviewRequest,
   ReviewCommentResource,
   ReviewerResource,
   ReviewResource,
+  ReviewReviewDiffRequest,
   UpdateReviewCommentRequest,
   UpdateReviewDiffRequest,
   UpdateReviewRequest,
@@ -20,7 +20,7 @@ import {
   publishReview,
   removeReviewer,
   resolveReviewComment,
-  submitReview,
+  reviewDiff,
   updateDiff,
   updateReview,
   updateReviewComment,
@@ -128,20 +128,20 @@ export async function publishReviewAction(
   return { review: result };
 }
 
-export type SubmitReviewActionResult =
+export type ReviewDiffActionResult =
   | { review: ReviewResource }
   | { error: string };
 
-export async function judgeDiffAction(
+export async function reviewDiffAction(
   owner: string,
   repo: string,
   number: number,
   position: number,
-  request: JudgeReviewDiffRequest,
-): Promise<SubmitReviewActionResult> {
-  const result = await submitReview(owner, repo, number, position, request);
+  request: ReviewReviewDiffRequest,
+): Promise<ReviewDiffActionResult> {
+  const result = await reviewDiff(owner, repo, number, position, request);
   if (!result) {
-    return { error: "submitReview call failed" };
+    return { error: "reviewDiff call failed" };
   }
 
   refresh();

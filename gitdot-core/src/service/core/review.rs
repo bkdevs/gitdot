@@ -4,11 +4,11 @@ use crate::{
     client::{DiffClient, DifftClient, Git2Client, GitClient},
     dto::{
         AddReviewReviewerReqeuest, CreateReviewCommentRequest, GetReviewDiffRequest,
-        GetReviewRequest, JudgeReviewDiffRequest, JudgeVerdict, ListReviewsRequest,
-        MergeReviewDiffRequest, ProcessReviewRequest, PublishReviewCommentsRequest,
+        GetReviewRequest, ListReviewsRequest, MergeReviewDiffRequest, ProcessReviewRequest,
         PublishReviewRequest, RemoveReviewReviewerRequest, ResolveReviewCommentRequest,
-        ReviewCommentResponse, ReviewDiffResponse, ReviewResponse, ReviewerResponse,
-        ReviewsResponse, UpdateReviewCommentRequest, UpdateReviewDiffRequest, UpdateReviewRequest,
+        ReviewAction, ReviewCommentResponse, ReviewDiffResponse, ReviewResponse,
+        ReviewReviewDiffRequest, ReviewerResponse, ReviewsResponse, UpdateReviewCommentRequest,
+        UpdateReviewDiffRequest, UpdateReviewRequest,
     },
     error::{ConflictError, InputError, NotFoundError, OptionNotFoundExt, ReviewError},
     model::{DiffStatus, Review, ReviewStatus, Verdict},
@@ -94,9 +94,9 @@ pub trait ReviewService: Send + Sync + 'static {
         request: UpdateReviewDiffRequest,
     ) -> Result<ReviewResponse, ReviewError>;
 
-    async fn judge_review_diff(
+    async fn review_review_diff(
         &self,
-        request: JudgeReviewDiffRequest,
+        request: ReviewReviewDiffRequest,
     ) -> Result<ReviewResponse, ReviewError>;
 
     async fn merge_review_diff(
@@ -128,11 +128,6 @@ pub trait ReviewService: Send + Sync + 'static {
         &self,
         request: ResolveReviewCommentRequest,
     ) -> Result<ReviewCommentResponse, ReviewError>;
-
-    async fn publish_review_comments(
-        &self,
-        request: PublishReviewCommentsRequest,
-    ) -> Result<Vec<ReviewCommentResponse>, ReviewError>;
 }
 
 #[derive(Debug, Clone)]
@@ -611,9 +606,9 @@ where
         Ok(ReviewDiffResponse { files })
     }
 
-    async fn judge_review_diff(
+    async fn review_review_diff(
         &self,
-        request: JudgeReviewDiffRequest,
+        request: ReviewReviewDiffRequest,
     ) -> Result<ReviewResponse, ReviewError> {
         let owner = request.owner.as_ref();
         let repo = request.repo.as_ref();
@@ -637,23 +632,46 @@ where
             .first()
             .or_not_found("revision", "No revisions found")?;
 
-        let verdict = match request.verdict {
-            JudgeVerdict::Approve => Verdict::Approved,
-            JudgeVerdict::Reject => Verdict::Rejected,
-        };
-        self.review_repo
-            .create_verdict(diff.id, latest_revision.id, request.reviewer_id, verdict)
-            .await?;
-
-        // Update diff status: once approved, stays approved.
-        // Otherwise, reflect the new verdict directly.
-        if diff.status != DiffStatus::Approved {
-            let new_status = match request.verdict {
-                JudgeVerdict::Approve => DiffStatus::Approved,
-                JudgeVerdict::Reject => DiffStatus::Rejected,
+        if request.action != ReviewAction::Comment {
+            let verdict = match request.action {
+                ReviewAction::Approve => Verdict::Approved,
+                ReviewAction::RequestChanges => Verdict::Rejected,
+                ReviewAction::Comment => unreachable!(),
             };
             self.review_repo
-                .update_diff(diff.id, Some(new_status), None)
+                .create_verdict(diff.id, latest_revision.id, request.reviewer_id, verdict)
+                .await?;
+
+            // Update diff status: once approved, stays approved.
+            // Otherwise, reflect the new action directly.
+            if diff.status != DiffStatus::Approved {
+                let new_status = match request.action {
+                    ReviewAction::Approve => DiffStatus::Approved,
+                    ReviewAction::RequestChanges => DiffStatus::Rejected,
+                    ReviewAction::Comment => unreachable!(),
+                };
+                self.review_repo
+                    .update_diff(diff.id, Some(new_status), None)
+                    .await?;
+            }
+        }
+
+        for comment in request.comments {
+            self.review_repo
+                .create_comment(
+                    review.id,
+                    diff.id,
+                    comment.revision_id,
+                    request.reviewer_id,
+                    &comment.body,
+                    None,
+                    comment.file_path,
+                    comment.line_number_start,
+                    comment.line_number_end,
+                    comment.start_character,
+                    comment.end_character,
+                    comment.side,
+                )
                 .await?;
         }
 
@@ -978,42 +996,5 @@ where
             .or_not_found("comment", request.comment_id.to_string())?;
 
         Ok(updated.into())
-    }
-
-    async fn publish_review_comments(
-        &self,
-        request: PublishReviewCommentsRequest,
-    ) -> Result<Vec<ReviewCommentResponse>, ReviewError> {
-        let review = self
-            .get_review_by_id(
-                request.owner.as_ref(),
-                request.repo.as_ref(),
-                request.number,
-            )
-            .await?;
-
-        let mut comments = Vec::with_capacity(request.comments.len());
-        for input in request.comments {
-            let comment = self
-                .review_repo
-                .create_comment(
-                    review.id,
-                    input.diff_id,
-                    input.revision_id,
-                    request.author_id,
-                    &input.body,
-                    None,
-                    input.file_path,
-                    input.line_number_start,
-                    input.line_number_end,
-                    input.start_character,
-                    input.end_character,
-                    input.side,
-                )
-                .await?;
-            comments.push(comment.into());
-        }
-
-        Ok(comments)
     }
 }

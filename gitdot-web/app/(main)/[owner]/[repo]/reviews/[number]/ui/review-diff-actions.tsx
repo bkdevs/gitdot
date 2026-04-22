@@ -2,7 +2,7 @@
 
 import type { DiffStatus, ReviewResource, RevisionResource } from "gitdot-api";
 import { useState } from "react";
-import { judgeDiffAction, mergeDiffAction } from "@/actions/review";
+import { mergeDiffAction, reviewDiffAction } from "@/actions/review";
 import { useTypewriter } from "@/hooks/use-typewriter";
 import { cn } from "@/util";
 import { timeAgo } from "@/util/date";
@@ -80,8 +80,9 @@ export function ReviewDiffActions({
             disabled={review.status === "draft" || status === "merged"}
             onApprove={async () => {
               await Promise.all([
-                judgeDiffAction(owner, repo, review.number, position, {
-                  verdict: "approve",
+                reviewDiffAction(owner, repo, review.number, position, {
+                  action: "approve",
+                  comments: [],
                 }),
                 new Promise((r) => setTimeout(r, 1600)),
               ]);

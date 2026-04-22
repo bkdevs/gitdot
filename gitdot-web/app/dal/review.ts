@@ -2,16 +2,14 @@ import "server-only";
 
 import type {
   CreateReviewCommentRequest,
-  JudgeReviewDiffRequest,
-  PublishReviewCommentsRequest,
   PublishReviewRequest,
+  ReviewReviewDiffRequest,
   UpdateReviewCommentRequest,
   UpdateReviewDiffRequest,
   UpdateReviewRequest,
 } from "gitdot-api";
 import {
   GetReviewDiffResponse,
-  PublishReviewCommentsResponse,
   ReviewCommentResource,
   ReviewerResource,
   ReviewResource,
@@ -140,15 +138,15 @@ export async function publishReview(
   return await handleResponse(response, ReviewResource);
 }
 
-export async function submitReview(
+export async function reviewDiff(
   owner: string,
   repo: string,
   number: number,
   position: number,
-  request: JudgeReviewDiffRequest,
+  request: ReviewReviewDiffRequest,
 ): Promise<ReviewResource | null> {
   const response = await authPost(
-    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/review/${number}/diff/${position}/submit`,
+    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/review/${number}/diff/${position}/review`,
     request,
   );
 
@@ -196,20 +194,6 @@ export async function updateReviewComment(
   );
 
   return await handleResponse(response, ReviewCommentResource);
-}
-
-export async function publishReviewComments(
-  owner: string,
-  repo: string,
-  number: number,
-  request: PublishReviewCommentsRequest,
-): Promise<PublishReviewCommentsResponse | null> {
-  const response = await authPost(
-    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/review/${number}/comments`,
-    request,
-  );
-
-  return await handleResponse(response, PublishReviewCommentsResponse);
 }
 
 export async function resolveReviewComment(
