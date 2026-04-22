@@ -5,10 +5,10 @@ use crate::{
     dto::{
         AddReviewReviewerReqeuest, CreateReviewCommentRequest, GetReviewDiffRequest,
         GetReviewRequest, JudgeReviewDiffRequest, JudgeVerdict, ListReviewsRequest,
-        MergeReviewDiffRequest, ProcessReviewRequest, PublishReviewRequest,
-        RemoveReviewReviewerRequest, ResolveReviewCommentRequest, ReviewCommentResponse,
-        ReviewDiffResponse, ReviewId, ReviewResponse, ReviewerResponse, ReviewsResponse,
-        UpdateReviewCommentRequest, UpdateReviewDiffRequest, UpdateReviewRequest,
+        MergeReviewDiffRequest, ProcessReviewRequest, PublishReviewCommentsRequest,
+        PublishReviewRequest, RemoveReviewReviewerRequest, ResolveReviewCommentRequest,
+        ReviewCommentResponse, ReviewDiffResponse, ReviewId, ReviewResponse, ReviewerResponse,
+        ReviewsResponse, UpdateReviewCommentRequest, UpdateReviewDiffRequest, UpdateReviewRequest,
     },
     error::{ConflictError, InputError, NotFoundError, OptionNotFoundExt, ReviewError},
     model::{DiffStatus, Review, ReviewStatus, Verdict},
@@ -125,6 +125,11 @@ pub trait ReviewService: Send + Sync + 'static {
         &self,
         request: ResolveReviewCommentRequest,
     ) -> Result<ReviewCommentResponse, ReviewError>;
+
+    async fn publish_review_comments(
+        &self,
+        request: PublishReviewCommentsRequest,
+    ) -> Result<Vec<ReviewCommentResponse>, ReviewError>;
 }
 
 #[derive(Debug, Clone)]
@@ -1004,5 +1009,42 @@ where
             .or_not_found("comment", request.comment_id.to_string())?;
 
         Ok(updated.into())
+    }
+
+    async fn publish_review_comments(
+        &self,
+        request: PublishReviewCommentsRequest,
+    ) -> Result<Vec<ReviewCommentResponse>, ReviewError> {
+        let review = self
+            .get_review_by_id(
+                request.owner.as_ref(),
+                request.repo.as_ref(),
+                &request.review_id,
+            )
+            .await?;
+
+        let mut comments = Vec::with_capacity(request.comments.len());
+        for input in request.comments {
+            let comment = self
+                .review_repo
+                .create_comment(
+                    review.id,
+                    input.diff_id,
+                    input.revision_id,
+                    request.author_id,
+                    &input.body,
+                    None,
+                    input.file_path,
+                    input.line_number_start,
+                    input.line_number_end,
+                    input.start_character,
+                    input.end_character,
+                    input.side,
+                )
+                .await?;
+            comments.push(comment.into());
+        }
+
+        Ok(comments)
     }
 }
