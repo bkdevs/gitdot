@@ -24,7 +24,12 @@ impl Settings {
             git_project_root: env::var("GIT_PROJECT_ROOT")
                 .unwrap_or_else(|_| "/srv/git".to_string()),
 
+            // Database URL is retrieved from secret manager in production
+            // Specify for local development
             database_url: env::var("DATABASE_URL").ok(),
+
+            // GCP_PROJECT_ID is auto populated for Cloud Run
+            // Specify for local development
             gcp_project_id: env::var("GCP_PROJECT_ID").ok(),
 
             gitdot_public_key: env::var("GITDOT_PUBLIC_KEY")
