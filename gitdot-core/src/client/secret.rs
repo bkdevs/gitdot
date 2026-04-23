@@ -4,31 +4,35 @@ use google_cloud_secretmanager_v1::client::SecretManagerService;
 use crate::error::SecretError;
 
 const DATABASE_URL_SECRET_NAME: &str = "database-url";
+const GITDOT_PUBLIC_KEY_SECRET_NAME: &str = "gitdot-public-key";
+const GITDOT_PRIVATE_KEY_SECRET_NAME: &str = "gitdot-private-key";
+
 const GITHUB_APP_ID_SECRET_NAME: &str = "github-app-id";
 const GITHUB_APP_PRIVATE_KEY_SECRET_NAME: &str = "github-app-private-key";
-const GITDOT_PRIVATE_KEY_SECRET_NAME: &str = "gitdot-private-key";
+const GITHUB_CLIENT_ID_SECRET_NAME: &str = "github-client-id";
+const GITHUB_CLIENT_SECRET_SECRET_NAME: &str = "github-client-secret";
+
 const CLOUDFLARE_ACCOUNT_ID_SECRET_NAME: &str = "cloudflare-account-id";
 const CLOUDFLARE_R2_ACCESS_KEY_ID_SECRET_NAME: &str = "cloudflare-r2-access-key-id";
 const CLOUDFLARE_R2_SECRET_ACCESS_KEY_SECRET_NAME: &str = "cloudflare-r2-secret-access-key";
 const CLOUDFLARE_R2_BUCKET_NAME_SECRET_NAME: &str = "cloudflare-r2-bucket-name";
+
 const RESEND_API_KEY_SECRET_NAME: &str = "resend-api-key";
 
 #[async_trait]
 pub trait SecretClient: Send + Sync + Clone + 'static {
     async fn get_database_url(&self) -> Result<String, SecretError>;
-
-    async fn get_github_app_id(&self) -> Result<u64, SecretError>;
-
-    async fn get_github_app_private_key(&self) -> Result<String, SecretError>;
-
+    async fn get_gitdot_public_key(&self) -> Result<String, SecretError>;
     async fn get_gitdot_private_key(&self) -> Result<String, SecretError>;
 
+    async fn get_github_app_id(&self) -> Result<u64, SecretError>;
+    async fn get_github_app_private_key(&self) -> Result<String, SecretError>;
+    async fn get_github_client_id(&self) -> Result<String, SecretError>;
+    async fn get_github_client_secret(&self) -> Result<String, SecretError>;
+
     async fn get_cloudflare_account_id(&self) -> Result<String, SecretError>;
-
     async fn get_cloudflare_r2_bucket_name(&self) -> Result<String, SecretError>;
-
     async fn get_cloudflare_r2_access_key_id(&self) -> Result<String, SecretError>;
-
     async fn get_cloudflare_r2_secret_access_key(&self) -> Result<String, SecretError>;
 
     async fn get_resend_api_key(&self) -> Result<String, SecretError>;
@@ -78,6 +82,14 @@ impl SecretClient for GoogleSecretClient {
         self.access_secret(DATABASE_URL_SECRET_NAME).await
     }
 
+    async fn get_gitdot_public_key(&self) -> Result<String, SecretError> {
+        self.access_secret(GITDOT_PUBLIC_KEY_SECRET_NAME).await
+    }
+
+    async fn get_gitdot_private_key(&self) -> Result<String, SecretError> {
+        self.access_secret(GITDOT_PRIVATE_KEY_SECRET_NAME).await
+    }
+
     async fn get_github_app_id(&self) -> Result<u64, SecretError> {
         let value = self.access_secret(GITHUB_APP_ID_SECRET_NAME).await?;
         value.trim().parse::<u64>().map_err(|e| {
@@ -92,8 +104,12 @@ impl SecretClient for GoogleSecretClient {
         self.access_secret(GITHUB_APP_PRIVATE_KEY_SECRET_NAME).await
     }
 
-    async fn get_gitdot_private_key(&self) -> Result<String, SecretError> {
-        self.access_secret(GITDOT_PRIVATE_KEY_SECRET_NAME).await
+    async fn get_github_client_id(&self) -> Result<String, SecretError> {
+        self.access_secret(GITHUB_CLIENT_ID_SECRET_NAME).await
+    }
+
+    async fn get_github_client_secret(&self) -> Result<String, SecretError> {
+        self.access_secret(GITHUB_CLIENT_SECRET_SECRET_NAME).await
     }
 
     async fn get_cloudflare_account_id(&self) -> Result<String, SecretError> {

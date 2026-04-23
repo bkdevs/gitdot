@@ -18,6 +18,7 @@ use super::Settings;
 #[derive(FromRef, Clone)]
 pub struct AppState {
     pub settings: Arc<Settings>,
+    pub gitdot_public_key: Arc<String>,
 
     pub authentication_service: Arc<dyn AuthenticationService>,
 }
@@ -33,13 +34,14 @@ impl AppState {
         let user_repo = UserRepositoryImpl::new(pool.clone());
         let device_repo = DeviceRepositoryImpl::new(pool.clone());
 
+        let gitdot_public_key = secret_client.get_gitdot_public_key().await?;
         let email_client = ResendClient::new(&secret_client.get_resend_api_key().await?);
-        let token_client = TokenClientImpl::new(settings.gitdot_private_key.clone());
+        let token_client = TokenClientImpl::new(secret_client.get_gitdot_private_key().await?);
         let github_client = OctocrabClient::new(
-            settings.github_app_id,
-            settings.github_app_private_key.clone(),
-            settings.github_client_id.clone(),
-            settings.github_client_secret.clone(),
+            secret_client.get_github_app_id().await?,
+            secret_client.get_github_app_private_key().await?,
+            secret_client.get_github_client_id().await?,
+            secret_client.get_github_client_secret().await?,
         );
         let image_client = ImageClientImpl::new();
         let r2_client = R2ClientImpl::new(
@@ -64,6 +66,7 @@ impl AppState {
 
         Ok(Self {
             settings,
+            gitdot_public_key: Arc::new(gitdot_public_key),
             authentication_service,
         })
     }

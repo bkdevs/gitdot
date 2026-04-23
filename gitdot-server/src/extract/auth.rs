@@ -115,7 +115,7 @@ impl Authenticator for UserJwt {
         let mut validation = Validation::new(Algorithm::EdDSA);
         validation.set_audience(&[GITDOT_SERVER_ID]);
 
-        let key = DecodingKey::from_ed_pem(app_state.settings.gitdot_public_key.as_bytes())
+        let key = DecodingKey::from_ed_pem(app_state.gitdot_public_key.as_bytes())
             .map_err(|e| TokenExtractionError::InvalidPublicKey(e.to_string()))?;
         let jwt_data = decode::<JwtClaims>(jwt, &key, &validation)
             .map_err(|e| TokenExtractionError::InvalidToken(e.to_string()))?;
@@ -192,7 +192,7 @@ impl Authenticator for TaskJwt {
         let mut validation = Validation::new(Algorithm::EdDSA);
         validation.set_audience(&[GITDOT_SERVER_ID]);
 
-        let key = DecodingKey::from_ed_pem(app_state.settings.gitdot_public_key.as_bytes())
+        let key = DecodingKey::from_ed_pem(app_state.gitdot_public_key.as_bytes())
             .map_err(|e| TokenExtractionError::InvalidPublicKey(e.to_string()))?;
         let jwt_data = decode::<JwtClaims>(jwt, &key, &validation)
             .map_err(|e| TokenExtractionError::InvalidToken(e.to_string()))?;

@@ -32,6 +32,7 @@ use super::Settings;
 #[derive(FromRef, Clone)]
 pub struct AppState {
     pub settings: Arc<Settings>,
+    pub gitdot_public_key: Arc<String>,
 
     pub authentication_service: Arc<dyn AuthenticationService>,
     pub authorization_service: Arc<dyn AuthorizationService>,
@@ -60,6 +61,8 @@ impl AppState {
         pool: PgPool,
         secret_client: impl SecretClient,
     ) -> anyhow::Result<Self> {
+        let gitdot_public_key = secret_client.get_gitdot_public_key().await?;
+
         let device_repo = DeviceRepositoryImpl::new(pool.clone());
         let token_repo = TokenRepositoryImpl::new(pool.clone());
         let user_repo = UserRepositoryImpl::new(pool.clone());
@@ -82,8 +85,8 @@ impl AppState {
         let github_client = OctocrabClient::new(
             secret_client.get_github_app_id().await?,
             secret_client.get_github_app_private_key().await?,
-            String::new(), // TODO: add github_client_id from settings
-            String::new(), // TODO: add github_client_secret from settings
+            secret_client.get_github_client_id().await?,
+            secret_client.get_github_client_secret().await?,
         );
         let gitdot_private_key = secret_client.get_gitdot_private_key().await?;
         let s2_client = S2ClientImpl::new(&settings.s2_server_url, gitdot_private_key.clone());
@@ -105,6 +108,7 @@ impl AppState {
 
         Ok(Self {
             settings,
+            gitdot_public_key: Arc::new(gitdot_public_key),
             authentication_service: Arc::new(AuthenticationServiceImpl::new(
                 device_repo.clone(),
                 session_repo.clone(),
