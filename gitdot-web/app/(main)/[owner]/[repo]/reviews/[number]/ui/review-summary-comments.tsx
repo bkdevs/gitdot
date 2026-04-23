@@ -15,7 +15,7 @@ import { UserImage } from "../../../../ui/user-image";
 import { useReviewContext } from "../context";
 
 export function ReviewSummaryComments() {
-  const { comments } = useReviewContext();
+  const { activeDiffComments: comments, activeDiff } = useReviewContext();
   const sorted = useMemo(
     () =>
       [...comments].sort(
@@ -28,7 +28,7 @@ export function ReviewSummaryComments() {
   return (
     <section className="flex flex-col gap-1.5">
       <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-        Comments
+        Comments on Diff {activeDiff.position}
       </h2>
       <div className="flex flex-col gap-6">
         {sorted.length === 0 ? (

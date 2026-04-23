@@ -45,7 +45,8 @@ type ReviewContext = {
   review: ReviewResource;
   diffs: ReviewDiffResource[];
   reviewers: ReviewerResource[];
-  comments: ReviewCommentResource[];
+
+  allComments: ReviewCommentResource[];
   draftComments: ReviewCommentResource[];
   activeComment: ReviewCommentResource | null;
   setActiveComment: (comment: ReviewCommentResource | null) => void;
@@ -200,7 +201,7 @@ export function ReviewProvider({
         review,
         diffs: review.diffs,
         reviewers: review.reviewers,
-        comments,
+        allComments: comments,
         draftComments,
         activeComment,
         setActiveComment,
