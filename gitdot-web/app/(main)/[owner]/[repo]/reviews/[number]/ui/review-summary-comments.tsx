@@ -18,10 +18,12 @@ export function ReviewSummaryComments() {
   const { activeDiffComments, activeDiff } = useReviewContext();
   const sorted = useMemo(
     () =>
-      [...activeDiffComments].sort(
-        (a, b) =>
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-      ),
+      [...activeDiffComments].sort((a, b) => {
+        const pathA = a.file_path ?? "";
+        const pathB = b.file_path ?? "";
+        if (pathA !== pathB) return pathA.localeCompare(pathB);
+        return (a.line_number_start ?? Infinity) - (b.line_number_start ?? Infinity);
+      }),
     [activeDiffComments],
   );
 
