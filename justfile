@@ -254,6 +254,30 @@ check:
 migrate:
     cd gitdot-server && sqlx migrate run --source ../gitdot-core/migrations
 
+# ── Docker ─────────────────────────────────────────────────────────────────
+
+REGISTRY := "us-central1-docker.pkg.dev/gitdot/gitdot"
+
+# Configure Docker to authenticate with GCP Artifact Registry (one-time)
+docker-auth:
+    gcloud auth configure-docker us-central1-docker.pkg.dev
+
+# Build and push server + auth Docker images
+docker-push: (_docker-push "gitdot-server") (_docker-push "gitdot-auth")
+
+_docker-push name:
+    #!/usr/bin/env bash
+    set -e
+    SHA=$(git rev-parse --short HEAD)
+    echo "Building {{name}} (${SHA})..."
+    docker build --platform linux/amd64 \
+        -t {{REGISTRY}}/{{name}}:latest \
+        -t {{REGISTRY}}/{{name}}:${SHA} \
+        -f {{name}}/Dockerfile .
+    echo "Pushing {{name}}..."
+    docker push {{REGISTRY}}/{{name}}:latest
+    docker push {{REGISTRY}}/{{name}}:${SHA}
+
 # ── Clean ──────────────────────────────────────────────────────────────────
 
 clean:
