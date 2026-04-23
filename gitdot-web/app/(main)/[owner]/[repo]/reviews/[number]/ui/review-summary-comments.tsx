@@ -15,21 +15,24 @@ import { UserImage } from "../../../../ui/user-image";
 import { useReviewContext } from "../context";
 
 export function ReviewSummaryComments() {
-  const { activeDiffComments: comments, activeDiff } = useReviewContext();
+  const { activeDiffComments, activeDiff } = useReviewContext();
   const sorted = useMemo(
     () =>
-      [...comments].sort(
+      [...activeDiffComments].sort(
         (a, b) =>
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
       ),
-    [comments],
+    [activeDiffComments],
   );
 
   return (
     <section className="flex flex-col gap-1.5">
-      <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-        Comments on Diff {activeDiff.position}
-      </h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          Comments
+        </h2>
+        <span className="text-xs text-muted-foreground">Diff {activeDiff.position}</span>
+      </div>
       <div className="flex flex-col gap-6">
         {sorted.length === 0 ? (
           <span className="text-xs text-muted-foreground">no comments yet</span>
