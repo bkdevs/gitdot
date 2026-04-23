@@ -33,7 +33,7 @@ impl AppState {
         let user_repo = UserRepositoryImpl::new(pool.clone());
         let device_repo = DeviceRepositoryImpl::new(pool.clone());
 
-        let email_client = ResendClient::new(&settings.resend_api_key);
+        let email_client = ResendClient::new(&secret_client.get_resend_api_key().await?);
         let token_client = TokenClientImpl::new(settings.gitdot_private_key.clone());
         let github_client = OctocrabClient::new(
             settings.github_app_id,

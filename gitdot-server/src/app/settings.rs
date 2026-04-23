@@ -12,9 +12,6 @@ pub struct Settings {
     pub s2_server_url: String,
 
     pub vercel_oidc_url: String,
-
-    // TODO: move it to secrets
-    pub resend_api_key: String,
 }
 
 impl Settings {
@@ -37,8 +34,6 @@ impl Settings {
             s2_server_url: env::var("S2_SERVER_URL").expect("S2_SERVER_URL must be set"),
 
             vercel_oidc_url: env::var("VERCEL_OIDC_URL").expect("VERCEL_OIDC_URL must be set"),
-
-            resend_api_key: env::var("RESEND_API_KEY").expect("RESEND_API_KEY must be set"),
         })
     }
 

@@ -11,6 +11,7 @@ const CLOUDFLARE_ACCOUNT_ID_SECRET_NAME: &str = "cloudflare-account-id";
 const CLOUDFLARE_R2_ACCESS_KEY_ID_SECRET_NAME: &str = "cloudflare-r2-access-key-id";
 const CLOUDFLARE_R2_SECRET_ACCESS_KEY_SECRET_NAME: &str = "cloudflare-r2-secret-access-key";
 const CLOUDFLARE_R2_BUCKET_NAME_SECRET_NAME: &str = "cloudflare-r2-bucket-name";
+const RESEND_API_KEY_SECRET_NAME: &str = "resend-api-key";
 
 #[async_trait]
 pub trait SecretClient: Send + Sync + Clone + 'static {
@@ -29,6 +30,8 @@ pub trait SecretClient: Send + Sync + Clone + 'static {
     async fn get_cloudflare_r2_access_key_id(&self) -> Result<String, SecretError>;
 
     async fn get_cloudflare_r2_secret_access_key(&self) -> Result<String, SecretError>;
+
+    async fn get_resend_api_key(&self) -> Result<String, SecretError>;
 }
 
 #[derive(Clone)]
@@ -110,5 +113,9 @@ impl SecretClient for GoogleSecretClient {
     async fn get_cloudflare_r2_secret_access_key(&self) -> Result<String, SecretError> {
         self.access_secret(CLOUDFLARE_R2_SECRET_ACCESS_KEY_SECRET_NAME)
             .await
+    }
+
+    async fn get_resend_api_key(&self) -> Result<String, SecretError> {
+        self.access_secret(RESEND_API_KEY_SECRET_NAME).await
     }
 }

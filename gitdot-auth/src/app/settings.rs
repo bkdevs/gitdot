@@ -7,7 +7,6 @@ pub struct Settings {
     pub gcp_project_id: Option<String>,
     pub oauth_device_verification_uri: String,
 
-    pub resend_api_key: String,
     pub gitdot_private_key: String,
     pub gitdot_public_key: String,
     pub github_client_id: String,
@@ -33,8 +32,6 @@ impl Settings {
             oauth_device_verification_uri: env::var("OAUTH_DEVICE_VERIFICATION_URI")
                 .unwrap_or_else(|_| "http://localhost:3000/oauth/device".to_string()),
 
-            // TODO: move it to secrets
-            resend_api_key: env::var("RESEND_API_KEY").expect("RESEND_API_KEY must be set"),
             gitdot_private_key: env::var("GITDOT_PRIVATE_KEY")
                 .expect("GITDOT_PRIVATE_KEY must be set"),
             gitdot_public_key: env::var("GITDOT_PUBLIC_KEY")
