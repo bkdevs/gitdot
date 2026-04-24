@@ -10,7 +10,7 @@ import Link from "@/ui/link";
 
 export function MainCommandBar() {
   const { user, repositories, organizations } = useUserContext();
-  const username = user === undefined ? null : (user?.name ?? "ghost");
+  const username = user === undefined ? "ghost" : (user?.name ?? "ghost");
 
   const typed = useTypewriter(username ?? "", 35);
   const [done, setDone] = useState(false);
