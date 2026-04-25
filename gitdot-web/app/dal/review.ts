@@ -2,6 +2,7 @@ import "server-only";
 
 import type {
   PublishReviewRequest,
+  ReplyToReviewCommentRequest,
   ReviewReviewDiffRequest,
   UpdateReviewCommentRequest,
   UpdateReviewDiffRequest,
@@ -175,6 +176,21 @@ export async function updateReviewComment(
 ): Promise<ReviewCommentResource | null> {
   const response = await authPatch(
     `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/review/${number}/comment/${commentId}`,
+    request,
+  );
+
+  return await handleResponse(response, ReviewCommentResource);
+}
+
+export async function replyToReviewComment(
+  owner: string,
+  repo: string,
+  number: number,
+  commentId: string,
+  request: ReplyToReviewCommentRequest,
+): Promise<ReviewCommentResource | null> {
+  const response = await authPost(
+    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/review/${number}/comment/${commentId}/reply`,
     request,
   );
 

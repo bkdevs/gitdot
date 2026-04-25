@@ -2,6 +2,7 @@
 
 import type {
   PublishReviewRequest,
+  ReplyToReviewCommentRequest,
   ReviewCommentResource,
   ReviewerResource,
   ReviewResource,
@@ -17,6 +18,7 @@ import {
   mergeDiff,
   publishReview,
   removeReviewer,
+  replyToReviewComment,
   resolveReviewComment,
   reviewDiff,
   updateDiff,
@@ -163,6 +165,32 @@ export async function mergeDiffAction(
 
   refresh();
   return { review: result };
+}
+
+export type ReplyToReviewCommentActionResult =
+  | { comment: ReviewCommentResource }
+  | { error: string };
+
+export async function replyToReviewCommentAction(
+  owner: string,
+  repo: string,
+  number: number,
+  commentId: string,
+  request: ReplyToReviewCommentRequest,
+): Promise<ReplyToReviewCommentActionResult> {
+  const result = await replyToReviewComment(
+    owner,
+    repo,
+    number,
+    commentId,
+    request,
+  );
+  if (!result) {
+    return { error: "replyToReviewComment call failed" };
+  }
+
+  refresh();
+  return { comment: result };
 }
 
 export type UpdateReviewCommentActionResult =

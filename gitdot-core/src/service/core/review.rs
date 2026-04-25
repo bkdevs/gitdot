@@ -5,7 +5,8 @@ use crate::{
     dto::{
         AddReviewReviewerReqeuest, GetReviewDiffRequest, GetReviewRequest, ListReviewsRequest,
         MergeReviewDiffRequest, ProcessReviewRequest, PublishReviewRequest,
-        RemoveReviewReviewerRequest, ResolveReviewCommentRequest, ReviewAction,
+        RemoveReviewReviewerRequest, ReplyToReviewCommentRequest, ResolveReviewCommentRequest,
+        ReviewAction,
         ReviewCommentResponse, ReviewDiffResponse, ReviewResponse, ReviewReviewDiffRequest,
         ReviewerResponse, ReviewsResponse, UpdateReviewCommentRequest, UpdateReviewDiffRequest,
         UpdateReviewRequest,
@@ -122,6 +123,11 @@ pub trait ReviewService: Send + Sync + 'static {
     async fn resolve_review_comment(
         &self,
         request: ResolveReviewCommentRequest,
+    ) -> Result<ReviewCommentResponse, ReviewError>;
+
+    async fn reply_to_review_comment(
+        &self,
+        request: ReplyToReviewCommentRequest,
     ) -> Result<ReviewCommentResponse, ReviewError>;
 }
 
@@ -958,5 +964,36 @@ where
             .or_not_found("comment", request.comment_id.to_string())?;
 
         Ok(updated.into())
+    }
+
+    async fn reply_to_review_comment(
+        &self,
+        request: ReplyToReviewCommentRequest,
+    ) -> Result<ReviewCommentResponse, ReviewError> {
+        let parent = self
+            .review_repo
+            .get_comment(request.comment_id)
+            .await?
+            .or_not_found("comment", request.comment_id.to_string())?;
+
+        let reply = self
+            .review_repo
+            .create_comment(
+                parent.review_id,
+                parent.diff_id,
+                parent.revision_id,
+                request.author_id,
+                &request.body,
+                Some(parent.id),
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+            )
+            .await?;
+
+        Ok(reply.into())
     }
 }
