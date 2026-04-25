@@ -16,40 +16,52 @@ import { useReviewContext } from "../context";
 
 export function ReviewSummaryComments() {
   const { activeDiffComments, activeDiff } = useReviewContext();
-  const sorted = useMemo(
-    () =>
-      [...activeDiffComments].sort((a, b) => {
-        const pathA = a.file_path ?? "";
-        const pathB = b.file_path ?? "";
-        if (pathA !== pathB) return pathA.localeCompare(pathB);
-        return (a.line_number_start ?? Infinity) - (b.line_number_start ?? Infinity);
-      }),
-    [activeDiffComments],
-  );
+  const groups = useMemo(() => {
+    const sorted = [...activeDiffComments].sort((a, b) => {
+      const pathA = a.file_path ?? "";
+      const pathB = b.file_path ?? "";
+      if (pathA !== pathB) return pathA.localeCompare(pathB);
+      return (a.line_number_start ?? Infinity) - (b.line_number_start ?? Infinity);
+    });
+    const map = new Map<string, ReviewCommentResource[]>();
+    for (const comment of sorted) {
+      const key = comment.file_path ?? "";
+      const group = map.get(key);
+      if (group) group.push(comment);
+      else map.set(key, [comment]);
+    }
+    return map;
+  }, [activeDiffComments]);
 
   return (
     <section className="flex flex-col gap-1.5">
       <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
         Comments on Diff {activeDiff.position}
       </h2>
-      <div className="flex flex-col gap-6">
-        {sorted.length === 0 ? (
-          <span className="text-xs text-muted-foreground">no comments yet</span>
-        ) : (
-          sorted.map((comment) => (
-            <ReviewSummaryComment key={comment.id} comment={comment} />
-          ))
-        )}
-      </div>
+      {groups.size === 0 ? (
+        <span className="text-xs text-muted-foreground">no comments yet</span>
+      ) : (
+        <div className="flex flex-col gap-4">
+          {[...groups.entries()].map(([filePath, comments]) => (
+            <div key={filePath} className="flex flex-col gap-1 pb-3">
+              {filePath && (
+                <span className="text-xs font-mono text-muted-foreground truncate">
+                  {filePath}
+                </span>
+              )}
+              <div className="flex flex-col gap-3">
+                {comments.map((comment) => (
+                  <ReviewSummaryComment key={comment.id} comment={comment} />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </section>
   );
 }
 
-function formatLocation(lineStart: number, lineEnd: number | null): string {
-  if (lineEnd != null && lineEnd !== lineStart)
-    return `:L${lineStart}-${lineEnd}`;
-  return `:L${lineStart}`;
-}
 
 function ReviewSummaryComment({ comment }: { comment: ReviewCommentResource }) {
   const name = comment.author?.name ?? comment.author_id;
@@ -73,32 +85,22 @@ function ReviewSummaryComment({ comment }: { comment: ReviewCommentResource }) {
     <ContextMenu>
       <ContextMenuTrigger asChild>
         <div
-          className="group flex flex-col cursor-pointer"
+          className={cn(
+            "group flex flex-col cursor-pointer rounded px-1.5 py-1 -mx-1.5 transition-colors duration-200",
+            isActive && "bg-diff-orange",
+          )}
           onClick={handleClick}
         >
-          {comment.file_path && (
-            <span
-              className={cn(
-                "text-xs font-mono text-muted-foreground truncate underline decoration-transparent group-hover:decoration-current transition-colors duration-200",
-                isActive && "decoration-current",
-              )}
-            >
-              {comment.file_path}
-              {comment.line_number_start != null &&
-                formatLocation(
-                  comment.line_number_start,
-                  comment.line_number_end,
-                )}
-            </span>
-          )}
-          <div className="flex flex-col gap-1 pb-1">
-            <span className="text-sm text-foreground">{comment.body}</span>
-            <div className="flex items-center gap-1 ml-auto">
-              <UserImage userId={comment.author_id} px={14} />
-              <span className="text-xs text-muted-foreground">{name}</span>
-              <span className="text-xs text-muted-foreground">
-                {timeAgo(new Date(comment.created_at))}
-              </span>
+          <div className="flex gap-1.5">
+            <div className="pt-0.5">
+              <UserImage userId={comment.author_id} px={18} />
+            </div>
+            <div className="flex flex-col">
+              <div className="flex items-center gap-1.5">
+                <span className="text-sm text-foreground">{name}</span>
+                <span className="text-xs text-muted-foreground">{timeAgo(new Date(comment.created_at))}</span>
+              </div>
+              <span className="text-sm text-foreground">{comment.body}</span>
             </div>
           </div>
         </div>
