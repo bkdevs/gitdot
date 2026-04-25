@@ -92,6 +92,8 @@ export function ReviewDiffFileBody({
         "[&.has-active-comment_.diff-line:not(:has(.token-active))]:transition-opacity",
         "[&.has-active-comment_.diff-line:not(:has(.token-active))]:duration-200",
         activeComment?.file_path === diffFile.path && "has-active-comment",
+        // dim this file body when another file has the active comment
+        activeComment && activeComment.file_path !== diffFile.path && "opacity-30 transition-opacity duration-200",
         className,
       )}
       onMouseDown={handleMouseDown}
