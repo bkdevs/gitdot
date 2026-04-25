@@ -76,7 +76,9 @@ export function ReviewDiffFileBody({
       ref={containerRef}
       className={cn(
         "w-full cursor-default select-none relative",
+        // dragging
         "[&.is-dragging_.diff-token]:cursor-default",
+        // selection: dim non-selected tokens, restore selected, suppress already-commented
         "[&.has-selection_.diff-token:not(.token-selected):not(.token-active)]:opacity-40",
         "[&.has-selection_.diff-token:not(.token-selected):not(.token-active)]:transition-opacity",
         "[&.has-selection_.diff-token:not(.token-selected):not(.token-active)]:duration-200",
@@ -85,6 +87,11 @@ export function ReviewDiffFileBody({
         "[&.has-selection_.diff-token.token-selected]:duration-200",
         "[&.has-selection_.diff-token.token-selected[data-comment-id]]:opacity-40",
         "[&.has-selection_.diff-token.token-selected[data-comment-id]]:bg-transparent",
+        // active comment: dim lines that don't contain the active token
+        "[&.has-active-comment_.diff-line:not(:has(.token-active))]:opacity-30",
+        "[&.has-active-comment_.diff-line:not(:has(.token-active))]:transition-opacity",
+        "[&.has-active-comment_.diff-line:not(:has(.token-active))]:duration-200",
+        activeComment?.file_path === diffFile.path && "has-active-comment",
         className,
       )}
       onMouseDown={handleMouseDown}

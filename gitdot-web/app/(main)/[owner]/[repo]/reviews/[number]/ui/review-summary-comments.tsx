@@ -29,12 +29,9 @@ export function ReviewSummaryComments() {
 
   return (
     <section className="flex flex-col gap-1.5">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          Comments
-        </h2>
-        <span className="text-xs text-muted-foreground">Diff {activeDiff.position}</span>
-      </div>
+      <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        Comments on Diff {activeDiff.position}
+      </h2>
       <div className="flex flex-col gap-6">
         {sorted.length === 0 ? (
           <span className="text-xs text-muted-foreground">no comments yet</span>

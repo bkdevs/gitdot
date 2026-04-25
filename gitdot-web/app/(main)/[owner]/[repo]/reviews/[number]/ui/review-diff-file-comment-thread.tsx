@@ -43,9 +43,9 @@ export function ReviewDiffFileCommentThread({
 
   return (
     <>
-      <div className="fixed inset-0 z-40" onMouseDown={handleClose} />
+      <div className="fixed inset-0 z-[60]" onMouseDown={handleClose} />
       <div
-        className="fixed z-50 w-72 bg-background border border-border shadow-md overflow-hidden"
+        className="fixed z-[70] w-72 bg-background border border-border shadow-md overflow-hidden"
         style={{ top: pos.y + 12, left: pos.x + 12 }}
         onMouseDown={(e) => e.stopPropagation()}
       >
