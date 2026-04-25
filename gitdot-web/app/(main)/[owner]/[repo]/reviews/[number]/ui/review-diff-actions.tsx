@@ -24,6 +24,8 @@ export function ReviewDiffActions({
 }) {
   const [status, setStatus] = useState<DiffStatus>(initialStatus);
 
+  if (status === "merged" || review.status === "draft") return null;
+
   return (
     <div className="shrink-0 flex flex-col justify-between items-end self-stretch gap-4 pb-2">
       {revision && (
@@ -66,7 +68,6 @@ export function ReviewDiffActions({
       <div className="flex flex-col gap-1 w-full">
         {status === "approved" ? (
           <MergeButton
-            disabled={review.status === "draft"}
             onMerge={async () => {
               await Promise.all([
                 mergeDiffAction(owner, repo, review.number, position),
@@ -77,7 +78,6 @@ export function ReviewDiffActions({
           />
         ) : (
           <ApproveButton
-            disabled={review.status === "draft" || status === "merged"}
             onApprove={async () => {
               await Promise.all([
                 reviewDiffAction(owner, repo, review.number, position, {
@@ -90,17 +90,15 @@ export function ReviewDiffActions({
             }}
           />
         )}
-        <ReviewButton disabled={review.status === "draft"} />
+        <ReviewButton />
       </div>
     </div>
   );
 }
 
 function ApproveButton({
-  disabled,
   onApprove,
 }: {
-  disabled: boolean;
   onApprove: () => Promise<void>;
 }) {
   const [approving, setApproving] = useState(false);
@@ -109,8 +107,7 @@ function ApproveButton({
   return (
     <button
       type="button"
-      disabled={disabled || approving}
-      title={disabled ? "Please publish to approve" : undefined}
+      disabled={approving}
       onClick={async () => {
         setApproving(true);
         await onApprove();
@@ -130,10 +127,8 @@ function ApproveButton({
 }
 
 function MergeButton({
-  disabled,
   onMerge,
 }: {
-  disabled: boolean;
   onMerge: () => Promise<void>;
 }) {
   const [merging, setMerging] = useState(false);
@@ -142,8 +137,7 @@ function MergeButton({
   return (
     <button
       type="button"
-      disabled={disabled || merging}
-      title={disabled ? "Please publish to merge" : undefined}
+      disabled={merging}
       onClick={async () => {
         setMerging(true);
         await onMerge();
@@ -162,13 +156,11 @@ function MergeButton({
   );
 }
 
-function ReviewButton({ disabled }: { disabled: boolean }) {
+function ReviewButton() {
   return (
     <button
       type="button"
-      disabled={disabled}
-      title={disabled ? "Please publish to review" : undefined}
-      className="text-xs font-mono px-2.5 py-1 rounded-xs border border-border bg-background hover:bg-accent w-full transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
+      className="text-xs font-mono px-2.5 py-1 rounded-xs border border-border bg-background hover:bg-accent w-full transition-all duration-200"
     >
       Review
     </button>
