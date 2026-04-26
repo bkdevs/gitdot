@@ -15,7 +15,6 @@ import type { Resources } from "./page";
 import { ReviewActions } from "./ui/review-actions";
 import { ReviewDiff } from "./ui/review-diff";
 import { ReviewLayoutToggles } from "./ui/review-layout-toggles";
-import { ReviewSplash } from "./ui/review-splash";
 import { ReviewSummary } from "./ui/review-summary";
 
 type ResourceRequests = ResourceRequestsType<Resources>;
@@ -124,10 +123,6 @@ function ReviewPage({
   diffEntriesPromise: Promise<DiffEntry[]>;
 }) {
   const { review } = useReviewContext();
-
-  if (!review.title && !review.description) {
-    return <ReviewSplash />;
-  }
 
   return (
     <div
