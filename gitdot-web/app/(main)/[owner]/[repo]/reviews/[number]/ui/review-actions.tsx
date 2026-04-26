@@ -1,6 +1,6 @@
 "use client";
 
-import { GitMerge, Trash2 } from "lucide-react";
+import { GitMerge, Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
 import { useReviewContext } from "../context";
@@ -11,18 +11,26 @@ export function ReviewActions() {
   const [discardError, setDiscardError] = useState<string | null>(null);
 
   return (
-    <div className="shrink-0 flex flex-col border-t border-border">
+    <div className="shrink-0 flex border-t border-border">
       <button
         type="button"
-        className="flex w-full h-8 items-center justify-start gap-1.5 px-2 text-xs text-primary bg-accent/50 outline-none underline decoration-transparent hover:decoration-current transition-colors duration-200 cursor-pointer"
+        disabled
+        className="flex w-1/3 h-8 items-center justify-center gap-1.5 px-2 text-xs text-primary-foreground bg-primary outline-none opacity-50 cursor-not-allowed"
       >
         <GitMerge className="size-3.5" />
         Merge all
       </button>
       <button
         type="button"
+        className="flex w-1/3 h-8 items-center justify-center gap-1.5 px-3 border-l border-border text-xs outline-none hover:bg-accent transition-colors duration-200 cursor-pointer"
+      >
+        <Pencil className="size-3.5" />
+        Edit
+      </button>
+      <button
+        type="button"
         onClick={() => setDiscarding(true)}
-        className="flex w-full h-8 items-center justify-start gap-1.5 px-2 border-t border-border text-xs text-destructive outline-none underline decoration-transparent hover:decoration-current hover:bg-accent transition-colors duration-200 cursor-pointer"
+        className="flex w-1/3 h-8 items-center justify-center gap-1.5 px-3 border-l border-border text-xs text-destructive outline-none hover:bg-accent transition-colors duration-200 cursor-pointer"
       >
         <Trash2 className="size-3.5" />
         Discard

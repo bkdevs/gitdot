@@ -8,7 +8,7 @@ export function ReviewDiffMessage({ message }: { message: string }) {
     <div className="flex-1 min-w-0">
       <p className="text-sm font-medium max-w-xl mb-1">{title}</p>
       <p className="text-xs text-muted-foreground leading-relaxed max-w-xl">
-        {body || "no description provided"}
+        {body || "no description found"}
       </p>
     </div>
   );
