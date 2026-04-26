@@ -94,9 +94,13 @@ function ReviewSummaryComment({ comment }: { comment: ReviewCommentResource }) {
                 <span className="text-xs text-foreground">{name}</span>
                 {location && (
                   <>
-                    <span className="text-xs text-muted-foreground truncate">on {location}</span>
+                    <span className="text-xs text-muted-foreground truncate">
+                      on {location}
+                    </span>
                     {lineLabel && (
-                      <span className="text-[10px] text-muted-foreground">{lineLabel}</span>
+                      <span className="text-[10px] text-muted-foreground">
+                        {lineLabel}
+                      </span>
                     )}
                   </>
                 )}

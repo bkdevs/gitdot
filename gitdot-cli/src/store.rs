@@ -48,4 +48,46 @@ impl GitCredentialStore {
 
         Ok(())
     }
+
+    pub fn get(url: &str, username: &str) -> anyhow::Result<String> {
+        let parsed = Url::parse(url)?;
+        let protocol = parsed.scheme();
+        let host = parsed
+            .host_str()
+            .ok_or_else(|| anyhow::anyhow!("URL missing host"))?;
+        let port = parsed.port();
+
+        let mut input = format!(
+            "protocol={}\nhost={}\nusername={}\n",
+            protocol, host, username
+        );
+        if let Some(p) = port {
+            input = format!(
+                "protocol={}\nhost={}:{}\nusername={}\n",
+                protocol, host, p, username
+            );
+        }
+
+        let mut child = Command::new("git")
+            .args(["credential", "fill"])
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::null())
+            .spawn()?;
+        if let Some(mut stdin) = child.stdin.take() {
+            stdin.write_all(input.as_bytes())?;
+        }
+        let output = child.wait_with_output()?;
+        if !output.status.success() {
+            anyhow::bail!("git credential fill failed");
+        }
+
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        for line in stdout.lines() {
+            if let Some(password) = line.strip_prefix("password=") {
+                return Ok(password.to_string());
+            }
+        }
+        anyhow::bail!("No stored credentials found — run `dot auth login` first")
+    }
 }

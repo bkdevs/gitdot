@@ -16,7 +16,11 @@ pub struct ReviewArgs {
 #[derive(Subcommand, Debug)]
 pub enum ReviewCommand {
     /// Create a review
-    New,
+    New {
+        /// Review message; first line is the title, remaining lines are the description
+        #[arg(short = 'm', long = "message")]
+        message: Option<String>,
+    },
 
     /// Checkout a commit from the review
     Checkout,
@@ -32,7 +36,9 @@ impl ReviewCommand {
     pub async fn execute(&self, config: UserConfig) -> anyhow::Result<()> {
         let git = GitWrapper::new();
         match self {
-            ReviewCommand::New {} => create::create_review(config, &git).await,
+            ReviewCommand::New { message } => {
+                create::create_review(config, &git, message.clone()).await
+            }
             ReviewCommand::Checkout {} => checkout::checkout_review(config, &git).await,
             ReviewCommand::Amend {} => amend::amend_review(config, &git).await,
             ReviewCommand::Update {} => update::update_review(config, &git).await,

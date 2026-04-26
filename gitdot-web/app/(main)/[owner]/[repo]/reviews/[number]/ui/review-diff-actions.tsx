@@ -96,11 +96,7 @@ export function ReviewDiffActions({
   );
 }
 
-function ApproveButton({
-  onApprove,
-}: {
-  onApprove: () => Promise<void>;
-}) {
+function ApproveButton({ onApprove }: { onApprove: () => Promise<void> }) {
   const [approving, setApproving] = useState(false);
   const typed = useTypewriter(approving ? "Approving..." : "", 50);
 
@@ -126,11 +122,7 @@ function ApproveButton({
   );
 }
 
-function MergeButton({
-  onMerge,
-}: {
-  onMerge: () => Promise<void>;
-}) {
+function MergeButton({ onMerge }: { onMerge: () => Promise<void> }) {
   const [merging, setMerging] = useState(false);
   const typed = useTypewriter(merging ? "Merging..." : "", 50);
 

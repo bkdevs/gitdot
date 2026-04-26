@@ -4,10 +4,10 @@ mod auth;
 mod ci;
 #[cfg(feature = "main")]
 mod review;
-#[cfg(feature = "main")]
-mod save;
 #[cfg(feature = "runner")]
 mod runner;
+#[cfg(feature = "main")]
+mod save;
 
 use clap::Parser;
 
