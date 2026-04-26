@@ -54,6 +54,7 @@ pub async fn create_review(
 }
 
 fn parse_message(message: &str) -> (String, String) {
+    let message = message.replace("\\n", "\n");
     match message.splitn(2, '\n').collect::<Vec<_>>().as_slice() {
         [title] => (title.trim().to_string(), String::new()),
         [title, rest] => (title.trim().to_string(), rest.trim().to_string()),
