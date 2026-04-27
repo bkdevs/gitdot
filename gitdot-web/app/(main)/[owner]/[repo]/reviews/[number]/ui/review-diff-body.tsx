@@ -3,9 +3,10 @@
 import type { ReviewDiffResource, ReviewResource } from "gitdot-api";
 import { use } from "react";
 import type { DiffEntry } from "@/actions";
-import { ReviewDiffActions, ReviewDiffMetadata } from "./review-diff-actions";
+import { ReviewDiffActions } from "./review-diff-actions";
 import { ReviewDiffFile } from "./review-diff-file";
 import { ReviewDiffMessage } from "./review-diff-message";
+import { ReviewDiffMetadata } from "./review-diff-metadata";
 
 export function ReviewDiffBody({
   owner,

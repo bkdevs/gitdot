@@ -826,19 +826,14 @@ where
         let review = self.get_review_by_id(owner, repo, request.number).await?;
         let diffs = review.diffs.unwrap_or_default();
 
-        let last_position = diffs
-            .iter()
-            .map(|d| d.position)
-            .max()
-            .ok_or_else(|| {
-                NotFoundError::new(
-                    "diff",
-                    format!("{}/{}/review/{} has no diffs", owner, repo, request.number),
-                )
-            })?;
+        let last_position = diffs.iter().map(|d| d.position).max().ok_or_else(|| {
+            NotFoundError::new(
+                "diff",
+                format!("{}/{}/review/{} has no diffs", owner, repo, request.number),
+            )
+        })?;
 
-        let diff_request =
-            MergeReviewDiffRequest::new(owner, repo, request.number, last_position)?;
+        let diff_request = MergeReviewDiffRequest::new(owner, repo, request.number, last_position)?;
         self.merge_review_diff(diff_request).await
     }
 

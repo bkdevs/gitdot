@@ -223,16 +223,3 @@
 [data-diff-path-flash] {
   animation: diff-path-underline 0.3s ease-out;
 }
-
-[data-sonner-toast],
-[data-sonner-toast] > * {
-  animation: none !important;
-  transition: none !important;
-}
-
-[data-sonner-toast] {
-  border-radius: 0 !important;
-  box-shadow: none !important;
-  border: 1px solid black !important;
-  padding: 6px 10px !important;
-}
