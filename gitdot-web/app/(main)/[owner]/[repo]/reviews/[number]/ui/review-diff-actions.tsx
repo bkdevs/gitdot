@@ -3,7 +3,6 @@
 import type { DiffStatus, ReviewResource, RevisionResource } from "gitdot-api";
 import { useState } from "react";
 import { reviewDiffAction } from "@/actions/review";
-import { toast } from "sonner";
 import { cn } from "@/util";
 import { timeAgo } from "@/util/date";
 
@@ -66,11 +65,10 @@ export function ReviewDiffActions({
       <div className="flex flex-col gap-1 w-full">
         <ApproveButton
           onApprove={async () => {
-            toast.success("Diff approved");
-            // reviewDiffAction(owner, repo, review.number, position, {
-            //   action: "approve",
-            //   comments: [],
-            // });
+            await reviewDiffAction(owner, repo, review.number, position, {
+              action: "approve",
+              comments: [],
+            });
           }}
         />
         <ReviewButton />
@@ -80,23 +78,22 @@ export function ReviewDiffActions({
 }
 
 function ApproveButton({ onApprove }: { onApprove: () => Promise<void> }) {
-  const [approving, setApproving] = useState(false);
+  const [approved, setApproved] = useState(false);
 
   return (
     <button
       type="button"
-      disabled={approving}
+      disabled={approved}
       onClick={async () => {
-        setApproving(true);
+        setApproved(true);
         await onApprove();
-        setApproving(false);
       }}
       className={cn(
-        "text-xs font-mono px-2.5 py-1 text-primary-foreground underline decoration-transparent hover:decoration-current transition-all duration-200 rounded-xs border border-primary w-full disabled:opacity-70 disabled:cursor-not-allowed",
-        approving ? "bg-primary/90" : "bg-primary hover:bg-primary/90",
+        "text-xs font-mono px-2.5 py-1 underline decoration-transparent hover:decoration-current rounded-xs border border-primary w-full disabled:cursor-not-allowed bg-primary text-primary-foreground",
+        approved ? "opacity-50" : "hover:bg-primary/90",
       )}
     >
-      {approving ? "Approving..." : "Approve"}
+      {approved ? "Approved" : "Approve"}
     </button>
   );
 }

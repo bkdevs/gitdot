@@ -632,7 +632,18 @@ where
             .first()
             .or_not_found("revision", "No revisions found")?;
 
-        if request.action != ReviewAction::Comment {
+        let is_author = request.reviewer_id == review.author_id;
+
+        if is_author {
+            if request.action == ReviewAction::Approve && diff.status == DiffStatus::Open {
+                return Err(ReviewError::CannotApproveOwnDiff);
+            }
+            if diff.status == DiffStatus::Pending {
+                self.review_repo
+                    .update_diff(diff.id, Some(DiffStatus::Open), None)
+                    .await?;
+            }
+        } else if request.action != ReviewAction::Comment {
             let verdict = match request.action {
                 ReviewAction::Approve => Verdict::Approved,
                 ReviewAction::RequestChanges => Verdict::Rejected,

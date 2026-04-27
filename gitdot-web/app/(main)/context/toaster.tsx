@@ -6,7 +6,7 @@ export function ToasterProvider({ children }: { children: React.ReactNode }) {
   return (
     <>
       {children}
-      <Toaster position="top-right" />
+      <Toaster position="bottom-right" offset={0} />
     </>
   );
 }

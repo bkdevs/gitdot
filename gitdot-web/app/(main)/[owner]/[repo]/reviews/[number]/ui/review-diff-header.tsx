@@ -53,6 +53,7 @@ export function ReviewDiffHeader({
 function ReviewDiffStatus({ status }: { status: DiffStatus }) {
   switch (status) {
     case "pending":
+      return <span className="text-xs shrink-0 text-foreground">pending</span>;
     case "open":
       return <span className="text-xs shrink-0 text-foreground">open</span>;
     case "merged":
