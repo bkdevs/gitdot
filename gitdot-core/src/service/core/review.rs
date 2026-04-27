@@ -644,15 +644,13 @@ where
 
         let is_author = request.reviewer_id == review.author_id;
 
-        if is_author {
-            if request.action == ReviewAction::Approve && diff.status == DiffStatus::Open {
+        if is_author && request.action == ReviewAction::Approve {
+            if diff.status == DiffStatus::Open {
                 return Err(ReviewError::CannotApproveOwnDiff);
             }
-            if diff.status == DiffStatus::Pending {
-                self.review_repo
-                    .update_diff(diff.id, Some(DiffStatus::Open), None)
-                    .await?;
-            }
+            self.review_repo
+                .update_diff(diff.id, Some(DiffStatus::Open), None)
+                .await?;
         } else if request.action != ReviewAction::Comment {
             let verdict = match request.action {
                 ReviewAction::Approve => Verdict::Approved,

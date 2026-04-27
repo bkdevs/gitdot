@@ -5,7 +5,6 @@ import type {
   ReviewDiffResource,
   ReviewerResource,
   ReviewResource,
-  ReviewReviewDiffRequest,
 } from "gitdot-api";
 import { useSearchParams } from "next/navigation";
 import { createContext, useContext, useMemo, useState } from "react";
@@ -59,6 +58,7 @@ type ReviewContext = {
   setActiveComment: (comment: ReviewCommentResource | null) => void;
   activeDiff: ReviewDiffResource;
   activeDiffComments: ReviewCommentResource[];
+  activeDiffDraftComments: ReviewCommentResource[];
 
   publishReview: () => Promise<PublishReviewActionResult>;
   mergeReview: () => Promise<MergeReviewActionResult>;
@@ -75,11 +75,12 @@ type ReviewContext = {
 
   reviewDiff: (
     position: number,
-    request: ReviewReviewDiffRequest,
+    action: "comment" | "approve" | "request_changes",
   ) => Promise<ReviewDiffActionResult>;
 };
 
 const ReviewContext = createContext<ReviewContext | null>(null);
+
 
 export function ReviewProvider({
   owner,
@@ -113,6 +114,11 @@ export function ReviewProvider({
   const activeDiffComments = useMemo(
     () => comments.filter((c) => c.diff_id === activeDiff.id),
     [comments, activeDiff.id],
+  );
+
+  const activeDiffDraftComments = useMemo(
+    () => draftComments.filter((c) => c.diff_id === activeDiff.id),
+    [draftComments, activeDiff.id],
   );
 
   async function publishReview(): Promise<PublishReviewActionResult> {
@@ -223,17 +229,24 @@ export function ReviewProvider({
 
   async function reviewDiff(
     position: number,
-    request: ReviewReviewDiffRequest,
+    action: "comment" | "approve" | "request_changes",
   ): Promise<ReviewDiffActionResult> {
-    const result = await reviewDiffAction(
-      owner,
-      repo,
-      review.number,
-      position,
-      request,
-    );
+    const result = await reviewDiffAction(owner, repo, review.number, position, {
+      action,
+      comments: activeDiffDraftComments.map((c) => ({
+        revision_id: c.revision_id,
+        body: c.body,
+        ...(c.file_path != null && { file_path: c.file_path }),
+        ...(c.line_number_start != null && { line_number_start: c.line_number_start }),
+        ...(c.line_number_end != null && { line_number_end: c.line_number_end }),
+        ...(c.start_character != null && { start_character: c.start_character }),
+        ...(c.end_character != null && { end_character: c.end_character }),
+        ...(c.side != null && { side: c.side }),
+      })),
+    });
     if ("error" in result) return result;
     setReview(result.review);
+    setDraftComments([]);
     return result;
   }
 
@@ -250,6 +263,7 @@ export function ReviewProvider({
         setActiveComment,
         activeDiff,
         activeDiffComments,
+        activeDiffDraftComments,
 
         publishReview,
         mergeReview,

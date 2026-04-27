@@ -1,6 +1,6 @@
 "use client";
 
-import type { DiffStatus, RevisionResource } from "gitdot-api";
+import type { DiffStatus, ReviewCommentResource, RevisionResource } from "gitdot-api";
 import { useState } from "react";
 import { useUserContext } from "@/(main)/context/user";
 import {
@@ -21,7 +21,7 @@ export function ReviewDiffActions({
   status: DiffStatus;
   revision: RevisionResource | undefined;
 }) {
-  const { review, reviewDiff } = useReviewContext();
+  const { review, reviewDiff, activeDiffDraftComments } = useReviewContext();
   const { user } = useUserContext();
 
   if (status === "merged" || review.status === "closed") return null;
@@ -35,6 +35,7 @@ export function ReviewDiffActions({
         position={position}
         isDraft={review.status === "draft"}
         approved={status === "open"}
+        activeDiffDraftComments={activeDiffDraftComments}
         reviewDiff={reviewDiff}
       />
     );
@@ -47,6 +48,7 @@ export function ReviewDiffActions({
         approved={
           revision?.verdicts.some((v) => v.reviewer_id === user?.id) ?? false
         }
+        activeDiffDraftComments={activeDiffDraftComments}
         reviewDiff={reviewDiff}
       />
     );
@@ -59,14 +61,16 @@ function AuthorActions({
   position,
   isDraft,
   approved,
+  activeDiffDraftComments,
   reviewDiff,
 }: {
   position: number;
   isDraft: boolean;
   approved: boolean;
+  activeDiffDraftComments: ReviewCommentResource[];
   reviewDiff: (
     position: number,
-    request: { action: "approve"; comments: [] },
+    action: "comment" | "approve" | "request_changes",
   ) => Promise<unknown>;
 }) {
   return (
@@ -76,10 +80,14 @@ function AuthorActions({
           <ApproveButton
             approved={approved}
             onApprove={async () => {
-              await reviewDiff(position, { action: "approve", comments: [] });
+              await reviewDiff(position, "approve");
             }}
           />
-          <ReviewButton />
+          <ReviewButton
+            position={position}
+            activeDiffDraftComments={activeDiffDraftComments}
+            reviewDiff={reviewDiff}
+          />
         </>
       ) : (
         <CommentButton />
@@ -91,13 +99,15 @@ function AuthorActions({
 function ReviewerActions({
   position,
   approved,
+  activeDiffDraftComments,
   reviewDiff,
 }: {
   position: number;
   approved: boolean;
+  activeDiffDraftComments: ReviewCommentResource[];
   reviewDiff: (
     position: number,
-    request: { action: "approve"; comments: [] },
+    action: "comment" | "approve" | "request_changes",
   ) => Promise<unknown>;
 }) {
   return (
@@ -105,10 +115,14 @@ function ReviewerActions({
       <ApproveButton
         approved={approved}
         onApprove={async () => {
-          await reviewDiff(position, { action: "approve", comments: [] });
+          await reviewDiff(position, "approve");
         }}
       />
-      <ReviewButton />
+      <ReviewButton
+        position={position}
+        activeDiffDraftComments={activeDiffDraftComments}
+        reviewDiff={reviewDiff}
+      />
     </div>
   );
 }
@@ -152,23 +166,60 @@ function CommentButton() {
   );
 }
 
-function ReviewButton() {
+function ReviewButton({
+  position,
+  activeDiffDraftComments,
+  reviewDiff,
+}: {
+  position: number;
+  activeDiffDraftComments: ReviewCommentResource[];
+  reviewDiff: (
+    position: number,
+    action: "comment" | "approve" | "request_changes",
+  ) => Promise<unknown>;
+}) {
+  const [open, setOpen] = useState(false);
+  const [isPending, setIsPending] = useState(false);
+
+  async function handleAction(action: "comment" | "request_changes") {
+    setOpen(false);
+    setIsPending(true);
+    await reviewDiff(position, action);
+    setIsPending(false);
+  }
+
   return (
-    <DropdownMenu>
+    <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className="text-xs font-mono px-2.5 py-1 rounded-xs border border-border bg-background hover:bg-accent w-full transition-all duration-200"
+          className={cn(
+            "text-xs font-mono px-2.5 py-1 rounded-xs border border-border bg-background hover:bg-accent w-full transition-all duration-200 flex items-center justify-center gap-1",
+            (open || isPending) && "opacity-50",
+          )}
         >
-          Review
+          <span>Review</span>
+          {activeDiffDraftComments.length > 0 && (
+            <span className="font-mono text-xs text-muted-foreground">
+              ({activeDiffDraftComments.length})
+            </span>
+          )}
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="start"
         style={{ width: "var(--radix-popper-anchor-width)" }}
       >
-        <DropdownMenuItem className="text-xs">Request changes</DropdownMenuItem>
-        <DropdownMenuItem className="text-xs">
+        <DropdownMenuItem
+          className="text-xs"
+          onClick={() => handleAction("request_changes")}
+        >
+          Request changes
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          className="text-xs"
+          onClick={() => handleAction("comment")}
+        >
           Publish comments
         </DropdownMenuItem>
       </DropdownMenuContent>
