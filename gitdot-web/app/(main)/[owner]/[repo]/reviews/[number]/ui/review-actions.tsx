@@ -1,94 +1,37 @@
 "use client";
 
-import { GitMerge, Pencil, Trash2 } from "lucide-react";
-import { useState } from "react";
-import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
+import { Ellipsis, GitMerge } from "lucide-react";
 import { useReviewContext } from "../context";
 
 export function ReviewActions() {
-  const { discardReview } = useReviewContext();
-  const [discarding, setDiscarding] = useState(false);
-  const [discardError, setDiscardError] = useState<string | null>(null);
+  const { diffs, allComments } = useReviewContext();
 
   return (
     <div className="shrink-0 flex border-t border-border">
       <button
         type="button"
         disabled
-        className="flex w-1/3 h-8 items-center justify-center gap-1.5 px-2 text-xs text-primary-foreground bg-primary outline-none opacity-50 cursor-not-allowed"
+        className="flex w-1/3 h-8 items-center justify-center gap-1.5 px-3 text-xs text-primary-foreground bg-primary outline-none opacity-50 cursor-not-allowed"
       >
         <GitMerge className="size-3.5" />
         Merge all
       </button>
-      <button
-        type="button"
-        className="flex w-1/3 h-8 items-center justify-center gap-1.5 px-3 border-l border-border text-xs outline-none hover:bg-accent transition-colors duration-200 cursor-pointer"
-      >
-        <Pencil className="size-3.5" />
-        Edit
-      </button>
-      <button
-        type="button"
-        onClick={() => setDiscarding(true)}
-        className="flex w-1/3 h-8 items-center justify-center gap-1.5 px-3 border-l border-border text-xs text-destructive outline-none hover:bg-accent transition-colors duration-200 cursor-pointer"
-      >
-        <Trash2 className="size-3.5" />
-        Discard
-      </button>
-      <Dialog
-        open={discarding}
-        onOpenChange={(open) => {
-          if (!open) {
-            setDiscarding(false);
-            setDiscardError(null);
-          }
-        }}
-      >
-        <DialogContent
-          animations
-          showOverlay
-          className="p-0 overflow-hidden w-96"
+      <div className="w-2/3 h-8 flex items-center pl-2 border-l border-border">
+        <div className="flex flex-col justify-center">
+          <span className="text-xs text-muted-foreground font-mono leading-none">
+            {diffs.length} diffs to merge into main
+          </span>
+          <span className="text-[10px] text-muted-foreground/60 font-mono leading-none">
+            {allComments.length} comments
+          </span>
+        </div>
+        <button
+          type="button"
+          className="ml-auto h-full px-2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
         >
-          <div className="px-2 py-2 flex flex-col gap-0 pb-1">
-            <DialogTitle className="text-sm font-normal text-foreground">
-              Discard review?
-            </DialogTitle>
-            <p className="text-xs text-muted-foreground">
-              This will permanently delete your review and all comments.
-            </p>
-          </div>
-          {discardError && (
-            <p className="px-2 pb-1 text-xs text-red-500">{discardError}</p>
-          )}
-          <div className="flex items-center justify-end h-8 border-t border-border">
-            <button
-              type="button"
-              onClick={() => {
-                setDiscarding(false);
-                setDiscardError(null);
-              }}
-              className="flex items-center px-2 h-full text-xs border-l border-border hover:bg-accent/50 transition-colors cursor-pointer"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={async () => {
-                const result = await discardReview();
-                if ("error" in result) {
-                  setDiscardError(result.error);
-                } else {
-                  setDiscarding(false);
-                  setDiscardError(null);
-                }
-              }}
-              className="flex items-center px-2 h-full text-xs text-destructive bg-background hover:underline hover:bg-accent/50 border-l border-border transition-colors cursor-pointer"
-            >
-              Discard
-            </button>
-          </div>
-        </DialogContent>
-      </Dialog>
+          <Ellipsis className="size-3.5" />
+        </button>
+      </div>
     </div>
   );
 }
