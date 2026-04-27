@@ -13,6 +13,8 @@ import { useUserContext } from "@/(main)/context/user";
 import {
   type AddReviewerActionResult,
   addReviewerAction,
+  type MergeReviewActionResult,
+  mergeReviewAction,
   type PublishReviewActionResult,
   publishReviewAction,
   type RemoveReviewerActionResult,
@@ -29,6 +31,7 @@ export type CreateReviewCommentActionResult =
 
 export type {
   AddReviewerActionResult,
+  MergeReviewActionResult,
   PublishReviewActionResult,
   RemoveReviewerActionResult,
   ReviewDiffActionResult,
@@ -58,6 +61,7 @@ type ReviewContext = {
   activeDiffComments: ReviewCommentResource[];
 
   publishReview: () => Promise<PublishReviewActionResult>;
+  mergeReview: () => Promise<MergeReviewActionResult>;
   discardReview: () => Promise<{ success: true } | { error: string }>;
   addReviewer: (userName: string) => Promise<AddReviewerActionResult>;
   removeReviewer: (reviewerName: string) => Promise<RemoveReviewerActionResult>;
@@ -114,6 +118,16 @@ export function ReviewProvider({
   async function publishReview(): Promise<PublishReviewActionResult> {
     const [result] = await Promise.all([
       publishReviewAction(owner, repo, review.number, {}),
+      new Promise((r) => setTimeout(r, 1200)),
+    ]);
+    if ("error" in result) return result;
+    setReview(result.review);
+    return result;
+  }
+
+  async function mergeReview(): Promise<MergeReviewActionResult> {
+    const [result] = await Promise.all([
+      mergeReviewAction(owner, repo, review.number),
       new Promise((r) => setTimeout(r, 1200)),
     ]);
     if ("error" in result) return result;
@@ -238,6 +252,7 @@ export function ReviewProvider({
         activeDiffComments,
 
         publishReview,
+        mergeReview,
         discardReview,
         addReviewer,
         removeReviewer,

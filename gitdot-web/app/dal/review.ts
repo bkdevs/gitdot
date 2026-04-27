@@ -167,6 +167,19 @@ export async function mergeDiff(
   return await handleResponse(response, ReviewResource);
 }
 
+export async function mergeReview(
+  owner: string,
+  repo: string,
+  number: number,
+): Promise<ReviewResource | null> {
+  const response = await authPost(
+    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/review/${number}/merge`,
+    {},
+  );
+
+  return await handleResponse(response, ReviewResource);
+}
+
 export async function updateReviewComment(
   owner: string,
   repo: string,

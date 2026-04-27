@@ -16,6 +16,7 @@ import {
   ApiError,
   addReviewer,
   mergeDiff,
+  mergeReview,
   publishReview,
   removeReviewer,
   replyToReviewComment,
@@ -142,6 +143,24 @@ export async function reviewDiffAction(
   const result = await reviewDiff(owner, repo, number, position, request);
   if (!result) {
     return { error: "reviewDiff call failed" };
+  }
+
+  refresh();
+  return { review: result };
+}
+
+export type MergeReviewActionResult =
+  | { review: ReviewResource }
+  | { error: string };
+
+export async function mergeReviewAction(
+  owner: string,
+  repo: string,
+  number: number,
+): Promise<MergeReviewActionResult> {
+  const result = await mergeReview(owner, repo, number);
+  if (!result) {
+    return { error: "mergeReview call failed" };
   }
 
   refresh();
