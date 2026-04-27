@@ -316,8 +316,9 @@ where
             .await?
             .ok_or(AuthorizationError::Unauthorized)?;
 
+        let is_author = review.author_id == request.user_id;
         let reviewers = review.reviewers.unwrap_or_default();
-        if !reviewers.iter().any(|r| r.reviewer_id == request.user_id) {
+        if !is_author && !reviewers.iter().any(|r| r.reviewer_id == request.user_id) {
             return Err(AuthorizationError::Unauthorized);
         }
 
