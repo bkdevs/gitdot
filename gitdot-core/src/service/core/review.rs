@@ -615,12 +615,6 @@ where
 
         let review = self.get_review_by_id(owner, repo, request.number).await?;
 
-        if review.status != ReviewStatus::InProgress {
-            return Err(ReviewError::ReviewNotPublishable(
-                "Review must be in progress to submit a review".to_string(),
-            ));
-        }
-
         let diffs = review.diffs.as_ref().map(|d| d.as_slice()).unwrap_or(&[]);
         let diff = diffs
             .iter()

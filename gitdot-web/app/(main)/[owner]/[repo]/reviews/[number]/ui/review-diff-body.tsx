@@ -28,9 +28,6 @@ export function ReviewDiffBody({
         <ReviewDiffMessage message={diff.message} />
         <ReviewDiffActions
           key={diff.position}
-          owner={owner}
-          repo={repo}
-          review={review}
           position={diff.position}
           status={diff.status}
           revision={latestRevision}

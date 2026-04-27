@@ -5,6 +5,7 @@ import type {
   ReviewDiffResource,
   ReviewerResource,
   ReviewResource,
+  ReviewReviewDiffRequest,
 } from "gitdot-api";
 import { useSearchParams } from "next/navigation";
 import { createContext, useContext, useMemo, useState } from "react";
@@ -15,7 +16,9 @@ import {
   type PublishReviewActionResult,
   publishReviewAction,
   type RemoveReviewerActionResult,
+  type ReviewDiffActionResult,
   removeReviewerAction,
+  reviewDiffAction,
   type UpdateReviewActionResult,
   updateReviewAction,
 } from "@/actions/review";
@@ -28,6 +31,7 @@ export type {
   AddReviewerActionResult,
   PublishReviewActionResult,
   RemoveReviewerActionResult,
+  ReviewDiffActionResult,
   UpdateReviewActionResult,
 };
 
@@ -64,6 +68,11 @@ type ReviewContext = {
     title?: string;
     description?: string;
   }) => Promise<UpdateReviewActionResult>;
+
+  reviewDiff: (
+    position: number,
+    request: ReviewReviewDiffRequest,
+  ) => Promise<ReviewDiffActionResult>;
 };
 
 const ReviewContext = createContext<ReviewContext | null>(null);
@@ -195,24 +204,44 @@ export function ReviewProvider({
     return Promise.resolve({ comment: draftComment });
   }
 
+  async function reviewDiff(
+    position: number,
+    request: ReviewReviewDiffRequest,
+  ): Promise<ReviewDiffActionResult> {
+    const result = await reviewDiffAction(
+      owner,
+      repo,
+      review.number,
+      position,
+      request,
+    );
+    if ("error" in result) return result;
+    setReview(result.review);
+    return result;
+  }
+
   return (
     <ReviewContext
       value={{
         review,
         diffs: review.diffs,
         reviewers: review.reviewers,
+
         allComments: comments,
         draftComments,
         activeComment,
         setActiveComment,
         activeDiff,
         activeDiffComments,
+
         publishReview,
         discardReview,
         addReviewer,
         removeReviewer,
         addComment,
         updateReview,
+
+        reviewDiff,
       }}
     >
       {children}

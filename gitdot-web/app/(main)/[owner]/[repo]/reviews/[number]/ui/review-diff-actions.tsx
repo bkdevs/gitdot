@@ -1,27 +1,25 @@
 "use client";
 
-import type { DiffStatus, ReviewResource, RevisionResource } from "gitdot-api";
+import type { DiffStatus, RevisionResource } from "gitdot-api";
 import { useState } from "react";
-import { reviewDiffAction } from "@/actions/review";
 import { cn } from "@/util";
 import { timeAgo } from "@/util/date";
+import { useReviewContext } from "../context";
 
 export function ReviewDiffActions({
-  owner,
-  repo,
-  review,
   position,
   status,
   revision,
 }: {
-  owner: string;
-  repo: string;
-  review: ReviewResource;
   position: number;
   status: DiffStatus;
   revision: RevisionResource | undefined;
 }) {
+  const { review, reviewDiff } = useReviewContext();
+
   if (status === "merged" || review.status === "closed") return null;
+
+  const approved = review.status === "draft" && status === "open";
 
   return (
     <div className="shrink-0 flex flex-col justify-between items-end self-stretch gap-4 pb-2">
@@ -64,11 +62,9 @@ export function ReviewDiffActions({
       )}
       <div className="flex flex-col gap-1 w-full">
         <ApproveButton
+          approved={approved}
           onApprove={async () => {
-            await reviewDiffAction(owner, repo, review.number, position, {
-              action: "approve",
-              comments: [],
-            });
+            await reviewDiff(position, { action: "approve", comments: [] });
           }}
         />
         <ReviewButton />
@@ -77,20 +73,27 @@ export function ReviewDiffActions({
   );
 }
 
-function ApproveButton({ onApprove }: { onApprove: () => Promise<void> }) {
-  const [approved, setApproved] = useState(false);
+function ApproveButton({
+  approved,
+  onApprove,
+}: {
+  approved: boolean;
+  onApprove: () => Promise<void>;
+}) {
+  const [isPending, setIsPending] = useState(false);
 
   return (
     <button
       type="button"
-      disabled={approved}
+      disabled={approved || isPending}
       onClick={async () => {
-        setApproved(true);
+        setIsPending(true);
         await onApprove();
+        setIsPending(false);
       }}
       className={cn(
         "text-xs font-mono px-2.5 py-1 underline decoration-transparent hover:decoration-current rounded-xs border border-primary w-full disabled:cursor-not-allowed bg-primary text-primary-foreground",
-        approved ? "opacity-50" : "hover:bg-primary/90",
+        approved || isPending ? "opacity-50" : "hover:bg-primary/90",
       )}
     >
       {approved ? "Approved" : "Approve"}

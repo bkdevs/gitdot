@@ -14,7 +14,7 @@ export function ReviewSummaryHeader({ review }: { review: ReviewResource }) {
     <div className="shrink-0 h-16 border-b border-border flex flex-col justify-center px-4 py-1 overflow-hidden">
       <div className="min-h-0 flex items-center overflow-hidden">
         <h1 className="text-sm leading-tight line-clamp-2 font-medium">
-          {review.title}
+          {review.title || <span className="text-muted-foreground">no title found</span>}
         </h1>
       </div>
       <div className="flex items-center justify-between text-xs font-mono text-muted-foreground min-w-0">

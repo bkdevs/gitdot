@@ -30,7 +30,7 @@ export function ReviewSummaryComments() {
   );
 
   return (
-    <section className="flex flex-col gap-0.5">
+    <section className="flex flex-col gap-1.5">
       <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
         Comments on Diff {activeDiff.position}
       </h2>

@@ -1,9 +1,12 @@
 "use client";
 
-import type { DiffStatus, ReviewDiffResource } from "gitdot-api";
+import type { DiffStatus, ReviewDiffResource, ReviewStatus } from "gitdot-api";
 import { usePathname } from "next/navigation";
 import Link from "@/ui/link";
 import { cn } from "@/util";
+import { useReviewContext } from "../context";
+
+type DisplayDiffStatus = "open" | "approved" | "merged";
 
 export function ReviewDiffHeader({
   diffs,
@@ -13,6 +16,7 @@ export function ReviewDiffHeader({
   position: number;
 }) {
   const pathname = usePathname();
+  const { review } = useReviewContext();
   const activeIndex = diffs.findIndex((d) => d.position === position);
 
   return (
@@ -42,7 +46,9 @@ export function ReviewDiffHeader({
             <span className="text-xs flex-1 truncate">
               {diff.message.split("\n")[0]}
             </span>
-            <ReviewDiffStatus status={diff.status} />
+            <ReviewDiffStatus
+              status={readableDiffStatus(diff.status, review.status)}
+            />
           </Link>
         );
       })}
@@ -50,10 +56,10 @@ export function ReviewDiffHeader({
   );
 }
 
-function ReviewDiffStatus({ status }: { status: DiffStatus }) {
+function ReviewDiffStatus({ status }: { status: DisplayDiffStatus }) {
   switch (status) {
-    case "pending":
-      return <span className="text-xs shrink-0 text-foreground">pending</span>;
+    case "approved":
+      return <span className="text-xs shrink-0 text-green-600">approved</span>;
     case "open":
       return <span className="text-xs shrink-0 text-foreground">open</span>;
     case "merged":
@@ -63,4 +69,13 @@ function ReviewDiffStatus({ status }: { status: DiffStatus }) {
         </span>
       );
   }
+}
+
+function readableDiffStatus(
+  status: DiffStatus,
+  reviewStatus: ReviewStatus,
+): DisplayDiffStatus {
+  if (reviewStatus === "draft" && status === "open") return "approved";
+  if (status === "merged") return "merged";
+  return "open";
 }
