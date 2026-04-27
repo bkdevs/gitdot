@@ -32,6 +32,7 @@ export function ReviewDiffBody({
             key={diff.position}
             position={diff.position}
             status={diff.status}
+            revision={latestRevision}
           />
         </div>
       </div>

@@ -64,11 +64,24 @@ function ReviewDraftActions() {
 }
 
 function ReviewOpenActions() {
-  const { diffs, mergeReview } = useReviewContext();
+  const { review, diffs, reviewers, mergeReview } = useReviewContext();
   const [pending, setPending] = useState(false);
-  const pendingCount = diffs.filter((d) => d.status === "pending").length;
-  const mergeable = pendingCount === 0;
   const loadingText = useTypewriter(pending ? "merging..." : "", 40);
+
+  const nonAuthorReviewers = reviewers.filter(
+    (r) => r.reviewer_id !== review.author?.id,
+  );
+  const pendingDiffs = diffs.filter((diff) => {
+    const latest = diff.revisions.reduce(
+      (a, b) => (b.number > a.number ? b : a),
+      diff.revisions[0],
+    );
+    return nonAuthorReviewers.every((r) =>
+      latest?.verdicts.some((v) => v.reviewer_id === r.reviewer_id),
+    );
+  }).length;
+  const mergeable = pendingDiffs === diffs.length;
+  const pendingCount = diffs.length - pendingDiffs;
 
   return (
     <div className="shrink-0 flex border-t border-border">
@@ -88,7 +101,11 @@ function ReviewOpenActions() {
       <div className="flex-1 h-8 flex items-center pl-2 border-l border-border">
         <div className="flex flex-col justify-center">
           <span className="text-xs text-muted-foreground font-mono leading-none">
-            {pending && loadingText ? loadingText : mergeable ? "ready to merge" : `${pluralize(pendingCount, "diff")} pending approval`}
+            {pending && loadingText
+              ? loadingText
+              : mergeable
+                ? "ready to merge"
+                : `${pluralize(pendingCount, "diff")} pending approval`}
           </span>
           <span className="text-[10px] text-muted-foreground/60 font-mono leading-none">
             {pluralize(diffs.length, "diff")}
@@ -113,7 +130,19 @@ function ReviewClosedSummary() {
   return (
     <div className="shrink-0 flex flex-col border-t border-border px-3 py-1.5 gap-0.5">
       <span className="text-xs text-muted-foreground font-mono leading-none">
-        Merged on {mergedAt.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })} {mergedAt.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true }).replace(" ", "")}
+        Merged on{" "}
+        {mergedAt.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        })}{" "}
+        {mergedAt
+          .toLocaleTimeString("en-US", {
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+          })
+          .replace(" ", "")}
       </span>
       <span className="text-[10px] text-muted-foreground/60 font-mono leading-none">
         authored by {review.author?.name}

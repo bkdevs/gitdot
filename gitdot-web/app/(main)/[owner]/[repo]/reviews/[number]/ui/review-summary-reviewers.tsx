@@ -9,13 +9,27 @@ import { useReviewContext } from "../context";
 export function ReviewSummaryReviewers() {
   const { reviewers, diffs, review } = useReviewContext();
 
+  const nonAuthorReviewers = reviewers.filter(
+    (r) => r.reviewer_id !== review.author?.id,
+  );
+  const authorApprovedCount = diffs.filter(
+    (d) => d.status === "open" || d.status === "merged",
+  ).length;
+
   return (
     <section className="flex flex-col gap-1.5">
       <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
         Reviewers
       </h2>
       <div className="flex flex-col gap-1">
-        {reviewers.map((reviewer) => {
+        {review.author && (
+          <AuthorRow
+            author={review.author}
+            approvedCount={authorApprovedCount}
+            totalDiffs={diffs.length}
+          />
+        )}
+        {nonAuthorReviewers.map((reviewer) => {
           const approved = diffs.filter((diff) => {
             const latest = diff.revisions.reduce(
               (a, b) => (b.number > a.number ? b : a),
@@ -31,7 +45,6 @@ export function ReviewSummaryReviewers() {
               reviewer={reviewer}
               approvedCount={approved}
               totalDiffs={diffs.length}
-              isAuthor={reviewer.reviewer_id === review.author?.id}
             />
           );
         })}
@@ -41,16 +54,35 @@ export function ReviewSummaryReviewers() {
   );
 }
 
+function AuthorRow({
+  author,
+  approvedCount,
+  totalDiffs,
+}: {
+  author: { id: string; name: string };
+  approvedCount: number;
+  totalDiffs: number;
+}) {
+  return (
+    <div className="flex items-center gap-1.5">
+      <UserImage userId={author.id} px={18} />
+      <span className="text-sm text-muted-foreground">{author.name}</span>
+      <span className="text-xs text-muted-foreground/50">(author)</span>
+      <span className="font-mono text-xs text-muted-foreground ml-auto">
+        {approvedCount}/{totalDiffs} approved
+      </span>
+    </div>
+  );
+}
+
 function ReviewerRow({
   reviewer,
   approvedCount,
   totalDiffs,
-  isAuthor,
 }: {
   reviewer: ReviewerResource;
   approvedCount: number;
   totalDiffs: number;
-  isAuthor: boolean;
 }) {
   const [removing, setRemoving] = useState(false);
   const [removeError, setRemoveError] = useState<string | null>(null);
@@ -62,18 +94,14 @@ function ReviewerRow({
       <div className="group flex items-center gap-1.5">
         <UserImage userId={reviewer.reviewer_id} px={18} />
         <span className="text-sm text-muted-foreground">{name}</span>
-        {isAuthor ? (
-          <span className="text-xs text-muted-foreground/50">(author)</span>
-        ) : (
-          <button
-            type="button"
-            onClick={() => setRemoving(true)}
-            className="opacity-0 group-hover:opacity-100 transition-opacity text-xs text-red-500 underline cursor-pointer"
-            aria-label={`Remove ${name}`}
-          >
-            remove
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={() => setRemoving(true)}
+          className="opacity-0 group-hover:opacity-100 transition-opacity text-xs text-red-500 underline cursor-pointer"
+          aria-label={`Remove ${name}`}
+        >
+          remove
+        </button>
         <span className="font-mono text-xs text-muted-foreground ml-auto">
           {approvedCount}/{totalDiffs} approved
         </span>

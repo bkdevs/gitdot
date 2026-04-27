@@ -2,6 +2,7 @@
 
 import type { DiffStatus, RevisionResource } from "gitdot-api";
 import { useState } from "react";
+import { useUserContext } from "@/(main)/context/user";
 import { cn } from "@/util";
 import { timeAgo } from "@/util/date";
 import { useReviewContext } from "../context";
@@ -55,15 +56,24 @@ export function ReviewDiffMetadata({
 export function ReviewDiffActions({
   position,
   status,
+  revision,
 }: {
   position: number;
   status: DiffStatus;
+  revision: RevisionResource | undefined;
 }) {
   const { review, reviewDiff } = useReviewContext();
+  const { user } = useUserContext();
+
+  const isAuthor = user?.id === review.author?.id;
 
   if (status === "merged" || review.status === "closed") return null;
+  if (review.status === "in_progress" && isAuthor) return null;
 
-  const approved = review.status === "draft" && status === "open";
+  const approved =
+    review.status === "draft"
+      ? status === "open"
+      : revision?.verdicts.some((v) => v.reviewer_id === user?.id) ?? false;
 
   return (
     <div className="flex flex-col gap-1 w-full">
