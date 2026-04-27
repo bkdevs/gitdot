@@ -641,19 +641,6 @@ where
             self.review_repo
                 .create_verdict(diff.id, latest_revision.id, request.reviewer_id, verdict)
                 .await?;
-
-            // Update diff status: once approved, stays approved.
-            // Otherwise, reflect the new action directly.
-            if diff.status != DiffStatus::Approved {
-                let new_status = match request.action {
-                    ReviewAction::Approve => DiffStatus::Approved,
-                    ReviewAction::RequestChanges => DiffStatus::Rejected,
-                    ReviewAction::Comment => unreachable!(),
-                };
-                self.review_repo
-                    .update_diff(diff.id, Some(new_status), None)
-                    .await?;
-            }
         }
 
         for comment in request.comments {
@@ -714,18 +701,6 @@ where
                 ),
             )
             .into());
-        }
-
-        for diff in &diffs_to_merge {
-            if diff.status != DiffStatus::Approved {
-                return Err(ReviewError::DiffNotMergeable(format!(
-                    "diff at position {} has status '{}', expected 'approved'",
-                    diff.position,
-                    serde_json::to_string(&diff.status)
-                        .unwrap_or_default()
-                        .trim_matches('"')
-                )));
-            }
         }
 
         let mut diff_revisions = Vec::new();

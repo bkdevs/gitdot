@@ -273,9 +273,8 @@ fn status_to_string(status: ReviewStatus) -> String {
 
 fn diff_status_to_string(status: DiffStatus) -> String {
     match status {
+        DiffStatus::Pending => "pending".to_string(),
         DiffStatus::Open => "open".to_string(),
-        DiffStatus::Rejected => "rejected".to_string(),
-        DiffStatus::Approved => "approved".to_string(),
         DiffStatus::Merged => "merged".to_string(),
     }
 }
