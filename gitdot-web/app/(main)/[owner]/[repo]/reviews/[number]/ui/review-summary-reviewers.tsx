@@ -9,9 +9,6 @@ import { useReviewContext } from "../context";
 export function ReviewSummaryReviewers() {
   const { reviewers, diffs, review } = useReviewContext();
 
-  const nonAuthorReviewers = reviewers.filter(
-    (r) => r.reviewer_id !== review.author?.id,
-  );
   const authorApprovedCount = diffs.filter(
     (d) => d.status === "open" || d.status === "merged",
   ).length;
@@ -29,7 +26,7 @@ export function ReviewSummaryReviewers() {
             totalDiffs={diffs.length}
           />
         )}
-        {nonAuthorReviewers.map((reviewer) => {
+        {reviewers.map((reviewer) => {
           const approved = diffs.filter((diff) => {
             const latest = diff.revisions.reduce(
               (a, b) => (b.number > a.number ? b : a),
@@ -106,64 +103,60 @@ function ReviewerRow({
           {approvedCount}/{totalDiffs} approved
         </span>
       </div>
-      {!isAuthor && (
-        <Dialog
-          open={removing}
-          onOpenChange={(open) => {
-            if (!open) {
-              setRemoving(false);
-              setRemoveError(null);
-            }
-          }}
+      <Dialog
+        open={removing}
+        onOpenChange={(open) => {
+          if (!open) {
+            setRemoving(false);
+            setRemoveError(null);
+          }
+        }}
+      >
+        <DialogContent
+          animations
+          showOverlay
+          className="p-0 overflow-hidden w-96"
         >
-          <DialogContent
-            animations
-            showOverlay
-            className="p-0 overflow-hidden w-96"
-          >
-            <div className="px-2 py-2 flex flex-col gap-0 pb-1">
-              <DialogTitle className="text-sm font-normal text-foreground">
-                Remove {name}
-              </DialogTitle>
-              <p className="text-xs text-muted-foreground">
-                Are you sure you want to remove {name} as a reviewer?
-              </p>
-            </div>
-            {removeError && (
-              <p className="px-2 pb-1 text-xs text-red-500">{removeError}</p>
-            )}
-            <div className="flex items-center justify-end h-8 border-t border-border">
-              <button
-                type="button"
-                onClick={() => {
+          <div className="px-2 py-2 flex flex-col gap-0 pb-1">
+            <DialogTitle className="text-sm font-normal text-foreground">
+              Remove {name}
+            </DialogTitle>
+            <p className="text-xs text-muted-foreground">
+              Are you sure you want to remove {name} as a reviewer?
+            </p>
+          </div>
+          {removeError && (
+            <p className="px-2 pb-1 text-xs text-red-500">{removeError}</p>
+          )}
+          <div className="flex items-center justify-end h-8 border-t border-border">
+            <button
+              type="button"
+              onClick={() => {
+                setRemoving(false);
+                setRemoveError(null);
+              }}
+              className="flex items-center px-2 h-full text-xs border-l border-border hover:bg-accent/50 transition-colors cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={async () => {
+                const result = await removeReviewer(reviewer.user?.name ?? "");
+                if ("error" in result) {
+                  setRemoveError(result.error);
+                } else {
                   setRemoving(false);
                   setRemoveError(null);
-                }}
-                className="flex items-center px-2 h-full text-xs border-l border-border hover:bg-accent/50 transition-colors cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={async () => {
-                  const result = await removeReviewer(
-                    reviewer.user?.name ?? "",
-                  );
-                  if ("error" in result) {
-                    setRemoveError(result.error);
-                  } else {
-                    setRemoving(false);
-                    setRemoveError(null);
-                  }
-                }}
-                className="flex items-center px-3 h-full text-xs text-red-500 bg-background hover:underline hover:bg-red-50 border-l border-border transition-colors cursor-pointer"
-              >
-                Remove
-              </button>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
+                }
+              }}
+              className="flex items-center px-3 h-full text-xs text-red-500 bg-background hover:underline hover:bg-red-50 border-l border-border transition-colors cursor-pointer"
+            >
+              Remove
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

@@ -46,7 +46,7 @@
     "react-markdown": "^10.1.0",
     "remark-gfm": "^4.0.1",
     "shiki": "^3.21.0",
-"tailwind-merge": "^3.4.0",
+    "tailwind-merge": "^3.4.0",
     "tw-animate-css": "catalog:",
     "web-vitals": "^5.1.0",
     "zod": "catalog:"

@@ -271,10 +271,6 @@ where
             .create_review(repository.id, request.pusher_id, &request.target_branch)
             .await?;
 
-        self.review_repo
-            .add_reviewer(review.id, request.pusher_id)
-            .await?;
-
         let review_ref_id = &review.id.to_string()[..8];
         let mut previous_sha = target_sha.clone();
         for (position, commit) in commits.iter().rev().enumerate() {
@@ -906,6 +902,12 @@ where
             )
             .await?;
 
+        if user.id == review.author_id {
+            return Err(ReviewError::CannotReviewOwnReview(
+                request.user_name.as_ref().to_string(),
+            ));
+        }
+
         // TODO: add org admin check
         let reviewer = self
             .review_repo
@@ -933,12 +935,6 @@ where
                 request.number,
             )
             .await?;
-
-        if user.id == review.author_id {
-            return Err(ReviewError::CannotRemoveReviewAuthor(
-                request.reviewer_name.as_ref().to_string(),
-            ));
-        }
 
         let removed = self.review_repo.remove_reviewer(review.id, user.id).await?;
         if !removed {

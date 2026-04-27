@@ -17,9 +17,7 @@ export function ReviewSummaryRationale({
           <MarkdownBody content={description} compact={true} />
         </div>
       ) : (
-        <span className="text-xs text-muted-foreground">
-          no overview found
-        </span>
+        <span className="text-xs text-muted-foreground">no overview found</span>
       )}
     </section>
   );

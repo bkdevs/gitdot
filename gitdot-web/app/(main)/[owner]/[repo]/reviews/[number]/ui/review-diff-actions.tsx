@@ -73,7 +73,7 @@ export function ReviewDiffActions({
   const approved =
     review.status === "draft"
       ? status === "open"
-      : revision?.verdicts.some((v) => v.reviewer_id === user?.id) ?? false;
+      : (revision?.verdicts.some((v) => v.reviewer_id === user?.id) ?? false);
 
   return (
     <div className="flex flex-col gap-1 w-full">

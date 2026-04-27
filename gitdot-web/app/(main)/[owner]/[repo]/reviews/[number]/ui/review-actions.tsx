@@ -64,19 +64,16 @@ function ReviewDraftActions() {
 }
 
 function ReviewOpenActions() {
-  const { review, diffs, reviewers, mergeReview } = useReviewContext();
+  const { diffs, reviewers, mergeReview } = useReviewContext();
   const [pending, setPending] = useState(false);
   const loadingText = useTypewriter(pending ? "merging..." : "", 40);
 
-  const nonAuthorReviewers = reviewers.filter(
-    (r) => r.reviewer_id !== review.author?.id,
-  );
   const pendingDiffs = diffs.filter((diff) => {
     const latest = diff.revisions.reduce(
       (a, b) => (b.number > a.number ? b : a),
       diff.revisions[0],
     );
-    return nonAuthorReviewers.every((r) =>
+    return reviewers.every((r) =>
       latest?.verdicts.some((v) => v.reviewer_id === r.reviewer_id),
     );
   }).length;
