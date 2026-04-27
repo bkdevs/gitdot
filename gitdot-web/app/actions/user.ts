@@ -64,6 +64,16 @@ export async function loginWithGithub(): Promise<LoginWithGithubResult> {
   redirect(url);
 }
 
+export type ConnectSlackResult = { success: true } | { error: string };
+
+export async function connectSlack(
+  state: string | undefined,
+): Promise<ConnectSlackResult> {
+  if (!state) return { error: "Missing state" };
+  // TODO: link Slack identity (encoded in state) to current user via backend
+  return { error: "Not implemented" };
+}
+
 export async function signout() {
   await logout();
 }
