@@ -504,6 +504,21 @@ where
             )));
         }
 
+        let pending_count = review
+            .diffs
+            .as_deref()
+            .unwrap_or(&[])
+            .iter()
+            .filter(|d| d.status == DiffStatus::Pending)
+            .count();
+
+        if pending_count > 0 {
+            return Err(ReviewError::ReviewNotPublishable(format!(
+                "{} diff(s) are still pending — all diffs must be open before publishing",
+                pending_count
+            )));
+        }
+
         self.review_repo
             .update_review(review.id, Some(ReviewStatus::InProgress), None, None)
             .await?;

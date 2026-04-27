@@ -1,6 +1,8 @@
 "use client";
 
 import { Ellipsis, GitMerge, Send } from "lucide-react";
+import { useState } from "react";
+import { useTypewriter } from "@/hooks/use-typewriter";
 import { formatDate, pluralize, timeAgo } from "@/util";
 import { useReviewContext } from "../context";
 
@@ -13,16 +15,28 @@ export function ReviewActions() {
 }
 
 function ReviewDraftActions() {
-  const { review, diffs } = useReviewContext();
+  const { review, diffs, publishReview } = useReviewContext();
+  const [pending, setPending] = useState(false);
+
   const pendingCount = diffs.filter((d) => d.status === "pending").length;
-  const canPublish = pendingCount === 0;
+  const publishable = pendingCount === 0;
+
+  const statusText = publishable
+    ? "ready to publish"
+    : `${pluralize(pendingCount, "diff")} pending approval`;
+  const loadingText = useTypewriter(pending ? "publishing..." : "", 40);
 
   return (
     <div className="shrink-0 flex border-t border-border">
       <button
         type="button"
-        disabled={!canPublish}
-        className="flex shrink-0 h-8 items-center justify-center gap-1.5 px-3 text-xs text-primary-foreground bg-primary outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+        disabled={!publishable || pending}
+        onClick={async () => {
+          setPending(true);
+          await publishReview();
+          setPending(false);
+        }}
+        className="flex shrink-0 w-22 h-8 items-center justify-center gap-1.5 px-3 text-xs text-primary-foreground bg-primary outline-none disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <Send className="size-3.5" />
         Publish
@@ -30,10 +44,12 @@ function ReviewDraftActions() {
       <div className="flex-1 h-8 flex items-center pl-2 border-l border-border">
         <div className="flex flex-col justify-center">
           <span className="text-xs text-muted-foreground font-mono leading-none">
-            {canPublish ? "ready to publish" : `${pluralize(pendingCount, "diff")} pending approval`}
+            {pending && loadingText ? loadingText : statusText}
           </span>
           <span className="text-[10px] text-muted-foreground/60 font-mono leading-none">
-            {pluralize(diffs.length, "diff")}<span className="mx-1">‧</span>last updated {timeAgo(new Date(review.updated_at))}
+            {pluralize(diffs.length, "diff")}
+            <span className="mx-1">‧</span>last updated{" "}
+            {timeAgo(new Date(review.updated_at))}
           </span>
         </div>
         <button
@@ -56,10 +72,10 @@ function ReviewOpenActions() {
       <button
         type="button"
         disabled
-        className="flex shrink-0 h-8 items-center justify-center gap-1.5 px-3 text-xs text-primary-foreground bg-primary outline-none opacity-50 cursor-not-allowed"
+        className="flex shrink-0 w-22 h-8 items-center justify-center gap-1.5 px-3 text-xs text-primary-foreground bg-primary outline-none opacity-50 cursor-not-allowed"
       >
         <GitMerge className="size-3.5" />
-        Merge all
+        Merge
       </button>
       <div className="flex-1 h-8 flex items-center pl-2 border-l border-border">
         <div className="flex flex-col justify-center">

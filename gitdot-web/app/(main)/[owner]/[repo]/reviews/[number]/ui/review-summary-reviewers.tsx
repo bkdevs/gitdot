@@ -95,7 +95,7 @@ function ReviewerRow({
           >
             <div className="px-2 py-2 flex flex-col gap-0 pb-1">
               <DialogTitle className="text-sm font-normal text-foreground">
-                Remove {name}?
+                Remove {name}
               </DialogTitle>
               <p className="text-xs text-muted-foreground">
                 Are you sure you want to remove {name} as a reviewer?

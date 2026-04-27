@@ -112,7 +112,10 @@ export function ReviewProvider({
   );
 
   async function publishReview(): Promise<PublishReviewActionResult> {
-    const result = await publishReviewAction(owner, repo, review.number, {});
+    const [result] = await Promise.all([
+      publishReviewAction(owner, repo, review.number, {}),
+      new Promise((r) => setTimeout(r, 1200)),
+    ]);
     if ("error" in result) return result;
     setReview(result.review);
     return result;
