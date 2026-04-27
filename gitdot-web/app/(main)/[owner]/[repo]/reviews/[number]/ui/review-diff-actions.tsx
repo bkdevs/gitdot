@@ -24,7 +24,7 @@ export function ReviewDiffActions({
 }) {
   const [status, setStatus] = useState<DiffStatus>(initialStatus);
 
-  if (status === "merged" || review.status === "draft") return null;
+  if (status === "merged" || review.status === "closed") return null;
 
   return (
     <div className="shrink-0 flex flex-col justify-between items-end self-stretch gap-4 pb-2">
