@@ -8,6 +8,7 @@ mod merge_review;
 mod merge_review_diff;
 mod process_review;
 mod publish_review;
+mod reject_review_diff;
 mod remove_review_reviewer;
 mod reply_to_review_comment;
 mod resolve_review_comment;
@@ -27,6 +28,7 @@ use super::RepositoryDiffFileResponse;
 
 pub use add_review_reviewer::AddReviewReviewerReqeuest;
 pub use approve_review_diff::ApproveReviewDiffRequest;
+pub use reject_review_diff::RejectReviewDiffRequest;
 pub use get_review::GetReviewRequest;
 pub use get_review_diff::GetReviewDiffRequest;
 pub use list_reviews::ListReviewsRequest;

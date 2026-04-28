@@ -166,6 +166,7 @@ impl HttpStatus for ReviewError {
             | Self::CannotReviewOwnReview(_)
             | Self::CannotRemoveReviewAuthor(_)
             | Self::CannotApproveOwnDiff
+            | Self::CannotRejectOwnDiff
             | Self::ReviewNotPublishable(_)
             | Self::CommitsNotFound
             | Self::InvalidIdentifier => StatusCode::BAD_REQUEST,

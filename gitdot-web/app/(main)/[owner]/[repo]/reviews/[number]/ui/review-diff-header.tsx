@@ -57,8 +57,8 @@ export function ReviewDiffHeader({
             {(commentCount > 0 || draftCount > 0) && (
               <span className="text-xs shrink-0 text-muted-foreground pr-2">
                 {[
-                  commentCount > 0 && pluralize(commentCount, "comment"),
                   draftCount > 0 && pluralize(draftCount, "draft"),
+                  commentCount > 0 && pluralize(commentCount, "comment"),
                 ]
                   .filter(Boolean)
                   .join(" · ")}

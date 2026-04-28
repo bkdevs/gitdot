@@ -22,6 +22,9 @@ pub enum ReviewError {
     #[error("Cannot approve your own diff")]
     CannotApproveOwnDiff,
 
+    #[error("Cannot reject your own diff")]
+    CannotRejectOwnDiff,
+
     #[error("Review is not publishable: {0}")]
     ReviewNotPublishable(String),
 

@@ -4,6 +4,7 @@ use crate::{
     client::{DiffClient, DifftClient, Git2Client, GitClient},
     dto::{
         AddReviewReviewerReqeuest, ApproveReviewDiffRequest, CreateReviewCommentsRequest,
+        RejectReviewDiffRequest,
         GetReviewDiffRequest, GetReviewRequest, ListReviewsRequest, MergeReviewDiffRequest,
         MergeReviewRequest, ProcessReviewRequest, PublishReviewRequest,
         RemoveReviewReviewerRequest, ReplyToReviewCommentRequest, ResolveReviewCommentRequest,
@@ -137,6 +138,11 @@ pub trait ReviewService: Send + Sync + 'static {
     async fn approve_review_diff(
         &self,
         request: ApproveReviewDiffRequest,
+    ) -> Result<ReviewResponse, ReviewError>;
+
+    async fn reject_review_diff(
+        &self,
+        request: RejectReviewDiffRequest,
     ) -> Result<ReviewResponse, ReviewError>;
 }
 
@@ -1018,6 +1024,44 @@ where
 
         self.review_repo
             .create_verdict(diff.id, revision.id, request.reviewer_id, Verdict::Approved)
+            .await?;
+
+        self.review_repo
+            .update_review(review.id, None, None, None)
+            .await?;
+
+        let updated = self.get_review_by_id(owner, repo, request.number).await?;
+
+        Ok(updated.into())
+    }
+
+    async fn reject_review_diff(
+        &self,
+        request: RejectReviewDiffRequest,
+    ) -> Result<ReviewResponse, ReviewError> {
+        let owner = request.owner.as_ref();
+        let repo = request.repo.as_ref();
+
+        let review = self.get_review_by_id(owner, repo, request.number).await?;
+
+        let reviewers = review.reviewers.as_ref().map(|r| r.as_slice()).unwrap_or(&[]);
+        if !reviewers.iter().any(|r| r.reviewer_id == request.reviewer_id) {
+            return Err(ReviewError::CannotRejectOwnDiff);
+        }
+
+        let diffs = review.diffs.as_ref().map(|d| d.as_slice()).unwrap_or(&[]);
+        let diff = diffs
+            .iter()
+            .find(|d| d.position == request.position)
+            .or_not_found("diff", format!("position {}", request.position))?;
+
+        let revisions = diff.revisions.as_ref().map(|r| r.as_slice()).unwrap_or(&[]);
+        let revision = revisions
+            .first()
+            .or_not_found("revision", format!("diff at position {}", request.position))?;
+
+        self.review_repo
+            .create_verdict(diff.id, revision.id, request.reviewer_id, Verdict::Rejected)
             .await?;
 
         self.review_repo
