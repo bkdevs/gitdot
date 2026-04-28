@@ -1,4 +1,5 @@
 pub mod add_review_reviewer;
+pub mod approve_review_diff;
 pub mod create_review_comments;
 pub mod get_review;
 pub mod get_review_diff;
