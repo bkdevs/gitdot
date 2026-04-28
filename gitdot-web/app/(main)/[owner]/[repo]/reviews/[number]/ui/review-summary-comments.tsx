@@ -40,7 +40,17 @@ export function ReviewSummaryComments() {
       );
     });
 
-    return roots.map((root) => [root, ...(replies.get(root.id) ?? [])]);
+    return roots.map((root) => {
+      const chain: ReviewCommentResource[] = [root];
+      let current = root;
+      while (true) {
+        const children = replies.get(current.id);
+        if (!children?.length) break;
+        chain.push(...children);
+        current = children[children.length - 1];
+      }
+      return chain;
+    });
   }, [activeDiffComments]);
 
   return (
@@ -53,7 +63,7 @@ export function ReviewSummaryComments() {
           no comments yet
         </span>
       ) : (
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-0">
           {threads.map((thread) => (
             <ReviewCommentThread key={thread[0].id} comments={thread} />
           ))}
