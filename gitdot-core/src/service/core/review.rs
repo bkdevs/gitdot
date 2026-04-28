@@ -7,7 +7,7 @@ use crate::{
         RejectReviewDiffRequest,
         GetReviewDiffRequest, GetReviewRequest, ListReviewsRequest, MergeReviewDiffRequest,
         MergeReviewRequest, ProcessReviewRequest, PublishReviewRequest,
-        RemoveReviewReviewerRequest, ReplyToReviewCommentRequest, ResolveReviewCommentRequest,
+        RemoveReviewReviewerRequest, ResolveReviewCommentRequest,
         ReviewCommentResponse, ReviewDiffResponse, ReviewResponse, ReviewerResponse, ReviewsResponse,
         UpdateReviewCommentRequest, UpdateReviewDiffRequest, UpdateReviewRequest,
     },
@@ -123,11 +123,6 @@ pub trait ReviewService: Send + Sync + 'static {
     async fn resolve_review_comment(
         &self,
         request: ResolveReviewCommentRequest,
-    ) -> Result<ReviewCommentResponse, ReviewError>;
-
-    async fn reply_to_review_comment(
-        &self,
-        request: ReplyToReviewCommentRequest,
     ) -> Result<ReviewCommentResponse, ReviewError>;
 
     async fn create_review_comments(
@@ -921,37 +916,6 @@ where
             .or_not_found("comment", request.comment_id.to_string())?;
 
         Ok(updated.into())
-    }
-
-    async fn reply_to_review_comment(
-        &self,
-        request: ReplyToReviewCommentRequest,
-    ) -> Result<ReviewCommentResponse, ReviewError> {
-        let parent = self
-            .review_repo
-            .get_comment(request.comment_id)
-            .await?
-            .or_not_found("comment", request.comment_id.to_string())?;
-
-        let reply = self
-            .review_repo
-            .create_comment(
-                parent.review_id,
-                parent.diff_id,
-                parent.revision_id,
-                request.author_id,
-                &request.body,
-                Some(parent.id),
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-            )
-            .await?;
-
-        Ok(reply.into())
     }
 
     async fn create_review_comments(

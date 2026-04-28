@@ -22,6 +22,8 @@ import {
   removeReviewerAction,
   type UpdateReviewActionResult,
   updateReviewAction,
+  type UpdateReviewCommentActionResult,
+  updateReviewCommentAction,
 } from "@/actions/review";
 
 export type CreateReviewCommentActionResult =
@@ -71,6 +73,7 @@ type ReviewContext = {
   ) => Promise<CreateReviewCommentActionResult>;
   deleteDraftComment: (id: string) => void;
   updateDraftComment: (id: string, body: string) => void;
+  updateComment: (id: string, body: string) => Promise<UpdateReviewCommentActionResult>;
   updateReview: (request: {
     title?: string;
     description?: string;
@@ -236,6 +239,19 @@ export function ReviewProvider({
     );
   }
 
+  async function updateComment(
+    id: string,
+    body: string,
+  ): Promise<UpdateReviewCommentActionResult> {
+    const result = await updateReviewCommentAction(owner, repo, review.number, id, { body });
+    if ("error" in result) return result;
+    setReview((r) => ({
+      ...r,
+      comments: r.comments.map((c) => (c.id === id ? result.comment : c)),
+    }));
+    return result;
+  }
+
   async function publishActiveDiffComments(): Promise<CreateReviewCommentsActionResult> {
     const result = await createReviewCommentsAction(
       owner,
@@ -290,6 +306,7 @@ export function ReviewProvider({
         addComment,
         deleteDraftComment,
         updateDraftComment,
+        updateComment,
         updateReview,
 
         publishActiveDiffComments,

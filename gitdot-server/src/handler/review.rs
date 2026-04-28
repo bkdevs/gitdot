@@ -9,7 +9,6 @@ mod merge_review;
 mod merge_review_diff;
 mod publish_review;
 mod remove_review_reviewer;
-mod reply_to_review_comment;
 mod resolve_review_comment;
 mod update_review;
 mod update_review_comment;
@@ -32,7 +31,6 @@ use merge_review::merge_review;
 use merge_review_diff::merge_review_diff;
 use publish_review::publish_review;
 use remove_review_reviewer::remove_review_reviewer;
-use reply_to_review_comment::reply_to_review_comment;
 use resolve_review_comment::resolve_review_comment;
 use update_review::update_review;
 use update_review_comment::update_review_comment;
@@ -84,10 +82,6 @@ pub fn create_review_router() -> Router<AppState> {
         .route(
             "/repository/{owner}/{repo}/review/{number}/comment/{comment_id}",
             patch(update_review_comment),
-        )
-        .route(
-            "/repository/{owner}/{repo}/review/{number}/comment/{comment_id}/reply",
-            post(reply_to_review_comment),
         )
         .route(
             "/repository/{owner}/{repo}/review/{number}/comment/{comment_id}/resolve",

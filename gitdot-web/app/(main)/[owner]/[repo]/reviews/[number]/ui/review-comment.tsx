@@ -162,10 +162,57 @@ function DraftComment({ comment, isActive, name }: CommentProps) {
 }
 
 function UserComment({ comment, name }: CommentProps) {
-  const action = (
+  const { updateComment } = useReviewContext();
+  const [isEditing, setIsEditing] = useState(false);
+  const [commentBody, setCommentBody] = useState(comment.body);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (isEditing) textareaRef.current?.focus();
+  }, [isEditing]);
+
+  useEffect(() => {
+    if (!isEditing) setCommentBody(comment.body);
+  }, [comment.body, isEditing]);
+
+  async function save() {
+    await updateComment(comment.id, commentBody);
+    setIsEditing(false);
+  }
+
+  const action = isEditing ? (
+    <div className="flex items-center gap-1.5">
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          setCommentBody(comment.body);
+          setIsEditing(false);
+        }}
+        className="text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+      >
+        cancel
+      </button>
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          save();
+        }}
+        className="text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+      >
+        save
+      </button>
+    </div>
+  ) : (
     <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
       <button
         type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          setCommentBody(comment.body);
+          setIsEditing(true);
+        }}
         className="text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
       >
         edit
@@ -176,16 +223,34 @@ function UserComment({ comment, name }: CommentProps) {
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
-        <div
-          className="group flex flex-col"
-        >
+        <div className="group flex flex-col">
           <div className="flex gap-1.5">
             <div className="pt-0.5">
               <UserImage userId={comment.author_id} px={18} />
             </div>
             <div className="flex flex-col flex-1 min-w-0">
               <CommentHeader name={name} action={action} />
-              <span className="text-sm text-foreground">{comment.body}</span>
+              <textarea
+                ref={textareaRef}
+                value={commentBody}
+                onChange={(e) => setCommentBody(e.target.value)}
+                readOnly={!isEditing}
+                onClick={(e) => {
+                  if (isEditing) e.stopPropagation();
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    save();
+                  }
+                }}
+                className={cn(
+                  "text-sm text-foreground w-full resize-none bg-transparent outline-none field-sizing-content border-b transition-colors duration-150",
+                  isEditing
+                    ? "select-text border-black dark:border-white"
+                    : "pointer-events-none border-transparent",
+                )}
+              />
             </div>
           </div>
         </div>
