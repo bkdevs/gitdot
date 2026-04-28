@@ -651,7 +651,7 @@ where
             self.review_repo
                 .update_diff(diff.id, Some(DiffStatus::Open), None)
                 .await?;
-        } else if request.action != ReviewAction::Comment {
+        } else if !is_author && request.action != ReviewAction::Comment {
             let verdict = match request.action {
                 ReviewAction::Approve => Verdict::Approved,
                 ReviewAction::RequestChanges => Verdict::Rejected,
