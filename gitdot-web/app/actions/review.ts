@@ -1,6 +1,7 @@
 "use server";
 
 import type {
+  CreateReviewCommentsRequest,
   PublishReviewRequest,
   ReplyToReviewCommentRequest,
   ReviewCommentResource,
@@ -15,6 +16,7 @@ import { refresh } from "next/cache";
 import {
   ApiError,
   addReviewer,
+  createReviewComments,
   mergeDiff,
   mergeReview,
   publishReview,
@@ -236,6 +238,29 @@ export async function updateReviewCommentAction(
 
   refresh();
   return { comment: result };
+}
+
+export type CreateReviewCommentsActionResult =
+  | { review: ReviewResource }
+  | { error: string };
+
+export async function createReviewCommentsAction(
+  owner: string,
+  repo: string,
+  number: number,
+  position: number,
+  request: CreateReviewCommentsRequest,
+): Promise<CreateReviewCommentsActionResult> {
+  const result = await createReviewComments(
+    owner,
+    repo,
+    number,
+    position,
+    request,
+  );
+  if (!result) return { error: "createReviewComments call failed" };
+  refresh();
+  return { review: result };
 }
 
 export type ResolveReviewCommentActionResult =

@@ -20,8 +20,9 @@ export function ReviewSummaryComments() {
     activeDiffComments,
     activeDiffDraftComments,
     activeDiff,
-    publishReview,
+    publishActiveDiffComments,
   } = useReviewContext();
+  const [pending, setPending] = useState(false);
 
   const sorted = useMemo(
     () =>
@@ -56,8 +57,13 @@ export function ReviewSummaryComments() {
         <div className="flex justify-start pt-1.5">
           <button
             type="button"
-            onClick={() => {}}
-            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground hover:underline decoration-current transition-colors cursor-pointer"
+            onClick={async () => {
+              setPending(true);
+              await publishActiveDiffComments();
+              setPending(false);
+            }}
+            disabled={pending}
+            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground hover:underline decoration-current transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Send className="size-3" />
             {`Publish ${pluralize(activeDiffDraftComments.length, "comment")}`}
