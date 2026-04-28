@@ -81,7 +81,6 @@ type ReviewContext = {
 
 const ReviewContext = createContext<ReviewContext | null>(null);
 
-
 export function ReviewProvider({
   owner,
   repo,
@@ -231,19 +230,31 @@ export function ReviewProvider({
     position: number,
     action: "comment" | "approve" | "request_changes",
   ): Promise<ReviewDiffActionResult> {
-    const result = await reviewDiffAction(owner, repo, review.number, position, {
-      action,
-      comments: activeDiffDraftComments.map((c) => ({
-        revision_id: c.revision_id,
-        body: c.body,
-        ...(c.file_path != null && { file_path: c.file_path }),
-        ...(c.line_number_start != null && { line_number_start: c.line_number_start }),
-        ...(c.line_number_end != null && { line_number_end: c.line_number_end }),
-        ...(c.start_character != null && { start_character: c.start_character }),
-        ...(c.end_character != null && { end_character: c.end_character }),
-        ...(c.side != null && { side: c.side }),
-      })),
-    });
+    const result = await reviewDiffAction(
+      owner,
+      repo,
+      review.number,
+      position,
+      {
+        action,
+        comments: activeDiffDraftComments.map((c) => ({
+          revision_id: c.revision_id,
+          body: c.body,
+          ...(c.file_path != null && { file_path: c.file_path }),
+          ...(c.line_number_start != null && {
+            line_number_start: c.line_number_start,
+          }),
+          ...(c.line_number_end != null && {
+            line_number_end: c.line_number_end,
+          }),
+          ...(c.start_character != null && {
+            start_character: c.start_character,
+          }),
+          ...(c.end_character != null && { end_character: c.end_character }),
+          ...(c.side != null && { side: c.side }),
+        })),
+      },
+    );
     if ("error" in result) return result;
     setReview(result.review);
     setDraftComments([]);

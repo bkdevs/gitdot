@@ -510,18 +510,18 @@ where
             .as_deref()
             .unwrap_or(&[])
             .iter()
-            .filter(|d| d.status == DiffStatus::Pending)
+            .filter(|d| d.status == DiffStatus::Draft)
             .count();
 
         if pending_count > 0 {
             return Err(ReviewError::ReviewNotPublishable(format!(
-                "{} diff(s) are still pending — all diffs must be open before publishing",
+                "{} diff(s) are still in draft — all diffs must be open before publishing",
                 pending_count
             )));
         }
 
         self.review_repo
-            .update_review(review.id, Some(ReviewStatus::InProgress), None, None)
+            .update_review(review.id, Some(ReviewStatus::Open), None, None)
             .await?;
 
         let updated = self.get_review_by_id(owner, repo, request.number).await?;
@@ -699,9 +699,9 @@ where
 
         let review = self.get_review_by_id(owner, repo, request.number).await?;
 
-        if review.status != ReviewStatus::InProgress {
+        if review.status != ReviewStatus::Open {
             return Err(ReviewError::DiffNotMergeable(
-                "review must be in progress to merge diffs".to_string(),
+                "review must be open to merge diffs".to_string(),
             ));
         }
 

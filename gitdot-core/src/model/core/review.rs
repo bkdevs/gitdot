@@ -36,7 +36,7 @@ pub struct Review {
 #[serde(rename_all = "snake_case")]
 pub enum ReviewStatus {
     Draft,
-    InProgress,
+    Open,
     Closed,
 }
 
@@ -58,7 +58,7 @@ pub struct Diff {
 #[sqlx(type_name = "core.diff_status", rename_all = "snake_case")]
 #[serde(rename_all = "snake_case")]
 pub enum DiffStatus {
-    Pending,
+    Draft,
     Open,
     Merged,
 }

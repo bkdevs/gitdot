@@ -10,7 +10,7 @@ export function ReviewActions() {
   const { review } = useReviewContext();
 
   if (review.status === "draft") return <ReviewDraftActions />;
-  if (review.status === "in_progress") return <ReviewOpenActions />;
+  if (review.status === "open") return <ReviewOpenActions />;
   return <ReviewClosedSummary />;
 }
 
@@ -18,7 +18,7 @@ function ReviewDraftActions() {
   const { review, diffs, publishReview } = useReviewContext();
   const [pending, setPending] = useState(false);
 
-  const pendingCount = diffs.filter((d) => d.status === "pending").length;
+  const pendingCount = diffs.filter((d) => d.status === "draft").length;
   const publishable = pendingCount === 0;
 
   const statusText = publishable

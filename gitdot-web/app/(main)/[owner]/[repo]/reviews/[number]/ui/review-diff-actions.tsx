@@ -1,6 +1,10 @@
 "use client";
 
-import type { DiffStatus, ReviewCommentResource, RevisionResource } from "gitdot-api";
+import type {
+  DiffStatus,
+  ReviewCommentResource,
+  RevisionResource,
+} from "gitdot-api";
 import { useState } from "react";
 import { useUserContext } from "@/(main)/context/user";
 import {
@@ -41,7 +45,7 @@ export function ReviewDiffActions({
     );
   }
 
-  if (isReviewer && review.status === "in_progress") {
+  if (isReviewer && review.status === "open") {
     return (
       <ReviewerActions
         position={position}

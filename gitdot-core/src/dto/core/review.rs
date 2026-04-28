@@ -268,14 +268,14 @@ impl From<ReviewComment> for ReviewCommentResponse {
 fn status_to_string(status: ReviewStatus) -> String {
     match status {
         ReviewStatus::Draft => "draft".to_string(),
-        ReviewStatus::InProgress => "in_progress".to_string(),
+        ReviewStatus::Open => "open".to_string(),
         ReviewStatus::Closed => "closed".to_string(),
     }
 }
 
 fn diff_status_to_string(status: DiffStatus) -> String {
     match status {
-        DiffStatus::Pending => "pending".to_string(),
+        DiffStatus::Draft => "draft".to_string(),
         DiffStatus::Open => "open".to_string(),
         DiffStatus::Merged => "merged".to_string(),
     }
