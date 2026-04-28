@@ -69,6 +69,7 @@ type ReviewContext = {
     request: AddCommentRequest,
   ) => Promise<CreateReviewCommentActionResult>;
   deleteDraftComment: (id: string) => void;
+  updateDraftComment: (id: string, body: string) => void;
   updateReview: (request: {
     title?: string;
     description?: string;
@@ -231,6 +232,12 @@ export function ReviewProvider({
     setDraftComments((prev) => prev.filter((c) => c.id !== id));
   }
 
+  function updateDraftComment(id: string, body: string) {
+    setDraftComments((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, body } : c)),
+    );
+  }
+
   async function reviewDiff(
     position: number,
     action: "comment" | "approve" | "request_changes",
@@ -288,6 +295,7 @@ export function ReviewProvider({
         removeReviewer,
         addComment,
         deleteDraftComment,
+        updateDraftComment,
         updateReview,
 
         reviewDiff,
