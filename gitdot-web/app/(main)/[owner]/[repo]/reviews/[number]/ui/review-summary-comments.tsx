@@ -15,8 +15,12 @@ import { UserImage } from "../../../../ui/user-image";
 import { useReviewContext } from "../context";
 
 export function ReviewSummaryComments() {
-  const { activeDiffComments, activeDiffDraftComments, activeDiff, publishReview } =
-    useReviewContext();
+  const {
+    activeDiffComments,
+    activeDiffDraftComments,
+    activeDiff,
+    publishReview,
+  } = useReviewContext();
   const sorted = useMemo(
     () =>
       [...activeDiffComments].sort((a, b) => {
@@ -40,22 +44,24 @@ export function ReviewSummaryComments() {
           no comments yet
         </span>
       ) : (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-2">
           {sorted.map((comment) => (
             <ReviewSummaryComment key={comment.id} comment={comment} />
           ))}
         </div>
       )}
-      {activeDiffDraftComments.length > 0 && <div className="flex justify-start pt-2">
-        <button
-          type="button"
-          onClick={() => {}}
-          className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground hover:underline decoration-current transition-colors cursor-pointer"
-        >
-          <Send className="size-3" />
-          {`Publish ${pluralize(activeDiffDraftComments.length, "comment")}`}
-        </button>
-      </div>}
+      {activeDiffDraftComments.length > 0 && (
+        <div className="flex justify-start pt-1.5">
+          <button
+            type="button"
+            onClick={() => {}}
+            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground hover:underline decoration-current transition-colors cursor-pointer"
+          >
+            <Send className="size-3" />
+            {`Publish ${pluralize(activeDiffDraftComments.length, "comment")}`}
+          </button>
+        </div>
+      )}
     </section>
   );
 }
@@ -121,9 +127,17 @@ function ReviewSummaryComment({ comment }: { comment: ReviewCommentResource }) {
                     </>
                   )}
                 </div>
-                {isDraft && (
-                  <span className="text-xs text-muted-foreground italic">draft</span>
-                )}
+                {isActive ? (
+                  <CommentActions
+                    isDraft={isDraft}
+                    isAuthor={false}
+                    commentId={comment.id}
+                  />
+                ) : isDraft ? (
+                  <span className="text-xs text-muted-foreground italic">
+                    draft
+                  </span>
+                ) : null}
               </div>
               <span className="text-sm text-foreground">{comment.body}</span>
             </div>
@@ -141,5 +155,88 @@ function ReviewSummaryComment({ comment }: { comment: ReviewCommentResource }) {
         </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>
+  );
+}
+
+function CommentActions({
+  isDraft,
+  isAuthor,
+  commentId,
+}: {
+  isDraft: boolean;
+  isAuthor: boolean;
+  commentId: string;
+}) {
+  return (
+    <div className="flex items-center gap-1.5">
+      {isDraft ? (
+        <DraftCommentActions commentId={commentId} />
+      ) : isAuthor ? (
+        <AuthorCommentActions />
+      ) : (
+        <ReviewerCommentActions />
+      )}
+    </div>
+  );
+}
+
+function DraftCommentActions({ commentId }: { commentId: string }) {
+  const { deleteDraftComment } = useReviewContext();
+
+  return (
+    <>
+      <button
+        type="button"
+        className="text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+      >
+        edit
+      </button>
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          deleteDraftComment(commentId);
+        }}
+        className="text-xs text-muted-foreground hover:text-destructive transition-colors cursor-pointer"
+      >
+        delete
+      </button>
+    </>
+  );
+}
+
+function AuthorCommentActions() {
+  return (
+    <>
+      <button
+        type="button"
+        className="text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+      >
+        edit
+      </button>
+      <button
+        type="button"
+        className="text-xs text-muted-foreground hover:text-destructive transition-colors cursor-pointer"
+      >
+        delete
+      </button>
+      <button
+        type="button"
+        className="text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+      >
+        reply
+      </button>
+    </>
+  );
+}
+
+function ReviewerCommentActions() {
+  return (
+    <button
+      type="button"
+      className="text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+    >
+      reply
+    </button>
   );
 }

@@ -68,6 +68,7 @@ type ReviewContext = {
   addComment: (
     request: AddCommentRequest,
   ) => Promise<CreateReviewCommentActionResult>;
+  deleteDraftComment: (id: string) => void;
   updateReview: (request: {
     title?: string;
     description?: string;
@@ -226,6 +227,10 @@ export function ReviewProvider({
     return Promise.resolve({ comment: draftComment });
   }
 
+  function deleteDraftComment(id: string) {
+    setDraftComments((prev) => prev.filter((c) => c.id !== id));
+  }
+
   async function reviewDiff(
     position: number,
     action: "comment" | "approve" | "request_changes",
@@ -282,6 +287,7 @@ export function ReviewProvider({
         addReviewer,
         removeReviewer,
         addComment,
+        deleteDraftComment,
         updateReview,
 
         reviewDiff,
