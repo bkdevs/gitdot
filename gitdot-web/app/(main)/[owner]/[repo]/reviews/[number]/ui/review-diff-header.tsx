@@ -54,16 +54,17 @@ export function ReviewDiffHeader({
             <span className="text-xs flex-1 truncate">
               {diff.message.split("\n")[0]}
             </span>
-            {(commentCount > 0 || draftCount > 0) && (
-              <span className="text-xs shrink-0 text-muted-foreground pr-2">
-                {[
-                  draftCount > 0 && pluralize(draftCount, "draft"),
-                  commentCount > 0 && pluralize(commentCount, "comment"),
-                ]
-                  .filter(Boolean)
-                  .join(" · ")}
+            {draftCount > 0 && (
+              <span className="text-xs shrink-0 text-muted-foreground">
+                {pluralize(draftCount, "draft")}
               </span>
             )}
+            {draftCount > 0 && commentCount > 0 && (
+              <span className="text-xs shrink-0 text-muted-foreground">·</span>
+            )}
+            <span className="text-xs shrink-0 text-muted-foreground w-18 text-left">
+              {commentCount > 0 ? pluralize(commentCount, "comment") : null}
+            </span>
             <ReviewDiffStatus
               status={readableDiffStatus(diff.status, review.status)}
             />

@@ -98,8 +98,6 @@ function PageContent({
       <ReviewPage
         layout={layout}
         setLayout={setLayout}
-        owner={owner}
-        repo={repo}
         position={position}
         diffEntriesPromise={diffEntriesPromise}
       />
@@ -110,15 +108,11 @@ function PageContent({
 function ReviewPage({
   layout,
   setLayout,
-  owner,
-  repo,
   position,
   diffEntriesPromise,
 }: {
   layout: PageLayout;
   setLayout: (layout: PageLayout) => void;
-  owner: string;
-  repo: string;
   position: number;
   diffEntriesPromise: Promise<DiffEntry[]>;
 }) {
@@ -156,8 +150,6 @@ function ReviewPage({
         )}
       >
         <ReviewDiff
-          owner={owner}
-          repo={repo}
           position={position}
           review={review}
           diffEntriesPromise={diffEntriesPromise}

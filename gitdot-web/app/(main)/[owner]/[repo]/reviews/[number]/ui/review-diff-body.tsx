@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReviewDiffResource, ReviewResource } from "gitdot-api";
+import type { ReviewDiffResource } from "gitdot-api";
 import { use } from "react";
 import type { DiffEntry } from "@/actions";
 import { ReviewDiffActions } from "./review-diff-actions";
@@ -9,15 +9,9 @@ import { ReviewDiffMessage } from "./review-diff-message";
 import { ReviewDiffMetadata } from "./review-diff-metadata";
 
 export function ReviewDiffBody({
-  owner,
-  repo,
-  review,
   diffEntriesPromise,
   diff,
 }: {
-  owner: string;
-  repo: string;
-  review: ReviewResource;
   diffEntriesPromise: Promise<DiffEntry[]>;
   diff: ReviewDiffResource;
 }) {

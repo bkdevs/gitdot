@@ -6,14 +6,10 @@ import { ReviewDiffBody } from "./review-diff-body";
 import { ReviewDiffHeader } from "./review-diff-header";
 
 export function ReviewDiff({
-  owner,
-  repo,
   position,
   review,
   diffEntriesPromise,
 }: {
-  owner: string;
-  repo: string;
   position: number;
   review: ReviewResource;
   diffEntriesPromise: Promise<DiffEntry[]>;
@@ -26,9 +22,6 @@ export function ReviewDiff({
       <ReviewDiffHeader diffs={review.diffs} position={position} />
       <Suspense fallback={<Loading />}>
         <ReviewDiffBody
-          owner={owner}
-          repo={repo}
-          review={review}
           diffEntriesPromise={diffEntriesPromise}
           diff={activeDiff}
         />

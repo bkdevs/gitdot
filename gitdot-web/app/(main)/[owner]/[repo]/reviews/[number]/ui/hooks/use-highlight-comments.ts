@@ -81,11 +81,14 @@ export function useHighlightComments(
       span.classList.remove("token-active");
     }
     if (activeComment) {
+      let firstToken: HTMLElement | null = null;
       for (const span of container.querySelectorAll<HTMLElement>(
         `.diff-token[data-comment-id="${activeComment.id}"]`,
       )) {
         span.classList.add("token-active");
+        if (!firstToken) firstToken = span;
       }
+      firstToken?.scrollIntoView({ behavior: "smooth", block: "center" });
     }
   }, [containerRef, activeComment, spans]);
 }
