@@ -19,39 +19,19 @@ type CommentProps = {
   comment: ReviewCommentResource;
   isActive: boolean;
   name: string;
-  location: string | null;
-  lineLabel: string | null;
   handleClick: () => void;
 };
 
 function CommentHeader({
   name,
-  location,
-  lineLabel,
   action,
 }: {
   name: string;
-  location: string | null;
-  lineLabel: string | null;
   action?: React.ReactNode;
 }) {
   return (
     <div className="flex items-center justify-between w-full">
-      <div className="flex items-center gap-0.75 flex-wrap">
-        <span className="text-xs text-foreground">{name}</span>
-        {location && (
-          <>
-            <span className="text-xs text-muted-foreground truncate">
-              on {location}
-            </span>
-            {lineLabel && (
-              <span className="text-[10px] text-muted-foreground">
-                {lineLabel}
-              </span>
-            )}
-          </>
-        )}
-      </div>
+      <span className="text-xs text-foreground">{name}</span>
       {action}
     </div>
   );
@@ -108,8 +88,6 @@ function DraftComment({
   comment,
   isActive,
   name,
-  location,
-  lineLabel,
   handleClick,
 }: CommentProps) {
   const { deleteDraftComment, updateDraftComment } = useReviewContext();
@@ -190,10 +168,7 @@ function DraftComment({
     <ContextMenu>
       <ContextMenuTrigger asChild>
         <div
-          className={cn(
-            "group flex flex-col cursor-pointer rounded px-1.5 py-1 -mx-1.5 transition-colors duration-200 select-none",
-            isActive && !isEditing && "bg-diff-orange",
-          )}
+          className="group flex flex-col cursor-pointer py-1 select-none"
           onClick={handleClick}
         >
           <div className="flex gap-1.5">
@@ -201,12 +176,7 @@ function DraftComment({
               <UserImage userId={comment.author_id} px={18} />
             </div>
             <div className="flex flex-col flex-1 min-w-0">
-              <CommentHeader
-                name={name}
-                location={location}
-                lineLabel={lineLabel}
-                action={action}
-              />
+              <CommentHeader name={name} action={action} />
               <textarea
                 ref={textareaRef}
                 value={draftCommentBody}
@@ -250,8 +220,6 @@ function UserComment({
   comment,
   isActive,
   name,
-  location,
-  lineLabel,
   handleClick,
 }: CommentProps) {
   const [isReplying, setIsReplying] = useState(false);
@@ -292,10 +260,7 @@ function UserComment({
       <ContextMenu>
         <ContextMenuTrigger asChild>
           <div
-            className={cn(
-              "group flex flex-col cursor-pointer rounded px-1.5 py-1 -mx-1.5 transition-colors duration-200 select-none",
-              isActive && !isReplying && "bg-diff-orange",
-            )}
+            className="group flex flex-col cursor-pointer py-1 select-none"
             onClick={handleClick}
           >
             <div className="flex gap-1.5">
@@ -303,12 +268,7 @@ function UserComment({
                 <UserImage userId={comment.author_id} px={18} />
               </div>
               <div className="flex flex-col flex-1 min-w-0">
-                <CommentHeader
-                  name={name}
-                  location={location}
-                  lineLabel={lineLabel}
-                  action={action}
-                />
+                <CommentHeader name={name} action={action} />
                 <span className="text-sm text-foreground">{comment.body}</span>
               </div>
             </div>
@@ -338,8 +298,6 @@ function ReviewerComment({
   comment,
   isActive,
   name,
-  location,
-  lineLabel,
   handleClick,
 }: CommentProps) {
   const [isReplying, setIsReplying] = useState(false);
@@ -368,10 +326,7 @@ function ReviewerComment({
       <ContextMenu>
         <ContextMenuTrigger asChild>
           <div
-            className={cn(
-              "group flex flex-col cursor-pointer rounded px-1.5 py-1 -mx-1.5 transition-colors duration-200 select-none",
-              isActive && !isReplying && "bg-diff-orange",
-            )}
+            className="group flex flex-col cursor-pointer py-1 select-none"
             onClick={handleClick}
           >
             <div className="flex gap-1.5">
@@ -379,12 +334,7 @@ function ReviewerComment({
                 <UserImage userId={comment.author_id} px={18} />
               </div>
               <div className="flex flex-col flex-1 min-w-0">
-                <CommentHeader
-                  name={name}
-                  location={location}
-                  lineLabel={lineLabel}
-                  action={action}
-                />
+                <CommentHeader name={name} action={action} />
                 <span className="text-sm text-foreground">{comment.body}</span>
               </div>
             </div>
@@ -422,15 +372,6 @@ export function ReviewComment({ comment }: { comment: ReviewCommentResource }) {
   const isAuthor = comment.author_id === user?.id;
 
   const name = comment.author?.name ?? comment.author_id;
-  const fileName = comment.file_path?.split("/").at(-1) ?? null;
-  const { line_number_start: start, line_number_end: end } = comment;
-  const lineLabel =
-    start != null
-      ? end != null && end !== start
-        ? `(${start}–${end})`
-        : `(${start})`
-      : null;
-  const location = fileName;
 
   function handleClick() {
     if (isActive) {
@@ -446,8 +387,6 @@ export function ReviewComment({ comment }: { comment: ReviewCommentResource }) {
     comment,
     isActive,
     name,
-    location,
-    lineLabel,
     handleClick,
   };
 
