@@ -6,7 +6,7 @@ use crate::{
         AddReviewReviewerReqeuest, ApproveReviewDiffRequest, CreateReviewCommentsRequest,
         RejectReviewDiffRequest,
         GetReviewDiffRequest, GetReviewRequest, ListReviewsRequest, MergeReviewDiffRequest,
-        MergeReviewRequest, ProcessReviewRequest, PublishReviewRequest,
+        MergeReviewRequest, ProcessReviewRequest, PublishReviewDiffRequest, PublishReviewRequest,
         RemoveReviewReviewerRequest, ResolveReviewCommentRequest,
         ReviewCommentResponse, ReviewDiffResponse, ReviewResponse, ReviewerResponse, ReviewsResponse,
         UpdateReviewCommentRequest, UpdateReviewDiffRequest, UpdateReviewRequest,
@@ -93,6 +93,11 @@ pub trait ReviewService: Send + Sync + 'static {
     async fn update_review_diff(
         &self,
         request: UpdateReviewDiffRequest,
+    ) -> Result<ReviewResponse, ReviewError>;
+
+    async fn publish_review_diff(
+        &self,
+        request: PublishReviewDiffRequest,
     ) -> Result<ReviewResponse, ReviewError>;
 
     async fn merge_review_diff(
@@ -528,6 +533,52 @@ where
 
         self.review_repo
             .update_review(review.id, Some(ReviewStatus::Open), None, None)
+            .await?;
+
+        let updated = self.get_review_by_id(owner, repo, request.number).await?;
+        Ok(updated.into())
+    }
+
+    async fn publish_review_diff(
+        &self,
+        request: PublishReviewDiffRequest,
+    ) -> Result<ReviewResponse, ReviewError> {
+        let owner = request.owner.as_ref();
+        let repo = request.repo.as_ref();
+
+        let review = self.get_review_by_id(owner, repo, request.number).await?;
+
+        if review.status != ReviewStatus::Draft {
+            return Err(ReviewError::DiffNotPublishable(format!(
+                "review is in '{}' status, expected 'draft'",
+                serde_json::to_string(&review.status)
+                    .unwrap_or_default()
+                    .trim_matches('"')
+            )));
+        }
+
+        let diffs = review.diffs.as_deref().unwrap_or(&[]);
+        let diff = diffs
+            .iter()
+            .find(|d| d.position == request.position)
+            .or_not_found("diff", format!("position {}", request.position))?;
+
+        if diff.status != DiffStatus::Draft {
+            return Err(ReviewError::DiffNotPublishable(format!(
+                "diff at position {} is in '{}' status, expected 'draft'",
+                request.position,
+                serde_json::to_string(&diff.status)
+                    .unwrap_or_default()
+                    .trim_matches('"')
+            )));
+        }
+
+        self.review_repo
+            .update_diff(diff.id, Some(DiffStatus::Open), None)
+            .await?;
+
+        self.review_repo
+            .update_review(review.id, None, None, None)
             .await?;
 
         let updated = self.get_review_by_id(owner, repo, request.number).await?;

@@ -28,6 +28,9 @@ pub enum ReviewError {
     #[error("Review is not publishable: {0}")]
     ReviewNotPublishable(String),
 
+    #[error("Diff is not publishable: {0}")]
+    DiffNotPublishable(String),
+
     #[error("Diff is not mergeable: {0}")]
     DiffNotMergeable(String),
 
