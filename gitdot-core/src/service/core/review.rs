@@ -941,7 +941,7 @@ where
                     comment.revision_id,
                     request.reviewer_id,
                     &comment.body,
-                    None,
+                    comment.parent_id,
                     comment.file_path,
                     comment.line_number_start,
                     comment.line_number_end,

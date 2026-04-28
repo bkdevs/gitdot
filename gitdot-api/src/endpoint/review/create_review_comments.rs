@@ -6,6 +6,7 @@ use crate::{endpoint::Endpoint, resource::review::ReviewResource};
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ReviewCommentInput {
     pub revision_id: Uuid,
+    pub parent_id: Option<Uuid>,
     pub body: String,
     pub file_path: Option<String>,
     pub line_number_start: Option<i32>,

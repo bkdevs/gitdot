@@ -32,6 +32,7 @@ pub async fn create_review_comments(
         .map(|c| {
             (
                 c.revision_id,
+                c.parent_id,
                 c.body,
                 c.file_path,
                 c.line_number_start,

@@ -274,6 +274,7 @@ export function ReviewProvider({
           }),
           ...(c.end_character != null && { end_character: c.end_character }),
           ...(c.side != null && { side: c.side }),
+          ...(c.parent_id != null && { parent_id: c.parent_id }),
         })),
       },
     );

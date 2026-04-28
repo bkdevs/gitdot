@@ -4,6 +4,7 @@ import type { Endpoint } from "../endpoint";
 
 export const ReviewCommentInput = z.object({
   revision_id: z.string().uuid(),
+  parent_id: z.string().uuid().optional(),
   body: z.string(),
   file_path: z.string().optional(),
   line_number_start: z.number().int().optional(),

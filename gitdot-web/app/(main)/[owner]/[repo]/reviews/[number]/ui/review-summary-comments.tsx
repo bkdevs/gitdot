@@ -70,7 +70,7 @@ export function ReviewSummaryComments() {
         </div>
       )}
       {activeDiffDraftComments.length > 0 && (
-        <div className="flex justify-start pt-1.5">
+        <div className="flex justify-start">
           <button
             type="button"
             onClick={async () => {

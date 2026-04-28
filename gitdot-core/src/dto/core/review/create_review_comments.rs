@@ -9,6 +9,7 @@ use crate::{
 #[derive(Debug, Clone)]
 pub struct ReviewCommentInput {
     pub revision_id: Uuid,
+    pub parent_id: Option<Uuid>,
     pub body: String,
     pub file_path: Option<String>,
     pub line_number_start: Option<i32>,
@@ -37,6 +38,7 @@ impl CreateReviewCommentsRequest {
         reviewer_id: Uuid,
         comments: Vec<(
             Uuid,
+            Option<Uuid>,
             String,
             Option<String>,
             Option<i32>,
@@ -51,6 +53,7 @@ impl CreateReviewCommentsRequest {
             .map(
                 |(
                     revision_id,
+                    parent_id,
                     body,
                     file_path,
                     line_number_start,
@@ -76,6 +79,7 @@ impl CreateReviewCommentsRequest {
 
                     Ok(ReviewCommentInput {
                         revision_id,
+                        parent_id,
                         body,
                         file_path,
                         line_number_start,
