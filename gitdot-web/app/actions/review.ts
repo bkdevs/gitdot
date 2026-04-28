@@ -14,10 +14,13 @@ import { refresh } from "next/cache";
 import {
   ApiError,
   addReviewer,
+  approveReviewDiff,
   createReviewComments,
   mergeDiff,
   mergeReview,
   publishReview,
+  publishReviewDiff,
+  rejectReviewDiff,
   removeReviewer,
   resolveReviewComment,
   updateDiff,
@@ -141,6 +144,54 @@ export async function mergeReviewAction(
     return { error: "mergeReview call failed" };
   }
 
+  refresh();
+  return { review: result };
+}
+
+export type PublishReviewDiffActionResult =
+  | { review: ReviewResource }
+  | { error: string };
+
+export async function publishReviewDiffAction(
+  owner: string,
+  repo: string,
+  number: number,
+  position: number,
+): Promise<PublishReviewDiffActionResult> {
+  const result = await publishReviewDiff(owner, repo, number, position);
+  if (!result) return { error: "publishReviewDiff call failed" };
+  refresh();
+  return { review: result };
+}
+
+export type ApproveReviewDiffActionResult =
+  | { review: ReviewResource }
+  | { error: string };
+
+export async function approveReviewDiffAction(
+  owner: string,
+  repo: string,
+  number: number,
+  position: number,
+): Promise<ApproveReviewDiffActionResult> {
+  const result = await approveReviewDiff(owner, repo, number, position);
+  if (!result) return { error: "approveReviewDiff call failed" };
+  refresh();
+  return { review: result };
+}
+
+export type RejectReviewDiffActionResult =
+  | { review: ReviewResource }
+  | { error: string };
+
+export async function rejectReviewDiffAction(
+  owner: string,
+  repo: string,
+  number: number,
+  position: number,
+): Promise<RejectReviewDiffActionResult> {
+  const result = await rejectReviewDiff(owner, repo, number, position);
+  if (!result) return { error: "rejectReviewDiff call failed" };
   refresh();
   return { review: result };
 }

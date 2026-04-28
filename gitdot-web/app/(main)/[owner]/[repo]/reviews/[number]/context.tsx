@@ -12,12 +12,18 @@ import { useUserContext } from "@/(main)/context/user";
 import {
   type AddReviewerActionResult,
   addReviewerAction,
+  type ApproveReviewDiffActionResult,
+  approveReviewDiffAction,
   type CreateReviewCommentsActionResult,
   createReviewCommentsAction,
   type MergeReviewActionResult,
   mergeReviewAction,
   type PublishReviewActionResult,
   publishReviewAction,
+  type PublishReviewDiffActionResult,
+  publishReviewDiffAction,
+  type RejectReviewDiffActionResult,
+  rejectReviewDiffAction,
   type RemoveReviewerActionResult,
   removeReviewerAction,
   type UpdateReviewActionResult,
@@ -32,9 +38,12 @@ export type CreateReviewCommentActionResult =
 
 export type {
   AddReviewerActionResult,
+  ApproveReviewDiffActionResult,
   CreateReviewCommentsActionResult,
   MergeReviewActionResult,
   PublishReviewActionResult,
+  PublishReviewDiffActionResult,
+  RejectReviewDiffActionResult,
   RemoveReviewerActionResult,
   UpdateReviewActionResult,
 };
@@ -64,6 +73,9 @@ type ReviewContext = {
   activeDiffDraftComments: ReviewCommentResource[];
 
   publishReview: () => Promise<PublishReviewActionResult>;
+  publishActiveDiff: () => Promise<PublishReviewDiffActionResult>;
+  approveActiveDiff: () => Promise<ApproveReviewDiffActionResult>;
+  rejectActiveDiff: () => Promise<RejectReviewDiffActionResult>;
   mergeReview: () => Promise<MergeReviewActionResult>;
   discardReview: () => Promise<{ success: true } | { error: string }>;
   addReviewer: (userName: string) => Promise<AddReviewerActionResult>;
@@ -128,6 +140,27 @@ export function ReviewProvider({
       publishReviewAction(owner, repo, review.number, {}),
       new Promise((r) => setTimeout(r, 1200)),
     ]);
+    if ("error" in result) return result;
+    setReview(result.review);
+    return result;
+  }
+
+  async function publishActiveDiff(): Promise<PublishReviewDiffActionResult> {
+    const result = await publishReviewDiffAction(owner, repo, review.number, activeDiff.position);
+    if ("error" in result) return result;
+    setReview(result.review);
+    return result;
+  }
+
+  async function approveActiveDiff(): Promise<ApproveReviewDiffActionResult> {
+    const result = await approveReviewDiffAction(owner, repo, review.number, activeDiff.position);
+    if ("error" in result) return result;
+    setReview(result.review);
+    return result;
+  }
+
+  async function rejectActiveDiff(): Promise<RejectReviewDiffActionResult> {
+    const result = await rejectReviewDiffAction(owner, repo, review.number, activeDiff.position);
     if ("error" in result) return result;
     setReview(result.review);
     return result;
@@ -300,6 +333,9 @@ export function ReviewProvider({
         activeDiffDraftComments,
 
         publishReview,
+        publishActiveDiff,
+        approveActiveDiff,
+        rejectActiveDiff,
         mergeReview,
         discardReview,
         addReviewer,

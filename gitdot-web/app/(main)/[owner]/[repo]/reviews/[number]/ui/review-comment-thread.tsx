@@ -1,8 +1,8 @@
 "use client";
 
 import type { ReviewCommentResource } from "gitdot-api";
-import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
 import { cn } from "@/util";
 import { useReviewContext } from "../context";
 import { ReviewComment } from "./review-comment";
@@ -47,7 +47,7 @@ export function ReviewCommentThread({
       onClick={handleClick}
     >
       {fileName && (
-        <div className="pb-0.5 text-xs font-mono text-muted-foreground">
+        <div className="text-xs font-mono text-muted-foreground">
           {fileName}
           {lineLabel ? `:${lineLabel}` : ""}
         </div>
