@@ -45,7 +45,7 @@ export function ReviewDiffHeader({
           >
             <span
               className={cn(
-                "font-mono text-sm shrink-0 w-5 text-right",
+                "font-mono text-sm shrink-0 w-5 text-left",
                 isActive ? "text-foreground" : "text-muted-foreground",
               )}
             >
@@ -77,12 +77,20 @@ export function ReviewDiffHeader({
 function ReviewDiffStatus({ status }: { status: DisplayDiffStatus }) {
   switch (status) {
     case "approved":
-      return <span className="text-xs shrink-0 text-green-600">approved</span>;
+      return (
+        <span className="text-xs shrink-0 text-green-600 w-12 text-left">
+          approved
+        </span>
+      );
     case "open":
-      return <span className="text-xs shrink-0 text-foreground">open</span>;
+      return (
+        <span className="text-xs shrink-0 text-foreground w-12 text-left">
+          open
+        </span>
+      );
     case "merged":
       return (
-        <span className="text-xs shrink-0 text-muted-foreground underline">
+        <span className="text-xs shrink-0 text-muted-foreground underline w-12 text-left">
           merged
         </span>
       );
