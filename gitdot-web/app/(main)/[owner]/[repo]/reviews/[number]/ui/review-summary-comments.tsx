@@ -15,7 +15,8 @@ import { UserImage } from "../../../../ui/user-image";
 import { useReviewContext } from "../context";
 
 export function ReviewSummaryComments() {
-  const { activeDiffComments, activeDiff } = useReviewContext();
+  const { activeDiffComments, activeDiffDraftComments, activeDiff } =
+    useReviewContext();
   const sorted = useMemo(
     () =>
       [...activeDiffComments].sort((a, b) => {
@@ -49,7 +50,9 @@ export function ReviewSummaryComments() {
 
 function ReviewSummaryComment({ comment }: { comment: ReviewCommentResource }) {
   const name = comment.author?.name ?? comment.author_id;
-  const { activeComment, setActiveComment, diffs } = useReviewContext();
+  const { activeComment, setActiveComment, diffs, draftComments } =
+    useReviewContext();
+  const isDraft = draftComments.some((d) => d.id === comment.id);
   const isActive = activeComment?.id === comment.id;
   const router = useRouter();
   const pathname = usePathname();
@@ -80,7 +83,7 @@ function ReviewSummaryComment({ comment }: { comment: ReviewCommentResource }) {
       <ContextMenuTrigger asChild>
         <div
           className={cn(
-            "group flex flex-col cursor-pointer rounded px-1.5 py-1 -mx-1.5 transition-colors duration-200",
+            "group flex flex-col cursor-pointer rounded px-1.5 py-1 -mx-1.5 transition-colors duration-200 select-none",
             isActive && "bg-diff-orange",
           )}
           onClick={handleClick}
@@ -89,20 +92,25 @@ function ReviewSummaryComment({ comment }: { comment: ReviewCommentResource }) {
             <div className="pt-0.5">
               <UserImage userId={comment.author_id} px={18} />
             </div>
-            <div className="flex flex-col">
-              <div className="flex items-center gap-0.75 flex-wrap">
-                <span className="text-xs text-foreground">{name}</span>
-                {location && (
-                  <>
-                    <span className="text-xs text-muted-foreground truncate">
-                      on {location}
-                    </span>
-                    {lineLabel && (
-                      <span className="text-[10px] text-muted-foreground">
-                        {lineLabel}
+            <div className="flex flex-col flex-1 min-w-0">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-0.75 flex-wrap">
+                  <span className="text-xs text-foreground">{name}</span>
+                  {location && (
+                    <>
+                      <span className="text-xs text-muted-foreground truncate">
+                        on {location}
                       </span>
-                    )}
-                  </>
+                      {lineLabel && (
+                        <span className="text-[10px] text-muted-foreground">
+                          {lineLabel}
+                        </span>
+                      )}
+                    </>
+                  )}
+                </div>
+                {isDraft && (
+                  <span className="text-xs text-muted-foreground">draft</span>
                 )}
               </div>
               <span className="text-sm text-foreground">{comment.body}</span>
