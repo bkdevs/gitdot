@@ -158,7 +158,7 @@ function ReviewSummaryComment({ comment }: { comment: ReviewCommentResource }) {
   };
 
   if (isDraft) return <DraftComment {...props} />;
-  if (isAuthor) return <AuthorComment {...props} />;
+  if (isAuthor) return <UserComment {...props} />;
   return <ReviewerComment {...props} />;
 }
 
@@ -304,7 +304,54 @@ function DraftComment({
   );
 }
 
-function AuthorComment({
+function CommentReply({
+  commentId,
+  isReplying,
+  onClose,
+}: {
+  commentId: string;
+  isReplying: boolean;
+  onClose: () => void;
+}) {
+  const { addComment } = useReviewContext();
+  const [reply, setReply] = useState("");
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (isReplying) textareaRef.current?.focus();
+  }, [isReplying]);
+
+  return (
+    <div
+      className={cn(
+        "pl-6 overflow-hidden",
+        isReplying ? "max-h-40" : "max-h-0",
+      )}
+    >
+      <textarea
+        ref={textareaRef}
+        value={reply}
+        onChange={(e) => setReply(e.target.value)}
+        placeholder="reply..."
+        className="text-sm text-foreground w-full resize-none bg-transparent outline-none field-sizing-content border-b border-black dark:border-white placeholder:text-muted-foreground"
+        onKeyDown={(e) => {
+          if (e.key === "Escape") {
+            onClose();
+          } else if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            const body = reply.trim();
+            if (!body) return;
+            addComment({ body, parent_id: commentId });
+            setReply("");
+            onClose();
+          }
+        }}
+      />
+    </div>
+  );
+}
+
+function UserComment({
   comment,
   isActive,
   name,
@@ -313,15 +360,10 @@ function AuthorComment({
   handleClick,
 }: CommentProps) {
   const [isReplying, setIsReplying] = useState(false);
-  const replyRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (!isActive) setIsReplying(false);
   }, [isActive]);
-
-  useEffect(() => {
-    if (isReplying) replyRef.current?.focus();
-  }, [isReplying]);
 
   const action = isActive ? (
     <div className="flex items-center gap-1.5">
@@ -388,18 +430,11 @@ function AuthorComment({
           </ContextMenuItem>
         </ContextMenuContent>
       </ContextMenu>
-      <div
-        className={cn(
-          "pl-6 overflow-hidden",
-          isReplying ? "max-h-40" : "max-h-0",
-        )}
-      >
-        <textarea
-          ref={replyRef}
-          placeholder="reply..."
-          className="text-sm text-foreground w-full resize-none bg-transparent outline-none field-sizing-content border-b border-black dark:border-white placeholder:text-muted-foreground"
-        />
-      </div>
+      <CommentReply
+        commentId={comment.id}
+        isReplying={isReplying}
+        onClose={() => setIsReplying(false)}
+      />
     </div>
   );
 }
@@ -413,15 +448,10 @@ function ReviewerComment({
   handleClick,
 }: CommentProps) {
   const [isReplying, setIsReplying] = useState(false);
-  const replyRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (!isActive) setIsReplying(false);
   }, [isActive]);
-
-  useEffect(() => {
-    if (isReplying) replyRef.current?.focus();
-  }, [isReplying]);
 
   const action = isActive ? (
     <div className="flex items-center gap-1.5">
@@ -476,18 +506,11 @@ function ReviewerComment({
           </ContextMenuItem>
         </ContextMenuContent>
       </ContextMenu>
-      <div
-        className={cn(
-          "pl-6 overflow-hidden",
-          isReplying ? "max-h-40" : "max-h-0",
-        )}
-      >
-        <textarea
-          ref={replyRef}
-          placeholder="reply..."
-          className="text-sm text-foreground w-full resize-none bg-transparent outline-none field-sizing-content border-b border-black dark:border-white placeholder:text-muted-foreground"
-        />
-      </div>
+      <CommentReply
+        commentId={comment.id}
+        isReplying={isReplying}
+        onClose={() => setIsReplying(false)}
+      />
     </div>
   );
 }

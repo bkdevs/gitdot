@@ -39,6 +39,7 @@ export type {
 
 export type AddCommentRequest = {
   body: string;
+  parent_id?: string;
   file_path?: string;
   line_number_start?: number;
   line_number_end?: number;
@@ -207,7 +208,7 @@ export function ReviewProvider({
       diff_id: activeDiff.id,
       revision_id: latestRevision.id,
       author_id: user?.id ?? "00000000-0000-0000-0000-000000000000",
-      parent_id: null,
+      parent_id: request.parent_id ?? null,
       body: request.body,
       file_path: request.file_path ?? null,
       line_number_start: request.line_number_start ?? null,
