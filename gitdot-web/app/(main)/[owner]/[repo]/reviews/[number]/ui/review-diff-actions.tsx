@@ -7,12 +7,6 @@ import type {
 } from "gitdot-api";
 import { useState } from "react";
 import { useUserContext } from "@/(main)/context/user";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/ui/dropdown-menu";
 import { cn } from "@/util";
 import { useReviewContext } from "../context";
 
@@ -87,11 +81,7 @@ function AuthorActions({
               await reviewDiff(position, "approve");
             }}
           />
-          <ReviewButton
-            position={position}
-            activeDiffDraftComments={activeDiffDraftComments}
-            reviewDiff={reviewDiff}
-          />
+          <RejectButton />
         </>
       ) : (
         <CommentButton />
@@ -122,11 +112,7 @@ function ReviewerActions({
           await reviewDiff(position, "approve");
         }}
       />
-      <ReviewButton
-        position={position}
-        activeDiffDraftComments={activeDiffDraftComments}
-        reviewDiff={reviewDiff}
-      />
+      <RejectButton />
     </div>
   );
 }
@@ -159,6 +145,17 @@ function ApproveButton({
   );
 }
 
+function RejectButton() {
+  return (
+    <button
+      type="button"
+      className="text-xs font-mono px-2.5 py-1 rounded-xs border border-border bg-background hover:bg-accent w-full transition-all duration-200"
+    >
+      Reject
+    </button>
+  );
+}
+
 function CommentButton() {
   return (
     <button
@@ -167,66 +164,5 @@ function CommentButton() {
     >
       Comment
     </button>
-  );
-}
-
-function ReviewButton({
-  position,
-  activeDiffDraftComments,
-  reviewDiff,
-}: {
-  position: number;
-  activeDiffDraftComments: ReviewCommentResource[];
-  reviewDiff: (
-    position: number,
-    action: "comment" | "approve" | "request_changes",
-  ) => Promise<unknown>;
-}) {
-  const [open, setOpen] = useState(false);
-  const [isPending, setIsPending] = useState(false);
-
-  async function handleAction(action: "comment" | "request_changes") {
-    setOpen(false);
-    setIsPending(true);
-    await reviewDiff(position, action);
-    setIsPending(false);
-  }
-
-  return (
-    <DropdownMenu open={open} onOpenChange={setOpen}>
-      <DropdownMenuTrigger asChild>
-        <button
-          type="button"
-          className={cn(
-            "text-xs font-mono px-2.5 py-1 rounded-xs border border-border bg-background hover:bg-accent w-full transition-all duration-200 flex items-center justify-center gap-1",
-            (open || isPending) && "opacity-50",
-          )}
-        >
-          <span>Review</span>
-          {activeDiffDraftComments.length > 0 && (
-            <span className="font-mono text-xs text-muted-foreground">
-              ({activeDiffDraftComments.length})
-            </span>
-          )}
-        </button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent
-        align="start"
-        style={{ width: "var(--radix-popper-anchor-width)" }}
-      >
-        <DropdownMenuItem
-          className="text-xs"
-          onClick={() => handleAction("request_changes")}
-        >
-          Request changes
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          className="text-xs"
-          onClick={() => handleAction("comment")}
-        >
-          Publish comments
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
   );
 }

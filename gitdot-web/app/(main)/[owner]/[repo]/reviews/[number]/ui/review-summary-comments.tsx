@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReviewCommentResource } from "gitdot-api";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Send, Trash2 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useMemo } from "react";
 import {
@@ -10,12 +10,12 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from "@/ui/context-menu";
-import { cn } from "@/util";
+import { cn, pluralize } from "@/util";
 import { UserImage } from "../../../../ui/user-image";
 import { useReviewContext } from "../context";
 
 export function ReviewSummaryComments() {
-  const { activeDiffComments, activeDiffDraftComments, activeDiff } =
+  const { activeDiffComments, activeDiffDraftComments, activeDiff, publishReview } =
     useReviewContext();
   const sorted = useMemo(
     () =>
@@ -31,12 +31,14 @@ export function ReviewSummaryComments() {
   );
 
   return (
-    <section className="flex flex-col gap-1.5">
+    <section className="flex flex-col gap-0.5">
       <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
         Comments on Diff {activeDiff.position}
       </h2>
       {sorted.length === 0 ? (
-        <span className="text-xs text-muted-foreground">no comments yet</span>
+        <span className="text-xs text-muted-foreground pt-1">
+          no comments yet
+        </span>
       ) : (
         <div className="flex flex-col gap-3">
           {sorted.map((comment) => (
@@ -44,6 +46,16 @@ export function ReviewSummaryComments() {
           ))}
         </div>
       )}
+      {activeDiffDraftComments.length > 0 && <div className="flex justify-start pt-2">
+        <button
+          type="button"
+          onClick={() => {}}
+          className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground hover:underline decoration-current transition-colors cursor-pointer"
+        >
+          <Send className="size-3" />
+          {`Publish ${pluralize(activeDiffDraftComments.length, "comment")}`}
+        </button>
+      </div>}
     </section>
   );
 }
@@ -93,7 +105,7 @@ function ReviewSummaryComment({ comment }: { comment: ReviewCommentResource }) {
               <UserImage userId={comment.author_id} px={18} />
             </div>
             <div className="flex flex-col flex-1 min-w-0">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between w-full">
                 <div className="flex items-center gap-0.75 flex-wrap">
                   <span className="text-xs text-foreground">{name}</span>
                   {location && (
@@ -110,7 +122,7 @@ function ReviewSummaryComment({ comment }: { comment: ReviewCommentResource }) {
                   )}
                 </div>
                 {isDraft && (
-                  <span className="text-xs text-muted-foreground">draft</span>
+                  <span className="text-xs text-muted-foreground italic">draft</span>
                 )}
               </div>
               <span className="text-sm text-foreground">{comment.body}</span>
