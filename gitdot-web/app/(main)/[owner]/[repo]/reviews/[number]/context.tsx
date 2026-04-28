@@ -8,7 +8,9 @@ import type {
 } from "gitdot-api";
 import { useSearchParams } from "next/navigation";
 import { createContext, useContext, useMemo, useState } from "react";
+import { toast } from "@/(main)/context/toaster";
 import { useUserContext } from "@/(main)/context/user";
+import { pluralize } from "@/util";
 import {
   type AddReviewerActionResult,
   addReviewerAction,
@@ -142,6 +144,7 @@ export function ReviewProvider({
     ]);
     if ("error" in result) return result;
     setReview(result.review);
+    toast.success("Review published");
     return result;
   }
 
@@ -156,6 +159,7 @@ export function ReviewProvider({
     const result = await approveReviewDiffAction(owner, repo, review.number, activeDiff.position);
     if ("error" in result) return result;
     setReview(result.review);
+    toast.success("Diff approved");
     return result;
   }
 
@@ -312,8 +316,10 @@ export function ReviewProvider({
       },
     );
     if ("error" in result) return result;
+    const count = activeDiffDraftComments.length;
     setDraftComments((prev) => prev.filter((c) => c.diff_id !== activeDiff.id));
     setReview(result.review);
+    toast.success(`${pluralize(count, "comment")} published`);
     return result;
   }
 
