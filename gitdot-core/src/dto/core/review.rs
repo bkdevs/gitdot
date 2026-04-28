@@ -1,4 +1,5 @@
 mod add_review_reviewer;
+mod create_review_comments;
 mod get_review;
 mod get_review_diff;
 mod list_reviews;
@@ -35,6 +36,7 @@ pub use publish_review::PublishReviewRequest;
 pub use remove_review_reviewer::RemoveReviewReviewerRequest;
 pub use reply_to_review_comment::ReplyToReviewCommentRequest;
 pub use resolve_review_comment::ResolveReviewCommentRequest;
+pub use create_review_comments::CreateReviewCommentsRequest;
 pub use review_review_diff::{ReviewAction, ReviewCommentInput, ReviewReviewDiffRequest};
 pub use update_review::UpdateReviewRequest;
 pub use update_review_comment::UpdateReviewCommentRequest;

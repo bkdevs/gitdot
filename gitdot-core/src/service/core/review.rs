@@ -3,12 +3,13 @@ use async_trait::async_trait;
 use crate::{
     client::{DiffClient, DifftClient, Git2Client, GitClient},
     dto::{
-        AddReviewReviewerReqeuest, GetReviewDiffRequest, GetReviewRequest, ListReviewsRequest,
-        MergeReviewDiffRequest, MergeReviewRequest, ProcessReviewRequest, PublishReviewRequest,
-        RemoveReviewReviewerRequest, ReplyToReviewCommentRequest, ResolveReviewCommentRequest,
-        ReviewAction, ReviewCommentResponse, ReviewDiffResponse, ReviewResponse,
-        ReviewReviewDiffRequest, ReviewerResponse, ReviewsResponse, UpdateReviewCommentRequest,
-        UpdateReviewDiffRequest, UpdateReviewRequest,
+        AddReviewReviewerReqeuest, CreateReviewCommentsRequest, GetReviewDiffRequest,
+        GetReviewRequest, ListReviewsRequest, MergeReviewDiffRequest, MergeReviewRequest,
+        ProcessReviewRequest, PublishReviewRequest, RemoveReviewReviewerRequest,
+        ReplyToReviewCommentRequest, ResolveReviewCommentRequest, ReviewAction,
+        ReviewCommentResponse, ReviewDiffResponse, ReviewResponse, ReviewReviewDiffRequest,
+        ReviewerResponse, ReviewsResponse, UpdateReviewCommentRequest, UpdateReviewDiffRequest,
+        UpdateReviewRequest,
     },
     error::{ConflictError, InputError, NotFoundError, OptionNotFoundExt, ReviewError},
     model::{DiffStatus, Review, ReviewStatus, Verdict},
@@ -133,6 +134,11 @@ pub trait ReviewService: Send + Sync + 'static {
         &self,
         request: ReplyToReviewCommentRequest,
     ) -> Result<ReviewCommentResponse, ReviewError>;
+
+    async fn create_review_comments(
+        &self,
+        request: CreateReviewCommentsRequest,
+    ) -> Result<ReviewResponse, ReviewError>;
 }
 
 #[derive(Debug, Clone)]
@@ -1009,5 +1015,48 @@ where
             .await?;
 
         Ok(reply.into())
+    }
+
+    async fn create_review_comments(
+        &self,
+        request: CreateReviewCommentsRequest,
+    ) -> Result<ReviewResponse, ReviewError> {
+        let owner = request.owner.as_ref();
+        let repo = request.repo.as_ref();
+
+        let review = self.get_review_by_id(owner, repo, request.number).await?;
+
+        let diffs = review.diffs.as_ref().map(|d| d.as_slice()).unwrap_or(&[]);
+        let diff = diffs
+            .iter()
+            .find(|d| d.position == request.position)
+            .or_not_found("diff", format!("position {}", request.position))?;
+
+        for comment in request.comments {
+            self.review_repo
+                .create_comment(
+                    review.id,
+                    diff.id,
+                    comment.revision_id,
+                    request.reviewer_id,
+                    &comment.body,
+                    None,
+                    comment.file_path,
+                    comment.line_number_start,
+                    comment.line_number_end,
+                    comment.start_character,
+                    comment.end_character,
+                    comment.side,
+                )
+                .await?;
+        }
+
+        self.review_repo
+            .update_review(review.id, None, None, None)
+            .await?;
+
+        let updated = self.get_review_by_id(owner, repo, request.number).await?;
+
+        Ok(updated.into())
     }
 }

@@ -4,6 +4,7 @@ import type { DiffStatus, ReviewDiffResource, ReviewStatus } from "gitdot-api";
 import { usePathname } from "next/navigation";
 import Link from "@/ui/link";
 import { cn } from "@/util";
+import { pluralize } from "@/util/string";
 import { useReviewContext } from "../context";
 
 type DisplayDiffStatus = "open" | "approved" | "merged";
@@ -16,13 +17,20 @@ export function ReviewDiffHeader({
   position: number;
 }) {
   const pathname = usePathname();
-  const { review } = useReviewContext();
+  const { review, draftComments } = useReviewContext();
+  const publishedComments = review.comments;
   const activeIndex = diffs.findIndex((d) => d.position === position);
 
   return (
     <>
       {diffs.map((diff, i) => {
         const isActive = i === activeIndex;
+        const commentCount = publishedComments.filter(
+          (c) => c.diff_id === diff.id,
+        ).length;
+        const draftCount = draftComments.filter(
+          (c) => c.diff_id === diff.id,
+        ).length;
         return (
           <Link
             key={diff.id}
@@ -46,6 +54,16 @@ export function ReviewDiffHeader({
             <span className="text-xs flex-1 truncate">
               {diff.message.split("\n")[0]}
             </span>
+            {(commentCount > 0 || draftCount > 0) && (
+              <span className="text-xs shrink-0 text-muted-foreground">
+                {[
+                  commentCount > 0 && pluralize(commentCount, "comment"),
+                  draftCount > 0 && pluralize(draftCount, "draft"),
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
+              </span>
+            )}
             <ReviewDiffStatus
               status={readableDiffStatus(diff.status, review.status)}
             />
