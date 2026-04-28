@@ -1,8 +1,9 @@
 "use client";
 
-import type { ReviewResource } from "gitdot-api";
+import type { ReviewResource, ReviewStatus } from "gitdot-api";
 import { useParams, usePathname } from "next/navigation";
 import Link from "@/ui/link";
+import { cn } from "@/util";
 
 export function ReviewSummaryHeader({ review }: { review: ReviewResource }) {
   const { owner, repo } = useParams<{ owner: string; repo: string }>();
@@ -40,7 +41,22 @@ export function ReviewSummaryHeader({ review }: { review: ReviewResource }) {
             {identifier}
           </Link>
         </div>
+        <ReviewStatusBadge status={review.status} />
       </div>
     </div>
+  );
+}
+
+function ReviewStatusBadge({ status }: { status: ReviewStatus }) {
+  return (
+    <span
+      className={cn("font-mono text-xs shrink-0", {
+        "text-foreground": status === "open",
+        "text-muted-foreground underline": status === "closed",
+        "text-muted-foreground": status === "draft",
+      })}
+    >
+      {status}
+    </span>
   );
 }
