@@ -6,13 +6,13 @@ use crate::{
         AddReviewReviewerReqeuest, CreateReviewCommentsRequest, GetReviewDiffRequest,
         GetReviewRequest, ListReviewsRequest, MergeReviewDiffRequest, MergeReviewRequest,
         ProcessReviewRequest, PublishReviewRequest, RemoveReviewReviewerRequest,
-        ReplyToReviewCommentRequest, ResolveReviewCommentRequest, ReviewAction,
-        ReviewCommentResponse, ReviewDiffResponse, ReviewResponse, ReviewReviewDiffRequest,
-        ReviewerResponse, ReviewsResponse, UpdateReviewCommentRequest, UpdateReviewDiffRequest,
+        ReplyToReviewCommentRequest, ResolveReviewCommentRequest, ReviewCommentResponse,
+        ReviewDiffResponse, ReviewResponse, ReviewerResponse, ReviewsResponse,
+        UpdateReviewCommentRequest, UpdateReviewDiffRequest,
         UpdateReviewRequest,
     },
     error::{ConflictError, InputError, NotFoundError, OptionNotFoundExt, ReviewError},
-    model::{DiffStatus, Review, ReviewStatus, Verdict},
+    model::{DiffStatus, Review, ReviewStatus},
     repository::{
         RepositoryRepository, RepositoryRepositoryImpl, ReviewRepository, ReviewRepositoryImpl,
         UserRepository, UserRepositoryImpl,
@@ -93,11 +93,6 @@ pub trait ReviewService: Send + Sync + 'static {
     async fn update_review_diff(
         &self,
         request: UpdateReviewDiffRequest,
-    ) -> Result<ReviewResponse, ReviewError>;
-
-    async fn review_review_diff(
-        &self,
-        request: ReviewReviewDiffRequest,
     ) -> Result<ReviewResponse, ReviewError>;
 
     async fn merge_review_diff(
@@ -626,74 +621,6 @@ where
         .await?;
 
         Ok(ReviewDiffResponse { files })
-    }
-
-    async fn review_review_diff(
-        &self,
-        request: ReviewReviewDiffRequest,
-    ) -> Result<ReviewResponse, ReviewError> {
-        let owner = request.owner.as_ref();
-        let repo = request.repo.as_ref();
-
-        let review = self.get_review_by_id(owner, repo, request.number).await?;
-
-        let diffs = review.diffs.as_ref().map(|d| d.as_slice()).unwrap_or(&[]);
-        let diff = diffs
-            .iter()
-            .find(|d| d.position == request.position)
-            .or_not_found("diff", format!("position {}", request.position))?;
-
-        let revisions = diff.revisions.as_ref().map(|r| r.as_slice()).unwrap_or(&[]);
-        let latest_revision = revisions
-            .first()
-            .or_not_found("revision", "No revisions found")?;
-
-        let is_author = request.reviewer_id == review.author_id;
-
-        if is_author && request.action == ReviewAction::Approve {
-            if diff.status == DiffStatus::Open {
-                return Err(ReviewError::CannotApproveOwnDiff);
-            }
-            self.review_repo
-                .update_diff(diff.id, Some(DiffStatus::Open), None)
-                .await?;
-        } else if !is_author && request.action != ReviewAction::Comment {
-            let verdict = match request.action {
-                ReviewAction::Approve => Verdict::Approved,
-                ReviewAction::RequestChanges => Verdict::Rejected,
-                ReviewAction::Comment => unreachable!(),
-            };
-            self.review_repo
-                .create_verdict(diff.id, latest_revision.id, request.reviewer_id, verdict)
-                .await?;
-        }
-
-        for comment in request.comments {
-            self.review_repo
-                .create_comment(
-                    review.id,
-                    diff.id,
-                    comment.revision_id,
-                    request.reviewer_id,
-                    &comment.body,
-                    None,
-                    comment.file_path,
-                    comment.line_number_start,
-                    comment.line_number_end,
-                    comment.start_character,
-                    comment.end_character,
-                    comment.side,
-                )
-                .await?;
-        }
-
-        self.review_repo
-            .update_review(review.id, None, None, None)
-            .await?;
-
-        let updated = self.get_review_by_id(owner, repo, request.number).await?;
-
-        Ok(updated.into())
     }
 
     async fn merge_review_diff(

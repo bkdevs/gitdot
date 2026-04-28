@@ -250,7 +250,7 @@ function DraftComment({
         <div
           className={cn(
             "group flex flex-col cursor-pointer rounded px-1.5 py-1 -mx-1.5 transition-colors duration-200 select-none",
-            isActive && "bg-diff-orange",
+            isActive && !isEditing && "bg-diff-orange",
           )}
           onClick={handleClick}
         >
@@ -312,6 +312,17 @@ function AuthorComment({
   lineLabel,
   handleClick,
 }: CommentProps) {
+  const [isReplying, setIsReplying] = useState(false);
+  const replyRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (!isActive) setIsReplying(false);
+  }, [isActive]);
+
+  useEffect(() => {
+    if (isReplying) replyRef.current?.focus();
+  }, [isReplying]);
+
   const action = isActive ? (
     <div className="flex items-center gap-1.5">
       <button
@@ -328,6 +339,10 @@ function AuthorComment({
       </button>
       <button
         type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          setIsReplying(true);
+        }}
         className="text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
       >
         reply
@@ -336,42 +351,56 @@ function AuthorComment({
   ) : null;
 
   return (
-    <ContextMenu>
-      <ContextMenuTrigger asChild>
-        <div
-          className={cn(
-            "group flex flex-col cursor-pointer rounded px-1.5 py-1 -mx-1.5 transition-colors duration-200 select-none",
-            isActive && "bg-diff-orange",
-          )}
-          onClick={handleClick}
-        >
-          <div className="flex gap-1.5">
-            <div className="pt-0.5">
-              <UserImage userId={comment.author_id} px={18} />
-            </div>
-            <div className="flex flex-col flex-1 min-w-0">
-              <CommentHeader
-                name={name}
-                location={location}
-                lineLabel={lineLabel}
-                action={action}
-              />
-              <span className="text-sm text-foreground">{comment.body}</span>
+    <div>
+      <ContextMenu>
+        <ContextMenuTrigger asChild>
+          <div
+            className={cn(
+              "group flex flex-col cursor-pointer rounded px-1.5 py-1 -mx-1.5 transition-colors duration-200 select-none",
+              isActive && !isReplying && "bg-diff-orange",
+            )}
+            onClick={handleClick}
+          >
+            <div className="flex gap-1.5">
+              <div className="pt-0.5">
+                <UserImage userId={comment.author_id} px={18} />
+              </div>
+              <div className="flex flex-col flex-1 min-w-0">
+                <CommentHeader
+                  name={name}
+                  location={location}
+                  lineLabel={lineLabel}
+                  action={action}
+                />
+                <span className="text-sm text-foreground">{comment.body}</span>
+              </div>
             </div>
           </div>
-        </div>
-      </ContextMenuTrigger>
-      <ContextMenuContent>
-        <ContextMenuItem>
-          <Pencil />
-          Edit
-        </ContextMenuItem>
-        <ContextMenuItem variant="destructive">
-          <Trash2 />
-          Delete
-        </ContextMenuItem>
-      </ContextMenuContent>
-    </ContextMenu>
+        </ContextMenuTrigger>
+        <ContextMenuContent>
+          <ContextMenuItem>
+            <Pencil />
+            Edit
+          </ContextMenuItem>
+          <ContextMenuItem variant="destructive">
+            <Trash2 />
+            Delete
+          </ContextMenuItem>
+        </ContextMenuContent>
+      </ContextMenu>
+      <div
+        className={cn(
+          "pl-6 overflow-hidden",
+          isReplying ? "max-h-40" : "max-h-0",
+        )}
+      >
+        <textarea
+          ref={replyRef}
+          placeholder="reply..."
+          className="text-sm text-foreground w-full resize-none bg-transparent outline-none field-sizing-content border-b border-black dark:border-white placeholder:text-muted-foreground"
+        />
+      </div>
+    </div>
   );
 }
 
@@ -383,10 +412,25 @@ function ReviewerComment({
   lineLabel,
   handleClick,
 }: CommentProps) {
+  const [isReplying, setIsReplying] = useState(false);
+  const replyRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (!isActive) setIsReplying(false);
+  }, [isActive]);
+
+  useEffect(() => {
+    if (isReplying) replyRef.current?.focus();
+  }, [isReplying]);
+
   const action = isActive ? (
     <div className="flex items-center gap-1.5">
       <button
         type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          setIsReplying(true);
+        }}
         className="text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
       >
         reply
@@ -395,41 +439,55 @@ function ReviewerComment({
   ) : null;
 
   return (
-    <ContextMenu>
-      <ContextMenuTrigger asChild>
-        <div
-          className={cn(
-            "group flex flex-col cursor-pointer rounded px-1.5 py-1 -mx-1.5 transition-colors duration-200 select-none",
-            isActive && "bg-diff-orange",
-          )}
-          onClick={handleClick}
-        >
-          <div className="flex gap-1.5">
-            <div className="pt-0.5">
-              <UserImage userId={comment.author_id} px={18} />
-            </div>
-            <div className="flex flex-col flex-1 min-w-0">
-              <CommentHeader
-                name={name}
-                location={location}
-                lineLabel={lineLabel}
-                action={action}
-              />
-              <span className="text-sm text-foreground">{comment.body}</span>
+    <div>
+      <ContextMenu>
+        <ContextMenuTrigger asChild>
+          <div
+            className={cn(
+              "group flex flex-col cursor-pointer rounded px-1.5 py-1 -mx-1.5 transition-colors duration-200 select-none",
+              isActive && !isReplying && "bg-diff-orange",
+            )}
+            onClick={handleClick}
+          >
+            <div className="flex gap-1.5">
+              <div className="pt-0.5">
+                <UserImage userId={comment.author_id} px={18} />
+              </div>
+              <div className="flex flex-col flex-1 min-w-0">
+                <CommentHeader
+                  name={name}
+                  location={location}
+                  lineLabel={lineLabel}
+                  action={action}
+                />
+                <span className="text-sm text-foreground">{comment.body}</span>
+              </div>
             </div>
           </div>
-        </div>
-      </ContextMenuTrigger>
-      <ContextMenuContent>
-        <ContextMenuItem>
-          <Pencil />
-          Edit
-        </ContextMenuItem>
-        <ContextMenuItem variant="destructive">
-          <Trash2 />
-          Delete
-        </ContextMenuItem>
-      </ContextMenuContent>
-    </ContextMenu>
+        </ContextMenuTrigger>
+        <ContextMenuContent>
+          <ContextMenuItem>
+            <Pencil />
+            Edit
+          </ContextMenuItem>
+          <ContextMenuItem variant="destructive">
+            <Trash2 />
+            Delete
+          </ContextMenuItem>
+        </ContextMenuContent>
+      </ContextMenu>
+      <div
+        className={cn(
+          "pl-6 overflow-hidden",
+          isReplying ? "max-h-40" : "max-h-0",
+        )}
+      >
+        <textarea
+          ref={replyRef}
+          placeholder="reply..."
+          className="text-sm text-foreground w-full resize-none bg-transparent outline-none field-sizing-content border-b border-black dark:border-white placeholder:text-muted-foreground"
+        />
+      </div>
+    </div>
   );
 }

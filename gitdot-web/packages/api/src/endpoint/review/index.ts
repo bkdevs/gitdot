@@ -9,7 +9,6 @@ export * from "./publish-review";
 export * from "./remove-review-reviewer";
 export * from "./reply-to-review-comment";
 export * from "./resolve-review-comment";
-export * from "./review-review-diff";
 export * from "./update-review";
 export * from "./update-review-comment";
 export * from "./update-review-diff";

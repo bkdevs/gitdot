@@ -1,7 +1,18 @@
 import { z } from "zod";
 import { ReviewResource } from "../../resource";
 import type { Endpoint } from "../endpoint";
-import { ReviewCommentInput } from "./review-review-diff";
+
+export const ReviewCommentInput = z.object({
+  revision_id: z.string().uuid(),
+  body: z.string(),
+  file_path: z.string().optional(),
+  line_number_start: z.number().int().optional(),
+  line_number_end: z.number().int().optional(),
+  start_character: z.number().int().optional(),
+  end_character: z.number().int().optional(),
+  side: z.string().optional(),
+});
+export type ReviewCommentInput = z.infer<typeof ReviewCommentInput>;
 
 export const CreateReviewCommentsRequest = z.object({
   comments: z.array(ReviewCommentInput),

@@ -1,9 +1,19 @@
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
-use crate::{
-    endpoint::{review_review_diff::ReviewCommentInput, Endpoint},
-    resource::review::ReviewResource,
-};
+use crate::{endpoint::Endpoint, resource::review::ReviewResource};
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ReviewCommentInput {
+    pub revision_id: Uuid,
+    pub body: String,
+    pub file_path: Option<String>,
+    pub line_number_start: Option<i32>,
+    pub line_number_end: Option<i32>,
+    pub start_character: Option<i32>,
+    pub end_character: Option<i32>,
+    pub side: Option<String>,
+}
 
 pub struct CreateReviewComments;
 

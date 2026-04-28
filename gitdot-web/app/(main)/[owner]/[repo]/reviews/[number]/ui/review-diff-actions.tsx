@@ -5,7 +5,6 @@ import type {
   ReviewCommentResource,
   RevisionResource,
 } from "gitdot-api";
-import { useState } from "react";
 import { useUserContext } from "@/(main)/context/user";
 import { cn } from "@/util";
 import { useReviewContext } from "../context";
@@ -19,7 +18,7 @@ export function ReviewDiffActions({
   status: DiffStatus;
   revision: RevisionResource | undefined;
 }) {
-  const { review, reviewDiff, activeDiffDraftComments } = useReviewContext();
+  const { review, activeDiffDraftComments } = useReviewContext();
   const { user } = useUserContext();
 
   if (status === "merged" || review.status === "closed") return null;
@@ -34,7 +33,6 @@ export function ReviewDiffActions({
         isDraft={review.status === "draft"}
         approved={status === "open"}
         activeDiffDraftComments={activeDiffDraftComments}
-        reviewDiff={reviewDiff}
       />
     );
   }
@@ -47,7 +45,6 @@ export function ReviewDiffActions({
           revision?.verdicts.some((v) => v.reviewer_id === user?.id) ?? false
         }
         activeDiffDraftComments={activeDiffDraftComments}
-        reviewDiff={reviewDiff}
       />
     );
   }
@@ -56,31 +53,20 @@ export function ReviewDiffActions({
 }
 
 function AuthorActions({
-  position,
   isDraft,
   approved,
   activeDiffDraftComments,
-  reviewDiff,
 }: {
   position: number;
   isDraft: boolean;
   approved: boolean;
   activeDiffDraftComments: ReviewCommentResource[];
-  reviewDiff: (
-    position: number,
-    action: "comment" | "approve" | "request_changes",
-  ) => Promise<unknown>;
 }) {
   return (
     <div className="flex flex-col gap-1 w-full">
       {isDraft ? (
         <>
-          <ApproveButton
-            approved={approved}
-            onApprove={async () => {
-              await reviewDiff(position, "approve");
-            }}
-          />
+          <ApproveButton approved={approved} />
           <RejectButton />
         </>
       ) : (
@@ -91,53 +77,29 @@ function AuthorActions({
 }
 
 function ReviewerActions({
-  position,
   approved,
   activeDiffDraftComments,
-  reviewDiff,
 }: {
   position: number;
   approved: boolean;
   activeDiffDraftComments: ReviewCommentResource[];
-  reviewDiff: (
-    position: number,
-    action: "comment" | "approve" | "request_changes",
-  ) => Promise<unknown>;
 }) {
   return (
     <div className="flex flex-col gap-1 w-full">
-      <ApproveButton
-        approved={approved}
-        onApprove={async () => {
-          await reviewDiff(position, "approve");
-        }}
-      />
+      <ApproveButton approved={approved} />
       <RejectButton />
     </div>
   );
 }
 
-function ApproveButton({
-  approved,
-  onApprove,
-}: {
-  approved: boolean;
-  onApprove: () => Promise<void>;
-}) {
-  const [isPending, setIsPending] = useState(false);
-
+function ApproveButton({ approved }: { approved: boolean }) {
   return (
     <button
       type="button"
-      disabled={approved || isPending}
-      onClick={async () => {
-        setIsPending(true);
-        await onApprove();
-        setIsPending(false);
-      }}
+      disabled={approved}
       className={cn(
         "text-xs font-mono px-2.5 py-1 underline decoration-transparent hover:decoration-current rounded-xs border border-primary w-full disabled:cursor-not-allowed bg-primary text-primary-foreground",
-        approved || isPending ? "opacity-50" : "hover:bg-primary/90",
+        approved ? "opacity-50" : "hover:bg-primary/90",
       )}
     >
       {approved ? "Approved" : "Approve"}

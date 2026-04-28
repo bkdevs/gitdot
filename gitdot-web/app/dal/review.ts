@@ -4,7 +4,6 @@ import type {
   CreateReviewCommentsRequest,
   PublishReviewRequest,
   ReplyToReviewCommentRequest,
-  ReviewReviewDiffRequest,
   UpdateReviewCommentRequest,
   UpdateReviewDiffRequest,
   UpdateReviewRequest,
@@ -133,21 +132,6 @@ export async function publishReview(
 ): Promise<ReviewResource | null> {
   const response = await authPost(
     `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/review/${number}/publish`,
-    request,
-  );
-
-  return await handleResponse(response, ReviewResource);
-}
-
-export async function reviewDiff(
-  owner: string,
-  repo: string,
-  number: number,
-  position: number,
-  request: ReviewReviewDiffRequest,
-): Promise<ReviewResource | null> {
-  const response = await authPost(
-    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/review/${number}/diff/${position}/review`,
     request,
   );
 

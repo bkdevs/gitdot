@@ -19,9 +19,7 @@ import {
   type PublishReviewActionResult,
   publishReviewAction,
   type RemoveReviewerActionResult,
-  type ReviewDiffActionResult,
   removeReviewerAction,
-  reviewDiffAction,
   type UpdateReviewActionResult,
   updateReviewAction,
 } from "@/actions/review";
@@ -36,7 +34,6 @@ export type {
   MergeReviewActionResult,
   PublishReviewActionResult,
   RemoveReviewerActionResult,
-  ReviewDiffActionResult,
   UpdateReviewActionResult,
 };
 
@@ -78,10 +75,6 @@ type ReviewContext = {
     description?: string;
   }) => Promise<UpdateReviewActionResult>;
 
-  reviewDiff: (
-    position: number,
-    action: "comment" | "approve" | "request_changes",
-  ) => Promise<ReviewDiffActionResult>;
   publishActiveDiffComments: () => Promise<CreateReviewCommentsActionResult>;
 };
 
@@ -242,41 +235,6 @@ export function ReviewProvider({
     );
   }
 
-  async function reviewDiff(
-    position: number,
-    action: "comment" | "approve" | "request_changes",
-  ): Promise<ReviewDiffActionResult> {
-    const result = await reviewDiffAction(
-      owner,
-      repo,
-      review.number,
-      position,
-      {
-        action,
-        comments: activeDiffDraftComments.map((c) => ({
-          revision_id: c.revision_id,
-          body: c.body,
-          ...(c.file_path != null && { file_path: c.file_path }),
-          ...(c.line_number_start != null && {
-            line_number_start: c.line_number_start,
-          }),
-          ...(c.line_number_end != null && {
-            line_number_end: c.line_number_end,
-          }),
-          ...(c.start_character != null && {
-            start_character: c.start_character,
-          }),
-          ...(c.end_character != null && { end_character: c.end_character }),
-          ...(c.side != null && { side: c.side }),
-        })),
-      },
-    );
-    if ("error" in result) return result;
-    setReview(result.review);
-    setDraftComments([]);
-    return result;
-  }
-
   async function publishActiveDiffComments(): Promise<CreateReviewCommentsActionResult> {
     const result = await createReviewCommentsAction(
       owner,
@@ -333,7 +291,6 @@ export function ReviewProvider({
         updateDraftComment,
         updateReview,
 
-        reviewDiff,
         publishActiveDiffComments,
       }}
     >
