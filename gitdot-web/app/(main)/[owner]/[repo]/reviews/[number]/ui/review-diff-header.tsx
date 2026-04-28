@@ -55,7 +55,7 @@ export function ReviewDiffHeader({
               {diff.message.split("\n")[0]}
             </span>
             {(commentCount > 0 || draftCount > 0) && (
-              <span className="text-xs shrink-0 text-muted-foreground">
+              <span className="text-xs shrink-0 text-muted-foreground pr-2">
                 {[
                   commentCount > 0 && pluralize(commentCount, "comment"),
                   draftCount > 0 && pluralize(draftCount, "draft"),
