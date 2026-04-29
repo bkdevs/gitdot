@@ -1,8 +1,11 @@
 "use client";
 
-import type { RepositoryDiffFileResource } from "gitdot-api";
+import type {
+  RepositoryDiffFileResource,
+  ReviewCommentResource,
+} from "gitdot-api";
 import { Maximize2 } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { DiffSpans } from "@/actions";
 import {
   ContextMenu,
@@ -12,6 +15,7 @@ import {
 } from "@/ui/context-menu";
 import { useReviewContext } from "../context";
 import { ReviewDiffFileBody } from "./review-diff-file-body";
+import { ReviewDiffFileBubbles } from "./review-diff-file-bubbles";
 import { ReviewDiffFileDialog } from "./review-diff-file-dialog";
 import { ReviewDiffFileHeader } from "./review-diff-file-header";
 
@@ -29,6 +33,48 @@ export function ReviewDiffFile({
     () => activeDiffComments.filter((c) => c.file_path === diffFile.path),
     [activeDiffComments, diffFile.path],
   );
+
+  const [bubblePositionsLeft, setBubblePositionsLeft] = useState<
+    Array<{ top: number; comments: ReviewCommentResource[] }>
+  >([]);
+  const [bubblePositionsRight, setBubblePositionsRight] = useState<
+    Array<{ top: number; comments: ReviewCommentResource[] }>
+  >([]);
+
+  useLayoutEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const groups = new Map<string, ReviewCommentResource[]>();
+    for (const comment of diffFileComments) {
+      if (comment.line_number_start === null || comment.side === null) continue;
+      const key = `${comment.line_number_start}:${comment.side}`;
+      const existing = groups.get(key);
+      if (existing) existing.push(comment);
+      else groups.set(key, [comment]);
+    }
+
+    const containerRect = container.getBoundingClientRect();
+    const left: Array<{ top: number; comments: ReviewCommentResource[] }> = [];
+    const right: Array<{ top: number; comments: ReviewCommentResource[] }> = [];
+
+    for (const [key, comments] of groups) {
+      const [lineNum, side] = key.split(":");
+      const el = container.querySelector<HTMLElement>(
+        `.diff-line[data-line-number="${lineNum}"][data-side="${side}"]`,
+      );
+      if (!el) continue;
+      const position = {
+        top: el.getBoundingClientRect().top - containerRect.top,
+        comments,
+      };
+      if (side === "old") left.push(position);
+      else right.push(position);
+    }
+
+    setBubblePositionsLeft(left);
+    setBubblePositionsRight(right);
+  }, [diffFileComments]);
 
   return (
     <div ref={containerRef} className="relative">
@@ -58,6 +104,8 @@ export function ReviewDiffFile({
           </ContextMenuContent>
         </ContextMenu>
       </div>
+      <ReviewDiffFileBubbles side="old" bubblePositions={bubblePositionsLeft} />
+      <ReviewDiffFileBubbles side="new" bubblePositions={bubblePositionsRight} />
       <ReviewDiffFileDialog
         diff={diffFile}
         spans={diffSpans}

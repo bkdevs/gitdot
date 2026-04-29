@@ -1,7 +1,6 @@
 "use client";
 
 import type { ReviewCommentResource } from "gitdot-api";
-import { useEffect, useRef } from "react";
 import { UserImage } from "@/(main)/[owner]/ui/user-image";
 import { cn } from "@/util";
 import { useReviewContext } from "../context";
@@ -45,22 +44,10 @@ function ReviewDiffFileBubble({
   thread: { top: number; comments: ReviewCommentResource[] };
   isActive: boolean;
 }) {
-  const ref = useRef<HTMLDivElement>(null);
   const { setActiveComment } = useReviewContext();
-
-  useEffect(() => {
-    if (isActive && ref.current) {
-      const rect = ref.current.getBoundingClientRect();
-      const inViewport = rect.top >= 0 && rect.bottom <= window.innerHeight;
-      if (!inViewport) {
-        ref.current.scrollIntoView({ behavior: "instant", block: "center" });
-      }
-    }
-  }, [isActive]);
 
   return (
     <div
-      ref={ref}
       id={`comment-${thread.comments[0].id}`}
       className={cn(
         "absolute z-50 flex flex-row items-center gap-1.5 px-2 py-0.5 bg-background border border-border rounded-full animate-in fade-in duration-200 hover:bg-accent select-none",
