@@ -6,6 +6,7 @@ import type {
   ReviewCommentResource,
   ReviewerResource,
   ReviewResource,
+  ReviewReviewDiffRequest,
   UpdateReviewCommentRequest,
   UpdateReviewDiffRequest,
   UpdateReviewRequest,
@@ -23,6 +24,7 @@ import {
   rejectReviewDiff,
   removeReviewer,
   resolveReviewComment,
+  reviewReviewDiff,
   updateDiff,
   updateReview,
   updateReviewComment,
@@ -260,6 +262,23 @@ export async function createReviewCommentsAction(
     request,
   );
   if (!result) return { error: "createReviewComments call failed" };
+  refresh();
+  return { review: result };
+}
+
+export type ReviewReviewDiffActionResult =
+  | { review: ReviewResource }
+  | { error: string };
+
+export async function reviewReviewDiffAction(
+  owner: string,
+  repo: string,
+  number: number,
+  position: number,
+  request: ReviewReviewDiffRequest,
+): Promise<ReviewReviewDiffActionResult> {
+  const result = await reviewReviewDiff(owner, repo, number, position, request);
+  if (!result) return { error: "reviewReviewDiff call failed" };
   refresh();
   return { review: result };
 }

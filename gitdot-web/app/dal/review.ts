@@ -3,6 +3,7 @@ import "server-only";
 import type {
   CreateReviewCommentsRequest,
   PublishReviewRequest,
+  ReviewReviewDiffRequest,
   UpdateReviewCommentRequest,
   UpdateReviewDiffRequest,
   UpdateReviewRequest,
@@ -174,6 +175,21 @@ export async function rejectReviewDiff(
   const response = await authPost(
     `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/review/${number}/diff/${position}/reject`,
     {},
+  );
+
+  return await handleResponse(response, ReviewResource);
+}
+
+export async function reviewReviewDiff(
+  owner: string,
+  repo: string,
+  number: number,
+  position: number,
+  request: ReviewReviewDiffRequest,
+): Promise<ReviewResource | null> {
+  const response = await authPost(
+    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/review/${number}/diff/${position}/review`,
+    request,
   );
 
   return await handleResponse(response, ReviewResource);

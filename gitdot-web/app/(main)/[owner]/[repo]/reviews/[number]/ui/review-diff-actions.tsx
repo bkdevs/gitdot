@@ -28,7 +28,9 @@ export function ReviewDiffActions({
   }
 
   if (isReviewer && review.status === "open") {
-    const userVerdict = revision?.verdicts.find((v) => v.reviewer_id === user?.id);
+    const userVerdict = revision?.verdicts.find(
+      (v) => v.reviewer_id === user?.id,
+    );
     return (
       <ReviewerActions
         approved={userVerdict?.verdict === "approved"}

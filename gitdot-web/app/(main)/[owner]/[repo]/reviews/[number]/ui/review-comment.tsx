@@ -113,9 +113,7 @@ function DraftComment({ comment, isActive, name }: CommentProps) {
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
-        <div
-          className="group flex flex-col py-0.5"
-        >
+        <div className="group flex flex-col py-0.5">
           <div className="flex gap-1.5">
             <div className="pt-0.5">
               <UserImage userId={comment.author_id} px={18} />
@@ -273,9 +271,7 @@ function ReviewerComment({ comment, name }: CommentProps) {
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
-        <div
-          className="group flex flex-col py-0.5"
-        >
+        <div className="group flex flex-col py-0.5">
           <div className="flex gap-1.5">
             <div className="pt-0.5">
               <UserImage userId={comment.author_id} px={18} />

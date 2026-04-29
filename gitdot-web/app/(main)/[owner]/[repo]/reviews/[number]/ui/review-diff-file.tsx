@@ -105,7 +105,10 @@ export function ReviewDiffFile({
         </ContextMenu>
       </div>
       <ReviewDiffFileBubbles side="old" bubblePositions={bubblePositionsLeft} />
-      <ReviewDiffFileBubbles side="new" bubblePositions={bubblePositionsRight} />
+      <ReviewDiffFileBubbles
+        side="new"
+        bubblePositions={bubblePositionsRight}
+      />
       <ReviewDiffFileDialog
         diff={diffFile}
         spans={diffSpans}

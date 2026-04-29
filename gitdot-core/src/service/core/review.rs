@@ -4,12 +4,12 @@ use crate::{
     client::{DiffClient, DifftClient, Git2Client, GitClient},
     dto::{
         AddReviewReviewerReqeuest, ApproveReviewDiffRequest, CreateReviewCommentsRequest,
-        RejectReviewDiffRequest,
         GetReviewDiffRequest, GetReviewRequest, ListReviewsRequest, MergeReviewDiffRequest,
         MergeReviewRequest, ProcessReviewRequest, PublishReviewDiffRequest, PublishReviewRequest,
-        RemoveReviewReviewerRequest, ResolveReviewCommentRequest,
-        ReviewCommentResponse, ReviewDiffResponse, ReviewResponse, ReviewerResponse, ReviewsResponse,
-        UpdateReviewCommentRequest, UpdateReviewDiffRequest, UpdateReviewRequest,
+        RejectReviewDiffRequest, RemoveReviewReviewerRequest, ResolveReviewCommentRequest,
+        ReviewAction, ReviewCommentResponse, ReviewDiffResponse, ReviewResponse,
+        ReviewReviewDiffRequest, ReviewerResponse, ReviewsResponse, UpdateReviewCommentRequest,
+        UpdateReviewDiffRequest, UpdateReviewRequest,
     },
     error::{ConflictError, InputError, NotFoundError, OptionNotFoundExt, ReviewError},
     model::{DiffStatus, Review, ReviewStatus, Verdict},
@@ -143,6 +143,11 @@ pub trait ReviewService: Send + Sync + 'static {
     async fn reject_review_diff(
         &self,
         request: RejectReviewDiffRequest,
+    ) -> Result<ReviewResponse, ReviewError>;
+
+    async fn review_review_diff(
+        &self,
+        request: ReviewReviewDiffRequest,
     ) -> Result<ReviewResponse, ReviewError>;
 }
 
@@ -1021,8 +1026,15 @@ where
 
         let review = self.get_review_by_id(owner, repo, request.number).await?;
 
-        let reviewers = review.reviewers.as_ref().map(|r| r.as_slice()).unwrap_or(&[]);
-        if !reviewers.iter().any(|r| r.reviewer_id == request.reviewer_id) {
+        let reviewers = review
+            .reviewers
+            .as_ref()
+            .map(|r| r.as_slice())
+            .unwrap_or(&[]);
+        if !reviewers
+            .iter()
+            .any(|r| r.reviewer_id == request.reviewer_id)
+        {
             return Err(ReviewError::CannotApproveOwnDiff);
         }
 
@@ -1059,8 +1071,15 @@ where
 
         let review = self.get_review_by_id(owner, repo, request.number).await?;
 
-        let reviewers = review.reviewers.as_ref().map(|r| r.as_slice()).unwrap_or(&[]);
-        if !reviewers.iter().any(|r| r.reviewer_id == request.reviewer_id) {
+        let reviewers = review
+            .reviewers
+            .as_ref()
+            .map(|r| r.as_slice())
+            .unwrap_or(&[]);
+        if !reviewers
+            .iter()
+            .any(|r| r.reviewer_id == request.reviewer_id)
+        {
             return Err(ReviewError::CannotRejectOwnDiff);
         }
 
@@ -1078,6 +1097,83 @@ where
         self.review_repo
             .create_verdict(diff.id, revision.id, request.reviewer_id, Verdict::Rejected)
             .await?;
+
+        self.review_repo
+            .update_review(review.id, None, None, None)
+            .await?;
+
+        let updated = self.get_review_by_id(owner, repo, request.number).await?;
+
+        Ok(updated.into())
+    }
+
+    async fn review_review_diff(
+        &self,
+        request: ReviewReviewDiffRequest,
+    ) -> Result<ReviewResponse, ReviewError> {
+        let owner = request.owner.as_ref();
+        let repo = request.repo.as_ref();
+
+        let review = self.get_review_by_id(owner, repo, request.number).await?;
+
+        let reviewers = review
+            .reviewers
+            .as_ref()
+            .map(|r| r.as_slice())
+            .unwrap_or(&[]);
+        if !reviewers
+            .iter()
+            .any(|r| r.reviewer_id == request.reviewer_id)
+        {
+            return Err(ReviewError::CannotApproveOwnDiff);
+        }
+
+        let diffs = review.diffs.as_ref().map(|d| d.as_slice()).unwrap_or(&[]);
+        let diff = diffs
+            .iter()
+            .find(|d| d.position == request.position)
+            .or_not_found("diff", format!("position {}", request.position))?;
+
+        match request.action {
+            ReviewAction::Approve => {
+                let revisions = diff.revisions.as_ref().map(|r| r.as_slice()).unwrap_or(&[]);
+                let revision = revisions
+                    .first()
+                    .or_not_found("revision", format!("diff at position {}", request.position))?;
+                self.review_repo
+                    .create_verdict(diff.id, revision.id, request.reviewer_id, Verdict::Approved)
+                    .await?;
+            }
+            ReviewAction::Reject => {
+                let revisions = diff.revisions.as_ref().map(|r| r.as_slice()).unwrap_or(&[]);
+                let revision = revisions
+                    .first()
+                    .or_not_found("revision", format!("diff at position {}", request.position))?;
+                self.review_repo
+                    .create_verdict(diff.id, revision.id, request.reviewer_id, Verdict::Rejected)
+                    .await?;
+            }
+            ReviewAction::Comment => {}
+        }
+
+        for comment in request.comments {
+            self.review_repo
+                .create_comment(
+                    review.id,
+                    diff.id,
+                    comment.revision_id,
+                    request.reviewer_id,
+                    &comment.body,
+                    comment.parent_id,
+                    comment.file_path,
+                    comment.line_number_start,
+                    comment.line_number_end,
+                    comment.start_character,
+                    comment.end_character,
+                    comment.side,
+                )
+                .await?;
+        }
 
         self.review_repo
             .update_review(review.id, None, None, None)

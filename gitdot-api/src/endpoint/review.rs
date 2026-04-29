@@ -11,6 +11,7 @@ pub mod publish_review_diff;
 pub mod reject_review_diff;
 pub mod remove_review_reviewer;
 pub mod resolve_review_comment;
+pub mod review_review_diff;
 pub mod update_review;
 pub mod update_review_comment;
 pub mod update_review_diff;

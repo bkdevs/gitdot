@@ -10,29 +10,29 @@ import { useSearchParams } from "next/navigation";
 import { createContext, useContext, useMemo, useState } from "react";
 import { toast } from "@/(main)/context/toaster";
 import { useUserContext } from "@/(main)/context/user";
-import { pluralize } from "@/util";
 import {
   type AddReviewerActionResult,
-  addReviewerAction,
   type ApproveReviewDiffActionResult,
+  addReviewerAction,
   approveReviewDiffAction,
   type CreateReviewCommentsActionResult,
   createReviewCommentsAction,
   type MergeReviewActionResult,
   mergeReviewAction,
   type PublishReviewActionResult,
-  publishReviewAction,
   type PublishReviewDiffActionResult,
+  publishReviewAction,
   publishReviewDiffAction,
   type RejectReviewDiffActionResult,
-  rejectReviewDiffAction,
   type RemoveReviewerActionResult,
+  rejectReviewDiffAction,
   removeReviewerAction,
   type UpdateReviewActionResult,
-  updateReviewAction,
   type UpdateReviewCommentActionResult,
+  updateReviewAction,
   updateReviewCommentAction,
 } from "@/actions/review";
+import { pluralize } from "@/util";
 
 export type CreateReviewCommentActionResult =
   | { comment: ReviewCommentResource }
@@ -87,7 +87,10 @@ type ReviewContext = {
   ) => Promise<CreateReviewCommentActionResult>;
   deleteDraftComment: (id: string) => void;
   updateDraftComment: (id: string, body: string) => void;
-  updateComment: (id: string, body: string) => Promise<UpdateReviewCommentActionResult>;
+  updateComment: (
+    id: string,
+    body: string,
+  ) => Promise<UpdateReviewCommentActionResult>;
   updateReview: (request: {
     title?: string;
     description?: string;
@@ -149,14 +152,24 @@ export function ReviewProvider({
   }
 
   async function publishActiveDiff(): Promise<PublishReviewDiffActionResult> {
-    const result = await publishReviewDiffAction(owner, repo, review.number, activeDiff.position);
+    const result = await publishReviewDiffAction(
+      owner,
+      repo,
+      review.number,
+      activeDiff.position,
+    );
     if ("error" in result) return result;
     setReview(result.review);
     return result;
   }
 
   async function approveActiveDiff(): Promise<ApproveReviewDiffActionResult> {
-    const result = await approveReviewDiffAction(owner, repo, review.number, activeDiff.position);
+    const result = await approveReviewDiffAction(
+      owner,
+      repo,
+      review.number,
+      activeDiff.position,
+    );
     if ("error" in result) return result;
     setReview(result.review);
     toast.success("Diff approved");
@@ -164,7 +177,12 @@ export function ReviewProvider({
   }
 
   async function rejectActiveDiff(): Promise<RejectReviewDiffActionResult> {
-    const result = await rejectReviewDiffAction(owner, repo, review.number, activeDiff.position);
+    const result = await rejectReviewDiffAction(
+      owner,
+      repo,
+      review.number,
+      activeDiff.position,
+    );
     if ("error" in result) return result;
     setReview(result.review);
     return result;
@@ -280,7 +298,13 @@ export function ReviewProvider({
     id: string,
     body: string,
   ): Promise<UpdateReviewCommentActionResult> {
-    const result = await updateReviewCommentAction(owner, repo, review.number, id, { body });
+    const result = await updateReviewCommentAction(
+      owner,
+      repo,
+      review.number,
+      id,
+      { body },
+    );
     if ("error" in result) return result;
     setReview((r) => ({
       ...r,
