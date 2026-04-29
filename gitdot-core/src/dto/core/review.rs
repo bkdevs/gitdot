@@ -3,7 +3,6 @@ mod create_review_comments;
 mod get_review;
 mod get_review_diff;
 mod list_reviews;
-mod merge_review;
 mod merge_review_diff;
 mod process_review;
 mod publish_review;
@@ -30,7 +29,6 @@ pub use create_review_comments::{CreateReviewCommentsRequest, ReviewCommentInput
 pub use get_review::GetReviewRequest;
 pub use get_review_diff::GetReviewDiffRequest;
 pub use list_reviews::ListReviewsRequest;
-pub use merge_review::MergeReviewRequest;
 pub use merge_review_diff::MergeReviewDiffRequest;
 pub use process_review::ProcessReviewRequest;
 pub use publish_review::PublishReviewRequest;

@@ -3,7 +3,6 @@ mod create_review_comments;
 mod get_review;
 mod get_review_diff;
 mod list_reviews;
-mod merge_review;
 mod merge_review_diff;
 mod publish_review;
 mod publish_review_diff;
@@ -25,7 +24,6 @@ use create_review_comments::create_review_comments;
 use get_review::get_review;
 use get_review_diff::get_review_diff;
 use list_reviews::list_reviews;
-use merge_review::merge_review;
 use merge_review_diff::merge_review_diff;
 use publish_review::publish_review;
 use publish_review_diff::publish_review_diff;
@@ -58,10 +56,6 @@ pub fn create_review_router() -> Router<AppState> {
         .route(
             "/repository/{owner}/{repo}/review/{number}/diff/{position}",
             get(get_review_diff).patch(update_review_diff),
-        )
-        .route(
-            "/repository/{owner}/{repo}/review/{number}/merge",
-            post(merge_review),
         )
         .route(
             "/repository/{owner}/{repo}/review/{number}/diff/{position}/merge",

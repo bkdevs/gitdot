@@ -1,6 +1,6 @@
 "use client";
 
-import { Ellipsis, GitMerge, Send } from "lucide-react";
+import { Ellipsis, Send } from "lucide-react";
 import { useState } from "react";
 import { useTypewriter } from "@/hooks/use-typewriter";
 import { pluralize, timeAgo } from "@/util";
@@ -64,9 +64,7 @@ function ReviewDraftActions() {
 }
 
 function ReviewOpenActions() {
-  const { diffs, reviewers, mergeReview } = useReviewContext();
-  const [pending, setPending] = useState(false);
-  const loadingText = useTypewriter(pending ? "merging..." : "", 40);
+  const { diffs, reviewers } = useReviewContext();
 
   const pendingDiffs = diffs.filter((diff) => {
     const latest = diff.revisions.reduce(
@@ -82,27 +80,12 @@ function ReviewOpenActions() {
 
   return (
     <div className="shrink-0 flex border-t border-border">
-      <button
-        type="button"
-        disabled={!mergeable || pending}
-        onClick={async () => {
-          setPending(true);
-          await mergeReview();
-          setPending(false);
-        }}
-        className="flex shrink-0 w-22 h-8 items-center justify-center gap-1.5 px-3 text-xs text-primary-foreground bg-primary outline-none disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        <GitMerge className="size-3.5" />
-        Merge
-      </button>
-      <div className="flex-1 h-8 flex items-center pl-2 border-l border-border">
+      <div className="flex-1 h-8 flex items-center pl-3 border-l border-border">
         <div className="flex flex-col justify-center">
           <span className="text-xs text-muted-foreground font-mono leading-none">
-            {pending && loadingText
-              ? loadingText
-              : mergeable
-                ? "ready to merge"
-                : `${pluralize(pendingCount, "diff")} pending approval`}
+            {mergeable
+              ? "ready to merge"
+              : `${pluralize(pendingCount, "diff")} pending approval`}
           </span>
           <span className="text-[10px] text-muted-foreground/60 font-mono leading-none">
             {pluralize(diffs.length, "diff")}

@@ -3,7 +3,6 @@ export * from "./create-review-comments";
 export * from "./get-review";
 export * from "./get-review-diff";
 export * from "./list-reviews";
-export * from "./merge-review";
 export * from "./merge-review-diff";
 export * from "./publish-review";
 export * from "./remove-review-reviewer";

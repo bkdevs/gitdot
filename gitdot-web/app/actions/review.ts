@@ -17,7 +17,6 @@ import {
   addReviewer,
   createReviewComments,
   mergeDiff,
-  mergeReview,
   publishReview,
   publishReviewDiff,
   removeReviewer,
@@ -124,24 +123,6 @@ export async function publishReviewAction(
   const result = await publishReview(owner, repo, number, request);
   if (!result) {
     return { error: "publishReview call failed" };
-  }
-
-  refresh();
-  return { review: result };
-}
-
-export type MergeReviewActionResult =
-  | { review: ReviewResource }
-  | { error: string };
-
-export async function mergeReviewAction(
-  owner: string,
-  repo: string,
-  number: number,
-): Promise<MergeReviewActionResult> {
-  const result = await mergeReview(owner, repo, number);
-  if (!result) {
-    return { error: "mergeReview call failed" };
   }
 
   refresh();

@@ -15,8 +15,6 @@ import {
   addReviewerAction,
   type CreateReviewCommentsActionResult,
   createReviewCommentsAction,
-  type MergeReviewActionResult,
-  mergeReviewAction,
   type PublishReviewActionResult,
   type PublishReviewDiffActionResult,
   publishReviewAction,
@@ -37,7 +35,6 @@ export type CreateReviewCommentActionResult =
 export type {
   AddReviewerActionResult,
   CreateReviewCommentsActionResult,
-  MergeReviewActionResult,
   PublishReviewActionResult,
   PublishReviewDiffActionResult,
   RemoveReviewerActionResult,
@@ -70,7 +67,6 @@ type ReviewContext = {
 
   publishReview: () => Promise<PublishReviewActionResult>;
   publishActiveDiff: () => Promise<PublishReviewDiffActionResult>;
-  mergeReview: () => Promise<MergeReviewActionResult>;
   discardReview: () => Promise<{ success: true } | { error: string }>;
   addReviewer: (userName: string) => Promise<AddReviewerActionResult>;
   removeReviewer: (reviewerName: string) => Promise<RemoveReviewerActionResult>;
@@ -150,16 +146,6 @@ export function ReviewProvider({
       review.number,
       activeDiff.position,
     );
-    if ("error" in result) return result;
-    setReview(result.review);
-    return result;
-  }
-
-  async function mergeReview(): Promise<MergeReviewActionResult> {
-    const [result] = await Promise.all([
-      mergeReviewAction(owner, repo, review.number),
-      new Promise((r) => setTimeout(r, 1200)),
-    ]);
     if ("error" in result) return result;
     setReview(result.review);
     return result;
@@ -331,7 +317,6 @@ export function ReviewProvider({
 
         publishReview,
         publishActiveDiff,
-        mergeReview,
         discardReview,
         addReviewer,
         removeReviewer,

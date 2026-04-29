@@ -4,7 +4,7 @@ use crate::{
     client::{DiffClient, DifftClient, Git2Client, GitClient},
     dto::{
         AddReviewReviewerReqeuest, CreateReviewCommentsRequest, GetReviewDiffRequest,
-        GetReviewRequest, ListReviewsRequest, MergeReviewDiffRequest, MergeReviewRequest,
+        GetReviewRequest, ListReviewsRequest, MergeReviewDiffRequest,
         ProcessReviewRequest, PublishReviewDiffRequest, PublishReviewRequest,
         RemoveReviewReviewerRequest, ResolveReviewCommentRequest,
         ReviewAction, ReviewCommentResponse, ReviewDiffResponse, ReviewResponse,
@@ -103,11 +103,6 @@ pub trait ReviewService: Send + Sync + 'static {
     async fn merge_review_diff(
         &self,
         request: MergeReviewDiffRequest,
-    ) -> Result<ReviewResponse, ReviewError>;
-
-    async fn merge_review(
-        &self,
-        request: MergeReviewRequest,
     ) -> Result<ReviewResponse, ReviewError>;
 
     async fn add_review_reviewer(
@@ -796,27 +791,6 @@ where
         let updated = self.get_review_by_id(owner, repo, request.number).await?;
 
         Ok(updated.into())
-    }
-
-    async fn merge_review(
-        &self,
-        request: MergeReviewRequest,
-    ) -> Result<ReviewResponse, ReviewError> {
-        let owner = request.owner.as_ref();
-        let repo = request.repo.as_ref();
-
-        let review = self.get_review_by_id(owner, repo, request.number).await?;
-        let diffs = review.diffs.unwrap_or_default();
-
-        let last_position = diffs.iter().map(|d| d.position).max().ok_or_else(|| {
-            NotFoundError::new(
-                "diff",
-                format!("{}/{}/review/{} has no diffs", owner, repo, request.number),
-            )
-        })?;
-
-        let diff_request = MergeReviewDiffRequest::new(owner, repo, request.number, last_position)?;
-        self.merge_review_diff(diff_request).await
     }
 
     async fn update_review_diff(

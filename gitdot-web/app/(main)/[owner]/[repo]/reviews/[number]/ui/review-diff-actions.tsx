@@ -30,9 +30,6 @@ export function ReviewDiffActions({
   }
 
   if (isReviewer && review.status === "open") {
-    const userVerdict = revision?.verdicts.find(
-      (v) => v.reviewer_id === user?.id,
-    );
     return <ReviewerActions draftCount={draftCount} />;
   }
 
