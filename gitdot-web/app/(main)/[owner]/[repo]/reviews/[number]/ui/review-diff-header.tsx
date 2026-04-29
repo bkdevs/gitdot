@@ -17,7 +17,7 @@ export function ReviewDiffHeader({
   position: number;
 }) {
   const pathname = usePathname();
-  const { review, draftComments } = useReviewContext();
+  const { review } = useReviewContext();
   const publishedComments = review.comments;
   const activeIndex = diffs.findIndex((d) => d.position === position);
 
@@ -26,9 +26,6 @@ export function ReviewDiffHeader({
       {diffs.map((diff, i) => {
         const isActive = i === activeIndex;
         const commentCount = publishedComments.filter(
-          (c) => c.diff_id === diff.id,
-        ).length;
-        const draftCount = draftComments.filter(
           (c) => c.diff_id === diff.id,
         ).length;
         return (
