@@ -50,7 +50,7 @@ function ReviewDiffFileBubble({
     <div
       id={`comment-${thread.comments[0].id}`}
       className={cn(
-        "absolute z-50 flex flex-row items-center gap-1.5 px-2 py-0.5 bg-background border border-border rounded-full animate-in fade-in duration-200 hover:bg-accent select-none",
+        "absolute z-[5] flex flex-row items-center gap-1.5 px-2 py-0.5 bg-background border border-border rounded-full animate-in fade-in duration-200 hover:bg-accent select-none",
         side === "old" ? "right-full mr-2" : "left-full ml-2",
         isActive && "bg-accent",
       )}

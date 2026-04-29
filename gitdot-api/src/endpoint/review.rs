@@ -1,5 +1,4 @@
 pub mod add_review_reviewer;
-pub mod approve_review_diff;
 pub mod create_review_comments;
 pub mod get_review;
 pub mod get_review_diff;
@@ -8,7 +7,6 @@ pub mod merge_review;
 pub mod merge_review_diff;
 pub mod publish_review;
 pub mod publish_review_diff;
-pub mod reject_review_diff;
 pub mod remove_review_reviewer;
 pub mod resolve_review_comment;
 pub mod review_review_diff;

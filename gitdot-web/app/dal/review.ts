@@ -152,34 +152,6 @@ export async function publishReviewDiff(
   return await handleResponse(response, ReviewResource);
 }
 
-export async function approveReviewDiff(
-  owner: string,
-  repo: string,
-  number: number,
-  position: number,
-): Promise<ReviewResource | null> {
-  const response = await authPost(
-    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/review/${number}/diff/${position}/approve`,
-    {},
-  );
-
-  return await handleResponse(response, ReviewResource);
-}
-
-export async function rejectReviewDiff(
-  owner: string,
-  repo: string,
-  number: number,
-  position: number,
-): Promise<ReviewResource | null> {
-  const response = await authPost(
-    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/review/${number}/diff/${position}/reject`,
-    {},
-  );
-
-  return await handleResponse(response, ReviewResource);
-}
-
 export async function reviewReviewDiff(
   owner: string,
   repo: string,

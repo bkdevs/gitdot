@@ -1,5 +1,4 @@
 mod add_review_reviewer;
-mod approve_review_diff;
 mod create_review_comments;
 mod get_review;
 mod get_review_diff;
@@ -9,7 +8,6 @@ mod merge_review_diff;
 mod process_review;
 mod publish_review;
 mod publish_review_diff;
-mod reject_review_diff;
 mod remove_review_reviewer;
 mod resolve_review_comment;
 mod review_review_diff;
@@ -28,7 +26,6 @@ use crate::model::{
 use super::RepositoryDiffFileResponse;
 
 pub use add_review_reviewer::AddReviewReviewerReqeuest;
-pub use approve_review_diff::ApproveReviewDiffRequest;
 pub use create_review_comments::{CreateReviewCommentsRequest, ReviewCommentInput};
 pub use get_review::GetReviewRequest;
 pub use get_review_diff::GetReviewDiffRequest;
@@ -38,7 +35,6 @@ pub use merge_review_diff::MergeReviewDiffRequest;
 pub use process_review::ProcessReviewRequest;
 pub use publish_review::PublishReviewRequest;
 pub use publish_review_diff::PublishReviewDiffRequest;
-pub use reject_review_diff::RejectReviewDiffRequest;
 pub use remove_review_reviewer::RemoveReviewReviewerRequest;
 pub use resolve_review_comment::ResolveReviewCommentRequest;
 pub use review_review_diff::{ReviewAction, ReviewReviewDiffRequest};

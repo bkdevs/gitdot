@@ -1,5 +1,4 @@
 mod add_review_reviewer;
-mod approve_review_diff;
 mod create_review_comments;
 mod get_review;
 mod get_review_diff;
@@ -8,7 +7,6 @@ mod merge_review;
 mod merge_review_diff;
 mod publish_review;
 mod publish_review_diff;
-mod reject_review_diff;
 mod remove_review_reviewer;
 mod resolve_review_comment;
 mod review_review_diff;
@@ -23,7 +21,6 @@ use axum::{
 };
 
 use add_review_reviewer::add_review_reviewer;
-use approve_review_diff::approve_review_diff;
 use create_review_comments::create_review_comments;
 use get_review::get_review;
 use get_review_diff::get_review_diff;
@@ -32,7 +29,6 @@ use merge_review::merge_review;
 use merge_review_diff::merge_review_diff;
 use publish_review::publish_review;
 use publish_review_diff::publish_review_diff;
-use reject_review_diff::reject_review_diff;
 use remove_review_reviewer::remove_review_reviewer;
 use resolve_review_comment::resolve_review_comment;
 use review_review_diff::review_review_diff;
@@ -74,14 +70,6 @@ pub fn create_review_router() -> Router<AppState> {
         .route(
             "/repository/{owner}/{repo}/review/{number}/diff/{position}/publish",
             post(publish_review_diff),
-        )
-        .route(
-            "/repository/{owner}/{repo}/review/{number}/diff/{position}/approve",
-            post(approve_review_diff),
-        )
-        .route(
-            "/repository/{owner}/{repo}/review/{number}/diff/{position}/reject",
-            post(reject_review_diff),
         )
         .route(
             "/repository/{owner}/{repo}/review/{number}/diff/{position}/review",

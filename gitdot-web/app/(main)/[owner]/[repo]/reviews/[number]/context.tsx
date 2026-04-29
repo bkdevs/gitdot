@@ -12,9 +12,7 @@ import { toast } from "@/(main)/context/toaster";
 import { useUserContext } from "@/(main)/context/user";
 import {
   type AddReviewerActionResult,
-  type ApproveReviewDiffActionResult,
   addReviewerAction,
-  approveReviewDiffAction,
   type CreateReviewCommentsActionResult,
   createReviewCommentsAction,
   type MergeReviewActionResult,
@@ -23,9 +21,7 @@ import {
   type PublishReviewDiffActionResult,
   publishReviewAction,
   publishReviewDiffAction,
-  type RejectReviewDiffActionResult,
   type RemoveReviewerActionResult,
-  rejectReviewDiffAction,
   removeReviewerAction,
   type UpdateReviewActionResult,
   type UpdateReviewCommentActionResult,
@@ -40,12 +36,10 @@ export type CreateReviewCommentActionResult =
 
 export type {
   AddReviewerActionResult,
-  ApproveReviewDiffActionResult,
   CreateReviewCommentsActionResult,
   MergeReviewActionResult,
   PublishReviewActionResult,
   PublishReviewDiffActionResult,
-  RejectReviewDiffActionResult,
   RemoveReviewerActionResult,
   UpdateReviewActionResult,
 };
@@ -76,8 +70,6 @@ type ReviewContext = {
 
   publishReview: () => Promise<PublishReviewActionResult>;
   publishActiveDiff: () => Promise<PublishReviewDiffActionResult>;
-  approveActiveDiff: () => Promise<ApproveReviewDiffActionResult>;
-  rejectActiveDiff: () => Promise<RejectReviewDiffActionResult>;
   mergeReview: () => Promise<MergeReviewActionResult>;
   discardReview: () => Promise<{ success: true } | { error: string }>;
   addReviewer: (userName: string) => Promise<AddReviewerActionResult>;
@@ -153,31 +145,6 @@ export function ReviewProvider({
 
   async function publishActiveDiff(): Promise<PublishReviewDiffActionResult> {
     const result = await publishReviewDiffAction(
-      owner,
-      repo,
-      review.number,
-      activeDiff.position,
-    );
-    if ("error" in result) return result;
-    setReview(result.review);
-    return result;
-  }
-
-  async function approveActiveDiff(): Promise<ApproveReviewDiffActionResult> {
-    const result = await approveReviewDiffAction(
-      owner,
-      repo,
-      review.number,
-      activeDiff.position,
-    );
-    if ("error" in result) return result;
-    setReview(result.review);
-    toast.success("Diff approved");
-    return result;
-  }
-
-  async function rejectActiveDiff(): Promise<RejectReviewDiffActionResult> {
-    const result = await rejectReviewDiffAction(
       owner,
       repo,
       review.number,
@@ -364,8 +331,6 @@ export function ReviewProvider({
 
         publishReview,
         publishActiveDiff,
-        approveActiveDiff,
-        rejectActiveDiff,
         mergeReview,
         discardReview,
         addReviewer,

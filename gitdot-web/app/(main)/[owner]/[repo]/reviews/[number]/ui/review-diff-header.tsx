@@ -54,14 +54,6 @@ export function ReviewDiffHeader({
             <span className="text-xs flex-1 truncate">
               {diff.message.split("\n")[0]}
             </span>
-            {draftCount > 0 && (
-              <span className="text-xs shrink-0 text-muted-foreground">
-                {pluralize(draftCount, "draft")}
-              </span>
-            )}
-            {draftCount > 0 && commentCount > 0 && (
-              <span className="text-xs shrink-0 text-muted-foreground">·</span>
-            )}
             <span className="text-xs shrink-0 text-muted-foreground w-18 text-left">
               {commentCount > 0 ? pluralize(commentCount, "comment") : null}
             </span>
