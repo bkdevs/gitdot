@@ -4,7 +4,6 @@ import type { DiffStatus, ReviewDiffResource, ReviewStatus } from "gitdot-api";
 import { usePathname } from "next/navigation";
 import Link from "@/ui/link";
 import { cn } from "@/util";
-import { pluralize } from "@/util/string";
 import { useReviewContext } from "../context";
 
 type DisplayDiffStatus = "open" | "approved" | "merged";
@@ -18,16 +17,12 @@ export function ReviewDiffHeader({
 }) {
   const pathname = usePathname();
   const { review } = useReviewContext();
-  const publishedComments = review.comments;
   const activeIndex = diffs.findIndex((d) => d.position === position);
 
   return (
     <>
       {diffs.map((diff, i) => {
         const isActive = i === activeIndex;
-        const commentCount = publishedComments.filter(
-          (c) => c.diff_id === diff.id,
-        ).length;
         return (
           <Link
             key={diff.id}
@@ -51,9 +46,6 @@ export function ReviewDiffHeader({
             <span className="text-xs flex-1 truncate">
               {diff.message.split("\n")[0]}
             </span>
-            <span className="text-xs shrink-0 text-muted-foreground w-18 text-left">
-              {commentCount > 0 ? pluralize(commentCount, "comment") : null}
-            </span>
             <ReviewDiffStatus
               status={readableDiffStatus(diff.status, review.status)}
             />
@@ -67,20 +59,12 @@ export function ReviewDiffHeader({
 function ReviewDiffStatus({ status }: { status: DisplayDiffStatus }) {
   switch (status) {
     case "approved":
-      return (
-        <span className="text-xs shrink-0 text-green-600 w-12 text-left">
-          approved
-        </span>
-      );
+      return <span className="text-xs shrink-0 text-green-600">approved</span>;
     case "open":
-      return (
-        <span className="text-xs shrink-0 text-foreground w-12 text-left">
-          open
-        </span>
-      );
+      return <span className="text-xs shrink-0 text-foreground">open</span>;
     case "merged":
       return (
-        <span className="text-xs shrink-0 text-muted-foreground underline w-12 text-left">
+        <span className="text-xs shrink-0 text-muted-foreground underline">
           merged
         </span>
       );

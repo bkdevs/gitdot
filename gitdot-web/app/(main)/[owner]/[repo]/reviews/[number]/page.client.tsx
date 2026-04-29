@@ -14,7 +14,6 @@ import { ReviewProvider, useReviewContext } from "./context";
 import type { Resources } from "./page";
 import { ReviewActions } from "./ui/review-actions";
 import { ReviewDiff } from "./ui/review-diff";
-import { ReviewLayoutToggles } from "./ui/review-layout-toggles";
 import { ReviewSummary } from "./ui/review-summary";
 
 type ResourceRequests = ResourceRequestsType<Resources>;
@@ -154,9 +153,6 @@ function ReviewPage({
           review={review}
           diffEntriesPromise={diffEntriesPromise}
         />
-      </div>
-      <div className="absolute bottom-0 right-0 z-10">
-        <ReviewLayoutToggles layout={layout} setLayout={setLayout} />
       </div>
     </div>
   );
