@@ -7,6 +7,7 @@ mod image;
 mod r2;
 mod s2;
 mod secret;
+mod slack_bot;
 mod token;
 
 pub use diff::{DiffClient, DifftClient};
@@ -18,4 +19,5 @@ pub use image::{ImageClient, ImageClientImpl};
 pub use r2::{R2Client, R2ClientImpl};
 pub use s2::{S2Client, S2ClientImpl};
 pub use secret::{GoogleSecretClient, SecretClient};
+pub use slack_bot::{SlackBotClient, SlackBotClientImpl};
 pub use token::{TokenClient, TokenClientImpl};

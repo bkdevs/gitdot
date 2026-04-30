@@ -5,6 +5,7 @@ mod github;
 mod image;
 mod r2;
 mod secret;
+mod slack_bot;
 mod token;
 
 pub use diff::DiffError;
@@ -14,4 +15,5 @@ pub use github::GitHubError;
 pub use image::ImageError;
 pub use r2::R2Error;
 pub use secret::SecretError;
+pub use slack_bot::SlackBotError;
 pub use token::TokenError;

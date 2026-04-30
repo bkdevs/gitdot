@@ -2598,6 +2598,7 @@ dependencies = [
  "nutype",
  "octocrab",
  "rand 0.10.0",
+ "reqwest 0.13.2",
  "resend-rs",
  "resvg",
  "s2-sdk",
