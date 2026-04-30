@@ -93,7 +93,17 @@ type ReviewContext = {
   publishActiveDiffComments: () => Promise<CreateReviewCommentsActionResult>;
   reviewActiveDiff: (
     action: "approve" | "reject" | "comment",
-    overallComment?: string,
+    comments: {
+      revision_id: string;
+      body: string;
+      file_path?: string;
+      line_number_start?: number;
+      line_number_end?: number;
+      start_character?: number;
+      end_character?: number;
+      side?: string;
+      parent_id?: string;
+    }[],
   ) => Promise<ReviewReviewDiffActionResult>;
   mergeActiveDiff: () => Promise<MergeDiffActionResult>;
 };
@@ -277,32 +287,18 @@ export function ReviewProvider({
 
   async function reviewActiveDiff(
     action: "approve" | "reject" | "comment",
-    overallComment?: string,
+    comments: {
+      revision_id: string;
+      body: string;
+      file_path?: string;
+      line_number_start?: number;
+      line_number_end?: number;
+      start_character?: number;
+      end_character?: number;
+      side?: string;
+      parent_id?: string;
+    }[],
   ): Promise<ReviewReviewDiffActionResult> {
-    const latestRevision =
-      activeDiff.revisions[activeDiff.revisions.length - 1];
-    const comments = [
-      ...(overallComment?.trim()
-        ? [{ revision_id: latestRevision.id, body: overallComment }]
-        : []),
-      ...activeDiffDraftComments.map((c) => ({
-        revision_id: c.revision_id,
-        body: c.body,
-        ...(c.file_path != null && { file_path: c.file_path }),
-        ...(c.line_number_start != null && {
-          line_number_start: c.line_number_start,
-        }),
-        ...(c.line_number_end != null && {
-          line_number_end: c.line_number_end,
-        }),
-        ...(c.start_character != null && {
-          start_character: c.start_character,
-        }),
-        ...(c.end_character != null && { end_character: c.end_character }),
-        ...(c.side != null && { side: c.side }),
-        ...(c.parent_id != null && { parent_id: c.parent_id }),
-      })),
-    ];
     const [result] = await Promise.all([
       reviewReviewDiffAction(owner, repo, review.number, activeDiff.position, {
         action,

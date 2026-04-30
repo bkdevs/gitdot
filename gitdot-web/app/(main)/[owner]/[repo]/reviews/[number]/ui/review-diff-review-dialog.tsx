@@ -3,7 +3,7 @@
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import type { ReviewCommentResource } from "gitdot-api";
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useUserContext } from "@/(main)/context/user";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
 import { cn } from "@/util";
@@ -32,12 +32,53 @@ export function ReviewDiffReviewDialog({
     restrictedToComment ? "comment" : null,
   );
   const [overallComment, setOverallComment] = useState("");
+  const [localComments, setLocalComments] = useState<ReviewCommentResource[]>(
+    [],
+  );
   const [pending, setPending] = useState(false);
+
+  useEffect(() => {
+    if (open) setLocalComments(activeDiffDraftComments);
+  }, [open]);
+
+  function updateLocalComment(id: string, body: string) {
+    setLocalComments((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, body } : c)),
+    );
+  }
+
+  function deleteLocalComment(id: string) {
+    setLocalComments((prev) => prev.filter((c) => c.id !== id));
+  }
 
   async function handleSubmit() {
     if (!verdict) return;
+    const latestRevision =
+      activeDiff.revisions[activeDiff.revisions.length - 1];
+    const comments = [
+      ...(overallComment.trim()
+        ? [{ revision_id: latestRevision.id, body: overallComment }]
+        : []),
+      ...localComments.map((c) => ({
+        revision_id: c.revision_id,
+        body: c.body,
+        ...(c.file_path != null && { file_path: c.file_path }),
+        ...(c.line_number_start != null && {
+          line_number_start: c.line_number_start,
+        }),
+        ...(c.line_number_end != null && {
+          line_number_end: c.line_number_end,
+        }),
+        ...(c.start_character != null && {
+          start_character: c.start_character,
+        }),
+        ...(c.end_character != null && { end_character: c.end_character }),
+        ...(c.side != null && { side: c.side }),
+        ...(c.parent_id != null && { parent_id: c.parent_id }),
+      })),
+    ];
     setPending(true);
-    const result = await reviewActiveDiff(verdict, overallComment);
+    const result = await reviewActiveDiff(verdict, comments);
     setPending(false);
     if (!("error" in result)) {
       setOpen(false);
@@ -131,9 +172,13 @@ export function ReviewDiffReviewDialog({
           </div>
         </div>
 
-        {activeDiffDraftComments.length > 0 && (
+        {localComments.length > 0 && (
           <div className="border-t border-border pb-2">
-            <DraftCommentList comments={activeDiffDraftComments} />
+            <DraftCommentList
+              comments={localComments}
+              onUpdate={updateLocalComment}
+              onDelete={deleteLocalComment}
+            />
           </div>
         )}
 
@@ -161,22 +206,45 @@ export function ReviewDiffReviewDialog({
   );
 }
 
-function DraftCommentList({ comments }: { comments: ReviewCommentResource[] }) {
+function DraftCommentList({
+  comments,
+  onUpdate,
+  onDelete,
+}: {
+  comments: ReviewCommentResource[];
+  onUpdate: (id: string, body: string) => void;
+  onDelete: (id: string) => void;
+}) {
   return (
     <div className="flex flex-col">
       <span className="text-xs text-muted-foreground font-mono px-2 py-1">
         {comments.length} draft {comments.length === 1 ? "comment" : "comments"}
       </span>
-      <div className="flex flex-col gap-2 max-h-48 overflow-y-auto">
+      <div className="flex flex-col gap-4 max-h-48 overflow-y-auto pb-4">
         {comments.map((comment) => (
-          <DraftCommentPreview key={comment.id} comment={comment} />
+          <DraftCommentPreview
+            key={comment.id}
+            comment={comment}
+            onUpdate={onUpdate}
+            onDelete={onDelete}
+          />
         ))}
       </div>
     </div>
   );
 }
 
-function DraftCommentPreview({ comment }: { comment: ReviewCommentResource }) {
+function DraftCommentPreview({
+  comment,
+  onUpdate,
+  onDelete,
+}: {
+  comment: ReviewCommentResource;
+  onUpdate: (id: string, body: string) => void;
+  onDelete: (id: string) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+
   return (
     <div className="group flex gap-2 px-2.5 py-1">
       <div className="pt-0.5 shrink-0">
@@ -196,18 +264,26 @@ function DraftCommentPreview({ comment }: { comment: ReviewCommentResource }) {
             )}
           </span>
         )}
-        <span className="text-sm text-foreground line-clamp-2">
-          {comment.body}
-        </span>
+        <input
+          readOnly={!editing}
+          value={comment.body}
+          onChange={(e) => onUpdate(comment.id, e.target.value)}
+          className={cn(
+            "bg-transparent text-sm outline-none w-full border-b transition-colors duration-200",
+            editing ? "border-foreground" : "border-transparent",
+          )}
+        />
         <div className="flex items-center gap-1.5">
           <button
             type="button"
+            onClick={() => setEditing((e) => !e)}
             className="text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
           >
-            edit
+            {editing ? "cancel" : "edit"}
           </button>
           <button
             type="button"
+            onClick={() => onDelete(comment.id)}
             className="text-xs text-muted-foreground hover:text-destructive transition-colors cursor-pointer"
           >
             delete
