@@ -13,6 +13,12 @@ impl Endpoint for ReviewReviewDiff {
     type Response = ReviewReviewDiffResponse;
 }
 
+#[derive(ApiRequest, Debug, Serialize, Deserialize)]
+pub struct ReviewReviewDiffRequest {
+    pub action: String,
+    pub comments: Vec<ReviewReviewDiffCommentInput>,
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ReviewReviewDiffCommentInput {
     pub revision_id: Uuid,
@@ -24,12 +30,6 @@ pub struct ReviewReviewDiffCommentInput {
     pub start_character: Option<i32>,
     pub end_character: Option<i32>,
     pub side: Option<String>,
-}
-
-#[derive(ApiRequest, Debug, Serialize, Deserialize)]
-pub struct ReviewReviewDiffRequest {
-    pub action: String,
-    pub comments: Vec<ReviewReviewDiffCommentInput>,
 }
 
 pub type ReviewReviewDiffResponse = ReviewResource;
