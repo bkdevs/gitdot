@@ -67,7 +67,7 @@ function PublishRow() {
           {publishError && (
             <p className="px-2 pb-1 text-xs text-red-500">{publishError}</p>
           )}
-          <div className="flex items-center justify-end h-8 border-t border-border">
+          <div className="flex items-center justify-end h-7 border-t border-border">
             <button
               type="button"
               onClick={() => {
@@ -90,7 +90,8 @@ function PublishRow() {
                   setConfirming(false);
                 }
               }}
-              className={`flex items-center px-3 h-full text-xs bg-primary text-primary-foreground border-l border-primary hover:opacity-90 transition-opacity cursor-pointer ${pending ? "opacity-60" : ""}`}
+              disabled={pending}
+              className="flex items-center px-3 h-full text-xs bg-primary text-primary-foreground border-l border-primary enabled:hover:opacity-90 disabled:opacity-60 transition-opacity cursor-pointer"
             >
               {pending ? "Publishing..." : "Publish"}
             </button>

@@ -128,7 +128,7 @@ function ReviewerRow({
           {removeError && (
             <p className="px-2 pb-1 text-xs text-red-500">{removeError}</p>
           )}
-          <div className="flex items-center justify-end h-8 border-t border-border">
+          <div className="flex items-center justify-end h-7 border-t border-border">
             <button
               type="button"
               onClick={() => {

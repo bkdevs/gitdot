@@ -31,25 +31,30 @@ export function ReviewSummaryDiffs({ diffs }: { diffs: ReviewDiffResource[] }) {
               key={diff.id}
               href={`${pathname}?diff=${diff.position}`}
               className={cn(
-                "flex items-center gap-1.5 cursor-pointer transition-colors",
+                "group flex items-start gap-1.5 cursor-pointer transition-colors",
                 isActive
                   ? "text-foreground"
                   : "text-muted-foreground hover:text-foreground",
               )}
               prefetch={true}
             >
-              <span className="font-mono text-sm shrink-0 w-5 text-left">
+              <span className={cn("font-mono text-sm shrink-0 w-4 text-left", isActive && "font-medium")}>
                 {i + 1}.
               </span>
               <span
                 className={cn(
-                  "text-sm flex-1 truncate",
-                  isActive && "underline decoration-current",
+                  "text-sm flex-1 line-clamp-2 underline transition-all duration-200",
+                  isActive
+                    ? "decoration-current"
+                    : diff.status === "merged"
+                      ? "decoration-transparent"
+                      : "decoration-transparent group-hover:decoration-current",
                 )}
               >
-                {diff.message.split("\n")[0]}
+                {diff.message}
               </span>
               <DiffStatusBadge
+                className="mt-0.5"
                 status={readableDiffStatus(diff.status, review.status)}
               />
             </Link>
@@ -60,18 +65,20 @@ export function ReviewSummaryDiffs({ diffs }: { diffs: ReviewDiffResource[] }) {
   );
 }
 
-function DiffStatusBadge({ status }: { status: DisplayDiffStatus }) {
+function DiffStatusBadge({
+  status,
+  className,
+}: {
+  status: DisplayDiffStatus;
+  className?: string;
+}) {
   switch (status) {
     case "approved":
-      return <span className="text-xs shrink-0 text-green-600">approved</span>;
+      return <span className={cn("text-xs shrink-0 text-green-600", className)}>approved</span>;
     case "open":
-      return <span className="text-xs shrink-0 text-foreground">open</span>;
+      return <span className={cn("text-xs shrink-0 text-foreground", className)}>open</span>;
     case "merged":
-      return (
-        <span className="text-xs shrink-0 text-muted-foreground underline">
-          merged
-        </span>
-      );
+      return <span className={cn("text-xs shrink-0 text-green-600", className)}>merged</span>;
   }
 }
 

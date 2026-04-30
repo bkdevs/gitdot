@@ -137,7 +137,7 @@ export function ReviewDiffReviewDialog({
           </div>
         )}
 
-        <div className="flex items-center justify-between pl-2 border-t border-border h-8">
+        <div className="flex items-center justify-between pl-2 border-t border-border h-7">
           <span className="text-xs text-muted-foreground">
             Reviewing diff #{activeDiff.position}/N in{" "}
             <span className="text-foreground">
@@ -149,7 +149,7 @@ export function ReviewDiffReviewDialog({
             disabled={verdict === null || pending}
             onClick={handleSubmit}
             className={cn(
-              "px-3 h-8 text-xs bg-primary text-primary-foreground disabled:cursor-not-allowed enabled:hover:bg-primary/90 underline decoration-transparent enabled:hover:decoration-current transition-all duration-300",
+              "px-3 h-7 text-xs bg-primary text-primary-foreground disabled:cursor-not-allowed enabled:hover:bg-primary/90 underline decoration-transparent enabled:hover:decoration-current transition-all duration-300",
               (verdict === null || pending) && "opacity-50",
             )}
           >

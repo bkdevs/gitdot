@@ -15,6 +15,8 @@ import {
   addReviewerAction,
   type CreateReviewCommentsActionResult,
   createReviewCommentsAction,
+  type MergeDiffActionResult,
+  mergeDiffAction,
   type PublishReviewActionResult,
   type PublishReviewDiffActionResult,
   publishReviewAction,
@@ -37,6 +39,7 @@ export type CreateReviewCommentActionResult =
 export type {
   AddReviewerActionResult,
   CreateReviewCommentsActionResult,
+  MergeDiffActionResult,
   PublishReviewActionResult,
   PublishReviewDiffActionResult,
   RemoveReviewerActionResult,
@@ -92,6 +95,7 @@ type ReviewContext = {
     action: "approve" | "reject" | "comment",
     overallComment?: string,
   ) => Promise<ReviewReviewDiffActionResult>;
+  mergeActiveDiff: () => Promise<MergeDiffActionResult>;
 };
 
 const ReviewContext = createContext<ReviewContext | null>(null);
@@ -299,17 +303,28 @@ export function ReviewProvider({
         ...(c.parent_id != null && { parent_id: c.parent_id }),
       })),
     ];
-    const result = await reviewReviewDiffAction(
-      owner,
-      repo,
-      review.number,
-      activeDiff.position,
-      { action, comments },
-    );
+    const [result] = await Promise.all([
+      reviewReviewDiffAction(owner, repo, review.number, activeDiff.position, {
+        action,
+        comments,
+      }),
+      new Promise((r) => setTimeout(r, 1200)),
+    ]);
     if ("error" in result) return result;
     setDraftComments((prev) => prev.filter((c) => c.diff_id !== activeDiff.id));
     setReview(result.review);
-    toast.success("Review submitted");
+    toast.success(`Diff ${activeDiff.position}. reviewed`);
+    return result;
+  }
+
+  async function mergeActiveDiff(): Promise<MergeDiffActionResult> {
+    const [result] = await Promise.all([
+      mergeDiffAction(owner, repo, review.number, activeDiff.position),
+      new Promise((r) => setTimeout(r, 1200)),
+    ]);
+    if ("error" in result) return result;
+    setReview(result.review);
+    toast.success(`Diff ${activeDiff.position}. merged`);
     return result;
   }
 
@@ -375,6 +390,7 @@ export function ReviewProvider({
 
         publishActiveDiffComments,
         reviewActiveDiff,
+        mergeActiveDiff,
       }}
     >
       {children}

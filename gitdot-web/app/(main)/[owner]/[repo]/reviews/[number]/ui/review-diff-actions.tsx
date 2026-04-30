@@ -4,6 +4,7 @@ import type { DiffStatus, RevisionResource } from "gitdot-api";
 import { useState } from "react";
 import { cn } from "@/util";
 import { useReviewContext } from "../context";
+import { ReviewDiffMergeDialog } from "./review-diff-merge-dialog";
 import { ReviewDiffReviewDialog } from "./review-diff-review-dialog";
 
 export function ReviewDiffActions({
@@ -69,20 +70,25 @@ function MergeButton({
   isMerged: boolean;
   isMergeable: boolean;
 }) {
+  const [open, setOpen] = useState(false);
   return (
-    <button
-      type="button"
-      disabled={!isMergeable}
-      className={cn(
-        "text-xs font-mono px-2.5 py-1 rounded-xs border border-primary w-full bg-primary text-primary-foreground transition-all duration-200",
-        isMerged
-          ? "opacity-50 cursor-not-allowed"
-          : isMergeable
-            ? "underline decoration-transparent hover:decoration-current"
-            : "opacity-40 cursor-not-allowed",
-      )}
-    >
-      Merge
-    </button>
+    <>
+      <button
+        type="button"
+        disabled={!isMergeable}
+        onClick={() => isMergeable && setOpen(true)}
+        className={cn(
+          "text-xs font-mono px-2.5 py-1 rounded-xs border border-primary w-full bg-primary text-primary-foreground transition-all duration-200",
+          isMerged
+            ? "opacity-50 cursor-not-allowed"
+            : isMergeable
+              ? "underline decoration-transparent hover:decoration-current"
+              : "opacity-40 cursor-not-allowed",
+        )}
+      >
+        Merge
+      </button>
+      <ReviewDiffMergeDialog open={open} setOpen={setOpen} />
+    </>
   );
 }
