@@ -12,7 +12,6 @@ import { Loading } from "@/ui/loading";
 import { cn } from "@/util";
 import { ReviewProvider, useReviewContext } from "./context";
 import type { Resources } from "./page";
-import { ReviewActions } from "./ui/review-actions";
 import { ReviewDiff } from "./ui/review-diff";
 import { ReviewSummary } from "./ui/review-summary";
 
@@ -139,7 +138,6 @@ function ReviewPage({
           )}
         >
           <ReviewSummary review={review} />
-          <ReviewActions />
         </div>
       </div>
       <div
