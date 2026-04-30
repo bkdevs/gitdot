@@ -1,3 +1,5 @@
+"use client";
+
 import type { ReviewResource } from "gitdot-api";
 import { Suspense } from "react";
 import type { DiffEntry } from "@/actions";
@@ -17,9 +19,17 @@ export function ReviewDiff({
   const activeDiff = review.diffs.find((d) => d.position === position);
   if (!activeDiff) return null;
 
+  const index = review.diffs.findIndex((d) => d.position === position) + 1;
+  const latestRevision = activeDiff.revisions[activeDiff.revisions.length - 1];
+
   return (
     <div data-diff-top className="flex flex-col w-full min-h-full pb-8">
-      <ReviewDiffHeader diffs={review.diffs} position={position} />
+      <ReviewDiffHeader
+        title={activeDiff.message.split("\n")[0]}
+        index={index}
+        author={review.author ?? null}
+        status={activeDiff.status}
+      />
       <Suspense fallback={<Loading />}>
         <ReviewDiffBody
           diffEntriesPromise={diffEntriesPromise}

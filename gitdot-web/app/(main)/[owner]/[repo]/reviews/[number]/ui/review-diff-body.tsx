@@ -4,7 +4,6 @@ import type { ReviewDiffResource } from "gitdot-api";
 import { use } from "react";
 import type { DiffEntry } from "@/actions";
 import { ReviewDiffActions } from "./review-diff-actions";
-import { ReviewDiffActivity } from "./review-diff-activity";
 import { ReviewDiffFile } from "./review-diff-file";
 import { ReviewDiffMessage } from "./review-diff-message";
 import { ReviewDiffMetadata } from "./review-diff-metadata";
@@ -32,9 +31,7 @@ export function ReviewDiffBody({
           />
         </div>
       </div>
-
-      <ReviewDiffActivity />
-      <div className="mx-16 flex flex-col gap-6 py-4">
+      <div className="mx-16 flex flex-col gap-6 pt-8 pb-4">
         {entries.map((entry) => (
           <ReviewDiffFile
             key={entry.resource.path}

@@ -3,7 +3,6 @@
 import type { DiffStatus, RevisionResource } from "gitdot-api";
 import { useState } from "react";
 import { useUserContext } from "@/(main)/context/user";
-import { cn } from "@/util";
 import { useReviewContext } from "../context";
 import { ReviewDiffReviewDialog } from "./review-diff-review-dialog";
 
@@ -19,31 +18,39 @@ export function ReviewDiffActions({
   const { review, activeDiffDraftComments } = useReviewContext();
   const { user } = useUserContext();
 
-  if (status === "merged" || review.status === "closed") return null;
-
   const isAuthor = user?.id === review.author?.id;
   const isReviewer = review.reviewers.some((r) => r.user?.id === user?.id);
   const draftCount = activeDiffDraftComments.length;
 
-  if (isAuthor && review.status === "draft") {
-    return <AuthorActions draftCount={draftCount} />;
-  }
+  const canAct =
+    status !== "merged" &&
+    review.status !== "closed" &&
+    ((isAuthor && review.status === "draft") ||
+      (isReviewer && review.status === "open"));
 
-  if (isReviewer && review.status === "open") {
-    return <ReviewerActions draftCount={draftCount} />;
-  }
-
-  return null;
+  return (
+    <div className="flex flex-col gap-1 w-full">
+      <MergeButton disabled={!canAct} />
+      <ReviewButton draftCount={draftCount} disabled={!canAct} />
+    </div>
+  );
 }
 
-function ReviewButton({ draftCount }: { draftCount: number }) {
+function ReviewButton({
+  draftCount,
+  disabled,
+}: {
+  draftCount: number;
+  disabled: boolean;
+}) {
   const [open, setOpen] = useState(false);
   return (
     <>
       <button
         type="button"
-        onClick={() => setOpen(true)}
-        className="text-xs font-mono px-2.5 py-1 rounded-xs border border-border bg-background w-full underline decoration-transparent hover:decoration-current hover:bg-accent transition-all duration-200"
+        onClick={() => !disabled && setOpen(true)}
+        disabled={disabled}
+        className="text-xs font-mono px-2.5 py-1 rounded-xs border border-border bg-background w-full underline decoration-transparent hover:decoration-current hover:bg-accent transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-background disabled:hover:decoration-transparent"
       >
         {draftCount > 0 ? `Review (${draftCount})` : "Review"}
       </button>
@@ -52,32 +59,14 @@ function ReviewButton({ draftCount }: { draftCount: number }) {
   );
 }
 
-function MergeButton() {
+function MergeButton({ disabled }: { disabled: boolean }) {
   return (
     <button
       type="button"
-      disabled
+      disabled={disabled}
       className="text-xs font-mono px-2.5 py-1 rounded-xs border border-primary w-full bg-primary text-primary-foreground opacity-50 cursor-not-allowed"
     >
       Merge
     </button>
-  );
-}
-
-function AuthorActions({ draftCount }: { draftCount: number }) {
-  return (
-    <div className="flex flex-col gap-1 w-full">
-      <MergeButton />
-      <ReviewButton draftCount={draftCount} />
-    </div>
-  );
-}
-
-function ReviewerActions({ draftCount }: { draftCount: number }) {
-  return (
-    <div className="flex flex-col gap-1 w-full">
-      <MergeButton />
-      <ReviewButton draftCount={draftCount} />
-    </div>
   );
 }
