@@ -13,8 +13,8 @@ use gitdot_core::{
         BuildRepositoryImpl, CommitRepositoryImpl, DeviceRepositoryImpl, GitHubRepositoryImpl,
         MigrationRepositoryImpl, OrganizationRepositoryImpl, QuestionRepositoryImpl,
         RepositoryRepositoryImpl, ReviewRepositoryImpl, RunnerRepositoryImpl,
-        SessionRepositoryImpl, TaskRepositoryImpl, TokenRepositoryImpl, UserRepositoryImpl,
-        WebhookRepositoryImpl,
+        SessionRepositoryImpl, SlackRepositoryImpl, TaskRepositoryImpl, TokenRepositoryImpl,
+        UserRepositoryImpl, WebhookRepositoryImpl,
     },
     service::{
         AuthenticationService, AuthenticationServiceImpl, AuthorizationService,
@@ -78,6 +78,7 @@ impl AppState {
         let runner_repo = RunnerRepositoryImpl::new(pool.clone());
         let task_repo = TaskRepositoryImpl::new(pool.clone());
         let session_repo = SessionRepositoryImpl::new(pool.clone());
+        let slack_repo = SlackRepositoryImpl::new(pool.clone());
 
         let git_client = Git2Client::new(settings.git_project_root.clone());
         let git_http_client = GitHttpClientImpl::new(settings.git_project_root.clone());
@@ -112,6 +113,7 @@ impl AppState {
             authentication_service: Arc::new(AuthenticationServiceImpl::new(
                 device_repo.clone(),
                 session_repo.clone(),
+                slack_repo.clone(),
                 token_repo.clone(),
                 user_repo.clone(),
                 email_client.clone(),

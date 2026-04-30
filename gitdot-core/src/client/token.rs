@@ -8,7 +8,7 @@ use sha2::Sha256;
 use uuid::Uuid;
 
 use crate::{
-    dto::{GitdotClaims, OAuthStatePayload, UserMetadata},
+    dto::{GitdotClaims, OAuthStatePayload, SlackStatePayload, UserMetadata},
     error::TokenError,
     model::TokenType,
     util::{auth::GITDOT_SERVER_ID, crypto::hash_string},
@@ -44,6 +44,7 @@ pub trait TokenClient: Send + Sync + Clone + 'static {
     // OAuth state operations
     fn generate_oauth_state(&self) -> String;
     fn verify_oauth_state(&self, state: &str) -> Result<(), String>;
+    fn verify_slack_state(&self, state: &str) -> Result<SlackStatePayload, String>;
 
     // JWT operations
     fn generate_jwt<T: Serialize + Send + Sync>(&self, claims: &T) -> Result<String, TokenError>;
@@ -202,6 +203,31 @@ impl TokenClient for TokenClientImpl {
         }
 
         Ok(())
+    }
+
+    fn verify_slack_state(&self, state: &str) -> Result<SlackStatePayload, String> {
+        let (payload_b64, sig_b64) = state.split_once('.').ok_or("Invalid state format")?;
+
+        let mut mac = Hmac::<Sha256>::new_from_slice(self.gitdot_private_key.as_bytes())
+            .expect("HMAC accepts any key length");
+        mac.update(payload_b64.as_bytes());
+
+        let sig = URL_SAFE_NO_PAD
+            .decode(sig_b64)
+            .map_err(|_| "Invalid signature encoding")?;
+        mac.verify_slice(&sig).map_err(|_| "Invalid signature")?;
+
+        let payload_json = URL_SAFE_NO_PAD
+            .decode(payload_b64)
+            .map_err(|_| "Invalid payload encoding")?;
+        let payload: SlackStatePayload =
+            serde_json::from_slice(&payload_json).map_err(|_| "Invalid payload")?;
+
+        if payload.exp < Utc::now().timestamp() as u64 {
+            return Err("State expired".to_string());
+        }
+
+        Ok(payload)
     }
 
     fn generate_jwt<T: Serialize + Send + Sync>(&self, claims: &T) -> Result<String, TokenError> {

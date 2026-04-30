@@ -9,15 +9,16 @@ use crate::{
     dto::{
         AuthTokensResponse, AuthorizeDeviceRequest, DeviceCodeRequest, DeviceCodeResponse,
         ExchangeGitHubCodeRequest, IssueTaskJwtRequest, IssueTaskJwtResponse, JwtClaims,
-        LogoutRequest, OAuthRedirectResponse, PollTokenRequest, RefreshSessionRequest,
-        SendAuthEmailRequest, TokenResponse, ValidateTokenRequest, ValidateTokenResponse,
-        VerifyAuthCodeRequest,
+        LinkSlackAccountRequest, LinkSlackAccountResponse, LogoutRequest, OAuthRedirectResponse,
+        PollTokenRequest, RefreshSessionRequest, SendAuthEmailRequest, TokenResponse,
+        ValidateTokenRequest, ValidateTokenResponse, VerifyAuthCodeRequest,
     },
     error::{AuthenticationError, InputError, OptionNotFoundExt},
     model::{AuthProvider, DeviceAuthorizationStatus, TokenType},
     repository::{
         DeviceRepository, DeviceRepositoryImpl, SessionRepository, SessionRepositoryImpl,
-        TokenRepository, TokenRepositoryImpl, UserRepository, UserRepositoryImpl,
+        SlackRepository, SlackRepositoryImpl, TokenRepository, TokenRepositoryImpl, UserRepository,
+        UserRepositoryImpl,
     },
     util::{
         auth::{GITDOT_SERVER_ID, NOREPLY_EMAIL, S2_SERVER_ID, get_auth_email},
@@ -55,6 +56,11 @@ pub trait AuthenticationService: Send + Sync + 'static {
         request: ExchangeGitHubCodeRequest,
     ) -> Result<AuthTokensResponse, AuthenticationError>;
 
+    async fn link_slack_account(
+        &self,
+        request: LinkSlackAccountRequest,
+    ) -> Result<LinkSlackAccountResponse, AuthenticationError>;
+
     // --- Device flow operations ---
 
     async fn request_device_code(
@@ -86,10 +92,11 @@ pub trait AuthenticationService: Send + Sync + 'static {
 }
 
 #[derive(Debug, Clone)]
-pub struct AuthenticationServiceImpl<DR, SR, TR, UR, EC, GH, TC, IC, RC>
+pub struct AuthenticationServiceImpl<DR, SR, SlR, TR, UR, EC, GH, TC, IC, RC>
 where
     DR: DeviceRepository,
     SR: SessionRepository,
+    SlR: SlackRepository,
     TR: TokenRepository,
     UR: UserRepository,
     EC: EmailClient,
@@ -100,6 +107,7 @@ where
 {
     device_repo: DR,
     session_repo: SR,
+    slack_repo: SlR,
     token_repo: TR,
     user_repo: UR,
     email_client: EC,
@@ -113,6 +121,7 @@ impl
     AuthenticationServiceImpl<
         DeviceRepositoryImpl,
         SessionRepositoryImpl,
+        SlackRepositoryImpl,
         TokenRepositoryImpl,
         UserRepositoryImpl,
         ResendClient,
@@ -125,6 +134,7 @@ impl
     pub fn new(
         device_repo: DeviceRepositoryImpl,
         session_repo: SessionRepositoryImpl,
+        slack_repo: SlackRepositoryImpl,
         token_repo: TokenRepositoryImpl,
         user_repo: UserRepositoryImpl,
         email_client: ResendClient,
@@ -136,6 +146,7 @@ impl
         Self {
             device_repo,
             session_repo,
+            slack_repo,
             token_repo,
             user_repo,
             email_client,
@@ -149,11 +160,12 @@ impl
 
 #[crate::instrument_all]
 #[async_trait]
-impl<DR, SR, TR, UR, EC, GH, TC, IC, RC> AuthenticationService
-    for AuthenticationServiceImpl<DR, SR, TR, UR, EC, GH, TC, IC, RC>
+impl<DR, SR, SlR, TR, UR, EC, GH, TC, IC, RC> AuthenticationService
+    for AuthenticationServiceImpl<DR, SR, SlR, TR, UR, EC, GH, TC, IC, RC>
 where
     DR: DeviceRepository,
     SR: SessionRepository,
+    SlR: SlackRepository,
     TR: TokenRepository,
     UR: UserRepository,
     EC: EmailClient,
@@ -381,6 +393,27 @@ where
             refresh_token_expires_in: refresh_expiry_secs,
             is_new,
         })
+    }
+
+    async fn link_slack_account(
+        &self,
+        request: LinkSlackAccountRequest,
+    ) -> Result<LinkSlackAccountResponse, AuthenticationError> {
+        let payload = self
+            .token_client
+            .verify_slack_state(&request.state)
+            .map_err(|_| AuthenticationError::Unauthorized)?;
+
+        let account = self
+            .slack_repo
+            .create_slack_account(
+                request.gitdot_user_id,
+                &payload.slack_user_id,
+                &payload.team_id,
+            )
+            .await?;
+
+        Ok(account.into())
     }
 
     async fn request_device_code(

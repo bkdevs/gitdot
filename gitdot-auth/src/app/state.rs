@@ -8,7 +8,8 @@ use gitdot_core::{
         ImageClientImpl, OctocrabClient, R2ClientImpl, ResendClient, SecretClient, TokenClientImpl,
     },
     repository::{
-        DeviceRepositoryImpl, SessionRepositoryImpl, TokenRepositoryImpl, UserRepositoryImpl,
+        DeviceRepositoryImpl, SessionRepositoryImpl, SlackRepositoryImpl, TokenRepositoryImpl,
+        UserRepositoryImpl,
     },
     service::{AuthenticationService, AuthenticationServiceImpl},
 };
@@ -33,6 +34,7 @@ impl AppState {
         let token_repo = TokenRepositoryImpl::new(pool.clone());
         let user_repo = UserRepositoryImpl::new(pool.clone());
         let device_repo = DeviceRepositoryImpl::new(pool.clone());
+        let slack_repo = SlackRepositoryImpl::new(pool.clone());
 
         let gitdot_public_key = secret_client.get_gitdot_public_key().await?;
         let email_client = ResendClient::new(&secret_client.get_resend_api_key().await?);
@@ -55,6 +57,7 @@ impl AppState {
         let authentication_service = Arc::new(AuthenticationServiceImpl::new(
             device_repo,
             session_repo,
+            slack_repo,
             token_repo,
             user_repo,
             email_client,
