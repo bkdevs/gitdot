@@ -408,7 +408,7 @@ where
             .slack_repo
             .create_slack_account(
                 request.gitdot_user_id,
-                &payload.slack_user_id,
+                &payload.user_id,
                 &payload.team_id,
             )
             .await?;
