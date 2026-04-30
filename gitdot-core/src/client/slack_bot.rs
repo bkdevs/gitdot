@@ -21,7 +21,6 @@ pub trait SlackBotClient: Send + Sync + Clone + 'static {
     async fn notify_link_completed(
         &self,
         gitdot_user_id: Uuid,
-        gitdot_user_name: &str,
         channel_id: &str,
     ) -> Result<(), SlackBotError>;
 }
@@ -104,7 +103,6 @@ impl SlackBotClientImpl {
 #[derive(Serialize)]
 struct FinalizeLoginRequest<'a> {
     gitdot_user_id: Uuid,
-    gitdot_user_name: &'a str,
     channel_id: &'a str,
 }
 
@@ -114,14 +112,12 @@ impl SlackBotClient for SlackBotClientImpl {
     async fn notify_link_completed(
         &self,
         gitdot_user_id: Uuid,
-        gitdot_user_name: &str,
         channel_id: &str,
     ) -> Result<(), SlackBotError> {
         self.post(
             FINALIZE_LOGIN_PATH,
             &FinalizeLoginRequest {
                 gitdot_user_id,
-                gitdot_user_name,
                 channel_id,
             },
         )
