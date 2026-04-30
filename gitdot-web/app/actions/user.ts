@@ -8,8 +8,10 @@ import type {
 import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 import {
+  ApiError,
   getCurrentUser,
   hasUser,
+  linkSlackAccount,
   listUserOrganizations,
   listUserRepositories,
   updateCurrentUser,
@@ -70,8 +72,17 @@ export async function connectSlack(
   state: string | undefined,
 ): Promise<ConnectSlackResult> {
   if (!state) return { error: "Missing state" };
-  // TODO: link Slack identity (encoded in state) to current user via backend
-  return { error: "Not implemented" };
+
+  try {
+    const result = await linkSlackAccount(state);
+    if (!result) return { error: "Failed to connect Slack account" };
+    return { success: true };
+  } catch (e) {
+    return {
+      error:
+        e instanceof ApiError ? e.message : "Failed to connect Slack account",
+    };
+  }
 }
 
 export async function signout() {
