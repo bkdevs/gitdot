@@ -3,6 +3,7 @@ mod email;
 mod github;
 mod logout;
 mod refresh_session;
+mod slack;
 
 use axum::{
     Router,
@@ -19,6 +20,7 @@ use email::{send::send_auth_email, verify::verify_auth_code};
 use github::{exchange::exchange_github_code, redirect::redirect_to_github_auth};
 use logout::logout;
 use refresh_session::refresh_session;
+use slack::link::link_slack_account;
 
 pub fn create_auth_router() -> Router<AppState> {
     Router::new()
@@ -31,4 +33,5 @@ pub fn create_auth_router() -> Router<AppState> {
         .route("/auth/device/authorize", post(authorize_device))
         .route("/auth/refresh", post(refresh_session))
         .route("/auth/logout", post(logout))
+        .route("/auth/slack/link", post(link_slack_account))
 }
