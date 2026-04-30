@@ -5,7 +5,8 @@ use sqlx::PgPool;
 
 use gitdot_core::{
     client::{
-        ImageClientImpl, OctocrabClient, R2ClientImpl, ResendClient, SecretClient, TokenClientImpl,
+        ImageClientImpl, OctocrabClient, R2ClientImpl, ResendClient, SecretClient,
+        SlackBotClientImpl, TokenClientImpl,
     },
     repository::{
         DeviceRepositoryImpl, SessionRepositoryImpl, SlackRepositoryImpl, TokenRepositoryImpl,
@@ -38,9 +39,14 @@ impl AppState {
 
         let gitdot_public_key = secret_client.get_gitdot_public_key().await?;
         let email_client = ResendClient::new(&secret_client.get_resend_api_key().await?);
+        let gitdot_slack_secret = secret_client.get_gitdot_slack_secret().await?;
         let token_client = TokenClientImpl::new(
             secret_client.get_gitdot_private_key().await?,
-            secret_client.get_gitdot_slack_secret().await?,
+            gitdot_slack_secret.clone(),
+        );
+        let slack_bot_client = SlackBotClientImpl::new(
+            settings.gitdot_slack_bot_server_url.clone(),
+            gitdot_slack_secret,
         );
         let github_client = OctocrabClient::new(
             secret_client.get_github_app_id().await?,
@@ -65,6 +71,7 @@ impl AppState {
             user_repo,
             email_client,
             github_client,
+            slack_bot_client,
             token_client,
             image_client,
             r2_client,

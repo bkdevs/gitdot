@@ -4,7 +4,8 @@ use chrono::{Duration, Utc};
 use crate::{
     client::{
         EmailClient, GitHubClient, ImageClient, ImageClientImpl, OctocrabClient, R2Client,
-        R2ClientImpl, ResendClient, TokenClient, TokenClientImpl,
+        R2ClientImpl, ResendClient, SlackBotClient, SlackBotClientImpl, TokenClient,
+        TokenClientImpl,
     },
     dto::{
         AuthTokensResponse, AuthorizeDeviceRequest, DeviceCodeRequest, DeviceCodeResponse,
@@ -92,7 +93,7 @@ pub trait AuthenticationService: Send + Sync + 'static {
 }
 
 #[derive(Debug, Clone)]
-pub struct AuthenticationServiceImpl<DR, SR, SlR, TR, UR, EC, GH, TC, IC, RC>
+pub struct AuthenticationServiceImpl<DR, SR, SlR, TR, UR, EC, GH, SBC, TC, IC, RC>
 where
     DR: DeviceRepository,
     SR: SessionRepository,
@@ -101,6 +102,7 @@ where
     UR: UserRepository,
     EC: EmailClient,
     GH: GitHubClient,
+    SBC: SlackBotClient,
     TC: TokenClient,
     IC: ImageClient,
     RC: R2Client,
@@ -112,6 +114,7 @@ where
     user_repo: UR,
     email_client: EC,
     github_client: GH,
+    slack_bot_client: SBC,
     token_client: TC,
     image_client: IC,
     r2_client: RC,
@@ -126,6 +129,7 @@ impl
         UserRepositoryImpl,
         ResendClient,
         OctocrabClient,
+        SlackBotClientImpl,
         TokenClientImpl,
         ImageClientImpl,
         R2ClientImpl,
@@ -139,6 +143,7 @@ impl
         user_repo: UserRepositoryImpl,
         email_client: ResendClient,
         github_client: OctocrabClient,
+        slack_bot_client: SlackBotClientImpl,
         token_client: TokenClientImpl,
         image_client: ImageClientImpl,
         r2_client: R2ClientImpl,
@@ -151,6 +156,7 @@ impl
             user_repo,
             email_client,
             github_client,
+            slack_bot_client,
             token_client,
             image_client,
             r2_client,
@@ -160,8 +166,8 @@ impl
 
 #[crate::instrument_all]
 #[async_trait]
-impl<DR, SR, SlR, TR, UR, EC, GH, TC, IC, RC> AuthenticationService
-    for AuthenticationServiceImpl<DR, SR, SlR, TR, UR, EC, GH, TC, IC, RC>
+impl<DR, SR, SlR, TR, UR, EC, GH, SBC, TC, IC, RC> AuthenticationService
+    for AuthenticationServiceImpl<DR, SR, SlR, TR, UR, EC, GH, SBC, TC, IC, RC>
 where
     DR: DeviceRepository,
     SR: SessionRepository,
@@ -170,6 +176,7 @@ where
     UR: UserRepository,
     EC: EmailClient,
     GH: GitHubClient,
+    SBC: SlackBotClient,
     TC: TokenClient,
     IC: ImageClient,
     RC: R2Client,
@@ -407,6 +414,16 @@ where
         let account = self
             .slack_repo
             .create_slack_account(request.gitdot_user_id, &payload.user_id, &payload.team_id)
+            .await?;
+
+        let user = self
+            .user_repo
+            .get_by_id(request.gitdot_user_id)
+            .await?
+            .or_not_found("user", request.gitdot_user_id)?;
+
+        self.slack_bot_client
+            .notify_link_completed(user.id, &user.name, &payload.channel_id)
             .await?;
 
         Ok(account.into())

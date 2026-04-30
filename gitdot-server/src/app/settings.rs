@@ -11,6 +11,8 @@ pub struct Settings {
     pub s2_server_url: String,
 
     pub vercel_oidc_url: String,
+
+    pub gitdot_slack_bot_server_url: String,
 }
 
 impl Settings {
@@ -31,6 +33,9 @@ impl Settings {
             s2_server_url: env::var("S2_SERVER_URL").expect("S2_SERVER_URL must be set"),
 
             vercel_oidc_url: env::var("VERCEL_OIDC_URL").expect("VERCEL_OIDC_URL must be set"),
+
+            gitdot_slack_bot_server_url: env::var("GITDOT_SLACK_BOT_SERVER_URL")
+                .unwrap_or_else(|_| "http://localhost:3001".to_string()),
         })
     }
 

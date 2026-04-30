@@ -84,6 +84,7 @@ impl HttpStatus for AuthenticationError {
             Self::TokenError(_)
             | Self::EmailError(_)
             | Self::GitHubError(_)
+            | Self::SlackBotError(_)
             | Self::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }

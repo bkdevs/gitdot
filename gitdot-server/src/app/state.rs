@@ -7,7 +7,7 @@ use sqlx::PgPool;
 use gitdot_core::{
     client::{
         DifftClient, Git2Client, GitHttpClientImpl, ImageClientImpl, OctocrabClient, R2ClientImpl,
-        ResendClient, S2ClientImpl, SecretClient, TokenClientImpl,
+        ResendClient, S2ClientImpl, SecretClient, SlackBotClientImpl, TokenClientImpl,
     },
     repository::{
         BuildRepositoryImpl, CommitRepositoryImpl, DeviceRepositoryImpl, GitHubRepositoryImpl,
@@ -92,7 +92,12 @@ impl AppState {
         let gitdot_private_key = secret_client.get_gitdot_private_key().await?;
         let gitdot_slack_secret = secret_client.get_gitdot_slack_secret().await?;
         let s2_client = S2ClientImpl::new(&settings.s2_server_url, gitdot_private_key.clone());
-        let token_client = TokenClientImpl::new(gitdot_private_key.clone(), gitdot_slack_secret);
+        let token_client =
+            TokenClientImpl::new(gitdot_private_key.clone(), gitdot_slack_secret.clone());
+        let slack_bot_client = SlackBotClientImpl::new(
+            settings.gitdot_slack_bot_server_url.clone(),
+            gitdot_slack_secret,
+        );
         let email_client = ResendClient::new(&secret_client.get_resend_api_key().await?);
         let image_client = ImageClientImpl::new();
         let r2_client = R2ClientImpl::new(
@@ -119,6 +124,7 @@ impl AppState {
                 user_repo.clone(),
                 email_client.clone(),
                 github_client.clone(),
+                slack_bot_client.clone(),
                 token_client.clone(),
                 image_client.clone(),
                 r2_client.clone(),

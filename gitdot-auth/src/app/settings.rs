@@ -6,6 +6,7 @@ pub struct Settings {
     pub database_url: Option<String>,
     pub gcp_project_id: Option<String>,
     pub oauth_device_verification_uri: String,
+    pub gitdot_slack_bot_server_url: String,
 }
 
 impl Settings {
@@ -24,6 +25,10 @@ impl Settings {
             // Redirect URI for OAuth device verification
             oauth_device_verification_uri: env::var("OAUTH_DEVICE_VERIFICATION_URI")
                 .unwrap_or_else(|_| "http://localhost:3000/oauth/device".to_string()),
+
+            // Slack bot server URL
+            gitdot_slack_bot_server_url: env::var("GITDOT_SLACK_BOT_SERVER_URL")
+                .unwrap_or_else(|_| "http://localhost:3001".to_string()),
         })
     }
 
