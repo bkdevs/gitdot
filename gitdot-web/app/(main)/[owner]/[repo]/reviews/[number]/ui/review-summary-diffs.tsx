@@ -35,7 +35,7 @@ export function ReviewSummaryDiffs({
               className={cn(
                 "flex items-center gap-1.5 cursor-pointer transition-colors",
                 isActive
-                  ? "text-foreground underline decoration-current"
+                  ? "text-foreground"
                   : "text-muted-foreground hover:text-foreground",
               )}
               prefetch={true}
@@ -43,7 +43,7 @@ export function ReviewSummaryDiffs({
               <span className="font-mono text-sm shrink-0 w-5 text-left">
                 {i + 1}.
               </span>
-              <span className="text-sm flex-1 truncate">
+              <span className={cn("text-sm flex-1 truncate", isActive && "underline decoration-current")}>
                 {diff.message.split("\n")[0]}
               </span>
               <DiffStatusBadge

@@ -140,12 +140,10 @@ export function ReviewProvider({
   }
 
   async function publishActiveDiff(): Promise<PublishReviewDiffActionResult> {
-    const result = await publishReviewDiffAction(
-      owner,
-      repo,
-      review.number,
-      activeDiff.position,
-    );
+    const [result] = await Promise.all([
+      publishReviewDiffAction(owner, repo, review.number, activeDiff.position),
+      new Promise((r) => setTimeout(r, 1200)),
+    ]);
     if ("error" in result) return result;
     setReview(result.review);
     return result;

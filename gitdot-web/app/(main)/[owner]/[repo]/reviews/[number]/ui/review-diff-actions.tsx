@@ -3,6 +3,8 @@
 import type { DiffStatus, RevisionResource } from "gitdot-api";
 import { useState } from "react";
 import { useUserContext } from "@/(main)/context/user";
+import { cn } from "@/util";
+import { useTypewriter } from "@/hooks/use-typewriter";
 import { useReviewContext } from "../context";
 import { ReviewDiffReviewDialog } from "./review-diff-review-dialog";
 
@@ -30,9 +32,43 @@ export function ReviewDiffActions({
 
   return (
     <div className="flex flex-col gap-1 w-full">
-      <MergeButton disabled={!canAct} />
-      <ReviewButton draftCount={draftCount} disabled={!canAct} />
+      {isAuthor && review.status === "draft" ? (
+        <>
+          <PublishButton />
+          <ReviewButton draftCount={draftCount} disabled={status === "merged"} />
+        </>
+      ) : (
+        <>
+          <MergeButton disabled={!canAct} />
+          <ReviewButton draftCount={draftCount} disabled={!canAct} />
+        </>
+      )}
     </div>
+  );
+}
+
+function PublishButton() {
+  const { activeDiff, publishActiveDiff } = useReviewContext();
+  const [pending, setPending] = useState(false);
+  const isPublished = activeDiff.status !== "draft";
+  const typewritten = useTypewriter(pending ? "Publishing..." : "", 35);
+
+  return (
+    <button
+      type="button"
+      disabled={pending || isPublished}
+      onClick={async () => {
+        setPending(true);
+        await publishActiveDiff();
+        setPending(false);
+      }}
+      className={cn(
+        "text-xs font-mono px-2.5 py-1 rounded-xs border border-primary w-full bg-primary text-primary-foreground underline decoration-transparent hover:decoration-current transition-all duration-200 disabled:cursor-not-allowed disabled:hover:decoration-transparent",
+        isPublished && !pending && "opacity-50",
+      )}
+    >
+      {pending ? (typewritten || " ") : isPublished ? "Published" : "Publish"}
+    </button>
   );
 }
 
