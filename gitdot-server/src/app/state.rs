@@ -90,13 +90,11 @@ impl AppState {
             secret_client.get_github_client_secret().await?,
         );
         let gitdot_private_key = secret_client.get_gitdot_private_key().await?;
-        let gitdot_slack_secret = secret_client.get_gitdot_slack_secret().await?;
         let s2_client = S2ClientImpl::new(&settings.s2_server_url, gitdot_private_key.clone());
-        let token_client =
-            TokenClientImpl::new(gitdot_private_key.clone(), gitdot_slack_secret.clone());
+        let token_client = TokenClientImpl::new(gitdot_private_key.clone());
         let slack_bot_client = SlackBotClientImpl::new(
             settings.gitdot_slack_bot_server_url.clone(),
-            gitdot_slack_secret,
+            secret_client.get_gitdot_slack_secret().await?,
         );
         let email_client = ResendClient::new(&secret_client.get_resend_api_key().await?);
         let image_client = ImageClientImpl::new();

@@ -407,7 +407,7 @@ where
         request: LinkSlackAccountRequest,
     ) -> Result<LinkSlackAccountResponse, AuthenticationError> {
         let payload = self
-            .token_client
+            .slack_bot_client
             .verify_slack_state(&request.state)
             .map_err(|_| AuthenticationError::Unauthorized)?;
 

@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use base64::{Engine, engine::general_purpose::URL_SAFE_NO_PAD};
 use chrono::Utc;
 use hmac::{Hmac, Mac};
 use reqwest::{
@@ -9,7 +10,7 @@ use serde::Serialize;
 use sha2::Sha256;
 use uuid::Uuid;
 
-use crate::error::SlackBotError;
+use crate::{dto::SlackStatePayload, error::SlackBotError};
 
 const TIMESTAMP_HEADER: &str = "x-gitdot-timestamp";
 const SIGNATURE_HEADER: &str = "x-gitdot-signature";
@@ -23,6 +24,8 @@ pub trait SlackBotClient: Send + Sync + Clone + 'static {
         gitdot_user_id: Uuid,
         channel_id: &str,
     ) -> Result<(), SlackBotError>;
+
+    fn verify_slack_state(&self, state: &str) -> Result<SlackStatePayload, String>;
 }
 
 #[derive(Debug, Clone)]
@@ -122,5 +125,30 @@ impl SlackBotClient for SlackBotClientImpl {
             },
         )
         .await
+    }
+
+    fn verify_slack_state(&self, state: &str) -> Result<SlackStatePayload, String> {
+        let (payload_b64, sig_b64) = state.split_once('.').ok_or("Invalid state format")?;
+
+        let mut mac = Hmac::<Sha256>::new_from_slice(self.slack_secret.as_bytes())
+            .expect("HMAC accepts any key length");
+        mac.update(payload_b64.as_bytes());
+
+        let sig = URL_SAFE_NO_PAD
+            .decode(sig_b64)
+            .map_err(|_| "Invalid signature encoding")?;
+        mac.verify_slice(&sig).map_err(|_| "Invalid signature")?;
+
+        let payload_json = URL_SAFE_NO_PAD
+            .decode(payload_b64)
+            .map_err(|_| "Invalid payload encoding")?;
+        let payload: SlackStatePayload =
+            serde_json::from_slice(&payload_json).map_err(|_| "Invalid payload")?;
+
+        if payload.exp < Utc::now().timestamp() as u64 {
+            return Err("State expired".to_string());
+        }
+
+        Ok(payload)
     }
 }
