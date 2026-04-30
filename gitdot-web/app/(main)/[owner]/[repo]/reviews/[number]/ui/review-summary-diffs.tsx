@@ -8,16 +8,14 @@ import { useReviewContext } from "../context";
 
 type DisplayDiffStatus = "open" | "approved" | "merged";
 
-export function ReviewSummaryDiffs({
-  diffs,
-}: {
-  diffs: ReviewDiffResource[];
-}) {
+export function ReviewSummaryDiffs({ diffs }: { diffs: ReviewDiffResource[] }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { review } = useReviewContext();
   const positionParam = searchParams.get("diff");
-  const activePosition = positionParam ? Number(positionParam) : diffs[0]?.position;
+  const activePosition = positionParam
+    ? Number(positionParam)
+    : diffs[0]?.position;
   const activeIndex = diffs.findIndex((d) => d.position === activePosition);
 
   return (
@@ -43,7 +41,12 @@ export function ReviewSummaryDiffs({
               <span className="font-mono text-sm shrink-0 w-5 text-left">
                 {i + 1}.
               </span>
-              <span className={cn("text-sm flex-1 truncate", isActive && "underline decoration-current")}>
+              <span
+                className={cn(
+                  "text-sm flex-1 truncate",
+                  isActive && "underline decoration-current",
+                )}
+              >
                 {diff.message.split("\n")[0]}
               </span>
               <DiffStatusBadge

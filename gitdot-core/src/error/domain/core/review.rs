@@ -19,11 +19,11 @@ pub enum ReviewError {
     #[error("Cannot remove review author as reviewer: {0}")]
     CannotRemoveReviewAuthor(String),
 
-    #[error("Cannot approve your own diff")]
-    CannotApproveOwnDiff,
+    #[error("Cannot review your own diff")]
+    CannotReviewOwnDiff,
 
-    #[error("Cannot reject your own diff")]
-    CannotRejectOwnDiff,
+    #[error("Cannot approve or reject a merged diff")]
+    DiffAlreadyMerged,
 
     #[error("Review is not publishable: {0}")]
     ReviewNotPublishable(String),

@@ -20,7 +20,9 @@ import {
   publishReviewAction,
   publishReviewDiffAction,
   type RemoveReviewerActionResult,
+  type ReviewReviewDiffActionResult,
   removeReviewerAction,
+  reviewReviewDiffAction,
   type UpdateReviewActionResult,
   type UpdateReviewCommentActionResult,
   updateReviewAction,
@@ -38,6 +40,7 @@ export type {
   PublishReviewActionResult,
   PublishReviewDiffActionResult,
   RemoveReviewerActionResult,
+  ReviewReviewDiffActionResult,
   UpdateReviewActionResult,
 };
 
@@ -85,6 +88,10 @@ type ReviewContext = {
   }) => Promise<UpdateReviewActionResult>;
 
   publishActiveDiffComments: () => Promise<CreateReviewCommentsActionResult>;
+  reviewActiveDiff: (
+    action: "approve" | "reject" | "comment",
+    overallComment?: string,
+  ) => Promise<ReviewReviewDiffActionResult>;
 };
 
 const ReviewContext = createContext<ReviewContext | null>(null);
@@ -264,6 +271,48 @@ export function ReviewProvider({
     return result;
   }
 
+  async function reviewActiveDiff(
+    action: "approve" | "reject" | "comment",
+    overallComment?: string,
+  ): Promise<ReviewReviewDiffActionResult> {
+    const latestRevision =
+      activeDiff.revisions[activeDiff.revisions.length - 1];
+    const comments = [
+      ...(overallComment?.trim()
+        ? [{ revision_id: latestRevision.id, body: overallComment }]
+        : []),
+      ...activeDiffDraftComments.map((c) => ({
+        revision_id: c.revision_id,
+        body: c.body,
+        ...(c.file_path != null && { file_path: c.file_path }),
+        ...(c.line_number_start != null && {
+          line_number_start: c.line_number_start,
+        }),
+        ...(c.line_number_end != null && {
+          line_number_end: c.line_number_end,
+        }),
+        ...(c.start_character != null && {
+          start_character: c.start_character,
+        }),
+        ...(c.end_character != null && { end_character: c.end_character }),
+        ...(c.side != null && { side: c.side }),
+        ...(c.parent_id != null && { parent_id: c.parent_id }),
+      })),
+    ];
+    const result = await reviewReviewDiffAction(
+      owner,
+      repo,
+      review.number,
+      activeDiff.position,
+      { action, comments },
+    );
+    if ("error" in result) return result;
+    setDraftComments((prev) => prev.filter((c) => c.diff_id !== activeDiff.id));
+    setReview(result.review);
+    toast.success("Review submitted");
+    return result;
+  }
+
   async function publishActiveDiffComments(): Promise<CreateReviewCommentsActionResult> {
     const result = await createReviewCommentsAction(
       owner,
@@ -325,6 +374,7 @@ export function ReviewProvider({
         updateReview,
 
         publishActiveDiffComments,
+        reviewActiveDiff,
       }}
     >
       {children}

@@ -989,23 +989,20 @@ where
 
         let review = self.get_review_by_id(owner, repo, request.number).await?;
 
-        let reviewers = review
-            .reviewers
-            .as_ref()
-            .map(|r| r.as_slice())
-            .unwrap_or(&[]);
-        if !reviewers
-            .iter()
-            .any(|r| r.reviewer_id == request.reviewer_id)
-        {
-            return Err(ReviewError::CannotApproveOwnDiff);
-        }
-
         let diffs = review.diffs.as_ref().map(|d| d.as_slice()).unwrap_or(&[]);
         let diff = diffs
             .iter()
             .find(|d| d.position == request.position)
             .or_not_found("diff", format!("position {}", request.position))?;
+
+        if request.action != ReviewAction::Comment {
+            if diff.status == DiffStatus::Merged {
+                return Err(ReviewError::DiffAlreadyMerged);
+            }
+            if request.reviewer_id == review.author_id {
+                return Err(ReviewError::CannotReviewOwnDiff);
+            }
+        }
 
         match request.action {
             ReviewAction::Approve => {

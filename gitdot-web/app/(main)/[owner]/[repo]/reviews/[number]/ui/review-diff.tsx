@@ -20,7 +20,7 @@ export function ReviewDiff({
   if (!activeDiff) return null;
 
   const index = review.diffs.findIndex((d) => d.position === position) + 1;
-  const latestRevision = activeDiff.revisions[activeDiff.revisions.length - 1];
+  const _latestRevision = activeDiff.revisions[activeDiff.revisions.length - 1];
 
   return (
     <div data-diff-top className="flex flex-col w-full min-h-full pb-8">

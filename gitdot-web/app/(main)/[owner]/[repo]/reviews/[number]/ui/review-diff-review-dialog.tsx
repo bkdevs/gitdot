@@ -7,8 +7,8 @@ import { useState } from "react";
 import { useUserContext } from "@/(main)/context/user";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
 import { cn } from "@/util";
-import { useReviewContext } from "../context";
 import { UserImage } from "../../../../ui/user-image";
+import { useReviewContext } from "../context";
 
 type ReviewVerdict = "approve" | "reject" | "comment";
 
@@ -19,11 +19,30 @@ export function ReviewDiffReviewDialog({
   open: boolean;
   setOpen: (open: boolean) => void;
 }) {
-  const { activeDiff, activeDiffDraftComments } = useReviewContext();
+  const { review, activeDiff, activeDiffDraftComments, reviewActiveDiff } =
+    useReviewContext();
   const { user } = useUserContext();
   const params = useParams<{ owner: string; repo: string }>();
-  const [verdict, setVerdict] = useState<ReviewVerdict | null>(null);
-  const [topLevelComment, setTopLevelComment] = useState("");
+
+  const isAuthor = user?.id === review.author?.id;
+  const isMerged = activeDiff.status === "merged";
+  const restrictedToComment = isAuthor || isMerged;
+
+  const [verdict, setVerdict] = useState<ReviewVerdict | null>(
+    restrictedToComment ? "comment" : null,
+  );
+  const [overallComment, setOverallComment] = useState("");
+  const [pending, setPending] = useState(false);
+
+  async function handleSubmit() {
+    if (!verdict) return;
+    setPending(true);
+    const result = await reviewActiveDiff(verdict, overallComment);
+    setPending(false);
+    if (!("error" in result)) {
+      setOpen(false);
+    }
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -36,13 +55,12 @@ export function ReviewDiffReviewDialog({
           <DialogTitle>Review</DialogTitle>
         </VisuallyHidden>
 
-
         <div className="flex h-32">
           <div className="flex flex-col flex-2 p-2">
             <textarea
               placeholder="Leave overall feedback..."
-              value={topLevelComment}
-              onChange={(e) => setTopLevelComment(e.target.value)}
+              value={overallComment}
+              onChange={(e) => setOverallComment(e.target.value)}
               className="w-full flex-1 resize-none bg-transparent text-sm outline-none placeholder:text-muted-foreground"
             />
           </div>
@@ -54,24 +72,47 @@ export function ReviewDiffReviewDialog({
                   v: "approve",
                   label: "Approve",
                   sub: "Approve merging",
+                  disabled: restrictedToComment,
+                  title: restrictedToComment
+                    ? isAuthor
+                      ? "Authors cannot approve their own diffs"
+                      : "Cannot approve a merged diff"
+                    : undefined,
                 },
                 {
                   v: "reject",
                   label: "Reject",
                   sub: "Reject merging",
+                  disabled: restrictedToComment,
+                  title: restrictedToComment
+                    ? isAuthor
+                      ? "Authors cannot reject their own diffs"
+                      : "Cannot reject a merged diff"
+                    : undefined,
                 },
                 {
                   v: "comment",
                   label: "Comment",
                   sub: "Leave general feedback",
+                  disabled: false,
+                  title: undefined,
                 },
               ] as const
-            ).map(({ v, label, sub }) => (
+            ).map(({ v, label, sub, disabled, title }) => (
               <button
                 key={v}
                 type="button"
-                onClick={() => setVerdict(verdict === v ? null : v)}
-                className="flex flex-1 items-center gap-1.5 px-3 text-left transition-colors duration-150 border-b border-border last:border-b-0 hover:bg-accent"
+                disabled={disabled}
+                title={title}
+                onClick={() =>
+                  !disabled && setVerdict(verdict === v ? null : v)
+                }
+                className={cn(
+                  "flex flex-1 items-center gap-1.5 px-3 text-left transition-colors duration-150 border-b border-border last:border-b-0",
+                  disabled
+                    ? "opacity-40 cursor-not-allowed"
+                    : "hover:bg-accent",
+                )}
               >
                 <div className="flex items-start gap-1.5">
                   <div
@@ -99,17 +140,22 @@ export function ReviewDiffReviewDialog({
         <div className="flex items-center justify-between pl-2 border-t border-border h-8">
           <span className="text-xs text-muted-foreground">
             Reviewing diff #{activeDiff.position}/N in{" "}
-            <span className="text-foreground">{params.owner}/{params.repo}</span>
+            <span className="text-foreground">
+              {params.owner}/{params.repo}
+            </span>
           </span>
           <button
             type="button"
-            disabled={verdict === null}
-            className="px-3 h-8 text-xs bg-primary text-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed enabled:hover:bg-primary/90 underline decoration-transparent enabled:hover:decoration-current transition-all duration-300"
+            disabled={verdict === null || pending}
+            onClick={handleSubmit}
+            className={cn(
+              "px-3 h-8 text-xs bg-primary text-primary-foreground disabled:cursor-not-allowed enabled:hover:bg-primary/90 underline decoration-transparent enabled:hover:decoration-current transition-all duration-300",
+              (verdict === null || pending) && "opacity-50",
+            )}
           >
-            Submit
+            {pending ? "Submitting..." : "Submit"}
           </button>
         </div>
-
       </DialogContent>
     </Dialog>
   );
@@ -150,12 +196,20 @@ function DraftCommentPreview({ comment }: { comment: ReviewCommentResource }) {
             )}
           </span>
         )}
-        <span className="text-sm text-foreground line-clamp-2">{comment.body}</span>
+        <span className="text-sm text-foreground line-clamp-2">
+          {comment.body}
+        </span>
         <div className="flex items-center gap-1.5">
-          <button type="button" className="text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
+          <button
+            type="button"
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+          >
             edit
           </button>
-          <button type="button" className="text-xs text-muted-foreground hover:text-destructive transition-colors cursor-pointer">
+          <button
+            type="button"
+            className="text-xs text-muted-foreground hover:text-destructive transition-colors cursor-pointer"
+          >
             delete
           </button>
         </div>

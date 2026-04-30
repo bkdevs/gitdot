@@ -165,8 +165,8 @@ impl HttpStatus for ReviewError {
             Self::Input(_)
             | Self::CannotReviewOwnReview(_)
             | Self::CannotRemoveReviewAuthor(_)
-            | Self::CannotApproveOwnDiff
-            | Self::CannotRejectOwnDiff
+            | Self::CannotReviewOwnDiff
+            | Self::DiffAlreadyMerged
             | Self::ReviewNotPublishable(_)
             | Self::DiffNotPublishable(_)
             | Self::CommitsNotFound

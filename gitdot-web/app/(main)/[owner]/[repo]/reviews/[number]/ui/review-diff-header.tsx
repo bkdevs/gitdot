@@ -18,7 +18,11 @@ function DiffStatusBadge({
     return <span className="text-xs font-mono text-green-600">approved</span>;
   }
   if (status === "merged") {
-    return <span className="text-xs font-mono text-muted-foreground underline">merged</span>;
+    return (
+      <span className="text-xs font-mono text-muted-foreground underline">
+        merged
+      </span>
+    );
   }
   return <span className="text-xs font-mono text-foreground">open</span>;
 }
@@ -42,7 +46,9 @@ export function ReviewDiffHeader({
       <div className="flex flex-col justify-center min-w-0 flex-1">
         <span className="text-sm leading-tight line-clamp-2">{title}</span>
         <div className="flex items-center gap-1.5 text-xs font-mono text-muted-foreground">
-          <span>diff #{index}/N{author ? ` by ${author.name}` : ""}</span>
+          <span>
+            diff #{index}/N{author ? ` by ${author.name}` : ""}
+          </span>
           <span>·</span>
           <DiffStatusBadge status={status} reviewStatus={review.status} />
         </div>

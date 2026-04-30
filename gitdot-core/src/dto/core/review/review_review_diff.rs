@@ -8,7 +8,7 @@ use crate::{
 
 use super::create_review_comments::ReviewCommentInput;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum ReviewAction {
     Comment,
     Approve,
