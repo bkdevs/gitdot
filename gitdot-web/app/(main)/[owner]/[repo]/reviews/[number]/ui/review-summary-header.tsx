@@ -1,12 +1,9 @@
 "use client";
 
 import type { ReviewResource, ReviewStatus } from "gitdot-api";
-import { Send } from "lucide-react";
 import { useParams, usePathname } from "next/navigation";
-import { useState } from "react";
 import Link from "@/ui/link";
 import { cn } from "@/util";
-import { useReviewContext } from "../context";
 
 export function ReviewSummaryHeader({ review }: { review: ReviewResource }) {
   const { owner, repo } = useParams<{ owner: string; repo: string }>();
@@ -46,37 +43,9 @@ export function ReviewSummaryHeader({ review }: { review: ReviewResource }) {
             {identifier}
           </Link>
         </div>
-        {review.status === "draft" ? (
-          <DraftPublishButton />
-        ) : (
-          <ReviewStatusBadge status={review.status} />
-        )}
+        <ReviewStatusBadge status={review.status} />
       </div>
     </div>
-  );
-}
-
-function DraftPublishButton() {
-  const { diffs, publishReview } = useReviewContext();
-  const [pending, setPending] = useState(false);
-
-  const pendingCount = diffs.filter((d) => d.status === "draft").length;
-  const publishable = pendingCount === 0;
-
-  return (
-    <button
-      type="button"
-      disabled={!publishable || pending}
-      onClick={async () => {
-        setPending(true);
-        await publishReview();
-        setPending(false);
-      }}
-      className="flex h-5 items-center gap-1 font-mono text-xs shrink-0 px-2 text-primary-foreground bg-primary disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer outline-none"
-    >
-      <Send className="size-3" />
-      {pending ? "publishing..." : "Publish"}
-    </button>
   );
 }
 
