@@ -3,15 +3,17 @@
 import type { ReviewResource } from "gitdot-api";
 import { Edit2, Send, X } from "lucide-react";
 import { useState } from "react";
+import { useUserContext } from "@/(main)/context/user";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
 import { useReviewContext } from "../context";
 
 export function ReviewActions({ review }: { review: ReviewResource }) {
-  if (review.status !== "draft") return null;
+  const { user } = useUserContext();
+  if (user?.id !== review.author_id) return null;
 
   return (
-    <div className="shrink-0 border-t border-border">
-      <PublishRow />
+    <div className="shrink-0 border-t border-border divide-y divide-border">
+      {review.status === "draft" && <PublishRow />}
       <EditRow />
       <CloseRow />
     </div>
@@ -106,7 +108,7 @@ function EditRow() {
   return (
     <button
       type="button"
-      className="flex w-full items-center gap-2 px-2 h-8 text-xs text-foreground cursor-pointer hover:bg-muted/50 transition-colors border-t border-border"
+      className="flex w-full items-center gap-2 px-2 h-8 text-xs text-foreground cursor-pointer hover:bg-muted/50 transition-colors"
     >
       <Edit2 className="size-3.5 shrink-0" />
       Edit
@@ -127,7 +129,7 @@ function CloseRow() {
         await discardReview();
         setPending(false);
       }}
-      className="flex w-full items-center gap-2 px-2 h-8 text-xs text-destructive cursor-pointer hover:bg-muted/50 transition-colors border-t border-border disabled:opacity-60 disabled:cursor-not-allowed"
+      className="flex w-full items-center gap-2 px-2 h-8 text-xs text-destructive cursor-pointer hover:bg-muted/50 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
     >
       <X className="size-3.5 shrink-0" />
       {pending ? "Closing..." : "Close"}
