@@ -59,11 +59,15 @@ pub trait TokenClient: Send + Sync + Clone + 'static {
 #[derive(Debug, Clone)]
 pub struct TokenClientImpl {
     gitdot_private_key: String,
+    gitdot_slack_secret: String,
 }
 
 impl TokenClientImpl {
-    pub fn new(gitdot_private_key: String) -> Self {
-        Self { gitdot_private_key }
+    pub fn new(gitdot_private_key: String, gitdot_slack_secret: String) -> Self {
+        Self {
+            gitdot_private_key,
+            gitdot_slack_secret,
+        }
     }
 
     fn base62_encode_padded(&self, value: u128, width: usize) -> String {
@@ -208,7 +212,7 @@ impl TokenClient for TokenClientImpl {
     fn verify_slack_state(&self, state: &str) -> Result<SlackStatePayload, String> {
         let (payload_b64, sig_b64) = state.split_once('.').ok_or("Invalid state format")?;
 
-        let mut mac = Hmac::<Sha256>::new_from_slice(self.gitdot_private_key.as_bytes())
+        let mut mac = Hmac::<Sha256>::new_from_slice(self.gitdot_slack_secret.as_bytes())
             .expect("HMAC accepts any key length");
         mac.update(payload_b64.as_bytes());
 
@@ -267,7 +271,7 @@ mod tests {
     use super::*;
 
     fn client() -> TokenClientImpl {
-        TokenClientImpl::new(String::new())
+        TokenClientImpl::new(String::new(), String::new())
     }
 
     #[test]

@@ -406,11 +406,7 @@ where
 
         let account = self
             .slack_repo
-            .create_slack_account(
-                request.gitdot_user_id,
-                &payload.user_id,
-                &payload.team_id,
-            )
+            .create_slack_account(request.gitdot_user_id, &payload.user_id, &payload.team_id)
             .await?;
 
         Ok(account.into())

@@ -38,7 +38,10 @@ impl AppState {
 
         let gitdot_public_key = secret_client.get_gitdot_public_key().await?;
         let email_client = ResendClient::new(&secret_client.get_resend_api_key().await?);
-        let token_client = TokenClientImpl::new(secret_client.get_gitdot_private_key().await?);
+        let token_client = TokenClientImpl::new(
+            secret_client.get_gitdot_private_key().await?,
+            secret_client.get_gitdot_slack_secret().await?,
+        );
         let github_client = OctocrabClient::new(
             secret_client.get_github_app_id().await?,
             secret_client.get_github_app_private_key().await?,
