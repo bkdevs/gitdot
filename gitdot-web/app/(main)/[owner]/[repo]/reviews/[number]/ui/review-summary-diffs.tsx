@@ -33,7 +33,7 @@ export function ReviewSummaryDiffs({
               key={diff.id}
               href={`${pathname}?diff=${diff.position}`}
               className={cn(
-                "flex items-center gap-1.5 cursor-default transition-colors",
+                "flex items-center gap-1.5 cursor-pointer transition-colors",
                 isActive
                   ? "text-foreground underline decoration-current"
                   : "text-muted-foreground hover:text-foreground",
