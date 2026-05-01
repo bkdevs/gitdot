@@ -6,6 +6,7 @@ pub mod merge_review_diff;
 pub mod publish_review;
 pub mod publish_review_diff;
 pub mod remove_review_reviewer;
+pub mod reply_to_review_comment;
 pub mod resolve_review_comment;
 pub mod review_review_diff;
 pub mod update_review;

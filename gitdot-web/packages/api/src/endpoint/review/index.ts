@@ -5,6 +5,7 @@ export * from "./list-reviews";
 export * from "./merge-review-diff";
 export * from "./publish-review";
 export * from "./remove-review-reviewer";
+export * from "./reply-to-review-comment";
 export * from "./resolve-review-comment";
 export * from "./review-review-diff";
 export * from "./update-review";

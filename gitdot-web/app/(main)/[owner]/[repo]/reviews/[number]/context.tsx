@@ -20,8 +20,10 @@ import {
   publishReviewAction,
   publishReviewDiffAction,
   type RemoveReviewerActionResult,
+  type ReplyToReviewCommentActionResult,
   type ReviewReviewDiffActionResult,
   removeReviewerAction,
+  replyToReviewCommentAction,
   reviewReviewDiffAction,
   type UpdateReviewActionResult,
   type UpdateReviewCommentActionResult,
@@ -39,6 +41,7 @@ export type {
   PublishReviewActionResult,
   PublishReviewDiffActionResult,
   RemoveReviewerActionResult,
+  ReplyToReviewCommentActionResult,
   ReviewReviewDiffActionResult,
   UpdateReviewActionResult,
 };
@@ -75,6 +78,10 @@ type ReviewContext = {
   addComment: (
     request: AddCommentRequest,
   ) => Promise<CreateReviewCommentActionResult>;
+  replyToComment: (
+    parentId: string,
+    body: string,
+  ) => Promise<ReplyToReviewCommentActionResult>;
   deleteDraftComment: (id: string) => void;
   updateDraftComment: (id: string, body: string) => void;
   updateComment: (
@@ -251,6 +258,22 @@ export function ReviewProvider({
     return Promise.resolve({ comment: draftComment });
   }
 
+  async function replyToComment(
+    parentId: string,
+    body: string,
+  ): Promise<ReplyToReviewCommentActionResult> {
+    const result = await replyToReviewCommentAction(
+      owner,
+      repo,
+      review.number,
+      parentId,
+      { body },
+    );
+    if ("error" in result) return result;
+    setReview((r) => ({ ...r, comments: [...r.comments, result.comment] }));
+    return result;
+  }
+
   function deleteDraftComment(id: string) {
     setDraftComments((prev) => prev.filter((c) => c.id !== id));
   }
@@ -340,6 +363,7 @@ export function ReviewProvider({
         addReviewer,
         removeReviewer,
         addComment,
+        replyToComment,
         deleteDraftComment,
         updateDraftComment,
         updateComment,

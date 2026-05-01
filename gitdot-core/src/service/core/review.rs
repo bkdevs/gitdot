@@ -6,9 +6,10 @@ use crate::{
         AddReviewReviewerReqeuest, GetReviewDiffRequest,
         GetReviewRequest, ListReviewsRequest, MergeReviewDiffRequest, ProcessReviewRequest,
         PublishReviewDiffRequest, PublishReviewRequest, RemoveReviewReviewerRequest,
-        ResolveReviewCommentRequest, ReviewAction, ReviewCommentResponse, ReviewDiffResponse,
-        ReviewResponse, ReviewReviewDiffRequest, ReviewerResponse, ReviewsResponse,
-        UpdateReviewCommentRequest, UpdateReviewDiffRequest, UpdateReviewRequest,
+        ReplyToReviewCommentRequest, ResolveReviewCommentRequest, ReviewAction,
+        ReviewCommentResponse, ReviewDiffResponse, ReviewResponse, ReviewReviewDiffRequest,
+        ReviewerResponse, ReviewsResponse, UpdateReviewCommentRequest, UpdateReviewDiffRequest,
+        UpdateReviewRequest,
     },
     error::{ConflictError, InputError, NotFoundError, OptionNotFoundExt, ReviewError},
     model::{DiffStatus, Review, ReviewStatus, Verdict},
@@ -113,6 +114,11 @@ pub trait ReviewService: Send + Sync + 'static {
         &self,
         request: RemoveReviewReviewerRequest,
     ) -> Result<(), ReviewError>;
+
+    async fn reply_to_review_comment(
+        &self,
+        request: ReplyToReviewCommentRequest,
+    ) -> Result<ReviewCommentResponse, ReviewError>;
 
     async fn update_review_comment(
         &self,
@@ -887,6 +893,37 @@ where
         }
 
         Ok(())
+    }
+
+    async fn reply_to_review_comment(
+        &self,
+        request: ReplyToReviewCommentRequest,
+    ) -> Result<ReviewCommentResponse, ReviewError> {
+        let parent = self
+            .review_repo
+            .get_comment(request.comment_id)
+            .await?
+            .or_not_found("comment", request.comment_id.to_string())?;
+
+        let reply = self
+            .review_repo
+            .create_comment(
+                parent.review_id,
+                parent.diff_id,
+                parent.revision_id,
+                request.user_id,
+                &request.body,
+                Some(parent.id),
+                parent.file_path,
+                parent.line_number_start,
+                parent.line_number_end,
+                parent.start_character,
+                parent.end_character,
+                parent.side,
+            )
+            .await?;
+
+        Ok(reply.into())
     }
 
     async fn update_review_comment(

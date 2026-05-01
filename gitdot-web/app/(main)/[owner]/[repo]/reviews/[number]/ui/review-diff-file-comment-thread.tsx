@@ -1,7 +1,9 @@
 "use client";
 
+import type { ReviewCommentResource } from "gitdot-api";
 import { Send } from "lucide-react";
-import { useImperativeHandle, useMemo, useState } from "react";
+import { useEffect, useImperativeHandle, useMemo, useState } from "react";
+import { useUserContext } from "@/(main)/context/user";
 import { timeAgo } from "@/util";
 import { UserImage } from "../../../../ui/user-image";
 import { useReviewContext } from "../context";
@@ -18,10 +20,29 @@ export function ReviewDiffFileCommentThread({
   onClose: () => void;
   ref: React.Ref<ReviewDiffFileCommentThreadHandle>;
 }) {
-  const { activeComment, activeDiffComments, addComment } = useReviewContext();
+  const { activeComment, activeDiffComments, replyToComment } =
+    useReviewContext();
+  const { user } = useUserContext();
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState({ x: 0, y: 0 });
   const [reply, setReply] = useState("");
+  const [threadComments, setThreadComments] = useState<ReviewCommentResource[]>(
+    [],
+  );
+
+  const contextComments = useMemo(() => {
+    if (!activeComment) return [];
+    return activeDiffComments.filter(
+      (c) =>
+        c.file_path === activeComment.file_path &&
+        c.line_number_start === activeComment.line_number_start &&
+        c.side === activeComment.side,
+    );
+  }, [activeComment, activeDiffComments]);
+
+  useEffect(() => {
+    setThreadComments(contextComments);
+  }, [contextComments]);
 
   useImperativeHandle(ref, () => ({
     open(p) {
@@ -32,16 +53,6 @@ export function ReviewDiffFileCommentThread({
       setOpen(false);
     },
   }));
-
-  const threadComments = useMemo(() => {
-    if (!activeComment) return [];
-    return activeDiffComments.filter(
-      (c) =>
-        c.file_path === activeComment.file_path &&
-        c.line_number_start === activeComment.line_number_start &&
-        c.side === activeComment.side,
-    );
-  }, [activeComment, activeDiffComments]);
 
   if (!open || threadComments.length === 0) return null;
 
@@ -55,8 +66,31 @@ export function ReviewDiffFileCommentThread({
   function sendReply() {
     const body = reply.trim();
     if (!body) return;
-    addComment({ body, parent_id: lastId });
+
+    const now = new Date().toISOString();
+    const optimistic: ReviewCommentResource = {
+      id: crypto.randomUUID(),
+      review_id: threadComments[0].review_id,
+      diff_id: threadComments[0].diff_id,
+      revision_id: threadComments[0].revision_id,
+      author_id: user?.id ?? "00000000-0000-0000-0000-000000000000",
+      parent_id: lastId,
+      body,
+      file_path: threadComments[0].file_path,
+      line_number_start: threadComments[0].line_number_start,
+      line_number_end: threadComments[0].line_number_end,
+      start_character: threadComments[0].start_character,
+      end_character: threadComments[0].end_character,
+      side: threadComments[0].side,
+      resolved: false,
+      created_at: now,
+      updated_at: now,
+      author: user ? { id: user.id, name: user.name } : null,
+    };
+
+    setThreadComments((prev) => [...prev, optimistic]);
     setReply("");
+    replyToComment(lastId, body);
   }
 
   return (
@@ -107,7 +141,7 @@ export function ReviewDiffFileCommentThread({
           />
           <button
             type="button"
-            className="px-2 mt-1.5 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+            className={`px-2 mt-1.5 transition-colors ${reply.trim() ? "text-foreground cursor-pointer" : "text-muted-foreground cursor-default"}`}
             onClick={sendReply}
           >
             <Send size={14} />
