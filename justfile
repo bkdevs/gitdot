@@ -39,6 +39,8 @@ install:
     just db
     echo "Running migrations..."
     just migrate
+    echo "Starting local Kafka..."
+    just kafka
     echo "Install complete!"
 
 # ── Database ─────────────────────────────────────────────────────────────────
