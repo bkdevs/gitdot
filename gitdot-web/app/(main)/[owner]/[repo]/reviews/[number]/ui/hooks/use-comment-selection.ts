@@ -1,11 +1,12 @@
 "use client";
 
-import { useCallback, useRef } from "react";
+import { useCallback, useLayoutEffect, useRef } from "react";
 import { useReviewContext } from "../../context";
 import {
   COMMENT_WIDGET_HEIGHT,
   type ReviewDiffFileCommentNewHandle,
 } from "../review-diff-file-comment-new";
+import type { ReviewDiffFileCommentThreadHandle } from "../review-diff-file-comment-thread";
 import { readLineNumber, readSide } from "./util";
 
 type SelectionRange = {
@@ -25,6 +26,21 @@ export function useCommentSelection() {
   const dragStartRef = useRef<HTMLElement | null>(null);
   const dragEndRef = useRef<HTMLElement | null>(null);
   const newCommentRef = useRef<ReviewDiffFileCommentNewHandle | null>(null);
+  const commentThreadRef = useRef<ReviewDiffFileCommentThreadHandle | null>(null);
+
+  useLayoutEffect(() => {
+    const container = containerRef.current;
+    if (!activeComment || !container) {
+      commentThreadRef.current?.close();
+      return;
+    }
+    const pos = computeCommentThreadPos(activeComment.id, container);
+    if (!pos) {
+      commentThreadRef.current?.close();
+      return;
+    }
+    commentThreadRef.current?.open(pos);
+  }, [activeComment]);
 
   const clearSelection = useCallback(() => {
     const container = containerRef.current;
@@ -109,7 +125,7 @@ export function useCommentSelection() {
       if (!anchorLine)
         throw new Error("anchorToken has no .diff-line ancestor");
 
-      newCommentRef.current?.open(computeWidgetPos(anchorLine, isReversed));
+      newCommentRef.current?.open(computeNewCommentPos(anchorLine, isReversed));
       selectionRef.current = computeSelectionRange(
         spans,
         startIdx,
@@ -125,6 +141,7 @@ export function useCommentSelection() {
   return {
     containerRef,
     newCommentRef,
+    commentThreadRef,
     selectionRef,
     clearSelection,
     handleMouseDown,
@@ -133,7 +150,7 @@ export function useCommentSelection() {
   };
 }
 
-const computeWidgetPos = (
+const computeNewCommentPos = (
   anchorLine: HTMLElement,
   isReversed: boolean,
 ): { x: number; y: number } => {
@@ -192,4 +209,31 @@ const getTokenSpan = (target: EventTarget | null): HTMLElement | null => {
   if (!line) return null;
   const tokens = line.querySelectorAll<HTMLElement>(".diff-token");
   return tokens.length ? tokens[tokens.length - 1] : null;
+};
+
+const computeCommentThreadPos = (
+  commentId: string,
+  container: HTMLElement,
+): { x: number; y: number } | null => {
+  const tokens = Array.from(
+    container.querySelectorAll<HTMLElement>(
+      `.diff-token[data-comment-id="${commentId}"]`,
+    ),
+  );
+  if (tokens.length === 0) return null;
+
+  let lastLine: HTMLElement | null = null;
+  let lastLineFirstToken: HTMLElement | null = null;
+  for (const token of tokens) {
+    const line = token.closest<HTMLElement>(".diff-line");
+    if (!line) continue;
+    if (line !== lastLine) {
+      lastLine = line;
+      lastLineFirstToken = token;
+    }
+  }
+  if (!lastLineFirstToken) return null;
+
+  const rect = lastLineFirstToken.getBoundingClientRect();
+  return { x: rect.left - 16, y: rect.bottom };
 };

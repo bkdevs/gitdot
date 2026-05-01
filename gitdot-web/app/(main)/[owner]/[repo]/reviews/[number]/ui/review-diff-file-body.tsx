@@ -16,6 +16,7 @@ import { useReviewContext } from "../context";
 import { useCommentSelection } from "./hooks/use-comment-selection";
 import { useHighlightComments } from "./hooks/use-highlight-comments";
 import { ReviewDiffFileCommentNew } from "./review-diff-file-comment-new";
+import { ReviewDiffFileCommentThread } from "./review-diff-file-comment-thread";
 
 export function ReviewDiffFileBody({
   diffFile,
@@ -30,10 +31,11 @@ export function ReviewDiffFileBody({
   layout?: "split" | "unified" | "heuristic";
   className?: string;
 }) {
-  const { addComment, activeComment } = useReviewContext();
+  const { addComment, activeComment, setActiveComment } = useReviewContext();
   const {
     containerRef,
     newCommentRef,
+    commentThreadRef,
     selectionRef,
     clearSelection,
     handleMouseDown,
@@ -136,6 +138,10 @@ export function ReviewDiffFileBody({
         ref={newCommentRef}
         newComment={newComment}
         onClose={clearSelection}
+      />
+      <ReviewDiffFileCommentThread
+        ref={commentThreadRef}
+        onClose={() => setActiveComment(null)}
       />
     </div>
   );
