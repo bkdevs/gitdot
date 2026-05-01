@@ -40,7 +40,7 @@ impl Settings {
                 .unwrap_or_else(|_| "http://localhost:3001".to_string()),
 
             kafka_bootstrap_servers: env::var("KAFKA_BOOTSTRAP_SERVERS")
-                .unwrap_or_else(|_| "http://localhost:9092".to_string()),
+                .unwrap_or_else(|_| "localhost:9092".to_string()),
         })
     }
 
