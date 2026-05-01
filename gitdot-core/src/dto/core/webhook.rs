@@ -1,5 +1,6 @@
 mod create_webhook;
 mod delete_webhook;
+mod event;
 mod get_webhook;
 mod list_webhooks;
 mod update_webhook;
@@ -9,6 +10,7 @@ use uuid::Uuid;
 
 pub use create_webhook::CreateWebhookRequest;
 pub use delete_webhook::DeleteWebhookRequest;
+pub use event::*;
 pub use get_webhook::GetWebhookRequest;
 pub use list_webhooks::ListWebhooksRequest;
 pub use update_webhook::UpdateWebhookRequest;
