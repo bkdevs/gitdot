@@ -38,7 +38,12 @@ export function ReviewSummaryDiffs({ diffs }: { diffs: ReviewDiffResource[] }) {
               )}
               prefetch={true}
             >
-              <span className={cn("font-mono text-sm shrink-0 w-4 text-left", isActive && "font-medium")}>
+              <span
+                className={cn(
+                  "font-mono text-sm shrink-0 w-4 text-left",
+                  isActive && "font-medium",
+                )}
+              >
                 {i + 1}.
               </span>
               <span
@@ -74,11 +79,23 @@ function DiffStatusBadge({
 }) {
   switch (status) {
     case "approved":
-      return <span className={cn("text-xs shrink-0 text-green-600", className)}>approved</span>;
+      return (
+        <span className={cn("text-xs shrink-0 text-green-600", className)}>
+          approved
+        </span>
+      );
     case "open":
-      return <span className={cn("text-xs shrink-0 text-foreground", className)}>open</span>;
+      return (
+        <span className={cn("text-xs shrink-0 text-foreground", className)}>
+          open
+        </span>
+      );
     case "merged":
-      return <span className={cn("text-xs shrink-0 text-green-600", className)}>merged</span>;
+      return (
+        <span className={cn("text-xs shrink-0 text-green-600", className)}>
+          merged
+        </span>
+      );
   }
 }
 

@@ -1,20 +1,12 @@
 "use client";
 
 import type { ReviewCommentResource } from "gitdot-api";
-import { Send } from "lucide-react";
-import { useMemo, useState } from "react";
-import { pluralize } from "@/util";
+import { useMemo } from "react";
 import { useReviewContext } from "../context";
 import { ReviewCommentThread } from "./review-comment-thread";
 
 export function ReviewSummaryComments() {
-  const {
-    activeDiffComments,
-    activeDiffDraftComments,
-    activeDiff,
-    publishActiveDiffComments,
-  } = useReviewContext();
-  const [pending, setPending] = useState(false);
+  const { activeDiffComments, activeDiff } = useReviewContext();
 
   const threads = useMemo(() => {
     const byId = new Map(activeDiffComments.map((c) => [c.id, c]));
@@ -65,23 +57,6 @@ export function ReviewSummaryComments() {
           {threads.map((thread) => (
             <ReviewCommentThread key={thread[0].id} comments={thread} />
           ))}
-        </div>
-      )}
-      {activeDiffDraftComments.length > 0 && (
-        <div className="flex justify-start">
-          <button
-            type="button"
-            onClick={async () => {
-              setPending(true);
-              await publishActiveDiffComments();
-              setPending(false);
-            }}
-            disabled={pending}
-            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground hover:underline decoration-current transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <Send className="size-3" />
-            {`Publish ${pluralize(activeDiffDraftComments.length, "comment")}`}
-          </button>
         </div>
       )}
     </section>

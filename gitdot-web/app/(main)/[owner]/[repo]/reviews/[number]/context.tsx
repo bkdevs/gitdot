@@ -13,8 +13,6 @@ import { useUserContext } from "@/(main)/context/user";
 import {
   type AddReviewerActionResult,
   addReviewerAction,
-  type CreateReviewCommentsActionResult,
-  createReviewCommentsAction,
   type MergeDiffActionResult,
   mergeDiffAction,
   type PublishReviewActionResult,
@@ -30,7 +28,6 @@ import {
   updateReviewAction,
   updateReviewCommentAction,
 } from "@/actions/review";
-import { pluralize } from "@/util";
 
 export type CreateReviewCommentActionResult =
   | { comment: ReviewCommentResource }
@@ -38,7 +35,6 @@ export type CreateReviewCommentActionResult =
 
 export type {
   AddReviewerActionResult,
-  CreateReviewCommentsActionResult,
   MergeDiffActionResult,
   PublishReviewActionResult,
   PublishReviewDiffActionResult,
@@ -90,7 +86,6 @@ type ReviewContext = {
     description?: string;
   }) => Promise<UpdateReviewActionResult>;
 
-  publishActiveDiffComments: () => Promise<CreateReviewCommentsActionResult>;
   reviewActiveDiff: (
     action: "approve" | "reject" | "comment",
     comments: {
@@ -324,40 +319,6 @@ export function ReviewProvider({
     return result;
   }
 
-  async function publishActiveDiffComments(): Promise<CreateReviewCommentsActionResult> {
-    const result = await createReviewCommentsAction(
-      owner,
-      repo,
-      review.number,
-      activeDiff.position,
-      {
-        comments: activeDiffDraftComments.map((c) => ({
-          revision_id: c.revision_id,
-          body: c.body,
-          ...(c.file_path != null && { file_path: c.file_path }),
-          ...(c.line_number_start != null && {
-            line_number_start: c.line_number_start,
-          }),
-          ...(c.line_number_end != null && {
-            line_number_end: c.line_number_end,
-          }),
-          ...(c.start_character != null && {
-            start_character: c.start_character,
-          }),
-          ...(c.end_character != null && { end_character: c.end_character }),
-          ...(c.side != null && { side: c.side }),
-          ...(c.parent_id != null && { parent_id: c.parent_id }),
-        })),
-      },
-    );
-    if ("error" in result) return result;
-    const count = activeDiffDraftComments.length;
-    setDraftComments((prev) => prev.filter((c) => c.diff_id !== activeDiff.id));
-    setReview(result.review);
-    toast.success(`${pluralize(count, "comment")} published`);
-    return result;
-  }
-
   return (
     <ReviewContext
       value={{
@@ -384,7 +345,6 @@ export function ReviewProvider({
         updateComment,
         updateReview,
 
-        publishActiveDiffComments,
         reviewActiveDiff,
         mergeActiveDiff,
       }}

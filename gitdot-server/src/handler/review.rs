@@ -1,5 +1,4 @@
 mod add_review_reviewer;
-mod create_review_comments;
 mod get_review;
 mod get_review_diff;
 mod list_reviews;
@@ -20,7 +19,6 @@ use axum::{
 };
 
 use add_review_reviewer::add_review_reviewer;
-use create_review_comments::create_review_comments;
 use get_review::get_review;
 use get_review_diff::get_review_diff;
 use list_reviews::list_reviews;
@@ -68,10 +66,6 @@ pub fn create_review_router() -> Router<AppState> {
         .route(
             "/repository/{owner}/{repo}/review/{number}/diff/{position}/review",
             post(review_review_diff),
-        )
-        .route(
-            "/repository/{owner}/{repo}/review/{number}/diff/{position}/comments",
-            post(create_review_comments),
         )
         .route(
             "/repository/{owner}/{repo}/review/{number}/comment/{comment_id}",

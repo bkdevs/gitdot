@@ -49,7 +49,9 @@ export function ReviewDiffHeader({
     <div className="sticky top-0 z-10 shrink-0 h-16 flex items-stretch border-b border-border bg-background pl-2 min-w-0">
       <div className="flex flex-col min-w-0 flex-1">
         <div className="flex-1 flex flex-col justify-center min-w-0">
-          <span className="text-xs font-mono text-muted-foreground">diff {index}.</span>
+          <span className="text-xs font-mono text-muted-foreground">
+            diff {index}.
+          </span>
           <span className="text-sm truncate">{title}</span>
         </div>
         <div className="flex flex-row items-end -ml-2">

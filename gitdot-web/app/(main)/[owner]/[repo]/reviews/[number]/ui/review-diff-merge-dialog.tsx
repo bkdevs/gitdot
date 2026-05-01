@@ -25,7 +25,11 @@ export function ReviewDiffMergeDialog({
         }
       }}
     >
-      <DialogContent animations showOverlay className="p-0 overflow-hidden w-96">
+      <DialogContent
+        animations
+        showOverlay
+        className="p-0 overflow-hidden w-96"
+      >
         <div className="px-2 py-2 flex flex-col gap-0 pb-1">
           <DialogTitle className="text-sm font-normal text-foreground">
             Merge {activeDiff.message}

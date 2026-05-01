@@ -26,7 +26,9 @@ export function useCommentSelection() {
   const dragStartRef = useRef<HTMLElement | null>(null);
   const dragEndRef = useRef<HTMLElement | null>(null);
   const newCommentRef = useRef<ReviewDiffFileCommentNewHandle | null>(null);
-  const commentThreadRef = useRef<ReviewDiffFileCommentThreadHandle | null>(null);
+  const commentThreadRef = useRef<ReviewDiffFileCommentThreadHandle | null>(
+    null,
+  );
 
   useLayoutEffect(() => {
     const container = containerRef.current;
