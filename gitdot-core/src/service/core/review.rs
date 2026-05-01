@@ -914,12 +914,12 @@ where
                 request.user_id,
                 &request.body,
                 Some(parent.id),
-                parent.file_path,
-                parent.line_number_start,
-                parent.line_number_end,
-                parent.start_character,
-                parent.end_character,
-                parent.side,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
             )
             .await?;
 

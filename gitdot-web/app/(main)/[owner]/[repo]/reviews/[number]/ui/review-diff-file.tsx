@@ -26,7 +26,7 @@ export function ReviewDiffFile({
   diffFile: RepositoryDiffFileResource;
   diffSpans: DiffSpans;
 }) {
-  const { activeDiffComments } = useReviewContext();
+  const { activeDiffComments, activeDiffCommentThreads } = useReviewContext();
   const [dialogOpen, setDialogOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const diffFileComments = useMemo(
@@ -35,46 +35,59 @@ export function ReviewDiffFile({
   );
 
   const [bubblePositionsLeft, setBubblePositionsLeft] = useState<
-    Array<{ top: number; comments: ReviewCommentResource[] }>
+    Array<{
+      top: number;
+      parentComment: ReviewCommentResource;
+      commentCount: number;
+    }>
   >([]);
   const [bubblePositionsRight, setBubblePositionsRight] = useState<
-    Array<{ top: number; comments: ReviewCommentResource[] }>
+    Array<{
+      top: number;
+      parentComment: ReviewCommentResource;
+      commentCount: number;
+    }>
   >([]);
 
   useLayoutEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
-    const groups = new Map<string, ReviewCommentResource[]>();
-    for (const comment of diffFileComments) {
-      if (comment.line_number_start === null || comment.side === null) continue;
-      const key = `${comment.line_number_start}:${comment.side}`;
-      const existing = groups.get(key);
-      if (existing) existing.push(comment);
-      else groups.set(key, [comment]);
-    }
-
     const containerRect = container.getBoundingClientRect();
-    const left: Array<{ top: number; comments: ReviewCommentResource[] }> = [];
-    const right: Array<{ top: number; comments: ReviewCommentResource[] }> = [];
+    const left: Array<{
+      top: number;
+      parentComment: ReviewCommentResource;
+      commentCount: number;
+    }> = [];
+    const right: Array<{
+      top: number;
+      parentComment: ReviewCommentResource;
+      commentCount: number;
+    }> = [];
 
-    for (const [key, comments] of groups) {
-      const [lineNum, side] = key.split(":");
+    const fileThreads = activeDiffCommentThreads.filter(
+      (t) => t[0].file_path === diffFile.path,
+    );
+
+    for (const thread of fileThreads) {
+      const root = thread[0];
+      if (root.line_number_start === null || root.side === null) continue;
       const el = container.querySelector<HTMLElement>(
-        `.diff-line[data-line-number="${lineNum}"][data-side="${side}"]`,
+        `.diff-line[data-line-number="${root.line_number_start}"][data-side="${root.side}"]`,
       );
       if (!el) continue;
       const position = {
         top: el.getBoundingClientRect().top - containerRect.top,
-        comments,
+        parentComment: root,
+        commentCount: thread.length,
       };
-      if (side === "old") left.push(position);
+      if (root.side === "old") left.push(position);
       else right.push(position);
     }
 
     setBubblePositionsLeft(left);
     setBubblePositionsRight(right);
-  }, [diffFileComments]);
+  }, [activeDiffCommentThreads, diffFile.path]);
 
   return (
     <div ref={containerRef} className="relative">

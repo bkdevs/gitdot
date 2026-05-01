@@ -1,0 +1,1 @@
+-- Position data for existing replies is not recoverable.

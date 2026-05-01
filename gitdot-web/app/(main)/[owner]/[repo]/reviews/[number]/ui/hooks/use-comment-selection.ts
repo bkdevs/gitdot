@@ -33,14 +33,17 @@ export function useCommentSelection() {
   useLayoutEffect(() => {
     const container = containerRef.current;
     if (!activeComment || !container) {
+      console.log("no active comment or container");
       commentThreadRef.current?.close();
       return;
     }
     const pos = computeCommentThreadPos(activeComment.id, container);
     if (!pos) {
+      console.log("no pos computed");
       commentThreadRef.current?.close();
       return;
     }
+    console.log("opening at pos", pos);
     commentThreadRef.current?.open(pos);
   }, [activeComment]);
 
@@ -222,7 +225,10 @@ const computeCommentThreadPos = (
       `.diff-token[data-comment-id="${commentId}"]`,
     ),
   );
-  if (tokens.length === 0) return null;
+  console.log(commentId);
+  if (tokens.length === 0) {
+    return null;
+  }
 
   let lastLine: HTMLElement | null = null;
   let lastLineFirstToken: HTMLElement | null = null;

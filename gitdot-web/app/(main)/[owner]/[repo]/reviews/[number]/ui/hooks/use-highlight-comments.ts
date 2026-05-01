@@ -23,7 +23,9 @@ export function useHighlightComments(
       delete span.dataset.commentId;
     }
 
-    for (const comment of diffFileComments) {
+    for (const comment of diffFileComments.filter(
+      (c) => c.parent_id === null,
+    )) {
       if (
         comment.line_number_start == null ||
         comment.line_number_end == null ||

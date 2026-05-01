@@ -68,6 +68,7 @@ type ReviewContext = {
   setActiveComment: (comment: ReviewCommentResource | null) => void;
   activeDiff: ReviewDiffResource;
   activeDiffComments: ReviewCommentResource[];
+  activeDiffCommentThreads: ReviewCommentResource[][];
   activeDiffDraftComments: ReviewCommentResource[];
 
   publishReview: () => Promise<PublishReviewActionResult>;
@@ -145,6 +146,43 @@ export function ReviewProvider({
     () => comments.filter((c) => c.diff_id === activeDiff.id),
     [comments, activeDiff.id],
   );
+
+  const activeDiffCommentThreads = useMemo(() => {
+    const byId = new Map(activeDiffComments.map((c) => [c.id, c]));
+    const roots: ReviewCommentResource[] = [];
+    const replies = new Map<string, ReviewCommentResource[]>();
+
+    for (const c of activeDiffComments) {
+      if (c.parent_id === null || !byId.has(c.parent_id)) {
+        roots.push(c);
+      } else {
+        const bucket = replies.get(c.parent_id) ?? [];
+        bucket.push(c);
+        replies.set(c.parent_id, bucket);
+      }
+    }
+
+    roots.sort((a, b) => {
+      const pathA = a.file_path ?? "";
+      const pathB = b.file_path ?? "";
+      if (pathA !== pathB) return pathA.localeCompare(pathB);
+      return (
+        (a.line_number_start ?? Infinity) - (b.line_number_start ?? Infinity)
+      );
+    });
+
+    return roots.map((root) => {
+      const chain: ReviewCommentResource[] = [root];
+      let current = root;
+      while (true) {
+        const children = replies.get(current.id);
+        if (!children?.length) break;
+        chain.push(...children);
+        current = children[children.length - 1];
+      }
+      return chain;
+    });
+  }, [activeDiffComments]);
 
   const activeDiffDraftComments = useMemo(
     () => draftComments.filter((c) => c.diff_id === activeDiff.id),
@@ -355,6 +393,7 @@ export function ReviewProvider({
         setActiveComment,
         activeDiff,
         activeDiffComments,
+        activeDiffCommentThreads,
         activeDiffDraftComments,
 
         publishReview,
