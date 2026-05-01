@@ -6,8 +6,9 @@ use sqlx::PgPool;
 
 use gitdot_core::{
     client::{
-        DifftClient, Git2Client, GitHttpClientImpl, ImageClientImpl, OctocrabClient, R2ClientImpl,
-        ResendClient, S2ClientImpl, SecretClient, SlackBotClientImpl, TokenClientImpl,
+        DifftClient, Git2Client, GitHttpClientImpl, ImageClientImpl, KafkaClientImpl,
+        OctocrabClient, R2ClientImpl, ResendClient, S2ClientImpl, SecretClient, SlackBotClientImpl,
+        TokenClientImpl,
     },
     repository::{
         BuildRepositoryImpl, CommitRepositoryImpl, DeviceRepositoryImpl, GitHubRepositoryImpl,
@@ -96,6 +97,7 @@ impl AppState {
             settings.gitdot_slack_bot_server_url.clone(),
             secret_client.get_gitdot_slack_secret().await?,
         );
+        let kafka_client = KafkaClientImpl::new(&settings.kafka_bootstrap_servers)?;
         let email_client = ResendClient::new(&secret_client.get_resend_api_key().await?);
         let image_client = ImageClientImpl::new();
         let r2_client = R2ClientImpl::new(
@@ -185,6 +187,9 @@ impl AppState {
             webhook_service: Arc::new(WebhookServiceImpl::new(
                 webhook_repo.clone(),
                 repo_repo.clone(),
+                user_repo.clone(),
+                git_client.clone(),
+                kafka_client.clone(),
             )),
             build_service: Arc::new(BuildServiceImpl::new(
                 git_client.clone(),

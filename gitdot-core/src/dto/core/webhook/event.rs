@@ -1,3 +1,3 @@
-mod repo_push;
+mod publish_repo_push;
 
-pub use repo_push::{RepoPushCommit, RepoPushEvent};
+pub use publish_repo_push::{PublishRepoPushRequest, RepoPushCommit, RepoPushEvent};

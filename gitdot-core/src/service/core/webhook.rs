@@ -1,13 +1,17 @@
 use async_trait::async_trait;
+use chrono::Utc;
 
 use crate::{
+    client::{Git2Client, GitClient, KafkaClient, KafkaClientImpl},
     dto::{
         CreateWebhookRequest, DeleteWebhookRequest, GetWebhookRequest, ListWebhooksRequest,
-        UpdateWebhookRequest, WebhookResponse,
+        PublishRepoPushRequest, RepoPushCommit, RepoPushEvent, UpdateWebhookRequest,
+        WebhookResponse,
     },
     error::{NotFoundError, OptionNotFoundExt, WebhookError},
     repository::{
-        RepositoryRepository, RepositoryRepositoryImpl, WebhookRepository, WebhookRepositoryImpl,
+        RepositoryRepository, RepositoryRepositoryImpl, UserRepository, UserRepositoryImpl,
+        WebhookRepository, WebhookRepositoryImpl,
     },
 };
 
@@ -34,33 +38,61 @@ pub trait WebhookService: Send + Sync + 'static {
     ) -> Result<WebhookResponse, WebhookError>;
 
     async fn delete_webhook(&self, request: DeleteWebhookRequest) -> Result<(), WebhookError>;
+
+    async fn publish_repo_push(&self, request: PublishRepoPushRequest) -> Result<(), WebhookError>;
 }
 
 #[derive(Debug, Clone)]
-pub struct WebhookServiceImpl<W, R>
+pub struct WebhookServiceImpl<W, R, U, G, K>
 where
     W: WebhookRepository,
     R: RepositoryRepository,
+    U: UserRepository,
+    G: GitClient,
+    K: KafkaClient,
 {
     webhook_repo: W,
     repo_repo: R,
+    user_repo: U,
+    git_client: G,
+    kafka_client: K,
 }
 
-impl WebhookServiceImpl<WebhookRepositoryImpl, RepositoryRepositoryImpl> {
-    pub fn new(webhook_repo: WebhookRepositoryImpl, repo_repo: RepositoryRepositoryImpl) -> Self {
+impl
+    WebhookServiceImpl<
+        WebhookRepositoryImpl,
+        RepositoryRepositoryImpl,
+        UserRepositoryImpl,
+        Git2Client,
+        KafkaClientImpl,
+    >
+{
+    pub fn new(
+        webhook_repo: WebhookRepositoryImpl,
+        repo_repo: RepositoryRepositoryImpl,
+        user_repo: UserRepositoryImpl,
+        git_client: Git2Client,
+        kafka_client: KafkaClientImpl,
+    ) -> Self {
         Self {
             webhook_repo,
             repo_repo,
+            user_repo,
+            git_client,
+            kafka_client,
         }
     }
 }
 
 #[crate::instrument_all]
 #[async_trait]
-impl<W, R> WebhookService for WebhookServiceImpl<W, R>
+impl<W, R, U, G, K> WebhookService for WebhookServiceImpl<W, R, U, G, K>
 where
     W: WebhookRepository,
     R: RepositoryRepository,
+    U: UserRepository,
+    G: GitClient,
+    K: KafkaClient,
 {
     async fn create_webhook(
         &self,
@@ -189,6 +221,48 @@ where
         }
 
         self.webhook_repo.delete(request.webhook_id).await?;
+
+        Ok(())
+    }
+
+    async fn publish_repo_push(&self, request: PublishRepoPushRequest) -> Result<(), WebhookError> {
+        let pusher = self
+            .user_repo
+            .get_by_id(request.pusher_id)
+            .await?
+            .or_not_found("user", request.pusher_id)?;
+
+        let git_commits = self
+            .git_client
+            .rev_list(
+                &request.owner,
+                &request.repo,
+                &request.old_sha,
+                &request.new_sha,
+            )
+            .await?;
+
+        let commits = git_commits
+            .into_iter()
+            .map(|c| RepoPushCommit {
+                sha: c.sha,
+                message: c.message,
+            })
+            .collect();
+
+        let event = RepoPushEvent {
+            owner: request.owner,
+            repo: request.repo,
+            ref_name: request.ref_name,
+            old_sha: request.old_sha,
+            new_sha: request.new_sha,
+            pusher_id: request.pusher_id,
+            pusher_name: pusher.name,
+            commits,
+            pushed_at: Utc::now(),
+        };
+
+        self.kafka_client.publish_repo_push(event).await?;
 
         Ok(())
     }

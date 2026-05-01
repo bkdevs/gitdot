@@ -8,7 +8,7 @@ use reqwest::Client;
 use serde_json::json;
 
 use gitdot_core::{
-    dto::{CreateBuildRequest, CreateCommitsRequest},
+    dto::{CreateBuildRequest, CreateCommitsRequest, PublishRepoPushRequest},
     error::{BuildError, NotFoundError},
 };
 
@@ -43,9 +43,21 @@ pub async fn process_post_receive(
     let owner_slack = owner.clone();
     let repo_slack = repo.clone();
     let ref_name_slack = request.ref_name.clone();
+    let publish_request = PublishRepoPushRequest {
+        owner: owner.clone(),
+        repo: repo.clone(),
+        ref_name: request.ref_name.clone(),
+        old_sha: request.old_sha.clone(),
+        new_sha: request.new_sha.clone(),
+        pusher_id: request.pusher_id,
+    };
 
     // execute in the background to avoid blocking push operation
     tokio::spawn(async move {
+        if let Err(e) = state.webhook_service.publish_repo_push(publish_request).await {
+            tracing::error!("Failed to publish repo push event: {e}");
+        }
+
         let commits = match state.commit_service.create_commits(commit_request).await {
             Ok(c) => c,
             Err(e) => {

@@ -13,6 +13,8 @@ pub struct Settings {
     pub vercel_oidc_url: String,
 
     pub gitdot_slack_bot_server_url: String,
+
+    pub kafka_bootstrap_servers: String,
 }
 
 impl Settings {
@@ -36,6 +38,9 @@ impl Settings {
 
             gitdot_slack_bot_server_url: env::var("GITDOT_SLACK_BOT_SERVER_URL")
                 .unwrap_or_else(|_| "http://localhost:3001".to_string()),
+
+            kafka_bootstrap_servers: env::var("KAFKA_BOOTSTRAP_SERVERS")
+                .unwrap_or_else(|_| "http://localhost:9092".to_string()),
         })
     }
 
