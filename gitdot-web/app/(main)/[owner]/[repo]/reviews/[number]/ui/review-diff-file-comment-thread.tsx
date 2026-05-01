@@ -20,8 +20,7 @@ export function ReviewDiffFileCommentThread({
   onClose: () => void;
   ref: React.Ref<ReviewDiffFileCommentThreadHandle>;
 }) {
-  const { activeComment, activeCommentThread, replyToComment } =
-    useReviewContext();
+  const { activeCommentThread, replyToComment } = useReviewContext();
   const { user } = useUserContext();
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState({ x: 0, y: 0 });

@@ -54,7 +54,11 @@ pub async fn process_post_receive(
 
     // execute in the background to avoid blocking push operation
     tokio::spawn(async move {
-        if let Err(e) = state.webhook_service.publish_repo_push(publish_request).await {
+        if let Err(e) = state
+            .webhook_service
+            .publish_repo_push(publish_request)
+            .await
+        {
             tracing::error!("Failed to publish repo push event: {e}");
         }
 

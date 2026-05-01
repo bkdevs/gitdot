@@ -60,7 +60,7 @@ export function useCommentSelection() {
     selectionRef.current = null;
   }, []);
 
-  const handleMouseDown = useCallback(
+  const handleClick = useCallback(
     (e: React.MouseEvent) => {
       const token = getTokenSpan(e.target);
       if (token?.dataset.commentId) {
@@ -70,24 +70,31 @@ export function useCommentSelection() {
           : (activeDiffComments.find((c) => c.id === token.dataset.commentId) ??
             null);
         setActiveComment(comment);
-        return;
-      }
-
-      containerRef.current?.classList.add("is-dragging");
-      dragStartRef.current = null;
-      allSpansRef.current = Array.from(
-        containerRef.current?.querySelectorAll(".diff-token") ?? [],
-      ) as HTMLElement[];
-
-      if (token) {
-        e.preventDefault();
-        dragStartRef.current = token;
-        token.classList.add("token-selected");
-        containerRef.current?.classList.add("has-selection");
       }
     },
     [activeComment, activeDiffComments, setActiveComment],
   );
+
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    const token = getTokenSpan(e.target);
+    if (token?.dataset.commentId) {
+      e.preventDefault();
+      return;
+    }
+
+    containerRef.current?.classList.add("is-dragging");
+    dragStartRef.current = null;
+    allSpansRef.current = Array.from(
+      containerRef.current?.querySelectorAll(".diff-token") ?? [],
+    ) as HTMLElement[];
+
+    if (token) {
+      e.preventDefault();
+      dragStartRef.current = token;
+      token.classList.add("token-selected");
+      containerRef.current?.classList.add("has-selection");
+    }
+  }, []);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (!(e.buttons & 1)) return;
@@ -149,6 +156,7 @@ export function useCommentSelection() {
     commentThreadRef,
     selectionRef,
     clearSelection,
+    handleClick,
     handleMouseDown,
     handleMouseMove,
     handleMouseUp,

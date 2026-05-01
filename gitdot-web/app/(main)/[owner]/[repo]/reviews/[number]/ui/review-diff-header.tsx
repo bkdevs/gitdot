@@ -30,7 +30,6 @@ function DiffStatusBadge({
 export function ReviewDiffHeader({
   title,
   index,
-  author,
   status,
   createdAt,
   updatedAt,

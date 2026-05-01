@@ -3,7 +3,7 @@
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import type { ReviewCommentResource } from "gitdot-api";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useUserContext } from "@/(main)/context/user";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
 import { cn } from "@/util";
@@ -39,7 +39,7 @@ export function ReviewDiffReviewDialog({
 
   useEffect(() => {
     if (open) setLocalComments(activeDiffDraftComments);
-  }, [open]);
+  }, [open, activeDiffDraftComments]);
 
   function updateLocalComment(id: string, body: string) {
     setLocalComments((prev) =>
@@ -112,7 +112,9 @@ export function ReviewDiffReviewDialog({
                 {
                   v: "approve",
                   label: "Approve",
-                  sub: "Approve merging",
+                  sub: isAuthor
+                    ? "Cannot approve your own diff"
+                    : "Approve merging",
                   disabled: restrictedToComment,
                   title: restrictedToComment
                     ? isAuthor
@@ -123,7 +125,9 @@ export function ReviewDiffReviewDialog({
                 {
                   v: "reject",
                   label: "Reject",
-                  sub: "Reject merging",
+                  sub: isAuthor
+                    ? "Cannot reject your own diff"
+                    : "Reject merging",
                   disabled: restrictedToComment,
                   title: restrictedToComment
                     ? isAuthor
@@ -146,7 +150,8 @@ export function ReviewDiffReviewDialog({
                 disabled={disabled}
                 title={title}
                 onClick={() =>
-                  !disabled && setVerdict(verdict === v ? null : v)
+                  !disabled &&
+                  setVerdict(verdict === v && v !== "comment" ? null : v)
                 }
                 className={cn(
                   "flex flex-1 items-center gap-1.5 px-3 text-left transition-colors duration-150 border-b border-border last:border-b-0",
@@ -244,6 +249,19 @@ function DraftCommentPreview({
   onDelete: (id: string) => void;
 }) {
   const [editing, setEditing] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const savedBody = useRef(comment.body);
+
+  function startEditing() {
+    savedBody.current = comment.body;
+    setEditing(true);
+    setTimeout(() => inputRef.current?.focus(), 0);
+  }
+
+  function cancelEditing() {
+    onUpdate(comment.id, savedBody.current);
+    setEditing(false);
+  }
 
   return (
     <div className="group flex gap-2 px-2.5 py-1">
@@ -265,29 +283,52 @@ function DraftCommentPreview({
           </span>
         )}
         <input
+          ref={inputRef}
           readOnly={!editing}
           value={comment.body}
           onChange={(e) => onUpdate(comment.id, e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && editing && setEditing(false)}
           className={cn(
             "bg-transparent text-sm outline-none w-full border-b transition-colors duration-200",
             editing ? "border-foreground" : "border-transparent",
           )}
         />
         <div className="flex items-center gap-1.5">
-          <button
-            type="button"
-            onClick={() => setEditing((e) => !e)}
-            className="text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-          >
-            {editing ? "cancel" : "edit"}
-          </button>
-          <button
-            type="button"
-            onClick={() => onDelete(comment.id)}
-            className="text-xs text-muted-foreground hover:text-destructive transition-colors cursor-pointer"
-          >
-            delete
-          </button>
+          {editing ? (
+            <>
+              <button
+                type="button"
+                onClick={() => setEditing(false)}
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+              >
+                save
+              </button>
+              <button
+                type="button"
+                onClick={cancelEditing}
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+              >
+                cancel
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={startEditing}
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+              >
+                edit
+              </button>
+              <button
+                type="button"
+                onClick={() => onDelete(comment.id)}
+                className="text-xs text-muted-foreground hover:text-destructive transition-colors cursor-pointer"
+              >
+                delete
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>

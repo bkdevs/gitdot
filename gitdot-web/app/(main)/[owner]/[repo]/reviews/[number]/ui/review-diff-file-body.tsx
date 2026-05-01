@@ -38,6 +38,7 @@ export function ReviewDiffFileBody({
     commentThreadRef,
     selectionRef,
     clearSelection,
+    handleClick,
     handleMouseDown,
     handleMouseMove,
     handleMouseUp,
@@ -100,6 +101,7 @@ export function ReviewDiffFileBody({
           "opacity-30 transition-opacity duration-200",
         className,
       )}
+      onClick={handleClick}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}

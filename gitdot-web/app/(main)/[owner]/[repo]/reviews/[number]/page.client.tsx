@@ -23,7 +23,6 @@ export type PageLayout = "split" | "summary" | "diffs";
 export function PageClient({
   owner,
   repo,
-  number,
   position,
   requests,
   promises,
@@ -105,7 +104,6 @@ function PageContent({
 
 function ReviewPage({
   layout,
-  setLayout,
   position,
   diffEntriesPromise,
 }: {
