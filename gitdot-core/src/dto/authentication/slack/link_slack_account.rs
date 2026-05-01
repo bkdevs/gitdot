@@ -6,9 +6,10 @@ use crate::model::SlackAccount;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SlackStatePayload {
-    pub user_id: String,
-    pub channel_id: String,
-    pub team_id: String,
+    pub gitdot_user_id: Uuid,
+    pub slack_user_id: String,
+    pub slack_team_id: String,
+    pub slack_channel_id: String,
     pub iat: u64,
     pub exp: u64,
 }

@@ -19,13 +19,13 @@ const FINALIZE_LOGIN_PATH: &str = "/gitdot/auth/finalize";
 
 #[async_trait]
 pub trait SlackBotClient: Send + Sync + Clone + 'static {
+    fn verify_slack_state(&self, state: &str) -> Result<SlackStatePayload, String>;
+
     async fn notify_link_completed(
         &self,
         gitdot_user_id: Uuid,
         channel_id: &str,
     ) -> Result<(), SlackBotError>;
-
-    fn verify_slack_state(&self, state: &str) -> Result<SlackStatePayload, String>;
 }
 
 #[derive(Debug, Clone)]
@@ -112,21 +112,6 @@ struct FinalizeLoginRequest<'a> {
 #[crate::instrument_all(level = "debug")]
 #[async_trait]
 impl SlackBotClient for SlackBotClientImpl {
-    async fn notify_link_completed(
-        &self,
-        gitdot_user_id: Uuid,
-        channel_id: &str,
-    ) -> Result<(), SlackBotError> {
-        self.post(
-            FINALIZE_LOGIN_PATH,
-            &FinalizeLoginRequest {
-                gitdot_user_id,
-                channel_id,
-            },
-        )
-        .await
-    }
-
     fn verify_slack_state(&self, state: &str) -> Result<SlackStatePayload, String> {
         let (payload_b64, sig_b64) = state.split_once('.').ok_or("Invalid state format")?;
 
@@ -150,5 +135,20 @@ impl SlackBotClient for SlackBotClientImpl {
         }
 
         Ok(payload)
+    }
+
+    async fn notify_link_completed(
+        &self,
+        gitdot_user_id: Uuid,
+        channel_id: &str,
+    ) -> Result<(), SlackBotError> {
+        self.post(
+            FINALIZE_LOGIN_PATH,
+            &FinalizeLoginRequest {
+                gitdot_user_id,
+                channel_id,
+            },
+        )
+        .await
     }
 }

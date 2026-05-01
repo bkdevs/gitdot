@@ -413,11 +413,15 @@ where
 
         let account = self
             .slack_repo
-            .create_slack_account(request.gitdot_user_id, &payload.user_id, &payload.team_id)
+            .create_slack_account(
+                request.gitdot_user_id,
+                &payload.slack_user_id,
+                &payload.slack_team_id,
+            )
             .await?;
 
         self.slack_bot_client
-            .notify_link_completed(request.gitdot_user_id, &payload.channel_id)
+            .notify_link_completed(request.gitdot_user_id, &payload.slack_channel_id)
             .await?;
 
         Ok(account.into())
