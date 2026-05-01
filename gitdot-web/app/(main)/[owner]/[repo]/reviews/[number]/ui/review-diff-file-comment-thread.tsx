@@ -97,11 +97,11 @@ export function ReviewDiffFileCommentThread({
     <>
       <div className="fixed inset-0 z-[60]" onMouseDown={handleClose} />
       <div
-        className="fixed z-[70] w-72 bg-background border border-border shadow-md rounded-sm overflow-hidden"
+        className="fixed z-[70] w-80 bg-background border border-border shadow-md overflow-hidden"
         style={{ top: pos.y + 12, left: pos.x + 12 }}
         onMouseDown={(e) => e.stopPropagation()}
       >
-        <div className="flex flex-col pb-2">
+        <div className="flex flex-col p-1">
           {threadComments.map((comment) => (
             <div key={comment.id} className="flex gap-2 px-2 py-1.5">
               <div className="pt-0.5 shrink-0">
