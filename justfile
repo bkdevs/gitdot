@@ -7,6 +7,7 @@ alias l:= lint-all
 alias t:= test-all
 
 DB_CONTAINER := "gitdot-db"
+KAFKA_CONTAINER := "gitdot-kafka"
 
 
 # ── Install ───────────────────────────────────────────────────────────────────
@@ -72,6 +73,48 @@ db:
 # Stop local Postgres container
 db-stop:
     docker stop {{DB_CONTAINER}}
+
+# ── Kafka ────────────────────────────────────────────────────────────────────
+
+# Start local Kafka (KRaft, single broker) in Docker (idempotent)
+kafka:
+    #!/usr/bin/env bash
+    set -e
+    if ! docker info &>/dev/null; then
+        echo "Error: Docker is not running."
+        exit 1
+    fi
+    if docker ps -q -f name={{KAFKA_CONTAINER}} | grep -q .; then
+        echo "Kafka already running."
+    elif docker ps -aq -f name={{KAFKA_CONTAINER}} | grep -q .; then
+        echo "Starting existing container '{{KAFKA_CONTAINER}}'..."
+        docker start {{KAFKA_CONTAINER}}
+        sleep 1
+    else
+        echo "Creating Kafka container '{{KAFKA_CONTAINER}}'..."
+        docker run -d \
+            --name {{KAFKA_CONTAINER}} \
+            -e KAFKA_NODE_ID=1 \
+            -e KAFKA_PROCESS_ROLES=broker,controller \
+            -e KAFKA_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093 \
+            -e KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092 \
+            -e KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER \
+            -e KAFKA_CONTROLLER_QUORUM_VOTERS=1@localhost:9093 \
+            -e KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT \
+            -e KAFKA_INTER_BROKER_LISTENER_NAME=PLAINTEXT \
+            -e KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1 \
+            -e KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=1 \
+            -e KAFKA_TRANSACTION_STATE_LOG_MIN_ISR=1 \
+            -e KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS=0 \
+            -p 9092:9092 \
+            apache/kafka:3.9.0
+        echo "Waiting for Kafka to be ready..."
+        sleep 5
+    fi
+
+# Stop local Kafka container
+kafka-stop:
+    docker stop {{KAFKA_CONTAINER}}
 
 # ── Dev (run services) ──────────────────────────────────────────────────────
 
