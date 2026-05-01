@@ -1,54 +1,17 @@
 "use client";
 
-import { useParams, usePathname, useRouter } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 import {
-  useCallback,
   useEffect,
   useLayoutEffect,
   useMemo,
   useRef,
 } from "react";
 import { type Shortcut, useShortcuts } from "@/(main)/context/shortcuts";
-import { NAV_ITEMS } from "../(index)/layout.client";
-
-const NAV_SECTIONS = new Set(NAV_ITEMS.map((i) => i.path).filter(Boolean));
 
 export function RepoShortcuts() {
-  const router = useRouter();
   const { owner, repo } = useParams<{ owner: string; repo: string }>();
   const pathname = usePathname();
-
-  const navPop = useCallback(() => {
-    const base = `/${owner}/${repo}`;
-    const relPath = pathname.slice(base.length);
-    const segments = relPath.split("/").filter(Boolean);
-
-    if (segments.length === 0) return false;
-
-    const firstSegment = segments[0];
-    const isNavSection = NAV_SECTIONS.has(firstSegment);
-
-    if (!isNavSection && segments.length === 1) {
-      // top-level path, e.g., gitdot/gitdot-web -> gitdot/files
-      router.push(`${base}/files`);
-    } else if (segments.length > 1) {
-      router.push(`${base}/${segments.slice(0, -1).join("/")}`);
-    }
-    return true;
-  }, [owner, repo, pathname, router]);
-
-  const navPush = useCallback(() => {
-    const active = document.activeElement;
-    const el = active?.matches("[data-page-item]")
-      ? (active as HTMLElement)
-      : document.querySelector<HTMLElement>("[data-page-item]");
-    if (!el) return;
-    if (el instanceof HTMLAnchorElement) {
-      el.click();
-    } else {
-      el.querySelector<HTMLAnchorElement>("a")?.click();
-    }
-  }, []);
 
   const mouseMoved = useRef(false);
   const prevPathname = useRef(pathname);
@@ -188,18 +151,6 @@ export function RepoShortcuts() {
         },
       },
       {
-        name: "NavPop",
-        description: "Go up: cd ..",
-        keys: ["h", "Escape"],
-        execute: () => navPop(),
-      },
-      {
-        name: "NavPush",
-        description: "Go down: cd dir",
-        keys: ["l", "Enter"],
-        execute: navPush,
-      },
-      {
         name: "FuzzyFile",
         description: "Open file dialog",
         keys: ["p"],
@@ -218,7 +169,7 @@ export function RepoShortcuts() {
         execute: () => window.dispatchEvent(new Event("toggleRightSidebar")),
       },
     ],
-    [navPop, navPush],
+    [],
   );
 
   useShortcuts(shortcuts);
