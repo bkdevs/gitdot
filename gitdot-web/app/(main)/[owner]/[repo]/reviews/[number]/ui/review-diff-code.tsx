@@ -8,7 +8,7 @@ import { ReviewDiffFile } from "./review-diff-file";
 import { ReviewDiffMessage } from "./review-diff-message";
 import { ReviewDiffMetadata } from "./review-diff-metadata";
 
-export function ReviewDiffBody({
+export function ReviewDiffCode({
   diffEntriesPromise,
   diff,
 }: {

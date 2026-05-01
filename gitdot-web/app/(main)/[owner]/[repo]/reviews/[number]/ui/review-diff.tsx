@@ -1,11 +1,14 @@
 "use client";
 
 import type { ReviewResource } from "gitdot-api";
-import { Suspense } from "react";
+import { Suspense, useEffect, useState } from "react";
 import type { DiffEntry } from "@/actions";
 import { Loading } from "@/ui/loading";
-import { ReviewDiffBody } from "./review-diff-body";
+import { ReviewDiffCode } from "./review-diff-code";
+import { ReviewDiffConversation } from "./review-diff-conversation";
 import { ReviewDiffHeader } from "./review-diff-header";
+
+type DiffView = "code" | "conversation";
 
 export function ReviewDiff({
   position,
@@ -16,6 +19,12 @@ export function ReviewDiff({
   review: ReviewResource;
   diffEntriesPromise: Promise<DiffEntry[]>;
 }) {
+  const [view, setView] = useState<DiffView>("code");
+
+  useEffect(() => {
+    setView("code");
+  }, [position]);
+
   const activeDiff = review.diffs.find((d) => d.position === position);
   if (!activeDiff) return null;
 
@@ -29,13 +38,19 @@ export function ReviewDiff({
         status={activeDiff.status}
         createdAt={activeDiff.created_at}
         updatedAt={activeDiff.updated_at}
+        view={view}
+        onViewChange={setView}
       />
-      <Suspense fallback={<Loading />}>
-        <ReviewDiffBody
-          diffEntriesPromise={diffEntriesPromise}
-          diff={activeDiff}
-        />
-      </Suspense>
+      {view === "code" ? (
+        <Suspense fallback={<Loading />}>
+          <ReviewDiffCode
+            diffEntriesPromise={diffEntriesPromise}
+            diff={activeDiff}
+          />
+        </Suspense>
+      ) : (
+        <ReviewDiffConversation />
+      )}
     </div>
   );
 }

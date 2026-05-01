@@ -1,7 +1,7 @@
 "use client";
 
+import { Fragment } from "react";
 import type { DiffStatus, ReviewStatus } from "gitdot-api";
-import { useState } from "react";
 import { cn, timeAgo } from "@/util";
 import { useReviewContext } from "../context";
 
@@ -33,6 +33,8 @@ export function ReviewDiffHeader({
   status,
   createdAt,
   updatedAt,
+  view,
+  onViewChange,
 }: {
   title: string;
   index: number;
@@ -40,8 +42,9 @@ export function ReviewDiffHeader({
   status: DiffStatus;
   createdAt: string;
   updatedAt: string;
+  view: DiffView;
+  onViewChange: (v: DiffView) => void;
 }) {
-  const [view, setView] = useState<DiffView>("code");
   const { review } = useReviewContext();
 
   return (
@@ -54,20 +57,24 @@ export function ReviewDiffHeader({
           <span className="text-sm truncate">{title}</span>
         </div>
         <div className="flex flex-row items-end -ml-2">
-          {(["code", "conversation"] as DiffView[]).map((v) => (
-            <button
-              key={v}
-              type="button"
-              onClick={() => setView(v)}
-              className={cn(
-                "px-3 py-0.5 text-xs capitalize transition-colors border-b-2 -mb-px",
-                view === v
-                  ? "text-foreground border-b-foreground"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50 border-b-transparent",
+          {(["code", "conversation"] as DiffView[]).map((v, i) => (
+            <Fragment key={v}>
+              {i > 0 && (
+                <span className="inline-block w-px h-2.5 bg-muted-foreground/40 mx-0.5 mb-1.25" />
               )}
-            >
-              {v}
-            </button>
+              <button
+                type="button"
+                onClick={() => onViewChange(v)}
+                className={cn(
+                  "px-3 py-0.5 text-xs capitalize transition-colors border-b-2 -mb-px",
+                  view === v
+                    ? "text-foreground border-b-foreground"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50 border-b-transparent",
+                )}
+              >
+                {v}
+              </button>
+            </Fragment>
           ))}
         </div>
       </div>
