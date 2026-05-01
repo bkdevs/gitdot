@@ -69,6 +69,7 @@ type ReviewContext = {
   activeDiff: ReviewDiffResource;
   activeDiffComments: ReviewCommentResource[];
   activeDiffCommentThreads: ReviewCommentResource[][];
+  activeCommentThread: ReviewCommentResource[];
   activeDiffDraftComments: ReviewCommentResource[];
 
   publishReview: () => Promise<PublishReviewActionResult>;
@@ -183,6 +184,13 @@ export function ReviewProvider({
       return chain;
     });
   }, [activeDiffComments]);
+
+  const activeCommentThread = useMemo(() => {
+    if (!activeComment) return [];
+    return (
+      activeDiffCommentThreads.find((t) => t[0].id === activeComment.id) ?? []
+    );
+  }, [activeComment, activeDiffCommentThreads]);
 
   const activeDiffDraftComments = useMemo(
     () => draftComments.filter((c) => c.diff_id === activeDiff.id),
@@ -394,6 +402,7 @@ export function ReviewProvider({
         activeDiff,
         activeDiffComments,
         activeDiffCommentThreads,
+        activeCommentThread,
         activeDiffDraftComments,
 
         publishReview,

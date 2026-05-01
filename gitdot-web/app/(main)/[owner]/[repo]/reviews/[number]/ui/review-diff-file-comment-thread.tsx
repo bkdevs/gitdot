@@ -2,7 +2,7 @@
 
 import type { ReviewCommentResource } from "gitdot-api";
 import { Send } from "lucide-react";
-import { useEffect, useImperativeHandle, useMemo, useState } from "react";
+import { useEffect, useImperativeHandle, useState } from "react";
 import { useUserContext } from "@/(main)/context/user";
 import { timeAgo } from "@/util";
 import { UserImage } from "../../../../ui/user-image";
@@ -20,7 +20,7 @@ export function ReviewDiffFileCommentThread({
   onClose: () => void;
   ref: React.Ref<ReviewDiffFileCommentThreadHandle>;
 }) {
-  const { activeComment, activeDiffComments, replyToComment } =
+  const { activeComment, activeCommentThread, replyToComment } =
     useReviewContext();
   const { user } = useUserContext();
   const [open, setOpen] = useState(false);
@@ -30,19 +30,9 @@ export function ReviewDiffFileCommentThread({
     [],
   );
 
-  const contextComments = useMemo(() => {
-    if (!activeComment) return [];
-    return activeDiffComments.filter(
-      (c) =>
-        c.file_path === activeComment.file_path &&
-        c.line_number_start === activeComment.line_number_start &&
-        c.side === activeComment.side,
-    );
-  }, [activeComment, activeDiffComments]);
-
   useEffect(() => {
-    setThreadComments(contextComments);
-  }, [contextComments]);
+    setThreadComments(activeCommentThread);
+  }, [activeCommentThread]);
 
   useImperativeHandle(ref, () => ({
     open(p) {
@@ -125,6 +115,7 @@ export function ReviewDiffFileCommentThread({
         </div>
         <div className="flex min-h-7 border-t items-start">
           <textarea
+            autoFocus
             value={reply}
             onChange={(e) => setReply(e.target.value)}
             placeholder="Reply..."
