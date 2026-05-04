@@ -5,18 +5,23 @@ use crate::{
     client::{Git2Client, GitClient, KafkaClient, KafkaClientImpl},
     dto::{
         CreateWebhookRequest, DeleteWebhookRequest, GetWebhookRequest, ListWebhooksRequest,
-        PublishRepoPushRequest, RepoPushCommit, RepoPushEvent, UpdateWebhookRequest,
+        PublishRepoPushRequest, RepoPushCommit, RepoPushEvent, SlackWebhookResponse,
+        SubscribeSlackWebhookRequest, UnsubscribeSlackWebhookRequest, UpdateWebhookRequest,
         WebhookResponse,
     },
     error::{NotFoundError, OptionNotFoundExt, WebhookError},
+    model::WebhookEventType,
     repository::{
-        RepositoryRepository, RepositoryRepositoryImpl, UserRepository, UserRepositoryImpl,
-        WebhookRepository, WebhookRepositoryImpl,
+        RepositoryRepository, RepositoryRepositoryImpl, SlackWebhookRepository,
+        SlackWebhookRepositoryImpl, UserRepository, UserRepositoryImpl, WebhookRepository,
+        WebhookRepositoryImpl,
     },
 };
 
 #[async_trait]
 pub trait WebhookService: Send + Sync + 'static {
+    // --- Webhook operations ---
+
     async fn create_webhook(
         &self,
         request: CreateWebhookRequest,
@@ -39,19 +44,35 @@ pub trait WebhookService: Send + Sync + 'static {
 
     async fn delete_webhook(&self, request: DeleteWebhookRequest) -> Result<(), WebhookError>;
 
+    // --- Event operations ---
+
     async fn publish_repo_push(&self, request: PublishRepoPushRequest) -> Result<(), WebhookError>;
+
+    // --- Slack webhook operations ---
+
+    async fn subscribe_slack_webhook(
+        &self,
+        request: SubscribeSlackWebhookRequest,
+    ) -> Result<SlackWebhookResponse, WebhookError>;
+
+    async fn unsubscribe_slack_webhook(
+        &self,
+        request: UnsubscribeSlackWebhookRequest,
+    ) -> Result<(), WebhookError>;
 }
 
 #[derive(Debug, Clone)]
-pub struct WebhookServiceImpl<W, R, U, G, K>
+pub struct WebhookServiceImpl<W, SW, R, U, G, K>
 where
     W: WebhookRepository,
+    SW: SlackWebhookRepository,
     R: RepositoryRepository,
     U: UserRepository,
     G: GitClient,
     K: KafkaClient,
 {
     webhook_repo: W,
+    slack_webhook_repo: SW,
     repo_repo: R,
     user_repo: U,
     git_client: G,
@@ -61,6 +82,7 @@ where
 impl
     WebhookServiceImpl<
         WebhookRepositoryImpl,
+        SlackWebhookRepositoryImpl,
         RepositoryRepositoryImpl,
         UserRepositoryImpl,
         Git2Client,
@@ -69,6 +91,7 @@ impl
 {
     pub fn new(
         webhook_repo: WebhookRepositoryImpl,
+        slack_webhook_repo: SlackWebhookRepositoryImpl,
         repo_repo: RepositoryRepositoryImpl,
         user_repo: UserRepositoryImpl,
         git_client: Git2Client,
@@ -76,6 +99,7 @@ impl
     ) -> Self {
         Self {
             webhook_repo,
+            slack_webhook_repo,
             repo_repo,
             user_repo,
             git_client,
@@ -86,9 +110,10 @@ impl
 
 #[crate::instrument_all]
 #[async_trait]
-impl<W, R, U, G, K> WebhookService for WebhookServiceImpl<W, R, U, G, K>
+impl<W, SW, R, U, G, K> WebhookService for WebhookServiceImpl<W, SW, R, U, G, K>
 where
     W: WebhookRepository,
+    SW: SlackWebhookRepository,
     R: RepositoryRepository,
     U: UserRepository,
     G: GitClient,
@@ -263,6 +288,68 @@ where
         };
 
         self.kafka_client.publish_repo_push(event).await?;
+
+        Ok(())
+    }
+
+    async fn subscribe_slack_webhook(
+        &self,
+        request: SubscribeSlackWebhookRequest,
+    ) -> Result<SlackWebhookResponse, WebhookError> {
+        let owner = request.owner_name.as_ref();
+        let repo = request.repo_name.as_ref();
+
+        let repository = self
+            .repo_repo
+            .get(owner, repo)
+            .await?
+            .or_not_found("repository", format!("{owner}/{repo}"))?;
+
+        // TODO: support configurable event subscriptions; default to push only.
+        let events = vec![WebhookEventType::Push];
+        let webhook = self
+            .slack_webhook_repo
+            .create(
+                request.user_id,
+                repository.id,
+                &events,
+                &request.slack_user_id,
+                &request.slack_team_id,
+                &request.slack_channel_id,
+            )
+            .await?;
+
+        Ok(webhook.into())
+    }
+
+    async fn unsubscribe_slack_webhook(
+        &self,
+        request: UnsubscribeSlackWebhookRequest,
+    ) -> Result<(), WebhookError> {
+        let owner = request.owner_name.as_ref();
+        let repo = request.repo_name.as_ref();
+
+        let repository = self
+            .repo_repo
+            .get(owner, repo)
+            .await?
+            .or_not_found("repository", format!("{owner}/{repo}"))?;
+
+        let webhook = self
+            .slack_webhook_repo
+            .get(request.webhook_id)
+            .await?
+            .or_not_found("slack_webhook", request.webhook_id)?;
+
+        if webhook.repository_id != repository.id
+            || webhook.slack_user_id != request.slack_user_id
+            || webhook.slack_team_id != request.slack_team_id
+            || webhook.slack_channel_id != request.slack_channel_id
+        {
+            return Err(NotFoundError::new("slack_webhook", request.webhook_id).into());
+        }
+
+        self.slack_webhook_repo.delete(request.webhook_id).await?;
 
         Ok(())
     }
