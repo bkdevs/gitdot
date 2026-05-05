@@ -245,13 +245,15 @@ where
         }
 
         self.session_repo.mark_auth_code_used(auth_code.id).await?;
-        self.user_repo.verify_email(auth_code.user_id).await?;
 
         let user = self
             .user_repo
             .get_by_id(auth_code.user_id)
             .await?
             .or_not_found("user", auth_code.user_id)?;
+        let is_new = !user.is_email_verified;
+
+        self.user_repo.verify_email(auth_code.user_id).await?;
         let orgs = self
             .user_repo
             .get_org_memberships(auth_code.user_id)
@@ -279,7 +281,7 @@ where
             refresh_token,
             access_token_expires_in: self.token_client.get_access_token_expiry_in_seconds(),
             refresh_token_expires_in: refresh_expiry_secs,
-            is_new: false,
+            is_new,
         })
     }
 

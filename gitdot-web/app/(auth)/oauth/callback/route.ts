@@ -18,5 +18,5 @@ export async function GET(request: NextRequest) {
     return;
   }
 
-  redirect(result.is_new ? "/onboarding" : "/home");
+  redirect(result.is_new ? "/onboarding" : `/${result.username}`);
 }

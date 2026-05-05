@@ -191,7 +191,7 @@ function CodeForm({
       const result = await verifyCode(null, formData);
       if ("error" in result) {
         setError(result.error);
-      } else if ("is_new" in result) {
+      } else if (result.is_new) {
         await refreshUser();
         onWelcome();
       } else {
