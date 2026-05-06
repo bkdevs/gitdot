@@ -387,8 +387,8 @@ where
             .collect();
 
         let event = RepoPushEvent {
-            owner: request.owner,
-            repo: request.repo,
+            owner: request.owner.into_inner(),
+            repo: request.repo.into_inner(),
             ref_name: request.ref_name,
             old_sha: request.old_sha,
             new_sha: request.new_sha,
