@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { DatabaseProvider } from "./context/database";
 import { HistoryProvider } from "./context/history";
+import { NewOrgProvider } from "./context/new-org";
 import { NewRepoProvider } from "./context/new-repo";
 import { SettingsProvider } from "./context/settings";
 import { ShortcutsProvider } from "./context/shortcuts";
@@ -28,14 +29,16 @@ export default function RootLayout({
             <ShortcutsProvider>
               <SettingsProvider>
                 <NewRepoProvider>
-                  <HistoryProvider>
-                    <div className="flex flex-col h-screen w-full max-w-screen overflow-hidden">
-                      <main className="flex-1 min-h-0 overflow-hidden">
-                        {children}
-                      </main>
-                      <MainFooter />
-                    </div>
-                  </HistoryProvider>
+                  <NewOrgProvider>
+                    <HistoryProvider>
+                      <div className="flex flex-col h-screen w-full max-w-screen overflow-hidden">
+                        <main className="flex-1 min-h-0 overflow-hidden">
+                          {children}
+                        </main>
+                        <MainFooter />
+                      </div>
+                    </HistoryProvider>
+                  </NewOrgProvider>
                 </NewRepoProvider>
               </SettingsProvider>
             </ShortcutsProvider>

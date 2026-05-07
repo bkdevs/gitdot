@@ -6,7 +6,10 @@ export function UserActions() {
       label: "new repo",
       onClick: () => window.dispatchEvent(new CustomEvent("openNewRepo")),
     },
-    { label: "new org", onClick: () => {} },
+    {
+      label: "new org",
+      onClick: () => window.dispatchEvent(new CustomEvent("openNewOrg")),
+    },
     {
       label: "settings",
       onClick: () => window.dispatchEvent(new CustomEvent("openSettings")),
