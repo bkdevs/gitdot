@@ -14,12 +14,11 @@ export function UserCommitStatistics({
   endDate: string;
   selectedMonth: string | null;
 }) {
-  if (selectedMonth === null) return null;
-
   const visibleCommits = [...commits.entries()]
     .filter(
       ([date]) =>
-        inRange(date, startDate, endDate) && date.startsWith(selectedMonth),
+        inRange(date, startDate, endDate) &&
+        (selectedMonth === null || date.startsWith(selectedMonth)),
     )
     .flatMap(([, cs]) => cs);
 
@@ -30,20 +29,19 @@ export function UserCommitStatistics({
   const repoList = [...repoCounts.entries()].sort((a, b) => b[1] - a[1]);
   const totalCommits = visibleCommits.length;
 
-  const [year, month] = selectedMonth.split("-").map(Number);
-  const monthLabel = new Date(year, month - 1).toLocaleString("en-US", {
-    month: "long",
-  });
+  const label = selectedMonth
+    ? new Date(`${selectedMonth}-01T00:00:00`).toLocaleString("en-US", {
+        month: "long",
+      })
+    : endDate.slice(0, 4);
 
   const sentence =
     `${totalCommits} commits to ` +
     `${repoList.map(([r, c]) => `${r} (${c})`).join(", ")}`;
 
   return (
-    <div className="mt-6">
-      <p className="text-xs text-muted-foreground font-mono mb-1">
-        {monthLabel}
-      </p>
+    <div className="mt-2 px-3">
+      <p className="text-xs text-muted-foreground font-mono mb-1">{label}</p>
       <p className="text-xs font-mono">{sentence}</p>
     </div>
   );

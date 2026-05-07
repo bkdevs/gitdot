@@ -2,7 +2,14 @@
 
 import type { OrganizationResource, RepositoryResource } from "gitdot-api";
 import { useParams, usePathname } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useShortcuts } from "@/(main)/context/shortcuts";
 import { useUserContext } from "@/(main)/context/user";
 import { useCommands } from "@/(main)/hooks/use-commands";
@@ -37,11 +44,12 @@ function CommandBar({
   const [dropdownLeft, setDropdownLeft] = useState(0);
 
   const promptRef = useRef<HTMLSpanElement>(null);
-  useEffect(() => {
-    if (open && promptRef.current) {
+  // biome-ignore lint/correctness/useExhaustiveDependencies: re-measure when breadcrumbs change
+  useLayoutEffect(() => {
+    if (promptRef.current) {
       setDropdownLeft(promptRef.current.getBoundingClientRect().left);
     }
-  }, [open]);
+  }, [pathname]);
 
   const close = useCallback(() => {
     setOpen(false);

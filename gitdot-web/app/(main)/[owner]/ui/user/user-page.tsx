@@ -4,6 +4,7 @@ import {
   listUserOrganizations,
   listUserRepositories,
 } from "@/dal";
+import { getUserMetadata } from "@/lib/auth";
 import { UserActions } from "./user-actions";
 import { UserCommits } from "./user-commits";
 import { UserLinks } from "./user-links";
@@ -13,19 +14,22 @@ import { UserReadme } from "./user-readme";
 import { UserRepos } from "./user-repos";
 
 export default async function UserPage({ user }: { user: UserResource }) {
-  const [commits, repos, orgs] = await Promise.all([
+  const [commits, repos, orgs, metadata] = await Promise.all([
     listUserCommits(user.name),
     listUserRepositories(user.name),
     listUserOrganizations(user.name),
+    getUserMetadata(),
   ]);
 
+  const isOwner = metadata.username === user.name;
+
   return (
-    <div className="grid grid-cols-[8rem_minmax(0,1fr)_minmax(0,1fr)] h-full">
+    <div className="grid grid-cols-[8rem_minmax(0,3fr)_minmax(0,2fr)] h-full">
       <div className="overflow-y-auto scrollbar-none">
         <div className="flex flex-col items-end px-4 my-2.5 pt-0.5 gap-6 border-r">
           <UserProfile user={user} />
           <UserLinks user={user} />
-          <UserActions />
+          {isOwner && <UserActions />}
         </div>
       </div>
 
@@ -35,7 +39,7 @@ export default async function UserPage({ user }: { user: UserResource }) {
         <UserRepos repos={repos} />
       </div>
 
-      <div className="px-4 pt-2 border-l flex flex-col min-h-0">
+      <div className="pt-2 border-l flex flex-col min-h-0">
         <UserCommits commits={commits ?? []} />
       </div>
     </div>

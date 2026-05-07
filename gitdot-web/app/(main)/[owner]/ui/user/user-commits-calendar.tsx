@@ -28,7 +28,8 @@ export function UserCommitsCalendar({
   const thresholds = computeThresholds([...counts.values()]);
 
   return (
-    <div className="grid grid-cols-6 gap-x-4 gap-y-2">
+    <div className="border-b pb-2">
+      <div className="grid grid-cols-6 gap-x-4 gap-y-2 px-3">
       {months.map(({ year, month }) => {
         const monthStr = `${year}-${String(month + 1).padStart(2, "0")}`;
         const label = `${new Date(year, month).toLocaleString("en-US", { month: "short" })} '${String(year).slice(2)}`;
@@ -76,6 +77,7 @@ export function UserCommitsCalendar({
           </button>
         );
       })}
+      </div>
     </div>
   );
 }

@@ -14,19 +14,24 @@ export function UserCommitsLog({
   endDate: string;
   selectedMonth: string | null;
 }) {
-  const visibleDays = [...commits.entries()]
+  const inRangeDays = [...commits.entries()]
+    .filter(([date]) => inRange(date, startDate, endDate))
+    .sort((a, b) => a[0].localeCompare(b[0]));
+
+  const visibleMonth =
+    selectedMonth ??
+    inRangeDays[inRangeDays.length - 1]?.[0].slice(0, 7) ??
+    null;
+
+  const visibleDays = inRangeDays
+    .filter(([date]) => visibleMonth !== null && date.startsWith(visibleMonth))
     .sort((a, b) =>
       selectedMonth ? a[0].localeCompare(b[0]) : b[0].localeCompare(a[0]),
-    )
-    .filter(
-      ([date]) =>
-        inRange(date, startDate, endDate) &&
-        (selectedMonth === null || date.startsWith(selectedMonth)),
     )
     .map(([date, cs]) => ({ date, commits: cs }));
 
   return (
-    <div className="flex flex-col gap-8 mt-6">
+    <div className="flex flex-col gap-8 mt-6 px-3">
       {visibleDays.map(({ date, commits: dayCommits }) => (
         <div key={date}>
           <p className="text-xs text-muted-foreground font-mono mb-1">
