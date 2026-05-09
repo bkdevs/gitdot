@@ -65,7 +65,7 @@ export function SettingsProfile({
   if (!user) return null;
 
   return (
-    <div className="max-w-lg space-y-6 mx-auto py-4">
+    <div className="max-w-lg space-y-6 mx-auto p-4">
       <ProfilePrimary user={user} />
       <ProfileAbout
         company={company}

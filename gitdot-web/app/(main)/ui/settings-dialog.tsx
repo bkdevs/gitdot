@@ -4,10 +4,9 @@ import { useEffect, useState } from "react";
 import { useShortcuts } from "@/(main)/context/shortcuts";
 import { useUserContext } from "@/(main)/context/user";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
+import { SettingsAccount } from "./settings-account";
 import { SettingsProfile } from "./settings-profile";
-import { SettingsShortcuts } from "./settings-shortcuts";
 import { SettingsSidebar, type SettingsTab } from "./settings-sidebar";
-import { SettingsTheme } from "./settings-theme";
 
 export function SettingsDialog() {
   const { user } = useUserContext();
@@ -46,12 +45,11 @@ export function SettingsDialog() {
         <div className="flex flex-1 min-h-0 overflow-hidden font-mono text-sm">
           <SettingsSidebar tab={tab} onTabChange={setTab} />
 
-          <div className="flex-1 overflow-y-auto scrollbar-thin p-4">
+          <div className="flex-1 overflow-y-auto scrollbar-thin">
             {tab === "profile" && (
               <SettingsProfile user={user ?? null} open={open} />
             )}
-            {tab === "theme" && <SettingsTheme />}
-            {tab === "shortcuts" && <SettingsShortcuts />}
+            {tab === "account" && <SettingsAccount />}
           </div>
         </div>
       </DialogContent>

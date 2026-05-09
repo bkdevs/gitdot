@@ -2,7 +2,7 @@
 
 import { cn } from "@/util";
 
-export type SettingsTab = "profile" | "theme" | "shortcuts";
+export type SettingsTab = "profile" | "account";
 
 const GROUPS: { label: string; tabs: { id: SettingsTab; label: string }[] }[] =
   [
@@ -10,8 +10,7 @@ const GROUPS: { label: string; tabs: { id: SettingsTab; label: string }[] }[] =
       label: "General",
       tabs: [
         { id: "profile", label: "/profile" },
-        { id: "theme", label: "/theme" },
-        { id: "shortcuts", label: "/shortcuts" },
+        { id: "account", label: "/account" },
       ],
     },
   ];
