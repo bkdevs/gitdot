@@ -50,7 +50,7 @@ function SettingsDialogInner({ user }: { user: UserResource }) {
 
           <div className="flex-1 overflow-y-auto scrollbar-thin">
             {tab === "profile" && <SettingsProfile user={user} />}
-            {tab === "account" && <SettingsAccount />}
+            {tab === "account" && <SettingsAccount setSettingsOpen={setOpen} />}
           </div>
         </div>
       </DialogContent>
