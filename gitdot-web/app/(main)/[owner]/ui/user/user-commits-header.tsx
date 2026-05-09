@@ -52,7 +52,7 @@ export function UserCommitsHeader({
           {displayYear}
           <ChevronDown className="size-3" />
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="min-w-[5rem]">
+        <DropdownMenuContent align="end" className="min-w-20">
           {years.map((y) => (
             <DropdownMenuItem
               key={y}

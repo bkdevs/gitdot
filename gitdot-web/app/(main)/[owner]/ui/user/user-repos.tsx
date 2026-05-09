@@ -59,7 +59,7 @@ export function UserRepos({
             {REPO_SORT_LABELS[sortBy]}
             <ChevronDown className="size-3" />
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="min-w-[5rem]">
+          <DropdownMenuContent align="end" className="min-w-20">
             {(Object.keys(REPO_SORT_LABELS) as RepoSort[]).map((key) => (
               <DropdownMenuItem
                 key={key}
