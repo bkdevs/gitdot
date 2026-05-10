@@ -1,7 +1,9 @@
 "use client";
 
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { ChevronDown } from "lucide-react";
 import { useActionState, useEffect, useState } from "react";
+import { UserImage } from "@/(main)/[owner]/ui/user/user-image";
 import { useUserContext } from "@/(main)/context/user";
 import {
   type CreateRepositoryActionResult,
@@ -47,72 +49,78 @@ export function NewRepoDialog() {
         </VisuallyHidden>
         <form action={formAction} className="relative">
           <div className="flex flex-col gap-1 p-2 border-b border-border">
-            <label
-              htmlFor="repo-name"
-              className="text-xs text-muted-foreground"
-            >
+            <p className="text-xs text-muted-foreground font-mono">
+              <span className="text-foreground/40 select-none"># </span>
               Name
-            </label>
+            </p>
             <input
               type="text"
               id="repo-name"
               name="repo-name"
-              placeholder="Project name..."
+              placeholder="Name..."
               value={repoName}
               onChange={(e) => setRepoName(e.target.value)}
-              className="w-full bg-background outline-none"
+              className="w-full text-sm bg-background outline-none"
               disabled={isPending}
             />
           </div>
-          <div className="flex flex-col gap-1 p-2 border-b border-border">
-            <label htmlFor="owner" className="text-xs text-muted-foreground">
-              Owner
-            </label>
-            <select
-              id="owner"
-              name="owner"
+          <div className="flex flex-col gap-1 p-2">
+            <p className="text-xs text-muted-foreground font-mono">
+              <span className="text-foreground/40 select-none"># </span>
+              Description
+            </p>
+            <input
+              type="text"
+              id="repo-description"
+              name="repo-description"
+              placeholder="Description..."
               className="w-full text-sm bg-background outline-none"
               disabled={isPending}
-            >
-              <option value={user?.name}>{user?.name}</option>
-            </select>
-          </div>
-          <div className="flex flex-col gap-1 p-2 border-b border-border">
-            <label
-              htmlFor="visibility"
-              className="text-xs text-muted-foreground"
-            >
-              Visibility
-            </label>
-            <select
-              id="visibility"
-              name="visibility"
-              className="w-full text-sm bg-background outline-none"
-              disabled={isPending}
-            >
-              <option value="public">Public</option>
-              <option value="private">Private</option>
-            </select>
+            />
           </div>
           {state && "error" in state && (
             <p className="text-xs text-red-500 px-3 pb-2">{state.error}</p>
           )}
-          <div className="flex items-center justify-between pl-2 py-2 h-9">
-            <span className="text-xs text-muted-foreground">
-              Create a new repository
-            </span>
-            <div>
+          <div className="flex items-center justify-between h-7 border-t border-border">
+            <div className="flex items-center h-full text-xs text-muted-foreground">
+              <span className="px-2">New repository in</span>
+              <div className="relative flex items-center gap-1.5 px-2 h-full border-l border-r border-border">
+                <UserImage userId={user?.id} px={14} />
+                <select
+                  id="owner"
+                  name="owner"
+                  className="appearance-none bg-transparent outline-none pr-4 cursor-pointer"
+                  disabled={isPending}
+                >
+                  <option value={user?.name}>{user?.name}</option>
+                </select>
+                <ChevronDown className="size-3 absolute right-1.5 pointer-events-none" />
+              </div>
+              <div className="relative flex items-center px-2 h-full border-r border-border">
+                <select
+                  id="visibility"
+                  name="visibility"
+                  className="appearance-none bg-transparent outline-none pr-4 cursor-pointer"
+                  disabled={isPending}
+                >
+                  <option value="public">Public</option>
+                  <option value="private">Private</option>
+                </select>
+                <ChevronDown className="size-3 absolute right-1.5 pointer-events-none" />
+              </div>
+            </div>
+            <div className="flex items-center h-full">
               <button
                 type="reset"
-                className="px-3 py-1.5 h-9 text-xs border-b border-l border-r hover:bg-accent/50"
                 onClick={() => setOpen(false)}
+                className="flex items-center px-2 h-full text-xs border-l border-border hover:bg-accent/50 transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={!isValid || isPending}
-                className="px-3 py-1.5 h-9 text-xs bg-primary text-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center px-3 h-full text-xs bg-primary text-primary-foreground border-l border-primary enabled:hover:opacity-90 disabled:opacity-60 transition-opacity disabled:cursor-not-allowed cursor-pointer"
               >
                 {isPending ? "Creating..." : "Create"}
               </button>
