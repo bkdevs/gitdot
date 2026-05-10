@@ -28,6 +28,7 @@ export type CreateRepositoryActionResult =
   | { error: string };
 
 export async function createRepositoryAction(
+  _prev: CreateRepositoryActionResult | null,
   formData: FormData,
 ): Promise<CreateRepositoryActionResult> {
   const owner = formData.get("owner") as string;
@@ -38,16 +39,22 @@ export async function createRepositoryAction(
     return { error: "Owner and repository name are required" };
   }
 
-  const result = await createRepository(owner, name, {
-    owner_type: "user",
-    visibility,
-  });
-  if (!result) {
-    return { error: "Failed to create repository" };
-  }
+  try {
+    const result = await createRepository(owner, name, {
+      owner_type: "user",
+      visibility,
+    });
+    if (!result) {
+      return { error: "Failed to create repository" };
+    }
 
-  refresh();
-  return { repository: result };
+    refresh();
+    return { repository: result };
+  } catch (e) {
+    return {
+      error: e instanceof ApiError ? e.message : "Failed to create repository",
+    };
+  }
 }
 
 export type DeleteRepositoryActionResult =
