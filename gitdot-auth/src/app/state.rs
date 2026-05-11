@@ -20,8 +20,6 @@ use super::Settings;
 #[derive(FromRef, Clone)]
 pub struct AppState {
     pub settings: Arc<Settings>,
-    pub gitdot_public_key: Arc<String>,
-
     pub authentication_service: Arc<dyn AuthenticationService>,
 }
 
@@ -68,11 +66,8 @@ impl AppState {
             r2_client,
         ));
 
-        let gitdot_public_key = Arc::new(settings.gitdot_public_key.clone());
-
         Ok(Self {
             settings,
-            gitdot_public_key,
             authentication_service,
         })
     }
