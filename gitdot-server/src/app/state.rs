@@ -7,7 +7,7 @@ use sqlx::PgPool;
 use gitdot_core::{
     client::{
         DifftClient, Git2Client, GitHttpClientImpl, ImageClientImpl, KafkaClientImpl,
-        OctocrabClient, R2ClientImpl, ResendClient, S2ClientImpl, SecretClient, SlackBotClientImpl,
+        OctocrabClient, R2ClientImpl, ResendClient, S2ClientImpl, SlackBotClientImpl,
         TokenClientImpl,
     },
     repository::{
@@ -33,21 +33,18 @@ use super::Settings;
 #[derive(FromRef, Clone)]
 pub struct AppState {
     pub settings: Arc<Settings>,
-    pub gitdot_public_key: Arc<String>,
 
     pub authentication_service: Arc<dyn AuthenticationService>,
     pub authorization_service: Arc<dyn AuthorizationService>,
 
     pub user_service: Arc<dyn UserService>,
     pub org_service: Arc<dyn OrganizationService>,
-
     pub git_http_service: Arc<dyn GitHttpService>,
     pub repo_service: Arc<dyn RepositoryService>,
     pub question_service: Arc<dyn QuestionService>,
     pub review_service: Arc<dyn ReviewService>,
     pub commit_service: Arc<dyn CommitService>,
     pub migration_service: Arc<dyn MigrationService>,
-
     pub webhook_service: Arc<dyn WebhookService>,
     pub build_service: Arc<dyn BuildService>,
     pub runner_service: Arc<dyn RunnerService>,
@@ -57,13 +54,7 @@ pub struct AppState {
 }
 
 impl AppState {
-    pub async fn new(
-        settings: Arc<Settings>,
-        pool: PgPool,
-        secret_client: impl SecretClient,
-    ) -> anyhow::Result<Self> {
-        let gitdot_public_key = secret_client.get_gitdot_public_key().await?;
-
+    pub async fn new(settings: Arc<Settings>, pool: PgPool) -> anyhow::Result<Self> {
         let device_repo = DeviceRepositoryImpl::new(pool.clone());
         let token_repo = TokenRepositoryImpl::new(pool.clone());
         let user_repo = UserRepositoryImpl::new(pool.clone());
@@ -86,27 +77,27 @@ impl AppState {
         let git_http_client = GitHttpClientImpl::new(settings.git_project_root.clone());
         let diff_client = DifftClient::new();
         let github_client = OctocrabClient::new(
-            secret_client.get_github_app_id().await?,
-            secret_client.get_github_app_private_key().await?,
-            secret_client.get_github_client_id().await?,
-            secret_client.get_github_client_secret().await?,
+            settings.github_app_id,
+            settings.github_app_private_key.clone(),
+            settings.github_client_id.clone(),
+            settings.github_client_secret.clone(),
         );
-        let gitdot_private_key = secret_client.get_gitdot_private_key().await?;
-        let s2_client = S2ClientImpl::new(&settings.s2_server_url, gitdot_private_key.clone());
-        let token_client = TokenClientImpl::new(gitdot_private_key.clone());
+        let s2_client =
+            S2ClientImpl::new(&settings.s2_server_url, settings.gitdot_private_key.clone());
+        let token_client = TokenClientImpl::new(settings.gitdot_private_key.clone());
         let slack_bot_client = SlackBotClientImpl::new(
             settings.gitdot_slack_bot_server_url.clone(),
-            secret_client.get_gitdot_slack_secret().await?,
+            settings.gitdot_slack_secret.clone(),
         );
         let kafka_client =
             KafkaClientImpl::new(&settings.kafka_bootstrap_servers, settings.kafka_auth).await?;
-        let email_client = ResendClient::new(&secret_client.get_resend_api_key().await?);
+        let email_client = ResendClient::new(&settings.resend_api_key);
         let image_client = ImageClientImpl::new();
         let r2_client = R2ClientImpl::new(
-            secret_client.get_cloudflare_account_id().await?,
-            secret_client.get_cloudflare_r2_bucket_name().await?,
-            secret_client.get_cloudflare_r2_access_key_id().await?,
-            secret_client.get_cloudflare_r2_secret_access_key().await?,
+            settings.cloudflare_account_id.clone(),
+            settings.cloudflare_r2_bucket_name.clone(),
+            settings.cloudflare_r2_access_key_id.clone(),
+            settings.cloudflare_r2_secret_access_key.clone(),
         )
         .await;
 
@@ -117,7 +108,6 @@ impl AppState {
 
         Ok(Self {
             settings,
-            gitdot_public_key: Arc::new(gitdot_public_key),
             authentication_service: Arc::new(AuthenticationServiceImpl::new(
                 device_repo.clone(),
                 session_repo.clone(),

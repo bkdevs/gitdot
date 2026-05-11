@@ -21,6 +21,7 @@ base64ct = { workspace = true }
 chrono = { workspace = true }
 dotenvy = { workspace = true }
 ed25519-dalek = { workspace = true }
+figment = { workspace = true }
 flate2 = { workspace = true }
 futures = { workspace = true }
 git2 = { workspace = true }

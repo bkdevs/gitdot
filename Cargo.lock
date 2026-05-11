@@ -2688,6 +2688,7 @@ dependencies = [
  "chrono",
  "dotenvy",
  "ed25519-dalek",
+ "figment",
  "flate2",
  "futures",
  "git2",

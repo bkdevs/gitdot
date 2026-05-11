@@ -1,7 +1,7 @@
 use figment::{Figment, providers::Env};
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct Settings {
     // infra
     #[serde(default = "default_port")]
@@ -13,7 +13,7 @@ pub struct Settings {
     pub gitdot_private_key: String,
     pub gitdot_slack_secret: String,
 
-    // app urls
+    // app URLs
     #[serde(default = "default_web_url")]
     pub gitdot_web_url: String,
     #[serde(default = "default_slack_bot_url")]
