@@ -2538,6 +2538,7 @@ dependencies = [
  "axum",
  "axum-extra",
  "dotenvy",
+ "figment",
  "gitdot-api",
  "gitdot-core",
  "http 1.4.0",

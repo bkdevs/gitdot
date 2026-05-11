@@ -41,6 +41,7 @@ ed25519-dalek = { version = "2", features = ["pem", "pkcs8"] }
 enum-ordinalize = "4.3"
 enumset = "1.1"
 eyre = "0.6"
+figment = { version = "0.10.19", features = ["env"] }
 flate2 = "1.1"
 futures = "0.3.32"
 git2 = "0.20.3"

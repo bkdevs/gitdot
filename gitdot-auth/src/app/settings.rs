@@ -1,11 +1,11 @@
-use std::env;
+use figment::{Figment, providers::Env};
+use serde::{Deserialize, Serialize};
 
-use anyhow::Context;
-
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Settings {
     // infra
-    pub port: String,
+    #[serde(default = "default_port")]
+    pub port: u16,
     pub database_url: String,
 
     // app secrets
@@ -14,8 +14,11 @@ pub struct Settings {
     pub gitdot_slack_secret: String,
 
     // app urls
+    #[serde(default = "default_web_url")]
     pub gitdot_web_url: String,
+    #[serde(default = "default_slack_bot_url")]
     pub gitdot_slack_bot_server_url: String,
+    #[serde(default = "default_device_url")]
     pub gitdot_oauth_device_verification_url: String,
 
     // github
@@ -36,35 +39,7 @@ pub struct Settings {
 
 impl Settings {
     pub fn new() -> anyhow::Result<Self> {
-        Ok(Self {
-            port: env::var("PORT").unwrap_or_else(|_| "8082".to_string()),
-            database_url: required("DATABASE_URL")?,
-
-            gitdot_public_key: required("GITDOT_PUBLIC_KEY")?,
-            gitdot_private_key: required("GITDOT_PRIVATE_KEY")?,
-            gitdot_slack_secret: required("GITDOT_SLACK_SECRET")?,
-
-            gitdot_web_url: env::var("GITDOT_WEB_URL")
-                .unwrap_or_else(|_| "http://localhost:3000".to_string()),
-            gitdot_slack_bot_server_url: env::var("GITDOT_SLACK_BOT_SERVER_URL")
-                .unwrap_or_else(|_| "http://localhost:3001".to_string()),
-            gitdot_oauth_device_verification_url: env::var("GITDOT_OAUTH_DEVICE_VERIFICATION_URL")
-                .unwrap_or_else(|_| "http://localhost:3000/oauth/device".to_string()),
-
-            github_app_id: required("GITHUB_APP_ID")?
-                .parse::<u64>()
-                .context("GITHUB_APP_ID must be a u64")?,
-            github_app_private_key: required("GITHUB_APP_PRIVATE_KEY")?,
-            github_client_id: required("GITHUB_CLIENT_ID")?,
-            github_client_secret: required("GITHUB_CLIENT_SECRET")?,
-
-            cloudflare_account_id: required("CLOUDFLARE_ACCOUNT_ID")?,
-            cloudflare_r2_bucket_name: required("CLOUDFLARE_R2_BUCKET_NAME")?,
-            cloudflare_r2_access_key_id: required("CLOUDFLARE_R2_ACCESS_KEY_ID")?,
-            cloudflare_r2_secret_access_key: required("CLOUDFLARE_R2_SECRET_ACCESS_KEY")?,
-
-            resend_api_key: required("RESEND_API_KEY")?,
-        })
+        Ok(Figment::new().merge(Env::raw()).extract()?)
     }
 
     pub fn get_server_address(&self) -> String {
@@ -72,6 +47,18 @@ impl Settings {
     }
 }
 
-fn required(name: &'static str) -> anyhow::Result<String> {
-    env::var(name).with_context(|| format!("{name} is required"))
+fn default_port() -> u16 {
+    8082
+}
+
+fn default_web_url() -> String {
+    "http://localhost:3000".into()
+}
+
+fn default_slack_bot_url() -> String {
+    "http://localhost:3001".into()
+}
+
+fn default_device_url() -> String {
+    "http://localhost:3000/oauth/device".into()
 }
