@@ -1,14 +1,14 @@
 #[derive(Debug, Clone)]
 pub struct DeviceCodeRequest {
     pub client_id: String,
-    pub verification_uri: String,
+    pub verification_url: String,
 }
 
 impl DeviceCodeRequest {
-    pub fn new(client_id: String, verification_uri: String) -> Self {
+    pub fn new(client_id: String, verification_url: String) -> Self {
         Self {
             client_id,
-            verification_uri,
+            verification_url,
         }
     }
 }
@@ -17,7 +17,7 @@ impl DeviceCodeRequest {
 pub struct DeviceCodeResponse {
     pub device_code: String,
     pub user_code: String,
-    pub verification_uri: String,
+    pub verification_url: String,
     pub expires_in: u64,
     pub interval: u64,
 }
@@ -34,7 +34,7 @@ mod tests {
         );
 
         assert_eq!(request.client_id, "my-client");
-        assert_eq!(request.verification_uri, "https://example.com/verify");
+        assert_eq!(request.verification_url, "https://example.com/verify");
     }
 
     #[test]
@@ -42,14 +42,14 @@ mod tests {
         let response = DeviceCodeResponse {
             device_code: "device123".to_string(),
             user_code: "ABCD-1234".to_string(),
-            verification_uri: "https://example.com/verify".to_string(),
+            verification_url: "https://example.com/verify".to_string(),
             expires_in: 900,
             interval: 5,
         };
 
         assert_eq!(response.device_code, "device123");
         assert_eq!(response.user_code, "ABCD-1234");
-        assert_eq!(response.verification_uri, "https://example.com/verify");
+        assert_eq!(response.verification_url, "https://example.com/verify");
         assert_eq!(response.expires_in, 900);
         assert_eq!(response.interval, 5);
     }

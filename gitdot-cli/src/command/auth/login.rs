@@ -12,7 +12,7 @@ pub async fn login(mut config: UserConfig) -> anyhow::Result<()> {
     let device_code_response = api_client.create_device_code().await?;
 
     println!("Open the following URL in your browser:");
-    println!("{}", device_code_response.verification_uri);
+    println!("{}", device_code_response.verification_url);
     println!("Enter the code: {}", device_code_response.user_code);
 
     let interval = Duration::from_secs(device_code_response.interval);

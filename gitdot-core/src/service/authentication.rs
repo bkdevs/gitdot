@@ -467,7 +467,7 @@ where
         Ok(DeviceCodeResponse {
             device_code,
             user_code,
-            verification_uri: request.verification_uri,
+            verification_url: request.verification_url,
             expires_in: expiry_secs,
             interval: self.token_client.get_polling_interval_in_seconds(),
         })

@@ -14,7 +14,7 @@ pub async fn create_device_code(
 ) -> Result<AppResponse<api::CreateDeviceCodeResponse>, AppError> {
     let request = DeviceCodeRequest {
         client_id: body.client_id,
-        verification_uri: state.settings.oauth_device_verification_uri.clone(),
+        verification_url: state.settings.gitdot_oauth_device_verification_url.clone(),
     };
     state
         .authentication_service

@@ -20,8 +20,6 @@ use tower_http::{
     trace::TraceLayer,
 };
 
-use gitdot_core::client::{GoogleSecretClient, SecretClient};
-
 use crate::handler::create_auth_router;
 
 pub use error::AppError;
@@ -39,15 +37,8 @@ impl GitdotAuthServer {
         bootstrap::bootstrap()?;
 
         let settings = Arc::new(Settings::new()?);
-        let secret_client = GoogleSecretClient::new(settings.gcp_project_id.clone()).await?;
-
-        let database_url = match &settings.database_url {
-            Some(url) => url.clone(),
-            None => secret_client.get_database_url().await?,
-        };
-        let pool = PgPool::connect(&database_url).await?;
-
-        let state = AppState::new(pool, settings.clone(), secret_client).await?;
+        let pool = PgPool::connect(&settings.database_url).await?;
+        let state = AppState::new(pool, settings.clone()).await?;
         let router = create_router(state);
         let listener = net::TcpListener::bind(&settings.get_server_address()).await?;
 

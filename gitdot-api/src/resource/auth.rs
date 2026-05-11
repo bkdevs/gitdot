@@ -19,7 +19,7 @@ pub struct GitHubAuthRedirectResource {
 pub struct DeviceCodeResource {
     pub device_code: String,
     pub user_code: String,
-    pub verification_uri: String,
+    pub verification_url: String,
     pub expires_in: u64,
     pub interval: u64,
 }

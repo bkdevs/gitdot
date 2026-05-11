@@ -54,7 +54,7 @@ impl IntoApi for DeviceCodeResponse {
         DeviceCodeResource {
             device_code: self.device_code,
             user_code: self.user_code,
-            verification_uri: self.verification_uri,
+            verification_url: self.verification_url,
             expires_in: self.expires_in,
             interval: self.interval,
         }
