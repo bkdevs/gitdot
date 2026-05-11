@@ -7,8 +7,6 @@ use anyhow::Context;
 use rdkafka::consumer::Consumer;
 use sqlx::PgPool;
 
-use gitdot_core::client::{GoogleSecretClient, SecretClient};
-
 pub use settings::Settings;
 pub use state::{ConsumerHandle, ConsumerState};
 
@@ -24,15 +22,8 @@ impl GitdotConsumer {
         bootstrap::bootstrap()?;
 
         let settings = Settings::new()?;
-        let secret_client = GoogleSecretClient::new(settings.gcp_project_id.clone()).await?;
-
-        let database_url = match &settings.database_url {
-            Some(url) => url.clone(),
-            None => secret_client.get_database_url().await?,
-        };
-        let pool = PgPool::connect(&database_url).await?;
-
-        let state = ConsumerState::new(settings, pool, secret_client).await?;
+        let pool = PgPool::connect(&settings.database_url).await?;
+        let state = ConsumerState::new(settings, pool).await?;
         let kafka = state::build_consumer(&state.settings).await?;
         match &kafka {
             ConsumerHandle::Plain(c) => c

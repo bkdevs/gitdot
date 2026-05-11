@@ -6,8 +6,8 @@ use sqlx::PgPool;
 
 use gitdot_core::{
     client::{
-        GcpKafkaContext, Git2Client, KafkaAuthMode, KafkaClientImpl, SecretClient,
-        SlackBotClientImpl, TokenClientImpl,
+        GcpKafkaContext, Git2Client, KafkaAuthMode, KafkaClientImpl, SlackBotClientImpl,
+        TokenClientImpl,
     },
     repository::{
         RepositoryRepositoryImpl, SlackWebhookRepositoryImpl, UserRepositoryImpl,
@@ -25,11 +25,7 @@ pub struct ConsumerState {
 }
 
 impl ConsumerState {
-    pub async fn new(
-        settings: Settings,
-        pool: PgPool,
-        secret_client: impl SecretClient,
-    ) -> anyhow::Result<Self> {
+    pub async fn new(settings: Settings, pool: PgPool) -> anyhow::Result<Self> {
         let webhook_repo = WebhookRepositoryImpl::new(pool.clone());
         let slack_webhook_repo = SlackWebhookRepositoryImpl::new(pool.clone());
         let repo_repo = RepositoryRepositoryImpl::new(pool.clone());
@@ -40,7 +36,7 @@ impl ConsumerState {
             KafkaClientImpl::new(&settings.kafka_bootstrap_servers, settings.kafka_auth).await?;
         let slack_bot_client = SlackBotClientImpl::new(
             settings.gitdot_slack_bot_server_url.clone(),
-            secret_client.get_gitdot_slack_secret().await?,
+            settings.gitdot_slack_secret.clone(),
         );
 
         // TokenClientImpl is unused on this path, but referenced indirectly by core

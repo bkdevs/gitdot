@@ -1,35 +1,51 @@
-use std::env;
+use figment::{Figment, providers::Env};
+use serde::{Deserialize, Deserializer};
 
 use gitdot_core::client::KafkaAuthMode;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct Settings {
-    pub database_url: Option<String>,
-    pub gcp_project_id: Option<String>,
+    // infra
+    pub database_url: String,
 
-    pub kafka_bootstrap_servers: String,
-    pub kafka_consumer_group_id: String,
-    pub kafka_auth: KafkaAuthMode,
+    // app secrets
+    pub gitdot_slack_secret: String,
 
+    // app URLs
+    #[serde(default = "default_slack_bot_url")]
     pub gitdot_slack_bot_server_url: String,
+
+    // kafka
+    #[serde(default = "default_kafka_bootstrap_servers")]
+    pub kafka_bootstrap_servers: String,
+    #[serde(default = "default_kafka_consumer_group_id")]
+    pub kafka_consumer_group_id: String,
+    #[serde(default, deserialize_with = "deserialize_kafka_auth")]
+    pub kafka_auth: KafkaAuthMode,
 }
 
 impl Settings {
     pub fn new() -> anyhow::Result<Self> {
-        Ok(Self {
-            database_url: env::var("DATABASE_URL").ok(),
-            gcp_project_id: env::var("GCP_PROJECT_ID").ok(),
-
-            kafka_bootstrap_servers: env::var("KAFKA_BOOTSTRAP_SERVERS")
-                .unwrap_or_else(|_| "localhost:9092".to_string()),
-            kafka_consumer_group_id: env::var("KAFKA_CONSUMER_GROUP_ID")
-                .unwrap_or_else(|_| "gitdot-consumer-3".to_string()),
-            kafka_auth: env::var("KAFKA_AUTH")
-                .map(|s| KafkaAuthMode::from_env_str(&s))
-                .unwrap_or_default(),
-
-            gitdot_slack_bot_server_url: env::var("GITDOT_SLACK_BOT_SERVER_URL")
-                .unwrap_or_else(|_| "http://localhost:3001".to_string()),
-        })
+        Ok(Figment::new().merge(Env::raw()).extract()?)
     }
+}
+
+fn default_slack_bot_url() -> String {
+    "http://localhost:3001".into()
+}
+
+fn default_kafka_bootstrap_servers() -> String {
+    "localhost:9092".into()
+}
+
+fn default_kafka_consumer_group_id() -> String {
+    "gitdot-consumer".into()
+}
+
+fn deserialize_kafka_auth<'de, D>(deserializer: D) -> Result<KafkaAuthMode, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let s = String::deserialize(deserializer)?;
+    Ok(KafkaAuthMode::from_env_str(&s))
 }

@@ -2603,6 +2603,7 @@ dependencies = [
  "anyhow",
  "chrono",
  "dotenvy",
+ "figment",
  "futures",
  "gitdot-core",
  "rdkafka",
