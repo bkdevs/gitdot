@@ -75,7 +75,15 @@ function generateData(name: string, colors: string[]) {
   };
 }
 
-export function AvatarBeam({ name, size }: { name: string; size: number }) {
+export function AvatarBeam({
+  name,
+  size,
+  className,
+}: {
+  name: string;
+  size: number;
+  className?: string;
+}) {
   const data = generateData(name, COLORS);
   const maskID = React.useId();
 
@@ -88,6 +96,7 @@ export function AvatarBeam({ name, size }: { name: string; size: number }) {
       xmlns="http://www.w3.org/2000/svg"
       width={size}
       height={size}
+      className={className}
     >
       <mask
         id={maskID}

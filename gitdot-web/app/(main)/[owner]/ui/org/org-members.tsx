@@ -28,7 +28,7 @@ export function OrgMembers({
       <div className="flex flex-col gap-4">
         {members.map((member, i) => (
           <div key={member.id} className="flex items-start gap-3">
-            <UserImage userId={member.user_id} px={32} />
+            <UserImage userId={member.user_id} px={32} className="mt-0.5" />
             <div className="flex flex-col min-w-0">
               <span className="text-sm font-medium">{member.user_name}</span>
               <p className="text-sm text-muted-foreground">
