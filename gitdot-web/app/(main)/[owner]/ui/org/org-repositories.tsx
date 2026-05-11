@@ -20,10 +20,10 @@ const REPO_SORT_LABELS: Record<RepoSort, string> = {
 
 export function OrgRepositories({
   repos,
-  isOwner,
+  isMember,
 }: {
   repos: RepositoryResource[] | null;
-  isOwner: boolean;
+  isMember: boolean;
 }) {
   const [sortBy, setSortBy] = useState<RepoSort>("recent");
   const repositories = useMemo(() => repos ?? [], [repos]);
@@ -56,7 +56,7 @@ export function OrgRepositories({
         </DropdownMenu>
       </div>
       {repositories.length ? (
-        isOwner ? (
+        isMember ? (
           <div className="flex flex-col gap-4">
             {publicRepos.length > 0 && (
               <RepoGroup label="Public" repos={publicRepos} sortBy={sortBy} />
