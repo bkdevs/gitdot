@@ -21,14 +21,14 @@ export default async function OrgPage({ org }: { org: OrganizationResource }) {
   return (
     <div className="grid grid-cols-[8rem_minmax(0,3fr)_minmax(0,2fr)] h-full">
       <div className="overflow-y-auto scrollbar-none">
-        <div className="flex flex-col items-start px-4 my-2.5 pt-0.5 gap-6 border-r">
+        <div className="flex flex-col items-start pl-4 pr-2 my-2.5 pt-0.5 gap-6">
           <OrgProfile org={org} />
           <OrgLinks org={org} />
-          <OrgActions org={org} />
+          <OrgActions org={org} members={members} />
         </div>
       </div>
 
-      <div className="pl-4 pr-3 py-2 flex flex-col gap-8 overflow-y-auto scrollbar-none">
+      <div className="px-3 py-2 border-l flex flex-col gap-8 overflow-y-auto scrollbar-none">
         <OrgReadme readme={org.readme} />
         <OrgRepositories repos={repos} isMember={isMember} />
       </div>

@@ -13,8 +13,9 @@ export default async function Page({
 }: {
   searchParams: Promise<{ installation_id?: string }>;
 }) {
-  const user = await getCurrentUser();
-  if (!user) notFound();
+  const current = await getCurrentUser();
+  if (!current) notFound();
+  const { user } = current;
 
   const params = await searchParams;
   const [orgs, installations] = await Promise.all([

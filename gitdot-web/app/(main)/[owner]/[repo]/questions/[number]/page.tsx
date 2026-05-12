@@ -11,14 +11,16 @@ export default async function Page({
   params: Promise<{ owner: string; repo: string; number: number }>;
 }) {
   const { owner, repo, number } = await params;
-  const [user, question] = await Promise.all([
+  const [current, question] = await Promise.all([
     getCurrentUser(),
     getQuestion(owner, repo, number),
   ]);
   if (!question) return null;
 
   const { answers } = question;
-  const hasUserAnswer = answers.find((answer) => answer.author_id === user?.id);
+  const hasUserAnswer = answers.find(
+    (answer) => answer.author_id === current?.user.id,
+  );
 
   return (
     <div className="w-full">

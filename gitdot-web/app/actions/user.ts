@@ -1,6 +1,7 @@
 "use server";
 
 import type {
+  CurrentUserResource,
   OrganizationResource,
   RepositoryResource,
   UserResource,
@@ -94,7 +95,7 @@ export async function signout() {
 // ===========
 // get actions
 // ===========
-export async function getCurrentUserAction(): Promise<UserResource | null> {
+export async function getCurrentUserAction(): Promise<CurrentUserResource | null> {
   return await getCurrentUser(false);
 }
 

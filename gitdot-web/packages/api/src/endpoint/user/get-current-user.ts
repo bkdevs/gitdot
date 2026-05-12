@@ -1,11 +1,11 @@
 import { z } from "zod";
-import { UserResource } from "../../resource";
+import { CurrentUserResource } from "../../resource";
 import type { Endpoint } from "../endpoint";
 
 export const GetCurrentUserRequest = z.object({});
 export type GetCurrentUserRequest = z.infer<typeof GetCurrentUserRequest>;
 
-export const GetCurrentUserResponse = UserResource;
+export const GetCurrentUserResponse = CurrentUserResource;
 export type GetCurrentUserResponse = z.infer<typeof GetCurrentUserResponse>;
 
 export const GetCurrentUser = {

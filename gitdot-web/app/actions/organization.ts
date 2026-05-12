@@ -5,6 +5,7 @@ import { refresh } from "next/cache";
 import { ApiError } from "@/dal";
 import {
   createOrganization,
+  updateOrganization,
   uploadOrganizationImage,
 } from "@/dal/organization";
 
@@ -36,6 +37,38 @@ export async function createOrganizationAction(
     return {
       error:
         e instanceof ApiError ? e.message : "Failed to create organization",
+    };
+  }
+}
+
+export type UpdateOrganizationActionResult =
+  | { organization: OrganizationResource }
+  | { error: string };
+
+export async function updateOrganizationAction(
+  orgName: string,
+  formData: FormData,
+): Promise<UpdateOrganizationActionResult> {
+  const location = formData.get("location") as string | null;
+  const readme = formData.get("readme") as string | null;
+  const linksRaw = formData.get("links") as string | null;
+  const links: string[] | undefined =
+    linksRaw !== null ? JSON.parse(linksRaw) : undefined;
+
+  try {
+    const result = await updateOrganization(orgName, {
+      location,
+      readme,
+      links,
+    });
+    if (!result) return { error: "Failed to update organization" };
+
+    refresh();
+    return { organization: result };
+  } catch (e) {
+    return {
+      error:
+        e instanceof ApiError ? e.message : "Failed to update organization",
     };
   }
 }

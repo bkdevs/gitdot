@@ -2,7 +2,9 @@ use gitdot_api::{
     endpoint::user::update_current_user_settings as api_endpoint, resource::user as api,
 };
 use gitdot_core::{
-    dto::{UserRepoSettingsResponse, UserResponse, UserSettingsResponse},
+    dto::{
+        GetCurrentUserResponse, UserRepoSettingsResponse, UserResponse, UserSettingsResponse,
+    },
     model::UserRepoSettings,
 };
 
@@ -51,6 +53,16 @@ impl IntoApi for UserResponse {
             readme: self.readme,
             links: self.links,
             company: self.company,
+        }
+    }
+}
+
+impl IntoApi for GetCurrentUserResponse {
+    type ApiType = api::CurrentUserResource;
+    fn into_api(self) -> Self::ApiType {
+        api::CurrentUserResource {
+            user: self.user.into_api(),
+            memberships: self.memberships.into_api(),
         }
     }
 }

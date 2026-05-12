@@ -1,4 +1,7 @@
-import type { OrganizationResource, RepositoryResource } from "gitdot-api";
+import type {
+  OrganizationMemberResource,
+  RepositoryResource,
+} from "gitdot-api";
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 import { useUserContext } from "@/(main)/context/user";
@@ -13,11 +16,11 @@ export type Command = {
 export function useCommands({
   user,
   repositories,
-  organizations,
+  memberships,
 }: {
   user: { name: string } | null;
   repositories: RepositoryResource[] | null | undefined;
-  organizations: OrganizationResource[] | null | undefined;
+  memberships: OrganizationMemberResource[] | null | undefined;
 }): Command[] {
   const router = useRouter();
   const { refreshUser } = useUserContext();
@@ -29,10 +32,10 @@ export function useCommands({
       execute: () => router.push(`/${r.owner}/${r.name}`),
     }));
 
-    const orgs: Command[] = (organizations ?? []).map((o) => ({
+    const orgs: Command[] = (memberships ?? []).map((m) => ({
       type: "org",
-      label: o.name,
-      execute: () => router.push(`/${o.name}`),
+      label: m.org_name,
+      execute: () => router.push(`/${m.org_name}`),
     }));
 
     const authActions: Command[] = [
@@ -93,5 +96,5 @@ export function useCommands({
       ...(user ? authActions : unauthActions),
       ...commonActions,
     ];
-  }, [user, router, repositories, organizations, refreshUser]);
+  }, [user, router, repositories, memberships, refreshUser]);
 }

@@ -18,7 +18,7 @@ import {
 import { cn } from "@/util";
 
 export function NewRepoDialog() {
-  const { user, organizations } = useUserContext();
+  const { user, memberships } = useUserContext();
   const router = useRouter();
 
   const [open, setOpen] = useState(false);
@@ -42,7 +42,7 @@ export function NewRepoDialog() {
   }, [open]);
 
   const ownerType = owner === user?.name ? "user" : "organization";
-  const selectedOrg = organizations?.find((o) => o.name === owner);
+  const selectedMembership = memberships?.find((m) => m.org_name === owner);
 
   const [state, formAction, isPending] = useActionState(
     createRepositoryAction,
@@ -135,8 +135,11 @@ export function NewRepoDialog() {
                       disabled={isPending}
                       className="flex items-center gap-1.5 hover:text-muted-foreground transition-colors cursor-pointer"
                     >
-                      {selectedOrg ? (
-                        <OrgImage orgId={selectedOrg.id} px={14} />
+                      {selectedMembership ? (
+                        <OrgImage
+                          orgId={selectedMembership.organization_id}
+                          px={14}
+                        />
                       ) : (
                         <UserImage userId={user?.id} px={14} />
                       )}
@@ -153,14 +156,14 @@ export function NewRepoDialog() {
                           {user.name}
                         </DropdownMenuItem>
                       )}
-                      {organizations?.map((org) => (
+                      {memberships?.map((m) => (
                         <DropdownMenuItem
-                          key={org.id}
+                          key={m.organization_id}
                           className="text-xs"
-                          onClick={() => setOwner(org.name)}
+                          onClick={() => setOwner(m.org_name)}
                         >
-                          <OrgImage orgId={org.id} px={14} />
-                          {org.name}
+                          <OrgImage orgId={m.organization_id} px={14} />
+                          {m.org_name}
                         </DropdownMenuItem>
                       ))}
                     </DropdownMenuContent>

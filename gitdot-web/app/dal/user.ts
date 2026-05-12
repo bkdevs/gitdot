@@ -1,6 +1,7 @@
 import "server-only";
 
 import {
+  CurrentUserResource,
   OrganizationResource,
   RepositoryCommitResource,
   RepositoryResource,
@@ -19,7 +20,7 @@ import {
 
 export async function getCurrentUser(
   required = true,
-): Promise<UserResource | null> {
+): Promise<CurrentUserResource | null> {
   const session = await getSession();
   if (!session) {
     if (required) notFound();
@@ -27,12 +28,12 @@ export async function getCurrentUser(
   }
 
   const response = await authFetch(`${GITDOT_SERVER_URL}/user`);
-  const user = await handleResponse(response, UserResource);
-  if (!user) {
+  const currentUser = await handleResponse(response, CurrentUserResource);
+  if (!currentUser) {
     if (required) notFound();
     return null;
   }
-  return user;
+  return currentUser;
 }
 
 export async function updateCurrentUser(request: {

@@ -1,7 +1,7 @@
 "use client";
 
 import type {
-  OrganizationResource,
+  OrganizationMemberResource,
   RepositoryResource,
   UserResource,
 } from "gitdot-api";
@@ -12,17 +12,13 @@ import {
   useEffect,
   useState,
 } from "react";
-import {
-  getCurrentUserAction,
-  listUserOrganizationsAction,
-  listUserRepositoriesAction,
-} from "@/actions";
+import { getCurrentUserAction, listUserRepositoriesAction } from "@/actions";
 import { AuthDialog } from "../ui/auth-dialog";
 
 interface UserContext {
   user: UserResource | null | undefined;
   repositories: RepositoryResource[] | null | undefined;
-  organizations: OrganizationResource[] | null | undefined;
+  memberships: OrganizationMemberResource[] | null | undefined;
   refreshUser: () => Promise<void>;
   requireAuth: () => boolean;
 }
@@ -37,11 +33,11 @@ const UserContext = createContext<UserContext | null>(null);
  */
 export function UserProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserResource | null | undefined>(undefined);
+  const [memberships, setMemberships] = useState<
+    OrganizationMemberResource[] | null | undefined
+  >(undefined);
   const [repositories, setRepositories] = useState<
     RepositoryResource[] | null | undefined
-  >(undefined);
-  const [organizations, setOrganizations] = useState<
-    OrganizationResource[] | null | undefined
   >(undefined);
   const [open, setOpen] = useState(false);
 
@@ -57,7 +53,9 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const refreshUser = useCallback(async () => {
-    setUser(await getCurrentUserAction());
+    const current = await getCurrentUserAction();
+    setUser(current?.user ?? null);
+    setMemberships(current?.memberships ?? null);
   }, []);
 
   useEffect(() => {
@@ -66,18 +64,18 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!user) return;
-    Promise.all([
-      listUserRepositoriesAction(user.name),
-      listUserOrganizationsAction(user.name),
-    ]).then(([repos, orgs]) => {
-      setRepositories(repos);
-      setOrganizations(orgs);
-    });
+    listUserRepositoriesAction(user.name).then(setRepositories);
   }, [user]);
 
   return (
     <UserContext
-      value={{ user, repositories, organizations, refreshUser, requireAuth }}
+      value={{
+        user,
+        repositories,
+        memberships,
+        refreshUser,
+        requireAuth,
+      }}
     >
       {children}
       <AuthDialog open={open} setOpen={setOpen} />

@@ -26,14 +26,14 @@ export default async function UserPage({ user }: { user: UserResource }) {
   return (
     <div className="grid grid-cols-[8rem_minmax(0,3fr)_minmax(0,2fr)] h-full">
       <div className="overflow-y-auto scrollbar-none">
-        <div className="flex flex-col items-start px-4 my-2.5 pt-0.5 gap-6 border-r">
+        <div className="flex flex-col items-start pl-4 pr-2 my-2.5 pt-0.5 gap-6">
           <UserProfile user={user} />
           <UserLinks user={user} />
           {isOwner && <UserActions />}
         </div>
       </div>
 
-      <div className="pl-4 pr-3 py-2 flex flex-col gap-8 overflow-y-auto scrollbar-none">
+      <div className="border-l px-3 py-2 flex flex-col gap-8 overflow-y-auto scrollbar-none">
         <UserReadme readme={user.readme} />
         <UserOrgs orgs={orgs} />
         <UserRepos repos={repos} commits={commits ?? []} isOwner={isOwner} />

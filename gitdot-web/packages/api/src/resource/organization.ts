@@ -14,6 +14,7 @@ export const OrganizationMemberResource = z.object({
   id: z.uuid(),
   user_id: z.uuid(),
   organization_id: z.uuid(),
+  org_name: z.string(),
   role: z.string(),
   role_description: z.string().nullable().optional(),
   created_at: z.iso.datetime(),

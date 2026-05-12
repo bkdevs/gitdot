@@ -1,6 +1,9 @@
 "use client";
 
-import type { OrganizationResource, RepositoryResource } from "gitdot-api";
+import type {
+  OrganizationMemberResource,
+  RepositoryResource,
+} from "gitdot-api";
 import { useParams, usePathname } from "next/navigation";
 import {
   useCallback,
@@ -16,12 +19,12 @@ import { useCommands } from "@/(main)/hooks/use-commands";
 import Link from "@/ui/link";
 
 export function MainCommandBar() {
-  const { user, repositories, organizations } = useUserContext();
+  const { user, repositories, memberships } = useUserContext();
   return (
     <CommandBar
       user={user ?? null}
       repositories={repositories}
-      organizations={organizations}
+      memberships={memberships}
     />
   );
 }
@@ -29,11 +32,11 @@ export function MainCommandBar() {
 function CommandBar({
   user,
   repositories,
-  organizations,
+  memberships,
 }: {
   user: { name: string } | null;
   repositories: RepositoryResource[] | null | undefined;
-  organizations: OrganizationResource[] | null | undefined;
+  memberships: OrganizationMemberResource[] | null | undefined;
 }) {
   const pathname = usePathname();
   const params = useParams();
@@ -77,7 +80,7 @@ function CommandBar({
     return () => window.removeEventListener("openCommandBar", handle);
   }, []);
 
-  const commands = useCommands({ user, repositories, organizations });
+  const commands = useCommands({ user, repositories, memberships });
 
   const filteredCommands = useMemo(() => {
     const q = input.trim().toLowerCase();

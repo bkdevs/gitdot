@@ -18,6 +18,7 @@ pub struct OrganizationMemberResource {
     pub user_id: Uuid,
     pub user_name: String,
     pub organization_id: Uuid,
+    pub org_name: String,
     pub role: String,
     pub role_description: Option<String>,
     pub created_at: DateTime<Utc>,

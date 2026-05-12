@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{endpoint::Endpoint, resource::user::UserResource};
+use crate::{endpoint::Endpoint, resource::user::CurrentUserResource};
 
 pub struct GetCurrentUser;
 
@@ -15,4 +15,4 @@ impl Endpoint for GetCurrentUser {
 #[derive(ApiRequest, Debug, Serialize, Deserialize)]
 pub struct GetCurrentUserRequest {}
 
-pub type GetCurrentUserResponse = UserResource;
+pub type GetCurrentUserResponse = CurrentUserResource;

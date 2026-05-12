@@ -21,6 +21,7 @@ pub struct OrganizationMember {
     pub role_description: Option<String>,
     pub created_at: DateTime<Utc>,
     pub user_name: String,
+    pub org_name: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Type)]

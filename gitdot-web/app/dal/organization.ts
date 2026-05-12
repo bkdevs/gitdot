@@ -6,7 +6,13 @@ import {
   RepositoryResource,
 } from "gitdot-api";
 import { z } from "zod";
-import { authFetch, authPost, GITDOT_SERVER_URL, handleResponse } from "./util";
+import {
+  authFetch,
+  authPatch,
+  authPost,
+  GITDOT_SERVER_URL,
+  handleResponse,
+} from "./util";
 
 export async function getOrganization(
   name: string,
@@ -40,6 +46,21 @@ export async function createOrganization(
   const response = await authPost(`${GITDOT_SERVER_URL}/organization/${name}`, {
     readme,
   });
+  return await handleResponse(response, OrganizationResource);
+}
+
+export async function updateOrganization(
+  name: string,
+  request: {
+    location?: string | null;
+    readme?: string | null;
+    links?: string[];
+  },
+): Promise<OrganizationResource | null> {
+  const response = await authPatch(
+    `${GITDOT_SERVER_URL}/organization/${name}`,
+    request,
+  );
   return await handleResponse(response, OrganizationResource);
 }
 

@@ -10,8 +10,9 @@ export default async function Page({
 }: {
   params: Promise<{ name: string }>;
 }) {
-  const user = await getCurrentUser();
-  if (!user) notFound();
+  const current = await getCurrentUser();
+  if (!current) notFound();
+  const { user } = current;
 
   const { name } = await params;
   const runner = await getRunner(user.name, name);

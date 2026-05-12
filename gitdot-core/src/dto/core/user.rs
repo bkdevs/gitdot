@@ -15,7 +15,10 @@ use uuid::Uuid;
 
 use std::collections::HashMap;
 
-use crate::model::{CommitFilter, User, UserRepoSettings, UserSettings};
+use crate::{
+    dto::OrganizationMemberResponse,
+    model::{CommitFilter, User, UserRepoSettings, UserSettings},
+};
 
 pub use get_current_user::GetCurrentUserRequest;
 pub use get_current_user_settings::GetCurrentUserSettingsRequest;
@@ -54,6 +57,12 @@ impl From<User> for UserResponse {
             company: user.company,
         }
     }
+}
+
+#[derive(Debug, Clone)]
+pub struct GetCurrentUserResponse {
+    pub user: UserResponse,
+    pub memberships: Vec<OrganizationMemberResponse>,
 }
 
 #[derive(Debug, Clone)]

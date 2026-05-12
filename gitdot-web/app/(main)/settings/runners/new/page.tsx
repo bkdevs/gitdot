@@ -4,8 +4,9 @@ import { CreateRunnerForm } from "../ui/create-runner-form";
 import { CreateRunnerInstructions } from "../ui/create-runner-instructions";
 
 export default async function Page() {
-  const user = await getCurrentUser();
-  if (!user) notFound();
+  const current = await getCurrentUser();
+  if (!current) notFound();
+  const { user } = current;
 
   return (
     <div className="flex p-4">

@@ -8,8 +8,8 @@ export default async function Page({
 }: {
   params: Promise<{ number: string }>;
 }) {
-  const user = await getCurrentUser();
-  if (!user) notFound();
+  const current = await getCurrentUser();
+  if (!current) notFound();
 
   const { number } = await params;
   const migration = await getMigration(Number(number));

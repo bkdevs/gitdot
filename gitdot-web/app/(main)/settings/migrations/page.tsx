@@ -2,8 +2,8 @@ import { getCurrentUser, listMigrations } from "@/dal";
 import { Migrations } from "./ui/migrations";
 
 export default async function Page() {
-  const user = await getCurrentUser();
-  if (!user) return null;
+  const current = await getCurrentUser();
+  if (!current) return null;
 
   const migrations = await listMigrations();
 

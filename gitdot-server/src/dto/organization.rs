@@ -27,6 +27,7 @@ impl IntoApi for OrganizationMemberResponse {
             id: self.id,
             user_id: self.user_id,
             organization_id: self.organization_id,
+            org_name: self.org_name,
             role: match self.role {
                 OrganizationRole::Admin => "admin".to_string(),
                 OrganizationRole::Member => "member".to_string(),

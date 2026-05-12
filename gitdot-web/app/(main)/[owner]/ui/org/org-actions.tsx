@@ -1,11 +1,20 @@
 "use client";
 
-import type { OrganizationResource } from "gitdot-api";
+import type {
+  OrganizationMemberResource,
+  OrganizationResource,
+} from "gitdot-api";
 import { useState } from "react";
 import { OrgSettingsDialog } from "./org-settings-dialog";
 import type { OrgSettingsTab } from "./org-settings-sidebar";
 
-export function OrgActions({ org }: { org: OrganizationResource }) {
+export function OrgActions({
+  org,
+  members,
+}: {
+  org: OrganizationResource;
+  members: OrganizationMemberResource[] | null;
+}) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [settingsTab, setSettingsTab] = useState<OrgSettingsTab>("profile");
 
@@ -41,6 +50,7 @@ export function OrgActions({ org }: { org: OrganizationResource }) {
       ))}
       <OrgSettingsDialog
         org={org}
+        members={members}
         open={settingsOpen}
         onOpenChange={setSettingsOpen}
         tab={settingsTab}

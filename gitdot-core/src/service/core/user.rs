@@ -4,10 +4,10 @@ use chrono::{Duration, Utc};
 use crate::{
     client::{ImageClient, ImageClientImpl, R2Client, R2ClientImpl},
     dto::{
-        CommitResponse, GetCurrentUserRequest, GetCurrentUserSettingsRequest, GetUserRequest,
-        HasUserRequest, ListUserCommitsRequest, ListUserOrganizationsRequest,
-        ListUserRepositoriesRequest, ListUserReviewsRequest, OrganizationResponse,
-        RepositoryResponse, ReviewResponse, UpdateCurrentUserImageRequest,
+        CommitResponse, GetCurrentUserRequest, GetCurrentUserResponse,
+        GetCurrentUserSettingsRequest, GetUserRequest, HasUserRequest, ListUserCommitsRequest,
+        ListUserOrganizationsRequest, ListUserRepositoriesRequest, ListUserReviewsRequest,
+        OrganizationResponse, RepositoryResponse, ReviewResponse, UpdateCurrentUserImageRequest,
         UpdateCurrentUserRequest, UpdateCurrentUserSettingsRequest, UserResponse,
         UserSettingsResponse,
     },
@@ -26,7 +26,7 @@ pub trait UserService: Send + Sync + 'static {
     async fn get_current_user(
         &self,
         request: GetCurrentUserRequest,
-    ) -> Result<UserResponse, UserError>;
+    ) -> Result<GetCurrentUserResponse, UserError>;
 
     async fn update_current_user(
         &self,
@@ -140,13 +140,23 @@ where
     async fn get_current_user(
         &self,
         request: GetCurrentUserRequest,
-    ) -> Result<UserResponse, UserError> {
+    ) -> Result<GetCurrentUserResponse, UserError> {
         let user = self
             .user_repo
             .get_by_id(request.user_id)
             .await?
             .or_not_found("user", request.user_id)?;
-        Ok(user.into())
+        let memberships = self
+            .org_repo
+            .list_memberships_by_user_id(user.id)
+            .await?
+            .into_iter()
+            .map(Into::into)
+            .collect();
+        Ok(GetCurrentUserResponse {
+            user: user.into(),
+            memberships,
+        })
     }
 
     async fn update_current_user(

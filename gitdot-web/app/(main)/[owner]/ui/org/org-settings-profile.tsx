@@ -1,27 +1,72 @@
 "use client";
 
 import type { OrganizationResource } from "gitdot-api";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { toast } from "@/(main)/context/toaster";
+import {
+  updateOrganizationAction,
+  uploadOrganizationImageAction,
+} from "@/actions";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/ui/tooltip";
 import { formatDate, timeAgo } from "@/util/date";
 import { OrgImage } from "./org-image";
 
 export function OrgSettingsProfile({ org }: { org: OrganizationResource }) {
-  const links = org.links ?? [];
-  const readme = org.readme ?? "";
+  const router = useRouter();
+  const pathname = usePathname();
+  const [location, setLocation] = useState(org.location ?? "");
+  const [links, setLinks] = useState<string[]>(org.links ?? []);
+  const [readme, setReadme] = useState(org.readme ?? "");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setLocation(org.location ?? "");
+    setLinks(org.links ?? []);
+    setReadme(org.readme ?? "");
+  }, [org]);
+
+  const dirty =
+    location !== (org.location ?? "") ||
+    readme !== (org.readme ?? "") ||
+    links.length !== (org.links?.length ?? 0) ||
+    !links.every((l, i) => l === org.links?.[i]);
+
+  async function handleSave() {
+    if (!dirty || saving) return;
+    setSaving(true);
+    const formData = new FormData();
+    formData.set("location", location);
+    formData.set("links", JSON.stringify(links));
+    formData.set("readme", readme);
+    const result = await updateOrganizationAction(org.name, formData);
+    setSaving(false);
+    if ("error" in result) {
+      toast.error(result.error);
+      return;
+    }
+    if (pathname === `/${org.name}`) router.refresh();
+    toast.success("Profile saved.");
+  }
 
   return (
     <div className="max-w-lg mx-auto p-4">
       <div className="space-y-6">
         <OrgProfilePrimary org={org} />
-        <OrgProfileLinks links={links} />
-        <OrgProfileReadme readme={readme} />
+        <OrgProfileAbout location={location} onLocationChange={setLocation} />
+        <OrgProfileLinks links={links} onLinksChange={setLinks} />
+        <OrgProfileReadme readme={readme} onReadmeChange={setReadme} />
       </div>
       <div className="flex justify-end mt-2">
         <button
           type="button"
-          disabled
-          className="text-sm underline-offset-4 text-muted-foreground cursor-not-allowed"
+          onClick={handleSave}
+          disabled={!dirty || saving}
+          className={`text-sm underline-offset-4 transition-colors cursor-pointer disabled:cursor-not-allowed ${
+            saving ? "" : "underline"
+          } ${dirty ? "text-foreground" : "text-muted-foreground"}`}
         >
-          Save profile
+          {saving ? "Saving..." : "Save profile"}
         </button>
       </div>
     </div>
@@ -29,22 +74,119 @@ export function OrgSettingsProfile({ org }: { org: OrganizationResource }) {
 }
 
 function OrgProfilePrimary({ org }: { org: OrganizationResource }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setUploadError(null);
+    setUploading(true);
+    const result = await uploadOrganizationImageAction(org.name, file);
+    setUploading(false);
+    if ("error" in result) {
+      setUploadError(result.error);
+    } else if (pathname === `/${org.name}`) {
+      router.refresh();
+    }
+  }
+
   return (
-    <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-0 items-end">
-      <div className="size-8 mb-1.5">
-        <OrgImage orgId={org.id} />
+    <>
+      {uploadError && (
+        <p className="fixed top-4 right-4 z-50 text-xs text-destructive">
+          {uploadError}
+        </p>
+      )}
+      <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-0 items-end">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          className="hidden"
+          onChange={handleFileChange}
+        />
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              className="relative size-8 mb-1.5 cursor-pointer appearance-none bg-transparent border-none p-0"
+              onClick={() => !uploading && fileInputRef.current?.click()}
+            >
+              <span
+                className={`transition-opacity duration-300${uploading ? " opacity-60" : ""}`}
+              >
+                <OrgImage orgId={org.id} />
+              </span>
+              <div
+                className={`absolute -inset-0.5 rounded-full border border-transparent border-t-foreground/50 animate-spin transition-opacity duration-300${uploading ? "" : " opacity-0"}`}
+              />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>Upload photo</TooltipContent>
+        </Tooltip>
+        <span className="text-sm font-semibold mb-1.5">{org.name}</span>
+        <span className="text-sm text-muted-foreground">joined</span>
+        <span className="text-sm text-muted-foreground">
+          {formatDate(new Date(org.created_at))} (
+          {timeAgo(new Date(org.created_at))})
+        </span>
       </div>
-      <span className="text-sm font-semibold mb-1.5">{org.name}</span>
-      <span className="text-sm text-muted-foreground">joined</span>
-      <span className="text-sm text-muted-foreground">
-        {formatDate(new Date(org.created_at))} (
-        {timeAgo(new Date(org.created_at))})
-      </span>
+    </>
+  );
+}
+
+function OrgProfileAbout({
+  location,
+  onLocationChange,
+}: {
+  location: string;
+  onLocationChange: (v: string) => void;
+}) {
+  return (
+    <div className="space-y-2">
+      <p className="text-xs text-muted-foreground font-mono">
+        <span className="text-foreground/40 select-none"># </span>
+        about
+      </p>
+      <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 items-end">
+        <span className="text-sm text-muted-foreground">location</span>
+        <input
+          value={location}
+          onChange={(e) => onLocationChange(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") e.currentTarget.blur();
+          }}
+          className="text-sm bg-transparent border-b border-border outline-none w-full -mb-px placeholder:text-muted-foreground/40 transition-colors focus:border-foreground"
+          placeholder="brooklyn, ny"
+        />
+      </div>
     </div>
   );
 }
 
-function OrgProfileLinks({ links }: { links: string[] }) {
+function OrgProfileLinks({
+  links,
+  onLinksChange,
+}: {
+  links: string[];
+  onLinksChange: (v: string[]) => void;
+}) {
+  const linkInputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const draftInputRef = useRef<HTMLInputElement | null>(null);
+  const [draft, setDraft] = useState<string | null>(null);
+
+  function commitDraft() {
+    if (draft?.trim()) {
+      onLinksChange([...links, draft.trim()]);
+    }
+    setDraft(null);
+  }
+
   return (
     <div className="space-y-2">
       <p className="text-xs text-muted-foreground font-mono">
@@ -52,24 +194,70 @@ function OrgProfileLinks({ links }: { links: string[] }) {
         links
       </p>
       <div className="space-y-1">
-        {links.length === 0 ? (
-          <p className="text-sm text-muted-foreground/40">no links</p>
+        {links.map((link, i) => (
+          <input
+            key={i}
+            ref={(el) => {
+              linkInputRefs.current[i] = el;
+            }}
+            value={link}
+            onChange={(e) => {
+              const next = [...links];
+              next[i] = e.target.value;
+              onLinksChange(next);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === "Escape") {
+                e.stopPropagation();
+                e.currentTarget.blur();
+              }
+            }}
+            onBlur={() => {
+              if (!links[i]?.trim()) {
+                onLinksChange(links.filter((_, j) => j !== i));
+              }
+            }}
+            className="text-sm bg-transparent border-b border-border outline-none w-full placeholder:text-muted-foreground/40 transition-colors focus:border-foreground"
+            placeholder="mastodon.social/@you"
+          />
+        ))}
+        {draft !== null ? (
+          <input
+            ref={draftInputRef}
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === "Escape") {
+                e.stopPropagation();
+                commitDraft();
+              }
+            }}
+            onBlur={commitDraft}
+            autoFocus
+            className="h-5 text-sm bg-transparent border-b border-border outline-none w-full placeholder:text-muted-foreground/40 transition-colors focus:border-foreground"
+            placeholder="mastodon.social/@you"
+          />
         ) : (
-          links.map((link, i) => (
-            <input
-              key={i}
-              value={link}
-              readOnly
-              className="text-sm bg-transparent border-b border-border outline-none w-full -mb-px"
-            />
-          ))
+          <button
+            type="button"
+            onClick={() => setDraft("")}
+            className="h-5 text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors cursor-pointer block border-b border-transparent w-full text-left"
+          >
+            new link
+          </button>
         )}
       </div>
     </div>
   );
 }
 
-function OrgProfileReadme({ readme }: { readme: string }) {
+function OrgProfileReadme({
+  readme,
+  onReadmeChange,
+}: {
+  readme: string;
+  onReadmeChange: (v: string) => void;
+}) {
   return (
     <div className="space-y-2">
       <p className="text-xs text-muted-foreground font-mono">
@@ -78,9 +266,9 @@ function OrgProfileReadme({ readme }: { readme: string }) {
       </p>
       <textarea
         value={readme}
-        readOnly
+        onChange={(e) => onReadmeChange(e.target.value)}
+        className="text-sm bg-transparent border-l border-border pl-2 outline-none w-full min-h-24 placeholder:text-muted-foreground/40 transition-colors focus:border-foreground resize-none field-sizing-content"
         placeholder="what this org is about..."
-        className="text-sm bg-transparent border-l border-border pl-2 outline-none w-full min-h-24 placeholder:text-muted-foreground/40 resize-none field-sizing-content"
       />
     </div>
   );

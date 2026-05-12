@@ -1,6 +1,9 @@
 "use client";
 
-import type { OrganizationResource } from "gitdot-api";
+import type {
+  OrganizationMemberResource,
+  OrganizationResource,
+} from "gitdot-api";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
 import { OrgSettingsMembers } from "./org-settings-members";
 import { OrgSettingsProfile } from "./org-settings-profile";
@@ -11,12 +14,14 @@ import {
 
 export function OrgSettingsDialog({
   org,
+  members,
   open,
   onOpenChange,
   tab,
   onTabChange,
 }: {
   org: OrganizationResource;
+  members: OrganizationMemberResource[] | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   tab: OrgSettingsTab;
@@ -37,7 +42,9 @@ export function OrgSettingsDialog({
 
           <div className="flex-1 overflow-y-auto scrollbar-thin">
             {tab === "profile" && <OrgSettingsProfile org={org} />}
-            {tab === "members" && <OrgSettingsMembers org={org} />}
+            {tab === "members" && (
+              <OrgSettingsMembers org={org} members={members} />
+            )}
           </div>
         </div>
       </DialogContent>

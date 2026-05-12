@@ -48,6 +48,7 @@ pub struct OrganizationMemberResponse {
     pub role_description: Option<String>,
     pub created_at: DateTime<Utc>,
     pub user_name: String,
+    pub org_name: String,
 }
 
 impl From<OrganizationMember> for OrganizationMemberResponse {
@@ -60,6 +61,7 @@ impl From<OrganizationMember> for OrganizationMemberResponse {
             role_description: member.role_description,
             created_at: member.created_at,
             user_name: member.user_name,
+            org_name: member.org_name,
         }
     }
 }

@@ -2,8 +2,9 @@ import { getCurrentUser, listRunners } from "@/dal";
 import { Runners } from "./ui/runners";
 
 export default async function Page() {
-  const user = await getCurrentUser();
-  if (!user) return null;
+  const current = await getCurrentUser();
+  if (!current) return null;
+  const { user } = current;
 
   const runners = await listRunners(user.name);
   if (!runners) return null;

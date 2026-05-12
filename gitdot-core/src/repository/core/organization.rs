@@ -64,6 +64,11 @@ pub trait OrganizationRepository: Send + Sync + Clone + 'static {
         org_name: &str,
         role: Option<OrganizationRole>,
     ) -> Result<Vec<OrganizationMember>, DatabaseError>;
+
+    async fn list_memberships_by_user_id(
+        &self,
+        user_id: Uuid,
+    ) -> Result<Vec<OrganizationMember>, DatabaseError>;
 }
 
 #[derive(Debug, Clone)]
@@ -154,9 +159,10 @@ impl OrganizationRepository for OrganizationRepositoryImpl {
                 ON CONFLICT (user_id, organization_id) DO NOTHING
                 RETURNING id, user_id, organization_id, role, role_description, created_at
             )
-            SELECT i.id, i.user_id, i.organization_id, i.role, i.role_description, i.created_at, u.name AS user_name
+            SELECT i.id, i.user_id, i.organization_id, i.role, i.role_description, i.created_at, u.name AS user_name, o.name AS org_name
             FROM inserted i
             JOIN core.users u ON i.user_id = u.id
+            JOIN core.organizations o ON i.organization_id = o.id
             "#,
         )
         .bind(user_name)
@@ -197,7 +203,7 @@ impl OrganizationRepository for OrganizationRepositoryImpl {
     ) -> Result<Option<OrganizationMember>, DatabaseError> {
         let member = sqlx::query_as::<_, OrganizationMember>(
             r#"
-            SELECT om.id, om.user_id, om.organization_id, om.role, om.role_description, om.created_at, u.name AS user_name
+            SELECT om.id, om.user_id, om.organization_id, om.role, om.role_description, om.created_at, u.name AS user_name, o.name AS org_name
             FROM core.organization_members om
             JOIN core.organizations o ON om.organization_id = o.id
             JOIN core.users u ON om.user_id = u.id
@@ -260,9 +266,10 @@ impl OrganizationRepository for OrganizationRepositoryImpl {
                   AND om.id = $2
                 RETURNING om.id, om.user_id, om.organization_id, om.role, om.role_description, om.created_at
             )
-            SELECT updated.id, updated.user_id, updated.organization_id, updated.role, updated.role_description, updated.created_at, u.name AS user_name
+            SELECT updated.id, updated.user_id, updated.organization_id, updated.role, updated.role_description, updated.created_at, u.name AS user_name, o.name AS org_name
             FROM updated
             JOIN core.users u ON updated.user_id = u.id
+            JOIN core.organizations o ON updated.organization_id = o.id
             "#,
         )
         .bind(org_name)
@@ -308,7 +315,7 @@ impl OrganizationRepository for OrganizationRepositoryImpl {
     ) -> Result<Vec<OrganizationMember>, DatabaseError> {
         let members = sqlx::query_as::<_, OrganizationMember>(
             r#"
-            SELECT om.id, om.user_id, om.organization_id, om.role, om.role_description, om.created_at, u.name AS user_name
+            SELECT om.id, om.user_id, om.organization_id, om.role, om.role_description, om.created_at, u.name AS user_name, o.name AS org_name
             FROM core.organization_members om
             JOIN core.organizations o ON om.organization_id = o.id
             JOIN core.users u ON om.user_id = u.id
@@ -319,6 +326,27 @@ impl OrganizationRepository for OrganizationRepositoryImpl {
         )
         .bind(org_name)
         .bind(role)
+        .fetch_all(&self.pool)
+        .await?;
+
+        Ok(members)
+    }
+
+    async fn list_memberships_by_user_id(
+        &self,
+        user_id: Uuid,
+    ) -> Result<Vec<OrganizationMember>, DatabaseError> {
+        let members = sqlx::query_as::<_, OrganizationMember>(
+            r#"
+            SELECT om.id, om.user_id, om.organization_id, om.role, om.role_description, om.created_at, u.name AS user_name, o.name AS org_name
+            FROM core.organization_members om
+            JOIN core.organizations o ON om.organization_id = o.id
+            JOIN core.users u ON om.user_id = u.id
+            WHERE om.user_id = $1
+            ORDER BY om.created_at DESC
+            "#,
+        )
+        .bind(user_id)
         .fetch_all(&self.pool)
         .await?;
 

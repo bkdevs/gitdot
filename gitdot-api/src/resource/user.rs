@@ -4,7 +4,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::resource::settings::CommitFilterResource;
+use crate::resource::{organization::OrganizationMemberResource, settings::CommitFilterResource};
 
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct UserResource {
@@ -16,6 +16,12 @@ pub struct UserResource {
     pub readme: Option<String>,
     pub links: Vec<String>,
     pub company: Option<String>,
+}
+
+#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct CurrentUserResource {
+    pub user: UserResource,
+    pub memberships: Vec<OrganizationMemberResource>,
 }
 
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
