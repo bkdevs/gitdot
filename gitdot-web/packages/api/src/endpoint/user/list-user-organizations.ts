@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { OrganizationResource } from "../../resource";
+import { OrganizationMemberResource } from "../../resource";
 import type { Endpoint } from "../endpoint";
 
 export const ListUserOrganizationsRequest = z.object({});
@@ -7,7 +7,9 @@ export type ListUserOrganizationsRequest = z.infer<
   typeof ListUserOrganizationsRequest
 >;
 
-export const ListUserOrganizationsResponse = z.array(OrganizationResource);
+export const ListUserOrganizationsResponse = z.array(
+  OrganizationMemberResource,
+);
 export type ListUserOrganizationsResponse = z.infer<
   typeof ListUserOrganizationsResponse
 >;

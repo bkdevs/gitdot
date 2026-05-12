@@ -9,6 +9,7 @@ import {
 import { Loading } from "@/ui/loading";
 import { MarkdownBody } from "../ui/markdown/markdown-body";
 import type { Resources } from "./page";
+import { RepoPanel } from "./ui/repo-panel";
 
 type ResourceRequests = ResourceRequestsType<Resources>;
 type ResourcePromises = ResourcePromisesType<Resources>;
@@ -35,12 +36,16 @@ export function PageClient({
 function PageContent({ promises }: { promises: ResourcePromises }) {
   const readme = use(promises.readme);
 
-  if (!readme || readme.type !== "file") {
-    return <div className="p-2 text-sm">README.md not found</div>;
-  }
   return (
-    <div className="p-4 max-w-4xl">
-      <MarkdownBody content={readme.content} />
+    <div className="flex h-full w-full overflow-hidden">
+      <div className="p-4 w-full max-w-4xl shrink-0 overflow-y-auto scrollbar-none">
+        {readme && readme.type === "file" ? (
+          <MarkdownBody content={readme.content} />
+        ) : (
+          <div className="p-2 text-sm">README.md not found</div>
+        )}
+      </div>
+      <RepoPanel />
     </div>
   );
 }

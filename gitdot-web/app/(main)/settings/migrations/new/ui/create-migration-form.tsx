@@ -3,7 +3,7 @@
 import type {
   GitHubInstallationResource,
   GitHubRepositoryResource,
-  OrganizationResource,
+  OrganizationMemberResource,
   UserResource,
 } from "gitdot-api";
 import Image from "next/image";
@@ -19,7 +19,7 @@ export function CreateMigrationForm({
   defaultOrigin,
 }: {
   user: UserResource;
-  organizations: OrganizationResource[];
+  organizations: OrganizationMemberResource[];
   installations: GitHubInstallationResource[];
   reposByInstallation: Record<string, GitHubRepositoryResource[]>;
   defaultOrigin?: string;
@@ -163,8 +163,8 @@ export function CreateMigrationForm({
           >
             <option value={user.name}>{user.name} (user)</option>
             {organizations.map((org) => (
-              <option key={org.id} value={org.name}>
-                {org.name} (organization)
+              <option key={org.organization_id} value={org.org_name}>
+                {org.org_name} (organization)
               </option>
             ))}
           </select>

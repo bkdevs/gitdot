@@ -60,7 +60,21 @@ function IndexSidebar({
     <Sidebar>
       <SidebarContent className="overflow-auto">
         <div className="flex flex-col w-full">
-          <RepoBreadcrumbs owner={owner} repo={repo} />
+          <div className="h-15 px-2 border-b flex flex-col justify-center">
+            <Link
+              href={`/${owner}/${repo}`}
+              className="text-sm font-medium hover:underline font-mono leading-tight"
+              prefetch={true}
+            >
+              <span className="font-normal text-muted-foreground">
+                {owner}/
+              </span>
+              {repo}
+            </Link>
+            <p className="text-xs text-muted-foreground mt-0.5 leading-tight">
+              no description
+            </p>
+          </div>
           {items.map((item) => {
             const active = isActive(item.path);
             return (
@@ -81,30 +95,5 @@ function IndexSidebar({
         </div>
       </SidebarContent>
     </Sidebar>
-  );
-}
-
-function RepoBreadcrumbs({ owner, repo }: { owner: string; repo: string }) {
-  return (
-    <div className="flex flex-row w-full h-9 items-center border-b px-2 text-sm font-mono justify-between">
-      <span className="size-1.5 rounded-full bg-primary" />
-      <div className="flex flex-row items-center">
-        <Link
-          href={`/${owner}`}
-          className="hover:underline text-muted-foreground"
-          prefetch={true}
-        >
-          {owner}
-        </Link>
-        <span>/</span>
-        <Link
-          href={`/${owner}/${repo}`}
-          className="hover:underline font-medium"
-          prefetch={true}
-        >
-          {repo}
-        </Link>
-      </div>
-    </div>
   );
 }

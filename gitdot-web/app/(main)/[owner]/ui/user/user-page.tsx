@@ -14,7 +14,7 @@ import { UserReadme } from "./user-readme";
 import { UserRepos } from "./user-repos";
 
 export default async function UserPage({ user }: { user: UserResource }) {
-  const [commits, repos, orgs, current] = await Promise.all([
+  const [commits, repos, memberships, current] = await Promise.all([
     listUserCommits(user.name),
     listUserRepositories(user.name),
     listUserOrganizations(user.name),
@@ -35,7 +35,7 @@ export default async function UserPage({ user }: { user: UserResource }) {
 
       <div className="border-l px-3 py-2 flex flex-col gap-8 overflow-y-auto scrollbar-none">
         <UserReadme readme={user.readme} />
-        <UserOrgs orgs={orgs} />
+        <UserOrgs memberships={memberships} />
         <UserRepos repos={repos} commits={commits ?? []} isOwner={isOwner} />
       </div>
 

@@ -7,9 +7,9 @@ use crate::{
         CommitResponse, GetCurrentUserRequest, GetCurrentUserResponse,
         GetCurrentUserSettingsRequest, GetUserRequest, HasUserRequest, ListUserCommitsRequest,
         ListUserOrganizationsRequest, ListUserRepositoriesRequest, ListUserReviewsRequest,
-        OrganizationResponse, RepositoryResponse, ReviewResponse, UpdateCurrentUserImageRequest,
-        UpdateCurrentUserRequest, UpdateCurrentUserSettingsRequest, UserResponse,
-        UserSettingsResponse,
+        OrganizationMemberResponse, RepositoryResponse, ReviewResponse,
+        UpdateCurrentUserImageRequest, UpdateCurrentUserRequest, UpdateCurrentUserSettingsRequest,
+        UserResponse, UserSettingsResponse,
     },
     error::{ConflictError, NotFoundError, OptionNotFoundExt, UserError},
     model::UserSettings,
@@ -50,7 +50,7 @@ pub trait UserService: Send + Sync + 'static {
     async fn list_organizations(
         &self,
         request: ListUserOrganizationsRequest,
-    ) -> Result<Vec<OrganizationResponse>, UserError>;
+    ) -> Result<Vec<OrganizationMemberResponse>, UserError>;
 
     async fn list_reviews(
         &self,
@@ -252,7 +252,7 @@ where
     async fn list_organizations(
         &self,
         request: ListUserOrganizationsRequest,
-    ) -> Result<Vec<OrganizationResponse>, UserError> {
+    ) -> Result<Vec<OrganizationMemberResponse>, UserError> {
         let user_name = request.user_name.to_string();
         let user = self
             .user_repo
@@ -260,8 +260,8 @@ where
             .await?
             .or_not_found("user", &user_name)?;
 
-        let orgs = self.org_repo.list_by_user_id(user.id).await?;
-        Ok(orgs.into_iter().map(|o| o.into()).collect())
+        let memberships = self.org_repo.list_memberships_by_user_id(user.id).await?;
+        Ok(memberships.into_iter().map(|m| m.into()).collect())
     }
 
     async fn list_reviews(

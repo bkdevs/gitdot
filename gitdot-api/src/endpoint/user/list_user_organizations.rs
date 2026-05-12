@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{endpoint::Endpoint, resource::OrganizationResource};
+use crate::{endpoint::Endpoint, resource::OrganizationMemberResource};
 
 pub struct ListUserOrganizations;
 
@@ -15,4 +15,4 @@ impl Endpoint for ListUserOrganizations {
 #[derive(ApiRequest, Debug, Serialize, Deserialize)]
 pub struct ListUserOrganizationsRequest {}
 
-pub type ListUserOrganizationsResponse = Vec<OrganizationResource>;
+pub type ListUserOrganizationsResponse = Vec<OrganizationMemberResource>;
