@@ -1,10 +1,9 @@
-use http::StatusCode;
-
 use axum::extract::State;
+use http::StatusCode;
 
 use crate::{
     app::{AppError, AppResponse, AppState},
-    extract::GithubSigned,
+    extract::{GithubEvent, GithubSigned},
 };
 
 #[axum::debug_handler]
@@ -22,5 +21,15 @@ pub async fn handle_events(
         body_len = body.len(),
         "received github webhook event",
     );
+
+    match event {
+        GithubEvent::Ping => {
+            tracing::info!(%delivery, "github webhook ping acknowledged");
+        }
+        GithubEvent::Push => {
+            // TODO: deserialize push payload and dispatch to service
+        }
+    }
+
     Ok(AppResponse::new(StatusCode::OK, ()))
 }
