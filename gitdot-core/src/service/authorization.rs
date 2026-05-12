@@ -430,6 +430,7 @@ mod tests {
             async fn list(&self) -> Result<Vec<Organization>, crate::error::DatabaseError>;
             async fn list_by_user_id(&self, user_id: Uuid) -> Result<Vec<Organization>, crate::error::DatabaseError>;
             async fn list_members(&self, org_name: &str, role: Option<OrganizationRole>) -> Result<Vec<OrganizationMember>, crate::error::DatabaseError>;
+            async fn list_memberships_by_user_id(&self, user_id: Uuid) -> Result<Vec<OrganizationMember>, crate::error::DatabaseError>;
         }
     }
 
