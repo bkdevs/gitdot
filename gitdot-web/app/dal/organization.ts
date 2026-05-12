@@ -82,6 +82,7 @@ export async function updateOrganization(
     location?: string | null;
     readme?: string | null;
     links?: string[];
+    display_name?: string | null;
   },
 ): Promise<OrganizationResource | null> {
   const response = await authPatch(

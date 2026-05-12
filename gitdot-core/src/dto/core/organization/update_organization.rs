@@ -9,6 +9,7 @@ pub struct UpdateOrganizationRequest {
     pub location: Option<String>,
     pub readme: Option<String>,
     pub links: Option<Vec<String>>,
+    pub display_name: Option<String>,
 }
 
 impl UpdateOrganizationRequest {
@@ -17,6 +18,7 @@ impl UpdateOrganizationRequest {
         location: Option<String>,
         readme: Option<String>,
         links: Option<Vec<String>>,
+        display_name: Option<String>,
     ) -> Result<Self, OrganizationError> {
         Ok(Self {
             org_name: OwnerName::try_new(org_name)
@@ -24,6 +26,7 @@ impl UpdateOrganizationRequest {
             location,
             readme,
             links,
+            display_name,
         })
     }
 }

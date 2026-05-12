@@ -19,6 +19,8 @@ export function OrgSettingsDialog({
   onOpenChange,
   tab,
   onTabChange,
+  onAddMember,
+  onEditMember,
 }: {
   org: OrganizationResource;
   members: OrganizationMemberResource[] | null;
@@ -26,6 +28,8 @@ export function OrgSettingsDialog({
   onOpenChange: (open: boolean) => void;
   tab: OrgSettingsTab;
   onTabChange: (tab: OrgSettingsTab) => void;
+  onAddMember: () => void;
+  onEditMember: (member: OrganizationMemberResource) => void;
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -43,7 +47,11 @@ export function OrgSettingsDialog({
           <div className="flex-1 overflow-y-auto scrollbar-thin">
             {tab === "profile" && <OrgSettingsProfile org={org} />}
             {tab === "members" && (
-              <OrgSettingsMembers org={org} members={members} />
+              <OrgSettingsMembers
+                members={members}
+                onAddMember={onAddMember}
+                onEditMember={onEditMember}
+              />
             )}
           </div>
         </div>

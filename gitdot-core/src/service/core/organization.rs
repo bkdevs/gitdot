@@ -159,7 +159,13 @@ where
         let org_name = request.org_name.to_string();
         let org = self
             .org_repo
-            .update(&org_name, request.location, request.readme, request.links)
+            .update(
+                &org_name,
+                request.location,
+                request.readme,
+                request.links,
+                request.display_name,
+            )
             .await?
             .or_not_found("organization", &org_name)?;
         Ok(org.into())

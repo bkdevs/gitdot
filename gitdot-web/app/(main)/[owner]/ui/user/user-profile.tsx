@@ -9,8 +9,8 @@ export function UserProfile({ user }: { user: UserResource }) {
       </div>
       <p className="font-semibold text-sm mb-0.5">{user.name}</p>
 
-      {user.company && (
-        <p className="text-xs text-muted-foreground">{user.company}</p>
+      {user.display_name && (
+        <p className="text-xs text-muted-foreground">{user.display_name}</p>
       )}
       {user.location && (
         <p className="text-xs text-muted-foreground">{user.location}</p>

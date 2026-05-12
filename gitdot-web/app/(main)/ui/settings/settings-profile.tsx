@@ -17,19 +17,19 @@ export function SettingsProfile({ user }: { user: UserResource }) {
   const [location, setLocation] = useState(user.location ?? "");
   const [links, setLinks] = useState<string[]>(user.links ?? []);
   const [readme, setReadme] = useState(user.readme ?? "");
-  const [company, setCompany] = useState(user.company ?? "");
+  const [displayName, setDisplayName] = useState(user.display_name ?? "");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     setLocation(user.location ?? "");
     setLinks(user.links ?? []);
     setReadme(user.readme ?? "");
-    setCompany(user.company ?? "");
+    setDisplayName(user.display_name ?? "");
   }, [user]);
 
   const dirty =
     location !== (user.location ?? "") ||
-    company !== (user.company ?? "") ||
+    displayName !== (user.display_name ?? "") ||
     readme !== (user.readme ?? "") ||
     links.length !== (user.links?.length ?? 0) ||
     !links.every((l, i) => l === user.links?.[i]);
@@ -41,8 +41,8 @@ export function SettingsProfile({ user }: { user: UserResource }) {
     formData.set("location", location);
     formData.set("links", JSON.stringify(links));
     formData.set("readme", readme);
-    formData.set("company", company);
-    await Promise.all([updateUserAction(null, formData)]);
+    formData.set("display_name", displayName);
+    await updateUserAction(null, formData);
     await refreshUser();
     if (pathname === `/${user.name}`) router.refresh();
     setSaving(false);
@@ -54,9 +54,9 @@ export function SettingsProfile({ user }: { user: UserResource }) {
       <div className="space-y-6">
         <ProfilePrimary user={user} />
         <ProfileAbout
-          company={company}
+          displayName={displayName}
           location={location}
-          onCompanyChange={setCompany}
+          onDisplayNameChange={setDisplayName}
           onLocationChange={setLocation}
         />
         <ProfileLinks links={links} onLinksChange={setLinks} />
@@ -147,14 +147,14 @@ function ProfilePrimary({ user }: { user: UserResource }) {
 }
 
 function ProfileAbout({
-  company,
+  displayName,
   location,
-  onCompanyChange,
+  onDisplayNameChange,
   onLocationChange,
 }: {
-  company: string;
+  displayName: string;
   location: string;
-  onCompanyChange: (v: string) => void;
+  onDisplayNameChange: (v: string) => void;
   onLocationChange: (v: string) => void;
 }) {
   return (
@@ -164,15 +164,15 @@ function ProfileAbout({
         about
       </p>
       <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 items-end">
-        <span className="text-sm text-muted-foreground">company</span>
+        <span className="text-sm text-muted-foreground">name</span>
         <input
-          value={company}
-          onChange={(e) => onCompanyChange(e.target.value)}
+          value={displayName}
+          onChange={(e) => onDisplayNameChange(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter") e.currentTarget.blur();
           }}
           className="text-sm bg-transparent border-b border-border outline-none w-full -mb-px placeholder:text-muted-foreground/40 transition-colors focus:border-foreground"
-          placeholder="async inc."
+          placeholder="ada lovelace"
         />
         <span className="text-sm text-muted-foreground">location</span>
         <input

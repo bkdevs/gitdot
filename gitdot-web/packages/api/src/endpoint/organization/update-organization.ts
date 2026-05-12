@@ -6,6 +6,7 @@ export const UpdateOrganizationRequest = z.object({
   location: z.string().nullable().optional(),
   readme: z.string().nullable().optional(),
   links: z.array(z.string()).optional(),
+  display_name: z.string().nullable().optional(),
 });
 export type UpdateOrganizationRequest = z.infer<
   typeof UpdateOrganizationRequest

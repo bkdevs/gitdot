@@ -59,12 +59,14 @@ export async function updateOrganizationAction(
   const linksRaw = formData.get("links") as string | null;
   const links: string[] | undefined =
     linksRaw !== null ? JSON.parse(linksRaw) : undefined;
+  const displayName = formData.get("display_name") as string | null;
 
   try {
     const result = await updateOrganization(orgName, {
       location,
       readme,
       links,
+      display_name: displayName,
     });
     if (!result) return { error: "Failed to update organization" };
 

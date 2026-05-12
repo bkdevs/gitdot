@@ -17,6 +17,7 @@ pub struct UpdateOrganizationRequest {
     pub location: Option<String>,
     pub readme: Option<String>,
     pub links: Option<Vec<String>>,
+    pub display_name: Option<String>,
 }
 
 pub type UpdateOrganizationResponse = OrganizationResource;

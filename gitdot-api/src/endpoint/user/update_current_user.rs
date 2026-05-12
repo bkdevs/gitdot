@@ -18,7 +18,7 @@ pub struct UpdateCurrentUserRequest {
     pub location: Option<String>,
     pub readme: Option<String>,
     pub links: Option<Vec<String>>,
-    pub company: Option<String>,
+    pub display_name: Option<String>,
 }
 
 pub type UpdateCurrentUserResponse = UserResource;

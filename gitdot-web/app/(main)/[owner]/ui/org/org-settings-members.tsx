@@ -1,26 +1,18 @@
 "use client";
 
-import type {
-  OrganizationMemberResource,
-  OrganizationResource,
-} from "gitdot-api";
-import { useState } from "react";
+import type { OrganizationMemberResource } from "gitdot-api";
 import { formatDate } from "@/util/date";
 import { UserImage } from "../user/user-image";
-import { EditMemberDialog } from "./edit-member-dialog";
-import { NewMemberDialog } from "./new-member-dialog";
 
 export function OrgSettingsMembers({
-  org,
   members,
+  onAddMember,
+  onEditMember,
 }: {
-  org: OrganizationResource;
   members: OrganizationMemberResource[] | null;
+  onAddMember: () => void;
+  onEditMember: (member: OrganizationMemberResource) => void;
 }) {
-  const [newMemberOpen, setNewMemberOpen] = useState(false);
-  const [editing, setEditing] = useState<OrganizationMemberResource | null>(
-    null,
-  );
   const sorted = members
     ? [...members].sort(
         (a, b) =>
@@ -28,65 +20,50 @@ export function OrgSettingsMembers({
       )
     : null;
   return (
-    <>
-      <div className="divide-y divide-border">
-        {sorted?.map((member) => (
-          <div
-            key={member.id}
-            className="flex items-start justify-between gap-3 px-4 py-3"
-          >
-            <div className="flex items-start gap-3 min-w-0">
-              <UserImage userId={member.user_id} px={32} className="mt-0.5" />
-              <div className="flex flex-col flex-1 min-w-0">
-                <span className="font-sans text-sm font-medium mb-0.5">
-                  {member.user_name}
-                </span>
-                <p
-                  className={
-                    member.role_description
-                      ? "font-sans text-xs text-foreground"
-                      : "font-sans text-xs text-muted-foreground"
-                  }
-                >
-                  {member.role_description || "no description found"}
-                </p>
-                <span className="text-[10px] font-mono text-muted-foreground mt-0.5">
-                  Joined {formatDate(new Date(member.created_at))}
-                </span>
-              </div>
+    <div className="divide-y divide-border">
+      {sorted?.map((member) => (
+        <div
+          key={member.id}
+          className="flex items-start justify-between gap-3 px-4 py-3"
+        >
+          <div className="flex items-start gap-3 min-w-0">
+            <UserImage userId={member.user_id} px={32} className="mt-0.5" />
+            <div className="flex flex-col flex-1 min-w-0">
+              <span className="font-sans text-sm font-medium mb-0.5">
+                {member.user_name}
+              </span>
+              <p
+                className={
+                  member.role_description
+                    ? "font-sans text-xs text-foreground"
+                    : "font-sans text-xs text-muted-foreground"
+                }
+              >
+                {member.role_description || "no description found"}
+              </p>
+              <span className="text-[10px] font-mono text-muted-foreground mt-0.5">
+                Joined {formatDate(new Date(member.created_at))}
+              </span>
             </div>
-            <button
-              type="button"
-              onClick={() => setEditing(member)}
-              className="text-xs cursor-pointer transition-colors duration-200 text-muted-foreground hover:text-foreground self-start mt-1"
-            >
-              edit
-            </button>
           </div>
-        ))}
-        <div className="px-4 py-3">
           <button
             type="button"
-            onClick={() => setNewMemberOpen(true)}
-            className="text-sm underline underline-offset-2 cursor-pointer transition-colors text-muted-foreground hover:text-foreground"
+            onClick={() => onEditMember(member)}
+            className="text-xs cursor-pointer transition-colors duration-200 text-muted-foreground hover:text-foreground self-start mt-1"
           >
-            Add member
+            edit
           </button>
         </div>
+      ))}
+      <div className="px-4 py-3">
+        <button
+          type="button"
+          onClick={onAddMember}
+          className="text-sm underline underline-offset-2 cursor-pointer transition-colors text-muted-foreground hover:text-foreground"
+        >
+          Add member
+        </button>
       </div>
-      <NewMemberDialog
-        orgName={org.name}
-        open={newMemberOpen}
-        setOpen={setNewMemberOpen}
-      />
-      {editing && (
-        <EditMemberDialog
-          orgName={org.name}
-          member={editing}
-          open={!!editing}
-          setOpen={(o) => !o && setEditing(null)}
-        />
-      )}
-    </>
+    </div>
   );
 }

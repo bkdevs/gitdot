@@ -26,8 +26,13 @@ pub async fn update_organization(
         .verify_authorized_for_organization(auth_request)
         .await?;
 
-    let request =
-        UpdateOrganizationRequest::new(&org_name, request.location, request.readme, request.links)?;
+    let request = UpdateOrganizationRequest::new(
+        &org_name,
+        request.location,
+        request.readme,
+        request.links,
+        request.display_name,
+    )?;
     state
         .org_service
         .update_organization(request)

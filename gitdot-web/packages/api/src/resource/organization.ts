@@ -7,6 +7,7 @@ export const OrganizationResource = z.object({
   location: z.string().nullable().optional(),
   readme: z.string().nullable().optional(),
   links: z.array(z.string()).default([]),
+  display_name: z.string().nullable().optional(),
 });
 export type OrganizationResource = z.infer<typeof OrganizationResource>;
 

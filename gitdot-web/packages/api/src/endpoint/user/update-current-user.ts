@@ -7,7 +7,7 @@ export const UpdateCurrentUserRequest = z.object({
   location: z.string().optional(),
   readme: z.string().optional(),
   links: z.array(z.string()).optional(),
-  company: z.string().optional(),
+  display_name: z.string().optional(),
 });
 export type UpdateCurrentUserRequest = z.infer<typeof UpdateCurrentUserRequest>;
 

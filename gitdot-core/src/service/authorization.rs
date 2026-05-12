@@ -425,7 +425,7 @@ mod tests {
             async fn add_member(&self, org_name: &str, user_name: &str, role: OrganizationRole, role_description: Option<String>) -> Result<Option<OrganizationMember>, crate::error::DatabaseError>;
             async fn get_member_role(&self, org_name: &str, user_id: Uuid) -> Result<Option<OrganizationRole>, crate::error::DatabaseError>;
             async fn get_member(&self, org_name: &str, member_id: Uuid) -> Result<Option<OrganizationMember>, crate::error::DatabaseError>;
-            async fn update(&self, org_name: &str, location: Option<String>, readme: Option<String>, links: Option<Vec<String>>) -> Result<Option<Organization>, crate::error::DatabaseError>;
+            async fn update(&self, org_name: &str, location: Option<String>, readme: Option<String>, links: Option<Vec<String>>, display_name: Option<String>) -> Result<Option<Organization>, crate::error::DatabaseError>;
             async fn update_member(&self, org_name: &str, member_id: Uuid, role_description: Option<String>) -> Result<Option<OrganizationMember>, crate::error::DatabaseError>;
             async fn list(&self) -> Result<Vec<Organization>, crate::error::DatabaseError>;
             async fn list_by_user_id(&self, user_id: Uuid) -> Result<Vec<Organization>, crate::error::DatabaseError>;
@@ -483,7 +483,7 @@ mod tests {
         impl UserRepository for UserRepo {
             async fn create(&self, email: &str, is_email_verified: bool, provider: AuthProvider) -> Result<User, crate::error::DatabaseError>;
             async fn get(&self, user_name: &str) -> Result<Option<User>, crate::error::DatabaseError>;
-            async fn update(&self, id: Uuid, name: Option<String>, location: Option<String>, readme: Option<String>, links: Option<Vec<String>>, company: Option<String>) -> Result<User, crate::error::DatabaseError>;
+            async fn update(&self, id: Uuid, name: Option<String>, location: Option<String>, readme: Option<String>, links: Option<Vec<String>>, display_name: Option<String>) -> Result<User, crate::error::DatabaseError>;
             async fn get_by_id(&self, id: Uuid) -> Result<Option<User>, crate::error::DatabaseError>;
             async fn get_by_email(&self, email: &str) -> Result<Option<User>, crate::error::DatabaseError>;
             async fn get_by_emails(&self, emails: &[String]) -> Result<Vec<User>, crate::error::DatabaseError>;

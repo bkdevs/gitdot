@@ -191,7 +191,7 @@ where
                 request.location,
                 request.readme,
                 request.links,
-                request.company,
+                request.display_name,
             )
             .await?;
         Ok(user.into())

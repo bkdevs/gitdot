@@ -52,7 +52,7 @@ impl IntoApi for UserResponse {
             location: self.location,
             readme: self.readme,
             links: self.links,
-            company: self.company,
+            display_name: self.display_name,
         }
     }
 }

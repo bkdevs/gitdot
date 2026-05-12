@@ -41,7 +41,7 @@ pub struct UserResponse {
     pub location: Option<String>,
     pub readme: Option<String>,
     pub links: Vec<String>,
-    pub company: Option<String>,
+    pub display_name: Option<String>,
 }
 
 impl From<User> for UserResponse {
@@ -54,7 +54,7 @@ impl From<User> for UserResponse {
             location: user.location,
             readme: user.readme,
             links: user.links,
-            company: user.company,
+            display_name: user.display_name,
         }
     }
 }

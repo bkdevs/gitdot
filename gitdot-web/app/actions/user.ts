@@ -127,7 +127,7 @@ export async function updateUserAction(
   const linksRaw = formData.get("links") as string | null;
   const links: string[] | undefined =
     linksRaw !== null ? JSON.parse(linksRaw) : undefined;
-  const company = formData.get("company") as string | null;
+  const displayName = formData.get("display_name") as string | null;
   const redirectTo = formData.get("redirect") as string;
 
   let name: string | undefined;
@@ -144,7 +144,7 @@ export async function updateUserAction(
     location,
     readme,
     links,
-    company,
+    display_name: displayName,
   });
 
   if (!result) {

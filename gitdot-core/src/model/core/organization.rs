@@ -10,6 +10,7 @@ pub struct Organization {
     pub location: Option<String>,
     pub readme: Option<String>,
     pub links: Vec<String>,
+    pub display_name: Option<String>,
 }
 
 #[derive(Debug, Clone, FromRow)]

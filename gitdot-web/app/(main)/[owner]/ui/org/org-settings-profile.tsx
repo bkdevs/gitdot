@@ -18,16 +18,19 @@ export function OrgSettingsProfile({ org }: { org: OrganizationResource }) {
   const [location, setLocation] = useState(org.location ?? "");
   const [links, setLinks] = useState<string[]>(org.links ?? []);
   const [readme, setReadme] = useState(org.readme ?? "");
+  const [displayName, setDisplayName] = useState(org.display_name ?? "");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     setLocation(org.location ?? "");
     setLinks(org.links ?? []);
     setReadme(org.readme ?? "");
+    setDisplayName(org.display_name ?? "");
   }, [org]);
 
   const dirty =
     location !== (org.location ?? "") ||
+    displayName !== (org.display_name ?? "") ||
     readme !== (org.readme ?? "") ||
     links.length !== (org.links?.length ?? 0) ||
     !links.every((l, i) => l === org.links?.[i]);
@@ -39,6 +42,7 @@ export function OrgSettingsProfile({ org }: { org: OrganizationResource }) {
     formData.set("location", location);
     formData.set("links", JSON.stringify(links));
     formData.set("readme", readme);
+    formData.set("display_name", displayName);
     const result = await updateOrganizationAction(org.name, formData);
     setSaving(false);
     if ("error" in result) {
@@ -53,7 +57,12 @@ export function OrgSettingsProfile({ org }: { org: OrganizationResource }) {
     <div className="max-w-lg mx-auto p-4">
       <div className="space-y-6">
         <OrgProfilePrimary org={org} />
-        <OrgProfileAbout location={location} onLocationChange={setLocation} />
+        <OrgProfileAbout
+          displayName={displayName}
+          location={location}
+          onDisplayNameChange={setDisplayName}
+          onLocationChange={setLocation}
+        />
         <OrgProfileLinks links={links} onLinksChange={setLinks} />
         <OrgProfileReadme readme={readme} onReadmeChange={setReadme} />
       </div>
@@ -141,10 +150,14 @@ function OrgProfilePrimary({ org }: { org: OrganizationResource }) {
 }
 
 function OrgProfileAbout({
+  displayName,
   location,
+  onDisplayNameChange,
   onLocationChange,
 }: {
+  displayName: string;
   location: string;
+  onDisplayNameChange: (v: string) => void;
   onLocationChange: (v: string) => void;
 }) {
   return (
@@ -154,6 +167,16 @@ function OrgProfileAbout({
         about
       </p>
       <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 items-end">
+        <span className="text-sm text-muted-foreground">name</span>
+        <input
+          value={displayName}
+          onChange={(e) => onDisplayNameChange(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") e.currentTarget.blur();
+          }}
+          className="text-sm bg-transparent border-b border-border outline-none w-full -mb-px placeholder:text-muted-foreground/40 transition-colors focus:border-foreground"
+          placeholder="async inc."
+        />
         <span className="text-sm text-muted-foreground">location</span>
         <input
           value={location}

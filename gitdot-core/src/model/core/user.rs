@@ -19,7 +19,7 @@ pub struct User {
     pub readme: Option<String>,
 
     pub links: Vec<String>,
-    pub company: Option<String>,
+    pub display_name: Option<String>,
 
     #[sqlx(json(nullable), default)]
     pub settings: Option<UserSettings>,

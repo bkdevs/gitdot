@@ -16,6 +16,7 @@ impl IntoApi for OrganizationResponse {
             location: self.location,
             readme: self.readme,
             links: self.links,
+            display_name: self.display_name,
         }
     }
 }

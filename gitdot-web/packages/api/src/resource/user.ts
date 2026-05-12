@@ -10,7 +10,7 @@ export const UserResource = z.object({
   location: z.string().nullable().optional(),
   readme: z.string().nullable().optional(),
   links: z.array(z.string()).default([]),
-  company: z.string().nullable().optional(),
+  display_name: z.string().nullable().optional(),
 });
 export type UserResource = z.infer<typeof UserResource>;
 

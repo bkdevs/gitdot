@@ -29,6 +29,7 @@ pub struct OrganizationResponse {
     pub location: Option<String>,
     pub readme: Option<String>,
     pub links: Vec<String>,
+    pub display_name: Option<String>,
 }
 
 impl From<Organization> for OrganizationResponse {
@@ -40,6 +41,7 @@ impl From<Organization> for OrganizationResponse {
             location: org.location,
             readme: org.readme,
             links: org.links,
+            display_name: org.display_name,
         }
     }
 }

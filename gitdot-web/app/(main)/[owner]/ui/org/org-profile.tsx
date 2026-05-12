@@ -8,6 +8,9 @@ export function OrgProfile({ org }: { org: OrganizationResource }) {
         <OrgImage px={36} orgId={org.id} />
       </div>
       <p className="font-semibold text-sm mb-0.5">{org.name}</p>
+      {org.display_name && (
+        <p className="text-xs text-muted-foreground">{org.display_name}</p>
+      )}
       {org.location && (
         <p className="text-xs text-muted-foreground">{org.location}</p>
       )}
