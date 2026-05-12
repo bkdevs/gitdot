@@ -1,8 +1,19 @@
 "use client";
 
 import type { OrganizationResource } from "gitdot-api";
+import { useState } from "react";
+import { OrgSettingsDialog } from "./org-settings-dialog";
+import type { OrgSettingsTab } from "./org-settings-sidebar";
 
 export function OrgActions({ org }: { org: OrganizationResource }) {
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsTab, setSettingsTab] = useState<OrgSettingsTab>("profile");
+
+  function openSettings(tab: OrgSettingsTab) {
+    setSettingsTab(tab);
+    setSettingsOpen(true);
+  }
+
   const actions: { label: string; onClick: () => void }[] = [
     {
       label: "new repo",
@@ -11,8 +22,8 @@ export function OrgActions({ org }: { org: OrganizationResource }) {
           new CustomEvent("openNewRepo", { detail: { owner: org.name } }),
         ),
     },
-    { label: "members", onClick: () => {} },
-    { label: "settings", onClick: () => {} },
+    { label: "members", onClick: () => openSettings("members") },
+    { label: "settings", onClick: () => openSettings("profile") },
   ];
 
   return (
@@ -28,6 +39,13 @@ export function OrgActions({ org }: { org: OrganizationResource }) {
           {action.label}
         </button>
       ))}
+      <OrgSettingsDialog
+        org={org}
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
+        tab={settingsTab}
+        onTabChange={setSettingsTab}
+      />
     </div>
   );
 }
