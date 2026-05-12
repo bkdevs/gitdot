@@ -60,6 +60,7 @@ export async function migrateGitHubRepositories(
   destination: string,
   destinationType: string,
   repositories: string[],
+  readonly: boolean,
 ): Promise<MigrationResource | null> {
   const response = await authPost(
     `${GITDOT_SERVER_URL}/migration/github/${installationId}/migrate`,
@@ -69,6 +70,7 @@ export async function migrateGitHubRepositories(
       destination,
       destination_type: destinationType,
       repositories,
+      readonly,
     },
   );
 

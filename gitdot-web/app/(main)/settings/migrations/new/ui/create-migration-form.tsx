@@ -67,6 +67,7 @@ export function CreateMigrationForm({
         destination,
         destinationType,
         [...selectedRepos],
+        true,
       );
       if ("error" in result) {
         setError(result.error);

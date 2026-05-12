@@ -119,6 +119,7 @@ export async function migrateGitHubRepositoriesAction(
   destination: string,
   destinationType: string,
   repositories: string[],
+  readonly: boolean,
 ): Promise<MigrateGitHubRepositoriesActionResult> {
   if (!destination || repositories.length === 0) {
     return { error: "Destination and repositories are required" };
@@ -132,6 +133,7 @@ export async function migrateGitHubRepositoriesAction(
       destination,
       destinationType,
       repositories,
+      readonly,
     );
   } catch (e) {
     return {

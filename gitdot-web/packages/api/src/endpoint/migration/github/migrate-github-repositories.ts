@@ -8,6 +8,7 @@ export const MigrateGitHubRepositoriesRequest = z.object({
   destination: z.string(),
   destination_type: z.string(),
   repositories: z.array(z.string()),
+  readonly: z.boolean(),
 });
 export type MigrateGitHubRepositoriesRequest = z.infer<
   typeof MigrateGitHubRepositoriesRequest
