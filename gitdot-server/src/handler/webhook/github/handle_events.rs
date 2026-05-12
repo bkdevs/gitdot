@@ -28,7 +28,10 @@ pub async fn handle_events(
             let request: ProcessGithubPushRequest = serde_json::from_slice(&body).map_err(|e| {
                 WebhookError::Input(InputError::new("github push body", e.to_string()))
             })?;
-            state.webhook_service.process_github_push(request).await?;
+            state
+                .github_webhook_service
+                .process_github_push(request)
+                .await?;
         }
     }
 

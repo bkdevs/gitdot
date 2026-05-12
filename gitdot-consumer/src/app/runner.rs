@@ -62,7 +62,7 @@ async fn handle_message(state: &ConsumerState, msg: &BorrowedMessage<'_>) -> any
     let list_request =
         ListSlackWebhooksRequest::new(&event.owner, &event.repo, WebhookEventType::Push)?;
     let subscriptions = state
-        .webhook_service
+        .slack_webhook_service
         .list_slack_webhooks(list_request)
         .await?;
 
@@ -93,7 +93,11 @@ async fn handle_message(state: &ConsumerState, msg: &BorrowedMessage<'_>) -> any
             pusher_name: event.pusher_name.clone(),
             commits: event.commits.clone(),
         };
-        if let Err(e) = state.webhook_service.notify_slack_of_repo_push(body).await {
+        if let Err(e) = state
+            .slack_webhook_service
+            .notify_slack_of_repo_push(body)
+            .await
+        {
             tracing::error!(
                 ?e,
                 channel_id = %channel_id,

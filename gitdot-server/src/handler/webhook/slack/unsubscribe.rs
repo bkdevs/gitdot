@@ -39,7 +39,7 @@ pub async fn unsubscribe_slack_webhook(
         body.slack_channel_id,
     )?;
     state
-        .webhook_service
+        .slack_webhook_service
         .unsubscribe_slack_webhook(request)
         .await
         .map_err(AppError::from)

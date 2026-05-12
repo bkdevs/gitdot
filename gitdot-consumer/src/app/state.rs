@@ -5,15 +5,9 @@ use rdkafka::{ClientConfig, consumer::StreamConsumer};
 use sqlx::PgPool;
 
 use gitdot_core::{
-    client::{
-        GcpKafkaContext, Git2Client, KafkaAuthMode, KafkaClientImpl, SlackBotClientImpl,
-        TokenClientImpl,
-    },
-    repository::{
-        RepositoryRepositoryImpl, SlackWebhookRepositoryImpl, UserRepositoryImpl,
-        WebhookRepositoryImpl,
-    },
-    service::{WebhookService, WebhookServiceImpl},
+    client::{GcpKafkaContext, KafkaAuthMode, SlackBotClientImpl},
+    repository::{RepositoryRepositoryImpl, SlackWebhookRepositoryImpl},
+    service::{SlackWebhookService, SlackWebhookServiceImpl},
 };
 
 use super::Settings;
@@ -21,41 +15,28 @@ use super::Settings;
 #[derive(Clone)]
 pub struct ConsumerState {
     pub settings: Settings,
-    pub webhook_service: Arc<dyn WebhookService>,
+    pub slack_webhook_service: Arc<dyn SlackWebhookService>,
 }
 
 impl ConsumerState {
     pub async fn new(settings: Settings, pool: PgPool) -> anyhow::Result<Self> {
-        let webhook_repo = WebhookRepositoryImpl::new(pool.clone());
         let slack_webhook_repo = SlackWebhookRepositoryImpl::new(pool.clone());
         let repo_repo = RepositoryRepositoryImpl::new(pool.clone());
-        let user_repo = UserRepositoryImpl::new(pool.clone());
 
-        let git_client = Git2Client::new("".to_string());
-        let kafka_client =
-            KafkaClientImpl::new(&settings.kafka_bootstrap_servers, settings.kafka_auth).await?;
         let slack_bot_client = SlackBotClientImpl::new(
             settings.gitdot_slack_bot_server_url.clone(),
             settings.gitdot_slack_secret.clone(),
         );
 
-        // TokenClientImpl is unused on this path, but referenced indirectly by core
-        // wiring; the consumer passes nothing into WebhookServiceImpl that needs it.
-        let _ = TokenClientImpl::new(String::new());
-
-        let webhook_service = Arc::new(WebhookServiceImpl::new(
-            webhook_repo,
+        let slack_webhook_service = Arc::new(SlackWebhookServiceImpl::new(
             slack_webhook_repo,
             repo_repo,
-            user_repo,
-            git_client,
-            kafka_client,
             slack_bot_client,
         ));
 
         Ok(Self {
             settings,
-            webhook_service,
+            slack_webhook_service,
         })
     }
 }

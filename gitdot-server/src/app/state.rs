@@ -20,11 +20,12 @@ use gitdot_core::{
     service::{
         AuthenticationService, AuthenticationServiceImpl, AuthorizationService,
         AuthorizationServiceImpl, BuildService, BuildServiceImpl, CommitService, CommitServiceImpl,
-        GitHttpService, GitHttpServiceImpl, MigrationService, MigrationServiceImpl,
-        OrganizationService, OrganizationServiceImpl, QuestionService, QuestionServiceImpl,
-        RepositoryService, RepositoryServiceImpl, ReviewService, ReviewServiceImpl, RunnerService,
-        RunnerServiceImpl, TaskService, TaskServiceImpl, UserService, UserServiceImpl,
-        WebhookService, WebhookServiceImpl,
+        EventService, EventServiceImpl, GitHttpService, GitHttpServiceImpl, GithubWebhookService,
+        GithubWebhookServiceImpl, MigrationService, MigrationServiceImpl, OrganizationService,
+        OrganizationServiceImpl, QuestionService, QuestionServiceImpl, RepositoryService,
+        RepositoryServiceImpl, ReviewService, ReviewServiceImpl, RunnerService, RunnerServiceImpl,
+        SlackWebhookService, SlackWebhookServiceImpl, TaskService, TaskServiceImpl, UserService,
+        UserServiceImpl, WebhookService, WebhookServiceImpl,
     },
 };
 
@@ -34,9 +35,11 @@ use super::Settings;
 pub struct AppState {
     pub settings: Arc<Settings>,
 
+    // auth + authz
     pub authentication_service: Arc<dyn AuthenticationService>,
     pub authorization_service: Arc<dyn AuthorizationService>,
 
+    // core services
     pub user_service: Arc<dyn UserService>,
     pub org_service: Arc<dyn OrganizationService>,
     pub git_http_service: Arc<dyn GitHttpService>,
@@ -44,8 +47,17 @@ pub struct AppState {
     pub question_service: Arc<dyn QuestionService>,
     pub review_service: Arc<dyn ReviewService>,
     pub commit_service: Arc<dyn CommitService>,
+
+    // migration services
     pub migration_service: Arc<dyn MigrationService>,
+
+    // webhook services
     pub webhook_service: Arc<dyn WebhookService>,
+    pub slack_webhook_service: Arc<dyn SlackWebhookService>,
+    pub github_webhook_service: Arc<dyn GithubWebhookService>,
+    pub event_service: Arc<dyn EventService>,
+
+    // ci services
     pub build_service: Arc<dyn BuildService>,
     pub runner_service: Arc<dyn RunnerService>,
     pub task_service: Arc<dyn TaskService>,
@@ -181,12 +193,18 @@ impl AppState {
             )),
             webhook_service: Arc::new(WebhookServiceImpl::new(
                 webhook_repo.clone(),
+                repo_repo.clone(),
+            )),
+            slack_webhook_service: Arc::new(SlackWebhookServiceImpl::new(
                 slack_webhook_repo.clone(),
                 repo_repo.clone(),
+                slack_bot_client.clone(),
+            )),
+            github_webhook_service: Arc::new(GithubWebhookServiceImpl::new()),
+            event_service: Arc::new(EventServiceImpl::new(
                 user_repo.clone(),
                 git_client.clone(),
                 kafka_client.clone(),
-                slack_bot_client.clone(),
             )),
             build_service: Arc::new(BuildServiceImpl::new(
                 git_client.clone(),
