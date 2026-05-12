@@ -142,6 +142,7 @@ impl GitHubClient for OctocrabClient {
         &self,
         installation_id: u64,
     ) -> Result<String, GitHubError> {
+        // TODO: cache the token (valid for an hour)
         let (_, token) = self
             .app_client
             .installation_and_token(InstallationId(installation_id))

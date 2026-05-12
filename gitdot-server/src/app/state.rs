@@ -200,7 +200,12 @@ impl AppState {
                 repo_repo.clone(),
                 slack_bot_client.clone(),
             )),
-            github_webhook_service: Arc::new(GithubWebhookServiceImpl::new()),
+            github_webhook_service: Arc::new(GithubWebhookServiceImpl::new(
+                repo_repo.clone(),
+                migration_repo.clone(),
+                git_client.clone(),
+                github_client.clone(),
+            )),
             event_service: Arc::new(EventServiceImpl::new(
                 user_repo.clone(),
                 git_client.clone(),
