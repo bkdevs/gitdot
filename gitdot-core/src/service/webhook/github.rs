@@ -2,7 +2,7 @@ use async_trait::async_trait;
 
 use crate::{
     client::{Git2Client, GitClient, GitHubClient, OctocrabClient},
-    dto::ProcessGithubPushRequest,
+    dto::{ProcessGithubPushRequest, ProcessGithubPushResponse, SyncedRepositoryInfo},
     error::WebhookError,
     repository::{
         MigrationRepository, MigrationRepositoryImpl, RepositoryRepository,
@@ -16,7 +16,7 @@ pub trait GithubWebhookService: Send + Sync + 'static {
     async fn process_github_push(
         &self,
         request: ProcessGithubPushRequest,
-    ) -> Result<(), WebhookError>;
+    ) -> Result<ProcessGithubPushResponse, WebhookError>;
 }
 
 #[derive(Debug, Clone)]
@@ -68,14 +68,18 @@ where
     async fn process_github_push(
         &self,
         request: ProcessGithubPushRequest,
-    ) -> Result<(), WebhookError> {
+    ) -> Result<ProcessGithubPushResponse, WebhookError> {
+        let empty_response = ProcessGithubPushResponse {
+            synced_repositories: Vec::new(),
+        };
+
         let default_ref = format!("refs/heads/{}", request.repository.default_branch);
         if request.ref_name != default_ref {
             // only sync pushes to the default branch
-            return Ok(());
+            return Ok(empty_response);
         }
         if request.after == ZERO_SHA {
-            return Ok(());
+            return Ok(empty_response);
         }
 
         let origin_full_name = format!(
@@ -87,7 +91,7 @@ where
             .list_by_origin_repository_id(request.repository.id)
             .await?;
         if migration_repositories.is_empty() {
-            return Ok(());
+            return Ok(empty_response);
         }
 
         let token = self
@@ -96,6 +100,7 @@ where
             .await?;
         let url = get_github_clone_url(&token, &origin_full_name);
 
+        let mut synced_repositories = Vec::new();
         for migration_repository in migration_repositories {
             let Some(dest_id) = migration_repository.destination_repository_id else {
                 continue;
@@ -107,7 +112,8 @@ where
                 continue;
             }
 
-            self.git_client
+            match self
+                .git_client
                 .fetch_ref(
                     &dest.owner_name,
                     &dest.name,
@@ -115,9 +121,26 @@ where
                     &request.ref_name,
                     &request.after,
                 )
-                .await?
+                .await
+            {
+                Ok(()) => synced_repositories.push(SyncedRepositoryInfo {
+                    owner_name: dest.owner_name,
+                    repo_name: dest.name,
+                    head_sha: request.after.clone(),
+                }),
+                Err(e) => {
+                    tracing::error!(
+                        ?e,
+                        owner = %dest.owner_name,
+                        repo = %dest.name,
+                        "failed to fetch ref into readonly mirror",
+                    );
+                }
+            }
         }
 
-        Ok(())
+        Ok(ProcessGithubPushResponse {
+            synced_repositories,
+        })
     }
 }

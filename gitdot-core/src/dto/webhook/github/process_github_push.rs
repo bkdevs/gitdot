@@ -40,3 +40,15 @@ pub struct GithubPushCommit {
     pub id: String,
     pub message: String,
 }
+
+#[derive(Debug, Clone)]
+pub struct ProcessGithubPushResponse {
+    pub synced_repositories: Vec<SyncedRepositoryInfo>,
+}
+
+#[derive(Debug, Clone)]
+pub struct SyncedRepositoryInfo {
+    pub owner_name: String,
+    pub repo_name: String,
+    pub head_sha: String,
+}

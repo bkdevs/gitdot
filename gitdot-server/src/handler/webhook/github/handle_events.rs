@@ -2,7 +2,7 @@ use axum::extract::State;
 use http::StatusCode;
 
 use gitdot_core::{
-    dto::ProcessGithubPushRequest,
+    dto::{CreateCommitsRequest, ProcessGithubPushRequest},
     error::{InputError, WebhookError},
 };
 
@@ -31,12 +31,30 @@ pub async fn handle_events(
             // run sync in the background so we ack the webhook within github's
             // 10s timeout window even for large pushes
             tokio::spawn(async move {
-                if let Err(e) = state
+                let response = match state
                     .github_webhook_service
-                    .process_github_push(request)
+                    .process_github_push(request.clone())
                     .await
                 {
-                    tracing::error!(?e, %delivery, "github push processing failed");
+                    Ok(r) => r,
+                    Err(e) => {
+                        tracing::error!(?e, %delivery, "github push processing failed");
+                        return;
+                    }
+                };
+                // TODO: publish push events
+                for info in response.synced_repositories {
+                    if let Ok(req) = CreateCommitsRequest::new(
+                        &info.owner_name,
+                        &info.repo_name,
+                        request.before.clone(),
+                        info.head_sha,
+                        request.ref_name.clone(),
+                        None,
+                        Default::default(),
+                    ) {
+                        let _ = state.commit_service.create_commits(req).await;
+                    }
                 }
             });
         }
