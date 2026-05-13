@@ -21,10 +21,8 @@ pub struct Settings {
     pub gitdot_slack_bot_server_url: String,
     #[serde(default = "default_device_url")]
     pub gitdot_oauth_device_verification_url: String,
-
-    // redis
     #[serde(default = "default_redis_url")]
-    pub redis_url: String,
+    pub gitdot_redis_url: String,
 
     // github
     pub github_app_id: u64,

@@ -58,7 +58,7 @@ impl AppState {
         )
         .await;
         let redis_client = {
-            let client = RedisClientImpl::new(&settings.redis_url).await?;
+            let client = RedisClientImpl::new(&settings.gitdot_redis_url).await?;
             client.ping().await?;
             client
         };
