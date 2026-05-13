@@ -1,3 +1,8 @@
+mod oauth;
+mod review;
+mod runner;
+mod user;
+
 use anyhow::{Error, Result};
 use base64::{Engine, engine::general_purpose::STANDARD};
 use reqwest::RequestBuilder;
@@ -222,9 +227,3 @@ impl Auth for RequestBuilder {
         }
     }
 }
-
-mod oauth;
-mod review;
-mod runner;
-mod task;
-mod user;

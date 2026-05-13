@@ -24,18 +24,11 @@ clap = { version = "4.5.54", features = ["derive"] }
 dirs-next = "2.0.0"
 dotenvy = { workspace = true }
 figment = { workspace = true, features = ["toml"] }
-futures = { workspace = true }
-git2 = { workspace = true }
 gitdot-api = { workspace = true }
-gitdot-config = { workspace = true }
-itertools = "0.14.0"
 owo-colors = "4.3.0"
 reqwest = { workspace = true }
 rustls = { workspace = true, features = ["aws-lc-rs"] }
-s2-sdk = { workspace = true }
 serde = { workspace = true }
-serde_json = { workspace = true }
 tokio = { workspace = true }
 toml = { workspace = true }
 url = { workspace = true }
-uuid = { workspace = true }

@@ -2465,21 +2465,14 @@ dependencies = [
  "dirs-next",
  "dotenvy",
  "figment",
- "futures",
- "git2",
  "gitdot-api",
- "gitdot-config",
- "itertools",
  "owo-colors",
  "reqwest 0.13.2",
  "rustls 0.23.36",
- "s2-sdk",
  "serde",
- "serde_json",
  "tokio",
  "toml 1.0.3+spec-1.1.0",
  "url",
- "uuid",
 ]
 
 [[package]]
