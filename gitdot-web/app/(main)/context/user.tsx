@@ -1,6 +1,7 @@
 "use client";
 
 import type {
+  GitHubInstallationResource,
   OrganizationMemberResource,
   RepositoryResource,
   UserResource,
@@ -12,13 +13,18 @@ import {
   useEffect,
   useState,
 } from "react";
-import { getCurrentUserAction, listUserRepositoriesAction } from "@/actions";
+import {
+  getCurrentUserAction,
+  listInstallationsAction,
+  listUserRepositoriesAction,
+} from "@/actions";
 import { AuthDialog } from "../ui/auth-dialog";
 
 interface UserContext {
   user: UserResource | null | undefined;
   repositories: RepositoryResource[] | null | undefined;
   memberships: OrganizationMemberResource[] | null | undefined;
+  installations: GitHubInstallationResource[] | null | undefined;
   refreshUser: () => Promise<void>;
   requireAuth: () => boolean;
 }
@@ -39,6 +45,9 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const [repositories, setRepositories] = useState<
     RepositoryResource[] | null | undefined
   >(undefined);
+  const [installations, setInstallations] = useState<
+    GitHubInstallationResource[] | null | undefined
+  >(undefined);
   const [open, setOpen] = useState(false);
 
   const requireAuth = useCallback(() => {
@@ -56,16 +65,24 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     const current = await getCurrentUserAction();
     setUser(current?.user ?? null);
     setMemberships(current?.memberships ?? null);
+
+    if (!current?.user) {
+      setRepositories(null);
+      setInstallations(null);
+      return;
+    }
+
+    const [repos, installs] = await Promise.all([
+      listUserRepositoriesAction(current.user.name),
+      listInstallationsAction(),
+    ]);
+    setRepositories(repos);
+    setInstallations(installs);
   }, []);
 
   useEffect(() => {
     refreshUser();
   }, [refreshUser]);
-
-  useEffect(() => {
-    if (!user) return;
-    listUserRepositoriesAction(user.name).then(setRepositories);
-  }, [user]);
 
   return (
     <UserContext
@@ -73,6 +90,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         user,
         repositories,
         memberships,
+        installations,
         refreshUser,
         requireAuth,
       }}

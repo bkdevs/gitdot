@@ -1,12 +1,14 @@
 "use client";
 
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import type { GitHubRepositoryResource } from "gitdot-api";
 import { ChevronDown } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { OrgImage } from "@/(main)/[owner]/ui/org/org-image";
 import { UserImage } from "@/(main)/[owner]/ui/user/user-image";
 import { useUserContext } from "@/(main)/context/user";
+import { listInstallationRepositoriesAction } from "@/actions";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
 import {
   DropdownMenu,
@@ -23,14 +25,6 @@ const REPO_SORT_LABELS: Record<RepoSort, string> = {
   recent: "Recent",
   name: "Name",
 };
-
-const PLACEHOLDER_REPOS: { name: string; description: string }[] = Array.from(
-  { length: 100 },
-  (_, i) => ({
-    name: `octocat/repo-${i + 1}`,
-    description: `Placeholder repository number ${i + 1}`,
-  }),
-);
 
 const TYPE_OPTIONS: {
   value: ImportType;
@@ -50,10 +44,13 @@ const TYPE_OPTIONS: {
 ];
 
 export function ImportRepoDialog() {
-  const { user, memberships } = useUserContext();
+  const { user, memberships, installations } = useUserContext();
 
   const [open, setOpen] = useState(false);
-  const [githubAccount, setGithubAccount] = useState("");
+  const [selectedInstallationId, setSelectedInstallationId] = useState<
+    number | null
+  >(null);
+  const [repos, setRepos] = useState<GitHubRepositoryResource[] | null>(null);
   const [destination, setDestination] = useState("");
   const [selectedRepos, setSelectedRepos] = useState<Set<string>>(new Set());
   const [importType, setImportType] = useState<ImportType>("read-only");
@@ -62,6 +59,11 @@ export function ImportRepoDialog() {
   const selectedMembership = memberships?.find(
     (m) => m.org_name === destination,
   );
+
+  const selectedInstallation =
+    selectedInstallationId !== null
+      ? installations?.find((i) => i.installation_id === selectedInstallationId)
+      : undefined;
 
   useEffect(() => {
     if (!open) {
@@ -74,13 +76,40 @@ export function ImportRepoDialog() {
     const handle = (e: Event) => {
       if (!user) return;
       const detail = (e as CustomEvent<{ owner?: string }>).detail;
-      setGithubAccount(`github.com/${user.name}`);
       setDestination(detail?.owner ?? user.name);
       setOpen(true);
     };
     window.addEventListener("openImportRepo", handle);
     return () => window.removeEventListener("openImportRepo", handle);
   }, [user]);
+
+  useEffect(() => {
+    if (!installations || installations.length === 0) return;
+    if (selectedInstallationId !== null) return;
+    setSelectedInstallationId(installations[0].installation_id);
+  }, [installations, selectedInstallationId]);
+
+  useEffect(() => {
+    if (selectedInstallationId === null) return;
+    const id = selectedInstallationId;
+    setRepos(null);
+    let cancelled = false;
+    listInstallationRepositoriesAction(id).then((result) => {
+      if (cancelled) return;
+      setRepos(result);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedInstallationId]);
+
+  const sortedRepos = useMemo(() => {
+    if (!repos) return repos;
+    if (sortBy === "name") {
+      return [...repos].sort((a, b) => a.full_name.localeCompare(b.full_name));
+    }
+    return repos;
+  }, [repos, sortBy]);
 
   const toggleRepo = (name: string) => {
     setSelectedRepos((prev) => {
@@ -164,15 +193,22 @@ export function ImportRepoDialog() {
                       width={13}
                       height={13}
                     />
-                    {githubAccount || "select"}
+                    {installations === undefined
+                      ? "loading..."
+                      : selectedInstallation
+                        ? `github.com/${selectedInstallation.github_login}`
+                        : "select"}
                     <ChevronDown className="size-3" />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start" className="min-w-32">
-                    {user && (
+                    {(installations ?? []).map((installation) => (
                       <DropdownMenuItem
+                        key={installation.id}
                         className="text-xs"
                         onClick={() =>
-                          setGithubAccount(`github.com/${user.name}`)
+                          setSelectedInstallationId(
+                            installation.installation_id,
+                          )
                         }
                       >
                         <Image
@@ -181,9 +217,9 @@ export function ImportRepoDialog() {
                           width={13}
                           height={13}
                         />
-                        github.com/{user.name}
+                        github.com/{installation.github_login}
                       </DropdownMenuItem>
-                    )}
+                    ))}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
@@ -254,33 +290,44 @@ export function ImportRepoDialog() {
             </DropdownMenu>
           </div>
           <div className="flex flex-col h-80 overflow-y-auto scrollbar-thin border-b border-border">
-            {PLACEHOLDER_REPOS.map((repo) => {
-              const checked = selectedRepos.has(repo.name);
-              const shortName = repo.name.split("/").pop() ?? repo.name;
-              return (
-                <button
-                  key={repo.name}
-                  type="button"
-                  onClick={() => toggleRepo(repo.name)}
-                  className={cn(
-                    "flex flex-col px-2 py-1.5 text-xs text-left hover:bg-accent transition-colors duration-150 cursor-pointer",
-                    checked && "bg-accent",
-                  )}
-                >
-                  <div className="flex items-center gap-1.5 min-w-0">
-                    <span className="truncate">{repo.name}</span>
-                    {checked && destination && (
-                      <span className="text-muted-foreground truncate">
-                        → {destination}/{shortName}
+            {sortedRepos === null ? (
+              <div className="px-2 py-1.5 text-xs text-muted-foreground">
+                loading...
+              </div>
+            ) : sortedRepos.length === 0 ? (
+              <div className="px-2 py-1.5 text-xs text-muted-foreground">
+                No repositories found.
+              </div>
+            ) : (
+              sortedRepos.map((repo) => {
+                const checked = selectedRepos.has(repo.full_name);
+                return (
+                  <button
+                    key={repo.id}
+                    type="button"
+                    onClick={() => toggleRepo(repo.full_name)}
+                    className={cn(
+                      "flex flex-col px-2 py-1.5 text-xs text-left hover:bg-accent transition-colors duration-150 cursor-pointer",
+                      checked && "bg-accent",
+                    )}
+                  >
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <span className="truncate">{repo.full_name}</span>
+                      {checked && destination && (
+                        <span className="text-muted-foreground truncate">
+                          → {destination}/{repo.name}
+                        </span>
+                      )}
+                    </div>
+                    {repo.description && (
+                      <span className="truncate text-muted-foreground">
+                        {repo.description}
                       </span>
                     )}
-                  </div>
-                  <span className="truncate text-muted-foreground">
-                    {repo.description}
-                  </span>
-                </button>
-              );
-            })}
+                  </button>
+                );
+              })
+            )}
           </div>
           <div className="flex items-center justify-between h-7">
             <span className="pl-2 text-xs truncate text-muted-foreground">

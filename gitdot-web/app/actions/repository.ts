@@ -3,6 +3,7 @@
 import type {
   CommitFilterResource,
   GitHubInstallationResource,
+  GitHubRepositoryResource,
   RepositoryBlobsResource,
   RepositoryResource,
   RepositorySettingsResource,
@@ -18,6 +19,7 @@ import {
   getRepositoryBlob,
   getRepositoryBlobs,
   getRepositorySettings,
+  listInstallationRepositories,
   listInstallations,
   migrateGitHubRepositories,
   starRepository,
@@ -151,6 +153,12 @@ export async function listInstallationsAction(): Promise<
   GitHubInstallationResource[]
 > {
   return (await listInstallations()) ?? [];
+}
+
+export async function listInstallationRepositoriesAction(
+  installationId: number,
+): Promise<GitHubRepositoryResource[]> {
+  return (await listInstallationRepositories(installationId)) ?? [];
 }
 
 export async function getRepositoryHastAction(

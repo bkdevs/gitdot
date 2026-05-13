@@ -1,22 +1,11 @@
 "use client";
 
-import type { GitHubInstallationResource } from "gitdot-api";
 import Image from "next/image";
-import { useEffect, useState } from "react";
-import { listInstallationsAction } from "@/actions";
+import { useUserContext } from "@/(main)/context/user";
 import { githubAppInstallUrl } from "@/util";
 
 export function SettingsIntegrations() {
-  const [installations, setInstallations] = useState<
-    GitHubInstallationResource[] | null
-  >(null);
-
-  useEffect(() => {
-    const delay = new Promise((resolve) => setTimeout(resolve, 500));
-    Promise.all([listInstallationsAction(), delay]).then(([result]) =>
-      setInstallations(result),
-    );
-  }, []);
+  const { installations } = useUserContext();
 
   return (
     <div className="p-3">
@@ -29,7 +18,7 @@ export function SettingsIntegrations() {
         clones their full history. We only read what you authorize and never
         modify anything on GitHub.
       </p>
-      {installations === null ? (
+      {!installations ? (
         <div className="mt-3 text-sm text-muted-foreground">loading...</div>
       ) : (
         <>
