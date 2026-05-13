@@ -45,9 +45,6 @@ pub struct Settings {
     pub cloudflare_r2_bucket_name: String,
     pub cloudflare_r2_access_key_id: String,
     pub cloudflare_r2_secret_access_key: String,
-
-    // resend
-    pub resend_api_key: String,
 }
 
 impl Settings {
