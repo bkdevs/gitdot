@@ -7,6 +7,10 @@ export function UserActions() {
       onClick: () => window.dispatchEvent(new CustomEvent("openNewRepo")),
     },
     {
+      label: "import repo",
+      onClick: () => window.dispatchEvent(new CustomEvent("openImportRepo")),
+    },
+    {
       label: "new org",
       onClick: () => window.dispatchEvent(new CustomEvent("openNewOrg")),
     },

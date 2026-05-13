@@ -18,19 +18,19 @@ use migrate_github_repositories::migrate_github_repositories;
 pub fn create_github_migration_router() -> Router<AppState> {
     Router::new()
         .route(
-            "/migration/github/installations",
-            get(list_github_installations),
-        )
-        .route(
             "/migration/github/{installation_id}",
             post(create_github_installation),
         )
         .route(
-            "/migration/github/{installation_id}/repositories",
-            get(list_github_installation_repositories),
+            "/migration/github/installations",
+            get(list_github_installations),
         )
         .route(
             "/migration/github/{installation_id}/migrate",
             post(migrate_github_repositories),
+        )
+        .route(
+            "/migration/github/{installation_id}/repositories",
+            get(list_github_installation_repositories),
         )
 }

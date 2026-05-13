@@ -51,6 +51,11 @@ export function useCommands({
       },
       {
         type: "cmd",
+        label: "import-repo",
+        execute: () => window.dispatchEvent(new CustomEvent("openImportRepo")),
+      },
+      {
+        type: "cmd",
         label: "new-org",
         execute: () => window.dispatchEvent(new CustomEvent("openNewOrg")),
       },
