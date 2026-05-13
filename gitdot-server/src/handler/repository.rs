@@ -1,4 +1,5 @@
 mod create_repository;
+mod get_repository;
 mod delete_repository;
 mod get_repository_blob;
 mod get_repository_blob_diffs;
@@ -19,6 +20,7 @@ use axum::{
 use crate::app::AppState;
 
 use create_repository::create_repository;
+use get_repository::get_repository;
 use delete_repository::delete_repository;
 use get_repository_blob::get_repository_blob;
 use get_repository_blob_diffs::get_repository_blob_diffs;
@@ -35,7 +37,9 @@ pub fn create_repository_router() -> Router<AppState> {
     Router::new()
         .route(
             "/repository/{owner}/{repo}",
-            post(create_repository).delete(delete_repository),
+            post(create_repository)
+                .get(get_repository)
+                .delete(delete_repository),
         )
         .route("/repository/{owner}/{repo}/blob", get(get_repository_blob))
         .route(

@@ -8,9 +8,9 @@ use crate::{
     dto::{
         CreateRepositoryRequest, DeleteRepositoryRequest, GetRepositoryBlobDiffsRequest,
         GetRepositoryBlobRequest, GetRepositoryBlobsRequest, GetRepositoryPathsRequest,
-        GetRepositorySettingsRequest, RepositoryBlobDiffsResponse, RepositoryBlobResponse,
-        RepositoryBlobsResponse, RepositoryPathsResponse, RepositoryResponse,
-        RepositorySettingsResponse, UpdateRepositorySettingsRequest,
+        GetRepositoryRequest, GetRepositorySettingsRequest, RepositoryBlobDiffsResponse,
+        RepositoryBlobResponse, RepositoryBlobsResponse, RepositoryPathsResponse,
+        RepositoryResponse, RepositorySettingsResponse, UpdateRepositorySettingsRequest,
     },
     error::{ConflictError, OptionNotFoundExt, RepositoryError},
     model::{RepositoryOwnerType, RepositorySettings},
@@ -26,6 +26,11 @@ pub trait RepositoryService: Send + Sync + 'static {
     async fn create_repository(
         &self,
         request: CreateRepositoryRequest,
+    ) -> Result<RepositoryResponse, RepositoryError>;
+
+    async fn get_repository(
+        &self,
+        request: GetRepositoryRequest,
     ) -> Result<RepositoryResponse, RepositoryError>;
 
     async fn get_repository_blob(
@@ -201,6 +206,22 @@ where
                 return Err(e.into());
             }
         };
+
+        Ok(repository.into())
+    }
+
+    async fn get_repository(
+        &self,
+        request: GetRepositoryRequest,
+    ) -> Result<RepositoryResponse, RepositoryError> {
+        let owner = request.owner.as_ref();
+        let repo = request.repo.as_ref();
+
+        let repository = self
+            .repo_repo
+            .get(owner, repo)
+            .await?
+            .or_not_found("repository", format!("{}/{}", owner, repo))?;
 
         Ok(repository.into())
     }
