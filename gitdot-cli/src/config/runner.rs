@@ -1,4 +1,8 @@
 use anyhow::Context;
+use figment::{
+    Figment,
+    providers::{Format, Serialized, Toml},
+};
 use serde::{Deserialize, Serialize};
 
 use super::{
@@ -12,16 +16,10 @@ pub const RUNNER_CONFIG_PATH: &str = "/etc/gitdot/runner.toml";
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RunnerConfig {
-    #[serde(default = "default_gitdot_web_url")]
     pub gitdot_web_url: String,
-    #[serde(default = "default_gitdot_api_server_url")]
     pub gitdot_server_url: String,
-    #[serde(default = "default_s2_server_url")]
     pub s2_server_url: String,
-
     pub runner_token: Option<String>,
-
-    #[serde(default = "default_num_executors")]
     pub num_executors: i8,
 }
 
@@ -39,19 +37,11 @@ impl Default for RunnerConfig {
 
 impl RunnerConfig {
     pub fn load() -> anyhow::Result<Self> {
-        let path = std::path::Path::new(RUNNER_CONFIG_PATH);
-
-        if !path.exists() {
-            return Ok(Self::default());
-        }
-
-        let contents = std::fs::read_to_string(path)
-            .with_context(|| format!("Failed to read runner config: {}", RUNNER_CONFIG_PATH))?;
-
-        let config: RunnerConfig = toml::from_str(&contents)
-            .with_context(|| format!("Failed to parse runner config: {}", RUNNER_CONFIG_PATH))?;
-
-        Ok(config)
+        Figment::new()
+            .merge(Serialized::defaults(Self::default()))
+            .merge(Toml::file(RUNNER_CONFIG_PATH))
+            .extract()
+            .with_context(|| format!("Failed to load runner config from {RUNNER_CONFIG_PATH}"))
     }
 
     pub fn save(&self) -> anyhow::Result<()> {
