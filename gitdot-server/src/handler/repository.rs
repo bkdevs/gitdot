@@ -1,6 +1,6 @@
 mod create_repository;
-mod get_repository;
 mod delete_repository;
+mod get_repository;
 mod get_repository_blob;
 mod get_repository_blob_diffs;
 mod get_repository_blobs;
@@ -20,8 +20,8 @@ use axum::{
 use crate::app::AppState;
 
 use create_repository::create_repository;
-use get_repository::get_repository;
 use delete_repository::delete_repository;
+use get_repository::get_repository;
 use get_repository_blob::get_repository_blob;
 use get_repository_blob_diffs::get_repository_blob_diffs;
 use get_repository_blobs::get_repository_blobs;

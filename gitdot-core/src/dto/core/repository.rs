@@ -1,6 +1,6 @@
 mod create_repository;
-mod get_repository;
 mod delete_repository;
+mod get_repository;
 mod get_repository_blob;
 mod get_repository_blob_diffs;
 mod get_repository_blobs;
@@ -16,8 +16,8 @@ use uuid::Uuid;
 use crate::model::Repository;
 
 pub use create_repository::CreateRepositoryRequest;
-pub use get_repository::GetRepositoryRequest;
 pub use delete_repository::DeleteRepositoryRequest;
+pub use get_repository::GetRepositoryRequest;
 pub use get_repository_blob::{
     GetRepositoryBlobRequest, RepositoryBlobResponse, RepositoryFolderResponse,
 };
