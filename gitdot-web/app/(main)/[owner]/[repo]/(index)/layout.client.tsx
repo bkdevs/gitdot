@@ -1,7 +1,6 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useUserContext } from "@/(main)/context/user";
 import Link from "@/ui/link";
 import { OverlayScroll } from "@/ui/scroll";
 import { Sidebar, SidebarContent } from "@/ui/sidebar";
@@ -49,11 +48,6 @@ function IndexSidebar({
   const pathname = usePathname();
   const path = pathname.replace(`/${owner}/${repo}`, "") || "/";
 
-  const { repositories } = useUserContext();
-  const description = repositories?.find(
-    (r) => r.owner === owner && r.name === repo,
-  )?.description;
-
   const items = NAV_ITEMS.filter(
     (i) => (!i.protected || showSettings) && (!i.beta || IS_BETA),
   );
@@ -67,19 +61,23 @@ function IndexSidebar({
       <SidebarContent className="overflow-auto">
         <div className="flex flex-col w-full">
           <div className="h-15 px-2 border-b flex flex-col justify-center">
-            <Link
-              href={`/${owner}/${repo}`}
-              className="text-sm font-medium hover:underline font-mono leading-tight"
-              prefetch={true}
-            >
-              <span className="font-normal text-muted-foreground">
-                {owner}/
-              </span>
-              {repo}
-            </Link>
-            <p className="text-xs text-muted-foreground mt-0.5 leading-tight">
-              {description || "no description found"}
-            </p>
+            <div className="text-sm font-mono leading-tight">
+              <Link
+                href={`/${owner}`}
+                className="font-normal text-muted-foreground underline decoration-transparent hover:decoration-current transition-colors duration-200"
+                prefetch={true}
+              >
+                {owner}
+              </Link>
+              <span className="font-normal text-muted-foreground">/</span>
+              <Link
+                href={`/${owner}/${repo}`}
+                className="font-medium underline decoration-transparent hover:decoration-current transition-colors duration-200"
+                prefetch={true}
+              >
+                {repo}
+              </Link>
+            </div>
           </div>
           {items.map((item) => {
             const active = isActive(item.path);
