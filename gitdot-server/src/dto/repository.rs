@@ -2,10 +2,10 @@ use gitdot_api::resource::repository as api;
 use gitdot_core::{
     dto::{
         CommitAuthorResponse, CommitDiffResponse, CommitResponse, CommitsResponse, PathType,
-        RepositoryBlobDiffsResponse, RepositoryBlobResponse, RepositoryBlobsResponse,
-        RepositoryCommitResponse, RepositoryCommitsResponse, RepositoryDiffFileResponse,
-        RepositoryFileResponse, RepositoryFolderResponse, RepositoryPath, RepositoryPathsResponse,
-        RepositoryResponse, RepositorySettingsResponse,
+        RepositoryActivityEvent, RepositoryBlobDiffsResponse, RepositoryBlobResponse,
+        RepositoryBlobsResponse, RepositoryCommitResponse, RepositoryCommitsResponse,
+        RepositoryDiffFileResponse, RepositoryFileResponse, RepositoryFolderResponse,
+        RepositoryPath, RepositoryPathsResponse, RepositoryResponse, RepositorySettingsResponse,
     },
     model::CommitDiff,
 };
@@ -239,6 +239,20 @@ impl IntoApi for RepositoryDiffFileResponse {
                 .collect(),
             left_content: self.left_content,
             right_content: self.right_content,
+        }
+    }
+}
+
+impl IntoApi for RepositoryActivityEvent {
+    type ApiType = api::RepositoryActivityEventResource;
+    fn into_api(self) -> Self::ApiType {
+        match self {
+            RepositoryActivityEvent::Starred { user, at } => {
+                api::RepositoryActivityEventResource::Starred {
+                    user: user.into_api(),
+                    at,
+                }
+            }
         }
     }
 }

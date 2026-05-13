@@ -1,6 +1,7 @@
 mod create_repository;
 mod delete_repository;
 mod get_repository;
+mod get_repository_activity;
 mod get_repository_blob;
 mod get_repository_blob_diffs;
 mod get_repository_blobs;
@@ -24,6 +25,7 @@ use crate::app::AppState;
 use create_repository::create_repository;
 use delete_repository::delete_repository;
 use get_repository::get_repository;
+use get_repository_activity::get_repository_activity;
 use get_repository_blob::get_repository_blob;
 use get_repository_blob_diffs::get_repository_blob_diffs;
 use get_repository_blobs::get_repository_blobs;
@@ -80,4 +82,8 @@ pub fn create_repository_router() -> Router<AppState> {
         )
         .route("/repository/{owner}/{repo}/star", post(star_repository))
         .route("/repository/{owner}/{repo}/unstar", post(unstar_repository))
+        .route(
+            "/repository/{owner}/{repo}/activity",
+            get(get_repository_activity),
+        )
 }

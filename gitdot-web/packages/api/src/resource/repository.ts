@@ -4,6 +4,7 @@ import { BuildResource } from "./build";
 import { QuestionResource } from "./question";
 import { ReviewResource } from "./review";
 import { CommitFilterResource } from "./settings";
+import { UserResource } from "./user";
 
 export const SyntaxHighlight = z.enum([
   "delimiter",
@@ -201,4 +202,15 @@ export const RepositoryResourcesResource = z.object({
 });
 export type RepositoryResourcesResource = z.infer<
   typeof RepositoryResourcesResource
+>;
+
+export const RepositoryActivityEventResource = z.discriminatedUnion("type", [
+  z.object({
+    type: z.literal("starred"),
+    user: UserResource,
+    at: z.iso.datetime(),
+  }),
+]);
+export type RepositoryActivityEventResource = z.infer<
+  typeof RepositoryActivityEventResource
 >;

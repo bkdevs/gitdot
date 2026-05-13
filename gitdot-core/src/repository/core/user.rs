@@ -5,7 +5,7 @@ use uuid::Uuid;
 
 use crate::{
     error::DatabaseError,
-    model::{AuthProvider, User, UserSettings},
+    model::{AuthProvider, Repository, User, UserSettings},
 };
 
 #[async_trait]
@@ -48,6 +48,11 @@ pub trait UserRepository: Send + Sync + Clone + 'static {
     async fn is_name_taken(&self, name: &str) -> Result<bool, DatabaseError>;
 
     async fn is_email_taken(&self, email: &str) -> Result<bool, DatabaseError>;
+
+    async fn list_starred_repositories(
+        &self,
+        user_id: Uuid,
+    ) -> Result<Vec<Repository>, DatabaseError>;
 }
 
 #[derive(Debug, Clone)]
@@ -277,5 +282,25 @@ impl UserRepository for UserRepositoryImpl {
         .await?;
 
         Ok(exists)
+    }
+
+    async fn list_starred_repositories(
+        &self,
+        user_id: Uuid,
+    ) -> Result<Vec<Repository>, DatabaseError> {
+        let repositories = sqlx::query_as::<_, Repository>(
+            r#"
+            SELECT r.id, r.name, r.owner_id, r.owner_name, r.owner_type, r.visibility, r.description, r.stars, r.readonly, r.created_at
+            FROM core.stars s
+            JOIN core.repositories r ON r.id = s.repository_id
+            WHERE s.user_id = $1
+            ORDER BY s.created_at DESC
+            "#,
+        )
+        .bind(user_id)
+        .fetch_all(&self.pool)
+        .await?;
+
+        Ok(repositories)
     }
 }

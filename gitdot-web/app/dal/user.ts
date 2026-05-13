@@ -134,3 +134,13 @@ export async function listUserCommits(
 
   return await handleResponse(response, z.array(RepositoryCommitResource));
 }
+
+export async function listUserStars(
+  username: string,
+): Promise<RepositoryResource[] | null> {
+  const response = await authFetch(
+    `${GITDOT_SERVER_URL}/user/${username}/stars`,
+  );
+
+  return await handleResponse(response, z.array(RepositoryResource));
+}

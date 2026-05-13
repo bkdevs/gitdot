@@ -4,6 +4,7 @@ import {
   listUserCommits,
   listUserOrganizations,
   listUserRepositories,
+  listUserStars,
 } from "@/dal";
 import { UserActions } from "./user-actions";
 import { UserCommits } from "./user-commits";
@@ -12,12 +13,14 @@ import { UserOrgs } from "./user-orgs";
 import { UserProfile } from "./user-profile";
 import { UserReadme } from "./user-readme";
 import { UserRepos } from "./user-repos";
+import { UserStars } from "./user-stars";
 
 export default async function UserPage({ user }: { user: UserResource }) {
-  const [commits, repos, memberships, current] = await Promise.all([
+  const [commits, repos, memberships, stars, current] = await Promise.all([
     listUserCommits(user.name),
     listUserRepositories(user.name),
     listUserOrganizations(user.name),
+    listUserStars(user.name),
     getCurrentUser(false),
   ]);
 
@@ -29,6 +32,7 @@ export default async function UserPage({ user }: { user: UserResource }) {
         <div className="flex flex-col items-start pl-4 pr-2 my-2.5 pt-0.5 gap-6">
           <UserProfile user={user} />
           <UserLinks user={user} />
+          <UserStars stars={stars ?? []} />
           {isOwner && <UserActions />}
         </div>
       </div>

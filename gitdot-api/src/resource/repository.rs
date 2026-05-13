@@ -6,7 +6,7 @@ use uuid::Uuid;
 
 use crate::resource::{
     build::BuildResource, question::QuestionResource, review::ReviewResource,
-    settings::CommitFilterResource,
+    settings::CommitFilterResource, user::UserResource,
 };
 
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -208,4 +208,13 @@ pub struct RepositoryResourcesResource {
     pub reviews: Option<RepositoryReviewsResource>,
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub builds: Option<RepositoryBuildsResource>,
+}
+
+#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "type", rename_all = "snake_case")]
+pub enum RepositoryActivityEventResource {
+    Starred {
+        user: UserResource,
+        at: DateTime<Utc>,
+    },
 }

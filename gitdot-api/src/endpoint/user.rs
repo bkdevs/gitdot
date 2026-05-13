@@ -6,6 +6,7 @@ pub mod list_user_commits;
 pub mod list_user_organizations;
 pub mod list_user_repositories;
 pub mod list_user_reviews;
+pub mod list_user_stars;
 pub mod update_current_user;
 pub mod update_current_user_settings;
 pub mod upload_user_image;

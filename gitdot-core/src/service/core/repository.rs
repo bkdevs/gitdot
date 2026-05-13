@@ -6,12 +6,13 @@ use uuid::Uuid;
 use crate::{
     client::{DiffClient, DifftClient, Git2Client, GitClient},
     dto::{
-        CreateRepositoryRequest, DeleteRepositoryRequest, GetRepositoryBlobDiffsRequest,
-        GetRepositoryBlobRequest, GetRepositoryBlobsRequest, GetRepositoryPathsRequest,
-        GetRepositoryRequest, GetRepositorySettingsRequest, RepositoryBlobDiffsResponse,
-        RepositoryBlobResponse, RepositoryBlobsResponse, RepositoryPathsResponse,
-        RepositoryResponse, RepositorySettingsResponse, StarRepositoryRequest,
-        UnstarRepositoryRequest, UpdateRepositorySettingsRequest,
+        CreateRepositoryRequest, DeleteRepositoryRequest, GetRepositoryActivityRequest,
+        GetRepositoryBlobDiffsRequest, GetRepositoryBlobRequest, GetRepositoryBlobsRequest,
+        GetRepositoryPathsRequest, GetRepositoryRequest, GetRepositorySettingsRequest,
+        RepositoryActivityEvent, RepositoryBlobDiffsResponse, RepositoryBlobResponse,
+        RepositoryBlobsResponse, RepositoryPathsResponse, RepositoryResponse,
+        RepositorySettingsResponse, StarRepositoryRequest, UnstarRepositoryRequest,
+        UpdateRepositorySettingsRequest,
     },
     error::{ConflictError, OptionNotFoundExt, RepositoryError},
     model::{RepositoryOwnerType, RepositorySettings},
@@ -84,6 +85,11 @@ pub trait RepositoryService: Send + Sync + 'static {
         &self,
         request: UnstarRepositoryRequest,
     ) -> Result<(), RepositoryError>;
+
+    async fn get_repository_activity(
+        &self,
+        request: GetRepositoryActivityRequest,
+    ) -> Result<Vec<RepositoryActivityEvent>, RepositoryError>;
 }
 
 #[derive(Debug, Clone)]
@@ -448,5 +454,31 @@ where
             )));
         }
         Ok(())
+    }
+
+    async fn get_repository_activity(
+        &self,
+        request: GetRepositoryActivityRequest,
+    ) -> Result<Vec<RepositoryActivityEvent>, RepositoryError> {
+        const ACTIVITY_EVENT_LIMIT: i64 = 25;
+
+        let owner = request.owner.as_ref();
+        let repo = request.repo.as_ref();
+
+        let repository = self
+            .repo_repo
+            .get(owner, repo)
+            .await?
+            .or_not_found("repository", format!("{}/{}", owner, repo))?;
+
+        let stars = self
+            .repo_repo
+            .list_recent_stars(repository.id, ACTIVITY_EVENT_LIMIT)
+            .await?;
+
+        Ok(stars
+            .into_iter()
+            .map(|(user, at)| RepositoryActivityEvent::Starred { user, at })
+            .collect())
     }
 }

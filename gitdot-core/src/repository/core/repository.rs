@@ -1,8 +1,10 @@
 use async_trait::async_trait;
+use chrono::{DateTime, Utc};
 use sqlx::{PgPool, Row};
 use uuid::Uuid;
 
 use crate::{
+    dto::UserResponse,
     error::DatabaseError,
     model::{
         Repository, RepositoryOwnerType, RepositorySettings, RepositoryStar, RepositoryVisibility,
@@ -48,6 +50,12 @@ pub trait RepositoryRepository: Send + Sync + Clone + 'static {
     async fn unstar(&self, id: Uuid, user_id: Uuid) -> Result<bool, DatabaseError>;
 
     async fn is_starred(&self, id: Uuid, user_id: Uuid) -> Result<bool, DatabaseError>;
+
+    async fn list_recent_stars(
+        &self,
+        repository_id: Uuid,
+        limit: i64,
+    ) -> Result<Vec<(UserResponse, DateTime<Utc>)>, DatabaseError>;
 }
 
 #[derive(Debug, Clone)]
@@ -265,5 +273,44 @@ impl RepositoryRepository for RepositoryRepositoryImpl {
         .await?;
 
         Ok(row.try_get("starred")?)
+    }
+
+    async fn list_recent_stars(
+        &self,
+        repository_id: Uuid,
+        limit: i64,
+    ) -> Result<Vec<(UserResponse, DateTime<Utc>)>, DatabaseError> {
+        let rows = sqlx::query(
+            r#"
+            SELECT u.id, u.name, u.email, u.created_at, u.display_name,
+                   s.created_at AS starred_at
+            FROM core.stars s
+            JOIN core.users u ON s.user_id = u.id
+            WHERE s.repository_id = $1
+            ORDER BY s.created_at DESC
+            LIMIT $2
+            "#,
+        )
+        .bind(repository_id)
+        .bind(limit)
+        .fetch_all(&self.pool)
+        .await?;
+
+        rows.into_iter()
+            .map(|row| {
+                let user = UserResponse {
+                    id: row.try_get("id")?,
+                    name: row.try_get("name")?,
+                    email: row.try_get("email")?,
+                    created_at: row.try_get("created_at")?,
+                    display_name: row.try_get("display_name")?,
+                    location: None,
+                    readme: None,
+                    links: vec![],
+                };
+                let starred_at: DateTime<Utc> = row.try_get("starred_at")?;
+                Ok((user, starred_at))
+            })
+            .collect()
     }
 }

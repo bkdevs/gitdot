@@ -7,7 +7,7 @@ use crate::{
         CommitResponse, GetCurrentUserRequest, GetCurrentUserResponse,
         GetCurrentUserSettingsRequest, GetUserRequest, HasUserRequest, ListUserCommitsRequest,
         ListUserOrganizationsRequest, ListUserRepositoriesRequest, ListUserReviewsRequest,
-        OrganizationMemberResponse, RepositoryResponse, ReviewResponse,
+        ListUserStarsRequest, OrganizationMemberResponse, RepositoryResponse, ReviewResponse,
         UpdateCurrentUserImageRequest, UpdateCurrentUserRequest, UpdateCurrentUserSettingsRequest,
         UserResponse, UserSettingsResponse,
     },
@@ -45,6 +45,11 @@ pub trait UserService: Send + Sync + 'static {
     async fn list_repositories(
         &self,
         request: ListUserRepositoriesRequest,
+    ) -> Result<Vec<RepositoryResponse>, UserError>;
+
+    async fn list_stars(
+        &self,
+        request: ListUserStarsRequest,
     ) -> Result<Vec<RepositoryResponse>, UserError>;
 
     async fn list_organizations(
@@ -238,6 +243,29 @@ where
             .or_not_found("user", &user_name)?;
 
         let repositories = self.repo_repo.list_by_owner(&user_name).await?;
+
+        let is_owner = request.viewer_id.map(|id| id == user.id).unwrap_or(false);
+        let repositories = if is_owner {
+            repositories
+        } else {
+            repositories.into_iter().filter(|r| r.is_public()).collect()
+        };
+
+        Ok(repositories.into_iter().map(|r| r.into()).collect())
+    }
+
+    async fn list_stars(
+        &self,
+        request: ListUserStarsRequest,
+    ) -> Result<Vec<RepositoryResponse>, UserError> {
+        let user_name = request.user_name.to_string();
+        let user = self
+            .user_repo
+            .get(&user_name)
+            .await?
+            .or_not_found("user", &user_name)?;
+
+        let repositories = self.user_repo.list_starred_repositories(user.id).await?;
 
         let is_owner = request.viewer_id.map(|id| id == user.id).unwrap_or(false);
         let repositories = if is_owner {
