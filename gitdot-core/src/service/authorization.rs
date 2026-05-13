@@ -400,13 +400,13 @@ mod tests {
     use uuid::Uuid;
 
     use crate::{
-        dto::{RepositoryAuthorizationRequest, RepositoryPermission},
+        dto::{RepositoryAuthorizationRequest, RepositoryPermission, UserResponse},
         error::AuthorizationError,
         model::{
             Answer, AuthProvider, Comment, CommentSide, Diff, DiffStatus, Organization,
             OrganizationMember, OrganizationRole, Question, Repository, RepositoryOwnerType,
-            RepositorySettings, RepositoryVisibility, Review, ReviewComment, ReviewStatus,
-            Reviewer, Revision, User, UserSettings, Verdict, VoteResult, VoteTarget,
+            RepositorySettings, RepositoryStar, RepositoryVisibility, Review, ReviewComment,
+            ReviewStatus, Reviewer, Revision, User, UserSettings, Verdict, VoteResult, VoteTarget,
         },
         repository::{
             OrganizationRepository, QuestionRepository, RepositoryRepository, ReviewRepository,
@@ -452,6 +452,10 @@ mod tests {
             async fn delete(&self, id: Uuid) -> Result<(), crate::error::DatabaseError>;
             async fn get_settings(&self, owner: &str, repo: &str) -> Result<Option<RepositorySettings>, crate::error::DatabaseError>;
             async fn update_settings(&self, owner: &str, repo: &str, settings: RepositorySettings) -> Result<Option<RepositorySettings>, crate::error::DatabaseError>;
+            async fn star(&self, id: Uuid, user_id: Uuid) -> Result<Option<RepositoryStar>, crate::error::DatabaseError>;
+            async fn unstar(&self, id: Uuid, user_id: Uuid) -> Result<bool, crate::error::DatabaseError>;
+            async fn is_starred(&self, id: Uuid, user_id: Uuid) -> Result<bool, crate::error::DatabaseError>;
+            async fn list_recent_stars(&self, repository_id: Uuid, limit: i64) -> Result<Vec<(UserResponse, DateTime<Utc>)>, crate::error::DatabaseError>;
         }
     }
 
@@ -497,6 +501,7 @@ mod tests {
             async fn update_settings(&self, id: Uuid, settings: UserSettings) -> Result<Option<UserSettings>, crate::error::DatabaseError>;
             async fn is_name_taken(&self, name: &str) -> Result<bool, crate::error::DatabaseError>;
             async fn is_email_taken(&self, email: &str) -> Result<bool, crate::error::DatabaseError>;
+            async fn list_starred_repositories(&self, user_id: Uuid) -> Result<Vec<Repository>, crate::error::DatabaseError>;
         }
     }
 
