@@ -185,6 +185,7 @@ export async function starRepositoryAction(
 ): Promise<StarRepositoryActionResult> {
   try {
     await starRepository(owner, repo);
+    refresh();
     return { success: true };
   } catch (e) {
     return {
@@ -199,6 +200,7 @@ export async function unstarRepositoryAction(
 ): Promise<StarRepositoryActionResult> {
   try {
     await unstarRepository(owner, repo);
+    refresh();
     return { success: true };
   } catch (e) {
     return {
