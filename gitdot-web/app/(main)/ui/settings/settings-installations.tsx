@@ -13,9 +13,9 @@ export function SettingsInstallations() {
         <p className="text-sm font-medium">Installations</p>
       </div>
       <p className="text-sm text-muted-foreground">
-        Connect a GitHub account or organization to import repositories — gitdot
-        clones their full history. We only read what you authorize and never
-        modify anything on GitHub.
+        Connect a GitHub account or organization to migrate repositories —
+        gitdot clones their full history. We only read what you authorize and
+        never modify anything on GitHub.
       </p>
       {!installations ? (
         <div className="mt-3 text-sm text-muted-foreground">loading...</div>

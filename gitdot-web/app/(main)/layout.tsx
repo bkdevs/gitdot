@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { DatabaseProvider } from "./context/database";
 import { HistoryProvider } from "./context/history";
-import { ImportRepoProvider } from "./context/import-repo";
+import { MigrateRepoProvider } from "./context/migrate-repo";
 import { NewOrgProvider } from "./context/new-org";
 import { NewRepoProvider } from "./context/new-repo";
 import { SettingsProvider } from "./context/settings";
@@ -30,7 +30,7 @@ export default function RootLayout({
             <ShortcutsProvider>
               <SettingsProvider>
                 <NewRepoProvider>
-                  <ImportRepoProvider>
+                  <MigrateRepoProvider>
                     <NewOrgProvider>
                       <HistoryProvider>
                         <div className="flex flex-col h-screen w-full max-w-screen overflow-hidden">
@@ -41,7 +41,7 @@ export default function RootLayout({
                         </div>
                       </HistoryProvider>
                     </NewOrgProvider>
-                  </ImportRepoProvider>
+                  </MigrateRepoProvider>
                 </NewRepoProvider>
               </SettingsProvider>
             </ShortcutsProvider>

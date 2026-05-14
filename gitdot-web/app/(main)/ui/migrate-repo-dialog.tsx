@@ -19,14 +19,14 @@ import {
 import { cn } from "@/util";
 import { timeAgo } from "@/util/date";
 
-type ImportType = "read-only" | "read-write";
+type MigrationType = "read-only" | "read-write";
 
-const TYPE_OPTIONS: { value: ImportType; label: string }[] = [
+const TYPE_OPTIONS: { value: MigrationType; label: string }[] = [
   { value: "read-only", label: "Read-only" },
   { value: "read-write", label: "Read-write" },
 ];
 
-export function ImportRepoDialog() {
+export function MigrateRepoDialog() {
   const { user, memberships, installations } = useUserContext();
 
   const [open, setOpen] = useState(false);
@@ -34,7 +34,8 @@ export function ImportRepoDialog() {
   const [gitdotAccountName, setGitdotAccount] = useState("");
   const [repos, setRepos] = useState<GitHubRepositoryResource[] | null>(null);
   const [selectedRepos, setSelectedRepos] = useState<Set<string>>(new Set());
-  const [importType, setImportType] = useState<ImportType>("read-only");
+  const [migrationType, setMigrationType] =
+    useState<MigrationType>("read-only");
 
   const selectedMembership = memberships?.find(
     (m) => m.org_name === gitdotAccountName,
@@ -48,14 +49,14 @@ export function ImportRepoDialog() {
   useEffect(() => {
     if (!open) {
       setSelectedRepos(new Set());
-      setImportType("read-only");
+      setMigrationType("read-only");
     }
   }, [open]);
 
   useEffect(() => {
     const handle = () => setOpen(true);
-    window.addEventListener("openImportRepo", handle);
-    return () => window.removeEventListener("openImportRepo", handle);
+    window.addEventListener("openMigrateRepo", handle);
+    return () => window.removeEventListener("openMigrateRepo", handle);
   }, []);
 
   useEffect(() => {
@@ -115,7 +116,7 @@ export function ImportRepoDialog() {
         showOverlay={true}
       >
         <VisuallyHidden>
-          <DialogTitle>Import repositories</DialogTitle>
+          <DialogTitle>Migrate repositories</DialogTitle>
         </VisuallyHidden>
         <div className="relative">
           <div className="flex">
@@ -270,7 +271,7 @@ export function ImportRepoDialog() {
             </div>
             <div className="flex flex-col justify-between w-1/3 border-b border-border">
               <div className="p-2">
-                <h2 className="text-sm font-medium">Import repositories</h2>
+                <h2 className="text-sm font-medium">Migrate repositories</h2>
                 <p className="text-xs text-muted-foreground leading-normal">
                   Bring your GitHub repositories to gitdot.
                 </p>
@@ -278,32 +279,34 @@ export function ImportRepoDialog() {
                   All code and commit history will be preserved and private
                   repos will stay private.
                 </p>
-                <p className="text-xs text-muted-foreground leading-normal mt-2">
+                <p className="text-xs text-muted-foreground leading-normal mt-1">
                   There are two types of migrations:
                 </p>
                 <ul className="text-xs text-muted-foreground leading-normal flex flex-col mt-1 gap-2 list-disc pl-4">
                   <li>
                     <span className="text-foreground">Read-only:</span> A
-                    one-way sync. New commits made on
-                    GitHub are replicated to gitdot and you <b>cannot</b> push to the gitdot repository.
+                    one-way sync. New commits made on GitHub are replicated to
+                    gitdot and you <b>cannot</b> push to the gitdot repository.
                   </li>
                   <li>
                     <span className="text-foreground">Read-write:</span> A
-                    one-time migration, giving you a fully functioning gitdot repository to work out of.
+                    one-time migration, giving you a fully functioning gitdot
+                    repository to work out of.
                   </li>
                 </ul>
                 <p className="text-xs text-muted-foreground leading-normal mt-1">
-                  Read-only repositories may be promoted to read-write at any time.
+                  Read-only repositories may be promoted to read-write at any
+                  time.
                 </p>
               </div>
               <div className="flex flex-col">
                 {TYPE_OPTIONS.map((option) => {
-                  const selected = importType === option.value;
+                  const selected = migrationType === option.value;
                   return (
                     <button
                       key={option.value}
                       type="button"
-                      onClick={() => setImportType(option.value)}
+                      onClick={() => setMigrationType(option.value)}
                       className="flex items-center gap-1.5 p-2 text-left text-xs border-t border-border/50 hover:bg-accent transition-colors duration-150 cursor-pointer"
                     >
                       <div
@@ -322,8 +325,8 @@ export function ImportRepoDialog() {
           <div className="flex items-center justify-between h-7">
             <span className="pl-2 text-xs truncate text-muted-foreground">
               {selectedRepos.size > 0
-                ? `Import ${selectedRepos.size} ${selectedRepos.size === 1 ? "repository" : "repositories"} from GitHub`
-                : "Import repositories from GitHub"}
+                ? `Migrate ${selectedRepos.size} ${selectedRepos.size === 1 ? "repository" : "repositories"} from GitHub`
+                : "Migrate repositories from GitHub"}
             </span>
             <div className="flex items-center h-full">
               <button
@@ -338,7 +341,7 @@ export function ImportRepoDialog() {
                 disabled={!isValid}
                 className="flex items-center px-3 h-full text-xs bg-primary text-primary-foreground border-l border-primary enabled:hover:opacity-90 disabled:opacity-60 transition-opacity disabled:cursor-not-allowed cursor-pointer"
               >
-                Import
+                Migrate
               </button>
             </div>
           </div>
