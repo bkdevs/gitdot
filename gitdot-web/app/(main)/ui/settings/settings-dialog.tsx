@@ -7,6 +7,7 @@ import { useUserContext } from "@/(main)/context/user";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
 import { SettingsAccount } from "./settings-account";
 import { SettingsInstallations } from "./settings-installations";
+import { SettingsMigrations } from "./settings-migrations";
 import { SettingsProfile } from "./settings-profile";
 import { SettingsSidebar, type SettingsTab } from "./settings-sidebar";
 
@@ -53,6 +54,7 @@ function SettingsDialogInner({ user }: { user: UserResource }) {
             {tab === "profile" && <SettingsProfile user={user} />}
             {tab === "account" && <SettingsAccount setSettingsOpen={setOpen} />}
             {tab === "installations" && <SettingsInstallations />}
+            {tab === "migrations" && <SettingsMigrations />}
           </div>
         </div>
       </DialogContent>

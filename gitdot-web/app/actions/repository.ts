@@ -4,6 +4,7 @@ import type {
   CommitFilterResource,
   GitHubInstallationResource,
   GitHubRepositoryResource,
+  MigrationResource,
   RepositoryBlobsResource,
   RepositoryResource,
   RepositorySettingsResource,
@@ -21,6 +22,7 @@ import {
   getRepositorySettings,
   listInstallationRepositories,
   listInstallations,
+  listMigrations,
   migrateGitHubRepositories,
   starRepository,
   unstarRepository,
@@ -112,47 +114,56 @@ export async function createCommitFilterAction(
   return { settings: result };
 }
 
-export type MigrateGitHubRepositoriesActionResult =
-  | { success: true }
+export type MigrateGitHubRepositoriesPayload = {
+  installationId: number;
+  origin: string;
+  originType: string;
+  destination: string;
+  destinationType: string;
+  repositories: { name: string; id: number }[];
+  readonly: boolean;
+};
+
+export type MigrateGithubRepositoriesResult =
+  | { migration: MigrationResource }
   | { error: string };
 
 export async function migrateGitHubRepositoriesAction(
-  installationId: number,
-  origin: string,
-  originType: string,
-  destination: string,
-  destinationType: string,
-  repositories: { name: string; id: number }[],
-  readonly: boolean,
-): Promise<MigrateGitHubRepositoriesActionResult> {
-  if (!destination || repositories.length === 0) {
+  payload: MigrateGitHubRepositoriesPayload,
+): Promise<MigrateGithubRepositoriesResult> {
+  if (!payload.destination || payload.repositories.length === 0) {
     return { error: "Destination and repositories are required" };
   }
 
   try {
-    await migrateGitHubRepositories(
-      installationId,
-      origin,
-      originType,
-      destination,
-      destinationType,
-      repositories,
-      readonly,
+    const migration = await migrateGitHubRepositories(
+      payload.installationId,
+      payload.origin,
+      payload.originType,
+      payload.destination,
+      payload.destinationType,
+      payload.repositories,
+      payload.readonly,
     );
+    if (!migration) {
+      return { error: "Failed to start migration" };
+    }
+    return { migration };
   } catch (e) {
     return {
       error: e instanceof ApiError ? e.message : "Failed to start migration",
     };
   }
-
-  redirect("/settings/migrations");
-  return { success: true };
 }
 
 export async function listInstallationsAction(): Promise<
   GitHubInstallationResource[]
 > {
   return (await listInstallations()) ?? [];
+}
+
+export async function listMigrationsAction(): Promise<MigrationResource[]> {
+  return (await listMigrations()) ?? [];
 }
 
 export async function listInstallationRepositoriesAction(

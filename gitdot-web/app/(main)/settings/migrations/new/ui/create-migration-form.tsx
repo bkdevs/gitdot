@@ -7,6 +7,7 @@ import type {
   UserResource,
 } from "gitdot-api";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { migrateGitHubRepositoriesAction } from "@/actions";
 import { githubAppInstallUrl } from "@/util";
@@ -25,14 +26,16 @@ export function CreateMigrationForm({
   defaultOrigin?: string;
 }) {
   const defaultLogin = defaultOrigin ?? installations[0]?.github_login ?? "";
+  const router = useRouter();
 
   const [origin, setOrigin] = useState(defaultLogin);
   const [selectedRepos, setSelectedRepos] = useState<Map<number, string>>(
     new Map(),
   );
   const [destination, setDestination] = useState(user.name);
-  const [error, setError] = useState<string | null>(null);
+
   const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
 
   const repositories = reposByInstallation[origin] ?? [];
 
@@ -57,22 +60,21 @@ export function CreateMigrationForm({
     const installation = installations.find((i) => i.github_login === origin);
     if (!installation) return;
 
-    const destinationType = destination === user.name ? "user" : "organization";
-    const originType = installation.installation_type;
-
     setError(null);
     startTransition(async () => {
-      const result = await migrateGitHubRepositoriesAction(
-        installation.installation_id,
+      const result = await migrateGitHubRepositoriesAction({
+        installationId: installation.installation_id,
         origin,
-        originType,
+        originType: installation.installation_type,
         destination,
-        destinationType,
-        Array.from(selectedRepos, ([id, name]) => ({ id, name })),
-        true,
-      );
+        destinationType: destination === user.name ? "user" : "organization",
+        repositories: Array.from(selectedRepos, ([id, name]) => ({ id, name })),
+        readonly: true,
+      });
       if ("error" in result) {
         setError(result.error);
+      } else {
+        router.push("/settings/migrations");
       }
     });
   }
