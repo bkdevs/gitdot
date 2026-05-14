@@ -6,9 +6,6 @@ import { useParams } from "next/navigation";
 import { memo, useRef } from "react";
 import { UserImage } from "@/(main)/[owner]/ui/user/user-image";
 import { UserSlug } from "@/(main)/[owner]/ui/user/user-slug";
-import { formatDateTime, timeAgo } from "@/util";
-
-import { CommitPathSummary } from "./commit-path-summary";
 
 export function CommitsList({
   commits,
@@ -19,7 +16,7 @@ export function CommitsList({
   const virtualizer = useVirtualizer({
     count: commits.length,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 73, // h-18 + border-b
+    estimateSize: () => 29, // h-7 + border-b
     overscan: 10,
   });
 
@@ -61,28 +58,19 @@ const CommitRow = memo(function CommitRow({
       onClick={() => {
         window.open(href, "_blank");
       }}
-      className="flex w-full border-b cursor-default hover:bg-accent/50 focus:bg-accent/50 focus:outline-none select-none"
+      className="flex w-full h-7 border-b items-center px-2 gap-2 cursor-default hover:bg-accent/50 focus:bg-accent/50 focus:outline-none select-none"
     >
-      <div className="flex flex-row w-full h-18 justify-between items-start p-2 gap-2">
-        <div className="flex flex-col w-full h-full min-w-0">
-          <span className="text-xs text-muted-foreground">
-            {formatDateTime(new Date(commit.date))}
-          </span>
-          <div className="text-sm text-foreground truncate pb-1">
-            {commit.message.split("\n")[0]}
-          </div>
-          <div className="flex items-center text-muted-foreground text-xs gap-1">
-            <UserImage userId={commit.author.id} px={16} />
-            <UserSlug user={commit.author} />
-            <span>{timeAgo(new Date(commit.date))}</span>
-          </div>
-        </div>
-        <div className="flex flex-col shrink-0 items-end gap-1">
-          <CommitPathSummary
-            diffs={commit.diffs}
-            totalFiles={commit.diffs.length}
-          />
-        </div>
+      <div className="flex flex-row items-center gap-2 min-w-0 text-xs">
+        <span className="text-muted-foreground shrink-0 tabular-nums">
+          {commit.date.slice(0, 10)}
+        </span>
+        <span className="text-foreground truncate">
+          {commit.message.split("\n")[0]}
+        </span>
+      </div>
+      <div className="flex flex-row items-center gap-1 ml-auto shrink-0 text-xs text-muted-foreground">
+        <UserImage userId={commit.author.id} px={14} />
+        <UserSlug user={commit.author} />
       </div>
     </div>
   );
