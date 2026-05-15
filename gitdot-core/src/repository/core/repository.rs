@@ -55,6 +55,15 @@ pub trait RepositoryRepository: Send + Sync + Clone + 'static {
         tags: Option<Vec<String>>,
         paths: Option<Vec<String>>,
     ) -> Result<CommitFilter, DatabaseError>;
+
+    async fn update_commit_filter(
+        &self,
+        filter_id: Uuid,
+        name: &str,
+        authors: Option<Vec<String>>,
+        tags: Option<Vec<String>>,
+        paths: Option<Vec<String>>,
+    ) -> Result<Option<CommitFilter>, DatabaseError>;
 }
 
 #[derive(Debug, Clone)]
@@ -304,6 +313,37 @@ impl RepositoryRepository for RepositoryRepositoryImpl {
         .bind(tags)
         .bind(paths)
         .fetch_one(&self.pool)
+        .await?;
+
+        Ok(filter)
+    }
+
+    async fn update_commit_filter(
+        &self,
+        filter_id: Uuid,
+        name: &str,
+        authors: Option<Vec<String>>,
+        tags: Option<Vec<String>>,
+        paths: Option<Vec<String>>,
+    ) -> Result<Option<CommitFilter>, DatabaseError> {
+        let filter = sqlx::query_as::<_, CommitFilter>(
+            r#"
+            UPDATE core.commit_filters
+            SET name = $2,
+                authors = $3,
+                tags = $4,
+                paths = $5,
+                updated_at = NOW()
+            WHERE id = $1
+            RETURNING id, repository_id, name, authors, tags, paths, created_at, updated_at
+            "#,
+        )
+        .bind(filter_id)
+        .bind(name)
+        .bind(authors)
+        .bind(tags)
+        .bind(paths)
+        .fetch_optional(&self.pool)
         .await?;
 
         Ok(filter)

@@ -14,6 +14,7 @@ pub mod get_repository_resources;
 pub mod list_repository_commit_filters;
 pub mod star_repository;
 pub mod unstar_repository;
+pub mod update_repository_commit_filter;
 
 fn default_visibility() -> String {
     "public".to_string()

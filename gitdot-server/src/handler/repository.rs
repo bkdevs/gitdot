@@ -14,10 +14,11 @@ mod get_repository_resources;
 mod list_repository_commit_filters;
 mod star_repository;
 mod unstar_repository;
+mod update_repository_commit_filter;
 
 use axum::{
     Router,
-    routing::{get, post},
+    routing::{get, patch, post},
 };
 
 use crate::app::AppState;
@@ -38,6 +39,7 @@ use get_repository_resources::get_repository_resources;
 use list_repository_commit_filters::list_repository_commit_filters;
 use star_repository::star_repository;
 use unstar_repository::unstar_repository;
+use update_repository_commit_filter::update_repository_commit_filter;
 
 pub fn create_repository_router() -> Router<AppState> {
     Router::new()
@@ -85,5 +87,9 @@ pub fn create_repository_router() -> Router<AppState> {
         .route(
             "/repository/{owner}/{repo}/commit_filters",
             post(create_repository_commit_filter).get(list_repository_commit_filters),
+        )
+        .route(
+            "/repository/{owner}/{repo}/commit_filters/{filter_id}",
+            patch(update_repository_commit_filter),
         )
 }

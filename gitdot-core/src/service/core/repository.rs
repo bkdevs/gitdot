@@ -12,7 +12,7 @@ use crate::{
         ListRepositoryCommitFiltersRequest, RepositoryActivityEvent, RepositoryBlobDiffsResponse,
         RepositoryBlobResponse, RepositoryBlobsResponse, RepositoryCommitFilterResponse,
         RepositoryPathsResponse, RepositoryResponse, StarRepositoryRequest,
-        UnstarRepositoryRequest,
+        UnstarRepositoryRequest, UpdateRepositoryCommitFilterRequest,
     },
     error::{ConflictError, OptionNotFoundExt, RepositoryError},
     model::RepositoryOwnerType,
@@ -89,6 +89,11 @@ pub trait RepositoryService: Send + Sync + 'static {
     async fn create_repository_commit_filter(
         &self,
         request: CreateRepositoryCommitFilterRequest,
+    ) -> Result<RepositoryCommitFilterResponse, RepositoryError>;
+
+    async fn update_repository_commit_filter(
+        &self,
+        request: UpdateRepositoryCommitFilterRequest,
     ) -> Result<RepositoryCommitFilterResponse, RepositoryError>;
 }
 
@@ -499,6 +504,25 @@ where
                 request.paths,
             )
             .await?;
+        Ok(filter.into())
+    }
+
+    async fn update_repository_commit_filter(
+        &self,
+        request: UpdateRepositoryCommitFilterRequest,
+    ) -> Result<RepositoryCommitFilterResponse, RepositoryError> {
+        let filter = self
+            .repo_repo
+            .update_commit_filter(
+                request.filter_id,
+                request.name.as_ref(),
+                request.authors,
+                request.tags,
+                request.paths,
+            )
+            .await?
+            .or_not_found("commit filter", request.filter_id)?;
+
         Ok(filter.into())
     }
 }

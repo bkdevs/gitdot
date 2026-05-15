@@ -12,6 +12,7 @@ mod get_repository_paths;
 mod list_repository_commit_filters;
 mod star_repository;
 mod unstar_repository;
+mod update_repository_commit_filter;
 
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
@@ -36,6 +37,7 @@ pub use get_repository_paths::{
 pub use list_repository_commit_filters::ListRepositoryCommitFiltersRequest;
 pub use star_repository::StarRepositoryRequest;
 pub use unstar_repository::UnstarRepositoryRequest;
+pub use update_repository_commit_filter::UpdateRepositoryCommitFilterRequest;
 
 #[derive(Debug, Clone)]
 pub struct RepositoryResponse {
