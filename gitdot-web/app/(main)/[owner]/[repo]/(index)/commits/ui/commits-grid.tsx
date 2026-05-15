@@ -1,9 +1,16 @@
 "use client";
 
 import type { RepositoryCommitResource } from "gitdot-api";
+import { ChevronDownIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { cn } from "@/util";
-import { inRange } from "@/util/date";
+import { cn, pluralize } from "@/util";
+import { formatDate, inRange } from "@/util/date";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/ui/dropdown-menu";
 import {
   buildGrid,
   cellColor,
@@ -12,7 +19,7 @@ import {
   NUM_WEEKS,
 } from "../util";
 
-const CELL_HEIGHT = 20;
+const CELL_HEIGHT = 15;
 const GAP_HEIGHT = 2;
 
 /**
@@ -50,12 +57,53 @@ export function CommitsGrid({
   const dayOfWeek = new Date().getDay();
   const dimmed = hoverActive || !!(startDate && endDate);
 
+  const today = new Date();
+  const graphEnd = today.toISOString().slice(0, 10);
+  const graphStart = new Date(today);
+  graphStart.setDate(today.getDate() - today.getDay() - (NUM_WEEKS - 1) * 7);
+  const graphStartDate = graphStart.toISOString().slice(0, 10);
+
+  const displayStart = startDate ?? graphStartDate;
+  const displayEnd = endDate ?? graphEnd;
+  const commitsInRange = startDate && endDate
+    ? commits.filter((c) => inRange(c.date.slice(0, 10), startDate, endDate))
+    : commits;
+
   return (
-    <div className="flex flex-col w-full h-45 border-b border-border">
+    <div className="flex flex-col w-full h-42 border-b border-border">
+      {/* header */}
+      <div className="flex items-center px-1 h-6 border-b border-border shrink-0">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              className="flex items-center gap-0.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {formatDate(new Date(`${displayStart}T00:00:00`))} – {formatDate(new Date(`${displayEnd}T00:00:00`))} ({pluralize(commitsInRange.length, "commit")})
+              <ChevronDownIcon className="size-3 shrink-0" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start">
+            {[
+              { label: "Year to date", start: `${new Date().getFullYear()}-01-01`, end: new Date().toISOString().slice(0, 10) },
+              { label: String(new Date().getFullYear()), start: `${new Date().getFullYear()}-01-01`, end: `${new Date().getFullYear()}-12-31` },
+              { label: String(new Date().getFullYear() - 1), start: `${new Date().getFullYear() - 1}-01-01`, end: `${new Date().getFullYear() - 1}-12-31` },
+              { label: String(new Date().getFullYear() - 2), start: `${new Date().getFullYear() - 2}-01-01`, end: `${new Date().getFullYear() - 2}-12-31` },
+            ].map((opt) => (
+              <DropdownMenuItem
+                key={opt.label}
+                onClick={() => { setStartDate(opt.start); setEndDate(opt.end); }}
+              >
+                {opt.label}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
       {/* day labels and the grid are in the same row */}
       <div className="flex flex-row items-start flex-1 h-full">
         <div
-          className="flex flex-col pt-1.5 w-5 h-full border-r border-border"
+          className="flex flex-col pt-1.5 w-5 h-full border-l border-border order-last"
           style={{ gap: GAP_HEIGHT }}
         >
           {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
@@ -88,7 +136,7 @@ export function CommitsGrid({
                 key={`cell-${day.date}`}
                 type="button"
                 className="group appearance-none border-none bg-transparent -m-px p-px"
-                style={{ gridRow: row + 1, gridColumn: col + 1 }}
+                style={{ gridRow: row + 1, gridColumn: NUM_WEEKS - col }}
                 title={`${day.date}: ${day.commitCount} commits`}
                 onMouseDown={(e) => onCellMouseDown(day.date, e)}
                 onMouseEnter={() => onCellMouseEnter(day.date)}
@@ -106,18 +154,16 @@ export function CommitsGrid({
             )),
           )}
         </div>
+
       </div>
 
-      {/* month labels are in a row below, with a spacer to continue the day label border */}
+      {/* month labels below */}
       <div className="flex flex-row border-t border-border">
-        <div className="w-5 h-4 shrink-0 border-r border-border" />
-
         <div
           className="grid w-full pl-1 pb-1"
           style={{ gridTemplateColumns: `repeat(${NUM_WEEKS}, 1fr)` }}
         >
           {months.map((m, i) => (
-            // clicking sets the range to be that month
             <button
               key={`${m.label}-${m.startingWeek}`}
               type="button"
@@ -127,7 +173,7 @@ export function CommitsGrid({
               )}
               style={{
                 gridRow: 1,
-                gridColumn: `${m.startingWeek + 1} / span ${m.numWeeks}`,
+                gridColumn: `${NUM_WEEKS - m.startingWeek - m.numWeeks + 1} / span ${m.numWeeks}`,
               }}
               onClick={() => {
                 const monthWeeks = weeks.slice(
@@ -154,6 +200,7 @@ export function CommitsGrid({
             </button>
           ))}
         </div>
+        <div className="w-5 h-4 shrink-0 border-l border-border order-last" />
       </div>
     </div>
   );

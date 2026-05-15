@@ -64,25 +64,23 @@ function PageContent({ promises }: { promises: ResourcePromises }) {
       : filteredCommits;
 
   return (
-    <div className="flex flex-col h-full">
-      <CommitsShortcuts setStartDate={setStartDate} setEndDate={setEndDate} />
-      <CommitsGrid
-        commits={filteredCommits}
-        startDate={startDate}
-        endDate={endDate}
-        setStartDate={setStartDate}
-        setEndDate={setEndDate}
-      />
-      <div className="flex flex-row flex-1 min-h-0">
-        <div className="flex flex-col w-3/4">
-          <CommitsList commits={commitsInRange} />
-        </div>
-        <CommitsFilterPanel
-          filters={filters}
-          activeFilter={activeFilter}
-          setActiveFilter={setActiveFilter}
+    <div className="flex flex-row h-full">
+      <div className="flex flex-col flex-1 min-w-0 min-h-0">
+        <CommitsShortcuts setStartDate={setStartDate} setEndDate={setEndDate} />
+        <CommitsGrid
+          commits={filteredCommits}
+          startDate={startDate}
+          endDate={endDate}
+          setStartDate={setStartDate}
+          setEndDate={setEndDate}
         />
+        <CommitsList commits={commitsInRange} />
       </div>
+      <CommitsFilterPanel
+        filters={filters}
+        activeFilter={activeFilter}
+        setActiveFilter={setActiveFilter}
+      />
     </div>
   );
 }

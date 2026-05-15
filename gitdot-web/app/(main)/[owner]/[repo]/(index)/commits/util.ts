@@ -106,8 +106,11 @@ export function buildGrid(commits: RepositoryCommitResource[]): {
     weeks.push(week);
 
     if (weekStart.getMonth() !== prevMonth) {
+      const isJanuary = weekStart.getMonth() === 0;
       months.push({
-        label: weekStart.toLocaleString("en-US", { month: "short" }),
+        label: isJanuary
+          ? String(weekStart.getFullYear())
+          : weekStart.toLocaleString("en-US", { month: "short" }),
         startingWeek: col,
         numWeeks: 0,
       });
