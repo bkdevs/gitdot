@@ -34,6 +34,7 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  // note: only used for local development, prod uses a cloudflare worker route to proxy
   async rewrites() {
     const serverUrl = process.env.GITDOT_SERVER_URL || "http://localhost:8080";
     return [

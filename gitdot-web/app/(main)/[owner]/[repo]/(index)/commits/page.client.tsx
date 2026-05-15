@@ -1,18 +1,17 @@
 "use client";
 
-import { Suspense, use, useState } from "react";
 import {
-  type ResourcePromisesType,
-  type ResourceRequestsType,
-  useResolvePromises,
+    type ResourcePromisesType,
+    type ResourceRequestsType,
+    useResolvePromises,
 } from "@/(main)/[owner]/[repo]/resources";
 import { Loading } from "@/ui/loading";
 import { inRange } from "@/util/date";
+import { Suspense, use, useState } from "react";
 import type { Resources } from "./page";
 import { CommitsFilterPanel } from "./ui/commits-filter-panel";
 import { CommitsGrid } from "./ui/commits-grid";
 import { CommitsList } from "./ui/commits-list";
-import { CommitsShortcuts } from "./ui/commits-shortcuts";
 import { type CommitFilter, filterCommits } from "./util";
 
 type ResourceRequests = ResourceRequestsType<Resources>;
@@ -61,7 +60,6 @@ function PageContent({ promises }: { promises: ResourcePromises }) {
   return (
     <div className="flex flex-row h-full">
       <div className="flex flex-col flex-1 min-w-0 min-h-0">
-        <CommitsShortcuts setStartDate={setStartDate} setEndDate={setEndDate} />
         <CommitsGrid
           commits={filteredCommits}
           startDate={startDate}
@@ -72,14 +70,11 @@ function PageContent({ promises }: { promises: ResourcePromises }) {
         <CommitsList commits={commitsInRange} />
       </div>
       <CommitsFilterPanel
+        commits={commits}
+        paths={paths}
         filters={filters}
         activeFilter={activeFilter}
         setActiveFilter={setActiveFilter}
-        pathOptions={
-          paths?.entries.map((e) =>
-            e.path_type === "tree" ? `${e.path}/` : e.path,
-          ) ?? []
-        }
       />
     </div>
   );
