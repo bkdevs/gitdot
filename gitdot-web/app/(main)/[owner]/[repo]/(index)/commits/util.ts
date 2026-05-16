@@ -91,24 +91,35 @@ export type Month = {
 // [low, med, high] buckets
 export type Thresholds = [number, number, number];
 
-export function defaultWindowEnd(
+// Date YYYY-MM-DD strings in this module are always in *local* time. Avoid
+// `.toISOString().slice(0,10)` — that returns the UTC date, which shifts by a
+// day for users in UTC+ timezones and breaks the snap-to-Sunday math.
+function toLocalISODate(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+export function recentWindowEnd(
   commits: RepositoryCommitResource[] | null,
 ): string {
   const today = new Date();
-  const todayStr = today.toISOString().slice(0, 10);
+  const todayStr = toLocalISODate(today);
   const mostRecent = commits?.[0]?.date.slice(0, 10);
   if (!mostRecent) return todayStr;
-  const oneYearAgo = subtractDays(today, 365).toISOString().slice(0, 10);
+  const oneYearAgo = toLocalISODate(subtractDays(today, 365));
   return mostRecent >= oneYearAgo ? todayStr : mostRecent;
 }
 
-export function defaultWindowStart(
+export function recentWindowStart(
   commits: RepositoryCommitResource[] | null,
 ): string {
-  const end = defaultWindowEnd(commits);
-  return subtractDays(new Date(`${end}T00:00:00`), 365)
-    .toISOString()
-    .slice(0, 10);
+  const end = recentWindowEnd(commits);
+  // 365 days back, then snap further to the previous Sunday so the leftmost
+  // grid column is always a complete Sun→Sat (up to ~53 weeks total).
+  const rough = subtractDays(new Date(`${end}T00:00:00`), 365);
+  return toLocalISODate(subtractDays(rough, rough.getDay()));
 }
 
 export function buildGrid(
@@ -143,7 +154,7 @@ export function buildGrid(
     for (let row = 0; row < NUM_DAYS; row++) {
       const d = addDays(weekStart, row);
       if (d < start || d > end || d > today) continue;
-      const dateStr = d.toISOString().slice(0, 10);
+      const dateStr = toLocalISODate(d);
       week.push({
         date: dateStr,
         commitCount: countMap.get(dateStr) ?? 0,
@@ -151,16 +162,19 @@ export function buildGrid(
     }
     weeks.push(week);
 
-    if (weekStart.getMonth() !== prevMonth) {
-      const isJanuary = weekStart.getMonth() === 0;
+    // use the earliest visible day in this column for the label, so the
+    // leftmost partial week doesn't get labelled with the prior month/year.
+    const labelDate = weekStart < start ? start : weekStart;
+    if (labelDate.getMonth() !== prevMonth) {
+      const isJanuary = labelDate.getMonth() === 0;
       months.push({
         label: isJanuary
-          ? String(weekStart.getFullYear())
-          : weekStart.toLocaleString("en-US", { month: "short" }),
+          ? String(labelDate.getFullYear())
+          : labelDate.toLocaleString("en-US", { month: "short" }),
         startingWeek: col,
         numWeeks: 0,
       });
-      prevMonth = weekStart.getMonth();
+      prevMonth = labelDate.getMonth();
     }
   }
 

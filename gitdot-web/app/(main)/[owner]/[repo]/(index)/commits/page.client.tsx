@@ -18,9 +18,9 @@ import { CommitsGrid } from "./ui/commits-grid";
 import { CommitsList } from "./ui/commits-list";
 import {
   ALL_COMMITS_FILTER,
-  defaultWindowEnd,
-  defaultWindowStart,
   filterCommits,
+  recentWindowEnd,
+  recentWindowStart,
 } from "./util";
 
 type ResourceRequests = ResourceRequestsType<Resources>;
@@ -59,9 +59,9 @@ function PageContent({
   const commitFilters = use(promises.commitFilters);
 
   const [windowStart, setWindowStart] = useState(() =>
-    defaultWindowStart(commits),
+    recentWindowStart(commits),
   );
-  const [windowEnd, setWindowEnd] = useState(() => defaultWindowEnd(commits));
+  const [windowEnd, setWindowEnd] = useState(() => recentWindowEnd(commits));
   const [selectedStart, setSelectedStart] = useState<string | null>(null);
   const [selectedEnd, setSelectedEnd] = useState<string | null>(null);
   const filters = [ALL_COMMITS_FILTER, ...(commitFilters ?? [])];

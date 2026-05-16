@@ -15,9 +15,9 @@ import {
   buildGrid,
   cellColor,
   computeThresholds,
-  defaultWindowEnd,
-  defaultWindowStart,
   NUM_DAYS,
+  recentWindowEnd,
+  recentWindowStart,
 } from "../util";
 
 const CELL_HEIGHT = 15;
@@ -90,6 +90,8 @@ export function CommitsGrid({
           repository={repository}
           windowStart={windowStart}
           windowEnd={windowEnd}
+          selectedStart={selectedStart}
+          selectedEnd={selectedEnd}
           commitsInRange={commitsInRange}
           setWindowStart={setWindowStart}
           setWindowEnd={setWindowEnd}
@@ -263,6 +265,8 @@ function DateDropdown({
   repository,
   windowStart,
   windowEnd,
+  selectedStart,
+  selectedEnd,
   commitsInRange,
   setWindowStart,
   setWindowEnd,
@@ -273,6 +277,8 @@ function DateDropdown({
   repository: RepositoryResource | null;
   windowStart: string;
   windowEnd: string;
+  selectedStart: string | null;
+  selectedEnd: string | null;
   commitsInRange: RepositoryCommitResource[];
   setWindowStart: (date: string) => void;
   setWindowEnd: (date: string) => void;
@@ -283,15 +289,18 @@ function DateDropdown({
   const createdYear = repository?.created_at
     ? new Date(repository.created_at).getFullYear()
     : currentYear;
+  const latestYear = commits[0]?.date
+    ? new Date(commits[0].date).getFullYear()
+    : currentYear;
 
   const presets: { label: string; start: string; end: string }[] = [
     {
       label: "Recent",
-      start: defaultWindowStart(commits),
-      end: defaultWindowEnd(commits),
+      start: recentWindowStart(commits),
+      end: recentWindowEnd(commits),
     },
   ];
-  for (let y = currentYear; y >= createdYear; y--) {
+  for (let y = createdYear; y <= latestYear; y++) {
     presets.push({
       label: String(y),
       start: `${y}-01-01`,
@@ -307,8 +316,8 @@ function DateDropdown({
           className="flex items-center gap-0.5 text-xs font-mono text-muted-foreground hover:text-foreground transition-colors"
         >
           {pluralize(commitsInRange.length, "commit")}:{" "}
-          {formatDate(new Date(`${windowStart}T00:00:00`))} –{" "}
-          {formatDate(new Date(`${windowEnd}T00:00:00`))}
+          {formatDate(new Date(`${selectedStart ?? windowStart}T00:00:00`))} –{" "}
+          {formatDate(new Date(`${selectedEnd ?? windowEnd}T00:00:00`))}
           <ChevronDownIcon className="size-3 shrink-0" />
         </button>
       </DropdownMenuTrigger>
