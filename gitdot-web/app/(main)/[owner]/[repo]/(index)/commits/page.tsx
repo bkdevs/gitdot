@@ -3,6 +3,7 @@ import type {
   RepositoryCommitResource,
   RepositoryPathsResource,
 } from "gitdot-api";
+import { getRepository } from "@/dal/repository";
 import { fetchResources } from "@/provider/server";
 import { PageClient } from "./page.client";
 
@@ -23,6 +24,7 @@ export default async function Page({
     paths: (p) => p.getPaths(),
     commitFilters: (p) => p.getCommitFilters(),
   });
+  const repository = await getRepository(owner, repo);
 
   return (
     <PageClient
@@ -30,6 +32,7 @@ export default async function Page({
       repo={repo}
       requests={requests}
       promises={promises}
+      repository={repository}
     />
   );
 }

@@ -5,6 +5,7 @@ import type {
   RepositoryCommitResource,
   RepositoryPathsResource,
 } from "gitdot-api";
+import { ALL_COMMITS_FILTER, isFilterModified } from "../util";
 import { CommitsFilterDetail } from "./commits-filter-detail";
 import { CommitsFilterList } from "./commits-filter-list";
 
@@ -21,7 +22,9 @@ export function CommitsFilterPanel({
   activeFilter: RepositoryCommitFilterResource;
   setActiveFilter: (filter: RepositoryCommitFilterResource) => void;
 }) {
-  const active = filters.find((f) => f.id === activeFilter.id) ?? filters[0];
+  const original =
+    filters.find((f) => f.id === activeFilter.id) ?? ALL_COMMITS_FILTER;
+  const isModified = isFilterModified(activeFilter, original);
 
   return (
     <div className="flex flex-col w-64 shrink-0 border-l border-border">
@@ -29,12 +32,14 @@ export function CommitsFilterPanel({
         filters={filters}
         activeFilter={activeFilter}
         setActiveFilter={setActiveFilter}
+        isModified={isModified}
       />
       <CommitsFilterDetail
-        key={active.id}
         commits={commits}
         paths={paths}
-        filter={active}
+        filter={activeFilter}
+        setActiveFilter={setActiveFilter}
+        isModified={isModified}
       />
     </div>
   );

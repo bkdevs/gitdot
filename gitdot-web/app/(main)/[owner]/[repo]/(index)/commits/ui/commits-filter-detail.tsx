@@ -34,14 +34,18 @@ export function CommitsFilterDetail({
   commits,
   paths,
   filter,
+  setActiveFilter,
+  isModified,
 }: {
   commits: RepositoryCommitResource[];
   paths: RepositoryPathsResource | null;
   filter: RepositoryCommitFilterResource;
+  setActiveFilter: (filter: RepositoryCommitFilterResource) => void;
+  isModified: boolean;
 }) {
-  const [authors, setAuthors] = useState<string[]>(filter.authors ?? []);
-  const [filterPaths, setFilterPaths] = useState<string[]>(filter.paths ?? []);
-  const [tags, setTags] = useState<string[]>(filter.tags ?? []);
+  const authors = filter.authors ?? [];
+  const filterPaths = filter.paths ?? [];
+  const tags = filter.tags ?? [];
 
   const authorOptions = Array.from(
     new Set(commits.map((c) => c.author.name)),
@@ -52,14 +56,26 @@ export function CommitsFilterDetail({
       e.path_type === "tree" ? `${e.path}/` : e.path,
     ) ?? [];
 
-  const toggleAuthor = (a: string) =>
-    setAuthors((prev) =>
-      prev.includes(a) ? prev.filter((x) => x !== a) : [...prev, a],
-    );
-  const toggleTag = (t: string) =>
-    setTags((prev) =>
-      prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t],
-    );
+  const toggleAuthor = (a: string) => {
+    const next = authors.includes(a)
+      ? authors.filter((x) => x !== a)
+      : [...authors, a];
+    setActiveFilter({ ...filter, authors: next });
+  };
+  const toggleTag = (t: string) => {
+    const next = tags.includes(t) ? tags.filter((x) => x !== t) : [...tags, t];
+    setActiveFilter({ ...filter, tags: next });
+  };
+  const addPath = (p: string) => {
+    if (filterPaths.includes(p)) return;
+    setActiveFilter({ ...filter, paths: [...filterPaths, p] });
+  };
+  const removePath = (p: string) => {
+    setActiveFilter({
+      ...filter,
+      paths: filterPaths.filter((x) => x !== p),
+    });
+  };
 
   return (
     <div className="flex flex-col flex-1 min-h-0 overflow-y-auto">
@@ -80,12 +96,10 @@ export function CommitsFilterDetail({
       <PathsCriteria
         options={pathOptions}
         selected={filterPaths}
-        onAdd={(p) =>
-          setFilterPaths((prev) => (prev.includes(p) ? prev : [...prev, p]))
-        }
-        onRemove={(p) => setFilterPaths((prev) => prev.filter((x) => x !== p))}
+        onAdd={addPath}
+        onRemove={removePath}
       />
-      <SaveFilterButton />
+      <SaveFilterButton enabled={isModified} />
     </div>
   );
 }
@@ -237,15 +251,18 @@ function PathsCriteria({
   );
 }
 
-function SaveFilterButton() {
+function SaveFilterButton({ enabled }: { enabled: boolean }) {
   return (
     <div className="flex justify-end px-2 py-2 shrink-0">
       <button
         type="button"
-        disabled
-        className="px-2.5 h-6 text-xs font-mono bg-primary text-primary-foreground border border-border rounded-xs opacity-50 cursor-not-allowed focus:outline-none"
+        disabled={!enabled}
+        className={cn(
+          "px-2.5 h-6 text-xs font-mono bg-primary text-primary-foreground border border-border rounded-xs focus:outline-none",
+          enabled ? "hover:bg-primary/90" : "opacity-50 cursor-not-allowed",
+        )}
       >
-        Save
+        Save filter
       </button>
     </div>
   );

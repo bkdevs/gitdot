@@ -23,6 +23,25 @@ export function filterCommits(
   return commits.filter((commit) => filterCommit(filter, commit));
 }
 
+function sameSet(a: string[] | undefined, b: string[] | undefined): boolean {
+  const av = a ?? [];
+  const bv = b ?? [];
+  if (av.length !== bv.length) return false;
+  const set = new Set(av);
+  return bv.every((x) => set.has(x));
+}
+
+export function isFilterModified(
+  active: RepositoryCommitFilterResource,
+  original: RepositoryCommitFilterResource,
+): boolean {
+  return (
+    !sameSet(active.authors, original.authors) ||
+    !sameSet(active.tags, original.tags) ||
+    !sameSet(active.paths, original.paths)
+  );
+}
+
 function filterCommit(
   filter: RepositoryCommitFilterResource,
   commit: RepositoryCommitResource,

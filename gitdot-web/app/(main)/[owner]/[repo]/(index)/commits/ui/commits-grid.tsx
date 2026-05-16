@@ -1,6 +1,6 @@
 "use client";
 
-import type { RepositoryCommitResource } from "gitdot-api";
+import type { RepositoryCommitResource, RepositoryResource } from "gitdot-api";
 import { ChevronDownIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/ui/dropdown-menu";
 import { cn, pluralize } from "@/util";
-import { formatDate, inRange } from "@/util/date";
+import { formatDate, inRange, subtractDays } from "@/util/date";
 import {
   buildGrid,
   cellColor,
@@ -30,12 +30,14 @@ const GAP_HEIGHT = 2;
  */
 export function CommitsGrid({
   commits,
+  repository,
   startDate,
   endDate,
   setStartDate,
   setEndDate,
 }: {
   commits: RepositoryCommitResource[];
+  repository: RepositoryResource | null;
   startDate: string | null;
   endDate: string | null;
   setStartDate: (date: string | null) => void;
@@ -74,54 +76,15 @@ export function CommitsGrid({
     <div className="flex flex-col w-full h-42 border-b border-border">
       {/* header */}
       <div className="flex items-center px-1 h-6 border-b border-border shrink-0">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              type="button"
-              className="flex items-center gap-0.5 text-xs font-mono text-muted-foreground hover:text-foreground transition-colors"
-            >
-              {pluralize(commitsInRange.length, "commit")}:{" "}
-              {formatDate(new Date(`${displayStart}T00:00:00`))} –{" "}
-              {formatDate(new Date(`${displayEnd}T00:00:00`))}
-              <ChevronDownIcon className="size-3 shrink-0" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="min-w-0">
-            {[
-              {
-                label: "Year to date",
-                start: `${new Date().getFullYear()}-01-01`,
-                end: new Date().toISOString().slice(0, 10),
-              },
-              {
-                label: String(new Date().getFullYear()),
-                start: `${new Date().getFullYear()}-01-01`,
-                end: `${new Date().getFullYear()}-12-31`,
-              },
-              {
-                label: String(new Date().getFullYear() - 1),
-                start: `${new Date().getFullYear() - 1}-01-01`,
-                end: `${new Date().getFullYear() - 1}-12-31`,
-              },
-              {
-                label: String(new Date().getFullYear() - 2),
-                start: `${new Date().getFullYear() - 2}-01-01`,
-                end: `${new Date().getFullYear() - 2}-12-31`,
-              },
-            ].map((opt) => (
-              <DropdownMenuItem
-                key={opt.label}
-                onClick={() => {
-                  setStartDate(opt.start);
-                  setEndDate(opt.end);
-                }}
-                className="text-xs font-mono py-1 px-2"
-              >
-                {opt.label}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <DateDropdown
+          commits={commits}
+          createdAt={repository?.created_at ?? null}
+          displayStart={displayStart}
+          displayEnd={displayEnd}
+          commitsInRange={commitsInRange}
+          setStartDate={setStartDate}
+          setEndDate={setEndDate}
+        />
       </div>
 
       {/* day labels and the grid are in the same row */}
@@ -276,4 +239,85 @@ function useDragSelect(
   };
 
   return { onCellMouseDown, onCellMouseEnter };
+}
+
+function DateDropdown({
+  commits,
+  createdAt,
+  displayStart,
+  displayEnd,
+  commitsInRange,
+  setStartDate,
+  setEndDate,
+}: {
+  commits: RepositoryCommitResource[];
+  createdAt: string | null;
+  displayStart: string;
+  displayEnd: string;
+  commitsInRange: RepositoryCommitResource[];
+  setStartDate: (date: string | null) => void;
+  setEndDate: (date: string | null) => void;
+}) {
+  const today = new Date();
+  const todayStr = today.toISOString().slice(0, 10);
+  const currentYear = today.getFullYear();
+  const createdYear = createdAt
+    ? new Date(createdAt).getFullYear()
+    : currentYear;
+  const mostRecent = commits[0]?.date.slice(0, 10) ?? todayStr;
+
+  const presets: { label: string; start: string; end: string }[] = [
+    {
+      label: "Recent",
+      start: subtractDays(new Date(`${mostRecent}T00:00:00`), 365)
+        .toISOString()
+        .slice(0, 10),
+      end: mostRecent,
+    },
+  ];
+  for (let y = currentYear; y >= createdYear; y--) {
+    presets.push(
+      y === currentYear
+        ? {
+            label: String(y),
+            start: subtractDays(today, 365).toISOString().slice(0, 10),
+            end: todayStr,
+          }
+        : {
+            label: String(y),
+            start: `${y}-01-01`,
+            end: `${y}-12-31`,
+          },
+    );
+  }
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          className="flex items-center gap-0.5 text-xs font-mono text-muted-foreground hover:text-foreground transition-colors"
+        >
+          {pluralize(commitsInRange.length, "commit")}:{" "}
+          {formatDate(new Date(`${displayStart}T00:00:00`))} –{" "}
+          {formatDate(new Date(`${displayEnd}T00:00:00`))}
+          <ChevronDownIcon className="size-3 shrink-0" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="min-w-0">
+        {presets.map((opt) => (
+          <DropdownMenuItem
+            key={opt.label}
+            onClick={() => {
+              setStartDate(opt.start);
+              setEndDate(opt.end);
+            }}
+            className="text-xs font-mono py-1 px-2"
+          >
+            {opt.label}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
 }

@@ -1,6 +1,9 @@
 "use client";
 
-import type { RepositoryCommitFilterResource } from "gitdot-api";
+import type {
+  RepositoryCommitFilterResource,
+  RepositoryResource,
+} from "gitdot-api";
 import { Suspense, use, useState } from "react";
 import {
   type ResourcePromisesType,
@@ -23,21 +26,29 @@ export function PageClient({
   repo,
   requests,
   promises,
+  repository,
 }: {
   owner: string;
   repo: string;
   requests: ResourceRequests;
   promises: ResourcePromises;
+  repository: RepositoryResource | null;
 }) {
   const resolvedPromises = useResolvePromises(owner, repo, requests, promises);
   return (
     <Suspense fallback={<Loading />}>
-      <PageContent promises={resolvedPromises} />
+      <PageContent promises={resolvedPromises} repository={repository} />
     </Suspense>
   );
 }
 
-function PageContent({ promises }: { promises: ResourcePromises }) {
+function PageContent({
+  promises,
+  repository,
+}: {
+  promises: ResourcePromises;
+  repository: RepositoryResource | null;
+}) {
   const commits = use(promises.commits);
   const paths = use(promises.paths);
   const commitFilters = use(promises.commitFilters);
@@ -63,6 +74,7 @@ function PageContent({ promises }: { promises: ResourcePromises }) {
       <div className="flex flex-col flex-1 min-w-0 min-h-0">
         <CommitsGrid
           commits={filteredCommits}
+          repository={repository}
           startDate={startDate}
           endDate={endDate}
           setStartDate={setStartDate}
