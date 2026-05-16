@@ -8,6 +8,7 @@ import type {
 import { ChevronDown, ChevronRight, Circle, X } from "lucide-react";
 import { useRef, useState, useTransition } from "react";
 import { toast } from "@/(main)/context/toaster";
+import { useUserContext } from "@/(main)/context/user";
 import { updateRepositoryCommitFilterAction } from "@/actions";
 import {
   DropdownMenu,
@@ -87,6 +88,11 @@ export function CommitsFilterDetail({
 
   const isDefault = filter.id === ALL_COMMITS_FILTER.id;
 
+  const { user, memberships } = useUserContext();
+  const canSave =
+    user?.name === owner ||
+    (memberships ?? []).some((m) => m.org_name === owner);
+
   return (
     <div className="flex flex-col flex-1 min-h-0 overflow-y-auto">
       <NameCriteria
@@ -114,14 +120,16 @@ export function CommitsFilterDetail({
         onAdd={addPath}
         onRemove={removePath}
       />
-      <SaveFilterButton
-        owner={owner}
-        repo={repo}
-        filter={filter}
-        enabled={isModified}
-        isDefault={isDefault}
-        setActiveFilter={setActiveFilter}
-      />
+      {canSave && (
+        <SaveFilterButton
+          owner={owner}
+          repo={repo}
+          filter={filter}
+          enabled={isModified}
+          isDefault={isDefault}
+          setActiveFilter={setActiveFilter}
+        />
+      )}
     </div>
   );
 }

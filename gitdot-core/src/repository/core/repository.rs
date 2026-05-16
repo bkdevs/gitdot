@@ -315,7 +315,7 @@ impl RepositoryRepository for RepositoryRepositoryImpl {
             SELECT id, repository_id, name, authors, tags, paths, created_at, updated_at
             FROM core.commit_filters
             WHERE repository_id = $1
-            ORDER BY created_at DESC
+            ORDER BY created_at ASC
             "#,
         )
         .bind(repository_id)
