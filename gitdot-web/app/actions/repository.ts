@@ -1,11 +1,14 @@
 "use server";
 
 import type {
+  CreateRepositoryCommitFilterRequest,
   GitHubInstallationResource,
   GitHubRepositoryResource,
   MigrationResource,
   RepositoryBlobsResource,
+  RepositoryCommitFilterResource,
   RepositoryResource,
+  UpdateRepositoryCommitFilterRequest,
 } from "gitdot-api";
 import type { Root } from "hast";
 import { refresh } from "next/cache";
@@ -14,6 +17,7 @@ import { fileToHast, inferLanguage } from "@/(main)/[owner]/[repo]/util";
 import {
   ApiError,
   createRepository,
+  createRepositoryCommitFilter,
   deleteRepository,
   getMigration,
   getRepositoryBlob,
@@ -24,6 +28,7 @@ import {
   migrateGitHubRepositories,
   starRepository,
   unstarRepository,
+  updateRepositoryCommitFilter,
 } from "@/dal";
 
 export type CreateRepositoryActionResult =
@@ -200,6 +205,62 @@ export async function unstarRepositoryAction(
   } catch (e) {
     return {
       error: e instanceof ApiError ? e.message : "Failed to unstar repository",
+    };
+  }
+}
+
+export type CommitFilterActionResult =
+  | { filter: RepositoryCommitFilterResource }
+  | { error: string };
+
+export async function createRepositoryCommitFilterAction(
+  owner: string,
+  repo: string,
+  payload: CreateRepositoryCommitFilterRequest,
+): Promise<CommitFilterActionResult> {
+  if (!payload.name.trim()) {
+    return { error: "Name is required" };
+  }
+
+  try {
+    const filter = await createRepositoryCommitFilter(owner, repo, payload);
+    if (!filter) {
+      return { error: "Failed to save filter" };
+    }
+    refresh();
+    return { filter };
+  } catch (e) {
+    return {
+      error: e instanceof ApiError ? e.message : "Failed to save filter",
+    };
+  }
+}
+
+export async function updateRepositoryCommitFilterAction(
+  owner: string,
+  repo: string,
+  filterId: string,
+  payload: UpdateRepositoryCommitFilterRequest,
+): Promise<CommitFilterActionResult> {
+  if (!payload.name.trim()) {
+    return { error: "Name is required" };
+  }
+
+  try {
+    const filter = await updateRepositoryCommitFilter(
+      owner,
+      repo,
+      filterId,
+      payload,
+    );
+    if (!filter) {
+      return { error: "Failed to update filter" };
+    }
+    refresh();
+    return { filter };
+  } catch (e) {
+    return {
+      error: e instanceof ApiError ? e.message : "Failed to update filter",
     };
   }
 }

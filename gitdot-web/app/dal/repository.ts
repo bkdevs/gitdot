@@ -1,6 +1,8 @@
 import "server-only";
 
 import {
+  type CreateRepositoryCommitFilterRequest,
+  CreateRepositoryCommitFilterResponse,
   type CreateRepositoryRequest,
   GetRepositoryActivityResponse,
   type GetRepositoryBlobDiffsRequest,
@@ -20,11 +22,14 @@ import {
   RepositoryPathsResource,
   RepositoryResource,
   RepositoryResourcesResource,
+  type UpdateRepositoryCommitFilterRequest,
+  UpdateRepositoryCommitFilterResponse,
 } from "gitdot-api";
 import { toQueryString } from "@/util";
 import {
   authDelete,
   authFetch,
+  authPatch,
   authPost,
   GITDOT_SERVER_URL,
   handleEmptyResponse,
@@ -102,6 +107,31 @@ export async function listRepositoryCommitFilters(
     `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/commit_filters`,
   );
   return await handleResponse(response, ListRepositoryCommitFiltersResponse);
+}
+
+export async function createRepositoryCommitFilter(
+  owner: string,
+  repo: string,
+  request: CreateRepositoryCommitFilterRequest,
+): Promise<RepositoryCommitFilterResource | null> {
+  const response = await authPost(
+    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/commit_filters`,
+    request,
+  );
+  return await handleResponse(response, CreateRepositoryCommitFilterResponse);
+}
+
+export async function updateRepositoryCommitFilter(
+  owner: string,
+  repo: string,
+  filterId: string,
+  request: UpdateRepositoryCommitFilterRequest,
+): Promise<RepositoryCommitFilterResource | null> {
+  const response = await authPatch(
+    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/commit_filters/${filterId}`,
+    request,
+  );
+  return await handleResponse(response, UpdateRepositoryCommitFilterResponse);
 }
 
 export async function getRepositoryBlobs(

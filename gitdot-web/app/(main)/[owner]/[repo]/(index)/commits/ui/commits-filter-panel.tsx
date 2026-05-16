@@ -10,12 +10,16 @@ import { CommitsFilterDetail } from "./commits-filter-detail";
 import { CommitsFilterList } from "./commits-filter-list";
 
 export function CommitsFilterPanel({
+  owner,
+  repo,
   commits,
   paths,
   filters,
   activeFilter,
   setActiveFilter,
 }: {
+  owner: string;
+  repo: string;
   commits: RepositoryCommitResource[];
   paths: RepositoryPathsResource | null;
   filters: RepositoryCommitFilterResource[];
@@ -35,6 +39,8 @@ export function CommitsFilterPanel({
         isModified={isModified}
       />
       <CommitsFilterDetail
+        owner={owner}
+        repo={repo}
         commits={commits}
         paths={paths}
         filter={activeFilter}

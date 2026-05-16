@@ -1,4 +1,5 @@
 export * from "./create-repository";
+export * from "./create-repository-commit-filter";
 export * from "./delete-repository";
 export * from "./get-repository";
 export * from "./get-repository-activity";
@@ -13,3 +14,4 @@ export * from "./get-repository-resources";
 export * from "./list-repository-commit-filters";
 export * from "./star-repository";
 export * from "./unstar-repository";
+export * from "./update-repository-commit-filter";

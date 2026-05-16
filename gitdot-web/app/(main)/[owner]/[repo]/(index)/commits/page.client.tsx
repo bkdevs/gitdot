@@ -42,15 +42,24 @@ export function PageClient({
   const resolvedPromises = useResolvePromises(owner, repo, requests, promises);
   return (
     <Suspense fallback={<Loading />}>
-      <PageContent promises={resolvedPromises} repository={repository} />
+      <PageContent
+        owner={owner}
+        repo={repo}
+        promises={resolvedPromises}
+        repository={repository}
+      />
     </Suspense>
   );
 }
 
 function PageContent({
+  owner,
+  repo,
   promises,
   repository,
 }: {
+  owner: string;
+  repo: string;
   promises: ResourcePromises;
   repository: RepositoryResource | null;
 }) {
@@ -95,6 +104,8 @@ function PageContent({
         <CommitsList commits={commitsInRange} />
       </div>
       <CommitsFilterPanel
+        owner={owner}
+        repo={repo}
         commits={commits}
         paths={paths}
         filters={filters}

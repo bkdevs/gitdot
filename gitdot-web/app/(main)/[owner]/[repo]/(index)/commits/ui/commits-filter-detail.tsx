@@ -5,8 +5,10 @@ import type {
   RepositoryCommitResource,
   RepositoryPathsResource,
 } from "gitdot-api";
-import { ChevronRight, Circle, X } from "lucide-react";
-import { useRef, useState } from "react";
+import { ChevronDown, ChevronRight, Circle, X } from "lucide-react";
+import { useRef, useState, useTransition } from "react";
+import { toast } from "@/(main)/context/toaster";
+import { updateRepositoryCommitFilterAction } from "@/actions";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,6 +16,8 @@ import {
   DropdownMenuTrigger,
 } from "@/ui/dropdown-menu";
 import { cn } from "@/util";
+import { ALL_COMMITS_FILTER } from "../util";
+import { SaveFilterDialog } from "./save-filter-dialog";
 
 const TAG_OPTIONS = [
   "feat:",
@@ -31,12 +35,16 @@ const TAG_OPTIONS = [
 ];
 
 export function CommitsFilterDetail({
+  owner,
+  repo,
   commits,
   paths,
   filter,
   setActiveFilter,
   isModified,
 }: {
+  owner: string;
+  repo: string;
   commits: RepositoryCommitResource[];
   paths: RepositoryPathsResource | null;
   filter: RepositoryCommitFilterResource;
@@ -77,8 +85,15 @@ export function CommitsFilterDetail({
     });
   };
 
+  const isDefault = filter.id === ALL_COMMITS_FILTER.id;
+
   return (
     <div className="flex flex-col flex-1 min-h-0 overflow-y-auto">
+      <NameCriteria
+        value={filter.name}
+        disabled={isDefault}
+        onChange={(name) => setActiveFilter({ ...filter, name })}
+      />
       <ChecklistCriteria
         label="Authors"
         options={authorOptions}
@@ -99,7 +114,46 @@ export function CommitsFilterDetail({
         onAdd={addPath}
         onRemove={removePath}
       />
-      <SaveFilterButton enabled={isModified} />
+      <SaveFilterButton
+        owner={owner}
+        repo={repo}
+        filter={filter}
+        enabled={isModified}
+        isDefault={isDefault}
+        setActiveFilter={setActiveFilter}
+      />
+    </div>
+  );
+}
+
+function NameCriteria({
+  value,
+  disabled,
+  onChange,
+}: {
+  value: string;
+  disabled: boolean;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-0.5 px-2 py-1.5 shrink-0 border-b border-border">
+      <span className="text-[10px] text-muted-foreground uppercase tracking-wide font-mono">
+        Name
+      </span>
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        disabled={disabled}
+        spellCheck={false}
+        autoComplete="off"
+        className={cn(
+          "text-xs font-mono bg-transparent outline-none w-full",
+          disabled
+            ? "text-muted-foreground/40 cursor-not-allowed"
+            : "text-foreground",
+        )}
+      />
     </div>
   );
 }
@@ -251,19 +305,106 @@ function PathsCriteria({
   );
 }
 
-function SaveFilterButton({ enabled }: { enabled: boolean }) {
+function SaveFilterButton({
+  owner,
+  repo,
+  filter,
+  enabled,
+  isDefault,
+  setActiveFilter,
+}: {
+  owner: string;
+  repo: string;
+  filter: RepositoryCommitFilterResource;
+  enabled: boolean;
+  isDefault: boolean;
+  setActiveFilter: (filter: RepositoryCommitFilterResource) => void;
+}) {
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [isPending, startTransition] = useTransition();
+
+  const interactable = enabled && !isPending;
+
+  const saveInPlace = () => {
+    if (isDefault || !interactable) return;
+    startTransition(async () => {
+      const result = await updateRepositoryCommitFilterAction(
+        owner,
+        repo,
+        filter.id,
+        {
+          name: filter.name,
+          authors: filter.authors,
+          tags: filter.tags,
+          paths: filter.paths,
+        },
+      );
+      if ("filter" in result) {
+        setActiveFilter(result.filter);
+        toast.success("Filter saved");
+      } else {
+        toast.error(result.error);
+      }
+    });
+  };
+
   return (
     <div className="flex justify-end px-2 py-2 shrink-0">
-      <button
-        type="button"
-        disabled={!enabled}
-        className={cn(
-          "px-2.5 h-6 text-xs font-mono bg-primary text-primary-foreground border border-border rounded-xs focus:outline-none",
-          enabled ? "hover:bg-primary/90" : "opacity-50 cursor-not-allowed",
-        )}
-      >
-        Save filter
-      </button>
+      {isDefault ? (
+        <button
+          type="button"
+          onClick={() => setDialogOpen(true)}
+          disabled={!interactable}
+          className={cn(
+            "px-2.5 h-6 text-xs font-mono bg-primary text-primary-foreground border border-border rounded-xs focus:outline-none transition-opacity",
+            interactable
+              ? "hover:opacity-80 cursor-pointer"
+              : "opacity-50 cursor-not-allowed",
+          )}
+        >
+          Save
+        </button>
+      ) : (
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            disabled={!interactable}
+            className={cn(
+              "flex items-center gap-0.75 px-2.5 h-6 text-xs font-mono bg-primary text-primary-foreground border border-border rounded-xs focus:outline-none transition-opacity",
+              interactable
+                ? "hover:opacity-80 cursor-pointer"
+                : "opacity-50 cursor-not-allowed",
+            )}
+          >
+            {isPending ? "Saving..." : "Save"}
+            <ChevronDown className="size-3 mt-px" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent side="bottom" align="end" className="w-40">
+            <DropdownMenuItem
+              onClick={saveInPlace}
+              className="text-xs font-mono"
+            >
+              Save
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => setDialogOpen(true)}
+              className="text-xs font-mono"
+            >
+              Save as new
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
+      <SaveFilterDialog
+        open={dialogOpen}
+        setOpen={setDialogOpen}
+        owner={owner}
+        repo={repo}
+        initialName={isDefault ? "" : filter.name}
+        authors={filter.authors}
+        tags={filter.tags}
+        paths={filter.paths}
+        onSaved={setActiveFilter}
+      />
     </div>
   );
 }

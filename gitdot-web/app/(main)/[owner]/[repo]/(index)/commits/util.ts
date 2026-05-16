@@ -36,6 +36,7 @@ export function isFilterModified(
   original: RepositoryCommitFilterResource,
 ): boolean {
   return (
+    active.name !== original.name ||
     !sameSet(active.authors, original.authors) ||
     !sameSet(active.tags, original.tags) ||
     !sameSet(active.paths, original.paths)
