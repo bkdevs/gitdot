@@ -9,10 +9,12 @@ import {
   type GetRepositoryCommitsRequest,
   type GetRepositoryPathsRequest,
   type GetRepositoryResourcesRequest,
+  ListRepositoryCommitFiltersResponse,
   RepositoryBlobDiffsResource,
   RepositoryBlobResource,
   RepositoryBlobsResource,
   RepositoryCommitDiffResource,
+  type RepositoryCommitFilterResource,
   RepositoryCommitResource,
   RepositoryCommitsResource,
   RepositoryPathsResource,
@@ -90,6 +92,16 @@ export async function getRepositoryPaths(
     `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/paths?${queryString}`,
   );
   return await handleResponse(response, RepositoryPathsResource);
+}
+
+export async function listRepositoryCommitFilters(
+  owner: string,
+  repo: string,
+): Promise<RepositoryCommitFilterResource[] | null> {
+  const response = await authFetch(
+    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/commit_filters`,
+  );
+  return await handleResponse(response, ListRepositoryCommitFiltersResponse);
 }
 
 export async function getRepositoryBlobs(

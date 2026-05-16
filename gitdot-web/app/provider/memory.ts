@@ -5,6 +5,7 @@ import type {
   QuestionResource,
   RepositoryBlobResource,
   RepositoryBlobsResource,
+  RepositoryCommitFilterResource,
   RepositoryCommitResource,
   RepositoryPathsResource,
   ReviewResource,
@@ -71,6 +72,10 @@ export class InMemoryProvider extends ClientProvider {
     return this.store.commits.sort(
       (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
     );
+  }
+
+  async getCommitFilters(): Promise<RepositoryCommitFilterResource[] | null> {
+    return null;
   }
 
   async getBlobs(): Promise<RepositoryBlobsResource | null> {

@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use chrono::{DateTime, Utc};
 use sqlx::PgPool;
 use uuid::Uuid;
 
@@ -37,6 +38,7 @@ pub trait MigrationRepository: Send + Sync + Clone + 'static {
         migration_id: Uuid,
         origin_full_name: &str,
         origin_repository_id: i64,
+        origin_created_at: Option<DateTime<Utc>>,
         destination_full_name: &str,
         visibility: &RepositoryVisibility,
     ) -> Result<MigrationRepositoryModel, DatabaseError>;
@@ -119,6 +121,7 @@ impl MigrationRepository for MigrationRepositoryImpl {
                            'destination_full_name', mr.destination_full_name,
                            'destination_repository_id', mr.destination_repository_id,
                            'visibility', mr.visibility,
+                           'origin_created_at', mr.origin_created_at,
                            'status', mr.status,
                            'error', mr.error,
                            'created_at', mr.created_at,
@@ -153,6 +156,7 @@ impl MigrationRepository for MigrationRepositoryImpl {
                            'destination_full_name', mr.destination_full_name,
                            'destination_repository_id', mr.destination_repository_id,
                            'visibility', mr.visibility,
+                           'origin_created_at', mr.origin_created_at,
                            'status', mr.status,
                            'error', mr.error,
                            'created_at', mr.created_at,
@@ -198,15 +202,16 @@ impl MigrationRepository for MigrationRepositoryImpl {
         migration_id: Uuid,
         origin_full_name: &str,
         origin_repository_id: i64,
+        origin_created_at: Option<DateTime<Utc>>,
         destination_full_name: &str,
         visibility: &RepositoryVisibility,
     ) -> Result<MigrationRepositoryModel, DatabaseError> {
         let repo = sqlx::query_as::<_, MigrationRepositoryModel>(
             r#"
             INSERT INTO migration.migration_repositories
-                (migration_id, origin_full_name, origin_repository_id, destination_full_name, visibility)
-            VALUES ($1, $2, $3, $4, $5)
-            RETURNING id, migration_id, origin_full_name, origin_repository_id, destination_full_name, destination_repository_id, visibility, status, error, created_at, updated_at
+                (migration_id, origin_full_name, origin_repository_id, destination_full_name, visibility, origin_created_at)
+            VALUES ($1, $2, $3, $4, $5, $6)
+            RETURNING id, migration_id, origin_full_name, origin_repository_id, destination_full_name, destination_repository_id, visibility, origin_created_at, status, error, created_at, updated_at
             "#,
         )
         .bind(migration_id)
@@ -214,6 +219,7 @@ impl MigrationRepository for MigrationRepositoryImpl {
         .bind(origin_repository_id)
         .bind(destination_full_name)
         .bind(visibility)
+        .bind(origin_created_at)
         .fetch_one(&self.pool)
         .await?;
 
@@ -231,7 +237,7 @@ impl MigrationRepository for MigrationRepositoryImpl {
             UPDATE migration.migration_repositories
             SET status = $2, error = $3, updated_at = NOW()
             WHERE id = $1
-            RETURNING id, migration_id, origin_full_name, origin_repository_id, destination_full_name, destination_repository_id, visibility, status, error, created_at, updated_at
+            RETURNING id, migration_id, origin_full_name, origin_repository_id, destination_full_name, destination_repository_id, visibility, origin_created_at, status, error, created_at, updated_at
             "#,
         )
         .bind(id)
@@ -271,7 +277,7 @@ impl MigrationRepository for MigrationRepositoryImpl {
             r#"
             SELECT id, migration_id, origin_full_name, origin_repository_id,
                    destination_full_name, destination_repository_id, visibility,
-                   status, error, created_at, updated_at
+                   origin_created_at, status, error, created_at, updated_at
             FROM migration.migration_repositories
             WHERE origin_repository_id = $1 AND destination_repository_id IS NOT NULL
             "#,

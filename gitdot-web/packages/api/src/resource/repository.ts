@@ -206,3 +206,17 @@ export const RepositoryActivityEventResource = z.discriminatedUnion("type", [
 export type RepositoryActivityEventResource = z.infer<
   typeof RepositoryActivityEventResource
 >;
+
+export const RepositoryCommitFilterResource = z.object({
+  id: z.uuid(),
+  repository_id: z.uuid(),
+  name: z.string(),
+  authors: z.array(z.string()).optional(),
+  tags: z.array(z.string()).optional(),
+  paths: z.array(z.string()).optional(),
+  created_at: z.iso.datetime(),
+  updated_at: z.iso.datetime(),
+});
+export type RepositoryCommitFilterResource = z.infer<
+  typeof RepositoryCommitFilterResource
+>;

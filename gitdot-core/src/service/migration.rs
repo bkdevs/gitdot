@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
 use crate::{
@@ -130,6 +131,7 @@ where
         visibility: &RepositoryVisibility,
         token: &str,
         readonly: bool,
+        created_at: Option<DateTime<Utc>>,
     ) -> Result<(Repository, Option<String>, String), MigrationError> {
         let repo_name = full_name
             .split('/')
@@ -149,7 +151,7 @@ where
 
         let result = self
             .setup_mirrored_repository(
-                owner_name, repo_name, owner_id, owner_type, visibility, readonly,
+                owner_name, repo_name, owner_id, owner_type, visibility, readonly, created_at,
             )
             .await;
         if result.is_err() {
@@ -167,6 +169,7 @@ where
         owner_type: &RepositoryOwnerType,
         visibility: &RepositoryVisibility,
         readonly: bool,
+        created_at: Option<DateTime<Utc>>,
     ) -> Result<(Repository, Option<String>, String), MigrationError> {
         self.git_client.empty_hooks(owner_name, repo_name).await?;
         self.git_client
@@ -197,7 +200,7 @@ where
         let repository = self
             .repo_repo
             .create(
-                repo_name, owner_id, owner_name, owner_type, visibility, None, readonly,
+                repo_name, owner_id, owner_name, owner_type, visibility, None, readonly, created_at,
             )
             .await?;
 
@@ -318,18 +321,6 @@ where
             .github_client
             .list_installation_repositories(request.installation_id as u64)
             .await?;
-        let visibility_map: std::collections::HashMap<String, RepositoryVisibility> = github_repos
-            .repositories
-            .iter()
-            .map(|r| {
-                let visibility = if r.private.unwrap_or(false) {
-                    RepositoryVisibility::Private
-                } else {
-                    RepositoryVisibility::Public
-                };
-                (r.name.clone(), visibility)
-            })
-            .collect();
 
         let migration = self
             .migration_repo
@@ -347,16 +338,24 @@ where
         for (name, origin_repository_id) in &request.repositories {
             let origin_full_name = format!("{}/{}", request.origin, name);
             let destination_full_name = format!("{}/{}", request.destination.as_ref(), name);
-            let visibility = visibility_map
-                .get(name)
-                .cloned()
+            let github_repo = github_repos.repositories.iter().find(|r| &r.name == name);
+            let visibility = github_repo
+                .map(|r| {
+                    if r.private.unwrap_or(false) {
+                        RepositoryVisibility::Private
+                    } else {
+                        RepositoryVisibility::Public
+                    }
+                })
                 .unwrap_or(RepositoryVisibility::Public);
+            let origin_created_at = github_repo.and_then(|r| r.created_at);
             let migration_repository = self
                 .migration_repo
                 .create_migration_repository(
                     migration.id,
                     &origin_full_name,
                     *origin_repository_id,
+                    origin_created_at,
                     &destination_full_name,
                     &visibility,
                 )
@@ -399,6 +398,7 @@ where
             let migration_repo_id = migration_repo_entry.id;
             let full_name = migration_repo_entry.origin_full_name.clone();
             let visibility = migration_repo_entry.visibility.clone();
+            let created_at = migration_repo_entry.origin_created_at;
 
             let handle = tokio::spawn(async move {
                 let _ = service
@@ -419,6 +419,7 @@ where
                         &visibility,
                         &token,
                         readonly,
+                        created_at,
                     )
                     .await
                 {

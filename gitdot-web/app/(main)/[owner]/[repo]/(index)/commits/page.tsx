@@ -1,4 +1,5 @@
 import type {
+  RepositoryCommitFilterResource,
   RepositoryCommitResource,
   RepositoryPathsResource,
 } from "gitdot-api";
@@ -8,6 +9,7 @@ import { PageClient } from "./page.client";
 export type Resources = {
   commits: RepositoryCommitResource[] | null;
   paths: RepositoryPathsResource | null;
+  commitFilters: RepositoryCommitFilterResource[] | null;
 };
 
 export default async function Page({
@@ -19,6 +21,7 @@ export default async function Page({
   const { requests, promises } = fetchResources(owner, repo, {
     commits: (p) => p.getCommits(),
     paths: (p) => p.getPaths(),
+    commitFilters: (p) => p.getCommitFilters(),
   });
 
   return (

@@ -1,6 +1,7 @@
 "use client";
 
 import type {
+  RepositoryCommitFilterResource,
   RepositoryCommitResource,
   RepositoryPathsResource,
 } from "gitdot-api";
@@ -13,7 +14,6 @@ import {
   DropdownMenuTrigger,
 } from "@/ui/dropdown-menu";
 import { cn } from "@/util";
-import type { CommitFilter } from "../util";
 
 const TAG_OPTIONS = [
   "feat:",
@@ -37,13 +37,11 @@ export function CommitsFilterDetail({
 }: {
   commits: RepositoryCommitResource[];
   paths: RepositoryPathsResource | null;
-  filter: CommitFilter;
+  filter: RepositoryCommitFilterResource;
 }) {
   const [authors, setAuthors] = useState<string[]>(filter.authors ?? []);
-  const [filterPaths, setFilterPaths] = useState<string[]>(
-    filter.included_paths ?? [],
-  );
-  const [tags, setTags] = useState<string[]>([]);
+  const [filterPaths, setFilterPaths] = useState<string[]>(filter.paths ?? []);
+  const [tags, setTags] = useState<string[]>(filter.tags ?? []);
 
   const authorOptions = Array.from(
     new Set(commits.map((c) => c.author.name)),
@@ -85,9 +83,7 @@ export function CommitsFilterDetail({
         onAdd={(p) =>
           setFilterPaths((prev) => (prev.includes(p) ? prev : [...prev, p]))
         }
-        onRemove={(p) =>
-          setFilterPaths((prev) => prev.filter((x) => x !== p))
-        }
+        onRemove={(p) => setFilterPaths((prev) => prev.filter((x) => x !== p))}
       />
       <SaveFilterButton />
     </div>

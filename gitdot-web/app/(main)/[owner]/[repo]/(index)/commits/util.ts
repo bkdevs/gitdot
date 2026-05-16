@@ -1,4 +1,5 @@
 import type {
+  RepositoryCommitFilterResource,
   RepositoryCommitResource,
   RepositoryDiffStatResource,
 } from "gitdot-api";
@@ -7,23 +8,23 @@ import { addDays, dateOnly, subtractDays } from "@/util";
 // ---------------------------------------------------------------------------
 // commit filtering utils
 // ---------------------------------------------------------------------------
-export type CommitFilter = {
-  name: string;
-  authors?: string[] | null;
-  tags?: string[] | null;
-  included_paths?: string[] | null;
-  excluded_paths?: string[] | null;
+export const ALL_COMMITS_FILTER: RepositoryCommitFilterResource = {
+  id: "00000000-0000-0000-0000-000000000000",
+  repository_id: "00000000-0000-0000-0000-000000000000",
+  name: "All commits",
+  created_at: new Date(0).toISOString(),
+  updated_at: new Date(0).toISOString(),
 };
 
 export function filterCommits(
-  filter: CommitFilter,
+  filter: RepositoryCommitFilterResource,
   commits: RepositoryCommitResource[],
 ): RepositoryCommitResource[] {
   return commits.filter((commit) => filterCommit(filter, commit));
 }
 
 function filterCommit(
-  filter: CommitFilter,
+  filter: RepositoryCommitFilterResource,
   commit: RepositoryCommitResource,
 ): boolean {
   if (filter.authors && filter.authors.length > 0) {
@@ -38,20 +39,12 @@ function filterCommit(
     if (!match) return false;
   }
 
-  const { included_paths, excluded_paths } = filter;
-  if (included_paths && included_paths.length > 0) {
-    const includeRegexes = included_paths.map((p) => new RegExp(p));
-    const hasInclude = commit.diffs.some((diff) =>
-      includeRegexes.some((re) => re.test(diff.path)),
+  if (filter.paths && filter.paths.length > 0) {
+    const regexes = filter.paths.map((p) => new RegExp(p));
+    const hasMatch = commit.diffs.some((diff) =>
+      regexes.some((re) => re.test(diff.path)),
     );
-    if (!hasInclude) return false;
-  }
-  if (excluded_paths && excluded_paths.length > 0) {
-    const excludeRegexes = excluded_paths.map((p) => new RegExp(p));
-    const hasExclude = commit.diffs.some((diff) =>
-      excludeRegexes.some((re) => re.test(diff.path)),
-    );
-    if (hasExclude) return false;
+    if (!hasMatch) return false;
   }
 
   return true;

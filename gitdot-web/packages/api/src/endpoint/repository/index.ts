@@ -10,5 +10,6 @@ export * from "./get-repository-commit-diff";
 export * from "./get-repository-commits";
 export * from "./get-repository-paths";
 export * from "./get-repository-resources";
+export * from "./list-repository-commit-filters";
 export * from "./star-repository";
 export * from "./unstar-repository";

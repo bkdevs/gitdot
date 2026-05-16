@@ -1,10 +1,10 @@
 "use client";
 
 import type {
+  RepositoryCommitFilterResource,
   RepositoryCommitResource,
   RepositoryPathsResource,
 } from "gitdot-api";
-import type { CommitFilter } from "../util";
 import { CommitsFilterDetail } from "./commits-filter-detail";
 import { CommitsFilterList } from "./commits-filter-list";
 
@@ -17,12 +17,11 @@ export function CommitsFilterPanel({
 }: {
   commits: RepositoryCommitResource[];
   paths: RepositoryPathsResource | null;
-  filters: CommitFilter[];
-  activeFilter: CommitFilter;
-  setActiveFilter: (filter: CommitFilter) => void;
+  filters: RepositoryCommitFilterResource[];
+  activeFilter: RepositoryCommitFilterResource;
+  setActiveFilter: (filter: RepositoryCommitFilterResource) => void;
 }) {
-  const active =
-    filters.find((f) => f.name === activeFilter.name) ?? filters[0];
+  const active = filters.find((f) => f.id === activeFilter.id) ?? filters[0];
 
   return (
     <div className="flex flex-col w-64 shrink-0 border-l border-border">
@@ -32,7 +31,7 @@ export function CommitsFilterPanel({
         setActiveFilter={setActiveFilter}
       />
       <CommitsFilterDetail
-        key={active.name}
+        key={active.id}
         commits={commits}
         paths={paths}
         filter={active}

@@ -1,16 +1,16 @@
 "use client";
 
+import type { RepositoryCommitFilterResource } from "gitdot-api";
 import { cn } from "@/util";
-import type { CommitFilter } from "../util";
 
 export function CommitsFilterList({
   filters,
   activeFilter,
   setActiveFilter,
 }: {
-  filters: CommitFilter[];
-  activeFilter: CommitFilter;
-  setActiveFilter: (filter: CommitFilter) => void;
+  filters: RepositoryCommitFilterResource[];
+  activeFilter: RepositoryCommitFilterResource;
+  setActiveFilter: (filter: RepositoryCommitFilterResource) => void;
 }) {
   return (
     <div className="flex flex-col h-42 shrink-0 border-b border-border">
@@ -20,12 +20,12 @@ export function CommitsFilterList({
       <div className="flex flex-col flex-1 min-h-0 overflow-y-auto">
         {filters.map((filter) => (
           <button
-            key={filter.name}
+            key={filter.id}
             type="button"
             onClick={() => setActiveFilter(filter)}
             className={cn(
               "w-full flex flex-row items-center h-6 px-2 text-xs text-left transition-colors shrink-0 border-b border-border font-mono",
-              activeFilter.name === filter.name
+              activeFilter.id === filter.id
                 ? "bg-accent text-foreground"
                 : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
             )}

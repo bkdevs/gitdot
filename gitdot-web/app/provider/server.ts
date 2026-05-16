@@ -5,6 +5,7 @@ import type {
   QuestionResource,
   RepositoryBlobResource,
   RepositoryBlobsResource,
+  RepositoryCommitFilterResource,
   RepositoryCommitResource,
   RepositoryPathsResource,
   ReviewResource,
@@ -22,6 +23,7 @@ import {
   getRepositoryCommit,
   getRepositoryCommits,
   getRepositoryPaths,
+  listRepositoryCommitFilters,
 } from "@/dal/repository";
 import { getReview as dalGetReview, listReviews } from "@/dal/review";
 import { subtractDays } from "@/util/date";
@@ -64,6 +66,10 @@ export class ApiProvider extends ServerProvider {
       from: subtractDays(new Date(), 365).toISOString(),
     });
     return result ? result.commits : null;
+  }
+
+  async getCommitFilters(): Promise<RepositoryCommitFilterResource[] | null> {
+    return await listRepositoryCommitFilters(this.owner, this.repo);
   }
 
   async getBlobs(): Promise<RepositoryBlobsResource | null> {

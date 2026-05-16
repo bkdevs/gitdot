@@ -5,6 +5,7 @@ import type {
   QuestionResource,
   RepositoryBlobResource,
   RepositoryBlobsResource,
+  RepositoryCommitFilterResource,
   RepositoryCommitResource,
   RepositoryPathsResource,
   ReviewResource,
@@ -63,6 +64,10 @@ export class DatabaseProvider extends ClientProvider {
 
   async putCommits(commits: RepositoryCommitResource[]) {
     return this.db.putCommits(this.owner, this.repo, commits);
+  }
+
+  async getCommitFilters(): Promise<RepositoryCommitFilterResource[] | null> {
+    return null;
   }
 
   async getBlobs(): Promise<RepositoryBlobsResource | null> {

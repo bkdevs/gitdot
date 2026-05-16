@@ -50,6 +50,7 @@ pub struct MigrationRepository {
 
     pub origin_full_name: String,
     pub origin_repository_id: i64,
+    pub origin_created_at: Option<DateTime<Utc>>,
     pub destination_full_name: String,
     pub destination_repository_id: Option<Uuid>,
     pub visibility: RepositoryVisibility,
