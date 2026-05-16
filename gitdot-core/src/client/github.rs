@@ -159,7 +159,10 @@ impl GitHubClient for OctocrabClient {
             .app_client
             .installation(InstallationId(installation_id))?;
         let repositories = client
-            .get("/installation/repositories", None::<&()>)
+            .get(
+                "/installation/repositories",
+                Some(&[("per_page", 100)]),
+            )
             .await?;
 
         Ok(repositories)

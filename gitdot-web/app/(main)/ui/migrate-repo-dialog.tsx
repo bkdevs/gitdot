@@ -24,6 +24,7 @@ import {
 } from "@/ui/dropdown-menu";
 import { cn } from "@/util";
 import { timeAgo } from "@/util/date";
+import { githubAppInstallUrl } from "@/util/github";
 
 type MigrationType = "read-only" | "read-write";
 
@@ -226,12 +227,12 @@ function NewMigration({
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
-              <button
-                type="button"
+              <a
+                href={githubAppInstallUrl("migration")}
                 className="underline hover:text-muted-foreground transition-colors cursor-pointer"
               >
                 Install GitHub app
-              </button>
+              </a>
             </div>
             <div className="flex items-center gap-2 text-xs">
               <span className="text-muted-foreground w-8 shrink-0">To:</span>

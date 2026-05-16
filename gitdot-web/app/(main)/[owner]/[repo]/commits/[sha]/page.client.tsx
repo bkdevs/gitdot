@@ -63,7 +63,7 @@ function PageContent({
   return (
     <div
       data-diff-top
-      className="max-w-4xl mx-auto w-full px-4 py-6 flex flex-col gap-6"
+      className="max-w-5xl mx-auto w-full px-4 py-6 flex flex-col gap-6"
     >
       <CommitHeader commit={commit} owner={owner} repo={repo} />
       <Suspense fallback={<Loading />}>
