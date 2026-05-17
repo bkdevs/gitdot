@@ -145,7 +145,7 @@ function NameCriteria({
 }) {
   return (
     <div className="flex flex-col gap-0.5 px-2 py-1.5 shrink-0 border-b border-border">
-      <span className="text-[10px] text-muted-foreground uppercase tracking-wide font-mono">
+      <span className="text-[10px] text-muted-foreground uppercase tracking-wide font-mono select-none">
         Name
       </span>
       <input
@@ -179,13 +179,15 @@ function ChecklistCriteria({
   onToggle: (value: string) => void;
   emptyLabel: string;
 }) {
+  const [open, setOpen] = useState(false);
   const count = selected.length;
   const summary = count > 0 ? selected.join(", ") : emptyLabel;
+  const Chevron = open ? ChevronDown : ChevronRight;
   return (
-    <DropdownMenu>
+    <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger className="w-full flex items-start justify-between gap-2 px-2 py-1.5 text-left shrink-0 border-b border-border hover:bg-accent/50 transition-colors focus:outline-none">
         <div className="flex flex-col min-w-0 gap-0.5">
-          <span className="text-[10px] text-muted-foreground uppercase tracking-wide font-mono">
+          <span className="text-[10px] text-muted-foreground uppercase tracking-wide font-mono select-none">
             {label}
             {count > 0 ? ` (${count})` : ""}
           </span>
@@ -198,7 +200,7 @@ function ChecklistCriteria({
             {summary}
           </span>
         </div>
-        <ChevronRight className="size-3 text-muted-foreground shrink-0 mt-1" />
+        <Chevron className="size-3 text-muted-foreground shrink-0 mt-1" />
       </DropdownMenuTrigger>
       <DropdownMenuContent side="bottom" align="start" className="w-56">
         {options.length === 0 ? (
@@ -261,7 +263,7 @@ function PathsCriteria({
 
   return (
     <div className="relative flex flex-col gap-1 px-2 py-1.5 shrink-0 border-b border-border">
-      <span className="text-[10px] text-muted-foreground uppercase tracking-wide font-mono">
+      <span className="text-[10px] text-muted-foreground uppercase tracking-wide font-mono select-none">
         Paths{selected.length > 0 ? ` (${selected.length})` : ""}
       </span>
       {selected.map((path) => (
