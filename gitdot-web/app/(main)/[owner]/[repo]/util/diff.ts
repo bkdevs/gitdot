@@ -390,6 +390,7 @@ export function createChangeMaps(hunks: DiffHunk[]): {
 
 const SPLIT_MAX_LINE_LENGTH = 80;
 const SPLIT_MIN_MATCH_RATIO = 0.25;
+const UNIFIED_MAX_PAIRS_COUNT = 50;
 
 export function preferSplit(
   leftSpans: Element[],
@@ -415,10 +416,11 @@ export function preferSplit(
     }
   }
 
+  if (total === 0) return false;
+  if (total > UNIFIED_MAX_PAIRS_COUNT) return true;
+
   return (
-    maxLen <= SPLIT_MAX_LINE_LENGTH &&
-    total > 0 &&
-    matched / total >= SPLIT_MIN_MATCH_RATIO
+    maxLen <= SPLIT_MAX_LINE_LENGTH && matched / total >= SPLIT_MIN_MATCH_RATIO
   );
 }
 

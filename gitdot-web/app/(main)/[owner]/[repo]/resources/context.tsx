@@ -1,13 +1,11 @@
 "use client";
 
-import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { useWorkerContext } from "@/(main)/context/worker";
-import { InMemoryProvider } from "@/provider/memory";
 
 type RepoContext = {
   resourcesReady: boolean;
   hastsReady: boolean;
-  provider: InMemoryProvider;
 };
 const RepoContext = createContext<RepoContext | null>(null);
 
@@ -23,15 +21,6 @@ export function RepoResources({
   const { syncRepo } = useWorkerContext();
   const [resourcesReady, setResourcesReady] = useState(false);
   const [hastsReady, setHastsReady] = useState(false);
-  const provider = useRef(new InMemoryProvider(owner, repo)).current;
-
-  useEffect(() => {
-    provider.initialize();
-  }, [provider]);
-
-  useEffect(() => {
-    if (resourcesReady) provider.initialize();
-  }, [resourcesReady, provider]);
 
   useEffect(() => {
     const { resources, hasts } = syncRepo(owner, repo);
@@ -44,7 +33,6 @@ export function RepoResources({
       value={{
         resourcesReady,
         hastsReady,
-        provider,
       }}
     >
       {children}

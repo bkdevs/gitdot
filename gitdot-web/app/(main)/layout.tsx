@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { DatabaseProvider } from "./context/database";
-import { HistoryProvider } from "./context/history";
 import { MigrateRepoProvider } from "./context/migrate-repo";
 import { NewOrgProvider } from "./context/new-org";
 import { NewRepoProvider } from "./context/new-repo";
@@ -32,14 +31,12 @@ export default function RootLayout({
                 <NewRepoProvider>
                   <MigrateRepoProvider>
                     <NewOrgProvider>
-                      <HistoryProvider>
-                        <div className="flex flex-col h-screen w-full max-w-screen overflow-hidden">
-                          <main className="flex-1 min-h-0 overflow-hidden">
-                            {children}
-                          </main>
-                          <MainFooter />
-                        </div>
-                      </HistoryProvider>
+                      <div className="flex flex-col h-screen w-full max-w-screen overflow-hidden">
+                        <main className="flex-1 min-h-0 overflow-hidden">
+                          {children}
+                        </main>
+                        <MainFooter />
+                      </div>
                     </NewOrgProvider>
                   </MigrateRepoProvider>
                 </NewRepoProvider>
