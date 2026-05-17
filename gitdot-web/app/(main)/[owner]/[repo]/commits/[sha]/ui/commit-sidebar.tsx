@@ -61,7 +61,7 @@ export function CommitSidebar({
 
   return (
     <div className="min-w-0">
-      <div className="text-xs font-mono text-foreground mb-2">Files</div>
+      <div className="text-xs font-mono text-foreground mb-1">Files</div>
       <nav className="flex flex-col gap-1 font-mono text-xs">
         {entries.map((entry, i) => {
           const path = entry.resource.path;

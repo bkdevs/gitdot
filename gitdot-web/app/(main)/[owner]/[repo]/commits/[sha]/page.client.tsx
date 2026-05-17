@@ -66,7 +66,7 @@ function PageContent({
       data-diff-top
       className="grid grid-cols-[1fr_minmax(0,64rem)_1fr] w-full"
     >
-      <aside className="hidden xl:flex xl:flex-col sticky top-0 self-start max-h-screen overflow-y-auto py-4 pl-2 w-72 gap-4 justify-self-end">
+      <aside className="hidden xl:flex xl:flex-col sticky top-0 self-start max-h-screen overflow-y-auto py-5 pl-4 w-72 gap-6 justify-self-end">
         <CommitHeader commit={commit} owner={owner} repo={repo} />
         <Suspense fallback={null}>
           <CommitSidebar diffEntriesPromise={diffEntriesPromise} />

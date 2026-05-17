@@ -1,7 +1,7 @@
 import type { RepositoryCommitResource } from "gitdot-api";
 import { UserImage } from "@/(main)/[owner]/ui/user/user-image";
 import Link from "@/ui/link";
-import { formatDateTime } from "@/util";
+import { formatIsoDateTime } from "@/util";
 
 export function CommitHeader({
   commit,
@@ -49,10 +49,9 @@ export function CommitHeader({
       <div className="text-sm text-primary whitespace-pre-wrap mt-1">
         {commit.message}
       </div>
-      <div className="flex items-baseline gap-1.5 text-xs text-muted-foreground mt-1">
-        <span>{formatDateTime(date)}</span>
-        <span>·</span>
-        <span className="font-mono">{commit.sha.substring(0, 7)}</span>
+      <div className="flex items-baseline justify-between text-xs font-mono text-muted-foreground mt-1">
+        <span>{formatIsoDateTime(date)}</span>
+        <span>{commit.sha.substring(0, 7)}</span>
       </div>
     </div>
   );
