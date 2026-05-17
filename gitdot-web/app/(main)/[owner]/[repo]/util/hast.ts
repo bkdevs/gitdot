@@ -1,7 +1,6 @@
-import type { DiffChangeResource, RepositoryFileResource } from "gitdot-api";
+import type { RepositoryFileResource } from "gitdot-api";
 import type { Element, ElementContent, Root } from "hast";
 import {
-  addClassToHast,
   type BundledLanguage,
   getSingletonHighlighter,
   type Highlighter,
@@ -70,7 +69,7 @@ export async function renderSpans(
   side: "left" | "right",
   content: string,
   lang: BundledLanguage | undefined,
-  changeMap: Map<number, DiffChangeResource[]>,
+  changedLines: Set<number>,
 ): Promise<Element[]> {
   const hast = await fileToHast(content, lang, "gitdot-light", [
     {
@@ -85,11 +84,9 @@ export async function renderSpans(
         node.tagName = "diffline";
         node.properties["data-line-number"] = lineNumber;
 
-        const changes = changeMap.get(lineNumber - 1);
-        if (changes) {
+        if (changedLines.has(lineNumber - 1)) {
           node.properties["data-line-type"] =
             side === "left" ? "removed" : "added";
-          highlightWords(side, node, changes);
         } else {
           node.properties["data-line-type"] = "normal";
         }
@@ -109,168 +106,6 @@ export async function renderSpans(
   }
 
   return lines;
-}
-
-/**
- * apply word-level highlighting from difftastic output
- *
- * in general, we want our spans to be _wider_ than the changes, and then we create subspans within each span
- * with highlighting applied
- */
-export function highlightWords(
-  side: "left" | "right",
-  lineNode: Element,
-  changes: DiffChangeResource[],
-): void {
-  const processedChanges = processChanges(changes);
-  const colorClass = side === "left" ? "text-red-600!" : "text-green-600!";
-
-  let charOffset = 0;
-  for (const child of lineNode.children) {
-    if (child.type !== "element") {
-      throw new Error("Unexpected non-element child");
-    }
-
-    const spanLength = getSpanLength(child);
-    const spanStart = charOffset;
-    const spanEnd = charOffset + spanLength;
-
-    const changesInSpan = processedChanges.filter(
-      (change) => change.start >= spanStart && change.end <= spanEnd,
-    );
-
-    if (changesInSpan.length > 0) {
-      const coversEntireSpan = changesInSpan.some(
-        (change) => change.start === spanStart && change.end === spanEnd,
-      );
-
-      if (coversEntireSpan) {
-        addClassToHast(child, colorClass);
-      } else {
-        splitSpanByWord(child, spanStart, changesInSpan, colorClass);
-      }
-    }
-
-    charOffset = spanEnd;
-  }
-}
-
-/**
- * occasionally difft will return string changes as contiugous chunks,
- * e.g., "a string here" -> is one change
- *
- * that doesn't fit well into our spans, as we split out quotes as separate spans:
- * <span>"</span><span>a string here</span><span>"</span>
- *
- * so we process the changes to split out quotes
- */
-function processChanges(changes: DiffChangeResource[]): DiffChangeResource[] {
-  const result: DiffChangeResource[] = [];
-
-  for (const change of changes) {
-    if (change.highlight !== "string") {
-      result.push(change);
-      continue;
-    }
-
-    const content = change.content;
-    const quote = content[0];
-
-    if (
-      (quote === '"' || quote === "'" || quote === "`") &&
-      content.length >= 2 &&
-      content[content.length - 1] === quote
-    ) {
-      result.push({
-        start: change.start,
-        end: change.start + 1,
-        content: quote,
-        highlight: "string",
-      });
-
-      if (content.length > 2) {
-        result.push({
-          start: change.start + 1,
-          end: change.end - 1,
-          content: content.slice(1, -1),
-          highlight: "string",
-        });
-      }
-
-      result.push({
-        start: change.end - 1,
-        end: change.end,
-        content: quote,
-        highlight: "string",
-      });
-    } else {
-      result.push(change);
-    }
-  }
-
-  return result;
-}
-
-function getSpanLength(node: ElementContent): number {
-  if (node.type !== "element" || node.children.length !== 1) {
-    throw new Error("Span must have one child");
-  }
-  const child = node.children[0];
-  if (child.type !== "text") {
-    throw new Error("Span must have one text child");
-  }
-  return child.value.length;
-}
-
-function getSpanText(node: Element): string {
-  const child = node.children[0];
-  if (child.type !== "text") {
-    throw new Error("Span must have one text child");
-  }
-  return child.value;
-}
-
-function splitSpanByWord(
-  span: Element,
-  spanStart: number,
-  changes: DiffChangeResource[],
-  colorClass: string,
-): void {
-  const text = getSpanText(span);
-  const sortedChanges = [...changes].sort((a, b) => a.start - b.start);
-
-  const newChildren: ElementContent[] = [];
-  let currentPos = spanStart;
-
-  for (const change of sortedChanges) {
-    if (change.start > currentPos) {
-      const beforeText = text.slice(
-        currentPos - spanStart,
-        change.start - spanStart,
-      );
-      newChildren.push({ type: "text", value: beforeText });
-    }
-
-    const changeText = text.slice(
-      change.start - spanStart,
-      change.end - spanStart,
-    );
-    newChildren.push({
-      type: "element",
-      tagName: "span",
-      properties: { class: [colorClass] },
-      children: [{ type: "text", value: changeText }],
-    });
-
-    currentPos = change.end;
-  }
-
-  if (currentPos < spanStart + text.length) {
-    const afterText = text.slice(currentPos - spanStart);
-    newChildren.push({ type: "text", value: afterText });
-  }
-
-  span.children = newChildren;
 }
 
 function getTextLength(node: ElementContent): number {

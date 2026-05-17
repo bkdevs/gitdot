@@ -5,40 +5,6 @@ import { QuestionResource } from "./question";
 import { ReviewResource } from "./review";
 import { UserResource } from "./user";
 
-export const SyntaxHighlight = z.enum([
-  "delimiter",
-  "normal",
-  "string",
-  "type",
-  "comment",
-  "keyword",
-  "tree_sitter_error",
-]);
-export type SyntaxHighlight = z.infer<typeof SyntaxHighlight>;
-
-export const DiffChangeResource = z.object({
-  start: z.number().int(),
-  end: z.number().int(),
-  content: z.string(),
-  highlight: SyntaxHighlight,
-});
-export type DiffChangeResource = z.infer<typeof DiffChangeResource>;
-
-export const DiffLineResource = z.object({
-  line_number: z.number().int(),
-  changes: z.array(DiffChangeResource),
-});
-export type DiffLineResource = z.infer<typeof DiffLineResource>;
-
-export const DiffPairResource = z.object({
-  lhs: DiffLineResource.optional(),
-  rhs: DiffLineResource.optional(),
-});
-export type DiffPairResource = z.infer<typeof DiffPairResource>;
-
-export const DiffHunkResource = z.array(DiffPairResource);
-export type DiffHunkResource = z.infer<typeof DiffHunkResource>;
-
 export const RepositoryFileResource = z.object({
   commit_sha: z.string(),
   path: z.string(),
@@ -68,7 +34,6 @@ export const RepositoryDiffFileResource = z.object({
   path: z.string(),
   lines_added: z.number().int(),
   lines_removed: z.number().int(),
-  hunks: z.array(DiffHunkResource),
   left_content: z.string().optional(),
   right_content: z.string().optional(),
 });

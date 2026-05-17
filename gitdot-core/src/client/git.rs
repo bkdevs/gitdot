@@ -4,8 +4,8 @@ use tokio::{fs, task};
 use crate::{
     dto::{
         PathType, RepositoryBlobResponse, RepositoryBlobsResponse, RepositoryCommitResponse,
-        RepositoryDiffStatResponse, RepositoryFileResponse, RepositoryFolderResponse,
-        RepositoryPath, RepositoryPathsResponse,
+        RepositoryDiffFileResponse, RepositoryDiffStatResponse, RepositoryFileResponse,
+        RepositoryFolderResponse, RepositoryPath, RepositoryPathsResponse,
     },
     error::GitError,
     util::{
@@ -95,13 +95,7 @@ pub trait GitClient: Send + Sync + Clone + 'static {
         repo: &str,
         left_ref: Option<&str>,
         right_ref: &str,
-    ) -> Result<
-        Vec<(
-            Option<RepositoryFileResponse>,
-            Option<RepositoryFileResponse>,
-        )>,
-        GitError,
-    >;
+    ) -> Result<Vec<RepositoryDiffFileResponse>, GitError>;
 
     async fn get_repo_diff_stats(
         &self,
@@ -247,6 +241,16 @@ impl Git2Client {
             sha,
             content,
             encoding,
+        }
+    }
+
+    fn blob_content_string(blob: &git2::Blob) -> String {
+        let bytes = blob.content();
+        if Self::is_binary(bytes) {
+            use base64::prelude::*;
+            BASE64_STANDARD.encode(bytes)
+        } else {
+            String::from_utf8_lossy(bytes).to_string()
         }
     }
 
@@ -672,13 +676,7 @@ impl GitClient for Git2Client {
         repo: &str,
         left_ref: Option<&str>,
         right_ref: &str,
-    ) -> Result<
-        Vec<(
-            Option<RepositoryFileResponse>,
-            Option<RepositoryFileResponse>,
-        )>,
-        GitError,
-    > {
+    ) -> Result<Vec<RepositoryDiffFileResponse>, GitError> {
         let owner = owner.to_string();
         let repo = repo.to_string();
         let left_ref = left_ref.map(str::to_string);
@@ -686,54 +684,70 @@ impl GitClient for Git2Client {
         let repository = self.open_repository(&owner, &repo)?;
 
         task::spawn_blocking(move || {
-            let (left_tree, left_commit_sha) = match left_ref {
+            let left_tree = match left_ref {
                 None => {
                     let empty_oid = repository.treebuilder(None)?.write()?;
-                    (repository.find_tree(empty_oid)?, String::new())
+                    repository.find_tree(empty_oid)?
                 }
-                Some(ref r) => {
-                    let commit = Self::resolve_ref(&repository, r)?;
-                    let sha = commit.id().to_string();
-                    (commit.tree()?, sha)
-                }
+                Some(ref r) => Self::resolve_ref(&repository, r)?.tree()?,
             };
-            let right_commit = Self::resolve_ref(&repository, &right_ref)?;
-            let right_commit_sha = right_commit.id().to_string();
-            let right_tree = right_commit.tree()?;
+            let right_tree = Self::resolve_ref(&repository, &right_ref)?.tree()?;
             let diff = Self::diff_trees(&repository, &left_tree, &right_tree)?;
 
-            let mut results = Vec::new();
+            let num_deltas = diff.deltas().count();
+            let mut results = Vec::with_capacity(num_deltas);
 
-            for delta in diff.deltas() {
+            for i in 0..num_deltas {
+                let delta = diff
+                    .get_delta(i)
+                    .ok_or_else(|| git2::Error::from_str("delta index out of range"))?;
                 let status = delta.status();
 
-                let left = if status != git2::Delta::Added {
+                let left_content = if status != git2::Delta::Added {
                     delta
                         .old_file()
                         .path()
                         .and_then(|p| p.to_str())
                         .and_then(|path| {
                             let blob = Self::get_blob(&repository, &left_tree, path).ok()?;
-                            Some(Self::blob_to_response(&blob, path, &left_commit_sha))
+                            Some(Self::blob_content_string(&blob))
                         })
                 } else {
                     None
                 };
 
-                let right = if status != git2::Delta::Deleted {
+                let right_content = if status != git2::Delta::Deleted {
                     delta
                         .new_file()
                         .path()
                         .and_then(|p| p.to_str())
                         .and_then(|path| {
                             let blob = Self::get_blob(&repository, &right_tree, path).ok()?;
-                            Some(Self::blob_to_response(&blob, path, &right_commit_sha))
+                            Some(Self::blob_content_string(&blob))
                         })
                 } else {
                     None
                 };
 
-                results.push((left, right));
+                let path = delta
+                    .new_file()
+                    .path()
+                    .or_else(|| delta.old_file().path())
+                    .and_then(|p| p.to_str())
+                    .unwrap_or("")
+                    .to_string();
+
+                let patch = git2::Patch::from_diff(&diff, i)?;
+                let (_, insertions, deletions) =
+                    patch.map(|p| p.line_stats()).unwrap_or(Ok((0, 0, 0)))?;
+
+                results.push(RepositoryDiffFileResponse {
+                    path,
+                    left_content,
+                    right_content,
+                    lines_added: insertions as u32,
+                    lines_removed: deletions as u32,
+                });
             }
 
             Ok(results)

@@ -1,10 +1,10 @@
-import type { DiffHunkResource } from "gitdot-api";
 import type { Element } from "hast";
 import { toJsxRuntime } from "hast-util-to-jsx-runtime";
 import type { JSX } from "react";
 import { Fragment } from "react";
 import { jsx, jsxs } from "react/jsx-runtime";
 import {
+  type DiffHunk,
   expandLines,
   type LinePair,
   pairLines,
@@ -18,7 +18,7 @@ export function DiffUnified({
 }: {
   leftSpans: Element[];
   rightSpans: Element[];
-  hunks: DiffHunkResource[];
+  hunks: DiffHunk[];
 }) {
   return (
     <div className="flex flex-col w-full">
@@ -74,7 +74,7 @@ function DiffSection({
   leftSpans,
   rightSpans,
 }: {
-  hunk: DiffHunkResource;
+  hunk: DiffHunk;
   leftSpans: Element[];
   rightSpans: Element[];
 }) {

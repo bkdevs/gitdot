@@ -1,8 +1,7 @@
 use gitdot_api::resource::{repository as repo_api, review as api};
 use gitdot_core::dto::{
-    DiffChange, DiffLine, DiffPair, DiffResponse, ReviewAuthorResponse, ReviewCommentResponse,
-    ReviewDiffResponse, ReviewResponse, ReviewVerdictResponse, ReviewerResponse, ReviewsResponse,
-    RevisionResponse, SyntaxHighlight,
+    DiffResponse, ReviewAuthorResponse, ReviewCommentResponse, ReviewDiffResponse, ReviewResponse,
+    ReviewVerdictResponse, ReviewerResponse, ReviewsResponse, RevisionResponse,
 };
 
 use super::IntoApi;
@@ -136,53 +135,6 @@ impl IntoApi for ReviewDiffResponse {
     fn into_api(self) -> Self::ApiType {
         gitdot_api::endpoint::review::get_review_diff::GetReviewDiffResponse {
             files: self.files.into_api(),
-        }
-    }
-}
-
-impl IntoApi for DiffPair {
-    type ApiType = repo_api::DiffPairResource;
-    fn into_api(self) -> Self::ApiType {
-        repo_api::DiffPairResource {
-            lhs: self.lhs.map(|l| l.into_api()),
-            rhs: self.rhs.map(|r| r.into_api()),
-        }
-    }
-}
-
-impl IntoApi for DiffLine {
-    type ApiType = repo_api::DiffLineResource;
-    fn into_api(self) -> Self::ApiType {
-        repo_api::DiffLineResource {
-            line_number: self.line_number,
-            changes: self.changes.into_iter().map(|c| c.into_api()).collect(),
-        }
-    }
-}
-
-impl IntoApi for DiffChange {
-    type ApiType = repo_api::DiffChangeResource;
-    fn into_api(self) -> Self::ApiType {
-        repo_api::DiffChangeResource {
-            start: self.start,
-            end: self.end,
-            content: self.content,
-            highlight: self.highlight.into_api(),
-        }
-    }
-}
-
-impl IntoApi for SyntaxHighlight {
-    type ApiType = repo_api::SyntaxHighlight;
-    fn into_api(self) -> Self::ApiType {
-        match self {
-            SyntaxHighlight::Delimiter => repo_api::SyntaxHighlight::Delimiter,
-            SyntaxHighlight::Normal => repo_api::SyntaxHighlight::Normal,
-            SyntaxHighlight::String => repo_api::SyntaxHighlight::String,
-            SyntaxHighlight::Type => repo_api::SyntaxHighlight::Type,
-            SyntaxHighlight::Comment => repo_api::SyntaxHighlight::Comment,
-            SyntaxHighlight::Keyword => repo_api::SyntaxHighlight::Keyword,
-            SyntaxHighlight::TreeSitterError => repo_api::SyntaxHighlight::TreeSitterError,
         }
     }
 }

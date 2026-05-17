@@ -135,7 +135,7 @@ impl HttpStatus for RepositoryError {
             Self::Input(_) | Self::TooManyPaths | Self::NotAFile(_) => StatusCode::BAD_REQUEST,
             Self::NotFound(_) => StatusCode::NOT_FOUND,
             Self::Conflict(_) => StatusCode::CONFLICT,
-            Self::GitError(_) | Self::DiffError(_) | Self::DatabaseError(_) => {
+            Self::GitError(_) | Self::DatabaseError(_) => {
                 StatusCode::INTERNAL_SERVER_ERROR
             }
         }
@@ -147,7 +147,7 @@ impl HttpStatus for CommitError {
         match self {
             Self::Input(_) => StatusCode::BAD_REQUEST,
             Self::NotFound(_) => StatusCode::NOT_FOUND,
-            Self::GitError(_) | Self::DiffError(_) | Self::DatabaseError(_) => {
+            Self::GitError(_) | Self::DatabaseError(_) => {
                 StatusCode::INTERNAL_SERVER_ERROR
             }
         }
@@ -179,7 +179,7 @@ impl HttpStatus for ReviewError {
             Self::NotFound(_) => StatusCode::NOT_FOUND,
             Self::Conflict(_) | Self::DiffNotMergeable(_) => StatusCode::CONFLICT,
             Self::NotOrgAdmin(_) => StatusCode::FORBIDDEN,
-            Self::GitError(_) | Self::DiffError(_) | Self::DatabaseError(_) => {
+            Self::GitError(_) | Self::DatabaseError(_) => {
                 StatusCode::INTERNAL_SERVER_ERROR
             }
         }

@@ -6,8 +6,8 @@ use sqlx::PgPool;
 
 use gitdot_core::{
     client::{
-        DifftClient, Git2Client, GitHttpClientImpl, ImageClientImpl, KafkaClientImpl,
-        OctocrabClient, R2ClientImpl, S2ClientImpl, SlackBotClientImpl, TokenClientImpl,
+        Git2Client, GitHttpClientImpl, ImageClientImpl, KafkaClientImpl, OctocrabClient,
+        R2ClientImpl, S2ClientImpl, SlackBotClientImpl, TokenClientImpl,
     },
     repository::{
         BuildRepositoryImpl, CommitRepositoryImpl, GitHubRepositoryImpl, MigrationRepositoryImpl,
@@ -82,7 +82,6 @@ impl AppState {
 
         let git_client = Git2Client::new(settings.git_project_root.clone());
         let git_http_client = GitHttpClientImpl::new(settings.git_project_root.clone());
-        let diff_client = DifftClient::new();
         let github_client = OctocrabClient::new(
             settings.github_app_id,
             settings.github_app_private_key.clone(),
@@ -149,7 +148,6 @@ impl AppState {
                 git_client.clone(),
                 org_repo.clone(),
                 repo_repo.clone(),
-                diff_client.clone(),
             )),
             git_http_service: Arc::new(GitHttpServiceImpl::new(git_http_client.clone())),
             question_service: Arc::new(QuestionServiceImpl::new(
@@ -161,14 +159,12 @@ impl AppState {
                 repo_repo.clone(),
                 user_repo.clone(),
                 git_client.clone(),
-                diff_client.clone(),
             )),
             commit_service: Arc::new(CommitServiceImpl::new(
                 commit_repo.clone(),
                 repo_repo.clone(),
                 user_repo.clone(),
                 git_client.clone(),
-                diff_client.clone(),
             )),
             migration_service: Arc::new(MigrationServiceImpl::new(
                 git_client.clone(),

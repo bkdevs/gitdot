@@ -34,17 +34,10 @@ FROM debian:bookworm-slim
 
 WORKDIR /app
 
-# Install git, ca-certificates, and curl for downloading difftastic
+# Install git and ca-certificates
 RUN apt-get update && \
-  apt-get install -y git ca-certificates curl && \
+  apt-get install -y git ca-certificates && \
   rm -rf /var/lib/apt/lists/*
-
-# Install difftastic
-RUN curl -L https://github.com/Wilfred/difftastic/releases/download/0.67.0/difft-x86_64-unknown-linux-gnu.tar.gz -o /tmp/difft.tar.gz && \
-  tar -xzf /tmp/difft.tar.gz -C /tmp && \
-  mv /tmp/difft /usr/local/bin/difft && \
-  chmod +x /usr/local/bin/difft && \
-  rm /tmp/difft.tar.gz
 
 # Configure git globally
 RUN git config --system user.name "Git Server" && \

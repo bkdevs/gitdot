@@ -4,7 +4,7 @@
 
 `gitdot-core` is the business logic crate for the Gitdot platform. It defines all domain services, data-access repositories, external client integrations, DTOs, models, and error types. The Axum HTTP server (`gitdot-server`) depends entirely on this crate and delegates all logic to its services, keeping the handler layer thin.
 
-The crate follows a strict layered architecture: handlers call services, services call repositories and clients, repositories execute SQL queries via `sqlx`, and clients wrap `git2`, `difftastic`, GitHub's API, and S2 streams. Every layer is expressed as a trait with a corresponding `Impl` struct, making each layer independently testable.
+The crate follows a strict layered architecture: handlers call services, services call repositories and clients, repositories execute SQL queries via `sqlx`, and clients wrap `git2`, GitHub's API, and S2 streams. Every layer is expressed as a trait with a corresponding `Impl` struct, making each layer independently testable.
 
 ### APIs
 
@@ -86,11 +86,11 @@ pub trait ReviewService: Send + Sync + 'static {
     async fn resolve_review_comment(&self, request: ResolveReviewCommentRequest) -> Result<ReviewCommentResponse, ReviewError>;
 }
 
-pub struct ReviewServiceImpl<V, R, U, O, G, D>
+pub struct ReviewServiceImpl<V, R, U, O, G>
 where V: ReviewRepository, R: RepositoryRepository, U: UserRepository,
-      O: OrganizationRepository, G: GitClient, D: DiffClient
+      O: OrganizationRepository, G: GitClient
 {
-    pub fn new(review_repo: V, repo_repo: R, user_repo: U, org_repo: O, git_client: G, diff_client: D) -> Self;
+    pub fn new(review_repo: V, repo_repo: R, user_repo: U, org_repo: O, git_client: G) -> Self;
 }
 ```
 
@@ -183,12 +183,6 @@ pub trait GitClient: Send + Sync + Clone + 'static {
     async fn update_ref(&self, owner: &str, repo: &str, ref_name: &str, sha: &str) -> Result<(), GitError>;
     async fn install_hook(&self, owner: &str, repo: &str, hook_name: &str) -> Result<(), GitError>;
     async fn cherry_pick_commit(&self, owner: &str, repo: &str, sha: &str, onto: &str) -> Result<String, GitError>;
-}
-
-// difftastic wrapper
-#[async_trait]
-pub trait DiffClient: Send + Sync + Clone + 'static {
-    async fn diff_files(&self, left: DiffFile, right: DiffFile) -> Result<RepositoryDiffFileResponse, DiffError>;
 }
 
 // S2 stream provisioning

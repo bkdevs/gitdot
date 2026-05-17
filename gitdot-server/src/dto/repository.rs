@@ -221,11 +221,6 @@ impl IntoApi for RepositoryDiffFileResponse {
             path: self.path,
             lines_added: self.lines_added,
             lines_removed: self.lines_removed,
-            hunks: self
-                .hunks
-                .into_iter()
-                .map(|h| h.into_iter().map(|p| p.into_api()).collect())
-                .collect(),
             left_content: self.left_content,
             right_content: self.right_content,
         }

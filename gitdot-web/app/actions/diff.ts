@@ -1,9 +1,10 @@
 "use server";
 
-import type { DiffHunkResource, RepositoryDiffFileResource } from "gitdot-api";
+import type { RepositoryDiffFileResource } from "gitdot-api";
 import type { Element } from "hast";
 import {
   createChangeMaps,
+  type DiffHunk,
   diffFiles,
   fileToHast,
   inferLanguage,
@@ -20,12 +21,12 @@ export type DiffSpans =
       kind: "split";
       leftSpans: Element[];
       rightSpans: Element[];
-      hunks: DiffHunkResource[];
+      hunks: DiffHunk[];
     }
   | {
       kind: "unilateral";
       spans: Element[];
-      hunks: DiffHunkResource[];
+      hunks: DiffHunk[];
       side: "left" | "right";
     }
   | { kind: "created"; spans: Element[] }
@@ -110,9 +111,9 @@ async function renderDiff(
     if (isAllAdditions || isAllRemovals) {
       const side = isAllAdditions ? ("right" as const) : ("left" as const);
       const content = isAllAdditions ? right : left;
-      const { leftChangeMap, rightChangeMap } = createChangeMaps(hunks);
-      const changeMap = isAllAdditions ? rightChangeMap : leftChangeMap;
-      const spans = await renderSpans(side, content, lang, changeMap);
+      const { leftLines, rightLines } = createChangeMaps(hunks);
+      const changedLines = isAllAdditions ? rightLines : leftLines;
+      const spans = await renderSpans(side, content, lang, changedLines);
       return {
         kind: "unilateral" as const,
         spans,
@@ -121,10 +122,10 @@ async function renderDiff(
       };
     }
 
-    const { leftChangeMap, rightChangeMap } = createChangeMaps(hunks);
+    const { leftLines, rightLines } = createChangeMaps(hunks);
     const [leftSpans, rightSpans] = await Promise.all([
-      renderSpans("left", left, lang, leftChangeMap),
-      renderSpans("right", right, lang, rightChangeMap),
+      renderSpans("left", left, lang, leftLines),
+      renderSpans("right", right, lang, rightLines),
     ]);
     return {
       kind: "split" as const,

@@ -4,16 +4,16 @@ use async_trait::async_trait;
 use uuid::Uuid;
 
 use crate::{
-    client::{DiffClient, DifftClient, Git2Client, GitClient},
+    client::{Git2Client, GitClient},
     dto::{
         CreateRepositoryCommitFilterRequest, CreateRepositoryRequest,
         DeleteRepositoryCommitFilterRequest, DeleteRepositoryRequest, GetRepositoryActivityRequest,
         GetRepositoryBlobDiffsRequest, GetRepositoryBlobRequest, GetRepositoryBlobsRequest,
         GetRepositoryPathsRequest, GetRepositoryRequest, ListRepositoryCommitFiltersRequest,
         RepositoryActivityEvent, RepositoryBlobDiffsResponse, RepositoryBlobResponse,
-        RepositoryBlobsResponse, RepositoryCommitFilterResponse, RepositoryPathsResponse,
-        RepositoryResponse, StarRepositoryRequest, UnstarRepositoryRequest,
-        UpdateRepositoryCommitFilterRequest,
+        RepositoryBlobsResponse, RepositoryCommitFilterResponse, RepositoryDiffFileResponse,
+        RepositoryFileResponse, RepositoryPathsResponse, RepositoryResponse, StarRepositoryRequest,
+        UnstarRepositoryRequest, UpdateRepositoryCommitFilterRequest,
     },
     error::{ConflictError, NotFoundError, OptionNotFoundExt, RepositoryError},
     model::RepositoryOwnerType,
@@ -104,50 +104,38 @@ pub trait RepositoryService: Send + Sync + 'static {
 }
 
 #[derive(Debug, Clone)]
-pub struct RepositoryServiceImpl<G, O, R, D>
+pub struct RepositoryServiceImpl<G, O, R>
 where
     G: GitClient,
     O: OrganizationRepository,
     R: RepositoryRepository,
-    D: DiffClient,
 {
     git_client: G,
     org_repo: O,
     repo_repo: R,
-    diff_client: D,
 }
 
-impl
-    RepositoryServiceImpl<
-        Git2Client,
-        OrganizationRepositoryImpl,
-        RepositoryRepositoryImpl,
-        DifftClient,
-    >
-{
+impl RepositoryServiceImpl<Git2Client, OrganizationRepositoryImpl, RepositoryRepositoryImpl> {
     pub fn new(
         git_client: Git2Client,
         org_repo: OrganizationRepositoryImpl,
         repo_repo: RepositoryRepositoryImpl,
-        diff_client: DifftClient,
     ) -> Self {
         Self {
             git_client,
             org_repo,
             repo_repo,
-            diff_client,
         }
     }
 }
 
 #[crate::instrument_all(level = "debug")]
 #[async_trait]
-impl<G, O, R, D> RepositoryService for RepositoryServiceImpl<G, O, R, D>
+impl<G, O, R> RepositoryService for RepositoryServiceImpl<G, O, R>
 where
     G: GitClient,
     O: OrganizationRepository,
     R: RepositoryRepository,
-    D: DiffClient,
 {
     async fn create_repository(
         &self,
@@ -376,10 +364,7 @@ where
 
         let mut diffs = HashMap::new();
         for (i, ref_name) in request.commit_shas.iter().enumerate() {
-            let diff = self
-                .diff_client
-                .diff_files(files.get(i + 1), files.get(i))
-                .await?;
+            let diff = diff_file_pair(files.get(i + 1), files.get(i));
             diffs.insert(ref_name.clone(), diff);
         }
 
@@ -544,5 +529,40 @@ where
             return Err(NotFoundError::new("commit filter", request.filter_id).into());
         }
         Ok(())
+    }
+}
+
+fn diff_file_pair(
+    left: Option<&RepositoryFileResponse>,
+    right: Option<&RepositoryFileResponse>,
+) -> RepositoryDiffFileResponse {
+    let path = right
+        .map(|r| r.path.clone())
+        .or_else(|| left.map(|l| l.path.clone()))
+        .unwrap_or_default();
+
+    let left_bytes = left.map(|l| l.content.as_bytes());
+    let right_bytes = right.map(|r| r.content.as_bytes());
+
+    let (lines_added, lines_removed) = match git2::Patch::from_buffers(
+        left_bytes.unwrap_or(&[]),
+        None,
+        right_bytes.unwrap_or(&[]),
+        None,
+        None,
+    ) {
+        Ok(patch) => patch
+            .line_stats()
+            .map(|(_, ins, del)| (ins as u32, del as u32))
+            .unwrap_or((0, 0)),
+        Err(_) => (0, 0),
+    };
+
+    RepositoryDiffFileResponse {
+        path,
+        left_content: left.map(|l| l.content.clone()),
+        right_content: right.map(|r| r.content.clone()),
+        lines_added,
+        lines_removed,
     }
 }

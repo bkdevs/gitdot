@@ -1,17 +1,15 @@
 import { structuredPatch } from "diff";
-import type {
-  DiffChangeResource,
-  DiffHunkResource,
-  DiffLineResource,
-  DiffPairResource,
-} from "gitdot-api";
 import type { Element } from "hast";
 
 export type LinePair = [number | null, number | null];
 export const CONTEXT_LINES = 4;
 
+export type DiffLine = { line_number: number };
+export type DiffPair = { lhs?: DiffLine; rhs?: DiffLine };
+export type DiffHunk = DiffPair[];
+
 /**
- * builds DiffHunkResource[] from raw file contents using jsdiff's structuredPatch
+ * builds DiffHunk[] from raw file contents using jsdiff's structuredPatch
  *
  * we use context: CONTEXT_LINES so jsdiff already bundles adjacent changes
  * within CONTEXT_LINES * 2 of each other into one hunk
@@ -19,13 +17,11 @@ export const CONTEXT_LINES = 4;
  * within a hunk we collect removed and added lines in order, then zip them:
  *  - first min(removed, added) lines pair lhs <-> rhs
  *  - remainder is one-sided
- *
- * changes is left empty for now — the line gets highlighted whole-line rather than at token level
  */
 export function diffFiles(
   leftContent: string,
   rightContent: string,
-): DiffHunkResource[] {
+): DiffHunk[] {
   const patch = structuredPatch(
     "left",
     "right",
@@ -36,21 +32,21 @@ export function diffFiles(
     { context: CONTEXT_LINES },
   );
 
-  const result: DiffHunkResource[] = [];
+  const result: DiffHunk[] = [];
   for (const hunk of patch.hunks) {
     // structuredPatch returns 1-indexed line numbers (standard unified diff), but we 0-index elsewhere
     let oldLine = hunk.oldStart - 1;
     let newLine = hunk.newStart - 1;
-    const removed: DiffLineResource[] = [];
-    const added: DiffLineResource[] = [];
+    const removed: DiffLine[] = [];
+    const added: DiffLine[] = [];
 
     for (const raw of hunk.lines) {
       const marker = raw[0];
       if (marker === "-") {
-        removed.push({ line_number: oldLine, changes: [] });
+        removed.push({ line_number: oldLine });
         oldLine++;
       } else if (marker === "+") {
-        added.push({ line_number: newLine, changes: [] });
+        added.push({ line_number: newLine });
         newLine++;
       } else if (marker === " ") {
         oldLine++;
@@ -61,7 +57,7 @@ export function diffFiles(
     const max = Math.max(removed.length, added.length);
     if (max === 0) continue;
 
-    const pairs: DiffPairResource[] = [];
+    const pairs: DiffPair[] = [];
     for (let i = 0; i < max; i++) {
       pairs.push({
         lhs: i < removed.length ? removed[i] : undefined,
@@ -77,23 +73,18 @@ export function diffFiles(
 /**
  * a tad complicated and heuristic function.
  *
- * difft --display JSON returns hunks, which are sequence of changed, added, removed lines separate a 4 line radius
- * each hunk composes of a list of lines, and a line can be of three forms:
+ * a hunk is a sequence of paired lines, where each pair is one of:
  * - added [rhs only]
  * - removed [lhs only]
- * - modified [lhs + rhs]
+ * - modified [lhs + rhs, paired by jsdiff via order within a hunk]
  *
- * difft _also_ returns line numbers along with each diff line, which is important in particular for
- * modified lines as it indicates the matching of each line sequence, e.g., [15, 20] means that this line should be aligned to file line 15 on the left and 20 on the rhs.
- *
- * this schema allows for difft to match seeming unrelated and non-contiguous lines, which allows for smarter syntax based mapping, but makes the schema's interpretation ambiguous.
- * for example, with a pair of [15, 20], to have the result be aligned in the UI, we need to pad the left side by 5 lines.
- *
- * but the question of where to pad is ambiguous (e.g., could be at the top of the file, could be right before, could be somewhere in the middle).
- * so this code attempts to re-construct what difft is doing in the terminal to return sensible alignment and formatting.
+ * the input may contain pairs whose left/right indices are not contiguous (e.g.
+ * [15, 20]). to render a properly aligned split view we need to pad sentinels
+ * between anchors so each side increments by one per row.
  *
  * output:
- *  - LinePair[], a list of line numbers that indicate which left line maps to what right line (and what lines should be sentinelled)
+ *  - LinePair[], a list of line numbers that indicate which left line maps to
+ *    what right line (and what lines should be sentinelled)
  *
  * example output:
  *  - [1, 2] # showing offset at beginning of file
@@ -102,12 +93,12 @@ export function diffFiles(
  *  - [3, 5]
  *  - [4, null] # indicating removal on lhs
  *
- * a few invariants must hold with this list, which make reasoning about it easier:
- * - each side must contain the full range of indices from min, max provided in difft (inclusive)
- * - each side must be monotonically increasing, exlcuding null sentinels
- * this also implies that the size of the list _may_ be greater than the full range of indices as a result of padding, which is fine.
+ * invariants:
+ * - each side contains the full range of indices from min, max in the hunk (inclusive)
+ * - each side is monotonically increasing, excluding null sentinels
+ * the list size may exceed the raw hunk size when padding is added.
  */
-export function pairLines(hunk: DiffHunkResource): LinePair[] {
+export function pairLines(hunk: DiffHunk): LinePair[] {
   const hunkPairs: LinePair[] = [];
 
   // first add all paired lines (those that are matched) and use those as anchors to generate the full alignment
@@ -370,32 +361,27 @@ function countNulls(pairs: LinePair[]): [number, number] {
 }
 
 // ============================================================================
-// highlighting utils
+// changed-line sets
 // ============================================================================
 
 /**
- * parses diff hunks into line number indexed change maps
+ * collects the set of changed line numbers per side
  *
- * used by syntax highlighting functions
+ * used by renderSpans to tag added/removed lines for whole-line background coloring
  */
-export function createChangeMaps(hunks: DiffHunkResource[]): {
-  leftChangeMap: Map<number, DiffChangeResource[]>;
-  rightChangeMap: Map<number, DiffChangeResource[]>;
+export function createChangeMaps(hunks: DiffHunk[]): {
+  leftLines: Set<number>;
+  rightLines: Set<number>;
 } {
-  const leftLines = new Map<number, DiffChangeResource[]>();
-  const rightLines = new Map<number, DiffChangeResource[]>();
+  const leftLines = new Set<number>();
+  const rightLines = new Set<number>();
   for (const hunk of hunks) {
     for (const line of hunk) {
-      if (line.lhs) {
-        leftLines.set(line.lhs.line_number, line.lhs.changes);
-      }
-      if (line.rhs) {
-        rightLines.set(line.rhs.line_number, line.rhs.changes);
-      }
+      if (line.lhs) leftLines.add(line.lhs.line_number);
+      if (line.rhs) rightLines.add(line.rhs.line_number);
     }
   }
-
-  return { leftChangeMap: leftLines, rightChangeMap: rightLines };
+  return { leftLines, rightLines };
 }
 
 // ============================================================================
@@ -408,7 +394,7 @@ const SPLIT_MIN_MATCH_RATIO = 0.25;
 export function preferSplit(
   leftSpans: Element[],
   rightSpans: Element[],
-  hunks: DiffHunkResource[],
+  hunks: DiffHunk[],
 ): boolean {
   let maxLen = 0;
   let matched = 0;

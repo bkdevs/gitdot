@@ -60,7 +60,7 @@ export function CommitSidebar({
   if (entries.length === 0) return null;
 
   return (
-    <aside className="hidden xl:block sticky top-0 self-start max-h-screen overflow-y-auto py-2 pr-2 min-w-0">
+    <div className="min-w-0">
       <div className="text-xs font-mono text-foreground mb-2">Files</div>
       <nav className="flex flex-col gap-1 font-mono text-xs">
         {entries.map((entry, i) => {
@@ -85,6 +85,6 @@ export function CommitSidebar({
           );
         })}
       </nav>
-    </aside>
+    </div>
   );
 }

@@ -1,10 +1,13 @@
-import type { DiffHunkResource } from "gitdot-api";
 import type { Element } from "hast";
 import { toJsxRuntime } from "hast-util-to-jsx-runtime";
 import type { JSX } from "react";
 import { Fragment } from "react";
 import { jsx, jsxs } from "react/jsx-runtime";
-import { expandLines, pairLines } from "@/(main)/[owner]/[repo]/util";
+import {
+  type DiffHunk,
+  expandLines,
+  pairLines,
+} from "@/(main)/[owner]/[repo]/util";
 import { DiffLine } from "./diff-line";
 
 export function DiffUnilateral({
@@ -13,7 +16,7 @@ export function DiffUnilateral({
   side,
 }: {
   spans: Element[];
-  hunks: DiffHunkResource[];
+  hunks: DiffHunk[];
   side: "left" | "right";
 }) {
   return (
@@ -46,7 +49,7 @@ function DiffSection({
   spans,
   side,
 }: {
-  hunk: DiffHunkResource;
+  hunk: DiffHunk;
   spans: Element[];
   side: "left" | "right";
 }) {

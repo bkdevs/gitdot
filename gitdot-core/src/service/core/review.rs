@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 
 use crate::{
-    client::{DiffClient, DifftClient, Git2Client, GitClient},
+    client::{Git2Client, GitClient},
     dto::{
         AddReviewReviewerReqeuest, GetReviewDiffRequest, GetReviewRequest, ListReviewsRequest,
         MergeReviewDiffRequest, ProcessReviewRequest, PublishReviewDiffRequest,
@@ -136,19 +136,17 @@ pub trait ReviewService: Send + Sync + 'static {
 }
 
 #[derive(Debug, Clone)]
-pub struct ReviewServiceImpl<V, R, U, G, D>
+pub struct ReviewServiceImpl<V, R, U, G>
 where
     V: ReviewRepository,
     R: RepositoryRepository,
     U: UserRepository,
     G: GitClient,
-    D: DiffClient,
 {
     review_repo: V,
     repo_repo: R,
     user_repo: U,
     git_client: G,
-    diff_client: D,
 }
 
 impl
@@ -157,7 +155,6 @@ impl
         RepositoryRepositoryImpl,
         UserRepositoryImpl,
         Git2Client,
-        DifftClient,
     >
 {
     pub fn new(
@@ -165,25 +162,22 @@ impl
         repo_repo: RepositoryRepositoryImpl,
         user_repo: UserRepositoryImpl,
         git_client: Git2Client,
-        diff_client: DifftClient,
     ) -> Self {
         Self {
             review_repo,
             repo_repo,
             user_repo,
             git_client,
-            diff_client,
         }
     }
 }
 
-impl<V, R, U, G, D> ReviewServiceImpl<V, R, U, G, D>
+impl<V, R, U, G> ReviewServiceImpl<V, R, U, G>
 where
     V: ReviewRepository,
     R: RepositoryRepository,
     U: UserRepository,
     G: GitClient,
-    D: DiffClient,
 {
     async fn get_review_by_id(
         &self,
@@ -201,13 +195,12 @@ where
 
 #[crate::instrument_all(level = "debug")]
 #[async_trait]
-impl<V, R, U, G, D> ReviewService for ReviewServiceImpl<V, R, U, G, D>
+impl<V, R, U, G> ReviewService for ReviewServiceImpl<V, R, U, G>
 where
     V: ReviewRepository,
     R: RepositoryRepository,
     U: UserRepository,
     G: GitClient,
-    D: DiffClient,
 {
     async fn get_review(&self, request: GetReviewRequest) -> Result<ReviewResponse, ReviewError> {
         let review = self
@@ -653,17 +646,10 @@ where
             revision.parent_hash.clone()
         };
 
-        let diff_files = self
+        let files = self
             .git_client
             .get_repo_diff_files(owner, repo, Some(&left_sha), right_sha)
             .await?;
-
-        let files = futures::future::try_join_all(
-            diff_files
-                .iter()
-                .map(|(left, right)| self.diff_client.diff_files(left.as_ref(), right.as_ref())),
-        )
-        .await?;
 
         Ok(ReviewDiffResponse { files })
     }

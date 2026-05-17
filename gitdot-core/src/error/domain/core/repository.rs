@@ -1,7 +1,7 @@
 use thiserror::Error;
 
 use crate::error::{
-    ConflictError, DatabaseError, DiffError, GitError as Git2Error, InputError, NotFoundError,
+    ConflictError, DatabaseError, GitError as Git2Error, InputError, NotFoundError,
 };
 
 #[derive(Debug, Error)]
@@ -23,9 +23,6 @@ pub enum RepositoryError {
 
     #[error(transparent)]
     GitError(Git2Error),
-
-    #[error(transparent)]
-    DiffError(#[from] DiffError),
 
     #[error(transparent)]
     DatabaseError(#[from] DatabaseError),

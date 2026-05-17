@@ -66,16 +66,18 @@ function PageContent({
       data-diff-top
       className="grid grid-cols-[1fr_minmax(0,64rem)_1fr] w-full"
     >
-      <div />
-      <div className="w-full px-4 py-4 flex flex-col gap-6 min-w-0">
+      <aside className="hidden xl:flex xl:flex-col sticky top-0 self-start max-h-screen overflow-y-auto py-4 pl-2 w-72 gap-4 justify-self-end">
         <CommitHeader commit={commit} owner={owner} repo={repo} />
+        <Suspense fallback={null}>
+          <CommitSidebar diffEntriesPromise={diffEntriesPromise} />
+        </Suspense>
+      </aside>
+      <div className="w-full px-4 py-4 flex flex-col gap-6 min-w-0">
         <Suspense fallback={<Loading />}>
           <CommitBody diffEntriesPromise={diffEntriesPromise} />
         </Suspense>
       </div>
-      <Suspense fallback={null}>
-        <CommitSidebar diffEntriesPromise={diffEntriesPromise} />
-      </Suspense>
+      <div />
       <CommitShortcuts />
     </div>
   );

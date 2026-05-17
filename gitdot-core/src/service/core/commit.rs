@@ -5,7 +5,7 @@ use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
 use crate::{
-    client::{DiffClient, DifftClient, Git2Client, GitClient},
+    client::{Git2Client, GitClient},
     dto::{
         CommitDiffResponse, CommitResponse, CommitsResponse, CreateCommitsRequest,
         GetCommitDiffRequest, GetCommitRequest, GetCommitsRequest,
@@ -37,19 +37,17 @@ pub trait CommitService: Send + Sync + 'static {
 }
 
 #[derive(Debug, Clone)]
-pub struct CommitServiceImpl<C, R, U, G, D>
+pub struct CommitServiceImpl<C, R, U, G>
 where
     C: CommitRepository,
     R: RepositoryRepository,
     U: UserRepository,
     G: GitClient,
-    D: DiffClient,
 {
     commit_repo: C,
     repo_repo: R,
     user_repo: U,
     git_client: G,
-    diff_client: D,
 }
 
 impl
@@ -58,7 +56,6 @@ impl
         RepositoryRepositoryImpl,
         UserRepositoryImpl,
         Git2Client,
-        DifftClient,
     >
 {
     pub fn new(
@@ -66,27 +63,24 @@ impl
         repo_repo: RepositoryRepositoryImpl,
         user_repo: UserRepositoryImpl,
         git_client: Git2Client,
-        diff_client: DifftClient,
     ) -> Self {
         Self {
             commit_repo,
             repo_repo,
             user_repo,
             git_client,
-            diff_client,
         }
     }
 }
 
 #[crate::instrument_all(level = "debug")]
 #[async_trait]
-impl<C, R, U, G, D> CommitService for CommitServiceImpl<C, R, U, G, D>
+impl<C, R, U, G> CommitService for CommitServiceImpl<C, R, U, G>
 where
     C: CommitRepository,
     R: RepositoryRepository,
     U: UserRepository,
     G: GitClient,
-    D: DiffClient,
 {
     async fn get_commit(&self, request: GetCommitRequest) -> Result<CommitResponse, CommitError> {
         let owner = request.owner.to_string();
@@ -136,21 +130,10 @@ where
             Some(parent_sha.as_str())
         };
 
-        let diff_files = self
+        let files = self
             .git_client
             .get_repo_diff_files(&owner, &repo_name, left_ref, &sha)
             .await?;
-
-        let diff_futures: Vec<_> = diff_files
-            .iter()
-            .map(|(left, right)| self.diff_client.diff_files(left.as_ref(), right.as_ref()))
-            .collect();
-        let diff_results = futures::future::join_all(diff_futures).await;
-
-        let files = diff_results
-            .into_iter()
-            .map(|diff_result| diff_result.map_err(CommitError::from))
-            .collect::<Result<Vec<_>, CommitError>>()?;
 
         Ok(CommitDiffResponse {
             sha,

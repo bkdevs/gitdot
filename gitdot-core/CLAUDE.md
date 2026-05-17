@@ -12,7 +12,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 src/
 ├── service/       Trait + Impl per domain (business logic)
 ├── repository/    Trait + Impl per domain (sqlx data access)
-├── client/        Trait + Impl for external services (git2, git http-backend, difftastic)
+├── client/        Trait + Impl for external services (git2, git http-backend)
 ├── dto/           Request/response DTOs + validated types
 ├── model/         Database model structs (#[derive(FromRow)])
 ├── error/         Domain-specific error enums (thiserror)
