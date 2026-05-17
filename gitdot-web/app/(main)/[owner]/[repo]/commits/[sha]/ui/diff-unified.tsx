@@ -100,8 +100,7 @@ function DiffSection({
 
   const outputSpans: Element[] = [];
 
-  // output unchanged lines for context
-  for (const [L, R] of before) {
+  const pushContext = ([L, R]: LinePair) => {
     if (L !== null && R !== null)
       outputSpans.push(
         makeSpan(
@@ -110,37 +109,43 @@ function DiffSection({
           R + 1,
         ),
       );
+  };
+
+  // output unchanged lines for context before the first change
+  for (const pair of before) pushContext(pair);
+
+  // walk `modified`, grouping consecutive changed pairs into blocks
+  // each block emits minuses then pluses; in-between unchanged pairs render as paired context
+  let i = 0;
+  while (i < modified.length) {
+    if (isChanged(modified[i])) {
+      let j = i;
+      while (j < modified.length && isChanged(modified[j])) j++;
+      const block = modified.slice(i, j);
+
+      for (const [L] of block) {
+        if (L !== null && lineType(leftSpans, L) === "removed")
+          outputSpans.push(makeSpan(leftSpans[L], L + 1, undefined));
+      }
+      for (const [L, R] of block) {
+        if (R !== null && (L === null || lineType(rightSpans, R) === "added"))
+          outputSpans.push(
+            makeSpan(
+              R < rightSpans.length ? rightSpans[R] : sentinelSpan,
+              undefined,
+              R + 1,
+            ),
+          );
+      }
+      i = j;
+    } else {
+      pushContext(modified[i]);
+      i++;
+    }
   }
 
-  // output removed lines of the patch first
-  for (const [L] of modified) {
-    if (L !== null && lineType(leftSpans, L) === "removed")
-      outputSpans.push(makeSpan(leftSpans[L], L + 1, undefined));
-  }
-
-  // output added lines afterwards
-  for (const [L, R] of modified) {
-    if (R !== null && (L === null || lineType(rightSpans, R) === "added"))
-      outputSpans.push(
-        makeSpan(
-          R < rightSpans.length ? rightSpans[R] : sentinelSpan,
-          undefined,
-          R + 1,
-        ),
-      );
-  }
-
-  // output unchanged lines for context
-  for (const [L, R] of after) {
-    if (L !== null && R !== null)
-      outputSpans.push(
-        makeSpan(
-          L < leftSpans.length ? leftSpans[L] : sentinelSpan,
-          L + 1,
-          R + 1,
-        ),
-      );
-  }
+  // output unchanged lines for context after the last change
+  for (const pair of after) pushContext(pair);
 
   const container: Element = {
     type: "element",
