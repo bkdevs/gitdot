@@ -158,6 +158,8 @@ impl GitHubClient for OctocrabClient {
         let client = self
             .app_client
             .installation(InstallationId(installation_id))?;
+
+        // TODO: implement fetch all pages
         let repositories = client
             .get("/installation/repositories", Some(&[("per_page", 100)]))
             .await?;
