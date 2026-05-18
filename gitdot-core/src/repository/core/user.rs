@@ -1,12 +1,22 @@
 use async_trait::async_trait;
+use chrono::{DateTime, Utc};
 use rand::RngExt as _;
-use sqlx::PgPool;
+use sqlx::{FromRow, PgPool};
 use uuid::Uuid;
 
 use crate::{
+    dto::Cursor,
     error::DatabaseError,
     model::{AuthProvider, Repository, User},
 };
+
+#[derive(FromRow)]
+struct StarredRepoRow {
+    #[sqlx(flatten)]
+    repository: Repository,
+    starred_at: DateTime<Utc>,
+    star_id: Uuid,
+}
 
 #[async_trait]
 pub trait UserRepository: Send + Sync + Clone + 'static {
@@ -44,7 +54,9 @@ pub trait UserRepository: Send + Sync + Clone + 'static {
     async fn list_starred_repositories(
         &self,
         user_id: Uuid,
-    ) -> Result<Vec<Repository>, DatabaseError>;
+        cursor: Option<Cursor>,
+        limit: i64,
+    ) -> Result<(Vec<Repository>, Option<Cursor>), DatabaseError>;
 }
 
 #[derive(Debug, Clone)]
@@ -238,11 +250,17 @@ impl UserRepository for UserRepositoryImpl {
     async fn list_starred_repositories(
         &self,
         user_id: Uuid,
-    ) -> Result<Vec<Repository>, DatabaseError> {
-        let repositories = sqlx::query_as::<_, Repository>(
+        cursor: Option<Cursor>,
+        limit: i64,
+    ) -> Result<(Vec<Repository>, Option<Cursor>), DatabaseError> {
+        let cursor_created_at = cursor.as_ref().map(|c| c.created_at);
+        let cursor_id = cursor.as_ref().map(|c| c.id);
+
+        let mut rows = sqlx::query_as::<_, StarredRepoRow>(
             r#"
             SELECT r.id, r.name, r.owner_id, COALESCE(ru.name, ro.name) AS owner_name,
-                   r.owner_type, r.visibility, r.description, r.stars, r.readonly, r.created_at
+                   r.owner_type, r.visibility, r.description, r.stars, r.readonly, r.created_at,
+                   s.created_at AS starred_at, s.id AS star_id
             FROM core.stars s
             JOIN core.repositories r ON r.id = s.repository_id
             LEFT JOIN core.users ru
@@ -250,13 +268,31 @@ impl UserRepository for UserRepositoryImpl {
             LEFT JOIN core.organizations ro
               ON r.owner_id = ro.id AND r.owner_type = 'organization'
             WHERE s.user_id = $1
-            ORDER BY s.created_at DESC
+              AND ($2::timestamptz IS NULL OR (s.created_at, s.id) < ($2, $3))
+            ORDER BY s.created_at DESC, s.id DESC
+            LIMIT $4
             "#,
         )
         .bind(user_id)
+        .bind(cursor_created_at)
+        .bind(cursor_id)
+        .bind(limit + 1)
         .fetch_all(&self.pool)
         .await?;
 
-        Ok(repositories)
+        let next_cursor = if rows.len() as i64 > limit {
+            rows.pop();
+            rows.last().map(|last| Cursor {
+                created_at: last.starred_at,
+                id: last.star_id,
+            })
+        } else {
+            None
+        };
+
+        Ok((
+            rows.into_iter().map(|r| r.repository).collect(),
+            next_cursor,
+        ))
     }
 }

@@ -501,7 +501,7 @@ mod tests {
             async fn verify_email(&self, id: Uuid) -> Result<(), crate::error::DatabaseError>;
             async fn is_name_taken(&self, name: &str) -> Result<bool, crate::error::DatabaseError>;
             async fn is_email_taken(&self, email: &str) -> Result<bool, crate::error::DatabaseError>;
-            async fn list_starred_repositories(&self, user_id: Uuid) -> Result<Vec<Repository>, crate::error::DatabaseError>;
+            async fn list_starred_repositories(&self, user_id: Uuid, cursor: Option<crate::dto::Cursor>, limit: i64) -> Result<(Vec<Repository>, Option<crate::dto::Cursor>), crate::error::DatabaseError>;
         }
     }
 

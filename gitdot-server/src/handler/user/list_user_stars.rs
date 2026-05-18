@@ -1,5 +1,5 @@
 use axum::{
-    extract::{Path, State},
+    extract::{Path, Query, State},
     http::StatusCode,
 };
 
@@ -17,13 +17,15 @@ pub async fn list_user_stars(
     auth_user: Option<Principal<User>>,
     State(state): State<AppState>,
     Path(user_name): Path<String>,
+    Query(query): Query<api::ListUserStarsRequest>,
 ) -> Result<AppResponse<api::ListUserStarsResponse>, AppError> {
     let viewer_id = auth_user.map(|u| u.id);
-    let request = ListUserStarsRequest::new(&user_name, viewer_id)?;
+    let request =
+        ListUserStarsRequest::new(&user_name, viewer_id, query.cursor.as_deref(), query.limit)?;
     state
         .user_service
         .list_stars(request)
         .await
         .map_err(AppError::from)
-        .map(|repos| AppResponse::new(StatusCode::OK, repos.into_api()))
+        .map(|page| AppResponse::new(StatusCode::OK, page.into_api()))
 }
