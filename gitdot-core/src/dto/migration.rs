@@ -15,8 +15,7 @@ pub use github::{
     CreateGitHubInstallationRequest, CreateGitHubMigrationRequest, CreateGitHubMigrationResponse,
     GitHubInstallationResponse, GitHubRepositoryResponse,
     ListGitHubInstallationRepositoriesResponse, ListGitHubInstallationsRequest,
-    ListGitHubInstallationsResponse, MigrateGitHubRepositoriesRequest,
-    MigrateGitHubRepositoriesResponse, MigratedRepositoryInfo,
+    MigrateGitHubRepositoriesRequest, MigrateGitHubRepositoriesResponse, MigratedRepositoryInfo,
 };
 pub use list_migrations::ListMigrationsRequest;
 

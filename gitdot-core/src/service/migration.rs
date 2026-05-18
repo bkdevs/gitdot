@@ -8,8 +8,8 @@ use crate::{
         CreateGitHubInstallationRequest, CreateGitHubMigrationRequest,
         CreateGitHubMigrationResponse, GetMigrationRequest, GitHubInstallationResponse,
         ListGitHubInstallationRepositoriesResponse, ListGitHubInstallationsRequest,
-        ListGitHubInstallationsResponse, ListMigrationsRequest, MigrateGitHubRepositoriesRequest,
-        MigrateGitHubRepositoriesResponse, MigratedRepositoryInfo, MigrationResponse, Page,
+        ListMigrationsRequest, MigrateGitHubRepositoriesRequest, MigrateGitHubRepositoriesResponse,
+        MigratedRepositoryInfo, MigrationResponse, Page,
     },
     error::{ConflictError, InputError, MigrationError, OptionNotFoundExt},
     model::{
@@ -48,7 +48,7 @@ pub trait MigrationService: Send + Sync + 'static {
     async fn list_github_installations(
         &self,
         request: ListGitHubInstallationsRequest,
-    ) -> Result<ListGitHubInstallationsResponse, MigrationError>;
+    ) -> Result<Page<GitHubInstallationResponse>, MigrationError>;
 
     async fn list_github_installation_repositories(
         &self,
@@ -290,9 +290,15 @@ where
     async fn list_github_installations(
         &self,
         request: ListGitHubInstallationsRequest,
-    ) -> Result<ListGitHubInstallationsResponse, MigrationError> {
-        let installations = self.github_repo.list_by_owner(request.owner_id).await?;
-        Ok(installations.into_iter().map(Into::into).collect())
+    ) -> Result<Page<GitHubInstallationResponse>, MigrationError> {
+        let (installations, next_cursor) = self
+            .github_repo
+            .list_by_owner(request.owner_id, request.cursor, request.limit as i64)
+            .await?;
+        Ok(Page {
+            data: installations.into_iter().map(Into::into).collect(),
+            next_cursor: next_cursor.as_ref().map(cursor::encode),
+        })
     }
 
     async fn list_github_installation_repositories(

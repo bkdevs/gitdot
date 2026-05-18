@@ -3,6 +3,7 @@ use sqlx::PgPool;
 use uuid::Uuid;
 
 use crate::{
+    dto::Cursor,
     error::DatabaseError,
     model::{GitHubInstallation, GitHubInstallationType},
 };
@@ -17,8 +18,12 @@ pub trait GitHubRepository: Send + Sync + Clone + 'static {
         github_login: &str,
     ) -> Result<GitHubInstallation, DatabaseError>;
 
-    async fn list_by_owner(&self, owner_id: Uuid)
-    -> Result<Vec<GitHubInstallation>, DatabaseError>;
+    async fn list_by_owner(
+        &self,
+        owner_id: Uuid,
+        cursor: Option<Cursor>,
+        limit: i64,
+    ) -> Result<(Vec<GitHubInstallation>, Option<Cursor>), DatabaseError>;
 }
 
 #[derive(Debug, Clone)]
@@ -62,19 +67,39 @@ impl GitHubRepository for GitHubRepositoryImpl {
     async fn list_by_owner(
         &self,
         owner_id: Uuid,
-    ) -> Result<Vec<GitHubInstallation>, DatabaseError> {
-        let installations = sqlx::query_as::<_, GitHubInstallation>(
+        cursor: Option<Cursor>,
+        limit: i64,
+    ) -> Result<(Vec<GitHubInstallation>, Option<Cursor>), DatabaseError> {
+        let cursor_created_at = cursor.as_ref().map(|c| c.created_at);
+        let cursor_id = cursor.as_ref().map(|c| c.id);
+
+        let mut installations = sqlx::query_as::<_, GitHubInstallation>(
             r#"
             SELECT id, installation_id, owner_id, type, github_login, created_at
             FROM migration.github_installations
             WHERE owner_id = $1
-            ORDER BY created_at DESC
+              AND ($2::timestamptz IS NULL OR (created_at, id) < ($2, $3))
+            ORDER BY created_at DESC, id DESC
+            LIMIT $4
             "#,
         )
         .bind(owner_id)
+        .bind(cursor_created_at)
+        .bind(cursor_id)
+        .bind(limit + 1)
         .fetch_all(&self.pool)
         .await?;
 
-        Ok(installations)
+        let next_cursor = if installations.len() as i64 > limit {
+            installations.pop();
+            installations.last().map(|last| Cursor {
+                created_at: last.created_at,
+                id: last.id,
+            })
+        } else {
+            None
+        };
+
+        Ok((installations, next_cursor))
     }
 }

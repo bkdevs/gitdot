@@ -1,15 +1,16 @@
 import { z } from "zod";
-import { GitHubInstallationResource } from "../../../resource";
+import { GitHubInstallationResource, page } from "../../../resource";
 import type { Endpoint } from "../../endpoint";
 
-export const ListGitHubInstallationsRequest = z.object({});
+export const ListGitHubInstallationsRequest = z.object({
+  cursor: z.string().optional(),
+  limit: z.number().int().positive().optional(),
+});
 export type ListGitHubInstallationsRequest = z.infer<
   typeof ListGitHubInstallationsRequest
 >;
 
-export const ListGitHubInstallationsResponse = z.array(
-  GitHubInstallationResource,
-);
+export const ListGitHubInstallationsResponse = page(GitHubInstallationResource);
 export type ListGitHubInstallationsResponse = z.infer<
   typeof ListGitHubInstallationsResponse
 >;

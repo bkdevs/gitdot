@@ -135,7 +135,8 @@ export async function migrateGitHubRepositoriesAction(
 export async function listInstallationsAction(): Promise<
   GitHubInstallationResource[]
 > {
-  return (await listInstallations()) ?? [];
+  const result = await listInstallations();
+  return result?.data ?? [];
 }
 
 export async function listMigrationsAction(): Promise<MigrationResource[]> {

@@ -3,6 +3,7 @@ import "server-only";
 import {
   GitHubInstallationResource,
   GitHubRepositoryResource,
+  ListGitHubInstallationsResponse,
   ListMigrationsResponse,
   MigrationResource,
 } from "gitdot-api";
@@ -10,14 +11,14 @@ import { z } from "zod";
 import { toQueryString } from "@/util";
 import { authFetch, authPost, GITDOT_SERVER_URL, handleResponse } from "./util";
 
-export async function listInstallations(): Promise<
-  GitHubInstallationResource[] | null
-> {
-  const response = await authFetch(
-    `${GITDOT_SERVER_URL}/migration/github/installations`,
-  );
-
-  return await handleResponse(response, z.array(GitHubInstallationResource));
+export async function listInstallations(opts?: {
+  cursor?: string;
+  limit?: number;
+}): Promise<ListGitHubInstallationsResponse | null> {
+  const qs = toQueryString({ cursor: opts?.cursor, limit: opts?.limit });
+  const url = `${GITDOT_SERVER_URL}/migration/github/installations${qs ? `?${qs}` : ""}`;
+  const response = await authFetch(url);
+  return await handleResponse(response, ListGitHubInstallationsResponse);
 }
 
 export async function createInstallation(

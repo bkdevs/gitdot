@@ -9,9 +9,7 @@ pub use create_github_migration::{CreateGitHubMigrationRequest, CreateGitHubMigr
 pub use list_github_installation_repositories::{
     GitHubRepositoryResponse, ListGitHubInstallationRepositoriesResponse,
 };
-pub use list_github_installations::{
-    ListGitHubInstallationsRequest, ListGitHubInstallationsResponse,
-};
+pub use list_github_installations::ListGitHubInstallationsRequest;
 pub use migrate_github_repositories::{
     MigrateGitHubRepositoriesRequest, MigrateGitHubRepositoriesResponse, MigratedRepositoryInfo,
 };
