@@ -1,6 +1,9 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{endpoint::Endpoint, resource::WebhookResource};
+use crate::{
+    endpoint::Endpoint,
+    resource::{WebhookResource, common::Page},
+};
 
 pub struct ListWebhooks;
 
@@ -12,7 +15,12 @@ impl Endpoint for ListWebhooks {
     type Response = ListWebhooksResponse;
 }
 
-#[derive(ApiRequest, Debug, Serialize, Deserialize)]
-pub struct ListWebhooksRequest;
+#[derive(ApiRequest, Debug, Default, Serialize, Deserialize)]
+pub struct ListWebhooksRequest {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cursor: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub limit: Option<u32>,
+}
 
-pub type ListWebhooksResponse = Vec<WebhookResource>;
+pub type ListWebhooksResponse = Page<WebhookResource>;

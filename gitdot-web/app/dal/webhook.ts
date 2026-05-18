@@ -2,10 +2,11 @@ import "server-only";
 
 import {
   type CreateWebhookRequest,
+  ListWebhooksResponse,
   type UpdateWebhookRequest,
   WebhookResource,
 } from "gitdot-api";
-import { z } from "zod";
+import { toQueryString } from "@/util";
 import {
   authDelete,
   authFetch,
@@ -31,12 +32,12 @@ export async function createWebhook(
 export async function listWebhooks(
   owner: string,
   repo: string,
-): Promise<WebhookResource[] | null> {
-  const response = await authFetch(
-    `${GITDOT_SERVER_URL}/repository/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/webhooks`,
-  );
-
-  return await handleResponse(response, z.array(WebhookResource));
+  opts?: { cursor?: string; limit?: number },
+): Promise<ListWebhooksResponse | null> {
+  const qs = toQueryString({ cursor: opts?.cursor, limit: opts?.limit });
+  const url = `${GITDOT_SERVER_URL}/repository/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/webhooks${qs ? `?${qs}` : ""}`;
+  const response = await authFetch(url);
+  return await handleResponse(response, ListWebhooksResponse);
 }
 
 export async function updateWebhook(

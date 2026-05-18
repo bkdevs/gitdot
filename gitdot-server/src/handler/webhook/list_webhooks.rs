@@ -1,4 +1,4 @@
-use axum::extract::{Path, State};
+use axum::extract::{Path, Query, State};
 use http::StatusCode;
 
 use gitdot_api::endpoint::webhook::list_webhooks as api;
@@ -15,6 +15,7 @@ pub async fn list_webhooks(
     auth_user: Principal<User>,
     State(state): State<AppState>,
     Path((owner, repo)): Path<(String, String)>,
+    Query(query): Query<api::ListWebhooksRequest>,
 ) -> Result<AppResponse<api::ListWebhooksResponse>, AppError> {
     let auth_request = RepositoryAuthorizationRequest::new(
         Some(auth_user.id),
@@ -27,11 +28,11 @@ pub async fn list_webhooks(
         .verify_authorized_for_repository(auth_request)
         .await?;
 
-    let request = ListWebhooksRequest::new(&owner, &repo)?;
+    let request = ListWebhooksRequest::new(&owner, &repo, query.cursor.as_deref(), query.limit)?;
     state
         .webhook_service
         .list_webhooks(request)
         .await
         .map_err(AppError::from)
-        .map(|d| AppResponse::new(StatusCode::OK, d.into_api()))
+        .map(|page| AppResponse::new(StatusCode::OK, page.into_api()))
 }

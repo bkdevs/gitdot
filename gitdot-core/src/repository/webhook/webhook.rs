@@ -3,6 +3,7 @@ use sqlx::PgPool;
 use uuid::Uuid;
 
 use crate::{
+    dto::Cursor,
     error::DatabaseError,
     model::{Webhook, WebhookEventType},
 };
@@ -19,7 +20,12 @@ pub trait WebhookRepository: Send + Sync + Clone + 'static {
 
     async fn get(&self, id: Uuid) -> Result<Option<Webhook>, DatabaseError>;
 
-    async fn list_by_repo(&self, repository_id: Uuid) -> Result<Vec<Webhook>, DatabaseError>;
+    async fn list_by_repo(
+        &self,
+        repository_id: Uuid,
+        cursor: Option<Cursor>,
+        limit: i64,
+    ) -> Result<(Vec<Webhook>, Option<Cursor>), DatabaseError>;
 
     async fn update(
         &self,
@@ -84,19 +90,43 @@ impl WebhookRepository for WebhookRepositoryImpl {
         Ok(webhook)
     }
 
-    async fn list_by_repo(&self, repository_id: Uuid) -> Result<Vec<Webhook>, DatabaseError> {
-        let webhooks = sqlx::query_as::<_, Webhook>(
+    async fn list_by_repo(
+        &self,
+        repository_id: Uuid,
+        cursor: Option<Cursor>,
+        limit: i64,
+    ) -> Result<(Vec<Webhook>, Option<Cursor>), DatabaseError> {
+        let cursor_created_at = cursor.as_ref().map(|c| c.created_at);
+        let cursor_id = cursor.as_ref().map(|c| c.id);
+
+        let mut webhooks = sqlx::query_as::<_, Webhook>(
             r#"
             SELECT id, repository_id, url, secret, events, created_at, updated_at
-            FROM webhook.webhooks WHERE repository_id = $1
-            ORDER BY created_at DESC
+            FROM webhook.webhooks
+            WHERE repository_id = $1
+              AND ($2::timestamptz IS NULL OR (created_at, id) < ($2, $3))
+            ORDER BY created_at DESC, id DESC
+            LIMIT $4
             "#,
         )
         .bind(repository_id)
+        .bind(cursor_created_at)
+        .bind(cursor_id)
+        .bind(limit + 1)
         .fetch_all(&self.pool)
         .await?;
 
-        Ok(webhooks)
+        let next_cursor = if webhooks.len() as i64 > limit {
+            webhooks.pop();
+            webhooks.last().map(|last| Cursor {
+                created_at: last.created_at,
+                id: last.id,
+            })
+        } else {
+            None
+        };
+
+        Ok((webhooks, next_cursor))
     }
 
     async fn update(

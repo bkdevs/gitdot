@@ -20,10 +20,11 @@ export default async function Page({
     );
   if (!isAdmin) notFound();
 
-  const [runners, webhooks] = await Promise.all([
+  const [runners, webhooksResponse] = await Promise.all([
     listRunners(owner),
     listWebhooks(owner, repo),
   ]);
+  const webhooks = webhooksResponse?.data ?? null;
 
   return (
     <div className="flex flex-col w-full">

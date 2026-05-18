@@ -2,13 +2,14 @@ use async_trait::async_trait;
 
 use crate::{
     dto::{
-        CreateWebhookRequest, DeleteWebhookRequest, GetWebhookRequest, ListWebhooksRequest,
+        CreateWebhookRequest, DeleteWebhookRequest, GetWebhookRequest, ListWebhooksRequest, Page,
         UpdateWebhookRequest, WebhookResponse,
     },
     error::{NotFoundError, OptionNotFoundExt, WebhookError},
     repository::{
         RepositoryRepository, RepositoryRepositoryImpl, WebhookRepository, WebhookRepositoryImpl,
     },
+    util::cursor,
 };
 
 #[async_trait]
@@ -21,7 +22,7 @@ pub trait WebhookService: Send + Sync + 'static {
     async fn list_webhooks(
         &self,
         request: ListWebhooksRequest,
-    ) -> Result<Vec<WebhookResponse>, WebhookError>;
+    ) -> Result<Page<WebhookResponse>, WebhookError>;
 
     async fn get_webhook(
         &self,
@@ -91,7 +92,7 @@ where
     async fn list_webhooks(
         &self,
         request: ListWebhooksRequest,
-    ) -> Result<Vec<WebhookResponse>, WebhookError> {
+    ) -> Result<Page<WebhookResponse>, WebhookError> {
         let owner = request.owner_name.as_ref();
         let repo = request.repo_name.as_ref();
 
@@ -101,9 +102,15 @@ where
             .await?
             .or_not_found("repository", format!("{owner}/{repo}"))?;
 
-        let webhooks = self.webhook_repo.list_by_repo(repository.id).await?;
+        let (webhooks, next_cursor) = self
+            .webhook_repo
+            .list_by_repo(repository.id, request.cursor, request.limit as i64)
+            .await?;
 
-        Ok(webhooks.into_iter().map(Into::into).collect())
+        Ok(Page {
+            data: webhooks.into_iter().map(Into::into).collect(),
+            next_cursor: next_cursor.as_ref().map(cursor::encode),
+        })
     }
 
     async fn get_webhook(
