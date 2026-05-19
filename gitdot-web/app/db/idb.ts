@@ -165,21 +165,6 @@ export function openIdb(): Database {
       );
     },
 
-    async getHasts(owner: string, repo: string, commit: string) {
-      const db = await getDb();
-      const prefix = blobPrefix(owner, repo, commit);
-      const range = IDBKeyRange.bound(prefix, `${prefix}\uffff`);
-      const keys = await db.getAllKeys("hasts", range);
-      const values = await db.getAll("hasts", range);
-      if (values.length === 0) return null;
-      const map = new Map<string, Root>();
-      for (let i = 0; i < keys.length; i++) {
-        const path = (keys[i] as string).slice(prefix.length);
-        map.set(path, values[i]);
-      }
-      return map;
-    },
-
     async putHast(
       owner: string,
       repo: string,

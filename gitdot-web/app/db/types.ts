@@ -80,12 +80,6 @@ export interface Database {
     commit: string,
   ): Promise<Root | null>;
 
-  getHasts(
-    owner: string,
-    repo: string,
-    commit: string,
-  ): Promise<Map<string, Root> | null>;
-
   putHast(
     owner: string,
     repo: string,

@@ -15,35 +15,17 @@ import { openIdb } from "@/db";
 import type { RepositoryMetadata } from "@/db/types";
 import { ClientProvider } from "./types";
 
-const log = <T>(name: string, args: unknown[], value: T, ms?: number): T => {
-  const tail = ms !== undefined ? `(${ms.toFixed(1)}ms)` : "";
-  console.log(`[db:${name}]`, ...args, "→", value, tail);
-  return value;
-};
-
-const time = async <T>(
-  name: string,
-  args: unknown[],
-  fn: () => Promise<T>,
-): Promise<T> => {
-  const start = performance.now();
-  const value = await fn();
-  return log(name, args, value, performance.now() - start);
-};
-
 export class DatabaseProvider extends ClientProvider {
   private db = openIdb();
   private metadataPromise: Promise<RepositoryMetadata | null> | null = null;
 
   private async metadata() {
-    return time("metadata", [], () => {
-      this.metadataPromise ??= this.db.getMetadata(this.owner, this.repo);
-      return this.metadataPromise;
-    });
+    this.metadataPromise ??= this.db.getMetadata(this.owner, this.repo);
+    return this.metadataPromise;
   }
 
   async getPaths() {
-    return time("getPaths", [], () => this.db.getPaths(this.owner, this.repo));
+    return this.db.getPaths(this.owner, this.repo);
   }
 
   async putPaths(paths: RepositoryPathsResource) {
@@ -51,27 +33,17 @@ export class DatabaseProvider extends ClientProvider {
   }
 
   async getBlob(path: string, ref?: string) {
-    if (ref)
-      return time("getBlob", [path, ref], () =>
-        this.db.getBlob(this.owner, this.repo, path, ref),
-      );
+    if (ref) return this.db.getBlob(this.owner, this.repo, path, ref);
     const metadata = await this.metadata();
-    if (!metadata) return log("getBlob", [path], null);
-    return time("getBlob", [path, metadata.last_commit], () =>
-      this.db.getBlob(this.owner, this.repo, path, metadata.last_commit),
-    );
+    if (!metadata) return null;
+    return this.db.getBlob(this.owner, this.repo, path, metadata.last_commit);
   }
 
   async getHast(path: string, ref?: string): Promise<Root | null> {
-    if (ref)
-      return time("getHast", [path, ref], () =>
-        this.db.getHast(this.owner, this.repo, path, ref),
-      );
+    if (ref) return this.db.getHast(this.owner, this.repo, path, ref);
     const metadata = await this.metadata();
-    if (!metadata) return log("getHast", [path], null);
-    return time("getHast", [path, metadata.last_commit], () =>
-      this.db.getHast(this.owner, this.repo, path, metadata.last_commit),
-    );
+    if (!metadata) return null;
+    return this.db.getHast(this.owner, this.repo, path, metadata.last_commit);
   }
 
   async putHast(path: string, hast: Root, commit: string): Promise<void> {
@@ -79,19 +51,15 @@ export class DatabaseProvider extends ClientProvider {
   }
 
   async getCommit(sha: string) {
-    return time("getCommit", [sha], () =>
-      this.db.getCommit(this.owner, this.repo, sha),
-    );
+    return this.db.getCommit(this.owner, this.repo, sha);
   }
 
   async getCommits(): Promise<RepositoryCommitResource[] | null> {
-    return time("getCommits", [], async () => {
-      const commits = await this.db.getCommits(this.owner, this.repo);
-      if (commits === null || commits.length === 0) return null;
-      return commits.sort(
-        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
-      );
-    });
+    const commits = await this.db.getCommits(this.owner, this.repo);
+    if (commits === null || commits.length === 0) return null;
+    return commits.sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+    );
   }
 
   async putCommits(commits: RepositoryCommitResource[]) {
@@ -99,15 +67,13 @@ export class DatabaseProvider extends ClientProvider {
   }
 
   async getCommitFilters(): Promise<RepositoryCommitFilterResource[] | null> {
-    return log("getCommitFilters", [], null);
+    return null;
   }
 
   async getBlobs(): Promise<RepositoryBlobsResource | null> {
     const metadata = await this.metadata();
-    if (!metadata) return log("getBlobs", [], null);
-    return time("getBlobs", [metadata.last_commit], () =>
-      this.db.getBlobs(this.owner, this.repo, metadata.last_commit),
-    );
+    if (!metadata) return null;
+    return this.db.getBlobs(this.owner, this.repo, metadata.last_commit);
   }
 
   async putBlobs(blobs: RepositoryBlobsResource) {
@@ -120,9 +86,7 @@ export class DatabaseProvider extends ClientProvider {
   }
 
   async getQuestions(): Promise<QuestionResource[] | null> {
-    return time("getQuestions", [], () =>
-      this.db.getQuestions(this.owner, this.repo),
-    );
+    return this.db.getQuestions(this.owner, this.repo);
   }
 
   async putQuestions(questions: QuestionResource[]) {
@@ -130,16 +94,12 @@ export class DatabaseProvider extends ClientProvider {
   }
 
   async getReview(number: number): Promise<ReviewResource | null> {
-    return time("getReview", [number], () =>
-      this.db.getReview(this.owner, this.repo, number),
-    );
+    return this.db.getReview(this.owner, this.repo, number);
   }
 
   async getReviews(): Promise<ReviewResource[] | null> {
-    return time("getReviews", [], async () => {
-      const reviews = await this.db.getReviews(this.owner, this.repo);
-      return reviews.length === 0 ? null : reviews;
-    });
+    const reviews = await this.db.getReviews(this.owner, this.repo);
+    return reviews.length === 0 ? null : reviews;
   }
 
   async putReview(number: number, review: ReviewResource): Promise<void> {
@@ -147,9 +107,7 @@ export class DatabaseProvider extends ClientProvider {
   }
 
   async getBuilds(): Promise<BuildResource[] | null> {
-    return time("getBuilds", [], () =>
-      this.db.getBuilds(this.owner, this.repo),
-    );
+    return this.db.getBuilds(this.owner, this.repo);
   }
 
   async putBuilds(builds: BuildResource[]): Promise<void> {
@@ -157,9 +115,7 @@ export class DatabaseProvider extends ClientProvider {
   }
 
   async getBuild(number: number): Promise<BuildResource | null> {
-    return time("getBuild", [number], () =>
-      this.db.getBuild(this.owner, this.repo, number),
-    );
+    return this.db.getBuild(this.owner, this.repo, number);
   }
 
   async putBuild(_number: number, build: BuildResource): Promise<void> {
