@@ -1,4 +1,5 @@
 use figment::{Figment, providers::Env};
+use secrecy::SecretString;
 use serde::Deserialize;
 
 #[derive(Debug, Clone, Deserialize)]
@@ -6,13 +7,13 @@ pub struct Settings {
     // infra
     #[serde(default = "default_port")]
     pub port: u16,
-    pub database_url: String,
+    pub database_url: SecretString,
 
     // app secrets
     pub gitdot_public_key: String,
-    pub gitdot_private_key: String,
-    pub gitdot_slack_secret: String,
-    pub gitdot_github_secret: String,
+    pub gitdot_private_key: SecretString,
+    pub gitdot_slack_secret: SecretString,
+    pub gitdot_github_secret: SecretString,
 
     // app URLs
     #[serde(default = "default_web_url")]
@@ -22,22 +23,22 @@ pub struct Settings {
     #[serde(default = "default_device_url")]
     pub gitdot_oauth_device_verification_url: String,
     #[serde(default = "default_redis_url")]
-    pub gitdot_redis_url: String,
+    pub gitdot_redis_url: SecretString,
 
     // github
     pub github_app_id: u64,
-    pub github_app_private_key: String,
+    pub github_app_private_key: SecretString,
     pub github_client_id: String,
-    pub github_client_secret: String,
+    pub github_client_secret: SecretString,
 
     // cloudflare
     pub cloudflare_account_id: String,
     pub cloudflare_r2_bucket_name: String,
     pub cloudflare_r2_access_key_id: String,
-    pub cloudflare_r2_secret_access_key: String,
+    pub cloudflare_r2_secret_access_key: SecretString,
 
     // resend
-    pub resend_api_key: String,
+    pub resend_api_key: SecretString,
 }
 
 impl Settings {
@@ -66,6 +67,6 @@ fn default_device_url() -> String {
     "http://localhost:3000/oauth/device".into()
 }
 
-fn default_redis_url() -> String {
-    "redis://localhost:6379".into()
+fn default_redis_url() -> SecretString {
+    SecretString::from("redis://localhost:6379")
 }

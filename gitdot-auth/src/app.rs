@@ -9,6 +9,7 @@ use std::{sync::Arc, time::Duration};
 use anyhow::Context;
 use axum::{Router, middleware::from_fn, routing::get};
 use http::StatusCode;
+use secrecy::ExposeSecret;
 use sqlx::PgPool;
 use tokio::net;
 use tower::ServiceBuilder;
@@ -39,7 +40,7 @@ impl GitdotAuthServer {
         bootstrap::bootstrap()?;
 
         let settings = Arc::new(Settings::new()?);
-        let pool = PgPool::connect(&settings.database_url).await?;
+        let pool = PgPool::connect(settings.database_url.expose_secret()).await?;
         let state = AppState::new(pool, settings.clone()).await?;
         let router = create_router(state);
         let listener = net::TcpListener::bind(&settings.get_server_address()).await?;

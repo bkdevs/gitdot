@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use axum::extract::FromRef;
+use secrecy::ExposeSecret;
 use sqlx::PgPool;
 
 use gitdot_core::{
@@ -36,29 +37,33 @@ impl AppState {
         let device_repo = DeviceRepositoryImpl::new(pool.clone());
         let slack_repo = SlackRepositoryImpl::new(pool.clone());
 
-        let email_client = ResendClient::new(&settings.resend_api_key);
-        let token_client = TokenClientImpl::new(settings.gitdot_private_key.clone());
+        let email_client = ResendClient::new(settings.resend_api_key.expose_secret());
+        let token_client =
+            TokenClientImpl::new(settings.gitdot_private_key.expose_secret().to_string());
         let slack_bot_client = SlackBotClientImpl::new(
             settings.gitdot_slack_bot_server_url.clone(),
-            settings.gitdot_slack_secret.clone(),
+            settings.gitdot_slack_secret.expose_secret().to_string(),
         );
         let github_client = OctocrabClient::new(
             settings.github_app_id,
-            settings.github_app_private_key.clone(),
+            settings.github_app_private_key.expose_secret().to_string(),
             settings.github_client_id.clone(),
-            settings.github_client_secret.clone(),
-            settings.gitdot_github_secret.clone(),
+            settings.github_client_secret.expose_secret().to_string(),
+            settings.gitdot_github_secret.expose_secret().to_string(),
         );
         let image_client = ImageClientImpl::new();
         let r2_client = R2ClientImpl::new(
             settings.cloudflare_account_id.clone(),
             settings.cloudflare_r2_bucket_name.clone(),
             settings.cloudflare_r2_access_key_id.clone(),
-            settings.cloudflare_r2_secret_access_key.clone(),
+            settings
+                .cloudflare_r2_secret_access_key
+                .expose_secret()
+                .to_string(),
         )
         .await;
         let redis_client = {
-            let client = RedisClientImpl::new(&settings.gitdot_redis_url).await?;
+            let client = RedisClientImpl::new(settings.gitdot_redis_url.expose_secret()).await?;
             client.ping().await?;
             client
         };
