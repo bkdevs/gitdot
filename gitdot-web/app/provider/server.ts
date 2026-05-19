@@ -21,7 +21,7 @@ import {
   getRepositoryBlob,
   getRepositoryBlobs,
   getRepositoryCommit,
-  getRepositoryCommits,
+  listRepositoryCommits,
   getRepositoryPaths,
   listRepositoryCommitFilters,
 } from "@/dal/repository";
@@ -62,7 +62,7 @@ export class ApiProvider extends ServerProvider {
   }
 
   async getCommits(): Promise<RepositoryCommitResource[] | null> {
-    const result = await getRepositoryCommits(this.owner, this.repo, {
+    const result = await listRepositoryCommits(this.owner, this.repo, {
       from: subtractDays(new Date(), 365).toISOString(),
     });
     return result ? result.commits : null;

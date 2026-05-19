@@ -148,6 +148,7 @@ impl AppState {
                 git_client.clone(),
                 org_repo.clone(),
                 repo_repo.clone(),
+                commit_repo.clone(),
             )),
             git_http_service: Arc::new(GitHttpServiceImpl::new(git_http_client.clone())),
             question_service: Arc::new(QuestionServiceImpl::new(

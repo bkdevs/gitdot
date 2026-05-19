@@ -6,10 +6,7 @@ use uuid::Uuid;
 
 use crate::{
     client::{Git2Client, GitClient},
-    dto::{
-        CommitDiffResponse, CommitResponse, CommitsResponse, CreateCommitsRequest,
-        GetCommitDiffRequest, GetCommitRequest, GetCommitsRequest,
-    },
+    dto::{CommitResponse, CreateCommitsRequest},
     error::{CommitError, OptionNotFoundExt},
     model,
     repository::{
@@ -20,16 +17,6 @@ use crate::{
 
 #[async_trait]
 pub trait CommitService: Send + Sync + 'static {
-    async fn get_commit(&self, request: GetCommitRequest) -> Result<CommitResponse, CommitError>;
-
-    async fn get_commit_diff(
-        &self,
-        request: GetCommitDiffRequest,
-    ) -> Result<CommitDiffResponse, CommitError>;
-
-    async fn get_commits(&self, request: GetCommitsRequest)
-    -> Result<CommitsResponse, CommitError>;
-
     async fn create_commits(
         &self,
         request: CreateCommitsRequest,
@@ -82,103 +69,6 @@ where
     U: UserRepository,
     G: GitClient,
 {
-    async fn get_commit(&self, request: GetCommitRequest) -> Result<CommitResponse, CommitError> {
-        let owner = request.owner.to_string();
-        let repo_name = request.repo.to_string();
-
-        let repository = self
-            .repo_repo
-            .get(&owner, &repo_name)
-            .await?
-            .or_not_found("repository", format!("{}/{}", owner, repo_name))?;
-
-        let commit = self
-            .commit_repo
-            .get_commit(repository.id, &request.sha)
-            .await?
-            .map(Into::into)
-            .or_not_found("commit", &request.sha)?;
-
-        Ok(commit)
-    }
-
-    async fn get_commit_diff(
-        &self,
-        request: GetCommitDiffRequest,
-    ) -> Result<CommitDiffResponse, CommitError> {
-        let owner = request.owner.to_string();
-        let repo_name = request.repo.to_string();
-
-        let repository = self
-            .repo_repo
-            .get(&owner, &repo_name)
-            .await?
-            .or_not_found("repository", format!("{}/{}", owner, repo_name))?;
-
-        let commit = self
-            .commit_repo
-            .get_commit(repository.id, &request.sha)
-            .await?
-            .or_not_found("commit", &request.sha)?;
-
-        let sha = commit.sha.clone();
-        let parent_sha = commit.parent_sha.clone();
-        let is_initial = parent_sha == "0000000000000000000000000000000000000000";
-        let left_ref = if is_initial {
-            None
-        } else {
-            Some(parent_sha.as_str())
-        };
-
-        let files = self
-            .git_client
-            .get_repo_diff_files(&owner, &repo_name, left_ref, &sha)
-            .await?;
-
-        Ok(CommitDiffResponse {
-            sha,
-            parent_sha,
-            files,
-        })
-    }
-
-    async fn get_commits(
-        &self,
-        request: GetCommitsRequest,
-    ) -> Result<CommitsResponse, CommitError> {
-        let owner = request.owner.to_string();
-        let repo_name = request.repo.to_string();
-
-        let repository = self
-            .repo_repo
-            .get(&owner, &repo_name)
-            .await?
-            .or_not_found("repository", format!("{}/{}", owner, repo_name))?;
-
-        tracing::debug!(
-            repo_id = %repository.id,
-            ref_name = %request.ref_name,
-            from = %request.from,
-            to = %request.to,
-            "get_commits: querying db",
-        );
-
-        let commits = self
-            .commit_repo
-            .get_commits(repository.id, request.from, request.to)
-            .await?;
-
-        tracing::debug!(
-            count = commits.len(),
-            "get_commits: db returned {} rows",
-            commits.len()
-        );
-
-        Ok(CommitsResponse {
-            commits: commits.into_iter().map(Into::into).collect(),
-        })
-    }
-
     async fn create_commits(
         &self,
         request: CreateCommitsRequest,

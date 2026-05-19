@@ -5,7 +5,7 @@ use axum::{
 
 use gitdot_api::endpoint::repository::get_repository_commit_diff as api;
 use gitdot_core::dto::{
-    GetCommitDiffRequest, RepositoryAuthorizationRequest, RepositoryPermission,
+    GetRepositoryCommitDiffRequest, RepositoryAuthorizationRequest, RepositoryPermission,
 };
 
 use crate::{
@@ -31,10 +31,10 @@ pub async fn get_repository_commit_diff(
         .verify_authorized_for_repository(request)
         .await?;
 
-    let request = GetCommitDiffRequest::new(&owner, &repo, sha)?;
+    let request = GetRepositoryCommitDiffRequest::new(&owner, &repo, sha)?;
     state
-        .commit_service
-        .get_commit_diff(request)
+        .repo_service
+        .get_repository_commit_diff(request)
         .await
         .map_err(AppError::from)
         .map(|diff| AppResponse::new(StatusCode::OK, diff.into_api()))

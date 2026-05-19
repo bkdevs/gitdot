@@ -8,9 +8,11 @@ mod get_repository_blob;
 mod get_repository_blob_diffs;
 mod get_repository_blobs;
 mod get_repository_commit;
+mod get_repository_commit_diff;
 mod get_repository_file;
 mod get_repository_paths;
 mod list_repository_commit_filters;
+mod list_repository_commits;
 mod star_repository;
 mod unstar_repository;
 mod update_repository_commit_filter;
@@ -32,11 +34,13 @@ pub use get_repository_blob::{
 pub use get_repository_blob_diffs::{GetRepositoryBlobDiffsRequest, RepositoryBlobDiffsResponse};
 pub use get_repository_blobs::{GetRepositoryBlobsRequest, RepositoryBlobsResponse};
 pub use get_repository_commit::GetRepositoryCommitRequest;
+pub use get_repository_commit_diff::GetRepositoryCommitDiffRequest;
 pub use get_repository_file::RepositoryFileResponse;
 pub use get_repository_paths::{
     GetRepositoryPathsRequest, PathType, RepositoryPath, RepositoryPathsResponse,
 };
 pub use list_repository_commit_filters::ListRepositoryCommitFiltersRequest;
+pub use list_repository_commits::ListRepositoryCommitsRequest;
 pub use star_repository::StarRepositoryRequest;
 pub use unstar_repository::UnstarRepositoryRequest;
 pub use update_repository_commit_filter::UpdateRepositoryCommitFilterRequest;

@@ -1,19 +1,12 @@
 mod create_commits;
-mod get_commit;
-mod get_commit_diff;
-mod get_commits;
 
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
+use super::RepositoryDiffFileResponse;
 use crate::model::{Commit, CommitDiff};
 
-use super::RepositoryDiffFileResponse;
-
 pub use create_commits::CreateCommitsRequest;
-pub use get_commit::GetCommitRequest;
-pub use get_commit_diff::GetCommitDiffRequest;
-pub use get_commits::GetCommitsRequest;
 
 #[derive(Debug, Clone)]
 pub struct CommitResponse {

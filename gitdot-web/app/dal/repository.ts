@@ -8,7 +8,7 @@ import {
   type GetRepositoryBlobDiffsRequest,
   type GetRepositoryBlobRequest,
   type GetRepositoryBlobsRequest,
-  type GetRepositoryCommitsRequest,
+  type ListRepositoryCommitsRequest,
   type GetRepositoryPathsRequest,
   type GetRepositoryResourcesRequest,
   ListRepositoryCommitFiltersResponse,
@@ -62,10 +62,10 @@ export async function getRepositoryBlob(
   return await handleResponse(response, RepositoryBlobResource);
 }
 
-export async function getRepositoryCommits(
+export async function listRepositoryCommits(
   owner: string,
   repo: string,
-  query?: GetRepositoryCommitsRequest,
+  query?: ListRepositoryCommitsRequest,
 ): Promise<RepositoryCommitsResource | null> {
   const queryString = toQueryString(query);
   const response = await authFetch(

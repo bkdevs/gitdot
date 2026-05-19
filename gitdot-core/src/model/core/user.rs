@@ -11,11 +11,12 @@ pub struct User {
     pub is_email_verified: bool,
     pub provider: AuthProvider,
     pub created_at: DateTime<Utc>,
+
+    // user metadata provided by user
+    pub display_name: Option<String>,
     pub location: Option<String>,
     pub readme: Option<String>,
-
     pub links: Vec<String>,
-    pub display_name: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Type, Serialize, Deserialize)]

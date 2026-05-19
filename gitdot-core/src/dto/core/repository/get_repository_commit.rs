@@ -1,23 +1,22 @@
 use crate::{
     dto::{OwnerName, RepositoryName},
-    error::{InputError, RepositoryError},
+    error::{CommitError, InputError},
 };
 
 #[derive(Debug, Clone)]
 pub struct GetRepositoryCommitRequest {
-    pub name: RepositoryName,
-    pub owner_name: OwnerName,
-    pub ref_name: String,
+    pub owner: OwnerName,
+    pub repo: RepositoryName,
+    pub sha: String,
 }
 
 impl GetRepositoryCommitRequest {
-    pub fn new(repo_name: &str, owner_name: &str, sha: String) -> Result<Self, RepositoryError> {
+    pub fn new(owner: &str, repo: &str, sha: String) -> Result<Self, CommitError> {
         Ok(Self {
-            name: RepositoryName::try_new(repo_name)
+            owner: OwnerName::try_new(owner).map_err(|e| InputError::new("owner name", e))?,
+            repo: RepositoryName::try_new(repo)
                 .map_err(|e| InputError::new("repository name", e))?,
-            owner_name: OwnerName::try_new(owner_name)
-                .map_err(|e| InputError::new("owner name", e))?,
-            ref_name: sha,
+            sha,
         })
     }
 }

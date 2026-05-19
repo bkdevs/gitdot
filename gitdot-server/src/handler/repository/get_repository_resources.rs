@@ -7,8 +7,9 @@ use chrono::Utc;
 
 use gitdot_api::endpoint::repository::get_repository_resources as api;
 use gitdot_core::dto::{
-    GetCommitsRequest, GetRepositoryBlobsRequest, GetRepositoryPathsRequest, ListBuildsRequest,
-    ListQuestionsRequest, ListReviewsRequest, RepositoryAuthorizationRequest, RepositoryPermission,
+    GetRepositoryBlobsRequest, GetRepositoryPathsRequest, ListBuildsRequest, ListQuestionsRequest,
+    ListRepositoryCommitsRequest, ListReviewsRequest, RepositoryAuthorizationRequest,
+    RepositoryPermission,
 };
 
 use crate::{
@@ -72,7 +73,7 @@ pub async fn get_repository_resources(
         .unwrap_or_else(|| now - chrono::Duration::days(365));
 
     let commits_request =
-        GetCommitsRequest::new(&owner, &repo, "HEAD".to_string(), commits_from, now)?;
+        ListRepositoryCommitsRequest::new(&owner, &repo, "HEAD".to_string(), commits_from, now)?;
 
     let questions_request = ListQuestionsRequest::new(&owner, &repo, user_id, None, None)?;
 
@@ -90,8 +91,8 @@ pub async fn get_repository_resources(
         },
         async {
             state
-                .commit_service
-                .get_commits(commits_request)
+                .repo_service
+                .list_repository_commits(commits_request)
                 .await
                 .map_err(AppError::from)
         },

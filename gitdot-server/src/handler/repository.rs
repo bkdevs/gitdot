@@ -9,10 +9,10 @@ mod get_repository_blob_diffs;
 mod get_repository_blobs;
 mod get_repository_commit;
 mod get_repository_commit_diff;
-mod get_repository_commits;
 mod get_repository_paths;
 mod get_repository_resources;
 mod list_repository_commit_filters;
+mod list_repository_commits;
 mod star_repository;
 mod unstar_repository;
 mod update_repository_commit_filter;
@@ -35,10 +35,10 @@ use get_repository_blob_diffs::get_repository_blob_diffs;
 use get_repository_blobs::get_repository_blobs;
 use get_repository_commit::get_repository_commit;
 use get_repository_commit_diff::get_repository_commit_diff;
-use get_repository_commits::get_repository_commits;
 use get_repository_paths::get_repository_paths;
 use get_repository_resources::get_repository_resources;
 use list_repository_commit_filters::list_repository_commit_filters;
+use list_repository_commits::list_repository_commits;
 use star_repository::star_repository;
 use unstar_repository::unstar_repository;
 use update_repository_commit_filter::update_repository_commit_filter;
@@ -66,7 +66,7 @@ pub fn create_repository_router() -> Router<AppState> {
         )
         .route(
             "/repository/{owner}/{repo}/commits",
-            get(get_repository_commits),
+            get(list_repository_commits),
         )
         .route(
             "/repository/{owner}/{repo}/commits/{sha}",

@@ -4,9 +4,9 @@ use axum::{
 };
 use chrono::Utc;
 
-use gitdot_api::endpoint::get_repository_commits as api;
+use gitdot_api::endpoint::list_repository_commits as api;
 use gitdot_core::{
-    dto::{GetCommitsRequest, RepositoryAuthorizationRequest, RepositoryPermission},
+    dto::{ListRepositoryCommitsRequest, RepositoryAuthorizationRequest, RepositoryPermission},
     error::{CommitError, InputError},
 };
 
@@ -18,12 +18,12 @@ use crate::{
 
 // TODO: this does not support ref in request as of now, service ignores it.
 #[axum::debug_handler]
-pub async fn get_repository_commits(
+pub async fn list_repository_commits(
     auth_user: Option<Principal<User>>,
     State(state): State<AppState>,
     Path((owner, repo)): Path<(String, String)>,
-    Query(params): Query<api::GetRepositoryCommitsRequest>,
-) -> Result<AppResponse<api::GetRepositoryCommitsResponse>, AppError> {
+    Query(params): Query<api::ListRepositoryCommitsRequest>,
+) -> Result<AppResponse<api::ListRepositoryCommitsResponse>, AppError> {
     let request = RepositoryAuthorizationRequest::new(
         auth_user.map(|u| u.id),
         &owner,
@@ -47,10 +47,10 @@ pub async fn get_repository_commits(
         .unwrap_or_else(|| now - chrono::Duration::days(30));
     let to = params.to.unwrap_or(now);
 
-    let request = GetCommitsRequest::new(&owner, &repo, params.ref_name, from, to)?;
+    let request = ListRepositoryCommitsRequest::new(&owner, &repo, params.ref_name, from, to)?;
     state
-        .commit_service
-        .get_commits(request)
+        .repo_service
+        .list_repository_commits(request)
         .await
         .map_err(AppError::from)
         .map(|commits| AppResponse::new(StatusCode::OK, commits.into_api()))

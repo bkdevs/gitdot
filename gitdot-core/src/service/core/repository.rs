@@ -6,21 +6,22 @@ use uuid::Uuid;
 use crate::{
     client::{Git2Client, GitClient},
     dto::{
-        CreateRepositoryCommitFilterRequest, CreateRepositoryRequest,
-        DeleteRepositoryCommitFilterRequest, DeleteRepositoryRequest, GetRepositoryActivityRequest,
-        GetRepositoryBlobDiffsRequest, GetRepositoryBlobRequest, GetRepositoryBlobsRequest,
+        CommitDiffResponse, CommitResponse, CommitsResponse, CreateRepositoryCommitFilterRequest,
+        CreateRepositoryRequest, DeleteRepositoryCommitFilterRequest, DeleteRepositoryRequest,
+        GetRepositoryActivityRequest, GetRepositoryBlobDiffsRequest, GetRepositoryBlobRequest,
+        GetRepositoryBlobsRequest, GetRepositoryCommitDiffRequest, GetRepositoryCommitRequest,
         GetRepositoryPathsRequest, GetRepositoryRequest, ListRepositoryCommitFiltersRequest,
-        MAX_PER_PAGE_LIMIT, Page, RepositoryActivityEvent, RepositoryBlobDiffsResponse,
-        RepositoryBlobResponse, RepositoryBlobsResponse, RepositoryCommitFilterResponse,
-        RepositoryDiffFileResponse, RepositoryFileResponse, RepositoryPathsResponse,
-        RepositoryResponse, StarRepositoryRequest, UnstarRepositoryRequest,
-        UpdateRepositoryCommitFilterRequest,
+        ListRepositoryCommitsRequest, MAX_PER_PAGE_LIMIT, Page, RepositoryActivityEvent,
+        RepositoryBlobDiffsResponse, RepositoryBlobResponse, RepositoryBlobsResponse,
+        RepositoryCommitFilterResponse, RepositoryDiffFileResponse, RepositoryFileResponse,
+        RepositoryPathsResponse, RepositoryResponse, StarRepositoryRequest,
+        UnstarRepositoryRequest, UpdateRepositoryCommitFilterRequest,
     },
     error::{ConflictError, NotFoundError, OptionNotFoundExt, RepositoryError},
     model::RepositoryOwnerType,
     repository::{
-        OrganizationRepository, OrganizationRepositoryImpl, RepositoryRepository,
-        RepositoryRepositoryImpl,
+        CommitRepository, CommitRepositoryImpl, OrganizationRepository, OrganizationRepositoryImpl,
+        RepositoryRepository, RepositoryRepositoryImpl,
     },
     util::{
         cursor,
@@ -74,6 +75,21 @@ pub trait RepositoryService: Send + Sync + 'static {
         request: GetRepositoryBlobDiffsRequest,
     ) -> Result<RepositoryBlobDiffsResponse, RepositoryError>;
 
+    async fn get_repository_commit(
+        &self,
+        request: GetRepositoryCommitRequest,
+    ) -> Result<CommitResponse, RepositoryError>;
+
+    async fn get_repository_commit_diff(
+        &self,
+        request: GetRepositoryCommitDiffRequest,
+    ) -> Result<CommitDiffResponse, RepositoryError>;
+
+    async fn list_repository_commits(
+        &self,
+        request: ListRepositoryCommitsRequest,
+    ) -> Result<CommitsResponse, RepositoryError>;
+
     async fn star_repository(&self, request: StarRepositoryRequest) -> Result<(), RepositoryError>;
 
     async fn unstar_repository(
@@ -108,38 +124,50 @@ pub trait RepositoryService: Send + Sync + 'static {
 }
 
 #[derive(Debug, Clone)]
-pub struct RepositoryServiceImpl<G, O, R>
+pub struct RepositoryServiceImpl<G, O, R, C>
 where
     G: GitClient,
     O: OrganizationRepository,
     R: RepositoryRepository,
+    C: CommitRepository,
 {
     git_client: G,
     org_repo: O,
     repo_repo: R,
+    commit_repo: C,
 }
 
-impl RepositoryServiceImpl<Git2Client, OrganizationRepositoryImpl, RepositoryRepositoryImpl> {
+impl
+    RepositoryServiceImpl<
+        Git2Client,
+        OrganizationRepositoryImpl,
+        RepositoryRepositoryImpl,
+        CommitRepositoryImpl,
+    >
+{
     pub fn new(
         git_client: Git2Client,
         org_repo: OrganizationRepositoryImpl,
         repo_repo: RepositoryRepositoryImpl,
+        commit_repo: CommitRepositoryImpl,
     ) -> Self {
         Self {
             git_client,
             org_repo,
             repo_repo,
+            commit_repo,
         }
     }
 }
 
 #[crate::instrument_all(level = "debug")]
 #[async_trait]
-impl<G, O, R> RepositoryService for RepositoryServiceImpl<G, O, R>
+impl<G, O, R, C> RepositoryService for RepositoryServiceImpl<G, O, R, C>
 where
     G: GitClient,
     O: OrganizationRepository,
     R: RepositoryRepository,
+    C: CommitRepository,
 {
     async fn create_repository(
         &self,
@@ -373,6 +401,92 @@ where
         }
 
         Ok(RepositoryBlobDiffsResponse { diffs })
+    }
+
+    async fn get_repository_commit(
+        &self,
+        request: GetRepositoryCommitRequest,
+    ) -> Result<CommitResponse, RepositoryError> {
+        let owner = request.owner.to_string();
+        let repo_name = request.repo.to_string();
+
+        let repository = self
+            .repo_repo
+            .get(&owner, &repo_name)
+            .await?
+            .or_not_found("repository", format!("{}/{}", owner, repo_name))?;
+
+        let commit = self
+            .commit_repo
+            .get_commit(repository.id, &request.sha)
+            .await?
+            .map(Into::into)
+            .or_not_found("commit", &request.sha)?;
+
+        Ok(commit)
+    }
+
+    async fn get_repository_commit_diff(
+        &self,
+        request: GetRepositoryCommitDiffRequest,
+    ) -> Result<CommitDiffResponse, RepositoryError> {
+        let owner = request.owner.to_string();
+        let repo_name = request.repo.to_string();
+
+        let repository = self
+            .repo_repo
+            .get(&owner, &repo_name)
+            .await?
+            .or_not_found("repository", format!("{}/{}", owner, repo_name))?;
+
+        let commit = self
+            .commit_repo
+            .get_commit(repository.id, &request.sha)
+            .await?
+            .or_not_found("commit", &request.sha)?;
+
+        let sha = commit.sha.clone();
+        let parent_sha = commit.parent_sha.clone();
+        let is_initial = parent_sha == "0000000000000000000000000000000000000000";
+        let left_ref = if is_initial {
+            None
+        } else {
+            Some(parent_sha.as_str())
+        };
+
+        let files = self
+            .git_client
+            .get_repo_diff_files(&owner, &repo_name, left_ref, &sha)
+            .await?;
+
+        Ok(CommitDiffResponse {
+            sha,
+            parent_sha,
+            files,
+        })
+    }
+
+    async fn list_repository_commits(
+        &self,
+        request: ListRepositoryCommitsRequest,
+    ) -> Result<CommitsResponse, RepositoryError> {
+        let owner = request.owner.to_string();
+        let repo_name = request.repo.to_string();
+
+        let repository = self
+            .repo_repo
+            .get(&owner, &repo_name)
+            .await?
+            .or_not_found("repository", format!("{}/{}", owner, repo_name))?;
+
+        let commits = self
+            .commit_repo
+            .get_commits(repository.id, request.from, request.to)
+            .await?;
+
+        Ok(CommitsResponse {
+            commits: commits.into_iter().map(Into::into).collect(),
+        })
     }
 
     async fn star_repository(&self, request: StarRepositoryRequest) -> Result<(), RepositoryError> {
