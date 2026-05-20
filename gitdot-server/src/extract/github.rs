@@ -30,6 +30,7 @@ pub struct GithubSigned {
 pub enum GithubEvent {
     Ping,
     Push,
+    Installation,
 }
 
 impl FromStr for GithubEvent {
@@ -39,6 +40,7 @@ impl FromStr for GithubEvent {
         match s {
             "ping" => Ok(Self::Ping),
             "push" => Ok(Self::Push),
+            "installation" => Ok(Self::Installation),
             other => Err(format!("unsupported github event: {other}")),
         }
     }

@@ -194,6 +194,7 @@ impl AppState {
             github_webhook_service: Arc::new(GithubWebhookServiceImpl::new(
                 repo_repo.clone(),
                 migration_repo.clone(),
+                github_repo.clone(),
                 git_client.clone(),
                 github_client.clone(),
             )),

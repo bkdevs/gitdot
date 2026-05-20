@@ -24,6 +24,8 @@ pub trait GitHubRepository: Send + Sync + Clone + 'static {
         installation_id: i64,
     ) -> Result<Option<GitHubInstallation>, DatabaseError>;
 
+    async fn delete_by_installation_id(&self, installation_id: i64) -> Result<(), DatabaseError>;
+
     async fn list_by_owner(
         &self,
         owner_id: Uuid,
@@ -88,6 +90,14 @@ impl GitHubRepository for GitHubRepositoryImpl {
         .await?;
 
         Ok(installation)
+    }
+
+    async fn delete_by_installation_id(&self, installation_id: i64) -> Result<(), DatabaseError> {
+        sqlx::query("DELETE FROM migration.github_installations WHERE installation_id = $1")
+            .bind(installation_id)
+            .execute(&self.pool)
+            .await?;
+        Ok(())
     }
 
     async fn list_by_owner(

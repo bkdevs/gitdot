@@ -1,7 +1,9 @@
+mod process_github_installation;
 mod process_github_push;
 
 use serde::Deserialize;
 
+pub use process_github_installation::ProcessGithubInstallationRequest;
 pub use process_github_push::{
     ProcessGithubPushRequest, ProcessGithubPushResponse, SyncedRepositoryInfo,
 };

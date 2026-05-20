@@ -2,11 +2,14 @@ use async_trait::async_trait;
 
 use crate::{
     client::{Git2Client, GitClient, GitHubClient, OctocrabClient},
-    dto::{ProcessGithubPushRequest, ProcessGithubPushResponse, SyncedRepositoryInfo},
+    dto::{
+        ProcessGithubInstallationRequest, ProcessGithubPushRequest, ProcessGithubPushResponse,
+        SyncedRepositoryInfo,
+    },
     error::WebhookError,
     repository::{
-        MigrationRepository, MigrationRepositoryImpl, RepositoryRepository,
-        RepositoryRepositoryImpl,
+        GitHubRepository, GitHubRepositoryImpl, MigrationRepository, MigrationRepositoryImpl,
+        RepositoryRepository, RepositoryRepositoryImpl,
     },
     util::{git::ZERO_SHA, github::get_github_clone_url},
 };
@@ -17,18 +20,25 @@ pub trait GithubWebhookService: Send + Sync + 'static {
         &self,
         request: ProcessGithubPushRequest,
     ) -> Result<ProcessGithubPushResponse, WebhookError>;
+
+    async fn process_github_installation(
+        &self,
+        request: ProcessGithubInstallationRequest,
+    ) -> Result<(), WebhookError>;
 }
 
 #[derive(Debug, Clone)]
-pub struct GithubWebhookServiceImpl<R, MR, G, GH>
+pub struct GithubWebhookServiceImpl<R, MR, GHR, G, GH>
 where
     R: RepositoryRepository,
     MR: MigrationRepository,
+    GHR: GitHubRepository,
     G: GitClient,
     GH: GitHubClient,
 {
     repo_repo: R,
     migration_repo: MR,
+    github_repo: GHR,
     git_client: G,
     github_client: GH,
 }
@@ -37,6 +47,7 @@ impl
     GithubWebhookServiceImpl<
         RepositoryRepositoryImpl,
         MigrationRepositoryImpl,
+        GitHubRepositoryImpl,
         Git2Client,
         OctocrabClient,
     >
@@ -44,12 +55,14 @@ impl
     pub fn new(
         repo_repo: RepositoryRepositoryImpl,
         migration_repo: MigrationRepositoryImpl,
+        github_repo: GitHubRepositoryImpl,
         git_client: Git2Client,
         github_client: OctocrabClient,
     ) -> Self {
         Self {
             repo_repo,
             migration_repo,
+            github_repo,
             git_client,
             github_client,
         }
@@ -58,10 +71,11 @@ impl
 
 #[crate::instrument_all(level = "debug")]
 #[async_trait]
-impl<R, MR, G, GH> GithubWebhookService for GithubWebhookServiceImpl<R, MR, G, GH>
+impl<R, MR, GHR, G, GH> GithubWebhookService for GithubWebhookServiceImpl<R, MR, GHR, G, GH>
 where
     R: RepositoryRepository,
     MR: MigrationRepository,
+    GHR: GitHubRepository,
     G: GitClient,
     GH: GitHubClient,
 {
@@ -142,5 +156,26 @@ where
         Ok(ProcessGithubPushResponse {
             synced_repositories,
         })
+    }
+
+    async fn process_github_installation(
+        &self,
+        request: ProcessGithubInstallationRequest,
+    ) -> Result<(), WebhookError> {
+        match request.action.as_str() {
+            "deleted" => {
+                self.github_repo
+                    .delete_by_installation_id(request.installation.id)
+                    .await?;
+            }
+            other => {
+                tracing::debug!(
+                    action = other,
+                    installation_id = request.installation.id,
+                    "github installation event ignored",
+                );
+            }
+        }
+        Ok(())
     }
 }
