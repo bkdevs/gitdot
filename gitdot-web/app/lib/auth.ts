@@ -27,14 +27,14 @@ async function setTokenCookies(tokens: AuthTokensResource) {
   store.set(ACCESS_TOKEN_COOKIE, tokens.access_token, {
     httpOnly: true,
     secure: true,
-    sameSite: "strict",
+    sameSite: "lax",
     path: "/",
     maxAge: tokens.access_token_expires_in,
   });
   store.set(REFRESH_TOKEN_COOKIE, tokens.refresh_token, {
     httpOnly: true,
     secure: true,
-    sameSite: "strict",
+    sameSite: "lax",
     path: "/",
     maxAge: tokens.refresh_token_expires_in,
   });

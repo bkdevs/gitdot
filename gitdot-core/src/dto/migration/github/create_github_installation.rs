@@ -1,42 +1,28 @@
-use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
-use crate::model::{GitHubInstallation, GitHubInstallationType};
+use super::{GitHubAppInstallAction, GitHubInstallationResponse};
 
 #[derive(Debug, Clone)]
 pub struct CreateGitHubInstallationRequest {
     pub installation_id: i64,
     pub owner_id: Uuid,
+    pub state: String,
+    pub code: String,
 }
 
 impl CreateGitHubInstallationRequest {
-    pub fn new(installation_id: i64, owner_id: Uuid) -> Self {
+    pub fn new(installation_id: i64, owner_id: Uuid, state: String, code: String) -> Self {
         Self {
             installation_id,
             owner_id,
+            state,
+            code,
         }
     }
 }
 
 #[derive(Debug, Clone)]
-pub struct GitHubInstallationResponse {
-    pub id: Uuid,
-    pub installation_id: i64,
-    pub owner_id: Uuid,
-    pub installation_type: GitHubInstallationType,
-    pub github_login: String,
-    pub created_at: DateTime<Utc>,
-}
-
-impl From<GitHubInstallation> for GitHubInstallationResponse {
-    fn from(i: GitHubInstallation) -> Self {
-        Self {
-            id: i.id,
-            installation_id: i.installation_id,
-            owner_id: i.owner_id,
-            installation_type: i.r#type,
-            github_login: i.github_login,
-            created_at: i.created_at,
-        }
-    }
+pub struct CreateGitHubInstallationResponse {
+    pub installation: GitHubInstallationResponse,
+    pub action: GitHubAppInstallAction,
 }

@@ -20,7 +20,14 @@ pub trait GitHubClient: Send + Sync + Clone + 'static {
     // OAuth operations
     fn get_authorization_url(&self, state: &str) -> String;
     async fn exchange_code(&self, code: &str) -> Result<String, GitHubError>;
+    async fn get_user_name(&self, access_token: &str) -> Result<String, GitHubError>;
     async fn get_user_email(&self, access_token: &str) -> Result<String, GitHubError>;
+    async fn get_user_membership(
+        &self,
+        org_name: &str,
+        user_name: &str,
+        access_token: &str,
+    ) -> Result<String, GitHubError>;
 
     // GitHub App operations
     fn get_github_app_install_url(
@@ -125,6 +132,19 @@ impl GitHubClient for OctocrabClient {
         Ok(response.access_token)
     }
 
+    async fn get_user_name(&self, access_token: &str) -> Result<String, GitHubError> {
+        #[derive(Deserialize)]
+        struct GitHubUser {
+            login: String,
+        }
+
+        let crab = octocrab::Octocrab::builder()
+            .personal_token(access_token.to_string())
+            .build()?;
+        let user: GitHubUser = crab.get("/user", None::<&()>).await?;
+        Ok(user.login)
+    }
+
     async fn get_user_email(&self, access_token: &str) -> Result<String, GitHubError> {
         #[derive(Deserialize)]
         struct GitHubEmail {
@@ -143,6 +163,30 @@ impl GitHubClient for OctocrabClient {
             .find(|e| e.primary && e.verified)
             .map(|e| e.email)
             .ok_or_else(|| GitHubError::Other("No verified primary email found".to_string()))
+    }
+
+    async fn get_user_membership(
+        &self,
+        org_name: &str,
+        user_name: &str,
+        access_token: &str,
+    ) -> Result<String, GitHubError> {
+        #[derive(Deserialize)]
+        struct GitHubMembership {
+            state: String,
+            role: String,
+        }
+
+        let crab = octocrab::Octocrab::builder()
+            .personal_token(access_token.to_string())
+            .build()?;
+        let path = format!("/orgs/{org_name}/memberships/{user_name}");
+        let membership: GitHubMembership = crab.get(path, None::<&()>).await?;
+
+        if membership.state != "active" {
+            return Err(GitHubError::Unauthorized);
+        }
+        Ok(membership.role)
     }
 
     fn get_github_app_install_url(

@@ -1,8 +1,12 @@
-use gitdot_api::resource::migration as api;
+use gitdot_api::{
+    endpoint::migration::github::create_github_installation as create_install_api,
+    resource::migration as api,
+};
 use gitdot_core::{
     dto::{
-        GetGitHubAppInstallUrlResponse, GitHubInstallationResponse, GitHubRepositoryResponse,
-        MigrationRepositoryResponse, MigrationResponse,
+        CreateGitHubInstallationResponse, GetGitHubAppInstallUrlResponse, GitHubAppInstallAction,
+        GitHubInstallationResponse, GitHubRepositoryResponse, MigrationRepositoryResponse,
+        MigrationResponse,
     },
     model::{
         GitHubInstallationType, MigrationOriginService, MigrationRepositoryStatus, MigrationStatus,
@@ -10,6 +14,19 @@ use gitdot_core::{
 };
 
 use super::IntoApi;
+
+impl IntoApi for CreateGitHubInstallationResponse {
+    type ApiType = create_install_api::CreateGitHubInstallationResponse;
+    fn into_api(self) -> Self::ApiType {
+        create_install_api::CreateGitHubInstallationResponse {
+            installation: self.installation.into_api(),
+            action: match self.action {
+                GitHubAppInstallAction::Migration => "migration".to_string(),
+                GitHubAppInstallAction::Onboarding => "onboarding".to_string(),
+            },
+        }
+    }
+}
 
 impl IntoApi for GetGitHubAppInstallUrlResponse {
     type ApiType = api::GitHubAppInstallUrlResource;

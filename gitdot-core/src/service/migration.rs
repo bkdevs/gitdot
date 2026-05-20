@@ -5,14 +5,14 @@ use uuid::Uuid;
 use crate::{
     client::{Git2Client, GitClient, GitHubClient, OctocrabClient},
     dto::{
-        CreateGitHubInstallationRequest, CreateGitHubMigrationRequest,
-        CreateGitHubMigrationResponse, GetGitHubAppInstallUrlRequest,
+        CreateGitHubInstallationRequest, CreateGitHubInstallationResponse,
+        CreateGitHubMigrationRequest, CreateGitHubMigrationResponse, GetGitHubAppInstallUrlRequest,
         GetGitHubAppInstallUrlResponse, GetMigrationRequest, GitHubInstallationResponse,
         ListGitHubInstallationRepositoriesRequest, ListGitHubInstallationRepositoriesResponse,
         ListGitHubInstallationsRequest, ListMigrationsRequest, MigrateGitHubRepositoriesRequest,
         MigrateGitHubRepositoriesResponse, MigratedRepositoryInfo, MigrationResponse, Page,
     },
-    error::{ConflictError, InputError, MigrationError, OptionNotFoundExt},
+    error::{ConflictError, GitHubError, InputError, MigrationError, OptionNotFoundExt},
     model::{
         GitHubInstallationType, MigrationOriginService, MigrationRepositoryStatus, MigrationStatus,
         Repository, RepositoryOwnerType, RepositoryVisibility,
@@ -44,7 +44,7 @@ pub trait MigrationService: Send + Sync + 'static {
     async fn create_github_installation(
         &self,
         request: CreateGitHubInstallationRequest,
-    ) -> Result<GitHubInstallationResponse, MigrationError>;
+    ) -> Result<CreateGitHubInstallationResponse, MigrationError>;
 
     async fn get_github_app_install_url(
         &self,
@@ -274,16 +274,44 @@ where
     async fn create_github_installation(
         &self,
         request: CreateGitHubInstallationRequest,
-    ) -> Result<GitHubInstallationResponse, MigrationError> {
+    ) -> Result<CreateGitHubInstallationResponse, MigrationError> {
+        let payload = self.github_client.verify_install_state(&request.state)?;
+        if payload.user_id != request.owner_id {
+            return Err(GitHubError::InvalidState.into());
+        }
+
+        let access_token = self.github_client.exchange_code(&request.code).await?;
+        let github_user_name = self.github_client.get_user_name(&access_token).await?;
+
         let installation = self
             .github_client
             .get_installation(request.installation_id as u64)
             .await?;
-
         let installation_type = match installation.target_type.as_deref() {
             Some("Organization") => GitHubInstallationType::Organization,
             _ => GitHubInstallationType::User,
         };
+
+        match installation_type {
+            GitHubInstallationType::User => {
+                if github_user_name != installation.account.login {
+                    return Err(GitHubError::Unauthorized.into());
+                }
+            }
+            GitHubInstallationType::Organization => {
+                let role = self
+                    .github_client
+                    .get_user_membership(
+                        &installation.account.login,
+                        &github_user_name,
+                        &access_token,
+                    )
+                    .await?;
+                if role != "admin" {
+                    return Err(GitHubError::Unauthorized.into());
+                }
+            }
+        }
 
         let installation = self
             .github_repo
@@ -295,7 +323,10 @@ where
             )
             .await?;
 
-        Ok(installation.into())
+        Ok(CreateGitHubInstallationResponse {
+            installation: installation.into(),
+            action: payload.action,
+        })
     }
 
     async fn get_github_app_install_url(

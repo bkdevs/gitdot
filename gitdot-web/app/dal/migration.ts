@@ -1,8 +1,8 @@
 import "server-only";
 
 import {
+  CreateGitHubInstallationResponse,
   GetGitHubAppInstallUrlResponse,
-  GitHubInstallationResource,
   GitHubRepositoryResource,
   ListGitHubInstallationsResponse,
   ListMigrationsResponse,
@@ -24,13 +24,15 @@ export async function listInstallations(opts?: {
 
 export async function createInstallation(
   installationId: number,
-): Promise<GitHubInstallationResource | null> {
+  code: string,
+  state: string,
+): Promise<CreateGitHubInstallationResponse | null> {
   const response = await authPost(
     `${GITDOT_SERVER_URL}/migration/github/${installationId}`,
-    {},
+    { state, code },
   );
 
-  return await handleResponse(response, GitHubInstallationResource);
+  return await handleResponse(response, CreateGitHubInstallationResponse);
 }
 
 export async function getGithubAppInstallUrl(
