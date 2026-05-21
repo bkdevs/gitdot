@@ -5,7 +5,7 @@ export function UserLinks({ user }: { user: UserResource }) {
 
   return (
     <div className="flex flex-col items-start">
-      <p className="font-semibold text-sm mb-0.5">links</p>
+      <p className="font-semibold dark:font-normal text-sm mb-0.5">links</p>
       {user.links.map((link, i) => (
         <a
           key={i}

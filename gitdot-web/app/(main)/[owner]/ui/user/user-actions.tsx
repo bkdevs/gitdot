@@ -22,7 +22,7 @@ export function UserActions() {
 
   return (
     <div className="flex flex-col items-start">
-      <p className="font-semibold text-sm mb-0.5">actions</p>
+      <p className="font-semibold dark:font-normal text-sm mb-0.5">actions</p>
       {actions.map((action) => (
         <button
           key={action.label}

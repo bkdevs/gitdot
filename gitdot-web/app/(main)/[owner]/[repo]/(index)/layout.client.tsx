@@ -72,7 +72,7 @@ function IndexSidebar({
               <span className="font-normal text-muted-foreground">/</span>
               <Link
                 href={`/${owner}/${repo}`}
-                className="font-medium underline decoration-transparent hover:decoration-current transition-colors duration-200"
+                className="font-medium dark:font-normal underline decoration-transparent hover:decoration-current transition-colors duration-200"
                 prefetch={true}
               >
                 {repo}

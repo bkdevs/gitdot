@@ -6,7 +6,7 @@ export function UserStars({ stars }: { stars: RepositoryResource[] }) {
 
   return (
     <div className="flex flex-col items-start w-full min-w-0">
-      <p className="font-semibold text-sm mb-0.5">stars</p>
+      <p className="font-semibold dark:font-normal text-sm mb-0.5">stars</p>
       {stars.map((repo) => (
         <Link
           key={repo.id}

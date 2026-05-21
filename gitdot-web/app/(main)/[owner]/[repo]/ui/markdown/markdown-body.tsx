@@ -49,8 +49,8 @@ export function MarkdownBody({
             id={slugify(extractText(children))}
             className={
               compact
-                ? "text-lg font-bold mb-1 border-b pb-1"
-                : "text-3xl font-bold mb-4 border-b pb-2"
+                ? "text-lg font-bold dark:font-semibold mb-1 border-b pb-1"
+                : "text-3xl font-bold dark:font-semibold mb-4 border-b pb-2"
             }
             {...props}
           >
@@ -62,8 +62,8 @@ export function MarkdownBody({
             id={slugify(extractText(children))}
             className={
               compact
-                ? "text-base font-semibold mb-1"
-                : "text-xl font-semibold mb-3"
+                ? "text-base font-semibold dark:font-medium mb-1"
+                : "text-xl font-semibold dark:font-medium mb-3"
             }
             {...props}
           >
@@ -74,7 +74,9 @@ export function MarkdownBody({
           <h3
             id={slugify(extractText(children))}
             className={
-              compact ? "text-sm font-medium mb-1" : "text-lg font-medium mb-2"
+              compact
+                ? "text-sm font-medium dark:font-normal mb-1"
+                : "text-lg font-medium dark:font-normal mb-2"
             }
             {...props}
           >
@@ -86,8 +88,8 @@ export function MarkdownBody({
             id={slugify(extractText(children))}
             className={
               compact
-                ? "text-sm font-medium mb-0.5"
-                : "text-base font-medium mb-2"
+                ? "text-sm font-medium dark:font-normal mb-0.5"
+                : "text-base font-medium dark:font-normal mb-2"
             }
             {...props}
           >
@@ -99,8 +101,8 @@ export function MarkdownBody({
             id={slugify(extractText(children))}
             className={
               compact
-                ? "text-xs font-semibold mb-0.5"
-                : "text-sm font-semibold mb-2"
+                ? "text-xs font-semibold dark:font-medium mb-0.5"
+                : "text-sm font-semibold dark:font-medium mb-2"
             }
             {...props}
           >
@@ -271,8 +273,8 @@ export function MarkdownBody({
           <th
             className={
               compact
-                ? "px-2 py-1.5 text-left text-xs font-semibold bg-black/5 dark:bg-white/5"
-                : "px-3 py-3.5 text-left text-sm font-semibold bg-black/5 dark:bg-white/5"
+                ? "px-2 py-1.5 text-left text-xs font-semibold dark:font-medium bg-black/5 dark:bg-white/5"
+                : "px-3 py-3.5 text-left text-sm font-semibold dark:font-medium bg-black/5 dark:bg-white/5"
             }
             {...props}
           />
