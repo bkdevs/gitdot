@@ -9,6 +9,9 @@ pub struct Settings {
     pub port: u16,
     pub database_url: SecretString,
 
+    // external services (non-secret)
+    pub vercel_oidc_url: String,
+
     // app secrets
     pub gitdot_public_key: String,
     pub gitdot_private_key: SecretString,

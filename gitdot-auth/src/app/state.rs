@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use axum::extract::FromRef;
+use jsonwebtoken::jwk::JwkSet;
 use secrecy::ExposeSecret;
 use sqlx::PgPool;
 
@@ -24,9 +25,12 @@ use super::Settings;
 #[derive(FromRef, Clone)]
 pub struct AppState {
     pub settings: Arc<Settings>,
+
     pub session_service: Arc<dyn SessionService>,
     pub device_service: Arc<dyn DeviceService>,
     pub slack_service: Arc<dyn SlackService>,
+
+    pub vercel_jwks: Arc<JwkSet>,
 }
 
 impl AppState {
@@ -87,11 +91,18 @@ impl AppState {
         ));
         let slack_service = Arc::new(SlackServiceImpl::new(slack_repo, slack_bot_client));
 
+        let vercel_jwks = {
+            let jwks_url = format!("{}/.well-known/jwks", settings.vercel_oidc_url);
+            reqwest::get(&jwks_url).await?.json::<JwkSet>().await?
+        };
+        let vercel_jwks = Arc::new(vercel_jwks);
+
         Ok(Self {
             settings,
             session_service,
             device_service,
             slack_service,
+            vercel_jwks,
         })
     }
 }

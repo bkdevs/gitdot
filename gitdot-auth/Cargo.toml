@@ -17,6 +17,7 @@ gitdot-api = { workspace = true }
 gitdot-core = { workspace = true }
 http = { workspace = true }
 jsonwebtoken = { workspace = true }
+reqwest = { workspace = true }
 rustls = { workspace = true, features = ["aws-lc-rs"] }
 secrecy = { workspace = true, features = ["serde"] }
 serde = { workspace = true }

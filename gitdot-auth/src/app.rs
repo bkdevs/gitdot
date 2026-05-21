@@ -100,7 +100,7 @@ fn create_router(state: AppState) -> Router {
 
     Router::new()
         .route("/health", get(|| async { "OK" }))
-        .merge(create_auth_router())
+        .merge(create_auth_router(state.clone()))
         .layer(middleware)
         .with_state(state)
 }
