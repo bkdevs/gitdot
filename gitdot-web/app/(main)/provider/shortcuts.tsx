@@ -149,7 +149,7 @@ export function ShortcutsProvider({ children }: { children: React.ReactNode }) {
       {children}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent
-          className="max-w-lg! w-full p-0! top-[45vh]!"
+          className="max-w-lg! w-full p-0! top-[45vh]! border-black rounded-xs shadow-2xl"
           aria-describedby={undefined}
           showOverlay={false}
         >

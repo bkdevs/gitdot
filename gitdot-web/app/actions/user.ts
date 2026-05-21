@@ -15,6 +15,7 @@ import {
   linkSlackAccount,
   listUserOrganizations,
   listUserRepositories,
+  listUserStars,
   updateCurrentUser,
   uploadUserImage,
 } from "@/dal";
@@ -110,6 +111,13 @@ export async function listUserOrganizationsAction(
   username: string,
 ): Promise<OrganizationMemberResource[]> {
   const result = await listUserOrganizations(username);
+  return result?.data ?? [];
+}
+
+export async function listUserStarsAction(
+  username: string,
+): Promise<RepositoryResource[]> {
+  const result = await listUserStars(username);
   return result?.data ?? [];
 }
 

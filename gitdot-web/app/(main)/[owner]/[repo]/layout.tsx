@@ -11,6 +11,7 @@ import type {
 import { RepoResources } from "./resources/context";
 import { RepoDialogs } from "./ui/dialog/repo-dialogs";
 import { RepoNotFound } from "./ui/repo-not-found";
+import { RepoTracker } from "./ui/repo-tracker";
 import { RepoShortcuts } from "./ui/shortcuts";
 
 type Resources = {
@@ -34,6 +35,7 @@ export default async function Layout({
 
   return (
     <RepoResources owner={owner} repo={repo}>
+      <RepoTracker owner={owner} repo={repo} />
       <RepoShortcuts />
       <div className="flex md:hidden h-full w-full p-2 text-sm">
         Mobile support to come.

@@ -56,8 +56,16 @@ export function MainCommands() {
           keys: [";", ":", "Mod+k", "Mod+x"],
           execute: () => setOpen(true),
         },
+        {
+          name: "Home",
+          description: "Go home",
+          keys: ["h"],
+          execute: () => {
+            if (user) router.push(`/${user.name}`);
+          },
+        },
       ],
-      [],
+      [user, router],
     ),
   );
 
@@ -91,6 +99,11 @@ export function MainCommands() {
       },
       {
         type: "cmd",
+        label: "repos",
+        execute: () => window.dispatchEvent(new CustomEvent("openRepos")),
+      },
+      {
+        type: "cmd",
         label: "settings",
         execute: () => window.dispatchEvent(new CustomEvent("openSettings")),
       },
@@ -98,11 +111,6 @@ export function MainCommands() {
         type: "cmd",
         label: "shortcuts",
         execute: () => window.dispatchEvent(new Event("openShortcuts")),
-      },
-      {
-        type: "cmd",
-        label: "repos",
-        execute: () => window.dispatchEvent(new CustomEvent("openRepos")),
       },
       {
         type: "cmd",
