@@ -45,6 +45,12 @@ pub trait RepositoryRepository: Send + Sync + Clone + 'static {
 
     async fn delete(&self, id: Uuid) -> Result<(), DatabaseError>;
 
+    async fn disable_readonly(
+        &self,
+        owner: &str,
+        repo: &str,
+    ) -> Result<Option<Repository>, DatabaseError>;
+
     async fn star(&self, id: Uuid, user_id: Uuid) -> Result<Option<RepositoryStar>, DatabaseError>;
 
     async fn unstar(&self, id: Uuid, user_id: Uuid) -> Result<bool, DatabaseError>;
@@ -254,6 +260,42 @@ impl RepositoryRepository for RepositoryRepositoryImpl {
             .await?;
 
         Ok(())
+    }
+
+    async fn disable_readonly(
+        &self,
+        owner: &str,
+        repo: &str,
+    ) -> Result<Option<Repository>, DatabaseError> {
+        let repository = sqlx::query_as::<_, Repository>(
+            r#"
+            WITH updated AS (
+                UPDATE core.repositories r
+                SET readonly = false
+                WHERE r.name = $2
+                  AND r.owner_id IN (
+                    SELECT id FROM core.users         WHERE name = $1
+                    UNION ALL
+                    SELECT id FROM core.organizations WHERE name = $1
+                  )
+                RETURNING r.*
+            )
+            SELECT r.id, r.name, r.owner_id, COALESCE(u.name, o.name) AS owner_name,
+                   r.owner_type, r.visibility, r.description, r.stars, r.readonly, r.created_at,
+                   FALSE AS user_star
+            FROM updated r
+            LEFT JOIN core.users u
+              ON r.owner_id = u.id AND r.owner_type = 'user'
+            LEFT JOIN core.organizations o
+              ON r.owner_id = o.id AND r.owner_type = 'organization'
+            "#,
+        )
+        .bind(owner)
+        .bind(repo)
+        .fetch_optional(&self.pool)
+        .await?;
+
+        Ok(repository)
     }
 
     async fn star(&self, id: Uuid, user_id: Uuid) -> Result<Option<RepositoryStar>, DatabaseError> {

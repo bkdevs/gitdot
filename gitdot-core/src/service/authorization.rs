@@ -450,6 +450,7 @@ mod tests {
             async fn get_by_id(&self, id: Uuid, viewer_id: Option<Uuid>) -> Result<Option<Repository>, crate::error::DatabaseError>;
             async fn list_by_owner(&self, owner_name: &str, viewer_id: Option<Uuid>, cursor: Option<crate::dto::Cursor>, limit: i64) -> Result<(Vec<Repository>, Option<crate::dto::Cursor>), crate::error::DatabaseError>;
             async fn delete(&self, id: Uuid) -> Result<(), crate::error::DatabaseError>;
+            async fn disable_readonly(&self, owner: &str, repo: &str) -> Result<Option<Repository>, crate::error::DatabaseError>;
             async fn star(&self, id: Uuid, user_id: Uuid) -> Result<Option<RepositoryStar>, crate::error::DatabaseError>;
             async fn unstar(&self, id: Uuid, user_id: Uuid) -> Result<bool, crate::error::DatabaseError>;
             async fn list_recent_stars(&self, repository_id: Uuid, limit: i64) -> Result<Vec<(UserResponse, DateTime<Utc>)>, crate::error::DatabaseError>;

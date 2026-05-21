@@ -6,16 +6,17 @@ use uuid::Uuid;
 use crate::{
     client::{Git2Client, GitClient},
     dto::{
-        CommitDiffResponse, CommitResponse, CreateRepositoryCommitFilterRequest,
-        CreateRepositoryRequest, DeleteRepositoryCommitFilterRequest, DeleteRepositoryRequest,
-        GetRepositoryActivityRequest, GetRepositoryBlobDiffsRequest, GetRepositoryBlobRequest,
-        GetRepositoryBlobsRequest, GetRepositoryCommitDiffRequest, GetRepositoryCommitRequest,
-        GetRepositoryPathsRequest, GetRepositoryRequest, ListRepositoryCommitFiltersRequest,
-        ListRepositoryCommitsRequest, MAX_PER_PAGE_LIMIT, Page, RepositoryActivityEvent,
-        RepositoryBlobDiffsResponse, RepositoryBlobResponse, RepositoryBlobsResponse,
-        RepositoryCommitFilterResponse, RepositoryDiffFileResponse, RepositoryFileResponse,
-        RepositoryPathsResponse, RepositoryResponse, StarRepositoryRequest,
-        UnstarRepositoryRequest, UpdateRepositoryCommitFilterRequest,
+        CommitDiffResponse, CommitResponse, ConvertReadonlyRepositoryRequest,
+        CreateRepositoryCommitFilterRequest, CreateRepositoryRequest,
+        DeleteRepositoryCommitFilterRequest, DeleteRepositoryRequest, GetRepositoryActivityRequest,
+        GetRepositoryBlobDiffsRequest, GetRepositoryBlobRequest, GetRepositoryBlobsRequest,
+        GetRepositoryCommitDiffRequest, GetRepositoryCommitRequest, GetRepositoryPathsRequest,
+        GetRepositoryRequest, ListRepositoryCommitFiltersRequest, ListRepositoryCommitsRequest,
+        MAX_PER_PAGE_LIMIT, Page, RepositoryActivityEvent, RepositoryBlobDiffsResponse,
+        RepositoryBlobResponse, RepositoryBlobsResponse, RepositoryCommitFilterResponse,
+        RepositoryDiffFileResponse, RepositoryFileResponse, RepositoryPathsResponse,
+        RepositoryResponse, StarRepositoryRequest, UnstarRepositoryRequest,
+        UpdateRepositoryCommitFilterRequest,
     },
     error::{ConflictError, NotFoundError, OptionNotFoundExt, RepositoryError},
     model::RepositoryOwnerType,
@@ -62,6 +63,11 @@ pub trait RepositoryService: Send + Sync + 'static {
         &self,
         request: DeleteRepositoryRequest,
     ) -> Result<(), RepositoryError>;
+
+    async fn convert_readonly_repository(
+        &self,
+        request: ConvertReadonlyRepositoryRequest,
+    ) -> Result<RepositoryResponse, RepositoryError>;
 
     async fn resolve_ref_sha(
         &self,
@@ -350,6 +356,22 @@ where
         self.repo_repo.delete(repository.id).await?;
 
         Ok(())
+    }
+
+    async fn convert_readonly_repository(
+        &self,
+        request: ConvertReadonlyRepositoryRequest,
+    ) -> Result<RepositoryResponse, RepositoryError> {
+        let owner = request.owner.as_ref();
+        let repo = request.repo.as_ref();
+
+        let repository = self
+            .repo_repo
+            .disable_readonly(owner, repo)
+            .await?
+            .or_not_found("repository", format!("{}/{}", owner, repo))?;
+
+        Ok(repository.into())
     }
 
     async fn resolve_ref_sha(

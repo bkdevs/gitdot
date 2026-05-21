@@ -1,3 +1,4 @@
+mod convert_readonly_repository;
 mod create_repository;
 mod create_repository_commit_filter;
 mod delete_repository;
@@ -24,6 +25,7 @@ use axum::{
 
 use crate::app::AppState;
 
+use convert_readonly_repository::convert_readonly_repository;
 use create_repository::create_repository;
 use create_repository_commit_filter::create_repository_commit_filter;
 use delete_repository::delete_repository;
@@ -85,6 +87,10 @@ pub fn create_repository_router() -> Router<AppState> {
         .route(
             "/repository/{owner}/{repo}/activity",
             get(get_repository_activity),
+        )
+        .route(
+            "/repository/{owner}/{repo}/convert-readonly",
+            post(convert_readonly_repository),
         )
         .route(
             "/repository/{owner}/{repo}/commit_filters",
