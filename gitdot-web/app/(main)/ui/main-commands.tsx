@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams, usePathname } from "next/navigation";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import {
   useCallback,
   useEffect,
@@ -9,24 +9,29 @@ import {
   useRef,
   useState,
 } from "react";
-import { useCommands } from "@/(main)/hooks/use-commands";
 import { useShortcuts } from "@/(main)/provider/shortcuts";
 import { useUserContext } from "@/(main)/provider/user";
+import { signout } from "@/actions";
 import Link from "@/ui/link";
 
-export function MainCommandBar() {
-  const { user } = useUserContext();
-  return <CommandBar user={user ?? null} />;
-}
+type Command = {
+  label: string;
+  type: "cmd";
+  execute: () => void;
+};
 
-function CommandBar({ user }: { user: { name: string } | null }) {
-  const pathname = usePathname();
-  const params = useParams();
+export function MainCommands() {
+  const { user } = useUserContext();
+  const { refreshUser } = useUserContext();
   const [open, setOpen] = useState(false);
   const [hovered, setHovered] = useState(false);
   const [input, setInput] = useState("");
   const [selectedIdx, setSelectedIdx] = useState(0);
   const [dropdownLeft, setDropdownLeft] = useState(0);
+
+  const pathname = usePathname();
+  const params = useParams();
+  const router = useRouter();
 
   const promptRef = useRef<HTMLSpanElement>(null);
   // biome-ignore lint/correctness/useExhaustiveDependencies: re-measure when breadcrumbs change
@@ -62,7 +67,63 @@ function CommandBar({ user }: { user: { name: string } | null }) {
     return () => window.removeEventListener("openCommandBar", handle);
   }, []);
 
-  const commands = useCommands({ user });
+  const commands = useMemo<Command[]>(() => {
+    if (!user) {
+      return [
+        {
+          type: "cmd",
+          label: "login",
+          execute: () => window.dispatchEvent(new Event("toggleAuthDialog")),
+        },
+        {
+          type: "cmd",
+          label: "shortcuts",
+          execute: () => window.dispatchEvent(new Event("openShortcuts")),
+        },
+      ];
+    }
+
+    return [
+      {
+        type: "cmd",
+        label: "home",
+        execute: () => router.push(`/${user.name}`),
+      },
+      {
+        type: "cmd",
+        label: "settings",
+        execute: () => window.dispatchEvent(new CustomEvent("openSettings")),
+      },
+      {
+        type: "cmd",
+        label: "shortcuts",
+        execute: () => window.dispatchEvent(new Event("openShortcuts")),
+      },
+      {
+        type: "cmd",
+        label: "new repo",
+        execute: () => window.dispatchEvent(new CustomEvent("openNewRepo")),
+      },
+      {
+        type: "cmd",
+        label: "new org",
+        execute: () => window.dispatchEvent(new CustomEvent("openNewOrg")),
+      },
+      {
+        type: "cmd",
+        label: "migrate repo",
+        execute: () => window.dispatchEvent(new CustomEvent("openMigrateRepo")),
+      },
+      {
+        type: "cmd",
+        label: "logout",
+        execute: async () => {
+          await signout();
+          refreshUser();
+        },
+      },
+    ];
+  }, [user, router, refreshUser]);
 
   const filteredCommands = useMemo(() => {
     const q = input.trim().toLowerCase();

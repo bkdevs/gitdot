@@ -8,7 +8,7 @@ import { useUserContext } from "@/(main)/provider/user";
 import { useTypewriter } from "@/hooks/use-typewriter";
 import Link from "@/ui/link";
 import { cn } from "@/util";
-import { MainCommandBar } from "./main-command-bar";
+import { MainCommands } from "./main-commands";
 
 export function MainFooter() {
   const segments = useSelectedLayoutSegments();
@@ -16,7 +16,7 @@ export function MainFooter() {
 
   return (
     <div className="relative shrink-0 flex w-full h-7 items-center border-t bg-sidebar text-sm font-mono">
-      <MainCommandBar />
+      <MainCommands />
       <div className="ml-auto flex items-center h-full">
         <AuthStatus />
       </div>
