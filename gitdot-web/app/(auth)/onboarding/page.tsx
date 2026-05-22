@@ -104,7 +104,7 @@ export default function Page() {
             type="button"
             disabled={!nextVisible}
             onClick={() => router.push("/onboarding/name")}
-            className="cursor-pointer underline decoration-current text-muted-foreground hover:text-foreground transition-colors duration-200 disabled:cursor-not-allowed"
+            className="cursor-pointer underline decoration-current disabled:cursor-not-allowed"
           >
             Next.
           </button>
