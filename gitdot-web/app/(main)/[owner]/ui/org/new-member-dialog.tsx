@@ -110,7 +110,7 @@ export function NewMemberDialog({
               <button
                 type="submit"
                 disabled={!isValid || isPending}
-                className="flex items-center px-3 h-full text-xs bg-primary text-foreground border-l border-primary enabled:hover:opacity-90 disabled:opacity-60 transition-opacity disabled:cursor-not-allowed"
+                className="flex items-center px-3 h-full text-xs bg-primary text-primary-foreground border-l border-primary enabled:hover:opacity-90 disabled:opacity-60 transition-opacity disabled:cursor-not-allowed"
               >
                 {isPending ? "Adding..." : "Add"}
               </button>

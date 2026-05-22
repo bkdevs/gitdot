@@ -78,7 +78,7 @@ function MergeButton({
         disabled={!isMergeable}
         onClick={() => isMergeable && setOpen(true)}
         className={cn(
-          "text-xs font-mono px-2.5 py-1 rounded-xs border border-primary w-full bg-primary text-foreground transition-all duration-200",
+          "text-xs font-mono px-2.5 py-1 rounded-xs border border-primary w-full bg-primary text-primary-foreground transition-all duration-200",
           isMerged
             ? "opacity-50 cursor-not-allowed"
             : isMergeable

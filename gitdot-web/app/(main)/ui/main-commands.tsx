@@ -90,6 +90,11 @@ export function MainCommands() {
           label: "shortcuts",
           execute: () => window.dispatchEvent(new Event("openShortcuts")),
         },
+        {
+          type: "cmd",
+          label: "toggle theme",
+          execute: () => setTheme(resolvedTheme === "dark" ? "light" : "dark"),
+        },
       ];
     }
 

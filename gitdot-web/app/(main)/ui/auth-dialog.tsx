@@ -160,7 +160,7 @@ function EmailForm({
           <button
             type="submit"
             disabled={!canSubmit || isPending}
-            className="px-3 h-full text-xs bg-primary text-foreground hover:bg-primary/80 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200"
+            className="px-3 h-full text-xs bg-primary text-primary-foreground hover:bg-primary/80 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200"
           >
             Submit
           </button>
@@ -226,7 +226,7 @@ function CodeForm({ onCancel }: { onCancel: () => void }) {
           <button
             type="submit"
             disabled={!isValid || isPending}
-            className="px-3 h-full text-xs bg-primary text-foreground hover:bg-primary/80 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200"
+            className="px-3 h-full text-xs bg-primary text-primary-foreground hover:bg-primary/80 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200"
           >
             Submit
           </button>

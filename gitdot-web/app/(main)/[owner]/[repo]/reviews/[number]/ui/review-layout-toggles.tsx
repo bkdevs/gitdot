@@ -19,7 +19,7 @@ export function ReviewLayoutToggles({
         className={cn(
           "flex flex-1 items-center justify-center border-r border-border transition-colors",
           layout === "diffs"
-            ? "bg-primary text-foreground"
+            ? "bg-primary text-primary-foreground"
             : "text-muted-foreground hover:text-foreground",
         )}
       >
@@ -31,7 +31,7 @@ export function ReviewLayoutToggles({
         className={cn(
           "flex flex-1 items-center justify-center transition-colors",
           layout === "summary"
-            ? "bg-primary text-foreground"
+            ? "bg-primary text-primary-foreground"
             : "text-muted-foreground hover:text-foreground",
         )}
       >

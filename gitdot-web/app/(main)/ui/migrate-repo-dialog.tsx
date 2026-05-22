@@ -412,7 +412,7 @@ function NewMigration({
             type="button"
             disabled={!isValid || isPending}
             onClick={handleMigrate}
-            className="flex items-center px-3 h-full text-xs bg-primary text-foreground border-l border-primary enabled:hover:opacity-90 disabled:opacity-60 transition-opacity disabled:cursor-not-allowed cursor-pointer"
+            className="flex items-center px-3 h-full text-xs bg-primary text-primary-foreground border-l border-primary enabled:hover:opacity-90 disabled:opacity-60 transition-opacity disabled:cursor-not-allowed cursor-pointer"
           >
             {isPending ? "Migrating..." : "Migrate"}
           </button>
@@ -493,7 +493,7 @@ function PendingMigration({
           type="button"
           onClick={handleOk}
           disabled={inProgress}
-          className="flex items-center px-3 h-full text-xs bg-primary text-foreground border-l border-primary enabled:hover:opacity-90 disabled:opacity-60 transition-opacity disabled:cursor-not-allowed cursor-pointer"
+          className="flex items-center px-3 h-full text-xs bg-primary text-primary-foreground border-l border-primary enabled:hover:opacity-90 disabled:opacity-60 transition-opacity disabled:cursor-not-allowed cursor-pointer"
         >
           Ok
         </button>

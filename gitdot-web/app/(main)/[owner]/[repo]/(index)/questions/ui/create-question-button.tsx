@@ -19,7 +19,7 @@ export function CreateQuestionButton({
     <>
       <button
         type="button"
-        className="flex flex-row h-full items-center px-2 border-border border-l bg-primary text-xs text-foreground hover:bg-primary/80 outline-0! ring-0!"
+        className="flex flex-row h-full items-center px-2 border-border border-l bg-primary text-xs text-primary-foreground hover:bg-primary/80 outline-0! ring-0!"
         onClick={() => {
           if (requireAuth()) return;
           setOpen(true);
