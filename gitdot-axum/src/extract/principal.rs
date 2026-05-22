@@ -1,5 +1,7 @@
+use std::convert::Infallible;
+
 use axum::{
-    extract::{FromRef, FromRequestParts},
+    extract::{FromRef, FromRequestParts, OptionalFromRequestParts},
     http::{HeaderMap, StatusCode, request::Parts},
 };
 use jsonwebtoken::{Algorithm, DecodingKey, Validation, decode};
@@ -24,6 +26,22 @@ where
     async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
         let config = AuthConfig::from_ref(state);
         authenticate(&parts.headers, &config).map_err(|_| StatusCode::UNAUTHORIZED)
+    }
+}
+
+impl<S> OptionalFromRequestParts<S> for Principal
+where
+    AuthConfig: FromRef<S>,
+    S: Send + Sync,
+{
+    type Rejection = Infallible;
+
+    async fn from_request_parts(
+        parts: &mut Parts,
+        state: &S,
+    ) -> Result<Option<Self>, Self::Rejection> {
+        let config = AuthConfig::from_ref(state);
+        Ok(authenticate(&parts.headers, &config).ok())
     }
 }
 
