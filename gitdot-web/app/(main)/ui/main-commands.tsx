@@ -1,6 +1,7 @@
 "use client";
 
 import { useParams, usePathname, useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
 import {
   useCallback,
   useEffect,
@@ -32,6 +33,7 @@ export function MainCommands() {
   const pathname = usePathname();
   const params = useParams();
   const router = useRouter();
+  const { resolvedTheme, setTheme } = useTheme();
 
   const promptRef = useRef<HTMLSpanElement>(null);
   // biome-ignore lint/correctness/useExhaustiveDependencies: re-measure when breadcrumbs change
@@ -129,6 +131,11 @@ export function MainCommands() {
       },
       {
         type: "cmd",
+        label: "toggle theme",
+        execute: () => setTheme(resolvedTheme === "dark" ? "light" : "dark"),
+      },
+      {
+        type: "cmd",
         label: "logout",
         execute: async () => {
           await signout();
@@ -136,7 +143,7 @@ export function MainCommands() {
         },
       },
     ];
-  }, [user, router, refreshUser]);
+  }, [user, router, refreshUser, resolvedTheme, setTheme]);
 
   const filteredCommands = useMemo(() => {
     const q = input.trim().toLowerCase();
