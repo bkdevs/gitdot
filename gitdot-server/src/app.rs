@@ -23,7 +23,7 @@ use tower_http::{
     trace::TraceLayer,
 };
 
-use gitdot_axum::log_request;
+use gitdot_axum::middleware::log_request;
 
 use crate::handler::{
     create_build_router, create_git_http_router, create_internal_router, create_migration_router,

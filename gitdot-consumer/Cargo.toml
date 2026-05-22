@@ -10,12 +10,11 @@ path = "src/bin/main.rs"
 [dependencies]
 anyhow = { workspace = true }
 chrono = { workspace = true }
-dotenvy = { workspace = true }
 figment = { workspace = true }
 futures = { workspace = true }
+gitdot-axum = { workspace = true }
 gitdot-core = { workspace = true }
 rdkafka = { workspace = true }
-rustls = { workspace = true, features = ["aws-lc-rs"] }
 secrecy = { workspace = true, features = ["serde"] }
 serde = { workspace = true }
 serde_json = { workspace = true }
@@ -23,5 +22,4 @@ sqlx = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true }
 tracing = { workspace = true }
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 uuid = { workspace = true }

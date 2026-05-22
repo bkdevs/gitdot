@@ -7,10 +7,7 @@ use uuid::Uuid;
 
 use gitdot_core::{dto::JwtClaims, util::auth::GITDOT_SERVER_ID};
 
-#[derive(Clone)]
-pub struct JwtConfig {
-    pub public_key: String,
-}
+use crate::config::AuthConfig;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Principal {
@@ -19,18 +16,18 @@ pub struct Principal {
 
 impl<S> FromRequestParts<S> for Principal
 where
-    JwtConfig: FromRef<S>,
+    AuthConfig: FromRef<S>,
     S: Send + Sync,
 {
     type Rejection = StatusCode;
 
     async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
-        let config = JwtConfig::from_ref(state);
+        let config = AuthConfig::from_ref(state);
         authenticate(&parts.headers, &config).map_err(|_| StatusCode::UNAUTHORIZED)
     }
 }
 
-fn authenticate(headers: &HeaderMap, config: &JwtConfig) -> Result<Principal, ()> {
+fn authenticate(headers: &HeaderMap, config: &AuthConfig) -> Result<Principal, ()> {
     let header = headers
         .get("Authorization")
         .and_then(|value| value.to_str().ok())

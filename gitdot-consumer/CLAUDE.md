@@ -12,7 +12,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `app/settings.rs` — `Settings` loaded via figment from env vars
 - `app/state.rs` — `ConsumerState` (the consumer's `AppState` equivalent), plus `ConsumerHandle` enum (Plain vs Gcp) and `build_consumer` for SASL OAUTHBEARER on GCP Managed Kafka
 - `app/runner.rs` — Run loop: stream messages, dispatch to `handle_message`, commit offset on success. SIGTERM/SIGINT handlers for graceful shutdown
-- `app/bootstrap.rs` — dotenvy + tracing-subscriber + rustls crypto provider
+- `app/bootstrap.rs` — thin startup orchestrator; delegates to `gitdot_axum::bootstrap` (env, crypto provider, tracing)
 - `bin/main.rs` — Entry point: `GitdotConsumer::new().await?.run().await`
 
 ## Configuration

@@ -9,7 +9,7 @@ use axum::{
     Router, middleware,
     routing::{get, post},
 };
-use gitdot_axum::verify_vercel_oidc;
+use gitdot_axum::middleware::verify_vercel_oidc;
 
 use crate::app::AppState;
 

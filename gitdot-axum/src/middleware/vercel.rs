@@ -1,20 +1,14 @@
-use std::sync::Arc;
-
 use axum::{
     extract::{Request, State},
     http::StatusCode,
     middleware::Next,
     response::{IntoResponse, Response},
 };
-use jsonwebtoken::{Algorithm, DecodingKey, Validation, decode, decode_header, jwk::JwkSet};
+use jsonwebtoken::{Algorithm, DecodingKey, Validation, decode, decode_header};
 
 use gitdot_core::dto::JwtClaims;
 
-#[derive(Clone)]
-pub struct VercelOidcConfig {
-    pub jwks: Arc<JwkSet>,
-    pub issuer: String,
-}
+use crate::config::VercelOidcConfig;
 
 pub async fn verify_vercel_oidc(
     State(config): State<VercelOidcConfig>,

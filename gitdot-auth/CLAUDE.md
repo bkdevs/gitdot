@@ -11,7 +11,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `app.rs` — Router construction, middleware stack, `GitdotAuthServer` entrypoint
 - `app/settings.rs` — `Settings` loaded via figment from env vars (all secrets included; no runtime Secret Manager fetches)
 - `app/state.rs` — `AppState` with `AuthenticationService` and `Arc<Settings>`
-- `app/bootstrap.rs` — dotenvy + tracing-subscriber + rustls crypto provider
+- `app/bootstrap.rs` — thin startup orchestrator; delegates to `gitdot_axum::bootstrap` (env, crypto provider, tracing)
 - `app/error.rs` — `AppError` enum mapping core errors to HTTP status codes
 - `app/response.rs` — `AppResponse<T: ApiResource>` wrapper for typed JSON responses
 - `extract/` — `Principal` JWT extractor, `ClientIp`, `UserAgent`

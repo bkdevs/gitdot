@@ -5,7 +5,7 @@ use jsonwebtoken::jwk::JwkSet;
 use secrecy::ExposeSecret;
 use sqlx::PgPool;
 
-use gitdot_axum::{JwtConfig, VercelOidcConfig};
+use gitdot_axum::config::{AuthConfig, VercelOidcConfig};
 use gitdot_core::{
     client::{
         ImageClientImpl, OctocrabClient, R2ClientImpl, RedisClient, RedisClientImpl, ResendClient,
@@ -31,7 +31,7 @@ pub struct AppState {
     pub device_service: Arc<dyn DeviceService>,
     pub slack_service: Arc<dyn SlackService>,
 
-    pub jwt_config: JwtConfig,
+    pub auth_config: AuthConfig,
     pub vercel_oidc_config: VercelOidcConfig,
 }
 
@@ -101,7 +101,7 @@ impl AppState {
             jwks: Arc::new(vercel_jwks),
             issuer: settings.vercel_oidc_url.clone(),
         };
-        let jwt_config = JwtConfig {
+        let auth_config = AuthConfig {
             public_key: settings.gitdot_public_key.clone(),
         };
 
@@ -110,7 +110,7 @@ impl AppState {
             session_service,
             device_service,
             slack_service,
-            jwt_config,
+            auth_config,
             vercel_oidc_config,
         })
     }

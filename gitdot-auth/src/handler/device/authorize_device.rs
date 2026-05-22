@@ -1,7 +1,7 @@
 use axum::{Json, extract::State, http::StatusCode};
 
 use gitdot_api::endpoint::auth::device::authorize_device as api;
-use gitdot_axum::Principal;
+use gitdot_axum::extract::Principal;
 use gitdot_core::dto::AuthorizeDeviceRequest;
 
 use crate::app::{AppError, AppResponse, AppState};
