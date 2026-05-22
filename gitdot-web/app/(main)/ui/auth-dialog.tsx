@@ -152,7 +152,7 @@ function EmailForm({
             type="button"
             onClick={handleGithubLogin}
             disabled={githubPending}
-            className="flex items-center gap-1.5 px-2 h-full text-xs border-l border-border text-primary hover:bg-accent/50 transition-colors duration-200"
+            className="flex items-center gap-1.5 px-2 h-full text-xs border-l border-border text-foreground hover:bg-accent/50 transition-colors duration-200"
           >
             <Image src="/github-logo.svg" alt="GitHub" width={14} height={14} />
             {githubPending ? "Redirecting..." : "GitHub"}
@@ -160,7 +160,7 @@ function EmailForm({
           <button
             type="submit"
             disabled={!canSubmit || isPending}
-            className="px-3 h-full text-xs bg-primary text-primary-foreground hover:bg-primary/80 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200"
+            className="px-3 h-full text-xs bg-primary text-foreground hover:bg-primary/80 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200"
           >
             Submit
           </button>
@@ -219,14 +219,14 @@ function CodeForm({ onCancel }: { onCancel: () => void }) {
           <button
             type="button"
             onClick={onCancel}
-            className="flex items-center px-2 h-full text-xs border-l border-border text-primary hover:bg-accent/50 transition-colors duration-200"
+            className="flex items-center px-2 h-full text-xs border-l border-border text-foreground hover:bg-accent/50 transition-colors duration-200"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={!isValid || isPending}
-            className="px-3 h-full text-xs bg-primary text-primary-foreground hover:bg-primary/80 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200"
+            className="px-3 h-full text-xs bg-primary text-foreground hover:bg-primary/80 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200"
           >
             Submit
           </button>

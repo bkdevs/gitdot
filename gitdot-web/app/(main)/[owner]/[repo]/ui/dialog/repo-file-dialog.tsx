@@ -168,7 +168,7 @@ export function RepoFileDialog({
           <div className="w-2/5 border-r border-border flex flex-col">
             <div className="border-b border-border px-4 h-9 flex flex-row items-center shrink-0">
               <div className="flex-1 flex items-center text-sm font-mono border-0 p-0 m-0 leading-normal">
-                <span className="text-primary/60">{`${repo}/`}</span>
+                <span className="text-foreground/60">{`${repo}/`}</span>
                 <input
                   type="text"
                   value={query}

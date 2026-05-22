@@ -18,8 +18,8 @@ export function DiffLine({
         "flex items-center w-full",
         "[&_.diff-token]:cursor-pointer",
         "[&_.diff-token]:[transition:background-color_200ms]",
-        "[&_.diff-token.token-selected]:bg-primary/8",
-        "[&_.diff-token:hover]:bg-primary/8",
+        "[&_.diff-token.token-selected]:bg-highlight/8",
+        "[&_.diff-token:hover]:bg-highlight/8",
         "[&_.diff-token.token-active]:bg-diff-orange",
         "[&_.diff-token.token-active.token-selected]:bg-diff-orange",
         lineType === "added" && "bg-diff-green",
@@ -29,7 +29,7 @@ export function DiffLine({
       data-line-type={lineType}
       data-side={side}
     >
-      <span className="w-7 text-right shrink-0 pr-1 mr-1 text-xs leading-5 text-primary/30 select-none">
+      <span className="w-7 text-right shrink-0 pr-1 mr-1 text-xs leading-5 text-foreground/30 select-none">
         {lineType === "sentinel" ? ".." : lineNumber}
       </span>
       {children}

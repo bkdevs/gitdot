@@ -48,7 +48,7 @@ export function DiffBody({
       )}
       {spans.kind === "created" && <DiffCreated spans={spans.spans} />}
       {spans.kind === "deleted" && (
-        <div className="text-sm font-mono px-2 text-primary/50">
+        <div className="text-sm font-mono px-2 text-foreground/50">
           File deleted.
         </div>
       )}

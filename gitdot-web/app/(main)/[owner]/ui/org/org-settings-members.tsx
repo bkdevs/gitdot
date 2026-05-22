@@ -29,7 +29,7 @@ export function OrgSettingsMembers({
           <div className="flex items-start gap-3 min-w-0">
             <UserImage userId={member.user_id} px={32} className="mt-0.5" />
             <div className="flex flex-col flex-1 min-w-0">
-              <span className="font-sans text-sm font-medium mb-0.5">
+              <span className="font-sans text-sm font-medium dark:font-normal mb-0.5">
                 {member.user_name}
               </span>
               <p

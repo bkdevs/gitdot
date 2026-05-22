@@ -71,7 +71,7 @@ function CommitLogRow({ c }: { c: UserCommitResource }) {
 
   const added = c.diffs.reduce((s, d) => s + d.lines_added, 0);
   const removed = c.diffs.reduce((s, d) => s + d.lines_removed, 0);
-  const url = `/${c.owner_name}/${c.repo_name}/commits/${c.sha}`;
+  const url = `/${c.owner_name}/${c.repo_name}/commits/${c.sha?.slice(0, 7)}`;
 
   return (
     <a

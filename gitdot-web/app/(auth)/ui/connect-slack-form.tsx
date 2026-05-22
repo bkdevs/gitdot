@@ -35,7 +35,7 @@ export default function ConnectSlackForm({ state }: { state?: string }) {
             "underline transition-all duration-300",
             canSubmit
               ? "cursor-pointer decoration-current"
-              : "text-primary/60 cursor-not-allowed decoration-transparent",
+              : "text-foreground/60 cursor-not-allowed decoration-transparent",
           )}
           disabled={!canSubmit}
         >

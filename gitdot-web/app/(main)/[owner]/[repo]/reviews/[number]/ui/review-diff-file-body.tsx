@@ -129,7 +129,7 @@ export function ReviewDiffFileBody({
       )}
       {diffSpans.kind === "created" && <DiffCreated spans={diffSpans.spans} />}
       {diffSpans.kind === "deleted" && (
-        <div className="text-sm font-mono px-2 text-primary/50">
+        <div className="text-sm font-mono px-2 text-foreground/50">
           File deleted.
         </div>
       )}

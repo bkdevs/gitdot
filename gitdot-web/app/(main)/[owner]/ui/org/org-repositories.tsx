@@ -112,7 +112,7 @@ function RepoRow({ repo }: { repo: RepositoryResource }) {
         <div className="flex items-center gap-1 min-w-0">
           <Link
             href={`/${repo.owner}/${repo.name}`}
-            className="text-sm font-medium underline decoration-transparent hover:decoration-current transition-colors duration-200 truncate"
+            className="text-sm font-medium dark:font-normal underline decoration-transparent hover:decoration-current transition-colors duration-200 truncate"
           >
             <span className="font-normal text-muted-foreground">
               {repo.owner}/

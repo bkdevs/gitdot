@@ -35,7 +35,7 @@ export function FileCommitHeader({
           <span>•</span>
           <span>{formatDateTime(new Date(commit.date))}</span>
         </div>
-        <div className="text-sm text-primary mb-0.5">{commit.message}</div>
+        <div className="text-sm text-foreground mb-0.5">{commit.message}</div>
         <div className="flex">
           <span className="text-muted-foreground hover:text-foreground hover:underline cursor-pointer text-xs font-mono">
             {commit.sha.slice(0, 7)}

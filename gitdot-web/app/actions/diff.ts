@@ -138,7 +138,7 @@ async function renderDiff(
     const content = (left ?? right)!;
     const side = left != null ? "left" : "right";
     const lineType = side === "left" ? "removed" : "added";
-    const hast = await fileToHast(content, lang, "vitesse-light", [
+    const hast = await fileToHast(content, lang, "gitdot", [
       {
         line(node, lineNumber) {
           node.type = "element";

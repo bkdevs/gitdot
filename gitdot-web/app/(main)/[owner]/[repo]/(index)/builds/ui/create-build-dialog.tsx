@@ -103,7 +103,7 @@ export function CreateBuildDialog({
               <button
                 type="submit"
                 disabled={!isValid || isPending}
-                className="px-3 py-1.5 h-9 text-xs bg-primary text-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-3 py-1.5 h-9 text-xs bg-primary text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isPending ? "Creating..." : "Run"}
               </button>

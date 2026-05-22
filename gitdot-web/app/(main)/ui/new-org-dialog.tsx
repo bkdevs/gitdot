@@ -91,7 +91,9 @@ export function NewOrgDialog() {
             </div>
             <div className="flex flex-col gap-2 w-1/3 px-2 pt-2 pb-16 border-b border-border">
               <div className="pb-0">
-                <h2 className="text-sm font-medium">New organization</h2>
+                <h2 className="text-sm font-medium dark:font-normal">
+                  New organization
+                </h2>
                 <p className="text-xs text-muted-foreground leading-normal">
                   A new home for your team.
                 </p>
@@ -126,7 +128,7 @@ export function NewOrgDialog() {
               <button
                 type="submit"
                 disabled={!isValid || isPending}
-                className="flex items-center px-3 h-full text-xs bg-primary text-primary-foreground border-l border-primary enabled:hover:opacity-90 disabled:opacity-60 transition-opacity disabled:cursor-not-allowed cursor-pointer"
+                className="flex items-center px-3 h-full text-xs bg-primary text-foreground border-l border-primary enabled:hover:opacity-90 disabled:opacity-60 transition-opacity disabled:cursor-not-allowed cursor-pointer"
               >
                 {isPending ? "Creating..." : "Create"}
               </button>

@@ -95,7 +95,7 @@ export async function getRepositoryHastAction(
   });
   if (!blob || blob.type === "folder") return null;
   const lang = inferLanguage(path);
-  return fileToHast(blob.content, lang, "vitesse-light", []);
+  return fileToHast(blob.content, lang, "vitesse", []);
 }
 
 export async function getRepositoryBlobsAction(

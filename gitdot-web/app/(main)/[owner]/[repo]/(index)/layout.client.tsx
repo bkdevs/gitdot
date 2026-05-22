@@ -86,7 +86,7 @@ function IndexSidebar({
                 key={item.label}
                 href={`/${owner}/${repo}${item.path ? `/${item.path}` : ""}`}
                 className={`flex flex-row w-full h-9 items-center border-b select-none cursor-default text-sm hover:bg-accent/50 font-mono ${
-                  active ? "bg-sidebar" : ""
+                  active ? "bg-sidebar dark:bg-accent" : ""
                 }`}
                 prefetch={true}
                 data-sidebar-item

@@ -116,7 +116,9 @@ export function NewRepoDialog() {
             </div>
             <div className="flex flex-col gap-2 w-1/3 p-2 border-b border-border">
               <div className="pb-4">
-                <h2 className="text-sm font-medium">New repository</h2>
+                <h2 className="text-sm font-medium dark:font-normal">
+                  New repository
+                </h2>
                 <p className="text-xs text-muted-foreground leading-normal">
                   A new home for your code and its history. Have a repo already?{" "}
                   <button
@@ -304,7 +306,7 @@ export function NewRepoDialog() {
               <button
                 type="submit"
                 disabled={!isValid || isPending}
-                className="flex items-center px-3 h-full text-xs bg-primary text-primary-foreground border-l border-primary enabled:hover:opacity-90 disabled:opacity-60 transition-opacity disabled:cursor-not-allowed cursor-pointer"
+                className="flex items-center px-3 h-full text-xs bg-primary text-foreground border-l border-primary enabled:hover:opacity-90 disabled:opacity-60 transition-opacity disabled:cursor-not-allowed cursor-pointer"
               >
                 {isPending ? "Creating..." : "Create"}
               </button>

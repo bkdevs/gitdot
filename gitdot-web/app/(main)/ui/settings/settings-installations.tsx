@@ -16,7 +16,7 @@ export function SettingsInstallations() {
   return (
     <div className="p-3">
       <div className="flex items-center gap-2">
-        <p className="text-sm font-medium">Installations</p>
+        <p className="text-sm font-medium dark:font-normal">Installations</p>
       </div>
       <p className="text-sm text-muted-foreground">
         Connect a GitHub account or organization to migrate repositories —

@@ -123,7 +123,7 @@ function RepoActionButton({
       className={cn(
         "w-full h-6 flex items-center justify-start gap-1.5 px-2 text-xs font-mono cursor-default transition-colors focus:outline-none",
         primary
-          ? "bg-primary text-primary-foreground hover:bg-primary/90"
+          ? "bg-highlight text-highlight-foreground hover:bg-highlight/90"
           : active
             ? "bg-accent text-foreground"
             : "hover:bg-accent text-foreground",

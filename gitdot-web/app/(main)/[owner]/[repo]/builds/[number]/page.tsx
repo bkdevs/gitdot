@@ -56,7 +56,7 @@ export default async function Page({
 
   const configHtml =
     configFile && configFile.type === "file"
-      ? await renderFileToHtml(configFile, "vitesse-light")
+      ? await renderFileToHtml(configFile, "vitesse")
       : null;
 
   return (

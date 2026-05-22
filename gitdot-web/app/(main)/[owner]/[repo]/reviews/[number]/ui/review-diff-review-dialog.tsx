@@ -199,7 +199,7 @@ export function ReviewDiffReviewDialog({
             disabled={verdict === null || pending}
             onClick={handleSubmit}
             className={cn(
-              "px-3 h-7 text-xs bg-primary text-primary-foreground disabled:cursor-not-allowed enabled:hover:bg-primary/90 underline decoration-transparent enabled:hover:decoration-current transition-all duration-300",
+              "px-3 h-7 text-xs bg-primary text-foreground disabled:cursor-not-allowed enabled:hover:bg-primary/90 underline decoration-transparent enabled:hover:decoration-current transition-all duration-300",
               (verdict === null || pending) && "opacity-50",
             )}
           >

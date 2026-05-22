@@ -77,7 +77,7 @@ export function OrgMembers({
             </Link>
             <Link
               href={`/${member.user_name}`}
-              className="text-sm font-medium underline decoration-transparent hover:decoration-current peer-hover:decoration-current transition-colors duration-200 self-start"
+              className="text-sm font-medium dark:font-normal underline decoration-transparent hover:decoration-current peer-hover:decoration-current transition-colors duration-200 self-start"
             >
               {member.user_name}
             </Link>

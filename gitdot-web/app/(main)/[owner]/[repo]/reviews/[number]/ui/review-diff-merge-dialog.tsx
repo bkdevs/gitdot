@@ -65,7 +65,7 @@ export function ReviewDiffMergeDialog({
               }
             }}
             disabled={pending}
-            className="flex items-center px-3 h-full text-xs bg-primary text-primary-foreground border-l border-primary enabled:hover:opacity-90 disabled:opacity-60 transition-opacity cursor-pointer"
+            className="flex items-center px-3 h-full text-xs bg-primary text-foreground border-l border-primary enabled:hover:opacity-90 disabled:opacity-60 transition-opacity cursor-pointer"
           >
             {pending ? "Merging..." : "Merge"}
           </button>

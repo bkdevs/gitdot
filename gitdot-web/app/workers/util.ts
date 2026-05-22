@@ -50,6 +50,7 @@ import type { BundledLanguage } from "shiki";
 import { createHighlighterCore } from "shiki/core";
 import { createOnigurumaEngine } from "shiki/engine/oniguruma";
 import gitdotLight from "@/themes/gitdot-light";
+import vitesseDark from "@/themes/vitesse-dark";
 
 export function createHighlighter() {
   return createHighlighterCore({
@@ -102,7 +103,7 @@ export function createHighlighter() {
       yaml,
       zig,
     ],
-    themes: [vitesseLight, gitdotLight],
+    themes: [vitesseLight, vitesseDark, gitdotLight],
     engine: createOnigurumaEngine(import("shiki/wasm")),
   });
 }

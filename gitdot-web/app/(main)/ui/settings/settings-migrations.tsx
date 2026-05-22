@@ -29,7 +29,7 @@ export function SettingsMigrations() {
   return (
     <div className="p-3">
       <div className="flex items-center gap-2">
-        <p className="text-sm font-medium">Migrations</p>
+        <p className="text-sm font-medium dark:font-normal">Migrations</p>
       </div>
       <p className="text-sm text-muted-foreground">
         Each migration brings repositories from a connected GitHub account into

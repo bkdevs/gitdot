@@ -367,7 +367,7 @@ function SaveFilterButton({
           onClick={() => setDialogOpen(true)}
           disabled={!interactable}
           className={cn(
-            "px-2.5 h-6 text-xs font-mono bg-primary text-primary-foreground border border-border rounded-xs focus:outline-none transition-opacity",
+            "px-2.5 h-6 text-xs font-mono bg-primary text-foreground border border-border rounded-xs focus:outline-none transition-opacity",
             interactable
               ? "hover:opacity-80 cursor-pointer"
               : "opacity-50 cursor-not-allowed",
@@ -380,7 +380,7 @@ function SaveFilterButton({
           <DropdownMenuTrigger
             disabled={!interactable}
             className={cn(
-              "flex items-center gap-0.75 px-2.5 h-6 text-xs font-mono bg-primary text-primary-foreground border border-border rounded-xs focus:outline-none transition-opacity",
+              "flex items-center gap-0.75 px-2.5 h-6 text-xs font-mono bg-primary text-foreground border border-border rounded-xs focus:outline-none transition-opacity",
               interactable
                 ? "hover:opacity-80 cursor-pointer"
                 : "opacity-50 cursor-not-allowed",

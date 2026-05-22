@@ -108,7 +108,8 @@ async function process({ id, owner, repo }: SyncRequest, port: MessagePort) {
       const lang = inferLanguage(blob.path) ?? "plaintext";
       const hast = highlighter.codeToHast(blob.content, {
         lang,
-        theme: "vitesse-light",
+        themes: { light: "vitesse-light", dark: "vitesse-dark" },
+        defaultColor: "light",
       });
       return db.putHast(owner, repo, blob.path, hast);
     }),

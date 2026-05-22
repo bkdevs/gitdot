@@ -190,10 +190,10 @@ function DiffLineUnified({
       data-right-line-number={rightNum}
       data-line-type={lineType}
     >
-      <span className="w-7 text-right shrink-0 pr-1 text-xs leading-5 text-primary/30 select-none">
+      <span className="w-7 text-right shrink-0 pr-1 text-xs leading-5 text-foreground/30 select-none">
         {leftNum ?? ""}
       </span>
-      <span className="w-7 text-right shrink-0 pr-1 mr-1 text-xs leading-5 text-primary/30 select-none">
+      <span className="w-7 text-right shrink-0 pr-1 mr-1 text-xs leading-5 text-foreground/30 select-none">
         {rightNum ?? ""}
       </span>
       {children}

@@ -27,7 +27,7 @@ export function UserOrgs({
             </Link>
             <Link
               href={`/${m.org_name}`}
-              className="text-sm font-medium underline decoration-transparent hover:decoration-current peer-hover:decoration-current transition-colors duration-200 self-start"
+              className="text-sm font-medium dark:font-normal underline decoration-transparent hover:decoration-current peer-hover:decoration-current transition-colors duration-200 self-start"
             >
               {m.org_name}
             </Link>

@@ -337,7 +337,9 @@ function NewMigration({
         </div>
         <div className="flex flex-col justify-between w-1/3 border-b border-border">
           <div className="p-2">
-            <h2 className="text-sm font-medium">Migrate repositories</h2>
+            <h2 className="text-sm font-medium dark:font-normal">
+              Migrate repositories
+            </h2>
             <p className="text-xs text-muted-foreground leading-normal">
               Bring your GitHub repositories to gitdot.
             </p>
@@ -410,7 +412,7 @@ function NewMigration({
             type="button"
             disabled={!isValid || isPending}
             onClick={handleMigrate}
-            className="flex items-center px-3 h-full text-xs bg-primary text-primary-foreground border-l border-primary enabled:hover:opacity-90 disabled:opacity-60 transition-opacity disabled:cursor-not-allowed cursor-pointer"
+            className="flex items-center px-3 h-full text-xs bg-primary text-foreground border-l border-primary enabled:hover:opacity-90 disabled:opacity-60 transition-opacity disabled:cursor-not-allowed cursor-pointer"
           >
             {isPending ? "Migrating..." : "Migrate"}
           </button>
@@ -455,7 +457,9 @@ function PendingMigration({
   return (
     <div className="flex flex-col">
       <div className="flex items-center justify-between px-2 py-1.5 border-b border-border">
-        <h2 className="text-sm font-medium">Migrate repositories</h2>
+        <h2 className="text-sm font-medium dark:font-normal">
+          Migrate repositories
+        </h2>
         <MigrationStatus status={current.status} />
       </div>
       <div className="flex flex-col h-24 overflow-y-auto scrollbar-thin border-b border-border">
@@ -489,7 +493,7 @@ function PendingMigration({
           type="button"
           onClick={handleOk}
           disabled={inProgress}
-          className="flex items-center px-3 h-full text-xs bg-primary text-primary-foreground border-l border-primary enabled:hover:opacity-90 disabled:opacity-60 transition-opacity disabled:cursor-not-allowed cursor-pointer"
+          className="flex items-center px-3 h-full text-xs bg-primary text-foreground border-l border-primary enabled:hover:opacity-90 disabled:opacity-60 transition-opacity disabled:cursor-not-allowed cursor-pointer"
         >
           Ok
         </button>

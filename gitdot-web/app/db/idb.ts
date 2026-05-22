@@ -21,11 +21,16 @@ const pathKey = (owner: string, repo: string, path: string) =>
 let dbPromise: Promise<IDBPDatabase> | null = null;
 function getDb(): Promise<IDBPDatabase> {
   if (!dbPromise) {
-    dbPromise = openDB("gitdot", 11, {
+    dbPromise = openDB("gitdot", 12, {
       upgrade(db, oldVersion) {
         if (oldVersion < 11) {
           if (db.objectStoreNames.contains("blobs"))
             db.deleteObjectStore("blobs");
+          if (db.objectStoreNames.contains("hasts"))
+            db.deleteObjectStore("hasts");
+        }
+        if (oldVersion < 12) {
+          // dual-theme HASTs: drop entries highlighted before vitesse-dark was added.
           if (db.objectStoreNames.contains("hasts"))
             db.deleteObjectStore("hasts");
         }

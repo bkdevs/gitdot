@@ -14,20 +14,31 @@ import { inferLanguage } from "./language";
  * that is all what we'd like to leverage as well, with the exception that we want to inject our own custom themes when requested
  * so we consolidate on the following API for our own internal usage
  */
+const VITESSE_THEMES = {
+  light: "vitesse-light",
+  dark: "vitesse-dark",
+} as const;
+
 async function getHighlighter(
   lang: BundledLanguage | undefined,
-  theme: "vitesse-light" | "gitdot-light",
+  theme: "vitesse" | "gitdot",
 ): Promise<Highlighter> {
   const highlighter = await getSingletonHighlighter();
+  const themesToLoad: ("vitesse-light" | "vitesse-dark" | "gitdot-light")[] =
+    theme === "vitesse" ? ["vitesse-light", "vitesse-dark"] : ["gitdot-light"];
 
-  if (!highlighter.getLoadedThemes().includes(theme)) {
-    if (theme === "gitdot-light") {
+  for (const t of themesToLoad) {
+    if (highlighter.getLoadedThemes().includes(t)) continue;
+    if (t === "gitdot-light") {
       const gitdotLight = (await import("@/themes/gitdot-light")).default;
       await highlighter.loadTheme(gitdotLight);
-    } else if (theme === "vitesse-light") {
+    } else if (t === "vitesse-light") {
       const vitesseLight = (await import("@shikijs/themes/vitesse-light"))
         .default;
       await highlighter.loadTheme(vitesseLight);
+    } else if (t === "vitesse-dark") {
+      const vitesseDark = (await import("@/themes/vitesse-dark")).default;
+      await highlighter.loadTheme(vitesseDark);
     }
   }
 
@@ -40,28 +51,45 @@ async function getHighlighter(
 export async function fileToHast(
   content: string,
   lang: BundledLanguage | undefined,
-  theme: "vitesse-light" | "gitdot-light",
+  theme: "vitesse" | "gitdot",
   transformers: ShikiTransformer[],
 ) {
   const highlighter = await getHighlighter(lang, theme);
 
+  if (theme === "vitesse") {
+    return highlighter.codeToHast(content, {
+      lang: lang ?? "plaintext",
+      themes: VITESSE_THEMES,
+      defaultColor: "light",
+      transformers,
+    });
+  }
+
   return highlighter.codeToHast(content, {
     lang: lang ?? "plaintext",
-    theme,
+    theme: "gitdot-light",
     transformers,
   });
 }
 
 export async function renderFileToHtml(
   file: RepositoryFileResource,
-  theme: "vitesse-light" | "gitdot-light",
+  theme: "vitesse" | "gitdot",
 ): Promise<string> {
   const lang = inferLanguage(file.path);
   const highlighter = await getHighlighter(lang, theme);
 
+  if (theme === "vitesse") {
+    return highlighter.codeToHtml(file.content, {
+      lang: lang ?? "plaintext",
+      themes: VITESSE_THEMES,
+      defaultColor: "light",
+    });
+  }
+
   return highlighter.codeToHtml(file.content, {
     lang: lang ?? "plaintext",
-    theme,
+    theme: "gitdot-light",
   });
 }
 
@@ -71,7 +99,7 @@ export async function renderSpans(
   lang: BundledLanguage | undefined,
   changedLines: Set<number>,
 ): Promise<Element[]> {
-  const hast = await fileToHast(content, lang, "gitdot-light", [
+  const hast = await fileToHast(content, lang, "gitdot", [
     {
       pre(node) {
         this.addClassToHast(node, "outline-none");

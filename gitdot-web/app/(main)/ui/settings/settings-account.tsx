@@ -52,7 +52,7 @@ function AccountAction({
 }) {
   return (
     <div className="p-3">
-      <p className="text-sm font-medium">{title}</p>
+      <p className="text-sm font-medium dark:font-normal">{title}</p>
       <p className="text-sm text-muted-foreground">{description}</p>
       <div className="flex justify-start mt-3">
         <button

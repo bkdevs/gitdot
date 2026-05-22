@@ -80,7 +80,7 @@ const CommitRow = memo(function CommitRow({
           {commit.message.split("\n")[0]}
         </span>
       </div>
-      <div className="flex flex-row items-center gap-1 ml-auto shrink-0 text-xs text-muted-foreground">
+      <div className="flex flex-row items-center gap-1.5 ml-auto shrink-0 text-xs text-muted-foreground">
         <UserImage userId={commit.author.id} px={14} />
         <UserSlug user={commit.author} />
       </div>

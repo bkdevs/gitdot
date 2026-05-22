@@ -18,9 +18,10 @@ import vitesseLight from "@shikijs/themes/vitesse-light";
 import { addClassToHast, type ThemeRegistrationRaw } from "shiki";
 import { createHighlighterCoreSync } from "shiki/core";
 import { createJavaScriptRegexEngine } from "shiki/engine/javascript";
+import vitesseDark from "@/themes/vitesse-dark";
 
 const highlighter = createHighlighterCoreSync({
-  themes: [vitesseLight as unknown as ThemeRegistrationRaw],
+  themes: [vitesseLight as unknown as ThemeRegistrationRaw, vitesseDark],
   langs: [
     bash,
     c,
@@ -50,12 +51,13 @@ export function highlightMarkdownCode(
   try {
     return highlighter.codeToHtml(code, {
       lang,
-      theme: "vitesse-light",
+      themes: { light: "vitesse-light", dark: "vitesse-dark" },
+      defaultColor: "light",
       transformers: [
         {
           pre(node) {
             addClassToHast(node, "rounded p-4 mb-4 overflow-x-auto");
-            node.properties.style = `${node.properties.style ?? ""}; background-color: #f7f7f7; font-family: ui-monospace, 'Cascadia Code', 'Fira Code', Menlo, Consolas, monospace; font-size: 0.875rem;`;
+            node.properties.style = `${node.properties.style ?? ""}; font-family: ui-monospace, 'Cascadia Code', 'Fira Code', Menlo, Consolas, monospace; font-size: 0.875rem;`;
           },
         },
       ],

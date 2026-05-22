@@ -42,7 +42,8 @@ function process({ id, path, content }: ShikiRequest, port: MessagePort) {
   const lang = inferLanguage(path) ?? "plaintext";
   const hast = highlighter.codeToHast(content, {
     lang,
-    theme: "vitesse-light",
+    themes: { light: "vitesse-light", dark: "vitesse-dark" },
+    defaultColor: "light",
   });
   port.postMessage({ id, hast } satisfies ShikiResponse);
 }

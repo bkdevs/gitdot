@@ -30,6 +30,8 @@
   --color-secondary: var(--secondary);
   --color-primary-foreground: var(--primary-foreground);
   --color-primary: var(--primary);
+  --color-highlight-foreground: var(--highlight-foreground);
+  --color-highlight: var(--highlight);
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
   --color-diff-green: var(--diff-green);
@@ -61,6 +63,8 @@
   --popover-foreground: oklch(0.129 0.042 264.695);
   --primary: oklch(0.208 0.042 265.755);
   --primary-foreground: oklch(0.984 0.003 247.858);
+  --highlight: oklch(0.208 0.042 265.755);
+  --highlight-foreground: oklch(0.984 0.003 247.858);
   --secondary: oklch(0.968 0.007 247.896);
   --secondary-foreground: oklch(0.208 0.042 265.755);
   --muted: oklch(0.968 0.007 247.896);
@@ -99,8 +103,12 @@
   --foreground: oklch(0.82 0 0);
   --popover: oklch(0.155 0 0);
   --popover-foreground: oklch(0.82 0 0);
-  --primary: oklch(0.78 0 0);
-  --primary-foreground: oklch(0.115 0 0);
+  --primary: oklch(0.4 0.08 255); /* muted slate-blue */
+  --primary-foreground: oklch(0.92 0 0);
+  --highlight: oklch(
+    0.78 0 0
+  ); /* prior dark --primary, kept for neutral highlights */
+  --highlight-foreground: oklch(0.115 0 0);
   --secondary: oklch(0.185 0 0);
   --secondary-foreground: oklch(0.82 0 0);
   --muted: oklch(0.185 0 0);
@@ -121,15 +129,15 @@
   --sidebar-ring: oklch(0.551 0 0);
   --diff-red: oklch(0.22 0.04 17.38);
   --diff-green: oklch(0.22 0.04 155.826);
-  --diff-orange: oklch(0.25 0.05 62);
+  --diff-orange: oklch(0.22 0.04 62);
   --upvote: oklch(72.75% 0.198 51.769);
   --downvote: oklch(0.929 0.013 255.508);
   --vote: oklch(0.504 0.02 256.788);
   --commit-grid-empty: oklch(26.9% 0 0);
-  --commit-grid-low: oklch(39.3% 0.095 152.535);
-  --commit-grid-med: oklch(52.7% 0.154 150.069);
-  --commit-grid-high: oklch(62.7% 0.194 149.214);
-  --commit-grid-max: oklch(79.2% 0.209 151.711);
+  --commit-grid-low: oklch(35% 0.08 152.535);
+  --commit-grid-med: oklch(47% 0.13 150.069);
+  --commit-grid-high: oklch(57% 0.16 149.214);
+  --commit-grid-max: oklch(68% 0.18 151.711);
 }
 
 .blog-root {
@@ -190,3 +198,14 @@
 [data-diff-path-flash] {
   animation: diff-path-underline 0.3s ease-out;
 }
+
+/* biome-ignore-start lint/complexity/noImportantStyles: shiki emits inline colors per span, need to override */
+html.dark .shiki,
+html.dark .shiki span {
+  color: var(--shiki-dark) !important;
+  background-color: var(--shiki-dark-bg) !important;
+  font-style: var(--shiki-dark-font-style) !important;
+  font-weight: var(--shiki-dark-font-weight) !important;
+  text-decoration: var(--shiki-dark-text-decoration) !important;
+}
+/* biome-ignore-end lint/complexity/noImportantStyles: end */

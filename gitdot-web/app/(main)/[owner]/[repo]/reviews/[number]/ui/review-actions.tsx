@@ -34,7 +34,7 @@ function PublishRow() {
         type="button"
         disabled={!publishable || pending}
         onClick={() => setConfirming(true)}
-        className="flex w-full items-center gap-2 px-2 h-8 bg-primary text-primary-foreground text-xs disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer hover:opacity-90 transition-opacity"
+        className="flex w-full items-center gap-2 px-2 h-8 bg-primary text-foreground text-xs disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer hover:opacity-90 transition-opacity"
       >
         <Send className="size-3.5 shrink-0" />
         {pending ? "Publishing..." : "Publish"}
@@ -93,7 +93,7 @@ function PublishRow() {
                 }
               }}
               disabled={pending}
-              className="flex items-center px-3 h-full text-xs bg-primary text-primary-foreground border-l border-primary enabled:hover:opacity-90 disabled:opacity-60 transition-opacity cursor-pointer"
+              className="flex items-center px-3 h-full text-xs bg-primary text-foreground border-l border-primary enabled:hover:opacity-90 disabled:opacity-60 transition-opacity cursor-pointer"
             >
               {pending ? "Publishing..." : "Publish"}
             </button>

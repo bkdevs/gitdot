@@ -58,7 +58,7 @@ function EmailForm({ onSuccess }: { onSuccess: () => void }) {
             <button
               type="button"
               onClick={handleGithubLogin}
-              className="flex items-center text-xs text-primary/60 hover:text-primary transition-colors duration-150"
+              className="flex items-center text-xs text-foreground/60 hover:text-foreground transition-colors duration-150"
             >
               {githubPending ? (
                 "redirecting..."

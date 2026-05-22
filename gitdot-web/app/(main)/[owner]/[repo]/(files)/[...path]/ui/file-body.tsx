@@ -65,7 +65,7 @@ function FileLine({
     >
       <button
         type="button"
-        className="w-9 text-right shrink-0 pr-1.5 mr-1 text-primary/60 select-none outline-none cursor-pointer"
+        className="w-9 text-right shrink-0 pr-1.5 mr-1 text-foreground/60 select-none outline-none cursor-pointer"
         onMouseDown={() => handleLineMouseDown(lineNumber)}
       >
         {lineNumber}
