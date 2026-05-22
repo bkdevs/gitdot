@@ -7,7 +7,9 @@ export function UserProfile({ user }: { user: UserResource }) {
       <div className="mb-0.5">
         <UserImage px={36} userId={user.id} />
       </div>
-      <p className="font-semibold dark:font-normal text-sm mb-0.5">{user.name}</p>
+      <p className="font-semibold dark:font-normal text-sm mb-0.5">
+        {user.name}
+      </p>
 
       {user.display_name && (
         <p className="text-xs text-muted-foreground">{user.display_name}</p>
