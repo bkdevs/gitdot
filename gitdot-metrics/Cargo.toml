@@ -10,11 +10,15 @@ path = "src/bin/main.rs"
 [dependencies]
 anyhow = { workspace = true }
 axum = { workspace = true, features = ["macros"] }
+chrono = { workspace = true }
 figment = { workspace = true }
+gitdot-api = { workspace = true }
 gitdot-axum = { workspace = true }
+gitdot-core = { workspace = true }
 http = { workspace = true }
 jsonwebtoken = { workspace = true }
 reqwest = { workspace = true }
+secrecy = { workspace = true, features = ["serde"] }
 serde = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true }

@@ -1,5 +1,6 @@
 pub mod auth;
 pub mod build;
+pub mod metrics;
 pub mod migration;
 pub mod organization;
 pub mod question;

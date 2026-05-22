@@ -1,5 +1,4 @@
 mod bootstrap;
-#[allow(dead_code)]
 mod error;
 mod settings;
 mod state;
@@ -25,6 +24,7 @@ use gitdot_axum::middleware::log_request;
 
 use crate::handler::create_metrics_router;
 
+pub use error::AppError;
 pub use settings::Settings;
 pub use state::AppState;
 

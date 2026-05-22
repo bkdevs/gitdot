@@ -1,4 +1,5 @@
 use figment::{Figment, providers::Env};
+use secrecy::SecretString;
 use serde::Deserialize;
 
 #[derive(Debug, Clone, Deserialize)]
@@ -15,6 +16,13 @@ pub struct Settings {
     // app URLs
     #[serde(default = "default_web_url")]
     pub gitdot_web_url: String,
+
+    // ClickHouse
+    #[serde(default = "default_clickhouse_url")]
+    pub clickhouse_url: String,
+    pub clickhouse_user: String,
+    pub clickhouse_password: SecretString,
+    pub clickhouse_database: String,
 }
 
 impl Settings {
@@ -33,4 +41,8 @@ fn default_port() -> u16 {
 
 fn default_web_url() -> String {
     "http://localhost:3000".into()
+}
+
+fn default_clickhouse_url() -> String {
+    "http://localhost:8123".into()
 }
