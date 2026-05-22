@@ -1,4 +1,4 @@
-pub const DEFAULT_USER_README: &str = r#"# welcome
+pub const DEFAULT_USER_README: &str = r#"#### welcome
 
 gitdot is the home for great code.
 
@@ -9,7 +9,7 @@ read about how we built it at:
 - tk
 - tk
 
-## getting around
+#### getting around
 
 press `?` any time to see the full shortcut list. a few to start with:
 
@@ -24,13 +24,13 @@ inside a repo:
 - `p` — fuzzy-find a file
 - `[` / `]` — toggle the side panels
 
-## getting started
+#### getting started
 
 - pick a username and fill out your profile in [`settings`](/settings)
 - edit this README — it's the front page of your profile
 - create a new repo, or migrate one over from github
 
-## questions?
+#### questions?
 
 email [founders@gitdot.io](mailto:founders@gitdot.io)!
 "#;
