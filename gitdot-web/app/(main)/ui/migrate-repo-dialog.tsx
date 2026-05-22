@@ -182,9 +182,9 @@ function NewMigration({
   };
 
   return (
-    <div className="relative">
-      <div className="flex">
-        <div className="flex flex-col w-2/3 border-r border-b border-border">
+    <div className="relative w-full">
+      <div className="flex w-full">
+        <div className="flex flex-col w-2/3 min-w-0 border-r border-b border-border">
           <div className="flex flex-col gap-1.5 px-2 py-1.5 border-b border-border">
             <div className="flex items-center justify-between text-xs">
               <div className="flex items-center gap-2">
@@ -335,7 +335,7 @@ function NewMigration({
             )}
           </div>
         </div>
-        <div className="flex flex-col justify-between w-1/3 border-b border-border">
+        <div className="flex flex-col justify-between w-1/3 shrink-0 border-b border-border">
           <div className="p-2">
             <h2 className="text-sm font-medium dark:font-normal">
               Migrate repositories
@@ -455,7 +455,7 @@ function PendingMigration({
   };
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col w-full">
       <div className="flex items-center justify-between px-2 py-1.5 border-b border-border">
         <h2 className="text-sm font-medium dark:font-normal">
           Migrate repositories
