@@ -2,7 +2,10 @@ import fs from "node:fs";
 import path from "node:path";
 import matter from "gray-matter";
 
-const postsDirectory = path.join(process.cwd(), "app/(blog)/content/week");
+const postsDirectory = path.join(
+  process.cwd(),
+  "app/(main)/(marketing)/weeks/content/week",
+);
 
 export interface PostMetadata {
   title: string;

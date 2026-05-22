@@ -1,9 +1,15 @@
 import type { Metadata } from "next";
+import { League_Spartan } from "next/font/google";
 import { notFound } from "next/navigation";
 import { SubscribeButton } from "@/(main)/ui/subscribe-button";
 import Link from "@/ui/link";
-import { getAllWeeks, getPostByWeek } from "../../lib/posts";
+import { getAllWeeks, getPostByWeek } from "../lib/posts";
 import MarkdownContent from "../ui/markdown-content";
+
+const league_spartan = League_Spartan({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+});
 
 export async function generateStaticParams() {
   const weeks = getAllWeeks();
@@ -40,20 +46,20 @@ export default async function Page({
   }
 
   return (
-    <div className="min-h-screen grid place-items-center overflow-x-hidden">
-      <article className="w-full max-w-160 px-4 sm:px-8 py-8 overflow-hidden md:overflow-visible">
-        <h1 className="text-2xl">{post.metadata.title}</h1>
-        <Link href="/week" className="text-sm hover:underline">
-          Week {post.metadata.week}: {post.metadata.date}
-        </Link>
-        <div className="pb-4" />
+    <article
+      className={`${league_spartan.className} blog-root overflow-hidden md:overflow-visible`}
+    >
+      <h1 className="text-2xl">{post.metadata.title}</h1>
+      <Link href="/weeks" className="text-sm hover:underline">
+        Week {post.metadata.week}: {post.metadata.date}
+      </Link>
+      <div className="pb-4" />
 
-        <MarkdownContent content={post.content} />
+      <MarkdownContent content={post.content} />
 
-        <div className="mt-8 flex justify-end">
-          <SubscribeButton />
-        </div>
-      </article>
-    </div>
+      <div className="mt-8 flex justify-end">
+        <SubscribeButton />
+      </div>
+    </article>
   );
 }
