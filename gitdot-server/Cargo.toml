@@ -30,9 +30,6 @@ gitdot-core = { workspace = true }
 http = { workspace = true }
 image = { workspace = true }
 jsonwebtoken = { workspace = true }
-opentelemetry = "0.31.0"
-opentelemetry_sdk = { version = "0.31.0", features = ["trace"] }
-opentelemetry-stdout = { version = "0.31.0", features = ["trace"] }
 rand = { workspace = true }
 reqwest = { workspace = true }
 secrecy = { workspace = true, features = ["serde"] }
@@ -52,6 +49,5 @@ tower-http = { version = "0.6.8", features = [
   "trace"
 ] }
 tracing = "0.1"
-tracing-opentelemetry = "0.32.1"
 tracing-subscriber = { workspace = true }
 uuid = { workspace = true }
