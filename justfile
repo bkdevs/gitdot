@@ -437,8 +437,8 @@ REGISTRY := "us-central1-docker.pkg.dev/gitdot/gitdot"
 docker-auth:
     gcloud auth configure-docker us-central1-docker.pkg.dev
 
-# Build and push server + auth + consumer Docker images
-docker-push: (_docker-push "gitdot-server") (_docker-push "gitdot-auth") (_docker-push "gitdot-consumer")
+# Build and push server + auth + consumer + metrics Docker images
+docker-push: (_docker-push "gitdot-server") (_docker-push "gitdot-auth") (_docker-push "gitdot-consumer") (_docker-push "gitdot-metrics")
 
 _docker-push name:
     #!/usr/bin/env bash
