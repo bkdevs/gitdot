@@ -14,7 +14,6 @@ dotenvy = { workspace = true }
 gitdot-core = { workspace = true }
 jsonwebtoken = { workspace = true }
 rustls = { workspace = true, features = ["aws-lc-rs"] }
-serde = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true, features = ["env-filter", "json"] }
 uuid = { workspace = true }

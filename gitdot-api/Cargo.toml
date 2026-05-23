@@ -18,5 +18,4 @@ chrono = { workspace = true }
 gitdot-api-derive = { workspace = true }
 http = { workspace = true }
 serde = { workspace = true }
-serde_json = { workspace = true }
 uuid = { workspace = true }

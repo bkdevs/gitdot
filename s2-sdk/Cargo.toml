@@ -39,7 +39,6 @@ rand = { workspace = true }
 rustls = { workspace = true }
 s2-api = { workspace = true }
 s2-common = { workspace = true }
-secrecy = "0.10"
 serde = { workspace = true }
 serde_json = { workspace = true }
 serde_urlencoded = "0.7"

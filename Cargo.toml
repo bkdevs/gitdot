@@ -78,7 +78,6 @@ nutype = { version = "0.6.2", features = ["serde"] }
 object_store = "0.12.5"
 parking_lot = "0.12"
 proptest = "1.10"
-proc-macro2 = "1.0"
 prost = "0.14"
 prost-build = "0.14"
 quote = "1.0"

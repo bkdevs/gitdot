@@ -776,28 +776,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "axum-extra"
-version = "0.12.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fef252edff26ddba56bbcdf2ee3307b8129acb86f5749b68990c168a6fcc9c76"
-dependencies = [
- "axum",
- "axum-core",
- "bytes",
- "cookie",
- "futures-core",
- "futures-util",
- "http 1.4.0",
- "http-body 1.0.1",
- "http-body-util",
- "mime",
- "pin-project-lite",
- "tower-layer",
- "tower-service",
- "tracing",
-]
-
-[[package]]
 name = "axum-macros"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1324,17 +1302,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ec182b0ca2f35d8fc196cf3404988fd8b8c739a4d270ff118a398feb0cbec1ca"
 dependencies = [
  "unicode-segmentation",
-]
-
-[[package]]
-name = "cookie"
-version = "0.18.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4ddef33a339a91ea89fb53151bd0a4689cfce27055c291dfa69945475d22c747"
-dependencies = [
- "percent-encoding",
- "time",
- "version_check",
 ]
 
 [[package]]
@@ -2493,7 +2460,6 @@ dependencies = [
  "gitdot-api-derive",
  "http 1.4.0",
  "serde",
- "serde_json",
  "uuid",
 ]
 
@@ -2511,7 +2477,6 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "axum",
- "axum-extra",
  "figment",
  "gitdot-api",
  "gitdot-axum",
@@ -2521,7 +2486,6 @@ dependencies = [
  "reqwest 0.13.2",
  "secrecy",
  "serde",
- "serde_json",
  "sqlx",
  "thiserror 2.0.17",
  "time",
@@ -2530,7 +2494,6 @@ dependencies = [
  "tower-http",
  "tower_governor",
  "tracing",
- "uuid",
 ]
 
 [[package]]
@@ -2542,7 +2505,6 @@ dependencies = [
  "gitdot-core",
  "jsonwebtoken",
  "rustls 0.23.36",
- "serde",
  "tracing",
  "tracing-subscriber",
  "uuid",
@@ -2582,7 +2544,6 @@ name = "gitdot-consumer"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "chrono",
  "figment",
  "futures",
  "gitdot-axum",
@@ -2592,10 +2553,8 @@ dependencies = [
  "serde",
  "serde_json",
  "sqlx",
- "thiserror 2.0.17",
  "tokio",
  "tracing",
- "uuid",
 ]
 
 [[package]]
@@ -2640,11 +2599,9 @@ dependencies = [
  "serde_json",
  "sha2",
  "sqlx",
- "tempfile",
  "thiserror 2.0.17",
  "tiny-skia",
  "tokio",
- "toml 1.0.3+spec-1.1.0",
  "tracing",
  "url",
  "uuid",
@@ -2654,7 +2611,6 @@ dependencies = [
 name = "gitdot-core-derive"
 version = "0.1.0"
 dependencies = [
- "proc-macro2",
  "quote",
  "syn 2.0.114",
 ]
@@ -2665,7 +2621,6 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "axum",
- "chrono",
  "figment",
  "gitdot-api",
  "gitdot-axum",
@@ -2697,12 +2652,10 @@ dependencies = [
  "figment",
  "flate2",
  "futures",
- "git2",
  "gitdot-api",
  "gitdot-axum",
  "gitdot-core",
  "http 1.4.0",
- "image",
  "jsonwebtoken",
  "rand 0.10.0",
  "reqwest 0.13.2",
@@ -2710,7 +2663,6 @@ dependencies = [
  "serde",
  "serde_json",
  "sqlx",
- "tempfile",
  "thiserror 2.0.17",
  "tokio",
  "tokio-util",
@@ -2718,7 +2670,6 @@ dependencies = [
  "tower-http",
  "tower_governor",
  "tracing",
- "tracing-subscriber",
  "uuid",
 ]
 
@@ -5898,7 +5849,6 @@ dependencies = [
  "rustls 0.23.36",
  "s2-api",
  "s2-common",
- "secrecy",
  "serde",
  "serde_json",
  "serde_urlencoded",
@@ -5926,11 +5876,9 @@ dependencies = [
  "aws-credential-types",
  "axum",
  "axum-server",
- "blake3",
  "bytes",
  "bytesize",
  "clap",
- "compact_str",
  "dashmap",
  "dotenvy",
  "enum-ordinalize",
@@ -5945,7 +5893,6 @@ dependencies = [
  "object_store",
  "parking_lot",
  "proptest",
- "prost",
  "rand 0.10.0",
  "rcgen",
  "rustls 0.23.36",
@@ -5958,7 +5905,6 @@ dependencies = [
  "thiserror 2.0.17",
  "time",
  "tokio",
- "tokio-util",
  "tower-http",
  "tracing",
  "tracing-subscriber",

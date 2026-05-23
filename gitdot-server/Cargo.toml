@@ -28,12 +28,10 @@ ed25519-dalek = { workspace = true }
 figment = { workspace = true }
 flate2 = { workspace = true }
 futures = { workspace = true }
-git2 = { workspace = true }
 gitdot-api = { workspace = true }
 gitdot-axum = { workspace = true }
 gitdot-core = { workspace = true }
 http = { workspace = true }
-image = { workspace = true }
 jsonwebtoken = { workspace = true }
 rand = { workspace = true }
 reqwest = { workspace = true }
@@ -41,7 +39,6 @@ secrecy = { workspace = true, features = ["serde"] }
 serde = { workspace = true }
 serde_json = { workspace = true }
 sqlx = { workspace = true }
-tempfile = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true }
 tokio-util = { workspace = true }
@@ -54,5 +51,4 @@ tower-http = { workspace = true, features = [
   "trace"
 ] }
 tracing = { workspace = true }
-tracing-subscriber = { workspace = true }
 uuid = { workspace = true }
