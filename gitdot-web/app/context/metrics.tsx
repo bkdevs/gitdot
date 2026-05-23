@@ -2,7 +2,7 @@
 
 import type { WebVitalEvent } from "gitdot-api";
 import { useParams, usePathname } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import type { Metric } from "web-vitals";
 import { onCLS, onFCP, onINP, onLCP, onTTFB } from "web-vitals";
 
@@ -17,6 +17,15 @@ export function MetricsProvider({ children }: { children: React.ReactNode }) {
   const queueRef = useRef<WebVitalEvent[]>([]);
   const contextRef = useRef({ pathname, params });
   contextRef.current = { pathname, params };
+
+  const flush = useCallback(() => {
+    if (queueRef.current.length === 0) return;
+    const body = JSON.stringify({ events: queueRef.current.splice(0) });
+    navigator.sendBeacon(
+      BEACON_URL,
+      new Blob([body], { type: "application/json" }),
+    );
+  }, []);
 
   useEffect(() => {
     const push = (m: Metric) => {
@@ -41,14 +50,6 @@ export function MetricsProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    const flush = () => {
-      if (queueRef.current.length === 0) return;
-      const body = JSON.stringify({ events: queueRef.current.splice(0) });
-      navigator.sendBeacon(
-        BEACON_URL,
-        new Blob([body], { type: "application/json" }),
-      );
-    };
     const onVisibility = () => {
       if (document.visibilityState === "hidden") flush();
     };
@@ -58,7 +59,12 @@ export function MetricsProvider({ children }: { children: React.ReactNode }) {
       document.removeEventListener("visibilitychange", onVisibility);
       window.removeEventListener("pagehide", flush);
     };
-  }, []);
+  }, [flush]);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: pathname is the trigger for cleanup-on-change; the body doesn't read it
+  useEffect(() => {
+    return flush;
+  }, [pathname, flush]);
 
   return <>{children}</>;
 }
