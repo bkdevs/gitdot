@@ -6,7 +6,7 @@ use axum::{
 
 use gitdot_core::dto::{ReceivePackRequest, RepositoryAuthorizationRequest, RepositoryPermission};
 
-use super::create_body_reader;
+use super::{GIT_RECEIVE_PACK_DECOMPRESSED_LIMIT, create_body_reader};
 use crate::{
     app::{AppError, AppState},
     dto::GitHttpServerResponse,
@@ -33,7 +33,7 @@ pub async fn git_receive_pack(
         .verify_authorized_for_repository(auth_request)
         .await?;
 
-    let body_reader = create_body_reader(&headers, body).await;
+    let body_reader = create_body_reader(&headers, body, GIT_RECEIVE_PACK_DECOMPRESSED_LIMIT).await;
     let request = ReceivePackRequest::new(
         Some(auth_user.id),
         &owner,

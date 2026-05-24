@@ -14,7 +14,7 @@ categories = ["api-bindings", "database"]
 cargo-args = ["-Zunstable-options", "-Zrustdoc-scrape-examples"]
 
 [dependencies]
-async-compression = { version = "0.4", features = ["gzip", "tokio", "zstd"] }
+async-compression = { workspace = true, features = ["zstd"] }
 async-stream = { workspace = true }
 async-trait = { workspace = true }
 bytes = { workspace = true }

@@ -2633,6 +2633,7 @@ name = "gitdot-server"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "async-compression",
  "async-trait",
  "axum",
  "base64",
@@ -2640,13 +2641,13 @@ dependencies = [
  "chrono",
  "ed25519-dalek",
  "figment",
- "flate2",
  "futures",
  "gitdot-api",
  "gitdot-axum",
  "gitdot-core",
  "http 1.4.0",
  "jsonwebtoken",
+ "pin-project-lite",
  "rand 0.10.0",
  "reqwest 0.13.2",
  "secrecy",

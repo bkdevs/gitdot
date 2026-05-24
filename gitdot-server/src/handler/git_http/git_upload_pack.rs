@@ -6,7 +6,7 @@ use axum::{
 
 use gitdot_core::dto::{RepositoryAuthorizationRequest, RepositoryPermission, UploadPackRequest};
 
-use super::create_body_reader;
+use super::{GIT_UPLOAD_PACK_DECOMPRESSED_LIMIT, create_body_reader};
 use crate::{
     app::{AppError, AppState},
     dto::GitHttpServerResponse,
@@ -30,7 +30,7 @@ pub async fn git_upload_pack(
         .verify_authorized_for_repository(auth_request)
         .await?;
 
-    let body_reader = create_body_reader(&headers, body).await;
+    let body_reader = create_body_reader(&headers, body, GIT_UPLOAD_PACK_DECOMPRESSED_LIMIT).await;
     let request = UploadPackRequest::new(&owner, &repo, &content_type, body_reader)?;
     let response = state.git_http_service.upload_pack(request).await?;
     Ok(response.into())

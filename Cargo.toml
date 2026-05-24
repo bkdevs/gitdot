@@ -28,6 +28,7 @@ edition = "2024"
 [workspace.dependencies]
 anyhow = "1.0.100"
 # shared deps (merged versions)
+async-compression = { version = "0.4", default-features = false, features = ["gzip", "tokio"] }
 async-stream = "0.3"
 async-trait = "0.1.89"
 aws-config = "1"
@@ -84,6 +85,7 @@ mockall = "0.14.0"
 nutype = { version = "0.6.2", features = ["serde"] }
 object_store = "0.12.5"
 parking_lot = "0.12"
+pin-project-lite = "0.2"
 proptest = "1.10"
 prost = "0.14"
 prost-build = "0.14"
