@@ -6,6 +6,9 @@ export const CreateRepositoryRequest = z.object({
   owner_type: z.string(),
   visibility: z.string(),
   description: z.string().optional(),
+  init_readme: z.boolean().optional(),
+  gitignore_template: z.enum(["rust", "node", "python", "go"]).optional(),
+  license_template: z.enum(["mit", "apache-2.0"]).optional(),
 });
 export type CreateRepositoryRequest = z.infer<typeof CreateRepositoryRequest>;
 

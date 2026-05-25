@@ -27,8 +27,10 @@ export function NewRepoDialog() {
   const [description, setDescription] = useState("");
   const [visibility, setVisibility] = useState<"public" | "private">("public");
   const [readme, setReadme] = useState(false);
-  const [gitignore, setGitignore] = useState(false);
-  const [license, setLicense] = useState(false);
+  const [gitignore, setGitignore] = useState<
+    "none" | "rust" | "node" | "python" | "go"
+  >("none");
+  const [license, setLicense] = useState<"none" | "mit" | "apache-2.0">("none");
 
   useEffect(() => {
     if (!open) {
@@ -36,8 +38,8 @@ export function NewRepoDialog() {
       setDescription("");
       setVisibility("public");
       setReadme(false);
-      setGitignore(false);
-      setLicense(false);
+      setGitignore("none");
+      setLicense("none");
     }
   }, [open]);
 
@@ -230,22 +232,21 @@ export function NewRepoDialog() {
                       disabled={isPending}
                       className="flex items-center gap-1 hover:text-muted-foreground transition-colors cursor-pointer"
                     >
-                      {gitignore ? "yes" : "no"}
+                      {gitignore}
                       <ChevronDown className="size-3" />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="min-w-20">
-                      <DropdownMenuItem
-                        className="text-xs"
-                        onClick={() => setGitignore(true)}
-                      >
-                        yes
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        className="text-xs"
-                        onClick={() => setGitignore(false)}
-                      >
-                        no
-                      </DropdownMenuItem>
+                      {(["none", "rust", "node", "python", "go"] as const).map(
+                        (opt) => (
+                          <DropdownMenuItem
+                            key={opt}
+                            className="text-xs"
+                            onClick={() => setGitignore(opt)}
+                          >
+                            {opt}
+                          </DropdownMenuItem>
+                        ),
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
@@ -256,21 +257,31 @@ export function NewRepoDialog() {
                       disabled={isPending}
                       className="flex items-center gap-1 hover:text-muted-foreground transition-colors cursor-pointer"
                     >
-                      {license ? "yes" : "no"}
+                      {license === "none"
+                        ? "none"
+                        : license === "mit"
+                          ? "MIT"
+                          : "Apache 2.0"}
                       <ChevronDown className="size-3" />
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="min-w-20">
+                    <DropdownMenuContent align="end" className="min-w-24">
                       <DropdownMenuItem
                         className="text-xs"
-                        onClick={() => setLicense(true)}
+                        onClick={() => setLicense("none")}
                       >
-                        yes
+                        none
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         className="text-xs"
-                        onClick={() => setLicense(false)}
+                        onClick={() => setLicense("mit")}
                       >
-                        no
+                        MIT
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="text-xs"
+                        onClick={() => setLicense("apache-2.0")}
+                      >
+                        Apache 2.0
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -283,6 +294,21 @@ export function NewRepoDialog() {
             <input type="hidden" name="owner" value={owner} />
             <input type="hidden" name="owner_type" value={ownerType} />
             <input type="hidden" name="repo-description" value={description} />
+            <input
+              type="hidden"
+              name="init_readme"
+              value={readme ? "true" : "false"}
+            />
+            {gitignore !== "none" && (
+              <input
+                type="hidden"
+                name="gitignore_template"
+                value={gitignore}
+              />
+            )}
+            {license !== "none" && (
+              <input type="hidden" name="license_template" value={license} />
+            )}
             <span
               className={cn(
                 "pl-2 text-xs truncate",

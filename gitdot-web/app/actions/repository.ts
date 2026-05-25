@@ -39,6 +39,11 @@ export async function createRepositoryAction(
   const ownerType = (formData.get("owner_type") as string) || "user";
   const description =
     (formData.get("repo-description") as string | null)?.trim() || undefined;
+  const initReadme = formData.get("init_readme") === "true";
+  const gitignoreTemplate =
+    (formData.get("gitignore_template") as string | null) || undefined;
+  const licenseTemplate =
+    (formData.get("license_template") as string | null) || undefined;
 
   if (!owner || !name) {
     return { error: "Owner and repository name are required" };
@@ -49,6 +54,14 @@ export async function createRepositoryAction(
       owner_type: ownerType,
       visibility,
       description,
+      init_readme: initReadme,
+      gitignore_template: gitignoreTemplate as
+        | "rust"
+        | "node"
+        | "python"
+        | "go"
+        | undefined,
+      license_template: licenseTemplate as "mit" | "apache-2.0" | undefined,
     });
     if (!result) {
       return { error: "Failed to create repository" };
