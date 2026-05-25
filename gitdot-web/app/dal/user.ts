@@ -106,6 +106,7 @@ export async function getUser(username: string): Promise<UserResource | null> {
   return await handleResponse(response, UserResource);
 }
 
+// TODO: also needs pagination logic here beyond the 10K
 export async function listUserRepositories(
   username: string,
   opts?: { cursor?: string; limit?: number },

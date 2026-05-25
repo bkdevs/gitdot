@@ -92,6 +92,7 @@ export async function connectSlack(
 export async function signout() {
   await logout();
 }
+
 // ===========
 // get actions
 // ===========

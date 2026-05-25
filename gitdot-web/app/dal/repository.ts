@@ -65,6 +65,7 @@ export async function getRepositoryBlob(
   return await handleResponse(response, RepositoryBlobResource);
 }
 
+// TODO: support pagination for repositories that need more than 10K
 export async function listRepositoryCommits(
   owner: string,
   repo: string,

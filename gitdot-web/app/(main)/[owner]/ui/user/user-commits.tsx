@@ -2,7 +2,7 @@
 
 import type { UserCommitResource } from "gitdot-api";
 import { useState } from "react";
-import { subtractMonths } from "@/util/date";
+import { formatIsoDate, subtractMonths } from "@/util/date";
 import { UserCommitStatistics } from "./user-commit-statistics";
 import { UserCommitsCalendar } from "./user-commits-calendar";
 import { UserCommitsHeader } from "./user-commits-header";
@@ -10,9 +10,9 @@ import { UserCommitsLog } from "./user-commits-log";
 
 export function UserCommits({ commits }: { commits: UserCommitResource[] }) {
   const [startDate, setStartDate] = useState(
-    subtractMonths(new Date(), 11).toISOString().slice(0, 10),
+    formatIsoDate(subtractMonths(new Date(), 11)),
   );
-  const [endDate, setEndDate] = useState(new Date().toISOString().slice(0, 10));
+  const [endDate, setEndDate] = useState(formatIsoDate(new Date()));
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
 
   const commitMap = new Map<string, UserCommitResource[]>();
