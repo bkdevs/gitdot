@@ -107,6 +107,13 @@ function NewMigration({
       ? installations?.find((i) => i.installation_id === githubAccountId)
       : undefined;
 
+  const handleInstallGitHubApp = async () => {
+    const result = await getGithubAppInstallUrlAction("migration");
+    if ("url" in result) {
+      window.location.href = result.url;
+    }
+  };
+
   useEffect(() => {
     if (!user) return;
     if (gitdotAccountName) return;
@@ -192,7 +199,15 @@ function NewMigration({
                   From:
                 </span>
                 <DropdownMenu>
-                  <DropdownMenuTrigger className="flex items-center gap-1.5 hover:text-muted-foreground transition-colors cursor-pointer">
+                  <DropdownMenuTrigger
+                    disabled={installations?.length === 0}
+                    className={cn(
+                      "flex items-center gap-1.5 transition-colors",
+                      installations?.length === 0
+                        ? "text-muted-foreground cursor-not-allowed"
+                        : "hover:text-muted-foreground cursor-pointer",
+                    )}
+                  >
                     <Image
                       src="/github-logo.svg"
                       alt=""
@@ -201,9 +216,11 @@ function NewMigration({
                     />
                     {installations === undefined
                       ? "loading..."
-                      : githubAccount
-                        ? `github.com/${githubAccount.github_login}`
-                        : "select"}
+                      : installations.length === 0
+                        ? "no accounts"
+                        : githubAccount
+                          ? `github.com/${githubAccount.github_login}`
+                          : "select"}
                     <ChevronDown className="size-3" />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start" className="min-w-32">
@@ -229,13 +246,7 @@ function NewMigration({
               </div>
               <button
                 type="button"
-                onClick={async () => {
-                  const result =
-                    await getGithubAppInstallUrlAction("migration");
-                  if ("url" in result) {
-                    window.location.href = result.url;
-                  }
-                }}
+                onClick={handleInstallGitHubApp}
                 className="underline hover:text-muted-foreground transition-colors cursor-pointer"
               >
                 Install GitHub app
@@ -280,11 +291,25 @@ function NewMigration({
             </div>
           </div>
           <div className="flex flex-col h-84 overflow-y-auto scrollbar-thin">
-            {sortedRepos === null ? (
+            {installations === undefined ||
+            (installations.length > 0 && sortedRepos === null) ? (
               <div className="px-2 py-1.5 text-xs font-mono text-muted-foreground">
                 loading...
               </div>
-            ) : sortedRepos.length === 0 ? (
+            ) : installations.length === 0 ? (
+              <div className="px-2 py-1.5 text-xs font-mono text-muted-foreground">
+                No GitHub accounts found.
+                <br />
+                <button
+                  type="button"
+                  onClick={handleInstallGitHubApp}
+                  className="underline text-muted-foreground hover:text-foreground transition-colors duration-200 cursor-pointer"
+                >
+                  Install app
+                </button>{" "}
+                to continue
+              </div>
+            ) : sortedRepos === null || sortedRepos.length === 0 ? (
               <div className="px-2 py-1.5 text-xs text-muted-foreground">
                 No repositories found.
               </div>

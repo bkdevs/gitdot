@@ -3,8 +3,8 @@
 import type { MigrationResource } from "gitdot-api";
 import { ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
-import { listMigrationsAction } from "@/actions";
 import { useTimezone } from "@/(main)/provider/timezone";
+import { listMigrationsAction } from "@/actions";
 import {
   Collapsible,
   CollapsibleContent,

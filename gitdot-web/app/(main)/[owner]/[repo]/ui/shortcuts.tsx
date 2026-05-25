@@ -4,6 +4,15 @@ import { useParams, usePathname } from "next/navigation";
 import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import { type Shortcut, useShortcuts } from "@/(main)/provider/shortcuts";
 
+function isInputFocused(): boolean {
+  const el = document.activeElement;
+  if (!el) return false;
+  const tag = el.tagName;
+  if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return true;
+  if ((el as HTMLElement).isContentEditable) return true;
+  return false;
+}
+
 export function RepoShortcuts() {
   const { owner, repo } = useParams<{ owner: string; repo: string }>();
   const pathname = usePathname();
@@ -48,6 +57,7 @@ export function RepoShortcuts() {
     };
     const handleMouseOver = (e: MouseEvent) => {
       if (!mouseMoved.current) return;
+      if (isInputFocused()) return;
       const el = (e.target as HTMLElement).closest<HTMLElement>(
         "[data-page-item]",
       );
@@ -55,6 +65,7 @@ export function RepoShortcuts() {
     };
     const handleMouseOut = (e: MouseEvent) => {
       if (!mouseMoved.current) return;
+      if (isInputFocused()) return;
       const from = (e.target as HTMLElement).closest<HTMLElement>(
         "[data-page-item]",
       );
