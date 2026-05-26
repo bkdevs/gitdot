@@ -35,9 +35,9 @@ const UserContext = createContext<UserContext | null>(null);
  */
 export function UserProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserResource | null | undefined>(undefined);
-  const [emails, setEmails] = useState<
-    UserEmailResource[] | null | undefined
-  >(undefined);
+  const [emails, setEmails] = useState<UserEmailResource[] | null | undefined>(
+    undefined,
+  );
   const [memberships, setMemberships] = useState<
     OrganizationMemberResource[] | null | undefined
   >(undefined);

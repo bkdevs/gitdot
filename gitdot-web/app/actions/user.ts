@@ -10,8 +10,8 @@ import type {
 import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 import {
-  addUserEmail,
   ApiError,
+  addUserEmail,
   getCurrentUser,
   hasUser,
   linkSlackAccount,

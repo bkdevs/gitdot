@@ -11,12 +11,13 @@ export type DiffHunk = DiffPair[];
 /**
  * builds DiffHunk[] from raw file contents using jsdiff's structuredPatch
  *
- * we use context: CONTEXT_LINES so jsdiff already bundles adjacent changes
- * within CONTEXT_LINES * 2 of each other into one hunk
+ * context: CONTEXT_LINES bundles adjacent changes within CONTEXT_LINES * 2 of
+ * each other into one hunk, and includes up to CONTEXT_LINES of boundary
+ * context on each side of the hunk (clamped by file boundaries).
  *
- * within a hunk we collect removed and added lines in order, then zip them:
- *  - first min(removed, added) lines pair lhs <-> rhs
- *  - remainder is one-sided
+ * we preserve every line in original order so intra-hunk context lines become
+ * both-sided anchor pairs that pairLines can use as alignment points. removed
+ * lines are emitted as lhs-only, added as rhs-only.
  */
 export function diffFiles(
   leftContent: string,
@@ -37,33 +38,26 @@ export function diffFiles(
     // structuredPatch returns 1-indexed line numbers (standard unified diff), but we 0-index elsewhere
     let oldLine = hunk.oldStart - 1;
     let newLine = hunk.newStart - 1;
-    const removed: DiffLine[] = [];
-    const added: DiffLine[] = [];
+    const pairs: DiffPair[] = [];
 
     for (const raw of hunk.lines) {
       const marker = raw[0];
       if (marker === "-") {
-        removed.push({ line_number: oldLine });
+        pairs.push({ lhs: { line_number: oldLine } });
         oldLine++;
       } else if (marker === "+") {
-        added.push({ line_number: newLine });
+        pairs.push({ rhs: { line_number: newLine } });
         newLine++;
       } else if (marker === " ") {
+        pairs.push({
+          lhs: { line_number: oldLine },
+          rhs: { line_number: newLine },
+        });
         oldLine++;
         newLine++;
       }
     }
 
-    const max = Math.max(removed.length, added.length);
-    if (max === 0) continue;
-
-    const pairs: DiffPair[] = [];
-    for (let i = 0; i < max; i++) {
-      pairs.push({
-        lhs: i < removed.length ? removed[i] : undefined,
-        rhs: i < added.length ? added[i] : undefined,
-      });
-    }
     result.push(pairs);
   }
 
@@ -71,183 +65,46 @@ export function diffFiles(
 }
 
 /**
- * a tad complicated and heuristic function.
+ * converts a DiffHunk to LinePair[] for split-view rendering.
  *
- * a hunk is a sequence of paired lines, where each pair is one of:
- * - added [rhs only]
- * - removed [lhs only]
- * - modified [lhs + rhs, paired by jsdiff via order within a hunk]
+ * walks the hunk in order. anchors (lines with both lhs and rhs) flush any
+ * pending one-sided lines and then emit as-is. consecutive removed/added lines
+ * are zipped side-by-side on flush; whichever side is longer gets sentinels on
+ * the other side. as a result, the left and right columns of the returned
+ * array always have equal row count.
  *
- * the input may contain pairs whose left/right indices are not contiguous (e.g.
- * [15, 20]). to render a properly aligned split view we need to pad sentinels
- * between anchors so each side increments by one per row.
- *
- * output:
- *  - LinePair[], a list of line numbers that indicate which left line maps to
- *    what right line (and what lines should be sentinelled)
- *
- * example output:
- *  - [1, 2] # showing offset at beginning of file
- *  - [2, 3]
- *  - [null, 4] # indicating added on rhs
- *  - [3, 5]
- *  - [4, null] # indicating removal on lhs
- *
- * invariants:
- * - each side contains the full range of indices from min, max in the hunk (inclusive)
- * - each side is monotonically increasing, excluding null sentinels
- * the list size may exceed the raw hunk size when padding is added.
+ * example:
+ *   in:  [-A, -B, +X, ctx_l/ctx_r, -C, +Y, +Z]
+ *   out: [[A, X], [B, null], [ctx_l, ctx_r], [C, Y], [null, Z]]
  */
 export function pairLines(hunk: DiffHunk): LinePair[] {
-  const hunkPairs: LinePair[] = [];
-
-  // first add all paired lines (those that are matched) and use those as anchors to generate the full alignment
-  for (const line of hunk) {
-    if (line.lhs && line.rhs) {
-      hunkPairs.push([line.lhs.line_number, line.rhs.line_number]);
-    }
-  }
-
-  // then insert lhs only lines by sorted order of the left index
-  for (const line of hunk) {
-    if (line.lhs && !line.rhs) {
-      insertLhsInOrder(hunkPairs, line.lhs.line_number);
-    }
-  }
-
-  // then do the same for rhs
-  for (const line of hunk) {
-    if (!line.lhs && line.rhs) {
-      insertRhsInOrder(hunkPairs, line.rhs.line_number);
-    }
-  }
-
-  // find anchor indices (lines where both sides are non-null)
-  const anchorIndices = hunkPairs
-    .map((p, i) => (p[0] !== null && p[1] !== null ? i : -1))
-    .filter((i) => i !== -1);
-
-  // if no anchors, handle all one-sided case
-  if (anchorIndices.length === 0) {
-    return fillGapsOneSided(hunkPairs);
-  }
-
   const result: LinePair[] = [];
+  let pendingLhs: number[] = [];
+  let pendingRhs: number[] = [];
 
-  // process each range between consecutive anchors
-  for (let i = 0; i < anchorIndices.length; i++) {
-    const startIdx = anchorIndices[i];
-    const startAnchor = hunkPairs[startIdx];
-    result.push(startAnchor);
+  const flush = () => {
+    const n = Math.max(pendingLhs.length, pendingRhs.length);
+    for (let i = 0; i < n; i++) {
+      result.push([
+        i < pendingLhs.length ? pendingLhs[i] : null,
+        i < pendingRhs.length ? pendingRhs[i] : null,
+      ]);
+    }
+    pendingLhs = [];
+    pendingRhs = [];
+  };
 
-    if (i < anchorIndices.length - 1) {
-      const endIdx = anchorIndices[i + 1];
-      const endAnchor = hunkPairs[endIdx];
-      const entriesBetween = hunkPairs.slice(startIdx + 1, endIdx);
-      result.push(...fillGapsInRange(startAnchor, endAnchor, entriesBetween));
+  for (const pair of hunk) {
+    if (pair.lhs && pair.rhs) {
+      flush();
+      result.push([pair.lhs.line_number, pair.rhs.line_number]);
+    } else if (pair.lhs) {
+      pendingLhs.push(pair.lhs.line_number);
+    } else if (pair.rhs) {
+      pendingRhs.push(pair.rhs.line_number);
     }
   }
-
-  return result;
-}
-
-function insertLhsInOrder(pairs: LinePair[], lhs: number): void {
-  let i = 0;
-  while (i < pairs.length) {
-    const currentLeft = pairs[i][0];
-    if (currentLeft !== null && currentLeft >= lhs) break;
-    i++;
-  }
-  pairs.splice(i, 0, [lhs, null]);
-}
-
-function insertRhsInOrder(pairs: LinePair[], rhs: number): void {
-  let i = 0;
-  while (i < pairs.length) {
-    const currentRight = pairs[i][1];
-    if (currentRight !== null && currentRight >= rhs) break;
-    i++;
-  }
-  pairs.splice(i, 0, [null, rhs]);
-}
-
-/**
- * Fill gaps in one-sided entries (all lhs-only or all rhs-only)
- */
-function fillGapsOneSided(pairs: LinePair[]): LinePair[] {
-  if (pairs.length === 0) return [];
-
-  const isLhsOnly = pairs[0][0] !== null;
-  const result: LinePair[] = [];
-
-  for (const pair of pairs) {
-    // biome-ignore lint/style/noNonNullAssertion: isLhsOnly guarantees the corresponding side is non-null
-    const value = isLhsOnly ? pair[0]! : pair[1]!;
-    if (result.length > 0) {
-      const last = result[result.length - 1];
-      const lastValue = (isLhsOnly ? last[0] : last[1]) as number;
-      for (let v = lastValue + 1; v < value; v++) {
-        result.push(isLhsOnly ? [v, null] : [null, v]);
-      }
-    }
-    result.push(pair);
-  }
-  return result;
-}
-
-/**
- * Fill entries between two anchors, grouping sentinels together at the start
- *
- * TODO: add test cases specifically for this, this is where we can do advanced / clever things
- * for heuristic matching and make things look "good"
- */
-function fillGapsInRange(
-  startAnchor: LinePair,
-  endAnchor: LinePair,
-  entriesBetween: LinePair[],
-): LinePair[] {
-  // biome-ignore lint/style/noNonNullAssertion: anchor pairs always have both sides non-null
-  const lhsGap = endAnchor[0]! - startAnchor[0]! - 1;
-  // biome-ignore lint/style/noNonNullAssertion: anchor pairs always have both sides non-null
-  const rhsGap = endAnchor[1]! - startAnchor[1]! - 1;
-
-  const existingLhsNulls = entriesBetween.filter((p) => p[0] === null).length;
-  const existingRhsNulls = entriesBetween.filter((p) => p[1] === null).length;
-
-  // diff > 0 means we need more lhs nulls, diff < 0 means we need more rhs nulls
-  const diff = rhsGap - lhsGap - existingLhsNulls + existingRhsNulls;
-
-  const result: LinePair[] = [];
-  // biome-ignore lint/style/noNonNullAssertion: anchor pairs always have both sides non-null
-  let leftPos = startAnchor[0]! + 1;
-  // biome-ignore lint/style/noNonNullAssertion: anchor pairs always have both sides non-null
-  let rightPos = startAnchor[1]! + 1;
-
-  // Heuristic: place all new sentinels at the beginning, grouped together
-  if (diff > 0) {
-    for (let i = 0; i < diff; i++) {
-      result.push([null, rightPos++]);
-    }
-  } else if (diff < 0) {
-    for (let i = 0; i < -diff; i++) {
-      result.push([leftPos++, null]);
-    }
-  }
-
-  // Add existing one-sided entries
-  for (const entry of entriesBetween) {
-    if (entry[0] === null) {
-      result.push([null, rightPos++]);
-    } else if (entry[1] === null) {
-      result.push([leftPos++, null]);
-    }
-  }
-
-  // Fill remaining paired lines to reach endAnchor
-  // biome-ignore lint/style/noNonNullAssertion: anchor pairs always have both sides non-null
-  while (leftPos < endAnchor[0]! || rightPos < endAnchor[1]!) {
-    result.push([leftPos++, rightPos++]);
-  }
+  flush();
 
   return result;
 }
@@ -257,107 +114,53 @@ function fillGapsInRange(
 // ============================================================================
 
 /**
- * once we have paired lines, we must expand them to include additional context in each diff section
- *
- * note that the result of pairLines is a minimal set (e.g., top line is a change and bottom line is also change)
- * the logic of this function is relatively straightforward, but also accounts for cases where the lines that are passed in
- * are already exceeding a side's max (happens when content is inserted at the end of a file)
- *
- * hence, we need the number of lines in both the left side and the right side to be passed in
+ * boundary context is now produced by structuredPatch and preserved through
+ * diffFiles as anchor pairs, so hunks with at least one anchor need no further
+ * expansion. the only case we still extrapolate is a fully one-sided hunk
+ * (e.g., the change spans the file, leaving no matching lines for context).
  */
 export function expandLines(
   pairs: LinePair[],
   leftMax: number,
   rightMax: number,
 ): LinePair[] {
-  let i = 0;
-  while (i < pairs.length && (pairs[i][0] === null || pairs[i][1] === null))
-    i++;
+  if (pairs.length === 0) return pairs;
 
-  if (i === pairs.length) {
-    // lhs or rhs-only pairs
-    const offset = pairs.length;
-    // biome-ignore lint/style/noNonNullAssertion: rhs is non-null when lhs is absent in one-sided case
-    const first = pairs[0][0] || pairs[0][1]!;
+  // any anchor means boundary context already came from structuredPatch
+  for (const pair of pairs) {
+    if (pair[0] !== null && pair[1] !== null) return pairs;
+  }
 
-    // expand lines before
-    const context: LinePair[] = [];
-    const startLine = Math.max(0, first - CONTEXT_LINES - 1);
-    for (let j = startLine; j < first; j++) {
-      if (j >= leftMax || j >= rightMax) continue;
-      context.push([j, j]);
-    }
-    pairs.unshift(...context);
+  const offset = pairs.length;
+  const first = pairs[0][0] ?? (pairs[0][1] as number);
 
-    // expand lines after
-    // biome-ignore lint/style/noNonNullAssertion: pairs is non-empty here (context was just added)
-    const [lastLeft, lastRight] = pairs.at(-1)!;
-    // biome-ignore lint/style/noNonNullAssertion: rhs is non-null when lastLeft is null in one-sided case
-    const lastValue = lastLeft !== null ? lastLeft : lastRight!;
+  // expand lines before
+  const context: LinePair[] = [];
+  const startLine = Math.max(0, first - CONTEXT_LINES);
+  for (let j = startLine; j < first; j++) {
+    if (j >= leftMax || j >= rightMax) continue;
+    context.push([j, j]);
+  }
+  pairs.unshift(...context);
 
-    const effectiveOffset = lastLeft !== null ? offset : -offset;
-    for (let j = 1; j <= CONTEXT_LINES; j++) {
-      const currentBase = lastValue + j;
-      const left =
-        lastLeft !== null ? currentBase : currentBase + effectiveOffset;
-      const right =
-        lastLeft !== null ? currentBase - effectiveOffset : currentBase;
+  // expand lines after
+  // biome-ignore lint/style/noNonNullAssertion: pairs is non-empty here (early return above)
+  const [lastLeft, lastRight] = pairs.at(-1)!;
+  const lastValue = lastLeft !== null ? lastLeft : (lastRight as number);
 
-      if (left >= leftMax || right >= rightMax) break;
-      pairs.push([left, right]);
-    }
-  } else {
-    // at least one matched lines in the pairs
-    const [leftNullsBefore, rightNullsBefore] = countNulls(pairs.slice(0, i));
-    // biome-ignore lint/style/noNonNullAssertion: pairs[i] is a matched anchor with both sides non-null
-    const topLeft = pairs[i][0]! - leftNullsBefore;
-    // biome-ignore lint/style/noNonNullAssertion: pairs[i] is a matched anchor with both sides non-null
-    const topRight = pairs[i][1]! - rightNullsBefore;
+  const effectiveOffset = lastLeft !== null ? offset : -offset;
+  for (let j = 1; j <= CONTEXT_LINES; j++) {
+    const currentBase = lastValue + j;
+    const left =
+      lastLeft !== null ? currentBase : currentBase + effectiveOffset;
+    const right =
+      lastLeft !== null ? currentBase - effectiveOffset : currentBase;
 
-    const context: LinePair[] = [];
-    for (let j = 1; j <= CONTEXT_LINES; j++) {
-      const left = topLeft - j;
-      const right = topRight - j;
-      if (left < 0 || right < 0) {
-        break;
-      }
-      context.push([left, right]);
-    }
-    context.reverse();
-    pairs.unshift(...context);
-
-    // find closest match from the ends
-    let j = pairs.length - 1;
-    while (j >= 0 && (pairs[j][0] === null || pairs[j][1] === null)) j--;
-
-    // Count non-null entries after last matched line
-    const [leftNullsAfter, rightNullsAfter] = countNulls(pairs.slice(j + 1));
-    // biome-ignore lint/style/noNonNullAssertion: pairs[j] is the last matched anchor with both sides non-null
-    const bottomLeft = pairs[j][0]! + leftNullsAfter;
-    // biome-ignore lint/style/noNonNullAssertion: pairs[j] is the last matched anchor with both sides non-null
-    const bottomRight = pairs[j][1]! + rightNullsAfter;
-
-    for (let k = 1; k <= CONTEXT_LINES; k++) {
-      const left = bottomLeft + k;
-      const right = bottomRight + k;
-      if (left >= leftMax || right >= rightMax) {
-        break;
-      }
-      pairs.push([left, right]);
-    }
+    if (left >= leftMax || right >= rightMax) break;
+    pairs.push([left, right]);
   }
 
   return pairs;
-}
-
-function countNulls(pairs: LinePair[]): [number, number] {
-  let leftCount = 0;
-  let rightCount = 0;
-  for (const pair of pairs) {
-    if (pair[0] !== null) leftCount++;
-    if (pair[1] !== null) rightCount++;
-  }
-  return [leftCount, rightCount];
 }
 
 // ============================================================================
@@ -367,7 +170,8 @@ function countNulls(pairs: LinePair[]): [number, number] {
 /**
  * collects the set of changed line numbers per side
  *
- * used by renderSpans to tag added/removed lines for whole-line background coloring
+ * used by renderSpans to tag added/removed lines for whole-line background
+ * coloring. context (both-sided anchor) pairs are not changes and are excluded.
  */
 export function createChangeMaps(hunks: DiffHunk[]): {
   leftLines: Set<number>;
@@ -377,8 +181,8 @@ export function createChangeMaps(hunks: DiffHunk[]): {
   const rightLines = new Set<number>();
   for (const hunk of hunks) {
     for (const line of hunk) {
-      if (line.lhs) leftLines.add(line.lhs.line_number);
-      if (line.rhs) rightLines.add(line.rhs.line_number);
+      if (line.lhs && !line.rhs) leftLines.add(line.lhs.line_number);
+      if (line.rhs && !line.lhs) rightLines.add(line.rhs.line_number);
     }
   }
   return { leftLines, rightLines };
@@ -397,31 +201,34 @@ export function preferSplit(
   rightSpans: Element[],
   hunks: DiffHunk[],
 ): boolean {
-  let maxLen = 0;
-  let matched = 0;
-  let total = 0;
+  // let maxLen = 0;
+  // let matched = 0;
+  // let total = 0;
 
-  for (const hunk of hunks) {
-    for (const pair of hunk) {
-      if (pair.lhs) {
-        const span = leftSpans[pair.lhs.line_number];
-        if (span) maxLen = Math.max(maxLen, spanTextLength(span));
-      }
-      if (pair.rhs) {
-        const span = rightSpans[pair.rhs.line_number];
-        if (span) maxLen = Math.max(maxLen, spanTextLength(span));
-      }
-      if (pair.lhs && pair.rhs) matched++;
-      total++;
-    }
-  }
+  // for (const hunk of hunks) {
+  //   for (const pair of hunk) {
+  //     if (pair.lhs) {
+  //       const span = leftSpans[pair.lhs.line_number];
+  //       if (span) maxLen = Math.max(maxLen, spanTextLength(span));
+  //     }
+  //     if (pair.rhs) {
+  //       const span = rightSpans[pair.rhs.line_number];
+  //       if (span) maxLen = Math.max(maxLen, spanTextLength(span));
+  //     }
+  //     // TODO: with context anchors now in every hunk, this match ratio is
+  //     // inflated; count only non-anchor pairs against `total` if re-enabled.
+  //     if (pair.lhs && pair.rhs) matched++;
+  //     total++;
+  //   }
+  // }
 
-  if (total === 0) return false;
-  if (total > UNIFIED_MAX_PAIRS_COUNT) return true;
+  // if (total === 0) return false;
+  // if (total > UNIFIED_MAX_PAIRS_COUNT) return true;
 
-  return (
-    maxLen <= SPLIT_MAX_LINE_LENGTH && matched / total >= SPLIT_MIN_MATCH_RATIO
-  );
+  // return (
+  //   maxLen <= SPLIT_MAX_LINE_LENGTH && matched / total >= SPLIT_MIN_MATCH_RATIO
+  // );
+  return false;
 }
 
 function spanTextLength(span: Element): number {

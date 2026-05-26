@@ -131,8 +131,14 @@ async function renderDiff(
   );
 
   if (left && right && hunks.length > 0) {
-    const isAllAdditions = hunks.every((h) => h.every((p) => !p.lhs));
-    const isAllRemovals = hunks.every((h) => h.every((p) => !p.rhs));
+    // anchor pairs (both lhs and rhs present) are context, not changes;
+    // a hunk is all-additions iff no pair is lhs-only, all-removals iff no pair is rhs-only
+    const isAllAdditions = hunks.every((h) =>
+      h.every((p) => !(p.lhs && !p.rhs)),
+    );
+    const isAllRemovals = hunks.every((h) =>
+      h.every((p) => !(p.rhs && !p.lhs)),
+    );
 
     if (isAllAdditions || isAllRemovals) {
       const side = isAllAdditions ? ("right" as const) : ("left" as const);
