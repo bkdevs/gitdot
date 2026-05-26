@@ -438,7 +438,19 @@ docker-auth:
     gcloud auth configure-docker us-central1-docker.pkg.dev
 
 # Build and push server + auth + consumer + metrics Docker images
-docker-push: (_docker-push "gitdot-server") (_docker-push "gitdot-auth") (_docker-push "gitdot-consumer") (_docker-push "gitdot-metrics")
+docker-push: docker-push-server docker-push-auth docker-push-consumer docker-push-metrics
+
+# Build and push the gitdot-server image
+docker-push-server: (_docker-push "gitdot-server")
+
+# Build and push the gitdot-auth image
+docker-push-auth: (_docker-push "gitdot-auth")
+
+# Build and push the gitdot-consumer image
+docker-push-consumer: (_docker-push "gitdot-consumer")
+
+# Build and push the gitdot-metrics image
+docker-push-metrics: (_docker-push "gitdot-metrics")
 
 _docker-push name:
     #!/usr/bin/env bash

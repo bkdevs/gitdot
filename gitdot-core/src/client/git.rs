@@ -205,14 +205,8 @@ impl Git2Client {
         right_tree: &git2::Tree<'repo>,
     ) -> Result<git2::Diff<'repo>, git2::Error> {
         let mut diff_opts = git2::DiffOptions::new();
-        let mut diff =
+        let diff =
             repo.diff_tree_to_tree(Some(left_tree), Some(right_tree), Some(&mut diff_opts))?;
-
-        let mut find_opts = git2::DiffFindOptions::new();
-        find_opts.renames(true);
-        find_opts.rename_threshold(50);
-        diff.find_similar(Some(&mut find_opts))?;
-
         Ok(diff)
     }
 
