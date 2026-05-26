@@ -93,8 +93,9 @@ function NewMigration({
   const [gitdotAccountName, setGitdotAccount] = useState("");
   const [repos, setRepos] = useState<GitHubRepositoryResource[] | null>(null);
   const [selectedRepos, setSelectedRepos] = useState<Set<string>>(new Set());
-  const [migrationType, setMigrationType] =
-    useState<MigrationType>("read-only");
+  const [migrationType, setMigrationType] = useState<MigrationType | null>(
+    null,
+  );
 
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -161,7 +162,7 @@ function NewMigration({
     });
   };
 
-  const isValid = selectedRepos.size > 0;
+  const isValid = selectedRepos.size > 0 && migrationType !== null;
 
   const handleMigrate = () => {
     if (!githubAccount || !repos) return;

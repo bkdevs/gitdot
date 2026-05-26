@@ -1,8 +1,8 @@
 "use client";
 
 import type { RepositoryResource } from "gitdot-api";
-import { Bell, Copy, Download, Star } from "lucide-react";
-import { useOptimistic, useState, useTransition } from "react";
+import { Copy, Download, Star } from "lucide-react";
+import { useOptimistic, useTransition } from "react";
 import { toast } from "@/(main)/provider/toaster";
 import { useUserContext } from "@/(main)/provider/user";
 import {
@@ -25,9 +25,6 @@ export function RepoActions({
       count: state.count + (next ? 1 : 0) - (state.starred ? 1 : 0),
     }),
   );
-
-  const [subscribed, setSubscribed] = useState(false);
-  const subscribeCount = 12 + (subscribed ? 1 : 0);
 
   const handleStar = () => {
     if (requireAuth()) return;
@@ -77,18 +74,6 @@ export function RepoActions({
         count={optimistic.count}
         active={optimistic.starred}
         onClick={handleStar}
-      />
-      <RepoActionButton
-        icon={
-          <Bell
-            className="size-3"
-            fill={subscribed ? "currentColor" : "none"}
-          />
-        }
-        label={subscribed ? "Subscribed" : "Subscribe"}
-        count={subscribeCount}
-        active={subscribed}
-        onClick={() => setSubscribed((v) => !v)}
       />
       <RepoActionButton
         icon={<Download className="size-3" />}

@@ -62,8 +62,9 @@ function NewMigration({
     useState<GitHubInstallationResource | null>(null);
   const [repos, setRepos] = useState<GitHubRepositoryResource[] | null>(null);
   const [selectedRepos, setSelectedRepos] = useState<Set<string>>(new Set());
-  const [migrationType, setMigrationType] =
-    useState<MigrationType>("read-only");
+  const [migrationType, setMigrationType] = useState<MigrationType | null>(
+    null,
+  );
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
@@ -233,7 +234,12 @@ function NewMigration({
         <button
           type="button"
           onClick={handleMigrate}
-          disabled={isPending || selectedRepos.size === 0 || !installation}
+          disabled={
+            isPending ||
+            selectedRepos.size === 0 ||
+            !installation ||
+            !migrationType
+          }
           className="cursor-pointer underline text-foreground decoration-current transition-colors duration-300 disabled:cursor-not-allowed disabled:no-underline disabled:text-muted-foreground"
         >
           {isPending ? "Migrating" : "Migrate"}
