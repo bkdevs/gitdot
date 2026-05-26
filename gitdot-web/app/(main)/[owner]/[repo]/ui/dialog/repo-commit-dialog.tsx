@@ -1,7 +1,6 @@
 "use client";
 
 import type { RepositoryCommitResource } from "gitdot-api";
-import { ExternalLink } from "lucide-react";
 import { Suspense, use, useEffect, useState } from "react";
 import { CommitBody } from "@/(main)/[owner]/[repo]/commits/[sha]/ui/commit-body";
 import { CommitHeader } from "@/(main)/[owner]/[repo]/commits/[sha]/ui/commit-header";
@@ -39,32 +38,26 @@ export function RepoCommitDialog({
 
   if (!commit) return null;
   const shortSha = commit.sha.substring(0, 7);
-  const href = `/${owner}/${repo}/commits/${shortSha}`;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent
         showOverlay={false}
-        className="sm:max-w-none max-w-[65rem] w-[65rem] h-[90vh] max-h-[90vh] top-[48%] p-0 gap-0 flex flex-col"
+        className="sm:max-w-none max-w-[80vw] w-[80vw] h-[90vh] max-h-[90vh] top-[48%] p-0 gap-0 flex flex-col border-black rounded-xs shadow-2xl overflow-hidden"
       >
         <DialogTitle className="sr-only">Commit {shortSha}</DialogTitle>
-
-        <a
-          href={href}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="absolute top-1 right-2 flex items-center gap-1.5 font-mono text-sm text-muted-foreground hover:text-foreground underline decoration-transparent hover:decoration-current transition-colors duration-200"
-        >
-          <ExternalLink className="w-3 h-3" />
-          open in tab
-        </a>
 
         <div className="flex-1 overflow-y-auto scrollbar-thin">
           <div
             data-diff-top
-            className="max-w-5xl mx-auto w-full px-4 pt-4 pb-6 flex flex-col gap-6"
+            className="w-full px-6 pt-4 pb-8 flex flex-col gap-6"
           >
-            <CommitHeader commit={commit} owner={owner} repo={repo} />
+            <CommitHeader
+              commit={commit}
+              owner={owner}
+              repo={repo}
+              showOpenInTab
+            />
             {diffPromise && (
               <Suspense fallback={<Loading />}>
                 <CommitBodyAsync promise={diffPromise} />
