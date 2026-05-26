@@ -4,11 +4,13 @@ import type {
   CurrentUserResource,
   OrganizationMemberResource,
   RepositoryResource,
+  UserEmailResource,
   UserResource,
 } from "gitdot-api";
 import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 import {
+  addUserEmail,
   ApiError,
   getCurrentUser,
   hasUser,
@@ -164,6 +166,32 @@ export async function updateUserAction(
   refresh();
   if (redirectTo) redirect(redirectTo);
   return { user: result };
+}
+
+export type AddUserEmailActionResult =
+  | { email: UserEmailResource }
+  | { error: string };
+
+export async function addUserEmailAction(
+  _prev: AddUserEmailActionResult | null,
+  formData: FormData,
+): Promise<AddUserEmailActionResult> {
+  const email = ((formData.get("email") as string | null) ?? "").trim();
+  if (!validateEmail(email)) {
+    return { error: "Please enter a valid email" };
+  }
+
+  try {
+    const result = await addUserEmail(email);
+    if (!result) return { error: "Could not add email" };
+    refresh();
+    return { email: result };
+  } catch (e) {
+    if (e instanceof ApiError && e.status === 409) {
+      return { error: "This email is already in use" };
+    }
+    return { error: "Could not add email" };
+  }
 }
 
 export async function validateUsername(

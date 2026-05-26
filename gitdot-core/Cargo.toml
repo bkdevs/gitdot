@@ -18,6 +18,7 @@ bytes = { workspace = true }
 chrono = { workspace = true }
 clickhouse = { version = "0.15.0", features = ["chrono", "rustls-tls", "uuid"] }
 crc32fast = { workspace = true }
+email_address = "0.2.9"
 futures = { workspace = true }
 gcp_auth = { workspace = true }
 git2 = { workspace = true }

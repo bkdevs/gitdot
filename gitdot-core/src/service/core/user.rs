@@ -3,13 +3,14 @@ use async_trait::async_trait;
 use crate::{
     client::{ImageClient, ImageClientImpl, R2Client, R2ClientImpl},
     dto::{
-        GetCurrentUserRequest, GetCurrentUserResponse, GetUserRequest, HasUserRequest,
-        ListUserCommitsRequest, ListUserOrganizationsRequest, ListUserRepositoriesRequest,
-        ListUserReviewsRequest, ListUserStarsRequest, MAX_PER_PAGE_LIMIT,
-        OrganizationMemberResponse, Page, RepositoryResponse, ReviewResponse,
-        UpdateCurrentUserImageRequest, UpdateCurrentUserRequest, UserCommitResponse, UserResponse,
+        AddUserEmailRequest, GetCurrentUserRequest, GetCurrentUserResponse, GetUserRequest,
+        HasUserRequest, ListUserCommitsRequest, ListUserOrganizationsRequest,
+        ListUserRepositoriesRequest, ListUserReviewsRequest, ListUserStarsRequest,
+        MAX_PER_PAGE_LIMIT, OrganizationMemberResponse, Page, RepositoryResponse, ReviewResponse,
+        UpdateCurrentUserImageRequest, UpdateCurrentUserRequest, UserCommitResponse,
+        UserEmailResponse, UserResponse,
     },
-    error::{ConflictError, NotFoundError, OptionNotFoundExt, UserError},
+    error::{ConflictError, DatabaseError, NotFoundError, OptionNotFoundExt, UserError},
     repository::{
         CommitRepository, CommitRepositoryImpl, OrganizationRepository, OrganizationRepositoryImpl,
         RepositoryRepository, RepositoryRepositoryImpl, ReviewRepository, ReviewRepositoryImpl,
@@ -34,6 +35,9 @@ pub trait UserService: Send + Sync + 'static {
         &self,
         request: UpdateCurrentUserImageRequest,
     ) -> Result<(), UserError>;
+
+    async fn add_email(&self, request: AddUserEmailRequest)
+    -> Result<UserEmailResponse, UserError>;
 
     async fn has_user(&self, request: HasUserRequest) -> Result<(), UserError>;
 
@@ -209,6 +213,23 @@ where
         let key = format!("users/{}.webp", request.user_id);
         self.r2_client.upload_object(&key, webp_bytes).await?;
         Ok(())
+    }
+
+    async fn add_email(
+        &self,
+        request: AddUserEmailRequest,
+    ) -> Result<UserEmailResponse, UserError> {
+        let email = request.email.as_ref();
+        match self.user_repo.create_email(request.user_id, email).await {
+            Ok(row) => Ok(row.into()),
+            Err(DatabaseError::Other(e))
+                if e.as_database_error().and_then(|db| db.code()).as_deref() == Some("23505") =>
+            {
+                Err(ConflictError::new("email", email).into())
+            }
+            Err(e) => Err(e.into()),
+        }
+        // TODO: send verification email
     }
 
     async fn has_user(&self, request: HasUserRequest) -> Result<(), UserError> {

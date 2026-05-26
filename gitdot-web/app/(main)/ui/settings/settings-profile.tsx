@@ -7,7 +7,11 @@ import { UserImage } from "@/(main)/[owner]/ui/user/user-image";
 import { useTimezone } from "@/(main)/provider/timezone";
 import { toast } from "@/(main)/provider/toaster";
 import { useUserContext } from "@/(main)/provider/user";
-import { updateUserAction, uploadUserImageAction } from "@/actions";
+import {
+  addUserEmailAction,
+  updateUserAction,
+  uploadUserImageAction,
+} from "@/actions";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/ui/tooltip";
 import { cn } from "@/util";
 import { formatDate, timeAgo } from "@/util/date";
@@ -274,12 +278,36 @@ function ProfileLinks({
 }
 
 function ProfileEmails() {
-  const { emails } = useUserContext();
+  const { emails, refreshUser } = useUserContext();
   const [draft, setDraft] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  function commitDraft() {
-    // dummy — backend wire-up (POST /user/email) is not implemented yet
+  async function commitDraft() {
+    const value = draft?.trim() ?? "";
+    if (!value) {
+      setDraft(null);
+      setError(null);
+      return;
+    }
+    if (submitting) return;
+    setSubmitting(true);
+    const formData = new FormData();
+    formData.set("email", value);
+    const result = await addUserEmailAction(null, formData);
+    setSubmitting(false);
+    if ("error" in result) {
+      setError(result.error);
+      return;
+    }
+    setError(null);
     setDraft(null);
+    await refreshUser();
+  }
+
+  function cancelDraft() {
+    setDraft(null);
+    setError(null);
   }
 
   return (
@@ -312,20 +340,32 @@ function ProfileEmails() {
           </div>
         ))}
         {draft !== null ? (
-          <input
-            value={draft}
-            onChange={(ev) => setDraft(ev.target.value)}
-            onKeyDown={(ev) => {
-              if (ev.key === "Enter" || ev.key === "Escape") {
-                ev.stopPropagation();
-                commitDraft();
-              }
-            }}
-            onBlur={commitDraft}
-            autoFocus
-            className="h-5 text-sm bg-transparent border-b border-border outline-none w-full placeholder:text-muted-foreground/40 transition-colors focus:border-foreground"
-            placeholder="you@another-domain.com"
-          />
+          <>
+            <input
+              value={draft}
+              onChange={(ev) => {
+                setDraft(ev.target.value);
+                if (error) setError(null);
+              }}
+              onKeyDown={(ev) => {
+                if (ev.key === "Enter") {
+                  ev.stopPropagation();
+                  commitDraft();
+                } else if (ev.key === "Escape") {
+                  ev.stopPropagation();
+                  cancelDraft();
+                }
+              }}
+              onBlur={commitDraft}
+              autoFocus
+              disabled={submitting}
+              className="h-5 text-sm bg-transparent border-b border-border outline-none w-full placeholder:text-muted-foreground/40 transition-colors focus:border-foreground"
+              placeholder="you@another-domain.com"
+            />
+            {error && (
+              <span className="text-xs text-destructive/80">{error}</span>
+            )}
+          </>
         ) : (
           <button
             type="button"

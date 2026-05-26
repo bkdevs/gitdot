@@ -6,6 +6,7 @@ import {
   ListUserOrganizationsResponse,
   ListUserRepositoriesResponse,
   ListUserStarsResponse,
+  UserEmailResource,
   UserResource,
 } from "gitdot-api";
 import { notFound } from "next/navigation";
@@ -15,6 +16,7 @@ import {
   authFetch,
   authHead,
   authPatch,
+  authPost,
   GITDOT_SERVER_URL,
   handleResponse,
 } from "./util";
@@ -46,6 +48,15 @@ export async function updateCurrentUser(request: {
 }): Promise<UserResource | null> {
   const response = await authPatch(`${GITDOT_SERVER_URL}/user`, request);
   return await handleResponse(response, UserResource);
+}
+
+export async function addUserEmail(
+  email: string,
+): Promise<UserEmailResource | null> {
+  const response = await authPost(`${GITDOT_SERVER_URL}/user/emails`, {
+    email,
+  });
+  return await handleResponse(response, UserEmailResource);
 }
 
 export async function uploadUserImage(file: File): Promise<boolean> {

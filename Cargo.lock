@@ -1833,6 +1833,9 @@ name = "email_address"
 version = "0.2.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e079f19b08ca6239f47f8ba8509c11cf3ea30095831f7fed61441475edd8c449"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "encoding_rs"
@@ -2560,6 +2563,7 @@ dependencies = [
  "chrono",
  "clickhouse",
  "crc32fast",
+ "email_address",
  "futures",
  "gcp_auth",
  "git2",

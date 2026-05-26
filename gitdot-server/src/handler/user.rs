@@ -1,3 +1,4 @@
+mod add_user_email;
 mod get_current_user;
 mod get_user;
 mod has_user;
@@ -17,6 +18,7 @@ use axum::{
 
 use crate::app::AppState;
 
+use add_user_email::add_user_email;
 use get_current_user::get_current_user;
 use get_user::get_user;
 use has_user::has_user;
@@ -31,6 +33,7 @@ use upload_user_image::upload_user_image;
 pub fn create_user_router() -> Router<AppState> {
     Router::new()
         .route("/user", get(get_current_user).patch(update_current_user))
+        .route("/user/emails", post(add_user_email))
         .route(
             "/user/image",
             post(upload_user_image).layer(DefaultBodyLimit::max(5 * 1024 * 1024)),
