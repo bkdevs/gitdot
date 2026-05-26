@@ -88,36 +88,30 @@ impl UserRepository for UserRepositoryImpl {
         };
         let name = format!("user_{suffix}");
 
-        let mut tx = self.pool.begin().await?;
-
         let user = sqlx::query_as::<_, User>(
             r#"
-            INSERT INTO core.users (email, name, is_email_verified, provider, readme)
-            VALUES ($1, $2, $3, $4, $5)
-            RETURNING *
+            WITH new_user AS (
+                INSERT INTO core.users (name, provider, readme)
+                VALUES ($1, $2, $3)
+                RETURNING id, name, provider, created_at, location, readme, links, display_name
+            ),
+            new_email AS (
+                INSERT INTO core.user_emails (user_id, email, is_primary, is_verified, verified_at)
+                SELECT id, $4, TRUE, $5, CASE WHEN $5 THEN NOW() ELSE NULL END FROM new_user
+                RETURNING email, is_verified
+            )
+            SELECT u.id, u.name, e.email, e.is_verified AS is_email_verified,
+                   u.provider, u.created_at, u.display_name, u.location, u.readme, u.links
+            FROM new_user u, new_email e
             "#,
         )
-        .bind(email)
         .bind(name)
-        .bind(is_email_verified)
         .bind(provider)
         .bind(DEFAULT_USER_README)
-        .fetch_one(&mut *tx)
-        .await?;
-
-        sqlx::query(
-            r#"
-            INSERT INTO core.user_emails (user_id, email, is_primary, is_verified, verified_at)
-            VALUES ($1, $2, TRUE, $3, CASE WHEN $3 THEN NOW() ELSE NULL END)
-            "#,
-        )
-        .bind(user.id)
         .bind(email)
         .bind(is_email_verified)
-        .execute(&mut *tx)
+        .fetch_one(&self.pool)
         .await?;
-
-        tx.commit().await?;
 
         Ok(user)
     }
@@ -125,9 +119,11 @@ impl UserRepository for UserRepositoryImpl {
     async fn get(&self, user_name: &str) -> Result<Option<User>, DatabaseError> {
         let user = sqlx::query_as::<_, User>(
             r#"
-            SELECT id, email, name, is_email_verified, provider, created_at, location, readme, links, display_name
-            FROM core.users
-            WHERE name = $1
+            SELECT u.id, ue.email, u.name, ue.is_verified AS is_email_verified,
+                   u.provider, u.created_at, u.location, u.readme, u.links, u.display_name
+            FROM core.users u
+            JOIN core.user_emails ue ON ue.user_id = u.id AND ue.is_primary
+            WHERE u.name = $1
             "#,
         )
         .bind(user_name)
@@ -146,7 +142,7 @@ impl UserRepository for UserRepositoryImpl {
         links: Option<Vec<String>>,
         display_name: Option<String>,
     ) -> Result<User, DatabaseError> {
-        let mut builder = sqlx::QueryBuilder::new("UPDATE core.users SET ");
+        let mut builder = sqlx::QueryBuilder::new("WITH updated AS (UPDATE core.users SET ");
         let mut sep = builder.separated(", ");
 
         if let Some(n) = name {
@@ -165,9 +161,12 @@ impl UserRepository for UserRepositoryImpl {
             sep.push("display_name = ").push_bind_unseparated(d);
         }
 
-        builder.push(" WHERE id = ").push_bind(id).push(
-            " RETURNING id, email, name, is_email_verified, provider, created_at, location, readme, links, display_name",
-        );
+        builder
+            .push(" WHERE id = ")
+            .push_bind(id)
+            .push(" RETURNING id, name, provider, created_at, location, readme, links, display_name)")
+            .push(" SELECT u.id, ue.email, u.name, ue.is_verified AS is_email_verified, u.provider, u.created_at, u.location, u.readme, u.links, u.display_name")
+            .push(" FROM updated u JOIN core.user_emails ue ON ue.user_id = u.id AND ue.is_primary");
 
         Ok(builder
             .build_query_as::<User>()
@@ -178,9 +177,11 @@ impl UserRepository for UserRepositoryImpl {
     async fn get_by_id(&self, id: Uuid) -> Result<Option<User>, DatabaseError> {
         let user = sqlx::query_as::<_, User>(
             r#"
-            SELECT id, email, name, is_email_verified, provider, created_at, location, readme, links, display_name
-            FROM core.users
-            WHERE id = $1
+            SELECT u.id, ue.email, u.name, ue.is_verified AS is_email_verified,
+                   u.provider, u.created_at, u.location, u.readme, u.links, u.display_name
+            FROM core.users u
+            JOIN core.user_emails ue ON ue.user_id = u.id AND ue.is_primary
+            WHERE u.id = $1
             "#,
         )
         .bind(id)
@@ -193,9 +194,11 @@ impl UserRepository for UserRepositoryImpl {
     async fn get_by_email(&self, email: &str) -> Result<Option<User>, DatabaseError> {
         let user = sqlx::query_as::<_, User>(
             r#"
-            SELECT id, email, name, is_email_verified, provider, created_at, location, readme, links, display_name
-            FROM core.users
-            WHERE email = $1
+            SELECT u.id, ue.email, u.name, ue.is_verified AS is_email_verified,
+                   u.provider, u.created_at, u.location, u.readme, u.links, u.display_name
+            FROM core.users u
+            JOIN core.user_emails ue ON ue.user_id = u.id AND ue.is_primary
+            WHERE ue.email = $1
             "#,
         )
         .bind(email)
@@ -225,17 +228,6 @@ impl UserRepository for UserRepositoryImpl {
     }
 
     async fn verify_email(&self, id: Uuid) -> Result<(), DatabaseError> {
-        let mut tx = self.pool.begin().await?;
-
-        sqlx::query(
-            r#"
-            UPDATE core.users SET is_email_verified = true WHERE id = $1
-            "#,
-        )
-        .bind(id)
-        .execute(&mut *tx)
-        .await?;
-
         sqlx::query(
             r#"
             UPDATE core.user_emails
@@ -244,10 +236,8 @@ impl UserRepository for UserRepositoryImpl {
             "#,
         )
         .bind(id)
-        .execute(&mut *tx)
+        .execute(&self.pool)
         .await?;
-
-        tx.commit().await?;
 
         Ok(())
     }

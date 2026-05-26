@@ -406,10 +406,11 @@ impl RepositoryRepository for RepositoryRepositoryImpl {
     ) -> Result<Vec<(UserResponse, DateTime<Utc>)>, DatabaseError> {
         let rows = sqlx::query(
             r#"
-            SELECT u.id, u.name, u.email, u.created_at, u.display_name,
+            SELECT u.id, u.name, ue.email, u.created_at, u.display_name,
                    s.created_at AS starred_at
             FROM core.stars s
             JOIN core.users u ON s.user_id = u.id
+            JOIN core.user_emails ue ON ue.user_id = u.id AND ue.is_primary
             WHERE s.repository_id = $1
             ORDER BY s.created_at DESC
             LIMIT $2
