@@ -13,15 +13,12 @@ use gitdot_axum::middleware::verify_vercel_oidc;
 
 use crate::app::AppState;
 
-use device::{
-    authorize_device::authorize_device, create_device_code::create_device_code,
-    poll_token::poll_token,
-};
-use email::{send::send_auth_email, verify::verify_auth_code};
-use github::{exchange::exchange_github_code, redirect::redirect_to_github_auth};
+use device::{authorize_device, create_device_code, poll_token};
+use email::{send_auth_email, verify_auth_code};
+use github::{exchange_github_code, redirect_to_github_auth};
 use logout::logout;
 use refresh_session::refresh_session;
-use slack::link::link_slack_account;
+use slack::link_slack_account;
 
 pub fn create_auth_router(state: AppState) -> Router<AppState> {
     let cli_routes = Router::new()
