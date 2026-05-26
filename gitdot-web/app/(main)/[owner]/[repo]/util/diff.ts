@@ -201,34 +201,34 @@ export function preferSplit(
   rightSpans: Element[],
   hunks: DiffHunk[],
 ): boolean {
-  // let maxLen = 0;
-  // let matched = 0;
-  // let total = 0;
+  let maxLen = 0;
+  let matched = 0;
+  let total = 0;
 
-  // for (const hunk of hunks) {
-  //   for (const pair of hunk) {
-  //     if (pair.lhs) {
-  //       const span = leftSpans[pair.lhs.line_number];
-  //       if (span) maxLen = Math.max(maxLen, spanTextLength(span));
-  //     }
-  //     if (pair.rhs) {
-  //       const span = rightSpans[pair.rhs.line_number];
-  //       if (span) maxLen = Math.max(maxLen, spanTextLength(span));
-  //     }
-  //     // TODO: with context anchors now in every hunk, this match ratio is
-  //     // inflated; count only non-anchor pairs against `total` if re-enabled.
-  //     if (pair.lhs && pair.rhs) matched++;
-  //     total++;
-  //   }
-  // }
+  for (const hunk of hunks) {
+    for (const pair of hunk) {
+      if (pair.lhs) {
+        const span = leftSpans[pair.lhs.line_number];
+        if (span) maxLen = Math.max(maxLen, spanTextLength(span));
+      }
+      if (pair.rhs) {
+        const span = rightSpans[pair.rhs.line_number];
+        if (span) maxLen = Math.max(maxLen, spanTextLength(span));
+      }
+      
+      // TODO: with context anchors now in every hunk, this match ratio is
+      // inflated; count only non-anchor pairs against `total` if re-enabled.
+      if (pair.lhs && pair.rhs) matched++;
+      total++;
+    }
+  }
 
-  // if (total === 0) return false;
-  // if (total > UNIFIED_MAX_PAIRS_COUNT) return true;
+  if (total === 0) return false;
+  if (total > UNIFIED_MAX_PAIRS_COUNT) return true;
 
-  // return (
-  //   maxLen <= SPLIT_MAX_LINE_LENGTH && matched / total >= SPLIT_MIN_MATCH_RATIO
-  // );
-  return false;
+  return (
+    maxLen <= SPLIT_MAX_LINE_LENGTH && matched / total >= SPLIT_MIN_MATCH_RATIO
+  );
 }
 
 function spanTextLength(span: Element): number {
