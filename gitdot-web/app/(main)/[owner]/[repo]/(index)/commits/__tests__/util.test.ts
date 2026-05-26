@@ -205,7 +205,7 @@ function commit(sha: string, diffPaths: string[]): RepositoryCommitResource {
     parent_sha: "",
     message: "msg",
     date: new Date(0).toISOString(),
-    author: { name: "a", email: "a@a" },
+    author: { git_name: "a", email: "a@a" },
     diffs: diffPaths.map((p) => d(p)),
   };
 }

@@ -14,7 +14,7 @@ export function FileCommitHeader({
   commit: RepositoryCommitResource;
 }) {
   const tz = useTimezone();
-  const author = commit.author.name;
+  const author = commit.author.name ?? commit.author.git_name;
   const { setSelectedSha } = useFileViewerContext();
   const pathname = usePathname();
   const searchParams = useSearchParams();

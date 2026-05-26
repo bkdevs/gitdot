@@ -38,7 +38,6 @@ impl IntoApi for RepositoryCommitsResponse {
     }
 }
 
-// TODO: think a tad on the commit author this is no longer real.
 impl IntoApi for CommitResponse {
     type ApiType = api::RepositoryCommitResource;
     fn into_api(self) -> Self::ApiType {
@@ -51,7 +50,8 @@ impl IntoApi for CommitResponse {
             date: self.created_at,
             author: api::CommitAuthorResource {
                 id: self.author_id,
-                name: self.git_author_name,
+                name: self.author_name,
+                git_name: self.git_author_name,
                 email: self.git_author_email,
             },
             review_number: self.review_number,
@@ -86,7 +86,8 @@ impl IntoApi for CommitAuthorResponse {
     fn into_api(self) -> Self::ApiType {
         api::CommitAuthorResource {
             id: self.id,
-            name: self.name,
+            name: None,
+            git_name: self.name,
             email: self.email,
         }
     }

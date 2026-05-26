@@ -9,6 +9,7 @@ pub struct Commit {
     pub repo_id: Uuid,
 
     pub author_id: Option<Uuid>,
+    pub author_name: Option<String>,
     pub git_author_name: String,
     pub git_author_email: String,
 

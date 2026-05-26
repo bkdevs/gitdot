@@ -13,6 +13,7 @@ const COMMIT_PROJECTION: &str = "
     c.id, c.repo_id, c.author_id, c.git_author_name, c.git_author_email,
     c.ref_name, c.sha, c.parent_sha, c.message, c.created_at,
     c.review_number, c.diff_position, c.diffs,
+    au.name AS author_name,
     json_build_object(
         'id',         r.id,
         'owner_name', COALESCE(u.name, o.name),
@@ -27,6 +28,7 @@ const COMMIT_JOINS: &str = "
       ON r.owner_id = u.id AND r.owner_type = 'user'
     LEFT JOIN core.organizations o
       ON r.owner_id = o.id AND r.owner_type = 'organization'
+    LEFT JOIN core.users au ON au.id = c.author_id
 ";
 
 #[derive(FromRow)]

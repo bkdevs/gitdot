@@ -12,6 +12,7 @@ pub use create_commits::CreateCommitsRequest;
 pub struct CommitResponse {
     pub id: Uuid,
     pub author_id: Option<Uuid>,
+    pub author_name: Option<String>,
     pub git_author_name: String,
     pub git_author_email: String,
     pub repo_id: Uuid,
@@ -40,6 +41,7 @@ impl From<Commit> for CommitResponse {
         Self {
             id: commit.id,
             author_id: commit.author_id,
+            author_name: commit.author_name,
             git_author_name: commit.git_author_name,
             git_author_email: commit.git_author_email,
             repo_id: commit.repo_id,
@@ -64,6 +66,7 @@ pub struct UserCommitResponse {
     pub redacted: bool,
 
     pub author_id: Option<Uuid>,
+    pub author_name: Option<String>,
     pub git_author_name: Option<String>,
     pub git_author_email: Option<String>,
     pub repo_id: Option<Uuid>,
@@ -85,6 +88,7 @@ impl UserCommitResponse {
             created_at: commit.created_at,
             redacted: false,
             author_id: commit.author_id,
+            author_name: commit.author_name,
             git_author_name: Some(commit.git_author_name),
             git_author_email: Some(commit.git_author_email),
             repo_id: Some(commit.repo_id),
@@ -106,6 +110,7 @@ impl UserCommitResponse {
             created_at: commit.created_at,
             redacted: true,
             author_id: None,
+            author_name: None,
             git_author_name: None,
             git_author_email: None,
             repo_id: None,

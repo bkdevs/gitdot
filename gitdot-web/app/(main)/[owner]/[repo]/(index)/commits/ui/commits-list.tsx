@@ -86,7 +86,7 @@ const CommitRow = memo(function CommitRow({
       <div className="flex flex-row items-center gap-1.5 ml-auto shrink-0 text-xs text-muted-foreground">
         <UserImage
           userId={commit.author.id}
-          username={commit.author.name}
+          username={commit.author.name ?? commit.author.git_name}
           px={14}
         />
         <UserSlug user={commit.author} />

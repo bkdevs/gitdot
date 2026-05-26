@@ -34,7 +34,9 @@ export function BuildDetails({
         </div>
         <div>
           <div className="text-xs text-muted-foreground">Author</div>
-          <div className="text-sm">{commit?.author.name}</div>
+          <div className="text-sm">
+            {commit?.author.name ?? commit?.author.git_name}
+          </div>
         </div>
         <div>
           <div className="text-xs text-muted-foreground">Created</div>

@@ -16,7 +16,8 @@ export type RepositoryFileResource = z.infer<typeof RepositoryFileResource>;
 
 export const CommitAuthorResource = z.object({
   id: z.uuid().optional(),
-  name: z.string(),
+  name: z.string().optional(),
+  git_name: z.string(),
   email: z.string(),
 });
 export type CommitAuthorResource = z.infer<typeof CommitAuthorResource>;

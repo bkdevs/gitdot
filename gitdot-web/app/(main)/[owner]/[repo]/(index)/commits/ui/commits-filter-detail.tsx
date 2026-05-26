@@ -57,7 +57,7 @@ export function CommitsFilterDetail({
   const tags = filter.tags ?? [];
 
   const authorOptions = Array.from(
-    new Set(commits.map((c) => c.author.name)),
+    new Set(commits.map((c) => c.author.name ?? c.author.git_name)),
   ).sort();
 
   const pathOptions = computePathOptions(paths?.entries ?? [], commits);

@@ -21,24 +21,30 @@ export function CommitHeader({
   const tz = useTimezone();
   const date = new Date(commit.date);
   const shortSha = commit.sha.substring(0, 7);
+  const { author } = commit;
+  const linkedName = author.id && author.name ? author.name : null;
 
   return (
     <div className="flex flex-col">
       <div className="flex items-center justify-between gap-2 text-sm text-muted-foreground">
         <div className="flex items-center gap-2">
           <UserImage
-            userId={commit.author.id}
-            username={commit.author.name}
+            userId={author.id}
+            username={author.name ?? author.git_name}
             px={20}
           />
           <span>
-            <Link
-              href={`/${commit.author.name}`}
-              className="underline hover:text-foreground transition-colors duration-200"
-              prefetch={true}
-            >
-              {commit.author.name}
-            </Link>
+            {linkedName ? (
+              <Link
+                href={`/${linkedName}`}
+                className="underline hover:text-foreground transition-colors duration-200"
+                prefetch={true}
+              >
+                {linkedName}
+              </Link>
+            ) : (
+              <span>{author.git_name}</span>
+            )}
             {" in "}
             <span className="font-mono">
               <Link

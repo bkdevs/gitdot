@@ -61,7 +61,7 @@ function FileCommit({
   commit: {
     sha: string;
     message: string;
-    author: { id?: string; name: string; email: string };
+    author: { id?: string; name?: string; git_name: string; email: string };
     date: string;
   };
   diffStat: { lines_added: number; lines_removed: number } | null | undefined;
@@ -88,7 +88,7 @@ function FileCommit({
         <div className="text-xs text-muted-foreground flex items-center w-full min-w-0">
           <UserImage
             userId={commit.author.id}
-            username={commit.author.name}
+            username={commit.author.name ?? commit.author.git_name}
             px={16}
           />
           <UserSlug user={commit.author} className="ml-1" />
