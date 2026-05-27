@@ -2,7 +2,11 @@
 
 import { useState } from "react";
 import { useUserContext } from "@/(main)/provider/user";
-import { addUserEmailAction, verifyUserEmailAction } from "@/actions";
+import {
+  addUserEmailAction,
+  resendUserEmailAction,
+  verifyUserEmailAction,
+} from "@/actions";
 
 export function SettingsEmails() {
   const { emails, refreshUser } = useUserContext();
@@ -158,9 +162,7 @@ function PendingRow({
   async function resend() {
     if (submitting) return;
     setSubmitting(true);
-    const formData = new FormData();
-    formData.set("email", email);
-    const result = await addUserEmailAction(null, formData);
+    const result = await resendUserEmailAction(email);
     setSubmitting(false);
     if ("error" in result) {
       setError(result.error);

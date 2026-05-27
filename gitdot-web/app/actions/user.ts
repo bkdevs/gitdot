@@ -25,6 +25,7 @@ import {
   addUserEmail,
   getGitHubRedirectUrl,
   logout,
+  resendUserEmailCode,
   sendAuthEmail,
   verifyAuthCode,
   verifyUserEmail,
@@ -216,6 +217,22 @@ export async function verifyUserEmailAction(
       return { error: "Invalid or expired code" };
     }
     return { error: "Could not verify email" };
+  }
+}
+
+export type ResendUserEmailActionResult =
+  | { success: true }
+  | { error: string };
+
+export async function resendUserEmailAction(
+  email: string,
+): Promise<ResendUserEmailActionResult> {
+  try {
+    const ok = await resendUserEmailCode(email);
+    if (!ok) return { error: "Could not resend code" };
+    return { success: true };
+  } catch {
+    return { error: "Could not resend code" };
   }
 }
 

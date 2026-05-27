@@ -3,8 +3,11 @@ use chrono::{Duration, Utc};
 
 use crate::{
     client::{EmailClient, SmtpClient, TokenClient, TokenClientImpl},
-    dto::{AddUserEmailRequest, UserEmailResponse, VerifyUserEmailRequest},
-    error::{AccountError, ConflictError, DatabaseError, OptionNotFoundExt},
+    dto::{
+        AddUserEmailRequest, ResendVerificationCodeRequest, UserEmailResponse,
+        VerifyUserEmailRequest,
+    },
+    error::{AccountError, ConflictError, DatabaseError, NotFoundError, OptionNotFoundExt},
     repository::{
         EmailVerificationRepository, EmailVerificationRepositoryImpl, UserRepository,
         UserRepositoryImpl,
@@ -18,12 +21,19 @@ use crate::{
 #[async_trait]
 pub trait AccountService: Send + Sync + 'static {
     /// Adds an email to the user's account in an unverified state and emails a
-    /// verification code. Idempotent for the same user's unverified row:
-    /// re-calling acts as a resend (issues a new code, invalidating prior ones).
+    /// verification code. Fails with `Conflict` if the email already exists for
+    /// any user (verified or not). Use `resend_code` to re-issue a code for an
+    /// existing unverified row.
     async fn add_email(
         &self,
         request: AddUserEmailRequest,
     ) -> Result<UserEmailResponse, AccountError>;
+
+    /// Issues a fresh verification code for an existing unverified email row,
+    /// invalidating any prior active codes. Scoped to the caller — only the row
+    /// owner can request a resend.
+    async fn resend_code(&self, request: ResendVerificationCodeRequest)
+    -> Result<(), AccountError>;
 
     /// Verifies a code previously emailed for `request.email`. On success the
     /// `user_emails` row flips to verified and the code is marked used. Scoped
@@ -72,43 +82,18 @@ impl
     }
 }
 
-#[crate::instrument_all(level = "debug")]
-#[async_trait]
-impl<UR, ER, EC, TC> AccountService for AccountServiceImpl<UR, ER, EC, TC>
+impl<UR, ER, EC, TC> AccountServiceImpl<UR, ER, EC, TC>
 where
     UR: UserRepository,
     ER: EmailVerificationRepository,
     EC: EmailClient,
     TC: TokenClient,
 {
-    async fn add_email(
+    async fn issue_and_send_code(
         &self,
-        request: AddUserEmailRequest,
-    ) -> Result<UserEmailResponse, AccountError> {
-        let email = request.email.as_ref();
-
-        // Resolve the user_email row: insert a new unverified row, or reuse the
-        // caller's existing unverified row (resend). Conflict when the email
-        // already belongs to another user, or to this user but verified.
-        let user_email_id = match self.user_repo.get_email(email).await? {
-            Some(row) => {
-                if row.user_id != request.user_id || row.is_verified {
-                    return Err(ConflictError::new("email", email).into());
-                }
-                row.id
-            }
-            None => match self.user_repo.create_email(request.user_id, email).await {
-                Ok(row) => row.id,
-                Err(DatabaseError::Other(e))
-                    if e.as_database_error().and_then(|db| db.code()).as_deref()
-                        == Some("23505") =>
-                {
-                    return Err(ConflictError::new("email", email).into());
-                }
-                Err(e) => return Err(e.into()),
-            },
-        };
-
+        user_email_id: uuid::Uuid,
+        email: &str,
+    ) -> Result<(), AccountError> {
         self.email_verification_repo
             .invalidate_codes_for_email(user_email_id)
             .await?;
@@ -126,14 +111,60 @@ where
             .send_email(NOREPLY_EMAIL, email, &subject, &html)
             .await?;
 
+        Ok(())
+    }
+}
+
+#[crate::instrument_all(level = "debug")]
+#[async_trait]
+impl<UR, ER, EC, TC> AccountService for AccountServiceImpl<UR, ER, EC, TC>
+where
+    UR: UserRepository,
+    ER: EmailVerificationRepository,
+    EC: EmailClient,
+    TC: TokenClient,
+{
+    async fn add_email(
+        &self,
+        request: AddUserEmailRequest,
+    ) -> Result<UserEmailResponse, AccountError> {
+        let email = request.email.as_ref();
+
+        let row = match self.user_repo.create_email(request.user_id, email).await {
+            Ok(row) => row,
+            Err(DatabaseError::Other(e))
+                if e.as_database_error().and_then(|db| db.code()).as_deref() == Some("23505") =>
+            {
+                return Err(ConflictError::new("email", email).into());
+            }
+            Err(e) => return Err(e.into()),
+        };
+
+        self.issue_and_send_code(row.id, email).await?;
+
+        Ok(row.into())
+    }
+
+    async fn resend_code(
+        &self,
+        request: ResendVerificationCodeRequest,
+    ) -> Result<(), AccountError> {
+        let email = request.email.as_ref();
+
         let row = self
             .user_repo
-            .list_emails(request.user_id)
+            .get_email(email)
             .await?
-            .into_iter()
-            .find(|e| e.email == email)
-            .or_not_found("user_email", email)?;
-        Ok(row.into())
+            .filter(|row| row.user_id == request.user_id)
+            .ok_or_else(|| NotFoundError::new("user_email", email))?;
+
+        if row.is_verified {
+            return Err(ConflictError::new("email", email).into());
+        }
+
+        self.issue_and_send_code(row.id, email).await?;
+
+        Ok(())
     }
 
     async fn verify_email(
@@ -175,6 +206,7 @@ where
             .into_iter()
             .find(|e| e.email == email)
             .or_not_found("user_email", email)?;
+
         Ok(row.into())
     }
 }

@@ -7,6 +7,7 @@ import {
   GitHubAuthRedirectResource,
   type LogoutRequest,
   type RefreshSessionRequest,
+  type ResendVerificationCodeRequest,
   type SendAuthEmailRequest,
   UserEmailResource,
   type VerifyAuthCodeRequest,
@@ -165,6 +166,19 @@ export async function verifyUserEmail(email: string, code: string) {
     },
   );
   return await handleResponse(res, UserEmailResource);
+}
+
+export async function resendUserEmailCode(email: string): Promise<boolean> {
+  const body: ResendVerificationCodeRequest = { email };
+  const res = await authFetch(
+    `${GITDOT_AUTH_SERVER_URL}/auth/account/resend-code`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    },
+  );
+  return res.ok;
 }
 
 // --- GitHub OAuth ---

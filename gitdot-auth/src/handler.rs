@@ -14,7 +14,7 @@ use gitdot_axum::middleware::verify_vercel_oidc;
 
 use crate::app::AppState;
 
-use account::{add_user_email, verify_user_email};
+use account::{add_user_email, resend_verification_code, verify_user_email};
 use device::{authorize_device, create_device_code, poll_token};
 use email::{send_auth_email, verify_auth_code};
 use github::{exchange_github_code, redirect_to_github_auth};
@@ -30,6 +30,7 @@ pub fn create_auth_router(state: AppState) -> Router<AppState> {
     let web_routes = Router::new()
         .route("/auth/device/authorize", post(authorize_device))
         .route("/auth/account/add-email", post(add_user_email))
+        .route("/auth/account/resend-code", post(resend_verification_code))
         .route("/auth/account/verify-email", post(verify_user_email))
         .route("/auth/email/send", post(send_auth_email))
         .route("/auth/email/verify", post(verify_auth_code))
