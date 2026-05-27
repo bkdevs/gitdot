@@ -366,12 +366,16 @@ impl UserRepository for UserRepositoryImpl {
             return Ok(());
         }
 
+        // ON CONFLICT DO NOTHING (no target) skips on any unique violation —
+        // both `(email) WHERE is_verified` (another user already owns it) and
+        // `(user_id, email)` (this user already has it). Other emails in the
+        // same batch still insert.
         sqlx::query(
             r#"
             INSERT INTO core.user_emails (user_id, email, is_primary, is_verified, verified_at)
             SELECT $1, e, FALSE, TRUE, NOW()
             FROM UNNEST($2::text[]) AS e
-            ON CONFLICT (email) DO NOTHING
+            ON CONFLICT DO NOTHING
             "#,
         )
         .bind(user_id)
