@@ -23,7 +23,7 @@ export type ResourcePromisesType<S> = {
   [K in keyof S]: Promise<S[K]>;
 };
 
-export type ResourceResult<S> = {
+export type ResourceResultType<S> = {
   promises: ResourcePromisesType<S>;
   requests: ResourceRequestsType<S>;
 };

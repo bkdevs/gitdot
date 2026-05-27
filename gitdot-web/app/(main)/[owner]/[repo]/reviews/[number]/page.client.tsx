@@ -3,7 +3,7 @@
 import { Suspense, use, useMemo, useState } from "react";
 import {
   type ResourcePromisesType,
-  type ResourceRequestsType,
+  type ResourceResultType,
   useResolvePromises,
 } from "@/(main)/[owner]/[repo]/resources";
 import { useShortcuts } from "@/(main)/provider/shortcuts";
@@ -15,7 +15,6 @@ import type { Resources } from "./page";
 import { ReviewDiff } from "./ui/review-diff";
 import { ReviewSummary } from "./ui/review-summary";
 
-type ResourceRequests = ResourceRequestsType<Resources>;
 type ResourcePromises = ResourcePromisesType<Resources>;
 
 export type PageLayout = "split" | "summary" | "diffs";
@@ -24,19 +23,17 @@ export function PageClient({
   owner,
   repo,
   position,
-  requests,
-  promises,
+  resources,
   diffEntriesPromise,
 }: {
   owner: string;
   repo: string;
   number: number;
   position: number;
-  requests: ResourceRequests;
-  promises: ResourcePromises;
+  resources: ResourceResultType<Resources>;
   diffEntriesPromise: Promise<DiffEntry[]>;
 }) {
-  const resolvedPromises = useResolvePromises(owner, repo, requests, promises);
+  const resolvedPromises = useResolvePromises(owner, repo, resources);
 
   return (
     <Suspense fallback={<Loading className="px-6!" />}>

@@ -27,7 +27,7 @@ export default async function Page({
   const build = await getBuild(owner, repo, number);
   if (!build) return null;
 
-  const { requests, promises } = fetchResources(owner, repo, {
+  const resources = fetchResources(owner, repo, {
     build: (p) => p.getBuild(number),
     commit: (p) => p.getCommit(build.commit_sha),
   });
@@ -63,8 +63,7 @@ export default async function Page({
     <PageClient
       owner={owner}
       repo={repo}
-      requests={requests}
-      promises={promises}
+      resources={resources}
       tasks={tasks}
       tokens={tokens}
       taskLogs={taskLogs}

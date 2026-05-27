@@ -3,14 +3,13 @@
 import { Suspense, use, useMemo, useState } from "react";
 import {
   type ResourcePromisesType,
-  type ResourceRequestsType,
+  type ResourceResultType,
   useResolvePromises,
 } from "@/(main)/[owner]/[repo]/resources";
 import { Loading } from "@/ui/loading";
 import type { Resources } from "./page";
 import { ReviewRow } from "./ui/review-row";
 
-type ResourceRequests = ResourceRequestsType<Resources>;
 type ResourcePromises = ResourcePromisesType<Resources>;
 
 export type ReviewsFilter = "draft" | "open" | "closed" | "all";
@@ -31,15 +30,13 @@ function filterReviews(
 export function PageClient({
   owner,
   repo,
-  requests,
-  promises,
+  resources,
 }: {
   owner: string;
   repo: string;
-  requests: ResourceRequests;
-  promises: ResourcePromises;
+  resources: ResourceResultType<Resources>;
 }) {
-  const resolvedPromises = useResolvePromises(owner, repo, requests, promises);
+  const resolvedPromises = useResolvePromises(owner, repo, resources);
   return (
     <Suspense fallback={<Loading />}>
       <PageContent owner={owner} repo={repo} promises={resolvedPromises} />

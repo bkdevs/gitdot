@@ -220,9 +220,7 @@ export async function verifyUserEmailAction(
   }
 }
 
-export type ResendUserEmailActionResult =
-  | { success: true }
-  | { error: string };
+export type ResendUserEmailActionResult = { success: true } | { error: string };
 
 export async function resendUserEmailAction(
   email: string,

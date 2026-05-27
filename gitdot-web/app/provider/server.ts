@@ -28,7 +28,7 @@ import {
   RepoProvider,
   type ResourceDefinition,
   type ResourceRequestType,
-  type ResourceResult,
+  type ResourceResultType,
   type ShapeFromDefinition,
 } from "./types";
 
@@ -43,7 +43,7 @@ export function fetchResources<T extends ResourceDefinition>(
 export class ServerProvider extends RepoProvider {
   fetch<T extends ResourceDefinition>(
     def: T,
-  ): ResourceResult<ShapeFromDefinition<T>> {
+  ): ResourceResultType<ShapeFromDefinition<T>> {
     const promises: Record<string, Promise<unknown>> = {};
     const requests: Record<string, ResourceRequestType> = {};
 
@@ -77,7 +77,7 @@ export class ServerProvider extends RepoProvider {
       requests[key] = request;
     }
 
-    return { promises, requests } as ResourceResult<ShapeFromDefinition<T>>;
+    return { promises, requests } as ResourceResultType<ShapeFromDefinition<T>>;
   }
 
   async getPaths(): Promise<RepositoryPathsResource | null> {

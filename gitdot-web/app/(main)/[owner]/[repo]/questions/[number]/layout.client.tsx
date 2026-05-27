@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import { Suspense, use } from "react";
 import {
   type ResourcePromisesType,
-  type ResourceRequestsType,
+  type ResourceResultType,
   useResolvePromises,
 } from "@/(main)/[owner]/[repo]/resources";
 import Link from "@/ui/link";
@@ -14,23 +14,20 @@ import { Sidebar, SidebarContent } from "@/ui/sidebar";
 import { timeAgo } from "@/util";
 import type { Resources } from "./layout";
 
-type ResourceRequests = ResourceRequestsType<Resources>;
 type ResourcePromises = ResourcePromisesType<Resources>;
 
 export function LayoutClient({
   owner,
   repo,
-  requests,
-  promises,
+  resources,
   children,
 }: {
   owner: string;
   repo: string;
-  requests: ResourceRequests;
-  promises: ResourcePromises;
+  resources: ResourceResultType<Resources>;
   children: React.ReactNode;
 }) {
-  const resolvedPromises = useResolvePromises(owner, repo, requests, promises);
+  const resolvedPromises = useResolvePromises(owner, repo, resources);
   return (
     <>
       <Sidebar>

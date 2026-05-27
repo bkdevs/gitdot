@@ -3,23 +3,24 @@
 export type {
   ResourcePromisesType,
   ResourceRequestsType,
+  ResourceResultType,
 } from "@/provider/types";
 
 import { LocalProvider } from "@/provider/local";
 import type {
   ResourcePromisesType,
   ResourceRequestsType,
+  ResourceResultType,
 } from "@/provider/types";
 import { racePromises } from "@/util";
 
 export function useResolvePromises<S>(
   owner: string,
   repo: string,
-  requests: ResourceRequestsType<S>,
-  promises: ResourcePromisesType<S>,
+  resources: ResourceResultType<S>,
 ): ResourcePromisesType<S> {
   const local = new LocalProvider(owner, repo);
-  return raceRequests([local], requests, promises);
+  return raceRequests([local], resources.requests, resources.promises);
 }
 
 function raceRequests<S>(

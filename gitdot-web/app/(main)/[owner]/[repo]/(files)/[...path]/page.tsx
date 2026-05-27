@@ -35,7 +35,7 @@ export default async function Page({
 
   // TODO: we shouldn't fetch _all_ commits here, just those relevant to the file, the put is a bit nuanced
   // want to make sure we merge the put, but yeah, maybe just augment get repo commits again?
-  const { requests, promises } = fetchResources(owner, repo, {
+  const resources = fetchResources(owner, repo, {
     blob: (p) => p.getBlob(filePathString, ref),
     hast: (p) => p.getHast(filePathString, ref),
     paths: (p) => p.getPaths(),
@@ -49,8 +49,7 @@ export default async function Page({
         repo={repo}
         selectedLines={selectedLines}
         filePath={filePathString}
-        requests={requests}
-        promises={promises}
+        resources={resources}
       />
     </Suspense>
   );

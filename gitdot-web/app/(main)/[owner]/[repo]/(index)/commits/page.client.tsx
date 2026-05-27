@@ -7,7 +7,7 @@ import type {
 import { Suspense, use, useState } from "react";
 import {
   type ResourcePromisesType,
-  type ResourceRequestsType,
+  type ResourceResultType,
   useResolvePromises,
 } from "@/(main)/[owner]/[repo]/resources";
 import { useTimezone } from "@/(main)/provider/timezone";
@@ -24,23 +24,20 @@ import {
   recentWindowStart,
 } from "./util";
 
-type ResourceRequests = ResourceRequestsType<Resources>;
 type ResourcePromises = ResourcePromisesType<Resources>;
 
 export function PageClient({
   owner,
   repo,
-  requests,
-  promises,
+  resources,
   repository,
 }: {
   owner: string;
   repo: string;
-  requests: ResourceRequests;
-  promises: ResourcePromises;
+  resources: ResourceResultType<Resources>;
   repository: RepositoryResource | null;
 }) {
-  const resolvedPromises = useResolvePromises(owner, repo, requests, promises);
+  const resolvedPromises = useResolvePromises(owner, repo, resources);
   return (
     <Suspense fallback={<Loading />}>
       <PageContent

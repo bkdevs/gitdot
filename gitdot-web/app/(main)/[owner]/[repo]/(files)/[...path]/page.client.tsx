@@ -3,7 +3,7 @@
 import { Suspense, use } from "react";
 import {
   type ResourcePromisesType,
-  type ResourceRequestsType,
+  type ResourceResultType,
   useResolvePromises,
 } from "@/(main)/[owner]/[repo]/resources";
 import { Loading } from "@/ui/loading";
@@ -13,7 +13,6 @@ import { FileViewerProvider } from "./ui/file-viewer-context";
 import { FolderViewer } from "./ui/folder-viewer";
 import type { LineSelection } from "./util";
 
-type ResourceRequests = ResourceRequestsType<Resources>;
 type ResourcePromises = ResourcePromisesType<Resources>;
 
 export function PageClient({
@@ -21,17 +20,15 @@ export function PageClient({
   repo,
   selectedLines,
   filePath,
-  requests,
-  promises,
+  resources,
 }: {
   owner: string;
   repo: string;
   selectedLines: LineSelection | null;
   filePath: string;
-  requests: ResourceRequests;
-  promises: ResourcePromises;
+  resources: ResourceResultType<Resources>;
 }) {
-  const resolvedPromises = useResolvePromises(owner, repo, requests, promises);
+  const resolvedPromises = useResolvePromises(owner, repo, resources);
   return (
     <Suspense fallback={<Loading />}>
       <PageContent

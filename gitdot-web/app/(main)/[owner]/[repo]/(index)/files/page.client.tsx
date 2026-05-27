@@ -3,28 +3,25 @@
 import { Suspense, use } from "react";
 import {
   type ResourcePromisesType,
-  type ResourceRequestsType,
+  type ResourceResultType,
   useResolvePromises,
 } from "@/(main)/[owner]/[repo]/resources";
 import { Loading } from "@/ui/loading";
 import { FolderViewer } from "../../(files)/[...path]/ui/folder-viewer";
 import type { Resources } from "./page";
 
-type ResourceRequests = ResourceRequestsType<Resources>;
 type ResourcePromises = ResourcePromisesType<Resources>;
 
 export function PageClient({
   owner,
   repo,
-  requests,
-  promises,
+  resources,
 }: {
   owner: string;
   repo: string;
-  requests: ResourceRequests;
-  promises: ResourcePromises;
+  resources: ResourceResultType<Resources>;
 }) {
-  const resolvedPromises = useResolvePromises(owner, repo, requests, promises);
+  const resolvedPromises = useResolvePromises(owner, repo, resources);
   return (
     <Suspense fallback={<Loading />}>
       <PageContent promises={resolvedPromises} />

@@ -19,7 +19,7 @@ export default async function Page({
   params: Promise<{ owner: string; repo: string }>;
 }) {
   const { owner, repo } = await params;
-  const { requests, promises } = fetchResources(owner, repo, {
+  const resources = fetchResources(owner, repo, {
     commits: (p) => p.getCommits(),
     paths: (p) => p.getPaths(),
     commitFilters: (p) => p.getCommitFilters(),
@@ -30,8 +30,7 @@ export default async function Page({
     <PageClient
       owner={owner}
       repo={repo}
-      requests={requests}
-      promises={promises}
+      resources={resources}
       repository={repository}
     />
   );

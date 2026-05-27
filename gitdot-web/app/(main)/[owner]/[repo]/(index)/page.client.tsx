@@ -3,28 +3,25 @@
 import { Suspense, use } from "react";
 import {
   type ResourcePromisesType,
-  type ResourceRequestsType,
+  type ResourceResultType,
   useResolvePromises,
 } from "@/(main)/[owner]/[repo]/resources";
 import { Loading } from "@/ui/loading";
 import { MarkdownBody } from "../ui/markdown/markdown-body";
 import type { Resources } from "./page";
 
-type ResourceRequests = ResourceRequestsType<Resources>;
 type ResourcePromises = ResourcePromisesType<Resources>;
 
 export function PageClient({
   owner,
   repo,
-  requests,
-  promises,
+  resources,
 }: {
   owner: string;
   repo: string;
-  requests: ResourceRequests;
-  promises: ResourcePromises;
+  resources: ResourceResultType<Resources>;
 }) {
-  const resolvedPromises = useResolvePromises(owner, repo, requests, promises);
+  const resolvedPromises = useResolvePromises(owner, repo, resources);
   return (
     <div className="flex-1 min-w-0 overflow-y-auto scrollbar-none">
       <Suspense fallback={<Loading />}>

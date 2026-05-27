@@ -2,25 +2,20 @@
 
 import type { TaskResource } from "gitdot-api";
 import { Suspense, use } from "react";
-import type {
-  ResourcePromisesType,
-  ResourceRequestsType,
+import {
+  type ResourceResultType,
+  useResolvePromises,
 } from "@/(main)/[owner]/[repo]/resources";
-import { useResolvePromises } from "@/(main)/[owner]/[repo]/resources";
 import type { S2Record } from "@/lib/s2/shared";
 import { Loading } from "@/ui/loading";
 import type { Resources } from "./page";
 import { BuildHeader } from "./ui/build-header";
 import { BuildTask } from "./ui/build-task";
 
-type ResourceRequests = ResourceRequestsType<Resources>;
-type ResourcePromises = ResourcePromisesType<Resources>;
-
 export function PageClient({
   owner,
   repo,
-  requests,
-  promises,
+  resources,
   tasks,
   tokens,
   taskLogs,
@@ -28,14 +23,13 @@ export function PageClient({
 }: {
   owner: string;
   repo: string;
-  requests: ResourceRequests;
-  promises: ResourcePromises;
+  resources: ResourceResultType<Resources>;
   tasks: TaskResource[];
   tokens: (string | null)[];
   taskLogs: S2Record[][];
   configHtml: string | null;
 }) {
-  const resolvedPromises = useResolvePromises(owner, repo, requests, promises);
+  const resolvedPromises = useResolvePromises(owner, repo, resources);
   return (
     <Suspense fallback={<Loading />}>
       <PageContent

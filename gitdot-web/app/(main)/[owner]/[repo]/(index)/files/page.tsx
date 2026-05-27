@@ -12,16 +12,9 @@ export default async function Page({
   params: Promise<{ owner: string; repo: string }>;
 }) {
   const { owner, repo } = await params;
-  const { requests, promises } = fetchResources(owner, repo, {
+  const resources = fetchResources(owner, repo, {
     paths: (p) => p.getPaths(),
   });
 
-  return (
-    <PageClient
-      owner={owner}
-      repo={repo}
-      requests={requests}
-      promises={promises}
-    />
-  );
+  return <PageClient owner={owner} repo={repo} resources={resources} />;
 }

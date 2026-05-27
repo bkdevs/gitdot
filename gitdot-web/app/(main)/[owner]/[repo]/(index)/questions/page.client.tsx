@@ -3,7 +3,7 @@
 import { Suspense, use, useMemo, useState } from "react";
 import {
   type ResourcePromisesType,
-  type ResourceRequestsType,
+  type ResourceResultType,
   useResolvePromises,
 } from "@/(main)/[owner]/[repo]/resources";
 import { Loading } from "@/ui/loading";
@@ -12,7 +12,6 @@ import { QuestionRow } from "./ui/question-row";
 import { QuestionsHeader } from "./ui/questions-header";
 import { processQuestions } from "./util";
 
-type ResourceRequests = ResourceRequestsType<Resources>;
 type ResourcePromises = ResourcePromisesType<Resources>;
 
 export type QuestionsFilter = "popular" | "unanswered" | "all";
@@ -27,15 +26,13 @@ export type QuestionsSort =
 export function PageClient({
   owner,
   repo,
-  requests,
-  promises,
+  resources,
 }: {
   owner: string;
   repo: string;
-  requests: ResourceRequests;
-  promises: ResourcePromises;
+  resources: ResourceResultType<Resources>;
 }) {
-  const resolvedPromises = useResolvePromises(owner, repo, requests, promises);
+  const resolvedPromises = useResolvePromises(owner, repo, resources);
   return (
     <Suspense fallback={<Loading />}>
       <PageContent owner={owner} repo={repo} promises={resolvedPromises} />

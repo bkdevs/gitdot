@@ -19,7 +19,7 @@ export default async function Page({
 
   const position = Number(diff ?? 1);
 
-  const { requests, promises } = fetchResources(owner, repo, {
+  const resources = fetchResources(owner, repo, {
     review: (p) => p.getReview(Number(number)),
   });
   const diffEntriesPromise = renderReviewDiffAction(
@@ -35,8 +35,7 @@ export default async function Page({
       repo={repo}
       number={Number(number)}
       position={position}
-      requests={requests}
-      promises={promises}
+      resources={resources}
       diffEntriesPromise={diffEntriesPromise}
     />
   );

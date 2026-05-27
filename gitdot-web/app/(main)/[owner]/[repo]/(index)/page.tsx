@@ -17,7 +17,7 @@ export default async function Page({
   const repository = await getRepository(owner, repo);
   if (!repository) return null;
 
-  const { requests, promises } = fetchResources(owner, repo, {
+  const resources = fetchResources(owner, repo, {
     readme: (p) => p.getBlob("README.md"),
   });
 
@@ -25,12 +25,7 @@ export default async function Page({
 
   return (
     <div className="flex h-full w-full overflow-hidden">
-      <PageClient
-        owner={owner}
-        repo={repo}
-        requests={requests}
-        promises={promises}
-      />
+      <PageClient owner={owner} repo={repo} resources={resources} />
       <RepoPanel repository={repository} activityPromise={activityPromise} />
     </div>
   );
