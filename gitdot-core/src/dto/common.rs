@@ -75,6 +75,12 @@ pub struct Email(String);
 )]
 pub struct FilterName(String);
 
+#[nutype(
+    validate(predicate = is_valid_user_code),
+    derive(Debug, Clone, PartialEq, Eq, AsRef, Deref)
+)]
+pub struct UserCode(String);
+
 fn is_valid_slug(s: &str) -> bool {
     !s.is_empty()
         && s.len() > 1
@@ -99,6 +105,12 @@ fn is_valid_email(s: &str) -> bool {
 
 fn is_valid_filter_name(s: &str) -> bool {
     !s.is_empty() && s.len() <= 100
+}
+
+fn is_valid_user_code(s: &str) -> bool {
+    s.len() == 6
+        && s.chars()
+            .all(|c| c.is_ascii_uppercase() || ('2'..='9').contains(&c))
 }
 
 #[cfg(test)]
@@ -434,6 +446,43 @@ mod tests {
         fn rejects_label_too_long() {
             let label = "a".repeat(64);
             assert!(Email::try_new(format!("foo@{label}.com").as_str()).is_err());
+        }
+    }
+
+    mod user_code {
+        use super::*;
+
+        #[test]
+        fn valid_code() {
+            let code = UserCode::try_new("ABC234").unwrap();
+            assert_eq!(code.as_ref(), "ABC234");
+        }
+
+        #[test]
+        fn rejects_too_short() {
+            assert!(UserCode::try_new("ABC23").is_err());
+        }
+
+        #[test]
+        fn rejects_too_long() {
+            assert!(UserCode::try_new("ABC2345").is_err());
+        }
+
+        #[test]
+        fn rejects_invalid_characters() {
+            assert!(UserCode::try_new("ABC230").is_err());
+            assert!(UserCode::try_new("ABC231").is_err());
+        }
+
+        #[test]
+        fn accepts_all_uppercase_letters() {
+            assert!(UserCode::try_new("ABCDIO").is_ok());
+        }
+
+        #[test]
+        fn rejects_special_characters() {
+            assert!(UserCode::try_new("ABC-23").is_err());
+            assert!(UserCode::try_new("ABC@23").is_err());
         }
     }
 

@@ -155,7 +155,7 @@ where
             _ => return Err(EmailVerificationError::InvalidCode),
         };
 
-        let code_hash = hash_string(&request.code);
+        let code_hash = hash_string(request.code.as_ref());
         let code = self
             .email_verification_repo
             .get_code_by_hash(&code_hash)

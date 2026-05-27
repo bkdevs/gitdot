@@ -14,7 +14,7 @@ pub async fn verify_user_email(
     State(state): State<AppState>,
     Json(body): Json<api::VerifyUserEmailRequest>,
 ) -> Result<AppResponse<api::VerifyUserEmailResponse>, AppError> {
-    let request = VerifyUserEmailRequest::new(principal.id, &body.email, body.code)?;
+    let request = VerifyUserEmailRequest::new(principal.id, &body.email, &body.code)?;
     state
         .email_verification_service
         .verify_email(request)

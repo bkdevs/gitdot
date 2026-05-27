@@ -202,11 +202,12 @@ where
         &self,
         request: VerifyAuthCodeRequest,
     ) -> Result<AuthTokensResponse, SessionError> {
+        let code = request.code.as_ref();
         let auth_code = self
             .session_repo
-            .get_auth_code(&request.code)
+            .get_auth_code(code)
             .await?
-            .or_not_found("auth_code", &request.code)?;
+            .or_not_found("auth_code", code)?;
 
         if auth_code.used_at.is_some() {
             return Err(SessionError::TokenRevoked("auth_code".into()));
