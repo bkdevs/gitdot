@@ -55,33 +55,33 @@ function PageContent({
   filePath: string;
   promises: ResourcePromises;
 }) {
-  const blob = use(promises.blob);
-  if (!blob) {
+  const paths = use(promises.paths);
+  const entry = paths?.entries.find((e) => e.path === filePath);
+  if (!entry) {
     return <div>File not found.</div>;
   }
 
-  if (blob.type === "folder") {
-    const paths = use(promises.paths);
-    return <FolderViewer path={blob.path} paths={paths} />;
-  } else {
-    const hast = use(promises.hast);
-    if (!hast) {
-      return <div>File failed to render.</div>;
-    }
-
-    const allCommits = use(promises.commits);
-    const fileCommits = (allCommits ?? []).filter((c) =>
-      c.diffs.some((d) => d.path === filePath),
-    );
-    return (
-      <FileViewerProvider hast={hast} selectedLines={selectedLines}>
-        <FileViewer
-          fileCommits={fileCommits}
-          owner={owner}
-          repo={repo}
-          path={filePath}
-        />
-      </FileViewerProvider>
-    );
+  if (entry.path_type === "tree") {
+    return <FolderViewer path={filePath} paths={paths} />;
   }
+
+  const hast = use(promises.hast);
+  if (!hast) {
+    return <div>File failed to render.</div>;
+  }
+
+  const allCommits = use(promises.commits);
+  const fileCommits = (allCommits ?? []).filter((c) =>
+    c.diffs.some((d) => d.path === filePath),
+  );
+  return (
+    <FileViewerProvider hast={hast} selectedLines={selectedLines}>
+      <FileViewer
+        fileCommits={fileCommits}
+        owner={owner}
+        repo={repo}
+        path={filePath}
+      />
+    </FileViewerProvider>
+  );
 }
