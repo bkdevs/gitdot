@@ -11,7 +11,6 @@ import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 import {
   ApiError,
-  addUserEmail,
   getCurrentUser,
   hasUser,
   linkSlackAccount,
@@ -23,10 +22,12 @@ import {
 } from "@/dal";
 import {
   type AuthSignInResult,
+  addUserEmail,
   getGitHubRedirectUrl,
   logout,
   sendAuthEmail,
   verifyAuthCode,
+  verifyUserEmail,
 } from "@/lib/auth";
 import { delay, validateEmail } from "../util";
 
@@ -191,6 +192,30 @@ export async function addUserEmailAction(
       return { error: "This email is already in use" };
     }
     return { error: "Could not add email" };
+  }
+}
+
+export type VerifyUserEmailActionResult =
+  | { email: UserEmailResource }
+  | { error: string };
+
+export async function verifyUserEmailAction(
+  email: string,
+  code: string,
+): Promise<VerifyUserEmailActionResult> {
+  const trimmedCode = code.trim();
+  if (!trimmedCode) return { error: "Enter the code from your email" };
+
+  try {
+    const result = await verifyUserEmail(email, trimmedCode);
+    if (!result) return { error: "Invalid or expired code" };
+    refresh();
+    return { email: result };
+  } catch (e) {
+    if (e instanceof ApiError && e.status === 400) {
+      return { error: "Invalid or expired code" };
+    }
+    return { error: "Could not verify email" };
   }
 }
 

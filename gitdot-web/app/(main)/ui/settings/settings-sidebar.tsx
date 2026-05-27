@@ -4,6 +4,7 @@ import { cn } from "@/util";
 
 export type SettingsTab =
   | "profile"
+  | "emails"
   | "account"
   | "appearance"
   | "installations"
@@ -15,6 +16,7 @@ const GROUPS: { label: string; tabs: { id: SettingsTab; label: string }[] }[] =
       label: "General",
       tabs: [
         { id: "profile", label: "/profile" },
+        { id: "emails", label: "/emails" },
         { id: "account", label: "/account" },
         { id: "appearance", label: "/appearance" },
       ],

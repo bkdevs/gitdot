@@ -1,17 +1,20 @@
 import "server-only";
 
 import {
+  type AddUserEmailRequest,
   AuthTokensResource,
   type ExchangeGitHubCodeRequest,
   GitHubAuthRedirectResource,
   type LogoutRequest,
   type RefreshSessionRequest,
   type SendAuthEmailRequest,
+  UserEmailResource,
   type VerifyAuthCodeRequest,
+  type VerifyUserEmailRequest,
 } from "gitdot-api";
 import { cookies } from "next/headers";
 import type { NextRequest } from "next/server";
-import { authFetch } from "@/dal/util";
+import { authFetch, handleResponse } from "@/dal/util";
 
 export const GITDOT_AUTH_SERVER_URL =
   process.env.GITDOT_AUTH_SERVER_URL ?? "http://localhost:8082";
@@ -134,6 +137,34 @@ export async function verifyAuthCode(
   const username: string = payload.user_metadata?.username ?? "";
 
   return { is_new: tokens.is_new, username };
+}
+
+// --- Account management ---
+
+export async function addUserEmail(email: string) {
+  const body: AddUserEmailRequest = { email };
+  const res = await authFetch(
+    `${GITDOT_AUTH_SERVER_URL}/auth/account/add-email`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    },
+  );
+  return await handleResponse(res, UserEmailResource);
+}
+
+export async function verifyUserEmail(email: string, code: string) {
+  const body: VerifyUserEmailRequest = { email, code };
+  const res = await authFetch(
+    `${GITDOT_AUTH_SERVER_URL}/auth/account/verify-email`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    },
+  );
+  return await handleResponse(res, UserEmailResource);
 }
 
 // --- GitHub OAuth ---

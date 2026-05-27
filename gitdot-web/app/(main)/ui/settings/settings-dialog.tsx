@@ -7,6 +7,7 @@ import { useUserContext } from "@/(main)/provider/user";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
 import { SettingsAccount } from "./settings-account";
 import { SettingsAppearance } from "./settings-appearance";
+import { SettingsEmails } from "./settings-emails";
 import { SettingsInstallations } from "./settings-installations";
 import { SettingsMigrations } from "./settings-migrations";
 import { SettingsProfile } from "./settings-profile";
@@ -53,6 +54,7 @@ function SettingsDialogInner({ user }: { user: UserResource }) {
 
           <div className="flex-1 overflow-y-auto scrollbar-thin">
             {tab === "profile" && <SettingsProfile user={user} />}
+            {tab === "emails" && <SettingsEmails />}
             {tab === "account" && <SettingsAccount setSettingsOpen={setOpen} />}
             {tab === "appearance" && <SettingsAppearance />}
             {tab === "installations" && <SettingsInstallations />}

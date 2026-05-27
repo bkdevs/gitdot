@@ -7,13 +7,8 @@ import { UserImage } from "@/(main)/[owner]/ui/user/user-image";
 import { useTimezone } from "@/(main)/provider/timezone";
 import { toast } from "@/(main)/provider/toaster";
 import { useUserContext } from "@/(main)/provider/user";
-import {
-  addUserEmailAction,
-  updateUserAction,
-  uploadUserImageAction,
-} from "@/actions";
+import { updateUserAction, uploadUserImageAction } from "@/actions";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/ui/tooltip";
-import { cn } from "@/util";
 import { formatDate, timeAgo } from "@/util/date";
 
 export function SettingsProfile({ user }: { user: UserResource }) {
@@ -59,7 +54,6 @@ export function SettingsProfile({ user }: { user: UserResource }) {
     <div className="max-w-lg mx-auto p-4">
       <div className="space-y-6">
         <ProfilePrimary user={user} />
-        <ProfileEmails />
         <ProfileAbout
           displayName={displayName}
           location={location}
@@ -87,10 +81,12 @@ export function SettingsProfile({ user }: { user: UserResource }) {
 
 function ProfilePrimary({ user }: { user: UserResource }) {
   const tz = useTimezone();
-  const { refreshUser } = useUserContext();
+  const { emails, refreshUser } = useUserContext();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+
+  const primaryEmail = emails?.find((e) => e.is_primary)?.email;
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -126,7 +122,7 @@ function ProfilePrimary({ user }: { user: UserResource }) {
           <TooltipTrigger asChild>
             <button
               type="button"
-              className="relative size-8 mb-1.5 cursor-pointer appearance-none bg-transparent border-none p-0"
+              className="relative size-8 row-span-2 self-start cursor-pointer appearance-none bg-transparent border-none p-0"
               onClick={() => !uploading && fileInputRef.current?.click()}
             >
               <span
@@ -141,7 +137,10 @@ function ProfilePrimary({ user }: { user: UserResource }) {
           </TooltipTrigger>
           <TooltipContent>Upload photo</TooltipContent>
         </Tooltip>
-        <span className="text-sm font-semibold mb-1.5">{user.name}</span>
+        <span className="text-sm font-semibold">{user.name}</span>
+        <span className="text-sm text-muted-foreground truncate mb-1.5">
+          {primaryEmail ?? ""}
+        </span>
         <span className="text-sm text-muted-foreground">joined</span>
         <span className="text-sm text-muted-foreground">
           {formatDate(new Date(user.created_at), tz)} (
@@ -270,109 +269,6 @@ function ProfileLinks({
             className="h-5 text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors cursor-pointer block border-b border-transparent w-full text-left"
           >
             new link
-          </button>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function ProfileEmails() {
-  const { emails, refreshUser } = useUserContext();
-  const [draft, setDraft] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  async function commitDraft() {
-    const value = draft?.trim() ?? "";
-    if (!value) {
-      setDraft(null);
-      setError(null);
-      return;
-    }
-    if (submitting) return;
-    setSubmitting(true);
-    const formData = new FormData();
-    formData.set("email", value);
-    const result = await addUserEmailAction(null, formData);
-    setSubmitting(false);
-    if ("error" in result) {
-      setError(result.error);
-      return;
-    }
-    setError(null);
-    setDraft(null);
-    await refreshUser();
-  }
-
-  function cancelDraft() {
-    setDraft(null);
-    setError(null);
-  }
-
-  return (
-    <div className="space-y-2">
-      <p className="text-xs text-muted-foreground font-mono">
-        <span className="text-foreground/40 select-none"># </span>
-        emails
-      </p>
-      <div className="space-y-1">
-        {emails?.map((e) => (
-          <div
-            key={e.email}
-            className="grid grid-cols-[1fr_auto] items-center gap-x-3 h-5"
-          >
-            <span className="text-sm truncate">{e.email}</span>
-            <span className="flex items-center gap-2 text-xs font-mono">
-              {e.is_primary && (
-                <span className="text-muted-foreground">primary</span>
-              )}
-              <span
-                className={cn(
-                  e.is_verified
-                    ? "text-muted-foreground"
-                    : "text-destructive/80",
-                )}
-              >
-                {e.is_verified ? "verified" : "unverified"}
-              </span>
-            </span>
-          </div>
-        ))}
-        {draft !== null ? (
-          <>
-            <input
-              value={draft}
-              onChange={(ev) => {
-                setDraft(ev.target.value);
-                if (error) setError(null);
-              }}
-              onKeyDown={(ev) => {
-                if (ev.key === "Enter") {
-                  ev.stopPropagation();
-                  commitDraft();
-                } else if (ev.key === "Escape") {
-                  ev.stopPropagation();
-                  cancelDraft();
-                }
-              }}
-              onBlur={commitDraft}
-              autoFocus
-              disabled={submitting}
-              className="h-5 text-sm bg-transparent border-b border-border outline-none w-full placeholder:text-muted-foreground/40 transition-colors focus:border-foreground"
-              placeholder="you@another-domain.com"
-            />
-            {error && (
-              <span className="text-xs text-destructive/80">{error}</span>
-            )}
-          </>
-        ) : (
-          <button
-            type="button"
-            onClick={() => setDraft("")}
-            className="h-5 text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors cursor-pointer block border-b border-transparent w-full text-left"
-          >
-            new email
           </button>
         )}
       </div>
