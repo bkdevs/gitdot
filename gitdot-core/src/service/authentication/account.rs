@@ -153,9 +153,8 @@ where
 
         let row = self
             .user_repo
-            .get_email(email)
+            .get_email_for_user(request.user_id, email)
             .await?
-            .filter(|row| row.user_id == request.user_id)
             .ok_or_else(|| NotFoundError::new("user_email", email))?;
 
         if row.is_verified {
@@ -173,13 +172,14 @@ where
     ) -> Result<UserEmailResponse, AccountError> {
         let email = request.email.as_ref();
 
-        // Locate the caller's row for this email. Any mismatch (not present, or
-        // owned by another user) collapses to InvalidCode so we don't leak
-        // ownership information.
-        let user_email_id = match self.user_repo.get_email(email).await? {
-            Some(row) if row.user_id == request.user_id => row.id,
-            _ => return Err(AccountError::InvalidCode),
-        };
+        // Locate the caller's row for this email. Absence collapses to
+        // InvalidCode so we don't leak ownership information.
+        let user_email_id = self
+            .user_repo
+            .get_email_for_user(request.user_id, email)
+            .await?
+            .ok_or(AccountError::InvalidCode)?
+            .id;
 
         let code_hash = hash_string(request.code.as_ref());
         let code = self

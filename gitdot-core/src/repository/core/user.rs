@@ -71,7 +71,11 @@ pub trait UserRepository: Send + Sync + Clone + 'static {
 
     async fn create_email(&self, user_id: Uuid, email: &str) -> Result<UserEmail, DatabaseError>;
 
-    async fn get_email(&self, email: &str) -> Result<Option<UserEmail>, DatabaseError>;
+    async fn get_email_for_user(
+        &self,
+        user_id: Uuid,
+        email: &str,
+    ) -> Result<Option<UserEmail>, DatabaseError>;
 
     async fn upsert_verified_emails(
         &self,
@@ -318,14 +322,19 @@ impl UserRepository for UserRepositoryImpl {
         Ok(row)
     }
 
-    async fn get_email(&self, email: &str) -> Result<Option<UserEmail>, DatabaseError> {
+    async fn get_email_for_user(
+        &self,
+        user_id: Uuid,
+        email: &str,
+    ) -> Result<Option<UserEmail>, DatabaseError> {
         let row = sqlx::query_as::<_, UserEmail>(
             r#"
             SELECT id, user_id, email, is_primary, is_verified, created_at
             FROM core.user_emails
-            WHERE email = $1
+            WHERE user_id = $1 AND email = $2
             "#,
         )
+        .bind(user_id)
         .bind(email)
         .fetch_optional(&self.pool)
         .await?;
