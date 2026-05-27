@@ -11,16 +11,21 @@ const CODE_TEMPLATE: &str = include_str!("../../templates/email/code.html");
 static RESERVED_NAMES: LazyLock<HashSet<&'static str>> = LazyLock::new(|| {
     HashSet::from([
         // Frontend routes
-        "login",
-        "signup",
+        "api",
+        "company",
+        "decisions",
+        "faq",
         "home",
-        "settings",
-        "search",
-        "notifications",
-        "auth",
+        "login",
         "oauth",
-        "week",
+        "onboarding",
+        "privacy",
+        "releases",
+        "terms",
+        "weeks",
+        // Redirect sources
         "beta",
+        "signup",
         // Common reserved
         "admin",
     ])
