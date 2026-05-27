@@ -36,7 +36,7 @@ export function UserCommitsHeader({
   function selectYear(y: number) {
     setSelectedMonth(null);
     if (y === currentYear) {
-      setStartDate(formatDateIso(subtractMonths(new Date(), 11), tz));
+      setStartDate(subtractMonths(new Date(), 11, tz));
       setEndDate(formatDateIso(new Date(), tz));
     } else {
       setStartDate(`${y}-01-01`);

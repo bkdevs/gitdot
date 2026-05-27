@@ -13,7 +13,7 @@ export function UserCommits({ commits }: { commits: UserCommitResource[] }) {
   const tz = useTimezone();
 
   const [startDate, setStartDate] = useState(() =>
-    formatDateIso(subtractMonths(new Date(), 11), tz),
+    subtractMonths(new Date(), 11, tz),
   );
   const [endDate, setEndDate] = useState(() => formatDateIso(new Date(), tz));
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);

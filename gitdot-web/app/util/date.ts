@@ -45,6 +45,14 @@ export function formatDateTime(date: Date, tz: string): string {
   return `${get("month")} ${get("day")}, ${get("year")} ${get("hour")}:${get("minute")}:${get("second")} ${get("dayPeriod")}`;
 }
 
+export function subtractMonths(date: Date, months: number, tz: string): string {
+  const [y, m] = formatDateIso(date, tz).split("-").map(Number);
+  const total = y * 12 + (m - 1) - months;
+  const targetY = Math.floor(total / 12);
+  const targetM = total - targetY * 12 + 1;
+  return `${targetY}-${String(targetM).padStart(2, "0")}-01`;
+}
+
 // ============================
 // timezone invariant utilities
 // ============================
@@ -68,10 +76,6 @@ export function addDays(date: Date, days: number): Date {
 
 export function subtractDays(date: Date, days: number): Date {
   return addDays(date, -days);
-}
-
-export function subtractMonths(date: Date, months: number): Date {
-  return new Date(date.getFullYear(), date.getMonth() - months, 1);
 }
 
 export function timeAgo(date: Date) {
