@@ -101,6 +101,7 @@ impl EmailVerificationRepository for EmailVerificationRepositoryImpl {
         user_email_id: Uuid,
     ) -> Result<(), DatabaseError> {
         let mut tx = self.pool.begin().await?;
+
         sqlx::query(
             r#"
             UPDATE auth.email_verification_codes SET used_at = NOW() WHERE id = $1
@@ -109,6 +110,23 @@ impl EmailVerificationRepository for EmailVerificationRepositoryImpl {
         .bind(code_id)
         .execute(&mut *tx)
         .await?;
+
+        // Clean up squatter rows: any other unverified rows claiming the same
+        // email are bogus once one user verifies, so drop them. Done before the
+        // UPDATE so the partial unique index on `(email) WHERE is_verified`
+        // never sees two conflicting rows in flight.
+        sqlx::query(
+            r#"
+            DELETE FROM core.user_emails
+            WHERE email = (SELECT email FROM core.user_emails WHERE id = $1)
+              AND id != $1
+              AND NOT is_verified
+            "#,
+        )
+        .bind(user_email_id)
+        .execute(&mut *tx)
+        .await?;
+
         sqlx::query(
             r#"
             UPDATE core.user_emails
@@ -119,6 +137,7 @@ impl EmailVerificationRepository for EmailVerificationRepositoryImpl {
         .bind(user_email_id)
         .execute(&mut *tx)
         .await?;
+
         tx.commit().await?;
 
         Ok(())
