@@ -2,7 +2,6 @@ import type {
   BuildResource,
   QuestionResource,
   RepositoryBlobResource,
-  RepositoryBlobsResource,
   RepositoryCommitFilterResource,
   RepositoryCommitResource,
   RepositoryPathsResource,
@@ -51,7 +50,6 @@ export abstract class RepoProvider {
   abstract getHast(path: string, ref?: string): Promise<Root | null>;
   abstract getCommit(sha: string): Promise<RepositoryCommitResource | null>;
   abstract getCommitFilters(): Promise<RepositoryCommitFilterResource[] | null>;
-  abstract getBlobs(): Promise<RepositoryBlobsResource | null>;
   abstract getQuestions(): Promise<QuestionResource[] | null>;
   abstract getReview(number: number): Promise<ReviewResource | null>;
   abstract getReviews(): Promise<ReviewResource[] | null>;

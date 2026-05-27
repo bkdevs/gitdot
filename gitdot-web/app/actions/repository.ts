@@ -2,7 +2,6 @@
 
 import type {
   CreateRepositoryCommitFilterRequest,
-  RepositoryBlobsResource,
   RepositoryCommitFilterResource,
   RepositoryResource,
   UpdateRepositoryCommitFilterRequest,
@@ -19,7 +18,6 @@ import {
   deleteRepository,
   deleteRepositoryCommitFilter,
   getRepositoryBlob,
-  getRepositoryBlobs,
   starRepository,
   unstarRepository,
   updateRepositoryCommitFilter,
@@ -109,15 +107,6 @@ export async function getRepositoryHastAction(
   if (!blob || blob.type === "folder") return null;
   const lang = inferLanguage(path);
   return fileToHast(blob.content, lang, "vitesse", []);
-}
-
-export async function getRepositoryBlobsAction(
-  owner: string,
-  repo: string,
-  refs: string[],
-  path: string,
-): Promise<RepositoryBlobsResource | null> {
-  return getRepositoryBlobs(owner, repo, { refs, paths: [path] });
 }
 
 export type StarRepositoryActionResult = { success: true } | { error: string };

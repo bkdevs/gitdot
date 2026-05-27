@@ -63,6 +63,28 @@ function getDb(): Promise<IDBPDatabase> {
   return dbPromise;
 }
 
+function withTimings(db: Database): Database {
+  return new Proxy(db, {
+    get(target, prop, receiver) {
+      const value = Reflect.get(target, prop, receiver);
+      if (typeof value !== "function") return value;
+      return async (...args: unknown[]) => {
+        const start = performance.now();
+        try {
+          return await (value as (...a: unknown[]) => Promise<unknown>).apply(
+            receiver,
+            args,
+          );
+        } finally {
+          console.log(
+            `idb.${String(prop)} ${(performance.now() - start).toFixed(2)}ms`,
+          );
+        }
+      };
+    },
+  });
+}
+
 export function openIdb(): Database {
   if (typeof indexedDB === "undefined") {
     return new Proxy({} as Database, {
@@ -72,7 +94,7 @@ export function openIdb(): Database {
 
   getDb();
 
-  return {
+  return withTimings({
     async getPaths(owner, repo) {
       const db = await getDb();
       const prefix = `${repoKey(owner, repo)}/`;
@@ -131,15 +153,6 @@ export function openIdb(): Database {
     async getBlob(owner: string, repo: string, path: string) {
       const db = await getDb();
       return (await db.get("blobs", pathKey(owner, repo, path))) ?? null;
-    },
-
-    async getBlobs(owner: string, repo: string) {
-      const db = await getDb();
-      const prefix = `${repoKey(owner, repo)}/`;
-      const range = IDBKeyRange.bound(prefix, `${prefix}\uffff`);
-      const rows = await db.getAll("blobs", range);
-      if (rows.length === 0) return null;
-      return { blobs: rows };
     },
 
     async putBlob(
@@ -236,5 +249,5 @@ export function openIdb(): Database {
       else builds.push(build);
       await this.putBuilds(owner, repo, builds);
     },
-  };
+  });
 }

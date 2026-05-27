@@ -4,7 +4,6 @@ import type {
   BuildResource,
   QuestionResource,
   RepositoryBlobResource,
-  RepositoryBlobsResource,
   RepositoryCommitFilterResource,
   RepositoryCommitResource,
   RepositoryPathsResource,
@@ -19,7 +18,6 @@ import {
 import { listQuestions } from "@/dal/question";
 import {
   getRepositoryBlob,
-  getRepositoryBlobs,
   getRepositoryCommit,
   getRepositoryPaths,
   listRepositoryCommitFilters,
@@ -112,14 +110,6 @@ export class ServerProvider extends RepoProvider {
   async getCommitFilters(): Promise<RepositoryCommitFilterResource[] | null> {
     const result = await listRepositoryCommitFilters(this.owner, this.repo);
     return result?.data ?? null;
-  }
-
-  async getBlobs(): Promise<RepositoryBlobsResource | null> {
-    const paths = await getRepositoryPaths(this.owner, this.repo);
-    if (!paths) return null;
-    return await getRepositoryBlobs(this.owner, this.repo, {
-      paths: paths.entries.map((e) => e.path),
-    });
   }
 
   async getQuestions(): Promise<QuestionResource[] | null> {

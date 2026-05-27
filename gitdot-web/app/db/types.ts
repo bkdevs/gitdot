@@ -59,11 +59,6 @@ export interface Database {
     path: string,
   ): Promise<RepositoryBlobResource | null>;
 
-  getBlobs(
-    owner: string,
-    repo: string,
-  ): Promise<RepositoryBlobsResource | null>;
-
   putBlobs(
     owner: string,
     repo: string,

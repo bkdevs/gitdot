@@ -8,7 +8,6 @@ import {
   GetRepositoryActivityResponse,
   type GetRepositoryBlobDiffsRequest,
   type GetRepositoryBlobRequest,
-  type GetRepositoryBlobsRequest,
   type GetRepositoryPathsRequest,
   type GetRepositoryResourcesRequest,
   ListLatestRepositoriesResponse,
@@ -18,7 +17,6 @@ import {
   ListTrendingRepositoriesResponse,
   RepositoryBlobDiffsResource,
   RepositoryBlobResource,
-  RepositoryBlobsResource,
   RepositoryCommitDiffResource,
   type RepositoryCommitFilterResource,
   RepositoryCommitResource,
@@ -156,18 +154,6 @@ export async function deleteRepositoryCommitFilter(
     `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/commit-filters/${filterId}`,
   );
   await handleEmptyResponse(response);
-}
-
-export async function getRepositoryBlobs(
-  owner: string,
-  repo: string,
-  request: GetRepositoryBlobsRequest,
-): Promise<RepositoryBlobsResource | null> {
-  const response = await authPost(
-    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/blobs`,
-    request,
-  );
-  return await handleResponse(response, RepositoryBlobsResource);
 }
 
 export async function getRepositoryBlobDiffs(

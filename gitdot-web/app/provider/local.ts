@@ -3,7 +3,6 @@
 import type {
   BuildResource,
   QuestionResource,
-  RepositoryBlobsResource,
   RepositoryCommitFilterResource,
   RepositoryCommitResource,
   RepositoryPathsResource,
@@ -80,10 +79,6 @@ export class LocalProvider extends RepoProvider {
 
   async getCommitFilters(): Promise<RepositoryCommitFilterResource[] | null> {
     return null;
-  }
-
-  async getBlobs(): Promise<RepositoryBlobsResource | null> {
-    return this.db.getBlobs(this.owner, this.repo);
   }
 
   async getQuestions(): Promise<QuestionResource[] | null> {

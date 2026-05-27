@@ -103,21 +103,53 @@ async function process({ id, owner, repo }: SyncRequest, port: MessagePort) {
 
   t = performance.now();
   const fileBlobs = result.blobs.blobs.filter((b) => b.type === "file");
+  const blobSizes: { path: string; value: number }[] = [];
+  const hastSizes: { path: string; value: number }[] = [];
+  const hastTimes: { path: string; value: number }[] = [];
   await Promise.all(
     fileBlobs.map((blob) => {
       const lang = inferLanguage(blob.path) ?? "plaintext";
+      const t0 = performance.now();
       const hast = highlighter.codeToHast(blob.content, {
         lang,
         themes: { light: "vitesse-light", dark: "vitesse-dark" },
         defaultColor: "light",
       });
+      const elapsed = performance.now() - t0;
+      const hastBytes = JSON.stringify(hast).length;
+      blobSizes.push({ path: blob.path, value: blob.content.length });
+      hastSizes.push({ path: blob.path, value: hastBytes });
+      hastTimes.push({ path: blob.path, value: elapsed });
+      console.log(
+        `[gitdot-sync] codeToHast ${blob.path} (${lang}, ${blob.content.length}b → ${hastBytes}b hast) ${elapsed.toFixed(2)}ms`,
+      );
       return db.putHast(owner, repo, blob.path, hast);
     }),
   );
   console.log(
     `[gitdot-sync] highlight + hast write took ${performance.now() - t}ms (${fileBlobs.length} files)`,
   );
+  logStats("blob size", blobSizes, (n) => `${(n / 1024).toFixed(1)}kb`);
+  logStats("hast size", hastSizes, (n) => `${(n / 1024).toFixed(1)}kb`);
+  logStats("codeToHast", hastTimes, (n) => `${n.toFixed(2)}ms`);
   port.postMessage({ id, stage: "hasts" } satisfies SyncResponse);
+}
+
+function logStats(
+  label: string,
+  items: { path: string; value: number }[],
+  fmt: (n: number) => string,
+) {
+  if (items.length === 0) return;
+  const sorted = [...items].sort((a, b) => a.value - b.value);
+  const total = sorted.reduce((s, x) => s + x.value, 0);
+  const pct = (p: number) =>
+    sorted[Math.min(sorted.length - 1, Math.floor((sorted.length - 1) * p))]
+      .value;
+  const biggest = sorted[sorted.length - 1];
+  console.log(
+    `[gitdot-sync] ${label}: n=${sorted.length} total=${fmt(total)} avg=${fmt(total / sorted.length)} p50=${fmt(pct(0.5))} p95=${fmt(pct(0.95))} max=${fmt(biggest.value)} (${biggest.path})`,
+  );
 }
 
 const t = performance.now();

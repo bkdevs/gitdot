@@ -40,11 +40,15 @@ self.onconnect = (event: MessageEvent) => {
 
 function process({ id, path, content }: ShikiRequest, port: MessagePort) {
   const lang = inferLanguage(path) ?? "plaintext";
+  const t = performance.now();
   const hast = highlighter.codeToHast(content, {
     lang,
     themes: { light: "vitesse-light", dark: "vitesse-dark" },
     defaultColor: "light",
   });
+  console.log(
+    `[gitdot-shiki] codeToHast ${path} (${lang}, ${content.length}b) ${(performance.now() - t).toFixed(2)}ms`,
+  );
   port.postMessage({ id, hast } satisfies ShikiResponse);
 }
 
