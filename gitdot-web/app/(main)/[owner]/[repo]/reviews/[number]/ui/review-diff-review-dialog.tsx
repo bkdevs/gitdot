@@ -4,7 +4,7 @@ import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import type { ReviewCommentResource } from "gitdot-api";
 import { useParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { useUserContext } from "@/(main)/provider/user";
+import { useUserContext } from "@/(main)/context/user";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
 import { cn } from "@/util";
 import { UserImage } from "../../../../ui/user/user-image";

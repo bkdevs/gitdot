@@ -3,7 +3,7 @@
 import type { RepositoryCommitResource } from "gitdot-api";
 import { File, GitCommitHorizontal, X } from "lucide-react";
 import { useParams, usePathname, useSearchParams } from "next/navigation";
-import { useTimezone } from "@/(main)/provider/timezone";
+import { useTimezone } from "@/(main)/context/timezone";
 import Link from "@/ui/link";
 import { formatDateTime } from "@/util/date";
 import { useFileViewerContext } from "./file-viewer-context";

@@ -2,7 +2,7 @@
 
 import { Check } from "lucide-react";
 import { useActionState, useRef, useState } from "react";
-import { useUserContext } from "@/(main)/provider/user";
+import { useUserContext } from "@/(main)/context/user";
 import type { CreateCommentActionResult } from "@/actions";
 import { cn } from "@/util";
 

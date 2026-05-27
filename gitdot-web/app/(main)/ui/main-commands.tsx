@@ -10,8 +10,8 @@ import {
   useRef,
   useState,
 } from "react";
-import { useShortcuts } from "@/(main)/provider/shortcuts";
-import { useUserContext } from "@/(main)/provider/user";
+import { useShortcuts } from "@/(main)/context/shortcuts";
+import { useUserContext } from "@/(main)/context/user";
 import { signout } from "@/actions";
 import Link from "@/ui/link";
 

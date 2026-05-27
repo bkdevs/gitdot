@@ -3,7 +3,7 @@
 import type { RepositoryCommitResource, RepositoryResource } from "gitdot-api";
 import { ChevronDownIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { useTimezone } from "@/(main)/provider/timezone";
+import { useTimezone } from "@/(main)/context/timezone";
 import {
   DropdownMenu,
   DropdownMenuContent,

@@ -1,7 +1,7 @@
 "use client";
 
 import type { RepositoryResource } from "gitdot-api";
-import { useTimezone } from "@/(main)/provider/timezone";
+import { useTimezone } from "@/(main)/context/timezone";
 import { formatDate } from "@/util/date";
 
 export function RepoInfo({ repository }: { repository: RepositoryResource }) {

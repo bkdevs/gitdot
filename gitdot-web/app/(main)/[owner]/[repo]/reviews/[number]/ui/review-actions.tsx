@@ -3,7 +3,7 @@
 import type { ReviewResource } from "gitdot-api";
 import { Edit2, Send, X } from "lucide-react";
 import { useState } from "react";
-import { useUserContext } from "@/(main)/provider/user";
+import { useUserContext } from "@/(main)/context/user";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
 import { useReviewContext } from "../context";
 

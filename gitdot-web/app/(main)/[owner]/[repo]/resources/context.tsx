@@ -2,7 +2,7 @@
 
 import { LocalProvider } from "gitdot-dal/client";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
-import { useWorkerContext } from "@/(main)/provider/worker";
+import { useWorkerContext } from "@/(main)/context/worker";
 
 type RepoContext = {
   resourcesReady: boolean;

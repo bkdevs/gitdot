@@ -2,7 +2,7 @@
 
 import type { UserCommitResource } from "gitdot-api";
 import { useState } from "react";
-import { useTimezone } from "@/(main)/provider/timezone";
+import { useTimezone } from "@/(main)/context/timezone";
 import { formatDateIso, subtractMonths } from "@/util/date";
 import { UserCommitStatistics } from "./user-commit-statistics";
 import { UserCommitsCalendar } from "./user-commits-calendar";

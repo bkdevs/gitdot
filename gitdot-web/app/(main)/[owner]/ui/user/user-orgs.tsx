@@ -1,7 +1,7 @@
 "use client";
 
 import type { OrganizationMemberResource } from "gitdot-api";
-import { useTimezone } from "@/(main)/provider/timezone";
+import { useTimezone } from "@/(main)/context/timezone";
 import Link from "@/ui/link";
 import { formatDate } from "@/util/date";
 import { OrgImage } from "../org/org-image";

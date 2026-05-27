@@ -1,6 +1,6 @@
 "use client";
 
-import { useUserContext } from "@/(main)/provider/user";
+import { useUserContext } from "@/(main)/context/user";
 import { getGithubAppInstallUrlAction } from "@/actions/migration";
 
 export function SettingsInstallations() {

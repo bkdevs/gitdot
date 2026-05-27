@@ -6,7 +6,7 @@ import { useParams } from "next/navigation";
 import { memo, useRef } from "react";
 import { UserImage } from "@/(main)/[owner]/ui/user/user-image";
 import { UserSlug } from "@/(main)/[owner]/ui/user/user-slug";
-import { useTimezone } from "@/(main)/provider/timezone";
+import { useTimezone } from "@/(main)/context/timezone";
 import { formatDateIso } from "@/util/date";
 
 export function CommitsList({

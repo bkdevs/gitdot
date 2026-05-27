@@ -8,8 +8,8 @@ import type {
 } from "gitdot-api";
 import { useSearchParams } from "next/navigation";
 import { createContext, useContext, useMemo, useState } from "react";
-import { toast } from "@/(main)/provider/toaster";
-import { useUserContext } from "@/(main)/provider/user";
+import { toast } from "@/(main)/context/toaster";
+import { useUserContext } from "@/(main)/context/user";
 import {
   type AddReviewerActionResult,
   addReviewerAction,

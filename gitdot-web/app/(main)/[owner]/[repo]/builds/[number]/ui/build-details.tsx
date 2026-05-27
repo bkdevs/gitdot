@@ -3,7 +3,7 @@
 import type { BuildResource, RepositoryCommitResource } from "gitdot-api";
 import { FileCog } from "lucide-react";
 import { useState } from "react";
-import { useTimezone } from "@/(main)/provider/timezone";
+import { useTimezone } from "@/(main)/context/timezone";
 import { formatDateTime } from "@/util/date";
 import { BuildConfigDialog } from "./build-config-dialog";
 import { JobTimer } from "./job-timer";

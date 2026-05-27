@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { OrgImage } from "@/(main)/[owner]/ui/org/org-image";
 import { UserImage } from "@/(main)/[owner]/ui/user/user-image";
-import { useUserContext } from "@/(main)/provider/user";
+import { useUserContext } from "@/(main)/context/user";
 import {
   getGithubAppInstallUrlAction,
   getMigrationAction,

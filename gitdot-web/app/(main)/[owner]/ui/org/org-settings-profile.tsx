@@ -3,8 +3,8 @@
 import type { OrganizationResource } from "gitdot-api";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { useTimezone } from "@/(main)/provider/timezone";
-import { toast } from "@/(main)/provider/toaster";
+import { useTimezone } from "@/(main)/context/timezone";
+import { toast } from "@/(main)/context/toaster";
 import {
   updateOrganizationAction,
   uploadOrganizationImageAction,

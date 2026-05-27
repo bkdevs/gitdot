@@ -4,7 +4,7 @@ import type { UserResource } from "gitdot-api";
 import { useSelectedLayoutSegments } from "next/navigation";
 import { useEffect, useState } from "react";
 import { UserImage } from "@/(main)/[owner]/ui/user/user-image";
-import { useUserContext } from "@/(main)/provider/user";
+import { useUserContext } from "@/(main)/context/user";
 import { useTypewriter } from "@/hooks/use-typewriter";
 import Link from "@/ui/link";
 import { cn } from "@/util";

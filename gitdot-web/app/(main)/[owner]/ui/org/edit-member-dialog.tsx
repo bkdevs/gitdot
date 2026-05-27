@@ -3,7 +3,7 @@
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import type { OrganizationMemberResource } from "gitdot-api";
 import { useActionState, useEffect, useState } from "react";
-import { toast } from "@/(main)/provider/toaster";
+import { toast } from "@/(main)/context/toaster";
 import { updateOrganizationMemberAction } from "@/actions";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
 import { cn } from "@/util";

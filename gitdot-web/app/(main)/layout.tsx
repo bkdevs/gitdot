@@ -1,13 +1,13 @@
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata } from "next";
 import { headers } from "next/headers";
-import { DatabaseProvider } from "./provider/database";
-import { DialogsProvider } from "./provider/dialogs";
-import { ShortcutsProvider } from "./provider/shortcuts";
-import { TimezoneProvider } from "./provider/timezone";
-import { ToasterProvider } from "./provider/toaster";
-import { UserProvider } from "./provider/user";
-import { WorkerProvider } from "./provider/worker";
+import { DatabaseProvider } from "./context/database";
+import { DialogsProvider } from "./context/dialogs";
+import { ShortcutsProvider } from "./context/shortcuts";
+import { TimezoneProvider } from "./context/timezone";
+import { ToasterProvider } from "./context/toaster";
+import { UserProvider } from "./context/user";
+import { WorkerProvider } from "./context/worker";
 import { MainFooter } from "./ui/main-footer";
 
 export const metadata: Metadata = {

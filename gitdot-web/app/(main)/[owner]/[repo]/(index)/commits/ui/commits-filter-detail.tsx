@@ -7,8 +7,8 @@ import type {
 } from "gitdot-api";
 import { ChevronDown, ChevronRight, Circle, X } from "lucide-react";
 import { useRef, useState, useTransition } from "react";
-import { toast } from "@/(main)/provider/toaster";
-import { useUserContext } from "@/(main)/provider/user";
+import { toast } from "@/(main)/context/toaster";
+import { useUserContext } from "@/(main)/context/user";
 import { updateRepositoryCommitFilterAction } from "@/actions";
 import {
   DropdownMenu,

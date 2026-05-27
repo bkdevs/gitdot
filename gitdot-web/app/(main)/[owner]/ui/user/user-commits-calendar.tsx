@@ -1,7 +1,7 @@
 "use client";
 
 import type { UserCommitResource } from "gitdot-api";
-import { useTimezone } from "@/(main)/provider/timezone";
+import { useTimezone } from "@/(main)/context/timezone";
 import { cn } from "@/util";
 import { formatDateIso } from "@/util/date";
 import {

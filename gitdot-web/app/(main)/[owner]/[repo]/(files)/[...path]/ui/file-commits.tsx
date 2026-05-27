@@ -3,8 +3,8 @@
 import type { RepositoryCommitResource } from "gitdot-api";
 import { UserImage } from "@/(main)/[owner]/ui/user/user-image";
 import { UserSlug } from "@/(main)/[owner]/ui/user/user-slug";
+import { useTimezone } from "@/(main)/context/timezone";
 import { useRightSidebar } from "@/(main)/hooks/use-sidebar";
-import { useTimezone } from "@/(main)/provider/timezone";
 import { timeAgo } from "@/util";
 import { formatDate } from "@/util/date";
 import { DiffStatBar } from "../../../commits/[sha]/ui/diff-stat-bar";

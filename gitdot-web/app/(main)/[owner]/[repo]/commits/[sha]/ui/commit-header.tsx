@@ -3,7 +3,7 @@
 import type { RepositoryCommitResource } from "gitdot-api";
 import { ExternalLink } from "lucide-react";
 import { UserImage } from "@/(main)/[owner]/ui/user/user-image";
-import { useTimezone } from "@/(main)/provider/timezone";
+import { useTimezone } from "@/(main)/context/timezone";
 import Link from "@/ui/link";
 import { formatDateTime } from "@/util/date";
 

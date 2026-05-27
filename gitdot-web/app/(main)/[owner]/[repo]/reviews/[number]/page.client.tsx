@@ -6,7 +6,7 @@ import {
   useResolvePromises,
 } from "gitdot-dal/client";
 import { Suspense, use, useMemo, useState } from "react";
-import { useShortcuts } from "@/(main)/provider/shortcuts";
+import { useShortcuts } from "@/(main)/context/shortcuts";
 import type { DiffEntry } from "@/actions";
 import { Loading } from "@/ui/loading";
 import { cn } from "@/util";

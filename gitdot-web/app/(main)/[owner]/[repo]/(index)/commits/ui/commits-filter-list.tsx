@@ -2,7 +2,7 @@
 
 import type { RepositoryCommitFilterResource } from "gitdot-api";
 import { useState } from "react";
-import { useUserContext } from "@/(main)/provider/user";
+import { useUserContext } from "@/(main)/context/user";
 import {
   ContextMenu,
   ContextMenuContent,

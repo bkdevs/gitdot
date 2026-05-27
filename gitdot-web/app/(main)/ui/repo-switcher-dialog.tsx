@@ -4,8 +4,8 @@ import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import type { OrganizationMemberResource, UserResource } from "gitdot-api";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useShortcuts } from "@/(main)/provider/shortcuts";
-import { useUserContext } from "@/(main)/provider/user";
+import { useShortcuts } from "@/(main)/context/shortcuts";
+import { useUserContext } from "@/(main)/context/user";
 import {
   listOrganizationRepositoriesAction,
   listUserRepositoriesAction,

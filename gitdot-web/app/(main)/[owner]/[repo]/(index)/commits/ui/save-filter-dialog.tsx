@@ -3,7 +3,7 @@
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import type { RepositoryCommitFilterResource } from "gitdot-api";
 import { useEffect, useState, useTransition } from "react";
-import { toast } from "@/(main)/provider/toaster";
+import { toast } from "@/(main)/context/toaster";
 import { createRepositoryCommitFilterAction } from "@/actions";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
 import { cn } from "@/util";

@@ -2,8 +2,8 @@
 
 import type { UserResource } from "gitdot-api";
 import { useEffect, useState } from "react";
-import { useShortcuts } from "@/(main)/provider/shortcuts";
-import { useUserContext } from "@/(main)/provider/user";
+import { useShortcuts } from "@/(main)/context/shortcuts";
+import { useUserContext } from "@/(main)/context/user";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
 import { SettingsAccount } from "./settings-account";
 import { SettingsAppearance } from "./settings-appearance";

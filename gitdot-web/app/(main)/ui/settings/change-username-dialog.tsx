@@ -3,8 +3,8 @@
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
-import { toast } from "@/(main)/provider/toaster";
-import { useUserContext } from "@/(main)/provider/user";
+import { toast } from "@/(main)/context/toaster";
+import { useUserContext } from "@/(main)/context/user";
 import { updateUserAction, validateUsername } from "@/actions";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
 import { cn } from "@/util";

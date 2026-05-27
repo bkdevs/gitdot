@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { type Shortcut, useShortcuts } from "@/(main)/provider/shortcuts";
+import { type Shortcut, useShortcuts } from "@/(main)/context/shortcuts";
 import type { TreeRowData } from "./folder-tree";
 
 export function FolderShortcuts({

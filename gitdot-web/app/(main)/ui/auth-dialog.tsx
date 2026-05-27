@@ -4,7 +4,7 @@ import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
-import { useUserContext } from "@/(main)/provider/user";
+import { useUserContext } from "@/(main)/context/user";
 import { loginWithGithub, sendCode, verifyCode } from "@/actions";
 import { useIsTyping } from "@/hooks/use-is-typing";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";

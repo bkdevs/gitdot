@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useUserContext } from "@/(main)/provider/user";
+import { useUserContext } from "@/(main)/context/user";
 import {
   addUserEmailAction,
   resendUserEmailAction,

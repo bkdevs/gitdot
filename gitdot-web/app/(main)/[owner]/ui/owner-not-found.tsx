@@ -1,6 +1,6 @@
 "use client";
 
-import { useUserContext } from "@/(main)/provider/user";
+import { useUserContext } from "@/(main)/context/user";
 import Link from "@/ui/link";
 
 export function OwnerNotFound({ owner }: { owner: string }) {

@@ -3,7 +3,7 @@
 import type { MigrationResource } from "gitdot-api";
 import { ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useTimezone } from "@/(main)/provider/timezone";
+import { useTimezone } from "@/(main)/context/timezone";
 import { listMigrationsAction } from "@/actions";
 import {
   Collapsible,

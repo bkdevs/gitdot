@@ -2,8 +2,8 @@
 
 import type { QuestionResource } from "gitdot-api";
 import { MarkdownBody } from "@/(main)/[owner]/[repo]/ui/markdown/markdown-body";
-import { useTimezone } from "@/(main)/provider/timezone";
-import { useUserContext } from "@/(main)/provider/user";
+import { useTimezone } from "@/(main)/context/timezone";
+import { useUserContext } from "@/(main)/context/user";
 import { timeAgoFull } from "@/util";
 import { formatDate } from "@/util/date";
 import { CommentThread } from "./comment-thread";

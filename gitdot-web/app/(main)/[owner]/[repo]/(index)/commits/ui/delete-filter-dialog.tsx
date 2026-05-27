@@ -2,7 +2,7 @@
 
 import type { RepositoryCommitFilterResource } from "gitdot-api";
 import { useState, useTransition } from "react";
-import { toast } from "@/(main)/provider/toaster";
+import { toast } from "@/(main)/context/toaster";
 import { deleteRepositoryCommitFilterAction } from "@/actions";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
 

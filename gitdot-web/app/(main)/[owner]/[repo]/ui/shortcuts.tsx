@@ -2,7 +2,7 @@
 
 import { useParams, usePathname } from "next/navigation";
 import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
-import { type Shortcut, useShortcuts } from "@/(main)/provider/shortcuts";
+import { type Shortcut, useShortcuts } from "@/(main)/context/shortcuts";
 
 function isInputFocused(): boolean {
   const el = document.activeElement;

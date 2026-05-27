@@ -10,7 +10,7 @@ import {
   useResolvePromises,
 } from "gitdot-dal/client";
 import { Suspense, use, useState } from "react";
-import { useTimezone } from "@/(main)/provider/timezone";
+import { useTimezone } from "@/(main)/context/timezone";
 import { Loading } from "@/ui/loading";
 import { dateInRange, formatDateIso } from "@/util/date";
 import type { Resources } from "./page";
