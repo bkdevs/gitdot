@@ -1,6 +1,8 @@
 use axum::{Json, extract::State, http::StatusCode};
 
-use gitdot_api::{endpoint::auth::slack::link as api, resource::slack::SlackAccountResource};
+use gitdot_api::{
+    endpoint::auth::slack::link_slack_account as api, resource::slack::SlackAccountResource,
+};
 use gitdot_axum::extract::Principal;
 use gitdot_core::dto::LinkSlackAccountRequest;
 

@@ -1,4 +1,3 @@
-export * from "./add-user-email";
 export * from "./get-current-user";
 export * from "./get-user";
 export * from "./has-user";

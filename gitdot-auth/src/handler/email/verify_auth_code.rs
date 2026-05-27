@@ -1,6 +1,8 @@
 use axum::{Json, extract::State, http::StatusCode};
 
-use gitdot_api::{endpoint::auth::email::verify as api, resource::auth::AuthTokensResource};
+use gitdot_api::{
+    endpoint::auth::email::verify_auth_code as api, resource::auth::AuthTokensResource,
+};
 use gitdot_axum::extract::{ClientIp, UserAgent};
 use gitdot_core::dto::VerifyAuthCodeRequest;
 

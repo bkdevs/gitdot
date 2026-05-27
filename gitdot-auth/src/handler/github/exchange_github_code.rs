@@ -1,6 +1,8 @@
 use axum::{Json, extract::State, http::StatusCode};
 
-use gitdot_api::{endpoint::auth::github::exchange as api, resource::auth::AuthTokensResource};
+use gitdot_api::{
+    endpoint::auth::github::exchange_github_code as api, resource::auth::AuthTokensResource,
+};
 use gitdot_axum::extract::{ClientIp, UserAgent};
 use gitdot_core::dto::ExchangeGitHubCodeRequest;
 

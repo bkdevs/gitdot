@@ -1,6 +1,6 @@
 use axum::{Json, extract::State, http::StatusCode};
 
-use gitdot_api::endpoint::auth::email::send as api;
+use gitdot_api::endpoint::auth::email::send_auth_email as api;
 use gitdot_core::dto::SendAuthEmailRequest;
 
 use crate::app::{AppError, AppResponse, AppState};

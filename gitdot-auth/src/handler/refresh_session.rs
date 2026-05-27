@@ -1,6 +1,6 @@
 use axum::{Json, extract::State, http::StatusCode};
 
-use gitdot_api::{endpoint::auth::refresh as api, resource::auth::AuthTokensResource};
+use gitdot_api::{endpoint::auth::refresh_session as api, resource::auth::AuthTokensResource};
 use gitdot_axum::extract::{ClientIp, UserAgent};
 use gitdot_core::dto::RefreshSessionRequest;
 
