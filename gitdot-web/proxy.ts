@@ -1,8 +1,4 @@
-import {
-  clearCookiesInResponse,
-  updateSession,
-  writeCookiesToResponse,
-} from "gitdot-client";
+import { updateSession, writeCookiesToResponse } from "gitdot-client";
 import { type NextRequest, NextResponse } from "next/server";
 
 const IS_BETA = process.env.NEXT_PUBLIC_GITDOT_BETA === "true";
@@ -29,8 +25,6 @@ export async function proxy(request: NextRequest) {
 
   if (tokens) {
     writeCookiesToResponse(response, tokens);
-  } else if (!user) {
-    clearCookiesInResponse(response);
   }
   return response;
 }

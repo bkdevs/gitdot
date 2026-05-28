@@ -1,19 +1,19 @@
 import "server-only";
 
 import {
-    type AddUserEmailRequest,
-    type AuthorizeDeviceRequest,
-    AuthTokensResource,
-    type ExchangeGitHubCodeRequest,
-    GitHubAuthRedirectResource,
-    type LogoutRequest,
-    type RefreshSessionRequest,
-    type ResendVerificationCodeRequest,
-    type SendAuthEmailRequest,
-    SlackAccountResource,
-    UserEmailResource,
-    type VerifyAuthCodeRequest,
-    type VerifyUserEmailRequest,
+  type AddUserEmailRequest,
+  type AuthorizeDeviceRequest,
+  AuthTokensResource,
+  type ExchangeGitHubCodeRequest,
+  GitHubAuthRedirectResource,
+  type LogoutRequest,
+  type RefreshSessionRequest,
+  type ResendVerificationCodeRequest,
+  type SendAuthEmailRequest,
+  SlackAccountResource,
+  UserEmailResource,
+  type VerifyAuthCodeRequest,
+  type VerifyUserEmailRequest,
 } from "gitdot-api";
 import { cookies } from "next/headers";
 import type { NextRequest, NextResponse } from "next/server";
@@ -71,11 +71,6 @@ export function writeCookiesToResponse(
     tokens.refresh_token,
     sessionCookieOptions(tokens.refresh_token_expires_in),
   );
-}
-
-export function clearCookiesInResponse(response: NextResponse) {
-  response.cookies.delete(ACCESS_TOKEN_COOKIE);
-  response.cookies.delete(REFRESH_TOKEN_COOKIE);
 }
 
 // --- Session ---
