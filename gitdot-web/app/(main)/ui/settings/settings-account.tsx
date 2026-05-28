@@ -16,7 +16,7 @@ export function SettingsAccount({
       <div className="divide-y divide-border">
         <AccountAction
           title="Change username"
-          description="Pick a new handle. Your old username becomes available for anyone else to claim, and links pointing to your old profile will break."
+          description="Pick a new handle. Your old username becomes available for anyone else to claim, links pointing to your old profile will break, and every existing git remote must be updated to the new URL."
           actionLabel="Change"
           onAction={() => setChangeOpen(true)}
         />
