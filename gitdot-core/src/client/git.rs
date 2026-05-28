@@ -191,6 +191,22 @@ impl Git2Client {
         git2::Repository::open_bare(&repo_path)
     }
 
+    fn apply_repo_config(repo: &git2::Repository) -> Result<(), git2::Error> {
+        let mut config = repo.config()?;
+
+        // Configure the repository for HTTP access
+        config.set_bool("http.receivepack", true)?;
+
+        // Configure the magic ref to handle review creation via proc-receive hook
+        config.set_str("receive.procReceiveRefs", MAGIC_REF_PREFIX)?;
+
+        // Enable commit-graph to speed up ancestry/log/diff walks.
+        config.set_bool("core.commitGraph", true)?;
+        config.set_bool("gc.writeCommitGraph", true)?;
+        config.set_bool("fetch.writeCommitGraph", true)?;
+        Ok(())
+    }
+
     fn resolve_ref<'repo>(
         repo: &'repo git2::Repository,
         ref_name: &str,
@@ -309,14 +325,7 @@ impl GitClient for Git2Client {
         task::spawn_blocking(move || -> Result<(), git2::Error> {
             let repo = git2::Repository::init_bare(&repo_path_clone)?;
             repo.set_head(&format!("refs/heads/{}", DEFAULT_BRANCH))?;
-            let mut config = repo.config()?;
-
-            // Configure the repository for HTTP access
-            config.set_bool("http.receivepack", true)?;
-
-            // Configure the magic ref to handle review creation via proc-receive hook
-            config.set_str("receive.procReceiveRefs", MAGIC_REF_PREFIX)?;
-
+            Self::apply_repo_config(&repo)?;
             Ok(())
         })
         .await??;
@@ -379,16 +388,33 @@ impl GitClient for Git2Client {
         let repo_path_clone = repo_path.clone();
         task::spawn_blocking(move || -> Result<(), git2::Error> {
             let repo = git2::Repository::open_bare(&repo_path_clone)?;
-            let mut config = repo.config()?;
-
-            // Configure the repository for HTTP access
-            config.set_bool("http.receivepack", true)?;
-
-            // Configure the magic ref to handle review creation via proc-receive hook
-            config.set_str("receive.procReceiveRefs", MAGIC_REF_PREFIX)?;
+            Self::apply_repo_config(&repo)?;
             Ok(())
         })
         .await??;
+
+        // Materialize the commit-graph once from the freshly-imported history.
+        // `git clone --mirror` does not trigger `fetch.writeCommitGraph`, so
+        // without this the file won't exist until the next incremental fetch
+        // or maintenance run. Non-fatal: a missing graph just falls back to
+        // the slower walk and will be built on next fetch.
+        let graph_write = tokio::process::Command::new("git")
+            .arg("-C")
+            .arg(&repo_path)
+            .arg("commit-graph")
+            .arg("write")
+            .arg("--reachable")
+            .arg("--split")
+            .output()
+            .await?;
+        if !graph_write.status.success() {
+            tracing::warn!(
+                owner = %owner,
+                repo = %repo,
+                stderr = %String::from_utf8_lossy(&graph_write.stderr),
+                "initial `git commit-graph write` failed; graph will be built on next fetch",
+            );
+        }
 
         // Create git-daemon-export-ok file to allow HTTP access
         let export_ok_path = format!("{}/git-daemon-export-ok", repo_path);
