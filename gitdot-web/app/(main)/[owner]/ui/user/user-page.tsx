@@ -36,7 +36,7 @@ export default async function UserPage({ user }: { user: UserResource }) {
   const isOwner = current?.name === user.name;
 
   return (
-    <div className="grid grid-cols-[8rem_minmax(0,3fr)_minmax(0,2fr)] h-full">
+    <div className="grid grid-cols-[15rem_minmax(0,3fr)_minmax(0,2fr)] h-full">
       <div className="overflow-y-auto scrollbar-none">
         <div className="flex flex-col items-start pl-4 pr-2 my-2.5 pt-0.5 gap-6">
           <UserProfile user={user} />

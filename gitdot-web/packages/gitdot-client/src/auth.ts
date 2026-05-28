@@ -1,22 +1,22 @@
 import "server-only";
 
 import {
-  type AddUserEmailRequest,
-  type AuthorizeDeviceRequest,
-  AuthTokensResource,
-  type ExchangeGitHubCodeRequest,
-  GitHubAuthRedirectResource,
-  type LogoutRequest,
-  type RefreshSessionRequest,
-  type ResendVerificationCodeRequest,
-  type SendAuthEmailRequest,
-  SlackAccountResource,
-  UserEmailResource,
-  type VerifyAuthCodeRequest,
-  type VerifyUserEmailRequest,
+    type AddUserEmailRequest,
+    type AuthorizeDeviceRequest,
+    AuthTokensResource,
+    type ExchangeGitHubCodeRequest,
+    GitHubAuthRedirectResource,
+    type LogoutRequest,
+    type RefreshSessionRequest,
+    type ResendVerificationCodeRequest,
+    type SendAuthEmailRequest,
+    SlackAccountResource,
+    UserEmailResource,
+    type VerifyAuthCodeRequest,
+    type VerifyUserEmailRequest,
 } from "gitdot-api";
 import { cookies } from "next/headers";
-import type { NextRequest } from "next/server";
+import type { NextRequest, NextResponse } from "next/server";
 import { authFetch, authPost, handleResponse } from "./util";
 
 export const GITDOT_AUTH_SERVER_URL =
@@ -29,28 +29,53 @@ const REFRESH_TOKEN_COOKIE = "gd_refresh_token";
 
 // --- Cookie helpers ---
 
+const sessionCookieOptions = (maxAge: number) => ({
+  httpOnly: true,
+  secure: true,
+  sameSite: "lax" as const,
+  path: "/",
+  maxAge,
+});
+
 async function setTokenCookies(tokens: AuthTokensResource) {
   const store = await cookies();
-  store.set(ACCESS_TOKEN_COOKIE, tokens.access_token, {
-    httpOnly: true,
-    secure: true,
-    sameSite: "lax",
-    path: "/",
-    maxAge: tokens.access_token_expires_in,
-  });
-  store.set(REFRESH_TOKEN_COOKIE, tokens.refresh_token, {
-    httpOnly: true,
-    secure: true,
-    sameSite: "lax",
-    path: "/",
-    maxAge: tokens.refresh_token_expires_in,
-  });
+  store.set(
+    ACCESS_TOKEN_COOKIE,
+    tokens.access_token,
+    sessionCookieOptions(tokens.access_token_expires_in),
+  );
+  store.set(
+    REFRESH_TOKEN_COOKIE,
+    tokens.refresh_token,
+    sessionCookieOptions(tokens.refresh_token_expires_in),
+  );
 }
 
 async function clearTokenCookies() {
   const store = await cookies();
   store.delete(ACCESS_TOKEN_COOKIE);
   store.delete(REFRESH_TOKEN_COOKIE);
+}
+
+export function writeCookiesToResponse(
+  response: NextResponse,
+  tokens: AuthTokensResource,
+) {
+  response.cookies.set(
+    ACCESS_TOKEN_COOKIE,
+    tokens.access_token,
+    sessionCookieOptions(tokens.access_token_expires_in),
+  );
+  response.cookies.set(
+    REFRESH_TOKEN_COOKIE,
+    tokens.refresh_token,
+    sessionCookieOptions(tokens.refresh_token_expires_in),
+  );
+}
+
+export function clearCookiesInResponse(response: NextResponse) {
+  response.cookies.delete(ACCESS_TOKEN_COOKIE);
+  response.cookies.delete(REFRESH_TOKEN_COOKIE);
 }
 
 // --- Session ---
@@ -71,12 +96,22 @@ export async function getSession(): Promise<{
   }
 }
 
-export async function refreshSession(): Promise<{
-  access_token: string;
-} | null> {
-  const store = await cookies();
-  const refresh_token = store.get(REFRESH_TOKEN_COOKIE)?.value;
-  if (!refresh_token) return null;
+export type SessionUpdate = {
+  user: unknown;
+  tokens: AuthTokensResource | null;
+};
+
+export async function updateSession(
+  request: NextRequest,
+): Promise<SessionUpdate> {
+  const session = await getSession();
+  if (session) {
+    const payload = JSON.parse(atob(session.access_token.split(".")[1]));
+    return { user: payload, tokens: null };
+  }
+
+  const refresh_token = request.cookies.get(REFRESH_TOKEN_COOKIE)?.value;
+  if (!refresh_token) return { user: null, tokens: null };
 
   const body: RefreshSessionRequest = { refresh_token };
   const res = await authFetch(`${GITDOT_AUTH_SERVER_URL}/auth/refresh`, {
@@ -85,24 +120,11 @@ export async function refreshSession(): Promise<{
     body: JSON.stringify(body),
   });
 
-  if (!res.ok) {
-    await clearTokenCookies();
-    return null;
-  }
+  if (!res.ok) return { user: null, tokens: null };
 
   const tokens = AuthTokensResource.parse(await res.json());
-  await setTokenCookies(tokens);
-  return { access_token: tokens.access_token };
-}
-
-export async function updateSession(_request: NextRequest) {
-  const session = await getSession();
-  const access_token =
-    session?.access_token ?? (await refreshSession())?.access_token;
-  if (!access_token) return { user: null };
-
-  const payload = JSON.parse(atob(access_token.split(".")[1]));
-  return { user: payload };
+  const payload = JSON.parse(atob(tokens.access_token.split(".")[1]));
+  return { user: payload, tokens };
 }
 
 // --- Email auth ---

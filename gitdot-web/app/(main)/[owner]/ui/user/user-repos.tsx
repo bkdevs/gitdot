@@ -204,6 +204,8 @@ function buildRepositories(
     });
   }
 
+  // TODO: bugged, a user commit in a private repo will not show properly since we're hardcoding public
+  // same comment with stars
   for (const [key, s] of stats) {
     if (repositoryKeys.has(key)) continue;
     const [owner, name] = key.split("/");
