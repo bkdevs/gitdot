@@ -14,29 +14,17 @@ read about how we built it at: tk
 press `?` any time to see the full shortcut list. a few to start with:
 
 - `;`, `:`, or `⌘K` — open the command bar. type any action by name (`new repo`, `settings`, `logout`, …).
-- `h` — home
 - `,` — settings
 - `r` — recent repos
-
-inside a repo:
-
-- `j` / `k` — move between items
-- `p` — fuzzy-find a file
-- `[` / `]` — toggle the side panels
+- `p` — fuzzy-find (only available in a repo)
 
 <br>
 
 #### getting started
 
-- pick a username and fill out your profile in [`settings`](/settings)
-- edit this README — it's the front page of your profile
-- create a new repo, or migrate one over from github
+- fill out your profile (click the 'settings' button in the actions below)
+- create a new repo, or migrate one over
+- check out what other people have been up to on [home](/)
 
-<br>
-
-#### questions?
-
-email [founders@gitdot.io](mailto:founders@gitdot.io)
-
-
+and if you have any questions, email [founders@gitdot.io](mailto:founders@gitdot.io)!
 "#;
