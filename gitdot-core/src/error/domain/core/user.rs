@@ -1,6 +1,8 @@
 use thiserror::Error;
 
-use crate::error::{ConflictError, DatabaseError, ImageError, InputError, NotFoundError, R2Error};
+use crate::error::{
+    ConflictError, DatabaseError, GitError, ImageError, InputError, NotFoundError, R2Error,
+};
 
 #[derive(Debug, Error)]
 pub enum UserError {
@@ -21,4 +23,7 @@ pub enum UserError {
 
     #[error(transparent)]
     DatabaseError(#[from] DatabaseError),
+
+    #[error(transparent)]
+    GitError(#[from] GitError),
 }

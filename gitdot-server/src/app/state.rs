@@ -143,6 +143,7 @@ impl AppState {
                 commit_repo.clone(),
                 image_client.clone(),
                 r2_client.clone(),
+                git_client.clone(),
             )),
             org_service: Arc::new(OrganizationServiceImpl::new(
                 org_repo.clone(),

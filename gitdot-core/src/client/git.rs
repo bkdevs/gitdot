@@ -25,6 +25,8 @@ pub trait GitClient: Send + Sync + Clone + 'static {
 
     async fn delete_repo(&self, owner: &str, repo: &str) -> Result<(), GitError>;
 
+    async fn rename_owner(&self, old_owner: &str, new_owner: &str) -> Result<(), GitError>;
+
     async fn mirror_repo(&self, owner: &str, repo: &str, url: &str) -> Result<(), GitError>;
 
     async fn get_default_ref(&self, owner: &str, repo: &str) -> Result<String, GitError>;
@@ -340,6 +342,20 @@ impl GitClient for Git2Client {
     async fn delete_repo(&self, owner: &str, repo: &str) -> Result<(), GitError> {
         let repo_path = self.get_repo_path(owner, repo);
         fs::remove_dir_all(&repo_path).await?;
+        Ok(())
+    }
+
+    async fn rename_owner(&self, old_owner: &str, new_owner: &str) -> Result<(), GitError> {
+        let old_path = self.get_owner_path(old_owner);
+
+        // The owner directory is created lazily on first repo; if it doesn't
+        // exist yet there are no bare repos to move.
+        if fs::metadata(&old_path).await.is_err() {
+            return Ok(());
+        }
+
+        let new_path = self.get_owner_path(new_owner);
+        fs::rename(&old_path, &new_path).await?;
         Ok(())
     }
 
@@ -1135,5 +1151,47 @@ impl GitClient for Git2Client {
         }
 
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use tempfile::tempdir;
+    use tokio::fs;
+
+    use super::{Git2Client, GitClient};
+
+    #[tokio::test]
+    async fn rename_owner_moves_existing_directory() {
+        let root = tempdir().unwrap();
+        let client = Git2Client::new(root.path().to_str().unwrap().to_string());
+
+        let repo_dir = root.path().join("alice").join("demo.git");
+        fs::create_dir_all(&repo_dir).await.unwrap();
+        fs::write(repo_dir.join("HEAD"), b"ref: refs/heads/main\n")
+            .await
+            .unwrap();
+
+        client.rename_owner("alice", "alice2").await.unwrap();
+
+        assert!(!root.path().join("alice").exists());
+        assert!(
+            root.path()
+                .join("alice2")
+                .join("demo.git")
+                .join("HEAD")
+                .exists()
+        );
+    }
+
+    #[tokio::test]
+    async fn rename_owner_is_noop_when_source_missing() {
+        let root = tempdir().unwrap();
+        let client = Git2Client::new(root.path().to_str().unwrap().to_string());
+
+        client.rename_owner("ghost", "ghost2").await.unwrap();
+
+        assert!(!root.path().join("ghost").exists());
+        assert!(!root.path().join("ghost2").exists());
     }
 }

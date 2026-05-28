@@ -118,6 +118,7 @@ impl HttpStatus for UserError {
             Self::InvalidImage(_) => StatusCode::UNPROCESSABLE_ENTITY,
             Self::R2Error(_) => StatusCode::INTERNAL_SERVER_ERROR,
             Self::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            Self::GitError(_) => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
 }

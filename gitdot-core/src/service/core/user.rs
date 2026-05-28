@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 
 use crate::{
-    client::{ImageClient, ImageClientImpl, R2Client, R2ClientImpl},
+    client::{Git2Client, GitClient, ImageClient, ImageClientImpl, R2Client, R2ClientImpl},
     dto::{
         GetCurrentUserRequest, GetCurrentUserResponse, GetUserRequest, HasUserRequest,
         ListUserCommitsRequest, ListUserOrganizationsRequest, ListUserRepositoriesRequest,
@@ -66,7 +66,7 @@ pub trait UserService: Send + Sync + 'static {
 }
 
 #[derive(Debug, Clone)]
-pub struct UserServiceImpl<U, R, O, V, C, I, R2>
+pub struct UserServiceImpl<U, R, O, V, C, I, R2, G>
 where
     U: UserRepository,
     R: RepositoryRepository,
@@ -75,6 +75,7 @@ where
     C: CommitRepository,
     I: ImageClient,
     R2: R2Client,
+    G: GitClient,
 {
     user_repo: U,
     repo_repo: R,
@@ -83,6 +84,7 @@ where
     commit_repo: C,
     image_client: I,
     r2_client: R2,
+    git_client: G,
 }
 
 impl
@@ -94,6 +96,7 @@ impl
         CommitRepositoryImpl,
         ImageClientImpl,
         R2ClientImpl,
+        Git2Client,
     >
 {
     pub fn new(
@@ -104,6 +107,7 @@ impl
         commit_repo: CommitRepositoryImpl,
         image_client: ImageClientImpl,
         r2_client: R2ClientImpl,
+        git_client: Git2Client,
     ) -> Self {
         Self {
             user_repo,
@@ -113,13 +117,14 @@ impl
             commit_repo,
             image_client,
             r2_client,
+            git_client,
         }
     }
 }
 
 #[crate::instrument_all(level = "debug")]
 #[async_trait]
-impl<U, R, O, V, C, I, R2> UserService for UserServiceImpl<U, R, O, V, C, I, R2>
+impl<U, R, O, V, C, I, R2, G> UserService for UserServiceImpl<U, R, O, V, C, I, R2, G>
 where
     U: UserRepository,
     R: RepositoryRepository,
@@ -128,6 +133,7 @@ where
     C: CommitRepository,
     I: ImageClient,
     R2: R2Client,
+    G: GitClient,
 {
     async fn get_current_user(
         &self,
@@ -167,37 +173,68 @@ where
         &self,
         request: UpdateCurrentUserRequest,
     ) -> Result<UserResponse, UserError> {
-        let name: Option<String> = match request.name {
+        let rename: Option<(String, String)> = match request.name {
             Some(n) => {
-                let name = n.to_string();
-                if is_reserved_name(&name) {
+                let new_name = n.to_string();
+                if is_reserved_name(&new_name) {
                     return Err(
-                        ConflictError::new("user name", format!("{name} is reserved")).into(),
+                        ConflictError::new("user name", format!("{new_name} is reserved")).into(),
                     );
                 }
-                if self.user_repo.is_name_taken(&name).await? {
+                if self.user_repo.is_name_taken(&new_name).await? {
                     return Err(ConflictError::new(
                         "user name",
-                        format!("{name} is already taken"),
+                        format!("{new_name} is already taken"),
                     )
                     .into());
                 }
-                Some(name)
+                let old_name = self
+                    .user_repo
+                    .get_by_id(request.user_id)
+                    .await?
+                    .or_not_found("user", request.user_id)?
+                    .name;
+                (old_name != new_name).then_some((old_name, new_name))
             }
             None => None,
         };
 
-        let user = self
+        // Move the on-disk bare-repo directory before the DB write so a
+        // filesystem failure aborts the rename without leaving the two out of
+        // sync.
+        if let Some((old_name, new_name)) = &rename {
+            self.git_client.rename_owner(old_name, new_name).await?;
+        }
+
+        let update_result = self
             .user_repo
             .update(
                 request.user_id,
-                name,
+                rename.as_ref().map(|(_, new_name)| new_name.clone()),
                 request.location,
                 request.readme,
                 request.links,
                 request.display_name,
             )
-            .await?;
+            .await;
+
+        let user = match update_result {
+            Ok(user) => user,
+            Err(err) => {
+                if let Some((old_name, new_name)) = &rename {
+                    if let Err(revert_err) = self.git_client.rename_owner(new_name, old_name).await
+                    {
+                        tracing::error!(
+                            %revert_err,
+                            old_name,
+                            new_name,
+                            "failed to revert owner directory rename after DB update failed"
+                        );
+                    }
+                }
+                return Err(err.into());
+            }
+        };
         Ok(user.into())
     }
 
