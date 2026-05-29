@@ -175,15 +175,15 @@ where
         request: UpdateOrganizationImageRequest,
     ) -> Result<(), OrganizationError> {
         let org_name = request.org_name.to_string();
-        let org = self
+        let org_id = self
             .org_repo
-            .get(&org_name)
+            .get_id(&org_name)
             .await?
             .or_not_found("organization", &org_name)?;
         let webp_bytes = self.image_client.convert_to_webp(request.bytes).await?;
-        let key = format!("orgs/{}.webp", org.id);
+        let key = format!("orgs/{org_id}.webp");
         self.r2_client.upload_object(&key, webp_bytes).await?;
-        self.org_repo.touch_image(org.id).await?;
+        self.org_repo.touch_image(org_id).await?;
         Ok(())
     }
 

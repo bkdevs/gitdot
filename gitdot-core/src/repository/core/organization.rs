@@ -19,6 +19,8 @@ pub trait OrganizationRepository: Send + Sync + Clone + 'static {
 
     async fn get(&self, org_name: &str) -> Result<Option<Organization>, DatabaseError>;
 
+    async fn get_id(&self, org_name: &str) -> Result<Option<Uuid>, DatabaseError>;
+
     async fn touch_image(&self, org_id: Uuid) -> Result<(), DatabaseError>;
 
     async fn is_member(&self, org_id: Uuid, user_id: Uuid) -> Result<bool, DatabaseError>;
@@ -151,6 +153,15 @@ impl OrganizationRepository for OrganizationRepositoryImpl {
         .await?;
 
         Ok(org)
+    }
+
+    async fn get_id(&self, org_name: &str) -> Result<Option<Uuid>, DatabaseError> {
+        let id = sqlx::query_scalar::<_, Uuid>("SELECT id FROM core.organizations WHERE name = $1")
+            .bind(org_name)
+            .fetch_optional(&self.pool)
+            .await?;
+
+        Ok(id)
     }
 
     async fn touch_image(&self, org_id: Uuid) -> Result<(), DatabaseError> {

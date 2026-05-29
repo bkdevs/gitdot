@@ -740,13 +740,13 @@ where
         let owner = request.owner.as_ref();
         let repo = request.repo.as_ref();
 
-        let repository = self
+        let repository_id = self
             .repo_repo
-            .get(owner, repo, None)
+            .get_id(owner, repo)
             .await?
             .or_not_found("repository", format!("{}/{}", owner, repo))?;
 
-        let star = self.repo_repo.star(repository.id, request.user_id).await?;
+        let star = self.repo_repo.star(repository_id, request.user_id).await?;
         if star.is_none() {
             return Err(RepositoryError::Conflict(ConflictError::new(
                 "star",
@@ -763,15 +763,15 @@ where
         let owner = request.owner.as_ref();
         let repo = request.repo.as_ref();
 
-        let repository = self
+        let repository_id = self
             .repo_repo
-            .get(owner, repo, None)
+            .get_id(owner, repo)
             .await?
             .or_not_found("repository", format!("{}/{}", owner, repo))?;
 
         let removed = self
             .repo_repo
-            .unstar(repository.id, request.user_id)
+            .unstar(repository_id, request.user_id)
             .await?;
         if !removed {
             return Err(RepositoryError::Conflict(ConflictError::new(

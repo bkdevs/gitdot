@@ -32,6 +32,8 @@ pub trait RepositoryRepository: Send + Sync + Clone + 'static {
         viewer_id: Option<Uuid>,
     ) -> Result<Option<Repository>, DatabaseError>;
 
+    async fn get_id(&self, owner: &str, repo: &str) -> Result<Option<Uuid>, DatabaseError>;
+
     async fn get_by_id(
         &self,
         id: Uuid,
@@ -187,6 +189,27 @@ impl RepositoryRepository for RepositoryRepositoryImpl {
         .await?;
 
         Ok(repository)
+    }
+
+    async fn get_id(&self, owner: &str, repo: &str) -> Result<Option<Uuid>, DatabaseError> {
+        let id = sqlx::query_scalar::<_, Uuid>(
+            r#"
+            SELECT r.id
+            FROM core.repositories r
+            WHERE r.name = $2
+              AND r.owner_id IN (
+                SELECT id FROM core.users         WHERE name = $1
+                UNION ALL
+                SELECT id FROM core.organizations WHERE name = $1
+              )
+            "#,
+        )
+        .bind(owner)
+        .bind(repo)
+        .fetch_optional(&self.pool)
+        .await?;
+
+        Ok(id)
     }
 
     async fn get_by_id(

@@ -428,6 +428,7 @@ mod tests {
         impl OrganizationRepository for OrganizationRepo {
             async fn create(&self, org_name: &str, owner_id: Uuid, readme: Option<String>) -> Result<Organization, crate::error::DatabaseError>;
             async fn get(&self, org_name: &str) -> Result<Option<Organization>, crate::error::DatabaseError>;
+            async fn get_id(&self, org_name: &str) -> Result<Option<Uuid>, crate::error::DatabaseError>;
             async fn touch_image(&self, org_id: Uuid) -> Result<(), crate::error::DatabaseError>;
             async fn is_member(&self, org_id: Uuid, user_id: Uuid) -> Result<bool, crate::error::DatabaseError>;
             async fn add_member(&self, org_name: &str, user_name: &str, role: OrganizationRole, role_description: Option<String>) -> Result<Option<OrganizationMember>, crate::error::DatabaseError>;
@@ -450,6 +451,7 @@ mod tests {
         impl RepositoryRepository for RepositoryRepo {
             async fn create(&self, name: &str, owner_id: Uuid, owner_type: &RepositoryOwnerType, visibility: &RepositoryVisibility, description: Option<String>, readonly: bool, created_at: Option<chrono::DateTime<chrono::Utc>>) -> Result<Repository, crate::error::DatabaseError>;
             async fn get(&self, owner: &str, repo: &str, viewer_id: Option<Uuid>) -> Result<Option<Repository>, crate::error::DatabaseError>;
+            async fn get_id(&self, owner: &str, repo: &str) -> Result<Option<Uuid>, crate::error::DatabaseError>;
             async fn get_by_id(&self, id: Uuid, viewer_id: Option<Uuid>) -> Result<Option<Repository>, crate::error::DatabaseError>;
             async fn list_by_owner(&self, owner_name: &str, viewer_id: Option<Uuid>, cursor: Option<crate::dto::Cursor>, limit: i64) -> Result<(Vec<Repository>, Option<crate::dto::Cursor>), crate::error::DatabaseError>;
             async fn list_latest(&self, limit: i64) -> Result<Vec<Repository>, crate::error::DatabaseError>;
