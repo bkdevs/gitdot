@@ -1016,3 +1016,587 @@ fn diff_file_pair(
         lines_removed,
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use chrono::Utc;
+    use uuid::Uuid;
+
+    use super::{RepositoryService, RepositoryServiceImpl};
+    use crate::{
+        dto::{
+            CreateRepositoryCommitFilterRequest, CreateRepositoryRequest,
+            DeleteRepositoryCommitFilterRequest, DeleteRepositoryRequest,
+            GetRepositoryActivityRequest, GetRepositoryCommitRequest, GetRepositoryRequest,
+            ListRepositoryCommitFiltersRequest, ListRepositoryCommitsRequest,
+            StarRepositoryRequest, UnstarRepositoryRequest, UpdateRepositoryCommitFilterRequest,
+            UpdateRepositoryRequest,
+        },
+        error::{DatabaseError, RepositoryError},
+        model::{CommitFilter, RepositoryOwnerType, RepositoryStar, RepositoryVisibility},
+        service::{
+            test_client::MockGitClient,
+            test_common::{create_commit, create_repository, create_user},
+            test_repository::{
+                MockCommitRepository, MockOrganizationRepository, MockRepositoryRepository,
+                MockUserRepository,
+            },
+        },
+    };
+
+    type Service = RepositoryServiceImpl<
+        MockGitClient,
+        MockOrganizationRepository,
+        MockRepositoryRepository,
+        MockCommitRepository,
+        MockUserRepository,
+    >;
+
+    fn create_service() -> Service {
+        RepositoryServiceImpl {
+            git_client: MockGitClient::default(),
+            org_repo: MockOrganizationRepository::new(),
+            repo_repo: MockRepositoryRepository::new(),
+            commit_repo: MockCommitRepository::new(),
+            user_repo: MockUserRepository::new(),
+        }
+    }
+
+    fn public_repo() -> crate::model::Repository {
+        create_repository(
+            Uuid::new_v4(),
+            RepositoryOwnerType::User,
+            RepositoryVisibility::Public,
+        )
+    }
+
+    fn create_commit_filter(name: &str) -> CommitFilter {
+        CommitFilter {
+            id: Uuid::new_v4(),
+            repository_id: Uuid::new_v4(),
+            name: name.to_string(),
+            authors: None,
+            tags: None,
+            paths: None,
+            created_at: Utc::now(),
+            updated_at: Utc::now(),
+        }
+    }
+
+    // --- create_repository ---
+
+    #[tokio::test]
+    async fn create_repository_conflicts_when_repo_exists_on_disk() {
+        let mut service = create_service();
+        service.git_client = MockGitClient::default().with_repo_exists(true);
+
+        let req = CreateRepositoryRequest::new(
+            "my-repo",
+            Uuid::new_v4(),
+            "alice",
+            "user",
+            "public",
+            None,
+            false,
+            None,
+            None,
+        )
+        .unwrap();
+        let err = service.create_repository(req).await.unwrap_err();
+        assert!(matches!(err, RepositoryError::Conflict(_)));
+    }
+
+    #[tokio::test]
+    async fn create_repository_missing_org_owner_is_not_found() {
+        let mut service = create_service();
+        service.org_repo.expect_get().returning(|_| Ok(None));
+
+        let req = CreateRepositoryRequest::new(
+            "my-repo",
+            Uuid::new_v4(),
+            "acme",
+            "organization",
+            "public",
+            None,
+            false,
+            None,
+            None,
+        )
+        .unwrap();
+        let err = service.create_repository(req).await.unwrap_err();
+        assert!(matches!(err, RepositoryError::NotFound(_)));
+    }
+
+    #[tokio::test]
+    async fn create_repository_user_owner_no_seed_files_succeeds() {
+        let mut service = create_service();
+        service
+            .repo_repo
+            .expect_create()
+            .returning(|_, _, _, _, _, _, _| Ok(public_repo()));
+
+        let req = CreateRepositoryRequest::new(
+            "my-repo",
+            Uuid::new_v4(),
+            "alice",
+            "user",
+            "public",
+            None,
+            false,
+            None,
+            None,
+        )
+        .unwrap();
+        let resp = service.create_repository(req).await.unwrap();
+        assert_eq!(resp.name, "myrepo");
+        // The bare repo was created on disk under the requested owner.
+        assert_eq!(
+            service.git_client.created_repos(),
+            vec![("alice".into(), "my-repo".into())]
+        );
+    }
+
+    #[tokio::test]
+    async fn create_repository_deletes_disk_repo_when_db_insert_fails() {
+        let mut service = create_service();
+        service
+            .repo_repo
+            .expect_create()
+            .returning(|_, _, _, _, _, _, _| Err(DatabaseError::RowNotFound));
+
+        let req = CreateRepositoryRequest::new(
+            "my-repo",
+            Uuid::new_v4(),
+            "alice",
+            "user",
+            "public",
+            None,
+            false,
+            None,
+            None,
+        )
+        .unwrap();
+        let err = service.create_repository(req).await.unwrap_err();
+        assert!(matches!(err, RepositoryError::DatabaseError(_)));
+        // The on-disk repo is unwound after the DB insert fails.
+        assert_eq!(
+            service.git_client.deleted_repos(),
+            vec![("alice".into(), "my-repo".into())]
+        );
+    }
+
+    // --- get_repository ---
+
+    #[tokio::test]
+    async fn get_repository_returns_response() {
+        let mut service = create_service();
+        service
+            .repo_repo
+            .expect_get()
+            .returning(|_, _, _| Ok(Some(public_repo())));
+
+        let resp = service
+            .get_repository(GetRepositoryRequest::new(None, "alice", "myrepo").unwrap())
+            .await
+            .unwrap();
+        assert_eq!(resp.name, "myrepo");
+    }
+
+    #[tokio::test]
+    async fn get_repository_missing_is_not_found() {
+        let mut service = create_service();
+        service.repo_repo.expect_get().returning(|_, _, _| Ok(None));
+
+        let err = service
+            .get_repository(GetRepositoryRequest::new(None, "alice", "ghost").unwrap())
+            .await
+            .unwrap_err();
+        assert!(matches!(err, RepositoryError::NotFound(_)));
+    }
+
+    #[tokio::test]
+    async fn get_repository_by_id_missing_is_not_found() {
+        let mut service = create_service();
+        service
+            .repo_repo
+            .expect_get_by_id()
+            .returning(|_, _| Ok(None));
+
+        let err = service
+            .get_repository_by_id(Uuid::new_v4())
+            .await
+            .unwrap_err();
+        assert!(matches!(err, RepositoryError::NotFound(_)));
+    }
+
+    // --- update_repository ---
+
+    #[tokio::test]
+    async fn update_repository_updates_description() {
+        let mut service = create_service();
+        service
+            .repo_repo
+            .expect_get()
+            .returning(|_, _, _| Ok(Some(public_repo())));
+        service.repo_repo.expect_update().returning(|_, desc, _| {
+            let mut repo = public_repo();
+            repo.description = desc;
+            Ok(Some(repo))
+        });
+
+        let req =
+            UpdateRepositoryRequest::new("alice", "myrepo", Some("new desc".to_string()), None)
+                .unwrap();
+        let resp = service.update_repository(req).await.unwrap();
+        assert_eq!(resp.description.as_deref(), Some("new desc"));
+    }
+
+    #[tokio::test]
+    async fn update_repository_missing_is_not_found() {
+        let mut service = create_service();
+        service.repo_repo.expect_get().returning(|_, _, _| Ok(None));
+
+        let req = UpdateRepositoryRequest::new("alice", "ghost", None, None).unwrap();
+        let err = service.update_repository(req).await.unwrap_err();
+        assert!(matches!(err, RepositoryError::NotFound(_)));
+    }
+
+    // --- delete_repository ---
+
+    #[tokio::test]
+    async fn delete_repository_removes_disk_and_db() {
+        let mut service = create_service();
+        service
+            .repo_repo
+            .expect_get()
+            .returning(|_, _, _| Ok(Some(public_repo())));
+        service.repo_repo.expect_delete().returning(|_| Ok(()));
+
+        let req = DeleteRepositoryRequest::new("alice", "myrepo").unwrap();
+        service.delete_repository(req).await.unwrap();
+        assert_eq!(
+            service.git_client.deleted_repos(),
+            vec![("alice".into(), "myrepo".into())]
+        );
+    }
+
+    #[tokio::test]
+    async fn delete_repository_missing_is_not_found() {
+        let mut service = create_service();
+        service.repo_repo.expect_get().returning(|_, _, _| Ok(None));
+
+        let req = DeleteRepositoryRequest::new("alice", "ghost").unwrap();
+        let err = service.delete_repository(req).await.unwrap_err();
+        assert!(matches!(err, RepositoryError::NotFound(_)));
+        // No on-disk deletion when the repo was never found.
+        assert!(service.git_client.deleted_repos().is_empty());
+    }
+
+    // --- get_repository_commit ---
+
+    #[tokio::test]
+    async fn get_repository_commit_returns_commit() {
+        let mut service = create_service();
+        service
+            .repo_repo
+            .expect_get()
+            .returning(|_, _, _| Ok(Some(public_repo())));
+        service
+            .commit_repo
+            .expect_get_commit()
+            .returning(|_, _| Ok(Some(create_commit("abc123"))));
+
+        let req = GetRepositoryCommitRequest::new("alice", "myrepo", "abc123".to_string()).unwrap();
+        let resp = service.get_repository_commit(req).await.unwrap();
+        assert_eq!(resp.sha, "abc123");
+    }
+
+    #[tokio::test]
+    async fn get_repository_commit_missing_commit_is_not_found() {
+        let mut service = create_service();
+        service
+            .repo_repo
+            .expect_get()
+            .returning(|_, _, _| Ok(Some(public_repo())));
+        service
+            .commit_repo
+            .expect_get_commit()
+            .returning(|_, _| Ok(None));
+
+        let req = GetRepositoryCommitRequest::new("alice", "myrepo", "abc123".to_string()).unwrap();
+        let err = service.get_repository_commit(req).await.unwrap_err();
+        assert!(matches!(err, RepositoryError::NotFound(_)));
+    }
+
+    // --- list_repository_commits ---
+
+    #[tokio::test]
+    async fn list_repository_commits_expands_bare_branch_and_maps_page() {
+        let mut service = create_service();
+        service
+            .repo_repo
+            .expect_get()
+            .returning(|_, _, _| Ok(Some(public_repo())));
+        // A bare branch name is expanded to `refs/heads/<name>` before the lookup.
+        service
+            .commit_repo
+            .expect_list_by_repository()
+            .withf(|_, ref_name, _, _, _, _| ref_name == "refs/heads/main")
+            .returning(|_, _, _, _, _, _| Ok((vec![create_commit("a"), create_commit("b")], None)));
+
+        let req = ListRepositoryCommitsRequest::new(
+            "alice",
+            "myrepo",
+            "main".to_string(),
+            None,
+            None,
+            None,
+            None,
+        )
+        .unwrap();
+        let page = service.list_repository_commits(req).await.unwrap();
+        assert_eq!(page.data.len(), 2);
+        assert!(page.next_cursor.is_none());
+    }
+
+    #[tokio::test]
+    async fn list_repository_commits_missing_repo_is_not_found() {
+        let mut service = create_service();
+        service.repo_repo.expect_get().returning(|_, _, _| Ok(None));
+
+        let req = ListRepositoryCommitsRequest::new(
+            "alice",
+            "ghost",
+            "main".to_string(),
+            None,
+            None,
+            None,
+            None,
+        )
+        .unwrap();
+        let err = service.list_repository_commits(req).await.unwrap_err();
+        assert!(matches!(err, RepositoryError::NotFound(_)));
+    }
+
+    // --- discovery ---
+
+    #[tokio::test]
+    async fn list_latest_repositories_maps_responses() {
+        let mut service = create_service();
+        service
+            .repo_repo
+            .expect_list_latest()
+            .returning(|_| Ok(vec![public_repo(), public_repo()]));
+
+        let resp = service.list_latest_repositories().await.unwrap();
+        assert_eq!(resp.len(), 2);
+    }
+
+    #[tokio::test]
+    async fn list_trending_repositories_maps_responses() {
+        let mut service = create_service();
+        service
+            .repo_repo
+            .expect_list_trending()
+            .returning(|_| Ok(vec![public_repo()]));
+
+        let resp = service.list_trending_repositories().await.unwrap();
+        assert_eq!(resp.len(), 1);
+    }
+
+    // --- star / unstar ---
+
+    #[tokio::test]
+    async fn star_repository_succeeds() {
+        let mut service = create_service();
+        service
+            .repo_repo
+            .expect_get_id()
+            .returning(|_, _| Ok(Some(Uuid::new_v4())));
+        service.repo_repo.expect_star().returning(|id, user_id| {
+            Ok(Some(RepositoryStar {
+                id: Uuid::new_v4(),
+                user_id,
+                repository_id: id,
+                created_at: Utc::now(),
+            }))
+        });
+
+        let req = StarRepositoryRequest::new(Uuid::new_v4(), "alice", "myrepo").unwrap();
+        service.star_repository(req).await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn star_repository_already_starred_is_conflict() {
+        let mut service = create_service();
+        service
+            .repo_repo
+            .expect_get_id()
+            .returning(|_, _| Ok(Some(Uuid::new_v4())));
+        // A null star insert means the user had already starred the repo.
+        service.repo_repo.expect_star().returning(|_, _| Ok(None));
+
+        let req = StarRepositoryRequest::new(Uuid::new_v4(), "alice", "myrepo").unwrap();
+        let err = service.star_repository(req).await.unwrap_err();
+        assert!(matches!(err, RepositoryError::Conflict(_)));
+    }
+
+    #[tokio::test]
+    async fn star_repository_missing_repo_is_not_found() {
+        let mut service = create_service();
+        service.repo_repo.expect_get_id().returning(|_, _| Ok(None));
+
+        let req = StarRepositoryRequest::new(Uuid::new_v4(), "alice", "ghost").unwrap();
+        let err = service.star_repository(req).await.unwrap_err();
+        assert!(matches!(err, RepositoryError::NotFound(_)));
+    }
+
+    #[tokio::test]
+    async fn unstar_repository_no_star_is_conflict() {
+        let mut service = create_service();
+        service
+            .repo_repo
+            .expect_get_id()
+            .returning(|_, _| Ok(Some(Uuid::new_v4())));
+        service
+            .repo_repo
+            .expect_unstar()
+            .returning(|_, _| Ok(false));
+
+        let req = UnstarRepositoryRequest::new(Uuid::new_v4(), "alice", "myrepo").unwrap();
+        let err = service.unstar_repository(req).await.unwrap_err();
+        assert!(matches!(err, RepositoryError::Conflict(_)));
+    }
+
+    // --- activity ---
+
+    #[tokio::test]
+    async fn get_repository_activity_maps_recent_stars() {
+        let mut service = create_service();
+        service
+            .repo_repo
+            .expect_get()
+            .returning(|_, _, _| Ok(Some(public_repo())));
+        service
+            .repo_repo
+            .expect_list_recent_stars()
+            .returning(|_, _| Ok(vec![(create_user("bob"), Utc::now())]));
+
+        let req = GetRepositoryActivityRequest::new("alice", "myrepo").unwrap();
+        let events = service.get_repository_activity(req).await.unwrap();
+        assert_eq!(events.len(), 1);
+    }
+
+    // --- commit filters ---
+
+    #[tokio::test]
+    async fn list_repository_commit_filters_maps_page() {
+        let mut service = create_service();
+        service
+            .repo_repo
+            .expect_get()
+            .returning(|_, _, _| Ok(Some(public_repo())));
+        service
+            .repo_repo
+            .expect_list_commit_filters()
+            .returning(|_, _, _| Ok((vec![create_commit_filter("recent")], None)));
+
+        let req =
+            ListRepositoryCommitFiltersRequest::new(None, "alice", "myrepo", None, None).unwrap();
+        let page = service.list_repository_commit_filters(req).await.unwrap();
+        assert_eq!(page.data.len(), 1);
+    }
+
+    #[tokio::test]
+    async fn create_repository_commit_filter_succeeds() {
+        let mut service = create_service();
+        service
+            .repo_repo
+            .expect_get()
+            .returning(|_, _, _| Ok(Some(public_repo())));
+        service
+            .repo_repo
+            .expect_list_commit_filters()
+            .returning(|_, _, _| Ok((vec![], None)));
+        service
+            .repo_repo
+            .expect_create_commit_filter()
+            .returning(|_, name, _, _, _| Ok(create_commit_filter(name)));
+
+        let req = CreateRepositoryCommitFilterRequest::new(
+            Uuid::new_v4(),
+            "alice",
+            "myrepo",
+            "recent",
+            None,
+            None,
+            None,
+        )
+        .unwrap();
+        let resp = service.create_repository_commit_filter(req).await.unwrap();
+        assert_eq!(resp.name, "recent");
+    }
+
+    #[tokio::test]
+    async fn create_repository_commit_filter_duplicate_name_is_conflict() {
+        let mut service = create_service();
+        service
+            .repo_repo
+            .expect_get()
+            .returning(|_, _, _| Ok(Some(public_repo())));
+        service
+            .repo_repo
+            .expect_list_commit_filters()
+            .returning(|_, _, _| Ok((vec![create_commit_filter("recent")], None)));
+
+        let req = CreateRepositoryCommitFilterRequest::new(
+            Uuid::new_v4(),
+            "alice",
+            "myrepo",
+            "recent",
+            None,
+            None,
+            None,
+        )
+        .unwrap();
+        let err = service
+            .create_repository_commit_filter(req)
+            .await
+            .unwrap_err();
+        assert!(matches!(err, RepositoryError::Conflict(_)));
+    }
+
+    #[tokio::test]
+    async fn update_repository_commit_filter_missing_is_not_found() {
+        let mut service = create_service();
+        service
+            .repo_repo
+            .expect_update_commit_filter()
+            .returning(|_, _, _, _, _| Ok(None));
+
+        let req =
+            UpdateRepositoryCommitFilterRequest::new(Uuid::new_v4(), "recent", None, None, None)
+                .unwrap();
+        let err = service
+            .update_repository_commit_filter(req)
+            .await
+            .unwrap_err();
+        assert!(matches!(err, RepositoryError::NotFound(_)));
+    }
+
+    #[tokio::test]
+    async fn delete_repository_commit_filter_missing_is_not_found() {
+        let mut service = create_service();
+        service
+            .repo_repo
+            .expect_delete_commit_filter()
+            .returning(|_| Ok(false));
+
+        let req = DeleteRepositoryCommitFilterRequest::new(Uuid::new_v4());
+        let err = service
+            .delete_repository_commit_filter(req)
+            .await
+            .unwrap_err();
+        assert!(matches!(err, RepositoryError::NotFound(_)));
+    }
+}

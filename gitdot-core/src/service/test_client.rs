@@ -46,11 +46,28 @@ mock! {
 #[derive(Clone, Default)]
 pub struct MockGitClient {
     renames: Arc<Mutex<Vec<(String, String)>>>,
+    repo_exists: bool,
+    created_repos: Arc<Mutex<Vec<(String, String)>>>,
+    deleted_repos: Arc<Mutex<Vec<(String, String)>>>,
 }
 
 impl MockGitClient {
+    /// Sets what [`GitClient::repo_exists`] reports for every repo.
+    pub fn with_repo_exists(mut self, exists: bool) -> Self {
+        self.repo_exists = exists;
+        self
+    }
+
     pub fn renames(&self) -> Vec<(String, String)> {
         self.renames.lock().unwrap().clone()
+    }
+
+    pub fn created_repos(&self) -> Vec<(String, String)> {
+        self.created_repos.lock().unwrap().clone()
+    }
+
+    pub fn deleted_repos(&self) -> Vec<(String, String)> {
+        self.deleted_repos.lock().unwrap().clone()
     }
 }
 
@@ -65,13 +82,21 @@ impl GitClient for MockGitClient {
     }
 
     async fn repo_exists(&self, _owner: &str, _repo: &str) -> bool {
-        unimplemented!("MockGitClient::repo_exists is not stubbed")
+        self.repo_exists
     }
-    async fn create_repo(&self, _owner: &str, _repo: &str) -> Result<(), GitError> {
-        unimplemented!("MockGitClient::create_repo is not stubbed")
+    async fn create_repo(&self, owner: &str, repo: &str) -> Result<(), GitError> {
+        self.created_repos
+            .lock()
+            .unwrap()
+            .push((owner.to_string(), repo.to_string()));
+        Ok(())
     }
-    async fn delete_repo(&self, _owner: &str, _repo: &str) -> Result<(), GitError> {
-        unimplemented!("MockGitClient::delete_repo is not stubbed")
+    async fn delete_repo(&self, owner: &str, repo: &str) -> Result<(), GitError> {
+        self.deleted_repos
+            .lock()
+            .unwrap()
+            .push((owner.to_string(), repo.to_string()));
+        Ok(())
     }
     async fn mirror_repo(&self, _owner: &str, _repo: &str, _url: &str) -> Result<(), GitError> {
         unimplemented!("MockGitClient::mirror_repo is not stubbed")
@@ -229,7 +254,7 @@ impl GitClient for MockGitClient {
         _hook_type: GitHookType,
         _hook_script: &str,
     ) -> Result<(), GitError> {
-        unimplemented!("MockGitClient::install_hook is not stubbed")
+        Ok(())
     }
     async fn empty_hooks(&self, _owner: &str, _repo: &str) -> Result<(), GitError> {
         unimplemented!("MockGitClient::empty_hooks is not stubbed")
