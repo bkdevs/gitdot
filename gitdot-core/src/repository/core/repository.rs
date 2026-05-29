@@ -645,3 +645,457 @@ impl RepositoryRepository for RepositoryRepositoryImpl {
         Ok(result.rows_affected() > 0)
     }
 }
+
+#[cfg(all(test, feature = "db-tests"))]
+mod tests {
+    use chrono::{DateTime, Duration, Utc};
+    use sqlx::PgPool;
+    use uuid::Uuid;
+
+    use super::{
+        Repository, RepositoryOwnerType, RepositoryRepository, RepositoryRepositoryImpl,
+        RepositoryVisibility,
+    };
+
+    async fn insert_user(pool: &PgPool, id: Uuid, name: &str) {
+        sqlx::query("INSERT INTO core.users (id, name) VALUES ($1, $2)")
+            .bind(id)
+            .bind(name)
+            .execute(pool)
+            .await
+            .unwrap();
+    }
+
+    async fn insert_org(pool: &PgPool, id: Uuid, name: &str) {
+        sqlx::query("INSERT INTO core.organizations (id, name) VALUES ($1, $2)")
+            .bind(id)
+            .bind(name)
+            .execute(pool)
+            .await
+            .unwrap();
+    }
+
+    async fn insert_star_at(pool: &PgPool, user_id: Uuid, repo_id: Uuid, created_at: DateTime<Utc>) {
+        sqlx::query("INSERT INTO core.stars (user_id, repository_id, created_at) VALUES ($1, $2, $3)")
+            .bind(user_id)
+            .bind(repo_id)
+            .bind(created_at)
+            .execute(pool)
+            .await
+            .unwrap();
+    }
+
+    async fn insert_filter_at(pool: &PgPool, repo_id: Uuid, name: &str, created_at: DateTime<Utc>) {
+        sqlx::query(
+            "INSERT INTO core.commit_filters (repository_id, name, created_at) VALUES ($1, $2, $3)",
+        )
+        .bind(repo_id)
+        .bind(name)
+        .bind(created_at)
+        .execute(pool)
+        .await
+        .unwrap();
+    }
+
+    // The common case: a user-owned, non-readonly repo with no description.
+    async fn make_repo(
+        repo: &RepositoryRepositoryImpl,
+        name: &str,
+        owner: Uuid,
+        visibility: RepositoryVisibility,
+        created_at: Option<DateTime<Utc>>,
+    ) -> Repository {
+        repo.create(
+            name,
+            owner,
+            &RepositoryOwnerType::User,
+            &visibility,
+            None,
+            false,
+            created_at,
+        )
+        .await
+        .unwrap()
+    }
+
+    #[sqlx::test]
+    async fn create_returns_repo_with_owner_name(pool: PgPool) {
+        let repo = RepositoryRepositoryImpl::new(pool.clone());
+        let alice = Uuid::new_v4();
+        insert_user(&pool, alice, "alice").await;
+
+        let created = repo
+            .create(
+                "proj",
+                alice,
+                &RepositoryOwnerType::User,
+                &RepositoryVisibility::Public,
+                Some("a project".to_string()),
+                false,
+                None,
+            )
+            .await
+            .unwrap();
+        assert_eq!(created.name, "proj");
+        assert_eq!(created.owner_id, alice);
+        assert_eq!(created.owner_name, "alice");
+        assert_eq!(created.owner_type, RepositoryOwnerType::User);
+        assert_eq!(created.visibility, RepositoryVisibility::Public);
+        assert_eq!(created.description.as_deref(), Some("a project"));
+        assert_eq!(created.stars, 0);
+        assert!(!created.user_star);
+        assert!(!created.readonly);
+    }
+
+    #[sqlx::test]
+    async fn create_supports_organization_owner(pool: PgPool) {
+        let repo = RepositoryRepositoryImpl::new(pool.clone());
+        let org = Uuid::new_v4();
+        insert_org(&pool, org, "acme").await;
+
+        let created = repo
+            .create(
+                "proj",
+                org,
+                &RepositoryOwnerType::Organization,
+                &RepositoryVisibility::Public,
+                None,
+                false,
+                None,
+            )
+            .await
+            .unwrap();
+        // owner_name is resolved via the organizations join branch.
+        assert_eq!(created.owner_name, "acme");
+        assert_eq!(created.owner_type, RepositoryOwnerType::Organization);
+    }
+
+    #[sqlx::test]
+    async fn get_lookups_round_trip(pool: PgPool) {
+        let repo = RepositoryRepositoryImpl::new(pool.clone());
+        let alice = Uuid::new_v4();
+        insert_user(&pool, alice, "alice").await;
+        let created = make_repo(&repo, "proj", alice, RepositoryVisibility::Public, None).await;
+
+        let by_name = repo.get("alice", "proj", None).await.unwrap().expect("found");
+        assert_eq!(by_name.id, created.id);
+        assert_eq!(repo.get_id("alice", "proj").await.unwrap(), Some(created.id));
+        let by_id = repo
+            .get_by_id(created.id, None)
+            .await
+            .unwrap()
+            .expect("found");
+        assert_eq!(by_id.name, "proj");
+
+        assert!(repo.get("alice", "missing", None).await.unwrap().is_none());
+        assert!(repo.get("ghost", "proj", None).await.unwrap().is_none());
+        assert!(repo.get_id("alice", "missing").await.unwrap().is_none());
+        assert!(repo.get_by_id(Uuid::new_v4(), None).await.unwrap().is_none());
+    }
+
+    #[sqlx::test]
+    async fn list_by_owner_paginates_newest_first(pool: PgPool) {
+        let repo = RepositoryRepositoryImpl::new(pool.clone());
+        let alice = Uuid::new_v4();
+        let bob = Uuid::new_v4();
+        insert_user(&pool, alice, "alice").await;
+        insert_user(&pool, bob, "bob").await;
+        let now = Utc::now();
+        make_repo(&repo, "first", alice, RepositoryVisibility::Public, Some(now - Duration::days(3))).await;
+        make_repo(&repo, "second", alice, RepositoryVisibility::Public, Some(now - Duration::days(2))).await;
+        make_repo(&repo, "third", alice, RepositoryVisibility::Public, Some(now - Duration::days(1))).await;
+        // A repo owned by someone else must not appear in alice's listing.
+        make_repo(&repo, "other", bob, RepositoryVisibility::Public, Some(now)).await;
+
+        let (page, cursor) = repo.list_by_owner("alice", None, None, 2).await.unwrap();
+        assert_eq!(page.len(), 2);
+        assert_eq!(page[0].name, "third");
+        assert_eq!(page[1].name, "second");
+        let cursor = cursor.expect("more rows remain");
+
+        let (page, cursor) = repo
+            .list_by_owner("alice", None, Some(cursor), 2)
+            .await
+            .unwrap();
+        assert_eq!(page.len(), 1);
+        assert_eq!(page[0].name, "first");
+        assert!(cursor.is_none());
+    }
+
+    #[sqlx::test]
+    async fn list_latest_returns_public_only_newest_first(pool: PgPool) {
+        let repo = RepositoryRepositoryImpl::new(pool.clone());
+        let alice = Uuid::new_v4();
+        insert_user(&pool, alice, "alice").await;
+        let now = Utc::now();
+        make_repo(&repo, "older", alice, RepositoryVisibility::Public, Some(now - Duration::days(2))).await;
+        make_repo(&repo, "newer", alice, RepositoryVisibility::Public, Some(now - Duration::days(1))).await;
+        make_repo(&repo, "secret", alice, RepositoryVisibility::Private, Some(now)).await;
+
+        let repos = repo.list_latest(10).await.unwrap();
+        let names: Vec<_> = repos.iter().map(|r| r.name.as_str()).collect();
+        // Private repos are excluded; public ones come back newest first.
+        assert_eq!(names, vec!["newer", "older"]);
+    }
+
+    #[sqlx::test]
+    async fn list_trending_orders_by_stars(pool: PgPool) {
+        let repo = RepositoryRepositoryImpl::new(pool.clone());
+        let alice = Uuid::new_v4();
+        let bob = Uuid::new_v4();
+        let carol = Uuid::new_v4();
+        insert_user(&pool, alice, "alice").await;
+        insert_user(&pool, bob, "bob").await;
+        insert_user(&pool, carol, "carol").await;
+        let popular = make_repo(&repo, "popular", alice, RepositoryVisibility::Public, None).await;
+        let quiet = make_repo(&repo, "quiet", alice, RepositoryVisibility::Public, None).await;
+        let secret = make_repo(&repo, "secret", alice, RepositoryVisibility::Private, None).await;
+
+        repo.star(popular.id, bob).await.unwrap();
+        repo.star(popular.id, carol).await.unwrap();
+        repo.star(quiet.id, bob).await.unwrap();
+        repo.star(secret.id, bob).await.unwrap();
+
+        let repos = repo.list_trending(10).await.unwrap();
+        let names: Vec<_> = repos.iter().map(|r| r.name.as_str()).collect();
+        // Public repos ordered by star count desc; the private repo is excluded.
+        assert_eq!(names, vec!["popular", "quiet"]);
+    }
+
+    #[sqlx::test]
+    async fn delete_removes_repo(pool: PgPool) {
+        let repo = RepositoryRepositoryImpl::new(pool.clone());
+        let alice = Uuid::new_v4();
+        insert_user(&pool, alice, "alice").await;
+        let created = make_repo(&repo, "proj", alice, RepositoryVisibility::Public, None).await;
+
+        repo.delete(created.id).await.unwrap();
+        assert!(repo.get_by_id(created.id, None).await.unwrap().is_none());
+    }
+
+    #[sqlx::test]
+    async fn update_sets_description(pool: PgPool) {
+        let repo = RepositoryRepositoryImpl::new(pool.clone());
+        let alice = Uuid::new_v4();
+        insert_user(&pool, alice, "alice").await;
+        let created = repo
+            .create(
+                "proj",
+                alice,
+                &RepositoryOwnerType::User,
+                &RepositoryVisibility::Public,
+                Some("old".to_string()),
+                false,
+                None,
+            )
+            .await
+            .unwrap();
+
+        let updated = repo
+            .update(created.id, Some("new".to_string()))
+            .await
+            .unwrap()
+            .expect("updated");
+        assert_eq!(updated.description.as_deref(), Some("new"));
+
+        assert!(
+            repo.update(Uuid::new_v4(), Some("x".to_string()))
+                .await
+                .unwrap()
+                .is_none()
+        );
+    }
+
+    #[sqlx::test]
+    async fn disable_readonly_clears_flag(pool: PgPool) {
+        let repo = RepositoryRepositoryImpl::new(pool.clone());
+        let alice = Uuid::new_v4();
+        insert_user(&pool, alice, "alice").await;
+        repo.create(
+            "proj",
+            alice,
+            &RepositoryOwnerType::User,
+            &RepositoryVisibility::Public,
+            None,
+            true,
+            None,
+        )
+        .await
+        .unwrap();
+
+        let updated = repo
+            .disable_readonly("alice", "proj")
+            .await
+            .unwrap()
+            .expect("updated");
+        assert!(!updated.readonly);
+
+        assert!(
+            repo.disable_readonly("alice", "missing")
+                .await
+                .unwrap()
+                .is_none()
+        );
+    }
+
+    #[sqlx::test]
+    async fn star_is_idempotent_and_counts(pool: PgPool) {
+        let repo = RepositoryRepositoryImpl::new(pool.clone());
+        let alice = Uuid::new_v4();
+        let bob = Uuid::new_v4();
+        insert_user(&pool, alice, "alice").await;
+        insert_user(&pool, bob, "bob").await;
+        let created = make_repo(&repo, "proj", alice, RepositoryVisibility::Public, None).await;
+
+        let star = repo
+            .star(created.id, bob)
+            .await
+            .unwrap()
+            .expect("starred");
+        assert_eq!(star.user_id, bob);
+        assert_eq!(star.repository_id, created.id);
+
+        let after = repo.get_by_id(created.id, Some(bob)).await.unwrap().unwrap();
+        assert_eq!(after.stars, 1);
+        assert!(after.user_star);
+
+        // A repeat star is a no-op and must not double-count.
+        assert!(repo.star(created.id, bob).await.unwrap().is_none());
+        assert_eq!(
+            repo.get_by_id(created.id, None).await.unwrap().unwrap().stars,
+            1
+        );
+    }
+
+    #[sqlx::test]
+    async fn unstar_decrements_and_reports(pool: PgPool) {
+        let repo = RepositoryRepositoryImpl::new(pool.clone());
+        let alice = Uuid::new_v4();
+        let bob = Uuid::new_v4();
+        insert_user(&pool, alice, "alice").await;
+        insert_user(&pool, bob, "bob").await;
+        let created = make_repo(&repo, "proj", alice, RepositoryVisibility::Public, None).await;
+        repo.star(created.id, bob).await.unwrap();
+
+        assert!(repo.unstar(created.id, bob).await.unwrap());
+        assert_eq!(
+            repo.get_by_id(created.id, None).await.unwrap().unwrap().stars,
+            0
+        );
+
+        // Unstarring again reports false and the count floors at zero.
+        assert!(!repo.unstar(created.id, bob).await.unwrap());
+        assert_eq!(
+            repo.get_by_id(created.id, None).await.unwrap().unwrap().stars,
+            0
+        );
+    }
+
+    #[sqlx::test]
+    async fn list_recent_stars_returns_users_newest_first(pool: PgPool) {
+        let repo = RepositoryRepositoryImpl::new(pool.clone());
+        let alice = Uuid::new_v4();
+        let bob = Uuid::new_v4();
+        let carol = Uuid::new_v4();
+        insert_user(&pool, alice, "alice").await;
+        insert_user(&pool, bob, "bob").await;
+        insert_user(&pool, carol, "carol").await;
+        let created = make_repo(&repo, "proj", alice, RepositoryVisibility::Public, None).await;
+
+        let now = Utc::now();
+        insert_star_at(&pool, bob, created.id, now - Duration::days(2)).await;
+        insert_star_at(&pool, carol, created.id, now - Duration::days(1)).await;
+
+        let stars = repo.list_recent_stars(created.id, 10).await.unwrap();
+        assert_eq!(stars.len(), 2);
+        // Most recent star first.
+        assert_eq!(stars[0].0.name, "carol");
+        assert_eq!(stars[1].0.name, "bob");
+
+        // The limit truncates to the most recent.
+        let limited = repo.list_recent_stars(created.id, 1).await.unwrap();
+        assert_eq!(limited.len(), 1);
+        assert_eq!(limited[0].0.name, "carol");
+    }
+
+    #[sqlx::test]
+    async fn list_commit_filters_paginates(pool: PgPool) {
+        let repo = RepositoryRepositoryImpl::new(pool.clone());
+        let alice = Uuid::new_v4();
+        insert_user(&pool, alice, "alice").await;
+        let created = make_repo(&repo, "proj", alice, RepositoryVisibility::Public, None).await;
+
+        let now = Utc::now();
+        insert_filter_at(&pool, created.id, "first", now - Duration::days(3)).await;
+        insert_filter_at(&pool, created.id, "second", now - Duration::days(2)).await;
+        insert_filter_at(&pool, created.id, "third", now - Duration::days(1)).await;
+
+        let (page, cursor) = repo.list_commit_filters(created.id, None, 2).await.unwrap();
+        assert_eq!(page.len(), 2);
+        assert_eq!(page[0].name, "third");
+        assert_eq!(page[1].name, "second");
+        let cursor = cursor.expect("more rows remain");
+
+        let (page, cursor) = repo
+            .list_commit_filters(created.id, Some(cursor), 2)
+            .await
+            .unwrap();
+        assert_eq!(page.len(), 1);
+        assert_eq!(page[0].name, "first");
+        assert!(cursor.is_none());
+    }
+
+    #[sqlx::test]
+    async fn create_and_update_commit_filter(pool: PgPool) {
+        let repo = RepositoryRepositoryImpl::new(pool.clone());
+        let alice = Uuid::new_v4();
+        insert_user(&pool, alice, "alice").await;
+        let created = make_repo(&repo, "proj", alice, RepositoryVisibility::Public, None).await;
+
+        let filter = repo
+            .create_commit_filter(
+                created.id,
+                "feat",
+                Some(vec!["alice".to_string()]),
+                None,
+                Some(vec!["src/".to_string()]),
+            )
+            .await
+            .unwrap();
+        assert_eq!(filter.name, "feat");
+        assert_eq!(filter.authors, Some(vec!["alice".to_string()]));
+        assert_eq!(filter.tags, None);
+        assert_eq!(filter.paths, Some(vec!["src/".to_string()]));
+
+        let updated = repo
+            .update_commit_filter(filter.id, "fix", None, Some(vec!["v1".to_string()]), None)
+            .await
+            .unwrap()
+            .expect("updated");
+        assert_eq!(updated.name, "fix");
+        assert_eq!(updated.authors, None);
+        assert_eq!(updated.tags, Some(vec!["v1".to_string()]));
+
+        assert!(
+            repo.update_commit_filter(Uuid::new_v4(), "x", None, None, None)
+                .await
+                .unwrap()
+                .is_none()
+        );
+    }
+
+    #[sqlx::test]
+    async fn delete_commit_filter_reports(pool: PgPool) {
+        let repo = RepositoryRepositoryImpl::new(pool.clone());
+        let alice = Uuid::new_v4();
+        insert_user(&pool, alice, "alice").await;
+        let created = make_repo(&repo, "proj", alice, RepositoryVisibility::Public, None).await;
+        let filter = repo
+            .create_commit_filter(created.id, "feat", None, None, None)
+            .await
+            .unwrap();
+
+        assert!(repo.delete_commit_filter(filter.id).await.unwrap());
+        assert!(!repo.delete_commit_filter(filter.id).await.unwrap());
+    }
+}
