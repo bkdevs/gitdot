@@ -1,5 +1,5 @@
 import { getReview } from "gitdot-client";
-import { renderReviewDiffAction } from "@/actions";
+import { renderReviewDiff } from "gitdot-dal/server";
 import { PageClient } from "./page.client";
 
 export default async function Page({
@@ -17,7 +17,7 @@ export default async function Page({
   const review = await getReview(owner, repo, Number(number));
   if (!review) return null;
 
-  const diffEntriesPromise = renderReviewDiffAction(
+  const diffEntriesPromise = renderReviewDiff(
     owner,
     repo,
     Number(number),

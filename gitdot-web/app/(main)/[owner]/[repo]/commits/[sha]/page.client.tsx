@@ -1,8 +1,8 @@
 "use client";
 
 import type { RepositoryCommitResource } from "gitdot-api";
+import type { DiffEntry } from "gitdot-dal/client";
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { DiffEntry } from "@/actions";
 import { OverlayScroll } from "@/ui/scroll";
 import { CommitBody } from "./ui/commit-body";
 import { CommitHeader } from "./ui/commit-header";

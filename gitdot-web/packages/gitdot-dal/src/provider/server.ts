@@ -12,8 +12,7 @@ import {
   listRepositoryCommits,
 } from "gitdot-client";
 import type { Root } from "hast";
-import { fileToHast } from "../hast";
-import { inferLanguage } from "../language";
+import { inferLanguage, renderHast } from "../diff/shiki";
 import {
   GitdotProvider,
   type ResourceDefinition,
@@ -101,7 +100,7 @@ export class ServerProvider extends GitdotProvider {
     });
     if (!blob || blob.type === "folder") return null;
     const lang = inferLanguage(path);
-    return fileToHast(blob.content, lang, "vitesse", []);
+    return renderHast(blob.content, lang, "vitesse");
   }
 
   async getCommit(

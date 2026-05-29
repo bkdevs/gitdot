@@ -4,9 +4,9 @@ import type {
   RepositoryDiffFileResource,
   ReviewCommentResource,
 } from "gitdot-api";
+import type { DiffSpans } from "gitdot-dal/client";
 import { Maximize2 } from "lucide-react";
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
-import type { DiffSpans } from "@/actions";
 import {
   ContextMenu,
   ContextMenuContent,

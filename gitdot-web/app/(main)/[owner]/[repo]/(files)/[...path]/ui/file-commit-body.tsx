@@ -1,7 +1,7 @@
 "use client";
 
 import type { RepositoryCommitResource } from "gitdot-api";
-import type { DiffEntry } from "@/actions";
+import type { DiffEntry } from "gitdot-dal/client";
 import { DiffBody } from "../../../commits/[sha]/ui/diff-body";
 import { FileCommitHeader } from "./file-commit-header";
 

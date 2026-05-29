@@ -1,4 +1,4 @@
-import type { DiffEntry } from "@/actions";
+import type { DiffEntry } from "gitdot-dal/client";
 import { CommitDiffHeader } from "./commit-diff-header";
 import { DiffBody } from "./diff-body";
 

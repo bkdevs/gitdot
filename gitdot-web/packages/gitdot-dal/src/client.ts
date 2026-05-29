@@ -5,8 +5,9 @@ import type {
   ResourceResultType,
 } from "./provider/types";
 
-export * from "./hast";
-export * from "./language";
+export * from "./diff/client";
+export * from "./diff/shiki";
+export * from "./diff/types";
 export * from "./provider/client";
 export * from "./provider/types";
 export { default as gitdotLight } from "./themes/gitdot-light";

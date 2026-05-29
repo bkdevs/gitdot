@@ -3,8 +3,9 @@ import "server-only";
 import { ServerProvider } from "./provider/server";
 import type { ResourceDefinition } from "./provider/types";
 
-export * from "./hast";
-export * from "./language";
+export * from "./diff/server";
+export * from "./diff/shiki";
+export * from "./diff/types";
 export * from "./provider/server";
 export * from "./provider/types";
 

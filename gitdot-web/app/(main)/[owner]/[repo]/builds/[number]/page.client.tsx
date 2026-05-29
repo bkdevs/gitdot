@@ -17,7 +17,6 @@ export function PageClient({
   tasks,
   tokens,
   taskLogs,
-  configHtml,
 }: {
   owner: string;
   repo: string;
@@ -26,7 +25,6 @@ export function PageClient({
   tasks: TaskResource[];
   tokens: (string | null)[];
   taskLogs: S2Record[][];
-  configHtml: string | null;
 }) {
   const resourcePromises = useResources(resources);
   return (
@@ -39,7 +37,6 @@ export function PageClient({
         tasks={tasks}
         tokens={tokens}
         taskLogs={taskLogs}
-        configHtml={configHtml}
       />
     </Suspense>
   );
@@ -53,7 +50,6 @@ function PageContent({
   tasks,
   tokens,
   taskLogs,
-  configHtml,
 }: {
   owner: string;
   repo: string;
@@ -62,18 +58,12 @@ function PageContent({
   tasks: TaskResource[];
   tokens: (string | null)[];
   taskLogs: S2Record[][];
-  configHtml: string | null;
 }) {
   const commit = use(commitPromise);
 
   return (
     <div className="flex flex-col w-full flex-1 min-w-0 overflow-y-auto scrollbar-thin">
-      <BuildHeader
-        build={build}
-        commit={commit}
-        tasks={tasks}
-        configHtml={configHtml}
-      />
+      <BuildHeader build={build} commit={commit} tasks={tasks} />
       {tasks.map((task, i) => (
         <BuildTask
           key={task.id}

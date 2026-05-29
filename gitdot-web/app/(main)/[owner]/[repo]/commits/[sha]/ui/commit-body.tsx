@@ -1,4 +1,4 @@
-import type { DiffEntry } from "@/actions";
+import type { DiffEntry } from "gitdot-dal/client";
 import { CommitDiffFile } from "./commit-diff-file";
 
 export function CommitBody({ entries }: { entries: DiffEntry[] }) {

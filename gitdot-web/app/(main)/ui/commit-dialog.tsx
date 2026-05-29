@@ -1,10 +1,10 @@
 "use client";
 
 import type { CommitAuthorResource } from "gitdot-api";
+import { type DiffEntry, fetchCommitDiff } from "gitdot-dal/client";
 import { useEffect, useState } from "react";
 import { CommitBody } from "@/(main)/[owner]/[repo]/commits/[sha]/ui/commit-body";
 import { CommitHeader } from "@/(main)/[owner]/[repo]/commits/[sha]/ui/commit-header";
-import { type DiffEntry, renderCommitDiffAction } from "@/actions";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
 import { Loading } from "@/ui/loading";
 
@@ -25,7 +25,7 @@ const diffCache = new Map<string, DiffEntry[]>();
 export function prefetchCommitDiff(owner: string, repo: string, sha: string) {
   const key = `${owner}/${repo}/${sha}`;
   if (diffCache.has(key)) return;
-  renderCommitDiffAction(owner, repo, sha)
+  fetchCommitDiff(owner, repo, sha)
     .then((entries) => diffCache.set(key, entries))
     .catch(() => {});
 }
@@ -51,7 +51,7 @@ export function CommitDialog() {
         return;
       }
       setDiffEntries(null);
-      renderCommitDiffAction(owner_name, repo_name, sha).then((result) => {
+      fetchCommitDiff(owner_name, repo_name, sha).then((result) => {
         diffCache.set(key, result);
         setDiffEntries(result);
       });

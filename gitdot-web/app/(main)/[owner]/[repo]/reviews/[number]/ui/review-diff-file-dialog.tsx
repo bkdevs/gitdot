@@ -2,7 +2,7 @@
 
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import type { RepositoryDiffFileResource } from "gitdot-api";
-import type { DiffSpans } from "@/actions";
+import type { DiffSpans } from "gitdot-dal/client";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
 import { DiffBody } from "../../../commits/[sha]/ui/diff-body";
 

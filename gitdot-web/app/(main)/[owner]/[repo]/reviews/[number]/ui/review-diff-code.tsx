@@ -1,8 +1,8 @@
 "use client";
 
 import type { ReviewDiffResource } from "gitdot-api";
+import type { DiffEntry } from "gitdot-dal/client";
 import { use } from "react";
-import type { DiffEntry } from "@/actions";
 import { ReviewDiffActions } from "./review-diff-actions";
 import { ReviewDiffFile } from "./review-diff-file";
 import { ReviewDiffMessage } from "./review-diff-message";

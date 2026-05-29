@@ -51,7 +51,7 @@ import { createOnigurumaEngine } from "shiki/engine/oniguruma";
 import gitdotLight from "../themes/gitdot-light";
 import vitesseDark from "../themes/vitesse-dark";
 
-export { inferLanguage } from "../language";
+export { inferLanguage } from "../diff/shiki";
 
 export function createHighlighter() {
   return createHighlighterCore({

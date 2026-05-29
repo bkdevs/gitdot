@@ -1,9 +1,9 @@
 "use client";
 
 import type { ReviewResource } from "gitdot-api";
+import type { DiffEntry } from "gitdot-dal/client";
 import { useMemo, useState } from "react";
 import { useShortcuts } from "@/(main)/context/shortcuts";
-import type { DiffEntry } from "@/actions";
 import { cn } from "@/util";
 import { ReviewProvider, useReviewContext } from "./context";
 import { ReviewDiff } from "./ui/review-diff";

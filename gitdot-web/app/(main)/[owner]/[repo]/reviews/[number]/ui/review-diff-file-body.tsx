@@ -4,13 +4,13 @@ import type {
   RepositoryDiffFileResource,
   ReviewCommentResource,
 } from "gitdot-api";
+import type { DiffSpans } from "gitdot-dal/client";
 import { useCallback } from "react";
 import { DiffCreated } from "@/(main)/[owner]/[repo]/commits/[sha]/ui/diff-created";
 import { DiffSplit } from "@/(main)/[owner]/[repo]/commits/[sha]/ui/diff-split";
 import { DiffUnified } from "@/(main)/[owner]/[repo]/commits/[sha]/ui/diff-unified";
 import { DiffUnilateral } from "@/(main)/[owner]/[repo]/commits/[sha]/ui/diff-unilateral";
 import { preferSplit } from "@/(main)/[owner]/[repo]/util";
-import type { DiffSpans } from "@/actions";
 import { cn } from "@/util";
 import { useReviewContext } from "../context";
 import { useCommentSelection } from "./hooks/use-comment-selection";

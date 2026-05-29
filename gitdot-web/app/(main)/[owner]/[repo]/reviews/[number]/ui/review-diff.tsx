@@ -1,8 +1,8 @@
 "use client";
 
 import type { ReviewResource } from "gitdot-api";
+import type { DiffEntry } from "gitdot-dal/client";
 import { Suspense, useEffect, useState } from "react";
-import type { DiffEntry } from "@/actions";
 import { Loading } from "@/ui/loading";
 import { ReviewDiffCode } from "./review-diff-code";
 import { ReviewDiffConversation } from "./review-diff-conversation";

@@ -1,6 +1,6 @@
 import { getRepositoryCommit } from "gitdot-client";
+import { renderCommitDiff } from "gitdot-dal/server";
 import { notFound } from "next/navigation";
-import { renderCommitDiffAction } from "@/actions";
 import { PageClient } from "./page.client";
 
 export default async function Page({
@@ -11,7 +11,7 @@ export default async function Page({
   const { owner, repo, sha } = await params;
   const [commit, diffEntries] = await Promise.all([
     getRepositoryCommit(owner, repo, sha),
-    renderCommitDiffAction(owner, repo, sha),
+    renderCommitDiff(owner, repo, sha),
   ]);
   if (!commit) notFound();
 

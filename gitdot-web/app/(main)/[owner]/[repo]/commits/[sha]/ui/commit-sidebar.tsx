@@ -1,6 +1,6 @@
 "use client";
 
-import type { DiffEntry } from "@/actions";
+import type { DiffEntry } from "gitdot-dal/client";
 import { cn } from "@/util";
 
 export function CommitSidebar({

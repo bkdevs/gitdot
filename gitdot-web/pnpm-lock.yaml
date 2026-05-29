@@ -260,6 +260,9 @@ importers:
       '@shikijs/transformers':
         specifier: ^3.21.0
         version: 3.23.0
+      diff:
+        specifier: ^8.0.4
+        version: 8.0.4
       gitdot-api:
         specifier: workspace:*
         version: link:../gitdot-api

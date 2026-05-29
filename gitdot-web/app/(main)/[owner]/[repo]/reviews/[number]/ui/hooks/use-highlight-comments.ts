@@ -1,6 +1,6 @@
 import type { ReviewCommentResource } from "gitdot-api";
+import type { DiffSpans } from "gitdot-dal/client";
 import { useLayoutEffect } from "react";
-import type { DiffSpans } from "@/actions";
 import { readLineNumber, readSide } from "./util";
 
 export function useHighlightComments(

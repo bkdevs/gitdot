@@ -1,9 +1,8 @@
 "use client";
 
 import type { RepositoryCommitResource } from "gitdot-api";
+import { type DiffEntry, fetchBlobDiffs } from "gitdot-dal/client";
 import { useEffect, useState } from "react";
-import type { DiffEntry } from "@/actions";
-import { renderBlobDiffsAction } from "@/actions/diff";
 import { FileBody } from "./file-body";
 import { FileCommitBody } from "./file-commit-body";
 import { FileCommits } from "./file-commits";
@@ -26,7 +25,7 @@ export function FileViewer({
   useEffect(() => {
     const shas = fileCommits.map((c) => c.sha);
     if (shas.length === 0) return;
-    renderBlobDiffsAction(owner, repo, shas, path).then(setDiffEntries);
+    fetchBlobDiffs(owner, repo, shas, path).then(setDiffEntries);
   }, [fileCommits, owner, repo, path]);
 
   const activeSha = selectedSha ?? hoveredSha;

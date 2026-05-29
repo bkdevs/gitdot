@@ -1,11 +1,11 @@
 "use client";
 
+import type { DiffHunk, DiffPair } from "gitdot-dal/client";
 import type { Element } from "hast";
 import { toJsxRuntime } from "hast-util-to-jsx-runtime";
 import type { JSX } from "react";
 import { Fragment, useState } from "react";
 import { jsx, jsxs } from "react/jsx-runtime";
-import type { DiffHunk, DiffPair } from "@/(main)/[owner]/[repo]/util";
 import { cn } from "@/util";
 import { pluralize } from "@/util/string";
 

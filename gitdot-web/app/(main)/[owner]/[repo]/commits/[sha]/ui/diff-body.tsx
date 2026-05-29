@@ -1,7 +1,7 @@
 "use client";
 
+import type { DiffSpans } from "gitdot-dal/client";
 import { preferSplit } from "@/(main)/[owner]/[repo]/util";
-import type { DiffSpans } from "@/actions";
 import { cn } from "@/util";
 import { DiffCreated } from "./diff-created";
 import { DiffSplit } from "./diff-split";

@@ -1,13 +1,7 @@
 import type { RepositoryCommitResource } from "gitdot-api";
-import {
-  getBuild,
-  getBuildTasks,
-  getRepositoryBlob,
-  issueTaskToken,
-} from "gitdot-client";
+import { getBuild, getBuildTasks, issueTaskToken } from "gitdot-client";
 import { fetchResources } from "gitdot-dal/server";
 import { getTaskLogs } from "@/lib/s2/server";
-import { renderFileToHtml } from "../../util/hast";
 import { PageClient } from "./page.client";
 
 export type Resources = {
@@ -37,25 +31,14 @@ export default async function Page({
     tasks.map((task) => issueTaskToken(task.id)),
   );
 
-  const [configFile, taskLogs] = await Promise.all([
-    getRepositoryBlob(owner, repo, {
-      ref_name: build.commit_sha,
-      path: ".gitdot-ci.toml",
+  const taskLogs = await Promise.all(
+    tasks.map((task, i) => {
+      const token = tokens[i];
+      return token
+        ? getTaskLogs(token, owner, repo, task.id).catch(() => [])
+        : Promise.resolve([]);
     }),
-    Promise.all(
-      tasks.map((task, i) => {
-        const token = tokens[i];
-        return token
-          ? getTaskLogs(token, owner, repo, task.id).catch(() => [])
-          : Promise.resolve([]);
-      }),
-    ),
-  ]);
-
-  const configHtml =
-    configFile && configFile.type === "file"
-      ? await renderFileToHtml(configFile, "vitesse")
-      : null;
+  );
 
   return (
     <PageClient
@@ -66,7 +49,6 @@ export default async function Page({
       tasks={tasks}
       tokens={tokens}
       taskLogs={taskLogs}
-      configHtml={configHtml}
     />
   );
 }
