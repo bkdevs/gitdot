@@ -6,6 +6,9 @@ mod metrics;
 mod migration;
 mod webhook;
 
+#[cfg(test)]
+mod test_common;
+
 pub use authentication::*;
 pub use authorization::{AuthorizationService, AuthorizationServiceImpl};
 pub use ci::*;
