@@ -4,8 +4,8 @@ mod has_user;
 mod list_user_commits;
 mod list_user_organizations;
 mod list_user_repositories;
+mod list_user_repositories_starred;
 mod list_user_reviews;
-mod list_user_stars;
 mod update_current_user;
 mod upload_user_image;
 
@@ -23,8 +23,8 @@ use has_user::has_user;
 use list_user_commits::list_user_commits;
 use list_user_organizations::list_user_organizations;
 use list_user_repositories::list_user_repositories;
+use list_user_repositories_starred::list_user_starred_repositories;
 use list_user_reviews::list_user_reviews;
-use list_user_stars::list_user_stars;
 use update_current_user::update_current_user;
 use upload_user_image::upload_user_image;
 
@@ -46,5 +46,8 @@ pub fn create_user_router() -> Router<AppState> {
         )
         .route("/user/{user_name}/reviews", get(list_user_reviews))
         .route("/user/{user_name}/commits", get(list_user_commits))
-        .route("/user/{user_name}/stars", get(list_user_stars))
+        .route(
+            "/user/{user_name}/repositories-starred",
+            get(list_user_starred_repositories),
+        )
 }

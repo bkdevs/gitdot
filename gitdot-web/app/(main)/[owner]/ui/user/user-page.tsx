@@ -4,7 +4,7 @@ import {
   listUserCommits,
   listUserOrganizations,
   listUserRepositories,
-  listUserStars,
+  listUserStarredRepositories,
 } from "gitdot-client";
 import { UserActions } from "./user-actions";
 import { UserCommits } from "./user-commits";
@@ -26,7 +26,7 @@ export default async function UserPage({ user }: { user: UserResource }) {
     listUserCommits(user.name),
     listUserRepositories(user.name),
     listUserOrganizations(user.name),
-    listUserStars(user.name),
+    listUserStarredRepositories(user.name),
     getCurrentUser(false),
   ]);
   const commits = commitsResponse?.data ?? null;

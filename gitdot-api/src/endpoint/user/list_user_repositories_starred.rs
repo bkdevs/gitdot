@@ -5,22 +5,22 @@ use crate::{
     resource::{common::Page, repository::RepositoryResource},
 };
 
-pub struct ListUserStars;
+pub struct ListUserStarredRepositories;
 
-impl Endpoint for ListUserStars {
-    const PATH: &'static str = "/user/{user_name}/stars";
+impl Endpoint for ListUserStarredRepositories {
+    const PATH: &'static str = "/user/{user_name}/repositories-starred";
     const METHOD: http::Method = http::Method::GET;
 
-    type Request = ListUserStarsRequest;
-    type Response = ListUserStarsResponse;
+    type Request = ListUserStarredRepositoriesRequest;
+    type Response = ListUserStarredRepositoriesResponse;
 }
 
 #[derive(ApiRequest, Debug, Default, Serialize, Deserialize)]
-pub struct ListUserStarsRequest {
+pub struct ListUserStarredRepositoriesRequest {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub cursor: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub limit: Option<u32>,
 }
 
-pub type ListUserStarsResponse = Page<RepositoryResource>;
+pub type ListUserStarredRepositoriesResponse = Page<RepositoryResource>;

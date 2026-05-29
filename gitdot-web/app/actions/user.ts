@@ -17,7 +17,7 @@ import {
   linkSlackAccount,
   listUserOrganizations,
   listUserRepositories,
-  listUserStars,
+  listUserStarredRepositories,
   logout,
   resendUserEmailCode,
   sendAuthEmail,
@@ -116,10 +116,10 @@ export async function listUserOrganizationsAction(
   return result?.data ?? [];
 }
 
-export async function listUserStarsAction(
+export async function listUserStarredRepositoriesAction(
   username: string,
 ): Promise<RepositoryResource[]> {
-  const result = await listUserStars(username);
+  const result = await listUserStarredRepositories(username);
   return result?.data ?? [];
 }
 

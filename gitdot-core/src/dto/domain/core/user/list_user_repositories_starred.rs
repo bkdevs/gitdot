@@ -7,14 +7,14 @@ use crate::{
 };
 
 #[derive(Debug, Clone)]
-pub struct ListUserStarsRequest {
+pub struct ListUserStarredRepositoriesRequest {
     pub user_name: OwnerName,
     pub viewer_id: Option<Uuid>,
     pub cursor: Option<Cursor>,
     pub limit: u32,
 }
 
-impl ListUserStarsRequest {
+impl ListUserStarredRepositoriesRequest {
     pub fn new(
         user_name: &str,
         viewer_id: Option<Uuid>,

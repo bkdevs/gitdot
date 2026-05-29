@@ -5,7 +5,7 @@ import {
   ListUserCommitsResponse,
   ListUserOrganizationsResponse,
   ListUserRepositoriesResponse,
-  ListUserStarsResponse,
+  ListUserStarredRepositoriesResponse,
   UserResource,
 } from "gitdot-api";
 import { notFound } from "next/navigation";
@@ -142,12 +142,12 @@ export async function listUserCommits(
   return await handleResponse(response, ListUserCommitsResponse);
 }
 
-export async function listUserStars(
+export async function listUserStarredRepositories(
   username: string,
   opts?: { cursor?: string; limit?: number },
-): Promise<ListUserStarsResponse | null> {
+): Promise<ListUserStarredRepositoriesResponse | null> {
   const qs = toQueryString({ cursor: opts?.cursor, limit: opts?.limit });
-  const url = `${GITDOT_SERVER_URL}/user/${username}/stars${qs ? `?${qs}` : ""}`;
+  const url = `${GITDOT_SERVER_URL}/user/${username}/repositories-starred${qs ? `?${qs}` : ""}`;
   const response = await authFetch(url);
-  return await handleResponse(response, ListUserStarsResponse);
+  return await handleResponse(response, ListUserStarredRepositoriesResponse);
 }

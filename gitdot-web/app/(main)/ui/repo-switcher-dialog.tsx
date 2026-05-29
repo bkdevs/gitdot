@@ -9,7 +9,7 @@ import { useUserContext } from "@/(main)/context/user";
 import {
   listOrganizationRepositoriesAction,
   listUserRepositoriesAction,
-  listUserStarsAction,
+  listUserStarredRepositoriesAction,
 } from "@/actions";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
 
@@ -71,7 +71,7 @@ function RepoSwitcherDialogInner({
       Promise.all(
         memberships.map((m) => listOrganizationRepositoriesAction(m.name)),
       ),
-      listUserStarsAction(user.name),
+      listUserStarredRepositoriesAction(user.name),
     ]).then(([userRepos, orgReposByOrg, starredRepos]) => {
       const items: RepoListItem[] = [];
       const seen = new Set<string>();

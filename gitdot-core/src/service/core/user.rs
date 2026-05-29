@@ -5,9 +5,9 @@ use crate::{
     dto::{
         GetCurrentUserRequest, GetCurrentUserResponse, GetUserRequest, HasUserRequest,
         ListUserCommitsRequest, ListUserOrganizationsRequest, ListUserRepositoriesRequest,
-        ListUserReviewsRequest, ListUserStarsRequest, MAX_PER_PAGE_LIMIT, Page, RepositoryResponse,
-        ReviewResponse, UpdateCurrentUserImageRequest, UpdateCurrentUserRequest,
-        UserCommitResponse, UserOrganizationResponse, UserResponse,
+        ListUserReviewsRequest, ListUserStarredRepositoriesRequest, MAX_PER_PAGE_LIMIT, Page,
+        RepositoryResponse, ReviewResponse, UpdateCurrentUserImageRequest,
+        UpdateCurrentUserRequest, UserCommitResponse, UserOrganizationResponse, UserResponse,
     },
     error::{ConflictError, NotFoundError, OptionNotFoundExt, UserError},
     repository::{
@@ -44,9 +44,9 @@ pub trait UserService: Send + Sync + 'static {
         request: ListUserRepositoriesRequest,
     ) -> Result<Page<RepositoryResponse>, UserError>;
 
-    async fn list_stars(
+    async fn list_starred_repositories(
         &self,
-        request: ListUserStarsRequest,
+        request: ListUserStarredRepositoriesRequest,
     ) -> Result<Page<RepositoryResponse>, UserError>;
 
     async fn list_organizations(
@@ -303,9 +303,9 @@ where
         })
     }
 
-    async fn list_stars(
+    async fn list_starred_repositories(
         &self,
-        request: ListUserStarsRequest,
+        request: ListUserStarredRepositoriesRequest,
     ) -> Result<Page<RepositoryResponse>, UserError> {
         let user_name = request.user_name.to_string();
         let user = self

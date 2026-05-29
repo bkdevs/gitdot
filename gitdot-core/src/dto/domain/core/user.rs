@@ -4,8 +4,8 @@ mod has_user;
 mod list_user_commits;
 mod list_user_organizations;
 mod list_user_repositories;
+mod list_user_repositories_starred;
 mod list_user_reviews;
-mod list_user_stars;
 mod update_current_user;
 mod update_current_user_image;
 
@@ -20,8 +20,8 @@ pub use has_user::HasUserRequest;
 pub use list_user_commits::ListUserCommitsRequest;
 pub use list_user_organizations::ListUserOrganizationsRequest;
 pub use list_user_repositories::ListUserRepositoriesRequest;
+pub use list_user_repositories_starred::ListUserStarredRepositoriesRequest;
 pub use list_user_reviews::ListUserReviewsRequest;
-pub use list_user_stars::ListUserStarsRequest;
 pub use update_current_user::UpdateCurrentUserRequest;
 pub use update_current_user_image::UpdateCurrentUserImageRequest;
 

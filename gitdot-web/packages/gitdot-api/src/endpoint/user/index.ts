@@ -4,6 +4,6 @@ export * from "./has-user";
 export * from "./list-user-commits";
 export * from "./list-user-organizations";
 export * from "./list-user-repositories";
-export * from "./list-user-stars";
+export * from "./list-user-repositories-starred";
 export * from "./update-current-user";
 export * from "./upload-user-image";
