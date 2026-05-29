@@ -1,6 +1,6 @@
 "use client";
 
-import type { RepositoryResource, UserCommitResource } from "gitdot-api";
+import type { RepositoryResource, UserRepositoryResource } from "gitdot-api";
 import { ChevronDown } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTimezone } from "@/(main)/context/timezone";
@@ -33,17 +33,17 @@ type Repository = {
 
 export function UserRepos({
   repos,
-  commits,
+  contributed,
   isOwner,
 }: {
-  repos: RepositoryResource[] | null;
-  commits: UserCommitResource[];
+  repos: RepositoryResource[];
+  contributed: UserRepositoryResource[];
   isOwner: boolean;
 }) {
   const [sortBy, setSortBy] = useState<RepoSort>("recent");
   const repositories = useMemo(
-    () => buildRepositories(repos ?? [], commits),
-    [repos, commits],
+    () => buildRepositories(repos, contributed),
+    [repos, contributed],
   );
   const publicRepos = repositories.filter((r) => r.visibility === "public");
   const privateRepos = repositories.filter((r) => r.visibility === "private");
@@ -170,52 +170,42 @@ function RepoRow({ repo }: { repo: Repository }) {
 
 function buildRepositories(
   repos: RepositoryResource[],
-  commits: UserCommitResource[],
+  contributed: UserRepositoryResource[],
 ): Repository[] {
-  const stats = new Map<string, { count: number; lastDate: Date }>();
-  for (const c of commits) {
-    if (c.redacted || !c.owner_name || !c.repo_name) continue;
-    const key = `${c.owner_name}/${c.repo_name}`;
-    const date = new Date(c.date);
-    const existing = stats.get(key);
-    if (existing) {
-      existing.count += 1;
-      if (date > existing.lastDate) existing.lastDate = date;
-    } else {
-      stats.set(key, { count: 1, lastDate: date });
-    }
+  const contributedByKey = new Map<string, UserRepositoryResource>();
+  for (const r of contributed) {
+    contributedByKey.set(`${r.owner}/${r.name}`, r);
   }
 
   const repositories: Repository[] = [];
-  const repositoryKeys = new Set<string>();
+  const seen = new Set<string>();
 
   for (const r of repos) {
     const key = `${r.owner}/${r.name}`;
-    repositoryKeys.add(key);
-    const s = stats.get(key);
+    seen.add(key);
+    const c = contributedByKey.get(key);
     repositories.push({
       owner: r.owner,
       name: r.name,
       description: r.description,
       stars: r.stars,
       visibility: r.visibility,
-      count: s?.count ?? 0,
-      lastDate: s?.lastDate ?? null,
+      count: c?.commit_count ?? 0,
+      lastDate: c ? new Date(c.last_commit_at) : null,
     });
   }
 
-  // TODO: bugged, a user commit in a private repo will not show properly since we're hardcoding public
-  // same comment with stars
-  for (const [key, s] of stats) {
-    if (repositoryKeys.has(key)) continue;
-    const [owner, name] = key.split("/");
+  for (const c of contributed) {
+    const key = `${c.owner}/${c.name}`;
+    if (seen.has(key)) continue;
     repositories.push({
-      owner,
-      name,
-      stars: 0,
-      visibility: "public",
-      count: s.count,
-      lastDate: s.lastDate,
+      owner: c.owner,
+      name: c.name,
+      description: c.description,
+      stars: c.stars,
+      visibility: c.visibility,
+      count: c.commit_count,
+      lastDate: new Date(c.last_commit_at),
     });
   }
 

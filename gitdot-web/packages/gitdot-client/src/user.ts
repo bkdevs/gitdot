@@ -3,6 +3,7 @@ import "server-only";
 import {
   CurrentUserResource,
   ListUserCommitsResponse,
+  ListUserContributedRepositoriesResponse,
   ListUserOrganizationsResponse,
   ListUserRepositoriesResponse,
   ListUserStarredRepositoriesResponse,
@@ -150,4 +151,17 @@ export async function listUserStarredRepositories(
   const url = `${GITDOT_SERVER_URL}/user/${username}/repositories-starred${qs ? `?${qs}` : ""}`;
   const response = await authFetch(url);
   return await handleResponse(response, ListUserStarredRepositoriesResponse);
+}
+
+export async function listUserContributedRepositories(
+  username: string,
+  opts?: { cursor?: string; limit?: number },
+): Promise<ListUserContributedRepositoriesResponse | null> {
+  const qs = toQueryString({ cursor: opts?.cursor, limit: opts?.limit });
+  const url = `${GITDOT_SERVER_URL}/user/${username}/repositories-contributed${qs ? `?${qs}` : ""}`;
+  const response = await authFetch(url);
+  return await handleResponse(
+    response,
+    ListUserContributedRepositoriesResponse,
+  );
 }

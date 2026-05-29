@@ -32,6 +32,17 @@ export const UserOrganizationResource = z.object({
 });
 export type UserOrganizationResource = z.infer<typeof UserOrganizationResource>;
 
+export const UserRepositoryResource = z.object({
+  owner: z.string(),
+  name: z.string(),
+  description: z.string().optional(),
+  stars: z.number().int().nonnegative(),
+  visibility: z.string(),
+  commit_count: z.number().int().nonnegative(),
+  last_commit_at: z.iso.datetime(),
+});
+export type UserRepositoryResource = z.infer<typeof UserRepositoryResource>;
+
 export const CurrentUserResource = z.object({
   id: z.uuid(),
   name: z.string(),
