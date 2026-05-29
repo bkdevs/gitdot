@@ -1202,12 +1202,11 @@ mod tests {
 
         let service = create_service(MockOrganizationRepo::new(), repo_repo);
         let request = create_repo_auth_request(Some(owner_id), RepositoryPermission::Admin);
-        let err = service
-            .verify_authorized_for_repository(request)
-            .await
-            .unwrap_err();
 
-        assert!(matches!(err, AuthorizationError::ReadonlyRepository));
+        // Admin ops are intentionally permitted on readonly repos; only Write is blocked.
+        let result = service.verify_authorized_for_repository(request).await;
+
+        assert!(result.is_ok());
     }
 
     #[tokio::test]
