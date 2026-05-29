@@ -14,6 +14,7 @@ pub struct Organization {
     pub links: Vec<String>,
 
     pub created_at: DateTime<Utc>,
+    pub image_updated_at: DateTime<Utc>,
 
     #[sqlx(json(nullable))]
     pub members: Option<Vec<OrganizationMember>>,
@@ -29,6 +30,7 @@ pub struct OrganizationMember {
     pub role_description: Option<String>,
 
     pub created_at: DateTime<Utc>,
+    pub image_updated_at: DateTime<Utc>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Type, Serialize, Deserialize)]

@@ -32,6 +32,7 @@ pub struct OrganizationResponse {
     pub links: Vec<String>,
 
     pub created_at: DateTime<Utc>,
+    pub image_updated_at: DateTime<Utc>,
 
     pub members: Option<Vec<OrganizationMemberResponse>>,
 }
@@ -46,6 +47,7 @@ impl From<Organization> for OrganizationResponse {
             readme: org.readme,
             links: org.links,
             created_at: org.created_at,
+            image_updated_at: org.image_updated_at,
             members: org
                 .members
                 .map(|members| members.into_iter().map(Into::into).collect()),
@@ -63,6 +65,7 @@ pub struct OrganizationMemberResponse {
     pub role_description: Option<String>,
 
     pub created_at: DateTime<Utc>,
+    pub image_updated_at: DateTime<Utc>,
 }
 
 impl From<OrganizationMember> for OrganizationMemberResponse {
@@ -74,6 +77,7 @@ impl From<OrganizationMember> for OrganizationMemberResponse {
             role: member.role,
             role_description: member.role_description,
             created_at: member.created_at,
+            image_updated_at: member.image_updated_at,
         }
     }
 }

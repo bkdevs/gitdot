@@ -103,6 +103,8 @@ pub struct CommitAuthorResource {
     pub name: Option<String>,
     pub git_name: String,
     pub email: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub image_updated_at: Option<DateTime<Utc>>,
 }
 
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

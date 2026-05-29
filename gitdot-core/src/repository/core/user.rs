@@ -13,7 +13,7 @@ use crate::{
 
 const USER_PROJECTION: &str = r#"
 SELECT
-    u.id, u.name, u.provider, u.created_at, u.display_name, u.location, u.readme, u.links,
+    u.id, u.name, u.provider, u.created_at, u.image_updated_at, u.display_name, u.location, u.readme, u.links,
     COALESCE(
         (SELECT json_agg(json_build_object(
             'id', e.id,
@@ -58,6 +58,8 @@ pub trait UserRepository: Send + Sync + Clone + 'static {
     ) -> Result<User, DatabaseError>;
 
     async fn get_by_id(&self, id: Uuid) -> Result<Option<User>, DatabaseError>;
+
+    async fn touch_image(&self, id: Uuid) -> Result<(), DatabaseError>;
 
     async fn get_by_email(&self, email: &str) -> Result<Option<User>, DatabaseError>;
 
@@ -124,14 +126,14 @@ impl UserRepository for UserRepositoryImpl {
             WITH new_user AS (
                 INSERT INTO core.users (name, provider, readme)
                 VALUES ($1, $2, $3)
-                RETURNING id, name, provider, created_at, display_name, location, readme, links
+                RETURNING id, name, provider, created_at, image_updated_at, display_name, location, readme, links
             ),
             new_email AS (
                 INSERT INTO core.user_emails (user_id, email, is_primary, is_verified, verified_at)
                 SELECT id, $4, TRUE, $5, CASE WHEN $5 THEN NOW() ELSE NULL END FROM new_user
             )
             SELECT
-                u.id, u.name, u.provider, u.created_at,
+                u.id, u.name, u.provider, u.created_at, u.image_updated_at,
                 u.display_name, u.location, u.readme, u.links,
                 COALESCE(
                     (SELECT json_agg(json_build_object(
@@ -201,7 +203,7 @@ impl UserRepository for UserRepositoryImpl {
         builder
             .push(" WHERE id = ")
             .push_bind(id)
-            .push(" RETURNING id, name, provider, created_at, display_name, location, readme, links) ")
+            .push(" RETURNING id, name, provider, created_at, image_updated_at, display_name, location, readme, links) ")
             .push(USER_PROJECTION)
             .push(" FROM u");
 
@@ -221,6 +223,14 @@ impl UserRepository for UserRepositoryImpl {
         .await?;
 
         Ok(user)
+    }
+
+    async fn touch_image(&self, id: Uuid) -> Result<(), DatabaseError> {
+        sqlx::query("UPDATE core.users SET image_updated_at = now() WHERE id = $1")
+            .bind(id)
+            .execute(&self.pool)
+            .await?;
+        Ok(())
     }
 
     async fn get_by_email(&self, email: &str) -> Result<Option<User>, DatabaseError> {

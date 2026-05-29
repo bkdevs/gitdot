@@ -26,7 +26,7 @@ SELECT
 
     -- Question Author
     (SELECT json_build_object(
-        'id', u.id, 'name', u.name, 'email', ue.email, 'created_at', u.created_at
+        'id', u.id, 'name', u.name, 'email', ue.email, 'created_at', u.created_at, 'image_updated_at', u.image_updated_at
     ) FROM core.users u JOIN core.user_emails ue ON ue.user_id = u.id AND ue.is_primary WHERE u.id = q.author_id) AS author,
 
     -- Question Comments (with user_vote)
@@ -42,7 +42,7 @@ SELECT
                     'user_vote', (SELECT v.value FROM core.votes v WHERE v.target_id = c.id AND v.user_id = $3),
                     'created_at', c.created_at,
                     'updated_at', c.updated_at,
-                    'author', (SELECT json_build_object('id', cu.id, 'name', cu.name, 'email', cue.email, 'created_at', cu.created_at)
+                    'author', (SELECT json_build_object('id', cu.id, 'name', cu.name, 'email', cue.email, 'created_at', cu.created_at, 'image_updated_at', cu.image_updated_at)
                                FROM core.users cu JOIN core.user_emails cue ON cue.user_id = cu.id AND cue.is_primary WHERE cu.id = c.author_id)
                 ) ORDER BY c.created_at ASC
             )
@@ -65,7 +65,7 @@ SELECT
                     'user_vote', (SELECT v.value FROM core.votes v WHERE v.target_id = a.id AND v.user_id = $3),
                     'created_at', a.created_at,
                     'updated_at', a.updated_at,
-                    'author', (SELECT json_build_object('id', au.id, 'name', au.name, 'email', aue.email, 'created_at', au.created_at)
+                    'author', (SELECT json_build_object('id', au.id, 'name', au.name, 'email', aue.email, 'created_at', au.created_at, 'image_updated_at', au.image_updated_at)
                                FROM core.users au JOIN core.user_emails aue ON aue.user_id = au.id AND aue.is_primary WHERE au.id = a.author_id),
                     'comments', COALESCE(
                         (
@@ -79,7 +79,7 @@ SELECT
                                     'user_vote', (SELECT v.value FROM core.votes v WHERE v.target_id = ac.id AND v.user_id = $3),
                                     'created_at', ac.created_at,
                                     'updated_at', ac.updated_at,
-                                    'author', (SELECT json_build_object('id', acu.id, 'name', acu.name, 'email', acue.email, 'created_at', acu.created_at)
+                                    'author', (SELECT json_build_object('id', acu.id, 'name', acu.name, 'email', acue.email, 'created_at', acu.created_at, 'image_updated_at', acu.image_updated_at)
                                                FROM core.users acu JOIN core.user_emails acue ON acue.user_id = acu.id AND acue.is_primary WHERE acu.id = ac.author_id)
                                 ) ORDER BY ac.created_at ASC
                             )
@@ -117,7 +117,7 @@ SELECT
 
     -- Question Author
     (SELECT json_build_object(
-        'id', u.id, 'name', u.name, 'email', ue.email, 'created_at', u.created_at
+        'id', u.id, 'name', u.name, 'email', ue.email, 'created_at', u.created_at, 'image_updated_at', u.image_updated_at
     ) FROM core.users u JOIN core.user_emails ue ON ue.user_id = u.id AND ue.is_primary WHERE u.id = q.author_id) AS author,
 
     -- Question Comments (with user_vote)
@@ -133,7 +133,7 @@ SELECT
                     'user_vote', (SELECT v.value FROM core.votes v WHERE v.target_id = c.id AND v.user_id = $4),
                     'created_at', c.created_at,
                     'updated_at', c.updated_at,
-                    'author', (SELECT json_build_object('id', cu.id, 'name', cu.name, 'email', cue.email, 'created_at', cu.created_at)
+                    'author', (SELECT json_build_object('id', cu.id, 'name', cu.name, 'email', cue.email, 'created_at', cu.created_at, 'image_updated_at', cu.image_updated_at)
                                FROM core.users cu JOIN core.user_emails cue ON cue.user_id = cu.id AND cue.is_primary WHERE cu.id = c.author_id)
                 ) ORDER BY c.created_at ASC
             )
@@ -156,7 +156,7 @@ SELECT
                     'user_vote', (SELECT v.value FROM core.votes v WHERE v.target_id = a.id AND v.user_id = $4),
                     'created_at', a.created_at,
                     'updated_at', a.updated_at,
-                    'author', (SELECT json_build_object('id', au.id, 'name', au.name, 'email', aue.email, 'created_at', au.created_at)
+                    'author', (SELECT json_build_object('id', au.id, 'name', au.name, 'email', aue.email, 'created_at', au.created_at, 'image_updated_at', au.image_updated_at)
                                FROM core.users au JOIN core.user_emails aue ON aue.user_id = au.id AND aue.is_primary WHERE au.id = a.author_id),
                     'comments', COALESCE(
                         (
@@ -170,7 +170,7 @@ SELECT
                                     'user_vote', (SELECT v.value FROM core.votes v WHERE v.target_id = ac.id AND v.user_id = $4),
                                     'created_at', ac.created_at,
                                     'updated_at', ac.updated_at,
-                                    'author', (SELECT json_build_object('id', acu.id, 'name', acu.name, 'email', acue.email, 'created_at', acu.created_at)
+                                    'author', (SELECT json_build_object('id', acu.id, 'name', acu.name, 'email', acue.email, 'created_at', acu.created_at, 'image_updated_at', acu.image_updated_at)
                                                FROM core.users acu JOIN core.user_emails acue ON acue.user_id = acu.id AND acue.is_primary WHERE acu.id = ac.author_id)
                                 ) ORDER BY ac.created_at ASC
                             )

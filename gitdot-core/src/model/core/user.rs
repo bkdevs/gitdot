@@ -17,6 +17,7 @@ pub struct User {
     pub links: Vec<String>,
 
     pub created_at: DateTime<Utc>,
+    pub image_updated_at: DateTime<Utc>,
 
     #[sqlx(json)]
     pub emails: Vec<UserEmail>,
@@ -55,6 +56,7 @@ pub struct UserOrganization {
     pub id: Uuid,
     pub name: String,
     pub display_name: Option<String>,
+    pub image_updated_at: DateTime<Utc>,
 
     pub role: OrganizationRole,
     pub role_description: Option<String>,

@@ -19,6 +19,8 @@ pub trait OrganizationRepository: Send + Sync + Clone + 'static {
 
     async fn get(&self, org_name: &str) -> Result<Option<Organization>, DatabaseError>;
 
+    async fn touch_image(&self, org_id: Uuid) -> Result<(), DatabaseError>;
+
     async fn is_member(&self, org_id: Uuid, user_id: Uuid) -> Result<bool, DatabaseError>;
 
     async fn add_member(
@@ -96,7 +98,7 @@ impl OrganizationRepository for OrganizationRepositoryImpl {
         let mut tx = self.pool.begin().await?;
 
         let org = sqlx::query_as::<_, Organization>(
-            "INSERT INTO core.organizations (name, readme) VALUES ($1, $2) RETURNING id, name, created_at, location, readme, links, display_name, NULL::json AS members",
+            "INSERT INTO core.organizations (name, readme) VALUES ($1, $2) RETURNING id, name, created_at, image_updated_at, location, readme, links, display_name, NULL::json AS members",
         )
         .bind(org_name)
         .bind(readme)
@@ -120,7 +122,7 @@ impl OrganizationRepository for OrganizationRepositoryImpl {
         let org = sqlx::query_as::<_, Organization>(
             r#"
             SELECT
-                o.id, o.name, o.created_at, o.location, o.readme, o.links, o.display_name,
+                o.id, o.name, o.created_at, o.image_updated_at, o.location, o.readme, o.links, o.display_name,
                 COALESCE(
                     (
                         SELECT json_agg(
@@ -130,7 +132,8 @@ impl OrganizationRepository for OrganizationRepositoryImpl {
                                 'user_name', u.name,
                                 'role', om.role,
                                 'role_description', om.role_description,
-                                'created_at', om.created_at
+                                'created_at', om.created_at,
+                                'image_updated_at', u.image_updated_at
                             ) ORDER BY om.created_at DESC, om.id DESC
                         )
                         FROM core.organization_members om
@@ -148,6 +151,14 @@ impl OrganizationRepository for OrganizationRepositoryImpl {
         .await?;
 
         Ok(org)
+    }
+
+    async fn touch_image(&self, org_id: Uuid) -> Result<(), DatabaseError> {
+        sqlx::query("UPDATE core.organizations SET image_updated_at = now() WHERE id = $1")
+            .bind(org_id)
+            .execute(&self.pool)
+            .await?;
+        Ok(())
     }
 
     async fn is_member(&self, org_id: Uuid, user_id: Uuid) -> Result<bool, DatabaseError> {
@@ -184,7 +195,7 @@ impl OrganizationRepository for OrganizationRepositoryImpl {
                 ON CONFLICT (user_id, organization_id) DO NOTHING
                 RETURNING id, user_id, role, role_description, created_at
             )
-            SELECT i.id, i.user_id, i.role, i.role_description, i.created_at, u.name AS user_name
+            SELECT i.id, i.user_id, i.role, i.role_description, i.created_at, u.name AS user_name, u.image_updated_at
             FROM inserted i
             JOIN core.users u ON i.user_id = u.id
             "#,
@@ -227,7 +238,7 @@ impl OrganizationRepository for OrganizationRepositoryImpl {
     ) -> Result<Option<OrganizationMember>, DatabaseError> {
         let member = sqlx::query_as::<_, OrganizationMember>(
             r#"
-            SELECT om.id, om.user_id, om.role, om.role_description, om.created_at, u.name AS user_name
+            SELECT om.id, om.user_id, om.role, om.role_description, om.created_at, u.name AS user_name, u.image_updated_at
             FROM core.organization_members om
             JOIN core.organizations o ON om.organization_id = o.id
             JOIN core.users u ON om.user_id = u.id
@@ -269,7 +280,7 @@ impl OrganizationRepository for OrganizationRepositoryImpl {
         builder
             .push(" WHERE name = ")
             .push_bind(org_name)
-            .push(" RETURNING id, name, created_at, location, readme, links, display_name, NULL::json AS members");
+            .push(" RETURNING id, name, created_at, image_updated_at, location, readme, links, display_name, NULL::json AS members");
 
         Ok(builder
             .build_query_as::<Organization>()
@@ -294,7 +305,7 @@ impl OrganizationRepository for OrganizationRepositoryImpl {
                   AND om.id = $2
                 RETURNING om.id, om.user_id, om.role, om.role_description, om.created_at
             )
-            SELECT updated.id, updated.user_id, updated.role, updated.role_description, updated.created_at, u.name AS user_name
+            SELECT updated.id, updated.user_id, updated.role, updated.role_description, updated.created_at, u.name AS user_name, u.image_updated_at
             FROM updated
             JOIN core.users u ON updated.user_id = u.id
             "#,
@@ -318,7 +329,7 @@ impl OrganizationRepository for OrganizationRepositoryImpl {
 
         let mut orgs = sqlx::query_as::<_, Organization>(
             r#"
-            SELECT id, name, created_at, location, readme, links, display_name, NULL::json AS members
+            SELECT id, name, created_at, image_updated_at, location, readme, links, display_name, NULL::json AS members
             FROM core.organizations
             WHERE ($1::timestamptz IS NULL OR (created_at, id) < ($1, $2))
             ORDER BY created_at DESC, id DESC
@@ -347,7 +358,7 @@ impl OrganizationRepository for OrganizationRepositoryImpl {
     async fn list_by_user_id(&self, user_id: Uuid) -> Result<Vec<Organization>, DatabaseError> {
         let orgs = sqlx::query_as::<_, Organization>(
             r#"
-            SELECT o.id, o.name, o.created_at, o.location, o.readme, o.links, o.display_name, NULL::json AS members
+            SELECT o.id, o.name, o.created_at, o.image_updated_at, o.location, o.readme, o.links, o.display_name, NULL::json AS members
             FROM core.organizations o
             JOIN core.organization_members om ON o.id = om.organization_id
             WHERE om.user_id = $1
@@ -372,7 +383,7 @@ impl OrganizationRepository for OrganizationRepositoryImpl {
 
         let mut orgs = sqlx::query_as::<_, UserOrganization>(
             r#"
-            SELECT o.id, o.name, o.display_name, om.role, om.role_description, om.created_at AS joined_at
+            SELECT o.id, o.name, o.display_name, om.role, om.role_description, om.created_at AS joined_at, o.image_updated_at
             FROM core.organization_members om
             JOIN core.organizations o ON om.organization_id = o.id
             WHERE om.user_id = $1

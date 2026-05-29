@@ -183,6 +183,7 @@ where
         let webp_bytes = self.image_client.convert_to_webp(request.bytes).await?;
         let key = format!("orgs/{}.webp", org.id);
         self.r2_client.upload_object(&key, webp_bytes).await?;
+        self.org_repo.touch_image(org.id).await?;
         Ok(())
     }
 

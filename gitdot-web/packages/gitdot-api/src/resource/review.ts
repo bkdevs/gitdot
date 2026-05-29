@@ -3,6 +3,7 @@ import { z } from "zod";
 export const ReviewAuthorResource = z.object({
   id: z.uuid(),
   name: z.string(),
+  image_updated_at: z.iso.datetime(),
 });
 export type ReviewAuthorResource = z.infer<typeof ReviewAuthorResource>;
 

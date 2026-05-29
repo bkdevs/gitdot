@@ -8,6 +8,7 @@ export const UserResource = z.object({
   links: z.array(z.string()).default([]),
   display_name: z.string().nullable().optional(),
   created_at: z.iso.datetime(),
+  image_updated_at: z.iso.datetime(),
 });
 export type UserResource = z.infer<typeof UserResource>;
 
@@ -27,6 +28,7 @@ export const UserOrganizationResource = z.object({
   role: z.string(),
   role_description: z.string().nullable().optional(),
   joined_at: z.iso.datetime(),
+  image_updated_at: z.iso.datetime(),
 });
 export type UserOrganizationResource = z.infer<typeof UserOrganizationResource>;
 
@@ -40,5 +42,6 @@ export const CurrentUserResource = z.object({
   links: z.array(z.string()).default([]),
   display_name: z.string().nullable().optional(),
   created_at: z.iso.datetime(),
+  image_updated_at: z.iso.datetime(),
 });
 export type CurrentUserResource = z.infer<typeof CurrentUserResource>;

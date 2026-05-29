@@ -17,6 +17,7 @@ impl IntoApi for OrganizationResponse {
             readme: self.readme,
             links: self.links,
             created_at: self.created_at,
+            image_updated_at: self.image_updated_at,
             members: self.members.into_api(),
         }
     }
@@ -35,6 +36,7 @@ impl IntoApi for OrganizationMemberResponse {
             },
             role_description: self.role_description,
             created_at: self.created_at,
+            image_updated_at: self.image_updated_at,
         }
     }
 }

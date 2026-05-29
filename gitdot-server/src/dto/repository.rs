@@ -53,6 +53,7 @@ impl IntoApi for CommitResponse {
                 name: self.author_name,
                 git_name: self.git_author_name,
                 email: self.git_author_email,
+                image_updated_at: self.author_image_updated_at,
             },
             review_number: self.review_number,
             diff_position: self.diff_position,
@@ -89,6 +90,7 @@ impl IntoApi for CommitAuthorResponse {
             name: None,
             git_name: self.name,
             email: self.email,
+            image_updated_at: None,
         }
     }
 }

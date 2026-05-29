@@ -10,6 +10,8 @@ pub struct Commit {
 
     pub author_id: Option<Uuid>,
     pub author_name: Option<String>,
+    pub author_image_updated_at: Option<DateTime<Utc>>,
+
     pub git_author_name: String,
     pub git_author_email: String,
 

@@ -36,6 +36,7 @@ pub struct UserResponse {
     pub display_name: Option<String>,
 
     pub created_at: DateTime<Utc>,
+    pub image_updated_at: DateTime<Utc>,
 }
 
 impl From<User> for UserResponse {
@@ -48,6 +49,7 @@ impl From<User> for UserResponse {
             links: user.links,
             display_name: user.display_name,
             created_at: user.created_at,
+            image_updated_at: user.image_updated_at,
         }
     }
 }
@@ -84,6 +86,7 @@ pub struct GetCurrentUserResponse {
     pub display_name: Option<String>,
 
     pub created_at: DateTime<Utc>,
+    pub image_updated_at: DateTime<Utc>,
 }
 
 #[derive(Debug, Clone)]
@@ -95,6 +98,7 @@ pub struct UserOrganizationResponse {
     pub role: OrganizationRole,
     pub role_description: Option<String>,
     pub joined_at: DateTime<Utc>,
+    pub image_updated_at: DateTime<Utc>,
 }
 
 impl From<UserOrganization> for UserOrganizationResponse {
@@ -106,6 +110,7 @@ impl From<UserOrganization> for UserOrganizationResponse {
             role: org.role,
             role_description: org.role_description,
             joined_at: org.joined_at,
+            image_updated_at: org.image_updated_at,
         }
     }
 }

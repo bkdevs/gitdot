@@ -20,6 +20,7 @@ impl IntoApi for UserResponse {
             links: self.links,
             display_name: self.display_name,
             created_at: self.created_at,
+            image_updated_at: self.image_updated_at,
         }
     }
 }
@@ -49,6 +50,7 @@ impl IntoApi for GetCurrentUserResponse {
             links: self.links,
             display_name: self.display_name,
             created_at: self.created_at,
+            image_updated_at: self.image_updated_at,
         }
     }
 }
@@ -66,6 +68,7 @@ impl IntoApi for UserOrganizationResponse {
             },
             role_description: self.role_description,
             joined_at: self.joined_at,
+            image_updated_at: self.image_updated_at,
         }
     }
 }
@@ -79,6 +82,7 @@ impl IntoApi for UserCommitResponse {
                 name: self.author_name,
                 git_name,
                 email,
+                image_updated_at: self.author_image_updated_at,
             }),
             _ => None,
         };

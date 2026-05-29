@@ -34,6 +34,7 @@ impl IntoApi for ReviewAuthorResponse {
         api::ReviewAuthorResource {
             id: self.id,
             name: self.name,
+            image_updated_at: self.image_updated_at,
         }
     }
 }

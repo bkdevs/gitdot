@@ -450,6 +450,7 @@ impl RepositoryRepository for RepositoryRepositoryImpl {
             name: String,
             provider: AuthProvider,
             created_at: DateTime<Utc>,
+            image_updated_at: DateTime<Utc>,
             display_name: Option<String>,
             location: Option<String>,
             readme: Option<String>,
@@ -459,7 +460,7 @@ impl RepositoryRepository for RepositoryRepositoryImpl {
 
         let rows = sqlx::query_as::<_, StarredUserRow>(
             r#"
-            SELECT u.id, u.name, u.provider, u.created_at, u.display_name,
+            SELECT u.id, u.name, u.provider, u.created_at, u.image_updated_at, u.display_name,
                    u.location, u.readme, u.links,
                    s.created_at AS starred_at
             FROM core.stars s
@@ -504,11 +505,12 @@ impl RepositoryRepository for RepositoryRepositoryImpl {
                     id: r.id,
                     name: r.name,
                     provider: r.provider,
-                    created_at: r.created_at,
                     display_name: r.display_name,
                     location: r.location,
                     readme: r.readme,
                     links: r.links,
+                    created_at: r.created_at,
+                    image_updated_at: r.image_updated_at,
                     emails: emails_by_user.remove(&r.id).unwrap_or_default(),
                 };
                 (user, r.starred_at)

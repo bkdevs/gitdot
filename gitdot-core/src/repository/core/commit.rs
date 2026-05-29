@@ -14,6 +14,7 @@ const COMMIT_PROJECTION: &str = "
     c.ref_name, c.sha, c.parent_sha, c.message, c.created_at,
     c.review_number, c.diff_position, c.diffs,
     au.name AS author_name,
+    au.image_updated_at AS author_image_updated_at,
     json_build_object(
         'id',         r.id,
         'owner_name', COALESCE(u.name, o.name),

@@ -24,6 +24,7 @@ pub struct ReviewResource {
 pub struct ReviewAuthorResource {
     pub id: Uuid,
     pub name: String,
+    pub image_updated_at: DateTime<Utc>,
 }
 
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

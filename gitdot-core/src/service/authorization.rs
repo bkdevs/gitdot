@@ -428,6 +428,7 @@ mod tests {
         impl OrganizationRepository for OrganizationRepo {
             async fn create(&self, org_name: &str, owner_id: Uuid, readme: Option<String>) -> Result<Organization, crate::error::DatabaseError>;
             async fn get(&self, org_name: &str) -> Result<Option<Organization>, crate::error::DatabaseError>;
+            async fn touch_image(&self, org_id: Uuid) -> Result<(), crate::error::DatabaseError>;
             async fn is_member(&self, org_id: Uuid, user_id: Uuid) -> Result<bool, crate::error::DatabaseError>;
             async fn add_member(&self, org_name: &str, user_name: &str, role: OrganizationRole, role_description: Option<String>) -> Result<Option<OrganizationMember>, crate::error::DatabaseError>;
             async fn get_member_role(&self, org_name: &str, user_id: Uuid) -> Result<Option<OrganizationRole>, crate::error::DatabaseError>;
@@ -501,6 +502,7 @@ mod tests {
             async fn get(&self, user_name: &str) -> Result<Option<User>, crate::error::DatabaseError>;
             async fn update(&self, id: Uuid, name: Option<String>, location: Option<String>, readme: Option<String>, links: Option<Vec<String>>, display_name: Option<String>) -> Result<User, crate::error::DatabaseError>;
             async fn get_by_id(&self, id: Uuid) -> Result<Option<User>, crate::error::DatabaseError>;
+            async fn touch_image(&self, id: Uuid) -> Result<(), crate::error::DatabaseError>;
             async fn get_by_email(&self, email: &str) -> Result<Option<User>, crate::error::DatabaseError>;
             async fn get_by_emails(&self, emails: &[String]) -> Result<Vec<(String, Uuid)>, crate::error::DatabaseError>;
             async fn verify_email(&self, id: Uuid) -> Result<(), crate::error::DatabaseError>;

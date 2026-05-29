@@ -15,6 +15,7 @@ pub struct UserResource {
     pub display_name: Option<String>,
 
     pub created_at: DateTime<Utc>,
+    pub image_updated_at: DateTime<Utc>,
 }
 
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -38,6 +39,7 @@ pub struct CurrentUserResource {
     pub display_name: Option<String>,
 
     pub created_at: DateTime<Utc>,
+    pub image_updated_at: DateTime<Utc>,
 }
 
 /// An organization as surfaced from a user's perspective — basic org info plus
@@ -52,6 +54,7 @@ pub struct UserOrganizationResource {
     pub role: String,
     pub role_description: Option<String>,
     pub joined_at: DateTime<Utc>,
+    pub image_updated_at: DateTime<Utc>,
 }
 
 /// A commit as surfaced on a user's profile. Most fields are optional so that

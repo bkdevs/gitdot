@@ -9,6 +9,7 @@ export const OrganizationMemberResource = z.object({
   role_description: z.string().nullable().optional(),
 
   created_at: z.iso.datetime(),
+  image_updated_at: z.iso.datetime(),
 });
 export type OrganizationMemberResource = z.infer<
   typeof OrganizationMemberResource
@@ -24,6 +25,7 @@ export const OrganizationResource = z.object({
   links: z.array(z.string()).default([]),
 
   created_at: z.iso.datetime(),
+  image_updated_at: z.iso.datetime(),
 
   members: z.array(OrganizationMemberResource).nullable().optional(),
 });

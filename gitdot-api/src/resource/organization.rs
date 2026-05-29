@@ -13,6 +13,7 @@ pub struct OrganizationResource {
     pub links: Vec<String>,
 
     pub created_at: DateTime<Utc>,
+    pub image_updated_at: DateTime<Utc>,
 
     pub members: Option<Vec<OrganizationMemberResource>>,
 }
@@ -27,4 +28,5 @@ pub struct OrganizationMemberResource {
     pub role_description: Option<String>,
 
     pub created_at: DateTime<Utc>,
+    pub image_updated_at: DateTime<Utc>,
 }

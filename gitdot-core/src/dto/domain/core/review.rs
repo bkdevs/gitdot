@@ -98,6 +98,7 @@ impl From<Review> for ReviewResponse {
 pub struct ReviewAuthorResponse {
     pub id: Uuid,
     pub name: String,
+    pub image_updated_at: DateTime<Utc>,
 }
 
 impl From<User> for ReviewAuthorResponse {
@@ -105,6 +106,7 @@ impl From<User> for ReviewAuthorResponse {
         Self {
             id: user.id,
             name: user.name,
+            image_updated_at: user.image_updated_at,
         }
     }
 }

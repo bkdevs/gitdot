@@ -166,6 +166,7 @@ where
             links: user.links,
             display_name: user.display_name,
             created_at: user.created_at,
+            image_updated_at: user.image_updated_at,
         })
     }
 
@@ -245,6 +246,7 @@ where
         let webp_bytes = self.image_client.convert_to_webp(request.bytes).await?;
         let key = format!("users/{}.webp", request.user_id);
         self.r2_client.upload_object(&key, webp_bytes).await?;
+        self.user_repo.touch_image(request.user_id).await?;
         Ok(())
     }
 
