@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use async_trait::async_trait;
 use chrono::Utc;
 use uuid::Uuid;
@@ -7,16 +5,16 @@ use uuid::Uuid;
 use crate::{
     client::{Git2Client, GitClient},
     dto::{
-        CommitResponse, CreateRepositoryCommitFilterRequest, CreateRepositoryRequest,
-        DeleteRepositoryCommitFilterRequest, DeleteRepositoryRequest, GetRepositoryActivityRequest,
-        GetRepositoryBlobDiffsRequest, GetRepositoryBlobRequest, GetRepositoryBlobsRequest,
+        CommitResponse, CreateRepositoryCommitFilterRequest,
+        CreateRepositoryRequest, DeleteRepositoryCommitFilterRequest, DeleteRepositoryRequest,
+        GetRepositoryActivityRequest, GetRepositoryBlobRequest, GetRepositoryBlobsRequest,
         GetRepositoryCommitBlobsRequest, GetRepositoryCommitRequest, GetRepositoryPathsRequest,
         GetRepositoryRequest, InitialCommitFile, ListRepositoryCommitFiltersRequest,
         ListRepositoryCommitsRequest, MAX_PER_PAGE_LIMIT, Page, RepositoryActivityEvent,
-        RepositoryBlobDiffsResponse, RepositoryBlobPairResponse, RepositoryBlobResponse,
-        RepositoryBlobsResponse, RepositoryCommitFilterResponse, RepositoryDiffFileResponse,
-        RepositoryPathsResponse, RepositoryResponse, StarRepositoryRequest, UnstarRepositoryRequest,
-        UpdateRepositoryCommitFilterRequest, UpdateRepositoryRequest,
+        RepositoryBlobPairResponse, RepositoryBlobResponse, RepositoryBlobsResponse,
+        RepositoryCommitFilterResponse, RepositoryPathsResponse, RepositoryResponse,
+        StarRepositoryRequest, UnstarRepositoryRequest, UpdateRepositoryCommitFilterRequest,
+        UpdateRepositoryRequest,
     },
     error::{ConflictError, NotFoundError, OptionNotFoundExt, RepositoryError},
     model::{CommitDiff, RepositoryOwnerType},
@@ -129,20 +127,6 @@ pub trait RepositoryService: Send + Sync + 'static {
         repo: &str,
         ref_name: &str,
     ) -> Result<String, RepositoryError>;
-
-    /// Returns, for one file `path`, the diff between consecutive commits in
-    /// `commit_shas`.
-    ///
-    /// Reads the file's blob at each commit and computes added/removed line
-    /// counts for each adjacent pair via a git2 patch. The result maps each
-    /// commit SHA to its diff against the next entry.
-    ///
-    /// # Errors
-    /// - [`RepositoryError::NotAFile`] if `path` resolves to a folder at any ref.
-    async fn get_repository_blob_diffs(
-        &self,
-        request: GetRepositoryBlobDiffsRequest,
-    ) -> Result<RepositoryBlobDiffsResponse, RepositoryError>;
 
     /// Returns a single stored commit (metadata plus its per-file diff stats)
     /// for `owner/repo` at `sha`, read from the database.
@@ -623,33 +607,6 @@ where
             .map_err(Into::into)
     }
 
-    async fn get_repository_blob_diffs(
-        &self,
-        request: GetRepositoryBlobDiffsRequest,
-    ) -> Result<RepositoryBlobDiffsResponse, RepositoryError> {
-        let files = self
-            .git_client
-            .get_repo_blobs(
-                &request.owner_name,
-                &request.name,
-                std::slice::from_ref(&request.path),
-                &request.commit_shas,
-            )
-            .await
-            .map_err(RepositoryError::from)?;
-
-        let mut diffs = HashMap::new();
-        for (i, ref_name) in request.commit_shas.iter().enumerate() {
-            let diff = diff_file_pair(
-                files.get(i + 1).and_then(|o| o.as_ref()),
-                files.get(i).and_then(|o| o.as_ref()),
-            );
-            diffs.insert(ref_name.clone(), diff);
-        }
-
-        Ok(RepositoryBlobDiffsResponse { diffs })
-    }
-
     async fn get_repository_commit(
         &self,
         request: GetRepositoryCommitRequest,
@@ -983,41 +940,6 @@ where
         }
 
         Ok(())
-    }
-}
-
-fn diff_file_pair(
-    left: Option<&RepositoryBlobResponse>,
-    right: Option<&RepositoryBlobResponse>,
-) -> RepositoryDiffFileResponse {
-    let path = right
-        .map(|r| r.path.clone())
-        .or_else(|| left.map(|l| l.path.clone()))
-        .unwrap_or_default();
-
-    let left_bytes = left.map(|l| l.content.as_bytes());
-    let right_bytes = right.map(|r| r.content.as_bytes());
-
-    let (lines_added, lines_removed) = match git2::Patch::from_buffers(
-        left_bytes.unwrap_or(&[]),
-        None,
-        right_bytes.unwrap_or(&[]),
-        None,
-        None,
-    ) {
-        Ok(patch) => patch
-            .line_stats()
-            .map(|(_, ins, del)| (ins as u32, del as u32))
-            .unwrap_or((0, 0)),
-        Err(_) => (0, 0),
-    };
-
-    RepositoryDiffFileResponse {
-        path,
-        left_content: left.map(|l| l.content.clone()),
-        right_content: right.map(|r| r.content.clone()),
-        lines_added,
-        lines_removed,
     }
 }
 

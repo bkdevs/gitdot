@@ -30,17 +30,6 @@ export const CommitDiffResource = z.object({
 });
 export type CommitDiffResource = z.infer<typeof CommitDiffResource>;
 
-export const RepositoryDiffFileResource = z.object({
-  path: z.string(),
-  lines_added: z.number().int(),
-  lines_removed: z.number().int(),
-  left_content: z.string().optional(),
-  right_content: z.string().optional(),
-});
-export type RepositoryDiffFileResource = z.infer<
-  typeof RepositoryDiffFileResource
->;
-
 export const RepositoryCommitResource = z.object({
   owner_name: z.string(),
   repo_name: z.string(),
@@ -108,13 +97,6 @@ export const RepositoryBlobPairResource = z.object({
 });
 export type RepositoryBlobPairResource = z.infer<
   typeof RepositoryBlobPairResource
->;
-
-export const RepositoryBlobDiffsResource = z.object({
-  diffs: z.record(z.string(), RepositoryDiffFileResource),
-});
-export type RepositoryBlobDiffsResource = z.infer<
-  typeof RepositoryBlobDiffsResource
 >;
 
 export const RepositoryResource = z.object({

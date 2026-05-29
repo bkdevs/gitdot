@@ -5,8 +5,8 @@ import {
   CreateRepositoryCommitFilterResponse,
   type CreateRepositoryRequest,
   GetRepositoryActivityResponse,
-  type GetRepositoryBlobDiffsRequest,
   type GetRepositoryBlobRequest,
+  type GetRepositoryBlobsRequest,
   GetRepositoryCommitBlobsResponse,
   type GetRepositoryPathsRequest,
   type GetRepositoryResourcesRequest,
@@ -15,9 +15,9 @@ import {
   type ListRepositoryCommitsRequest,
   ListRepositoryCommitsResponse,
   ListTrendingRepositoriesResponse,
-  RepositoryBlobDiffsResource,
   type RepositoryBlobPairResource,
   RepositoryBlobResource,
+  RepositoryBlobsResource,
   type RepositoryCommitFilterResource,
   RepositoryCommitResource,
   RepositoryPathsResource,
@@ -171,16 +171,16 @@ export async function deleteRepositoryCommitFilter(
   await handleEmptyResponse(response);
 }
 
-export async function getRepositoryBlobDiffs(
+export async function getRepositoryBlobs(
   owner: string,
   repo: string,
-  request: GetRepositoryBlobDiffsRequest,
-): Promise<RepositoryBlobDiffsResource | null> {
+  request: GetRepositoryBlobsRequest,
+): Promise<RepositoryBlobsResource | null> {
   const response = await authPost(
-    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/blob/diffs`,
+    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/blobs`,
     request,
   );
-  return await handleResponse(response, RepositoryBlobDiffsResource);
+  return await handleResponse(response, RepositoryBlobsResource);
 }
 
 export async function getRepositoryCommitBlobs(

@@ -5,7 +5,6 @@ export * from "./delete-repository-commit-filter";
 export * from "./get-repository";
 export * from "./get-repository-activity";
 export * from "./get-repository-blob";
-export * from "./get-repository-blob-diffs";
 export * from "./get-repository-blobs";
 export * from "./get-repository-commit";
 export * from "./get-repository-commit-blobs";

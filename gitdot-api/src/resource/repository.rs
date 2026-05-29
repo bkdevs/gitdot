@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -98,22 +96,6 @@ pub struct CommitDiffResource {
     pub path: String,
     pub lines_added: u32,
     pub lines_removed: u32,
-}
-
-#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct RepositoryDiffFileResource {
-    pub path: String,
-    pub lines_added: u32,
-    pub lines_removed: u32,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub left_content: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub right_content: Option<String>,
-}
-
-#[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct RepositoryBlobDiffsResource {
-    pub diffs: HashMap<String, RepositoryDiffFileResource>,
 }
 
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

@@ -1,13 +1,15 @@
 "use client";
 
 import type {
+  RepositoryBlobPairResource,
+  RepositoryBlobResource,
   RepositoryCommitResource,
   RepositoryPathsResource,
 } from "gitdot-api";
 import type { Root } from "hast";
 import { openIdb } from "../db";
 import { fetchCommitBlobs } from "../diff/client";
-import type { DiffData } from "../diff/types";
+import type { DiffData, DiffEntry } from "../diff/types";
 import { createShikiWorker, createSyncWorker } from "../workers";
 import type { ShikiRequest, ShikiResponse } from "../workers/shiki";
 import type { SyncResponse } from "../workers/sync";
@@ -164,5 +166,27 @@ export class ClientProvider extends GitdotProvider {
     });
     this.diffs.set(key, data);
     return data;
+  }
+
+  async renderBlob(
+    old: RepositoryBlobResource | null,
+    next: RepositoryBlobResource | null,
+  ): Promise<DiffEntry> {
+    const path = old?.path ?? next?.path ?? "";
+    const pair: RepositoryBlobPairResource = {
+      path,
+      old: old ?? undefined,
+      new: next ?? undefined,
+    };
+    const data = await new Promise<DiffData>((resolve) => {
+      const id = crypto.randomUUID();
+      this.shikiDiffRequests.set(id, resolve);
+      this.shikiWorker?.port.postMessage({
+        id,
+        kind: "diff",
+        pairs: [pair],
+      } satisfies ShikiRequest);
+    });
+    return data[0];
   }
 }

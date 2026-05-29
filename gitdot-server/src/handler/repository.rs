@@ -5,7 +5,6 @@ mod delete_repository_commit_filter;
 mod get_repository;
 mod get_repository_activity;
 mod get_repository_blob;
-mod get_repository_blob_diffs;
 mod get_repository_blobs;
 mod get_repository_commit;
 mod get_repository_commit_blobs;
@@ -34,7 +33,6 @@ use delete_repository_commit_filter::delete_repository_commit_filter;
 use get_repository::get_repository;
 use get_repository_activity::get_repository_activity;
 use get_repository_blob::get_repository_blob;
-use get_repository_blob_diffs::get_repository_blob_diffs;
 use get_repository_blobs::get_repository_blobs;
 use get_repository_commit::get_repository_commit;
 use get_repository_commit_blobs::get_repository_commit_blobs;
@@ -61,10 +59,6 @@ pub fn create_repository_router() -> Router<AppState> {
                 .delete(delete_repository),
         )
         .route("/repository/{owner}/{repo}/blob", get(get_repository_blob))
-        .route(
-            "/repository/{owner}/{repo}/blob/diffs",
-            post(get_repository_blob_diffs),
-        )
         .route(
             "/repository/{owner}/{repo}/blobs",
             post(get_repository_blobs),

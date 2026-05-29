@@ -5,7 +5,6 @@ mod delete_repository_commit_filter;
 mod get_repository;
 mod get_repository_activity;
 mod get_repository_blob;
-mod get_repository_blob_diffs;
 mod get_repository_blobs;
 mod get_repository_commit;
 mod get_repository_commit_blobs;
@@ -29,7 +28,6 @@ pub use delete_repository_commit_filter::DeleteRepositoryCommitFilterRequest;
 pub use get_repository::GetRepositoryRequest;
 pub use get_repository_activity::{GetRepositoryActivityRequest, RepositoryActivityEvent};
 pub use get_repository_blob::{GetRepositoryBlobRequest, RepositoryBlobResponse};
-pub use get_repository_blob_diffs::{GetRepositoryBlobDiffsRequest, RepositoryBlobDiffsResponse};
 pub use get_repository_blobs::{GetRepositoryBlobsRequest, RepositoryBlobsResponse};
 pub use get_repository_commit::GetRepositoryCommitRequest;
 pub use get_repository_commit_blobs::GetRepositoryCommitBlobsRequest;
@@ -113,15 +111,6 @@ impl From<&git2::Commit<'_>> for RepositoryCommitResponse {
 #[derive(Debug, Clone)]
 pub struct CommitDiffResponse {
     pub path: String,
-    pub lines_added: u32,
-    pub lines_removed: u32,
-}
-
-#[derive(Debug, Clone)]
-pub struct RepositoryDiffFileResponse {
-    pub path: String,
-    pub left_content: Option<String>,
-    pub right_content: Option<String>,
     pub lines_added: u32,
     pub lines_removed: u32,
 }

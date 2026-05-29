@@ -1,5 +1,7 @@
-import type { RepositoryBlobPairResource } from "gitdot-api";
-import type { DiffEntry } from "./types";
+import type {
+  RepositoryBlobPairResource,
+  RepositoryBlobResource,
+} from "gitdot-api";
 
 export async function fetchCommitBlobs(
   owner: string,
@@ -10,13 +12,13 @@ export async function fetchCommitBlobs(
   return fetch(`/api/repository/diff?${params}`).then((res) => res.json());
 }
 
-export async function fetchBlobDiffs(
+export async function fetchFileBlobs(
   owner: string,
   repo: string,
-  commitShas: string[],
   path: string,
-): Promise<Record<string, DiffEntry>> {
+  refs: string[],
+): Promise<RepositoryBlobResource[]> {
   const params = new URLSearchParams({ owner, repo, path });
-  for (const sha of commitShas) params.append("sha", sha);
-  return fetch(`/api/repository/blob-diff?${params}`).then((res) => res.json());
+  for (const ref of refs) params.append("ref", ref);
+  return fetch(`/api/repository/blobs?${params}`).then((res) => res.json());
 }

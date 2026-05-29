@@ -2,10 +2,9 @@ use gitdot_api::resource::repository as api;
 use gitdot_core::{
     dto::{
         CommitAuthorResponse, CommitResponse, PathType, RepositoryActivityEvent,
-        RepositoryBlobDiffsResponse, RepositoryBlobPairResponse, RepositoryBlobResponse,
-        RepositoryBlobsResponse, RepositoryCommitFilterResponse, RepositoryCommitResponse,
-        RepositoryCommitsResponse, RepositoryDiffFileResponse, RepositoryPath,
-        RepositoryPathsResponse, RepositoryResponse,
+        RepositoryBlobPairResponse, RepositoryBlobResponse, RepositoryBlobsResponse,
+        RepositoryCommitFilterResponse, RepositoryCommitResponse, RepositoryCommitsResponse,
+        RepositoryPath, RepositoryPathsResponse, RepositoryResponse,
     },
     model::CommitDiff,
 };
@@ -170,32 +169,6 @@ impl IntoApi for RepositoryBlobPairResponse {
             path: self.path,
             old: self.old.map(IntoApi::into_api),
             new: self.new.map(IntoApi::into_api),
-        }
-    }
-}
-
-impl IntoApi for RepositoryBlobDiffsResponse {
-    type ApiType = api::RepositoryBlobDiffsResource;
-    fn into_api(self) -> Self::ApiType {
-        api::RepositoryBlobDiffsResource {
-            diffs: self
-                .diffs
-                .into_iter()
-                .map(|(k, v)| (k, v.into_api()))
-                .collect(),
-        }
-    }
-}
-
-impl IntoApi for RepositoryDiffFileResponse {
-    type ApiType = api::RepositoryDiffFileResource;
-    fn into_api(self) -> Self::ApiType {
-        api::RepositoryDiffFileResource {
-            path: self.path,
-            lines_added: self.lines_added,
-            lines_removed: self.lines_removed,
-            left_content: self.left_content,
-            right_content: self.right_content,
         }
     }
 }
