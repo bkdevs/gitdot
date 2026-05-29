@@ -256,9 +256,17 @@ function NewMigration({
               <DropdownMenu>
                 <DropdownMenuTrigger className="flex items-center gap-1.5 hover:text-muted-foreground transition-colors cursor-pointer">
                   {selectedOrg ? (
-                    <OrgImage orgId={selectedOrg.id} px={14} />
+                    <OrgImage
+                      orgId={selectedOrg.id}
+                      updatedAt={selectedOrg.image_updated_at}
+                      px={14}
+                    />
                   ) : (
-                    <UserImage userId={user?.id} px={14} />
+                    <UserImage
+                      userId={user?.id}
+                      updatedAt={user?.image_updated_at}
+                      px={14}
+                    />
                   )}
                   {gitdotAccountName
                     ? `gitdot.io/${gitdotAccountName}`
@@ -271,7 +279,11 @@ function NewMigration({
                       className="text-xs"
                       onClick={() => setGitdotAccount(user.name)}
                     >
-                      <UserImage userId={user.id} px={14} />
+                      <UserImage
+                        userId={user.id}
+                        updatedAt={user.image_updated_at}
+                        px={14}
+                      />
                       gitdot.io/{user.name}
                     </DropdownMenuItem>
                   )}
@@ -281,7 +293,11 @@ function NewMigration({
                       className="text-xs"
                       onClick={() => setGitdotAccount(m.name)}
                     >
-                      <OrgImage orgId={m.id} px={14} />
+                      <OrgImage
+                        orgId={m.id}
+                        updatedAt={m.image_updated_at}
+                        px={14}
+                      />
                       gitdot.io/{m.name}
                     </DropdownMenuItem>
                   ))}

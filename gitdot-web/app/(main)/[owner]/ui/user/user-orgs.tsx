@@ -24,7 +24,7 @@ export function UserOrgs({
         {memberships.map((m) => (
           <div key={m.id} className="grid grid-cols-[auto_1fr_auto] gap-x-3">
             <Link href={`/${m.name}`} className="peer row-span-2 self-start">
-              <OrgImage orgId={m.id} px={32} />
+              <OrgImage orgId={m.id} updatedAt={m.image_updated_at} px={32} />
             </Link>
             <Link
               href={`/${m.name}`}

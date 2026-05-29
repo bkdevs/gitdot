@@ -130,7 +130,7 @@ function ProfilePrimary({ user }: { user: UserResource }) {
               <span
                 className={`transition-opacity duration-300${uploading ? " opacity-60" : ""}`}
               >
-                <UserImage userId={user.id} />
+                <UserImage userId={user.id} updatedAt={user.image_updated_at} />
               </span>
               <div
                 className={`absolute -inset-0.5 rounded-full border border-transparent border-t-foreground/50 animate-spin transition-opacity duration-300${uploading ? "" : " opacity-0"}`}

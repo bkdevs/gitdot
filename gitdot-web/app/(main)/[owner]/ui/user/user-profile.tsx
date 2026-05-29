@@ -7,7 +7,7 @@ export function UserProfile({ user }: { user: UserResource }) {
   return (
     <div className="flex flex-col items-end">
       <div className="mb-0.5">
-        <UserImage px={36} userId={user.id} />
+        <UserImage px={36} userId={user.id} updatedAt={user.image_updated_at} />
       </div>
       <p className="font-semibold dark:font-normal text-sm mb-0.5">
         {user.name}

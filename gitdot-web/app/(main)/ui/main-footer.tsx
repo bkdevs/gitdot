@@ -70,7 +70,7 @@ function AuthStatusLoggedIn({ user }: { user: UserResource }) {
           done ? "opacity-100" : "opacity-0",
         )}
       >
-        <UserImage userId={user.id} px={16} />
+        <UserImage userId={user.id} updatedAt={user.image_updated_at} px={16} />
       </span>
     </Link>
   );

@@ -91,6 +91,7 @@ const CommitRow = memo(function CommitRow({
         <UserImage
           userId={commit.author.id}
           username={commit.author.name ?? commit.author.git_name}
+          updatedAt={commit.author.image_updated_at}
           px={14}
         />
         <UserSlug user={commit.author} />

@@ -36,6 +36,7 @@ export function CommitHeader({
           <UserImage
             userId={author.id}
             username={author.name ?? author.git_name}
+            updatedAt={author.image_updated_at}
             px={20}
           />
           <span>

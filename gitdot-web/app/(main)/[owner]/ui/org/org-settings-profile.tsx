@@ -133,7 +133,7 @@ function OrgProfilePrimary({ org }: { org: OrganizationResource }) {
               <span
                 className={`transition-opacity duration-300${uploading ? " opacity-60" : ""}`}
               >
-                <OrgImage orgId={org.id} />
+                <OrgImage orgId={org.id} updatedAt={org.image_updated_at} />
               </span>
               <div
                 className={`absolute -inset-0.5 rounded-full border border-transparent border-t-foreground/50 animate-spin transition-opacity duration-300${uploading ? "" : " opacity-0"}`}

@@ -8,11 +8,13 @@ import { cn } from "@/util";
 export function UserImage({
   userId,
   username,
+  updatedAt,
   px = 32,
   className,
 }: {
   userId?: string;
   username?: string;
+  updatedAt?: string | null;
   px?: number;
   className?: string;
 }) {
@@ -28,9 +30,12 @@ export function UserImage({
     );
   }
 
+  const version = updatedAt ? `?v=${new Date(updatedAt).getTime()}` : "";
+
   return (
     <Image
-      src={`https://images.gitdot.io/users/${userId}.webp`}
+      // TODO: make images url configurable
+      src={`https://images.gitdot.io/users/${userId}.webp${version}`}
       alt="user avatar"
       width={px}
       height={px}

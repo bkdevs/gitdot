@@ -56,13 +56,17 @@ function AuthorRow({
   approvedCount,
   totalDiffs,
 }: {
-  author: { id: string; name: string };
+  author: { id: string; name: string; image_updated_at?: string | null };
   approvedCount: number;
   totalDiffs: number;
 }) {
   return (
     <div className="flex items-center gap-1.5">
-      <UserImage userId={author.id} px={18} />
+      <UserImage
+        userId={author.id}
+        updatedAt={author.image_updated_at}
+        px={18}
+      />
       <span className="text-sm text-muted-foreground">{author.name}</span>
       <span className="text-xs text-muted-foreground/50">(author)</span>
       <span className="font-mono text-xs text-muted-foreground ml-auto">
@@ -89,7 +93,11 @@ function ReviewerRow({
   return (
     <>
       <div className="group flex items-center gap-1.5">
-        <UserImage userId={reviewer.reviewer_id} px={18} />
+        <UserImage
+          userId={reviewer.reviewer_id}
+          updatedAt={reviewer.user?.image_updated_at}
+          px={18}
+        />
         <span className="text-sm text-muted-foreground">{name}</span>
         <button
           type="button"

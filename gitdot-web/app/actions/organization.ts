@@ -166,6 +166,7 @@ export async function uploadOrganizationImageAction(
   try {
     const ok = await uploadOrganizationImage(orgName, file);
     if (!ok) return { error: "Upload failed — please try again." };
+    refresh();
     return { success: true };
   } catch (e) {
     console.error("uploadOrganizationImageAction failed:", e);

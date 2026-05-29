@@ -140,9 +140,17 @@ export function NewRepoDialog() {
                       className="flex items-center gap-1.5 hover:text-muted-foreground transition-colors cursor-pointer"
                     >
                       {selectedMembership ? (
-                        <OrgImage orgId={selectedMembership.id} px={14} />
+                        <OrgImage
+                          orgId={selectedMembership.id}
+                          updatedAt={selectedMembership.image_updated_at}
+                          px={14}
+                        />
                       ) : (
-                        <UserImage userId={user?.id} px={14} />
+                        <UserImage
+                          userId={user?.id}
+                          updatedAt={user?.image_updated_at}
+                          px={14}
+                        />
                       )}
                       {owner}
                       <ChevronDown className="size-3" />
@@ -153,7 +161,11 @@ export function NewRepoDialog() {
                           className="text-xs"
                           onClick={() => setOwner(user.name)}
                         >
-                          <UserImage userId={user.id} px={14} />
+                          <UserImage
+                            userId={user.id}
+                            updatedAt={user.image_updated_at}
+                            px={14}
+                          />
                           {user.name}
                         </DropdownMenuItem>
                       )}
@@ -163,7 +175,11 @@ export function NewRepoDialog() {
                           className="text-xs"
                           onClick={() => setOwner(m.name)}
                         >
-                          <OrgImage orgId={m.id} px={14} />
+                          <OrgImage
+                            orgId={m.id}
+                            updatedAt={m.image_updated_at}
+                            px={14}
+                          />
                           {m.name}
                         </DropdownMenuItem>
                       ))}

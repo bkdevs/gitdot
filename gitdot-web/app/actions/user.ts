@@ -297,6 +297,7 @@ export async function uploadUserImageAction(
       return { error: "Upload failed — please try again." };
     }
     console.log("[uploadUserImageAction] success");
+    refresh();
     return { success: true };
   } catch (e) {
     console.error("[uploadUserImageAction] threw:", e, {

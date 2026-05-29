@@ -70,7 +70,11 @@ function ReviewDiffFileBubble({
         isActive ? setActiveComment(null) : setActiveComment(parentComment)
       }
     >
-      <UserImage userId={parentComment.author_id} px={16} />
+      <UserImage
+        userId={parentComment.author_id}
+        updatedAt={parentComment.author?.image_updated_at}
+        px={16}
+      />
       <span
         className={cn(
           "text-xs font-sans",

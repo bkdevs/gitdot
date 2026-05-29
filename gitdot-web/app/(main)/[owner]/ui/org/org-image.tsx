@@ -3,7 +3,15 @@
 import { Building2 } from "lucide-react";
 import Image from "next/image";
 
-export function OrgImage({ orgId, px = 32 }: { orgId?: string; px?: number }) {
+export function OrgImage({
+  orgId,
+  updatedAt,
+  px = 32,
+}: {
+  orgId?: string;
+  updatedAt?: string | null;
+  px?: number;
+}) {
   if (!orgId) {
     return (
       <Building2
@@ -13,9 +21,12 @@ export function OrgImage({ orgId, px = 32 }: { orgId?: string; px?: number }) {
     );
   }
 
+  const version = updatedAt ? `?v=${new Date(updatedAt).getTime()}` : "";
+
   return (
     <Image
-      src={`https://images.gitdot.io/orgs/${orgId}.webp`}
+      // TODO: make images url configurable
+      src={`https://images.gitdot.io/orgs/${orgId}.webp${version}`}
       alt="organization avatar"
       width={px}
       height={px}

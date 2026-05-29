@@ -61,7 +61,13 @@ function FileCommit({
   commit: {
     sha: string;
     message: string;
-    author: { id?: string; name?: string; git_name: string; email: string };
+    author: {
+      id?: string;
+      name?: string;
+      git_name: string;
+      email: string;
+      image_updated_at?: string | null;
+    };
     date: string;
   };
   diffStat: { lines_added: number; lines_removed: number } | null | undefined;
@@ -89,6 +95,7 @@ function FileCommit({
           <UserImage
             userId={commit.author.id}
             username={commit.author.name ?? commit.author.git_name}
+            updatedAt={commit.author.image_updated_at}
             px={16}
           />
           <UserSlug user={commit.author} className="ml-1" />

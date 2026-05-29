@@ -29,7 +29,12 @@ export function OrgSettingsMembers({
           className="flex items-start justify-between gap-3 px-4 py-3"
         >
           <div className="flex items-start gap-3 min-w-0">
-            <UserImage userId={member.user_id} px={32} className="mt-0.5" />
+            <UserImage
+              userId={member.user_id}
+              updatedAt={member.image_updated_at}
+              px={32}
+              className="mt-0.5"
+            />
             <div className="flex flex-col flex-1 min-w-0">
               <span className="font-sans text-sm font-medium dark:font-normal mb-0.5">
                 {member.user_name}

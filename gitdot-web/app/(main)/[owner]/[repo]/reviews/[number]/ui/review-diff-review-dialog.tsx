@@ -266,7 +266,11 @@ function DraftCommentPreview({
   return (
     <div className="group flex gap-2 px-2.5 py-1">
       <div className="pt-0.5 shrink-0">
-        <UserImage userId={comment.author_id} px={16} />
+        <UserImage
+          userId={comment.author_id}
+          updatedAt={comment.author?.image_updated_at}
+          px={16}
+        />
       </div>
       <div className="flex flex-col gap-0.5 min-w-0 flex-1">
         {comment.file_path && (

@@ -64,6 +64,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         id: current.id,
         name: current.name,
         created_at: current.created_at,
+        image_updated_at: current.image_updated_at,
         location: current.location,
         readme: current.readme,
         links: current.links,

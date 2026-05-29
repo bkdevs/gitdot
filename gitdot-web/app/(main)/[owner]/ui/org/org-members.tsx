@@ -75,7 +75,11 @@ export function OrgMembers({
               href={`/${member.user_name}`}
               className="peer row-span-2 self-start"
             >
-              <UserImage userId={member.user_id} px={32} />
+              <UserImage
+                userId={member.user_id}
+                updatedAt={member.image_updated_at}
+                px={32}
+              />
             </Link>
             <Link
               href={`/${member.user_name}`}

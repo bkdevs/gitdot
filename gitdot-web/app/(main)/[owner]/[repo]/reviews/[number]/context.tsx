@@ -297,7 +297,13 @@ export function ReviewProvider({
       resolved: false,
       created_at: now,
       updated_at: now,
-      author: user ? { id: user.id, name: user.name } : null,
+      author: user
+        ? {
+            id: user.id,
+            name: user.name,
+            image_updated_at: user.image_updated_at,
+          }
+        : null,
     };
 
     setDraftComments((prev) => [...prev, draftComment]);

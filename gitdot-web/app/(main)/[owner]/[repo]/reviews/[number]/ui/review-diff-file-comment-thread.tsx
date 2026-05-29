@@ -74,7 +74,13 @@ export function ReviewDiffFileCommentThread({
       resolved: false,
       created_at: now,
       updated_at: now,
-      author: user ? { id: user.id, name: user.name } : null,
+      author: user
+        ? {
+            id: user.id,
+            name: user.name,
+            image_updated_at: user.image_updated_at,
+          }
+        : null,
     };
 
     setThreadComments((prev) => [...prev, optimistic]);
@@ -94,7 +100,11 @@ export function ReviewDiffFileCommentThread({
           {threadComments.map((comment) => (
             <div key={comment.id} className="flex gap-2 px-2 py-1.5">
               <div className="pt-0.5 shrink-0">
-                <UserImage userId={comment.author_id} px={18} />
+                <UserImage
+                  userId={comment.author_id}
+                  updatedAt={comment.author?.image_updated_at}
+                  px={18}
+                />
               </div>
               <div className="flex flex-col flex-1 min-w-0">
                 <div className="flex items-center gap-1.5">
