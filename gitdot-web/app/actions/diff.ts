@@ -57,6 +57,12 @@ export async function renderBlobDiffsAction(
   return Object.fromEntries(entries);
 }
 
+// Next.js' data cache rejects any entry over 2MB (the rendered diff is
+// measured via JSON.stringify). In dev this rejection throws and surfaces as a
+// "failed to pipe response" error; in prod it silently skips the write. Keep
+// headroom below 2MB for the cache-entry wrapper so the write never fails.
+const MAX_CACHED_DIFF_BYTES = 1.5 * 1024 * 1024;
+
 export async function renderCommitDiffAction(
   owner: string,
   repo: string,
@@ -67,13 +73,23 @@ export async function renderCommitDiffAction(
 
   // note: this is after the backend API call so authz works
   // diffs never change given a set of files, so this is consistent per.
-  return unstable_cache(
-    () => renderDiffs(result.files),
+  // Only cache when the rendered diff fits under the data cache limit;
+  // oversized commits fall back to an uncached render so the response never
+  // fails to pipe.
+  const cached = await unstable_cache(
+    async () => {
+      const entries = await renderDiffs(result.files);
+      return JSON.stringify(entries).length <= MAX_CACHED_DIFF_BYTES
+        ? entries
+        : null;
+    },
     ["commit-diff", owner, repo, sha],
     {
       tags: [`commit-diff:${owner}/${repo}/${sha}`],
     },
   )();
+
+  return cached ?? renderDiffs(result.files);
 }
 
 export async function renderReviewDiffAction(
