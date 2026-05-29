@@ -76,3 +76,48 @@ impl SlackRepository for SlackRepositoryImpl {
         Ok(slack_account)
     }
 }
+
+#[cfg(all(test, feature = "db-tests"))]
+mod tests {
+    use sqlx::PgPool;
+    use uuid::Uuid;
+
+    use super::{SlackRepository, SlackRepositoryImpl};
+    use crate::repository::test_common::insert_user;
+
+    #[sqlx::test]
+    async fn create_and_get_slack_account(pool: PgPool) {
+        let repo = SlackRepositoryImpl::new(pool.clone());
+        let user = Uuid::new_v4();
+        insert_user(&pool, user, "alice").await;
+
+        let account = repo
+            .create_slack_account(user, "U123", "T456")
+            .await
+            .unwrap();
+        assert_eq!(account.gitdot_user_id, user);
+        assert_eq!(account.slack_user_id, "U123");
+        assert_eq!(account.slack_team_id, "T456");
+
+        let found = repo
+            .get_slack_account_by_slack_identity("U123", "T456")
+            .await
+            .unwrap()
+            .expect("found");
+        assert_eq!(found.id, account.id);
+
+        // Identity lookup is scoped to the (user, team) pair.
+        assert!(
+            repo.get_slack_account_by_slack_identity("U123", "OTHER")
+                .await
+                .unwrap()
+                .is_none()
+        );
+        assert!(
+            repo.get_slack_account_by_slack_identity("UNKNOWN", "T456")
+                .await
+                .unwrap()
+                .is_none()
+        );
+    }
+}

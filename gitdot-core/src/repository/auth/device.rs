@@ -171,3 +171,113 @@ impl DeviceRepository for DeviceRepositoryImpl {
         Ok(device_auth)
     }
 }
+
+#[cfg(all(test, feature = "db-tests"))]
+mod tests {
+    use chrono::{Duration, Utc};
+    use sqlx::PgPool;
+    use uuid::Uuid;
+
+    use super::{DeviceRepository, DeviceRepositoryImpl};
+    use crate::{model::DeviceAuthorizationStatus, repository::test_common::insert_user};
+
+    #[sqlx::test]
+    async fn create_and_get_device_authorization(pool: PgPool) {
+        let repo = DeviceRepositoryImpl::new(pool.clone());
+        let created = repo
+            .create_device_authorization("dch", "USER-CODE", "cli", Utc::now() + Duration::hours(1))
+            .await
+            .unwrap();
+        assert_eq!(created.device_code_hash, "dch");
+        assert_eq!(created.user_code, "USER-CODE");
+        assert_eq!(created.client_id, "cli");
+        assert_eq!(created.status, DeviceAuthorizationStatus::Pending);
+        assert!(created.user_id.is_none());
+
+        let by_hash = repo
+            .get_device_authorization_by_device_code_hash("dch")
+            .await
+            .unwrap()
+            .expect("found by device code hash");
+        assert_eq!(by_hash.id, created.id);
+
+        let by_code = repo
+            .get_device_authorization_by_user_code("USER-CODE")
+            .await
+            .unwrap()
+            .expect("found by user code");
+        assert_eq!(by_code.id, created.id);
+
+        assert!(
+            repo.get_device_authorization_by_device_code_hash("nope")
+                .await
+                .unwrap()
+                .is_none()
+        );
+        assert!(
+            repo.get_device_authorization_by_user_code("NOPE")
+                .await
+                .unwrap()
+                .is_none()
+        );
+    }
+
+    #[sqlx::test]
+    async fn expire_device_authorization_sets_status(pool: PgPool) {
+        let repo = DeviceRepositoryImpl::new(pool.clone());
+        let created = repo
+            .create_device_authorization("dch", "CODE", "cli", Utc::now() + Duration::hours(1))
+            .await
+            .unwrap();
+
+        repo.expire_device_authorization(created.id).await.unwrap();
+
+        let after = repo
+            .get_device_authorization_by_user_code("CODE")
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(after.status, DeviceAuthorizationStatus::Expired);
+    }
+
+    #[sqlx::test]
+    async fn authorize_device_requires_pending_and_unexpired(pool: PgPool) {
+        let repo = DeviceRepositoryImpl::new(pool.clone());
+        let user = Uuid::new_v4();
+        insert_user(&pool, user, "alice").await;
+
+        repo.create_device_authorization("dch", "CODE", "cli", Utc::now() + Duration::hours(1))
+            .await
+            .unwrap();
+
+        let authorized = repo
+            .authorize_device("CODE", user)
+            .await
+            .unwrap()
+            .expect("authorized");
+        assert_eq!(authorized.status, DeviceAuthorizationStatus::Authorized);
+        assert_eq!(authorized.user_id, Some(user));
+
+        // A second authorize finds no pending row.
+        assert!(repo.authorize_device("CODE", user).await.unwrap().is_none());
+
+        // An unknown user code matches nothing.
+        assert!(
+            repo.authorize_device("MISSING", user)
+                .await
+                .unwrap()
+                .is_none()
+        );
+
+        // A time-expired pending code cannot be authorized.
+        repo.create_device_authorization("dch2", "EXPIRED", "cli", Utc::now() - Duration::hours(1))
+            .await
+            .unwrap();
+        assert!(
+            repo.authorize_device("EXPIRED", user)
+                .await
+                .unwrap()
+                .is_none()
+        );
+    }
+}
