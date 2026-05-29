@@ -14,5 +14,6 @@ impl Endpoint for VerifyAuthCode {
 
 #[derive(ApiRequest, Debug, Serialize, Deserialize)]
 pub struct VerifyAuthCodeRequest {
+    pub email: String,
     pub code: String,
 }

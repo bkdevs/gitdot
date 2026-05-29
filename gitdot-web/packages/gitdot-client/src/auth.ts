@@ -139,9 +139,10 @@ export async function sendAuthEmail(email: string) {
 }
 
 export async function verifyAuthCode(
+  email: string,
   code: string,
 ): Promise<AuthSignInResult | null> {
-  const body: VerifyAuthCodeRequest = { code };
+  const body: VerifyAuthCodeRequest = { email, code };
   const res = await authFetch(`${GITDOT_AUTH_SERVER_URL}/auth/email/verify`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },

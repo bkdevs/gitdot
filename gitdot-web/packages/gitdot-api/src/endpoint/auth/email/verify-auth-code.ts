@@ -3,6 +3,7 @@ import { AuthTokensResource } from "../../../resource";
 import type { Endpoint } from "../../endpoint";
 
 export const VerifyAuthCodeRequest = z.object({
+  email: z.string(),
   code: z.string(),
 });
 export type VerifyAuthCodeRequest = z.infer<typeof VerifyAuthCodeRequest>;

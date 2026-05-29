@@ -57,8 +57,9 @@ export async function verifyCode(
   _prev: VerifyCodeResult | null,
   formData: FormData,
 ): Promise<VerifyCodeResult> {
+  const email = formData.get("email") as string;
   const code = formData.get("code") as string;
-  const result = await verifyAuthCode(code);
+  const result = await verifyAuthCode(email, code);
   if (!result) return { error: "Invalid or expired code" };
 
   return result;

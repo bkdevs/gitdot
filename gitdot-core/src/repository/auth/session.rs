@@ -22,9 +22,13 @@ pub trait SessionRepository: Send + Sync + Clone + 'static {
         expires_at: DateTime<Utc>,
     ) -> Result<AuthCode, DatabaseError>;
 
-    /// Returns the auth code matching `user_code`, or `Ok(None)` if none exists.
-    /// Does not check expiry or `used_at`.
-    async fn get_auth_code(&self, user_code: &str) -> Result<Option<AuthCode>, DatabaseError>;
+    /// Returns the auth code matching `user_id` and `user_code`, or `Ok(None)`
+    /// if none exists. Does not check expiry or `used_at`.
+    async fn get_auth_code(
+        &self,
+        user_id: Uuid,
+        user_code: &str,
+    ) -> Result<Option<AuthCode>, DatabaseError>;
 
     /// Sets `used_at = NOW()` on the auth code with the given id. No-op (and
     /// still `Ok`) if no row matches.
@@ -96,12 +100,17 @@ impl SessionRepository for PgSessionRepository {
         Ok(auth_code)
     }
 
-    async fn get_auth_code(&self, user_code: &str) -> Result<Option<AuthCode>, DatabaseError> {
+    async fn get_auth_code(
+        &self,
+        user_id: Uuid,
+        user_code: &str,
+    ) -> Result<Option<AuthCode>, DatabaseError> {
         let auth_code = sqlx::query_as::<_, AuthCode>(
             r#"
-            SELECT * FROM auth.auth_codes WHERE user_code = $1
+            SELECT * FROM auth.auth_codes WHERE user_id = $1 AND user_code = $2
             "#,
         )
+        .bind(user_id)
         .bind(user_code)
         .fetch_optional(&self.pool)
         .await?;
@@ -218,7 +227,7 @@ mod tests {
         assert!(code.used_at.is_none());
 
         let found = repo
-            .get_auth_code("USER-CODE")
+            .get_auth_code(user, "USER-CODE")
             .await
             .unwrap()
             .expect("found");
@@ -226,7 +235,7 @@ mod tests {
 
         repo.mark_auth_code_used(code.id).await.unwrap();
         assert!(
-            repo.get_auth_code("USER-CODE")
+            repo.get_auth_code(user, "USER-CODE")
                 .await
                 .unwrap()
                 .unwrap()
@@ -234,7 +243,13 @@ mod tests {
                 .is_some()
         );
 
-        assert!(repo.get_auth_code("MISSING").await.unwrap().is_none());
+        assert!(repo.get_auth_code(user, "MISSING").await.unwrap().is_none());
+        assert!(
+            repo.get_auth_code(Uuid::new_v4(), "USER-CODE")
+                .await
+                .unwrap()
+                .is_none()
+        );
     }
 
     #[sqlx::test]

@@ -244,10 +244,17 @@ where
         &self,
         request: VerifyAuthCodeRequest,
     ) -> Result<AuthTokensResponse, SessionError> {
+        let email = request.email.as_ref();
+        let user = self
+            .user_repo
+            .get_by_email(email)
+            .await?
+            .or_not_found("user", email)?;
+
         let code = request.code.as_ref();
         let auth_code = self
             .session_repo
-            .get_auth_code(code)
+            .get_auth_code(user.id, code)
             .await?
             .or_not_found("auth_code", code)?;
 
@@ -260,14 +267,7 @@ where
 
         self.session_repo.mark_auth_code_used(auth_code.id).await?;
 
-        let user = self
-            .user_repo
-            .get_by_id(auth_code.user_id)
-            .await?
-            .or_not_found("user", auth_code.user_id)?;
-        let is_new = !user.primary_email().is_some_and(|e| e.is_verified);
-
-        self.user_repo.verify_email(auth_code.user_id).await?;
+        self.user_repo.verify_email(user.id).await?;
         let access_token = self.token_client.generate_gitdot_jwt(user.id, &user.name)?;
 
         let (refresh_token, refresh_token_hash) = self.token_client.generate_high_entropic_code();
@@ -275,7 +275,7 @@ where
         let refresh_expiry = Utc::now() + Duration::seconds(refresh_expiry_secs as i64);
         self.session_repo
             .create_session(
-                auth_code.user_id,
+                user.id,
                 &refresh_token_hash,
                 uuid::Uuid::new_v4(),
                 request.user_agent.as_deref(),
@@ -283,6 +283,8 @@ where
                 refresh_expiry,
             )
             .await?;
+
+        let is_new = !user.primary_email().is_some_and(|e| e.is_verified);
 
         Ok(AuthTokensResponse {
             access_token,

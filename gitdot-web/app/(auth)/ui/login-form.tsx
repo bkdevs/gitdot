@@ -9,16 +9,30 @@ import { cn, validateEmail } from "@/util";
 
 export default function LoginForm({ redirect }: { redirect?: string }) {
   const [step, setStep] = useState<"email" | "code">("email");
+  const [email, setEmail] = useState("");
 
   if (step === "code") {
-    return <VerifyCodeForm redirect={redirect} />;
+    return <VerifyCodeForm email={email} redirect={redirect} />;
   }
-  return <EmailForm onSuccess={() => setStep("code")} />;
+  return (
+    <EmailForm
+      email={email}
+      setEmail={setEmail}
+      onSuccess={() => setStep("code")}
+    />
+  );
 }
 
-function EmailForm({ onSuccess }: { onSuccess: () => void }) {
+function EmailForm({
+  email,
+  setEmail,
+  onSuccess,
+}: {
+  email: string;
+  setEmail: (email: string) => void;
+  onSuccess: () => void;
+}) {
   const [state, formAction, isPending] = useActionState(sendCode, null);
-  const [email, setEmail] = useState("");
   const [canSubmit, setCanSubmit] = useState(false);
   const [githubPending, setGithubPending] = useState(false);
 
@@ -93,7 +107,13 @@ function EmailForm({ onSuccess }: { onSuccess: () => void }) {
   );
 }
 
-function VerifyCodeForm({ redirect }: { redirect?: string }) {
+function VerifyCodeForm({
+  email,
+  redirect,
+}: {
+  email: string;
+  redirect?: string;
+}) {
   const [state, formAction, isPending] = useActionState(verifyCode, null);
   const [code, setCode] = useState("");
   const [canSubmit, setCanSubmit] = useState(false);
@@ -116,6 +136,7 @@ function VerifyCodeForm({ redirect }: { redirect?: string }) {
   return (
     <form action={formAction} className="flex flex-col text-sm w-sm" noValidate>
       <p className="pb-2">Check your email — we sent a code.</p>
+      <input type="hidden" name="email" value={email} />
       <input
         type="text"
         name="code"

@@ -17,7 +17,8 @@ pub async fn verify_auth_code(
     ClientIp(ip_address): ClientIp,
     Json(body): Json<api::VerifyAuthCodeRequest>,
 ) -> Result<AppResponse<AuthTokensResource>, AppError> {
-    let request = VerifyAuthCodeRequest::new(&body.code, user_agent, ip_address.as_deref())?;
+    let request =
+        VerifyAuthCodeRequest::new(&body.email, &body.code, user_agent, ip_address.as_deref())?;
     state
         .session_service
         .verify_auth_code(request)

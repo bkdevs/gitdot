@@ -79,7 +79,7 @@ export function AuthDialog({
           <DialogTitle>Authenticate</DialogTitle>
         </VisuallyHidden>
         {step === "code" ? (
-          <CodeForm onCancel={() => setOpen(false)} />
+          <CodeForm email={email} onCancel={() => setOpen(false)} />
         ) : (
           <EmailForm
             email={email}
@@ -170,7 +170,13 @@ function EmailForm({
   );
 }
 
-function CodeForm({ onCancel }: { onCancel: () => void }) {
+function CodeForm({
+  email,
+  onCancel,
+}: {
+  email: string;
+  onCancel: () => void;
+}) {
   const { refreshUser } = useUserContext();
   const router = useRouter();
   const [code, setCode] = useState("");
@@ -182,6 +188,7 @@ function CodeForm({ onCancel }: { onCancel: () => void }) {
     e.preventDefault();
     setError(null);
     const formData = new FormData();
+    formData.append("email", email);
     formData.append("code", code);
     startTransition(async () => {
       const result = await verifyCode(null, formData);
