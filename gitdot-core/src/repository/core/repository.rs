@@ -250,6 +250,9 @@ impl RepositoryRepository for RepositoryRepositoryImpl {
 
         let mut repositories = sqlx::query_as::<_, Repository>(
             r#"
+            WITH viewer_orgs AS (
+                SELECT organization_id FROM core.organization_members WHERE user_id = $5
+            )
             SELECT r.id, r.name, r.owner_id, COALESCE(u.name, o.name) AS owner_name,
                    r.owner_type, r.visibility, r.description, r.stars, r.readonly, r.created_at,
                    EXISTS(SELECT 1 FROM core.stars s WHERE s.repository_id = r.id AND s.user_id = $5) AS user_star
@@ -263,6 +266,12 @@ impl RepositoryRepository for RepositoryRepositoryImpl {
                 UNION ALL
                 SELECT id FROM core.organizations WHERE name = $1
             )
+              AND (
+                  r.visibility = 'public'
+                  OR (r.owner_type = 'user' AND r.owner_id = $5)
+                  OR (r.owner_type = 'organization'
+                      AND r.owner_id IN (SELECT organization_id FROM viewer_orgs))
+              )
               AND ($2::timestamptz IS NULL OR (r.created_at, r.id) < ($2, $3))
             ORDER BY r.created_at DESC, r.id DESC
             LIMIT $4
@@ -656,8 +665,12 @@ mod tests {
         Repository, RepositoryOwnerType, RepositoryRepository, RepositoryRepositoryImpl,
         RepositoryVisibility,
     };
-    use crate::repository::test_common::{
-        insert_filter_at, insert_org, insert_star_at, insert_user,
+    use crate::{
+        model::OrganizationRole,
+        repository::test_common::{
+            insert_filter_at, insert_membership_at, insert_org, insert_org_repo, insert_star_at,
+            insert_user, insert_user_repo,
+        },
     };
 
     // The common case: a user-owned, non-readonly repo with no description.
@@ -816,6 +829,67 @@ mod tests {
         assert_eq!(page.len(), 1);
         assert_eq!(page[0].name, "first");
         assert!(cursor.is_none());
+    }
+
+    #[sqlx::test]
+    async fn list_by_owner_filters_user_repos_by_viewer(pool: PgPool) {
+        let repo = RepositoryRepositoryImpl::new(pool.clone());
+        let alice = Uuid::new_v4();
+        let bob = Uuid::new_v4();
+        insert_user(&pool, alice, "alice").await;
+        insert_user(&pool, bob, "bob").await;
+        insert_user_repo(&pool, Uuid::new_v4(), "pub", alice, "public").await;
+        insert_user_repo(&pool, Uuid::new_v4(), "priv", alice, "private").await;
+
+        // Anonymous viewer sees only the public repo.
+        let (rows, _) = repo.list_by_owner("alice", None, None, 20).await.unwrap();
+        assert_eq!(rows.len(), 1);
+        assert_eq!(rows[0].name, "pub");
+
+        // The owner sees their own private repo too.
+        let (rows, _) = repo
+            .list_by_owner("alice", Some(alice), None, 20)
+            .await
+            .unwrap();
+        assert_eq!(rows.len(), 2);
+
+        // A different user sees only the public repo.
+        let (rows, _) = repo
+            .list_by_owner("alice", Some(bob), None, 20)
+            .await
+            .unwrap();
+        assert_eq!(rows.len(), 1);
+    }
+
+    #[sqlx::test]
+    async fn list_by_owner_shows_org_private_repos_to_members(pool: PgPool) {
+        let repo = RepositoryRepositoryImpl::new(pool.clone());
+        let member = Uuid::new_v4();
+        let outsider = Uuid::new_v4();
+        let org_id = Uuid::new_v4();
+        insert_user(&pool, member, "member").await;
+        insert_user(&pool, outsider, "outsider").await;
+        insert_org(&pool, org_id, "acme").await;
+        insert_membership_at(&pool, member, org_id, OrganizationRole::Member, Utc::now()).await;
+
+        insert_org_repo(&pool, Uuid::new_v4(), "pub", org_id, "public").await;
+        insert_org_repo(&pool, Uuid::new_v4(), "priv", org_id, "private").await;
+
+        // A member sees the org's private repo.
+        let (rows, _) = repo
+            .list_by_owner("acme", Some(member), None, 20)
+            .await
+            .unwrap();
+        assert_eq!(rows.len(), 2);
+
+        // A non-member and an anonymous viewer see only the public one.
+        let (rows, _) = repo
+            .list_by_owner("acme", Some(outsider), None, 20)
+            .await
+            .unwrap();
+        assert_eq!(rows.len(), 1);
+        let (rows, _) = repo.list_by_owner("acme", None, None, 20).await.unwrap();
+        assert_eq!(rows.len(), 1);
     }
 
     #[sqlx::test]

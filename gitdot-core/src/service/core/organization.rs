@@ -148,6 +148,7 @@ where
             .get(&org_name)
             .await?
             .or_not_found("organization", &org_name)?;
+
         Ok(org.into())
     }
 
@@ -167,6 +168,7 @@ where
             )
             .await?
             .or_not_found("organization", &org_name)?;
+
         Ok(org.into())
     }
 
@@ -180,10 +182,12 @@ where
             .get_id(&org_name)
             .await?
             .or_not_found("organization", &org_name)?;
+
         let webp_bytes = self.image_client.convert_to_webp(request.bytes).await?;
         let key = format!("orgs/{org_id}.webp");
         self.r2_client.upload_object(&key, webp_bytes).await?;
         self.org_repo.touch_image(org_id).await?;
+
         Ok(())
     }
 
@@ -242,6 +246,7 @@ where
             .org_repo
             .list(request.cursor, request.limit as i64)
             .await?;
+
         Ok(Page {
             data: orgs.into_iter().map(|o| o.into()).collect(),
             next_cursor: next_cursor.as_ref().map(cursor::encode),
@@ -253,12 +258,12 @@ where
         request: ListOrganizationRepositoriesRequest,
     ) -> Result<Page<RepositoryResponse>, OrganizationError> {
         let org_name = request.org_name.to_string();
-        let org = self
-            .org_repo
+        self.org_repo
             .get(&org_name)
             .await?
             .or_not_found("organization", &org_name)?;
 
+        // visibility is filtered in SQL based on viewer_id
         let (repositories, next_cursor) = self
             .repo_repo
             .list_by_owner(
@@ -268,16 +273,6 @@ where
                 request.limit as i64,
             )
             .await?;
-
-        let is_member = match request.viewer_id {
-            Some(viewer_id) => self.org_repo.is_member(org.id, viewer_id).await?,
-            None => false,
-        };
-        let repositories = if is_member {
-            repositories
-        } else {
-            repositories.into_iter().filter(|r| r.is_public()).collect()
-        };
 
         Ok(Page {
             data: repositories.into_iter().map(|r| r.into()).collect(),
@@ -541,7 +536,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn list_repositories_hides_private_from_non_member() {
+    async fn list_repositories_returns_repos_from_list_by_owner() {
         let mut svc = create_service();
         svc.org_repo
             .expect_get()
@@ -566,41 +561,6 @@ mod tests {
                     None,
                 ))
             });
-
-        // Anonymous viewer: only the public repo survives the filter.
-        let req = ListOrganizationRepositoriesRequest::new("acme", None, None, None).unwrap();
-        let page = svc.list_repositories(req).await.unwrap();
-        assert_eq!(page.data.len(), 1);
-        assert_eq!(page.data[0].visibility, "public");
-    }
-
-    #[tokio::test]
-    async fn list_repositories_shows_all_to_member() {
-        let mut svc = create_service();
-        svc.org_repo
-            .expect_get()
-            .returning(|_| Ok(Some(create_organization("acme"))));
-        svc.repo_repo
-            .expect_list_by_owner()
-            .returning(|_, _, _, _| {
-                let owner = Uuid::new_v4();
-                Ok((
-                    vec![
-                        create_repository(
-                            owner,
-                            RepositoryOwnerType::Organization,
-                            RepositoryVisibility::Public,
-                        ),
-                        create_repository(
-                            owner,
-                            RepositoryOwnerType::Organization,
-                            RepositoryVisibility::Private,
-                        ),
-                    ],
-                    None,
-                ))
-            });
-        svc.org_repo.expect_is_member().returning(|_, _| Ok(true));
 
         let req =
             ListOrganizationRepositoriesRequest::new("acme", None, None, Some(Uuid::new_v4()))

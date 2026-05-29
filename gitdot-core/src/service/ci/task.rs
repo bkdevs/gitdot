@@ -86,6 +86,8 @@ where
             .await?
             .or_not_found("runner", runner_id)?;
 
+        // TODO(ci): `list_by_owner` now filters by viewer visibility, and passing
+        // `viewer_id = None` here returns only PUBLIC repos
         let (repos, _) = self
             .repository_repo
             .list_by_owner(&runner.owner_name, None, None, MAX_PER_PAGE_LIMIT as i64)
