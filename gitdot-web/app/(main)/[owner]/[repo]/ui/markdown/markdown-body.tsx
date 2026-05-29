@@ -2,10 +2,10 @@ import { renderMermaidSVG } from "beautiful-mermaid";
 import type { Element, ElementContent } from "hast";
 import React from "react";
 import Markdown from "react-markdown";
-import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
 import Link from "@/ui/link";
 import { highlightMarkdownCode } from "./markdown-highlighter";
+import remarkLineBreaks from "./remark-line-breaks";
 
 function hastText(node: ElementContent): string {
   if (node.type === "text") return node.value;
@@ -34,24 +34,6 @@ function slugify(text: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
-// Markdown collapses any run of blank lines into a single paragraph break, so
-// consecutive newlines never render as vertical whitespace. Expand each extra
-// blank line into a paragraph holding a non-breaking space so the gap survives.
-// Fenced code blocks are left untouched — blank lines are significant there.
-function preserveBlankLines(content: string): string {
-  return content
-    .split(/(```[\s\S]*?```|~~~[\s\S]*?~~~)/g)
-    .map((segment, i) =>
-      i % 2 === 1
-        ? segment
-        : segment.replace(
-            /\n{3,}/g,
-            (run) => `\n\n${"\u00A0\n\n".repeat(run.length - 2)}`,
-          ),
-    )
-    .join("");
-}
-
 export function MarkdownBody({
   content,
   compact = false,
@@ -61,7 +43,7 @@ export function MarkdownBody({
 }) {
   return (
     <Markdown
-      remarkPlugins={[remarkGfm, remarkBreaks]}
+      remarkPlugins={[remarkGfm, remarkLineBreaks]}
       components={{
         h1: ({ node, children, ...props }) => (
           <h1

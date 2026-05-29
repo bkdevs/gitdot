@@ -6,7 +6,6 @@ it's written in rust, fully open-source (Apache 2.0), and has not a single annoy
 it's design is heavily inspired by CLIs: everything is a keystroke away and every page loads as fast a cli would (fcp of 100ms).
 
 read about how we built it at: tk
-
 <br>
 
 #### getting around
