@@ -4,6 +4,7 @@ import type { Endpoint } from "../endpoint";
 
 export const UpdateRepositoryRequest = z.object({
   description: z.string().optional(),
+  readonly: z.boolean().optional(),
 });
 export type UpdateRepositoryRequest = z.infer<typeof UpdateRepositoryRequest>;
 

@@ -7,17 +7,16 @@ use uuid::Uuid;
 use crate::{
     client::{Git2Client, GitClient},
     dto::{
-        CommitResponse, ConvertReadonlyRepositoryRequest, CreateRepositoryCommitFilterRequest,
-        CreateRepositoryRequest, DeleteRepositoryCommitFilterRequest, DeleteRepositoryRequest,
-        GetRepositoryActivityRequest, GetRepositoryBlobDiffsRequest, GetRepositoryBlobRequest,
-        GetRepositoryBlobsRequest, GetRepositoryCommitBlobsRequest, GetRepositoryCommitRequest,
-        GetRepositoryPathsRequest, GetRepositoryRequest, InitialCommitFile,
-        ListRepositoryCommitFiltersRequest, ListRepositoryCommitsRequest, MAX_PER_PAGE_LIMIT, Page,
-        RepositoryActivityEvent, RepositoryBlobDiffsResponse, RepositoryBlobPairResponse,
-        RepositoryBlobResponse, RepositoryBlobsResponse, RepositoryCommitFilterResponse,
-        RepositoryDiffFileResponse, RepositoryFileResponse, RepositoryPathsResponse,
-        RepositoryResponse, StarRepositoryRequest, UnstarRepositoryRequest,
-        UpdateRepositoryCommitFilterRequest, UpdateRepositoryRequest,
+        CommitResponse, CreateRepositoryCommitFilterRequest, CreateRepositoryRequest,
+        DeleteRepositoryCommitFilterRequest, DeleteRepositoryRequest, GetRepositoryActivityRequest,
+        GetRepositoryBlobDiffsRequest, GetRepositoryBlobRequest, GetRepositoryBlobsRequest,
+        GetRepositoryCommitBlobsRequest, GetRepositoryCommitRequest, GetRepositoryPathsRequest,
+        GetRepositoryRequest, InitialCommitFile, ListRepositoryCommitFiltersRequest,
+        ListRepositoryCommitsRequest, MAX_PER_PAGE_LIMIT, Page, RepositoryActivityEvent,
+        RepositoryBlobDiffsResponse, RepositoryBlobPairResponse, RepositoryBlobResponse,
+        RepositoryBlobsResponse, RepositoryCommitFilterResponse, RepositoryDiffFileResponse,
+        RepositoryFileResponse, RepositoryPathsResponse, RepositoryResponse, StarRepositoryRequest,
+        UnstarRepositoryRequest, UpdateRepositoryCommitFilterRequest, UpdateRepositoryRequest,
     },
     error::{ConflictError, NotFoundError, OptionNotFoundExt, RepositoryError},
     model::{CommitDiff, RepositoryOwnerType},
@@ -72,11 +71,6 @@ pub trait RepositoryService: Send + Sync + 'static {
     async fn update_repository(
         &self,
         request: UpdateRepositoryRequest,
-    ) -> Result<RepositoryResponse, RepositoryError>;
-
-    async fn convert_readonly_repository(
-        &self,
-        request: ConvertReadonlyRepositoryRequest,
     ) -> Result<RepositoryResponse, RepositoryError>;
 
     async fn resolve_ref_sha(
@@ -501,27 +495,11 @@ where
 
         let updated = self
             .repo_repo
-            .update(repository.id, request.description)
+            .update(repository.id, request.description, request.readonly)
             .await?
             .or_not_found("repository", format!("{}/{}", owner, repo))?;
 
         Ok(updated.into())
-    }
-
-    async fn convert_readonly_repository(
-        &self,
-        request: ConvertReadonlyRepositoryRequest,
-    ) -> Result<RepositoryResponse, RepositoryError> {
-        let owner = request.owner.as_ref();
-        let repo = request.repo.as_ref();
-
-        let repository = self
-            .repo_repo
-            .disable_readonly(owner, repo)
-            .await?
-            .or_not_found("repository", format!("{}/{}", owner, repo))?;
-
-        Ok(repository.into())
     }
 
     async fn resolve_ref_sha(

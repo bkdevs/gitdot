@@ -10,6 +10,7 @@ pub struct UpdateRepositoryRequest {
     pub owner: OwnerName,
     pub repo: RepositoryName,
     pub description: Option<String>,
+    pub readonly: Option<bool>,
 }
 
 impl UpdateRepositoryRequest {
@@ -17,6 +18,7 @@ impl UpdateRepositoryRequest {
         owner: &str,
         repo: &str,
         description: Option<String>,
+        readonly: Option<bool>,
     ) -> Result<Self, RepositoryError> {
         let description = description
             .map(|d| d.trim().to_string())
@@ -31,11 +33,36 @@ impl UpdateRepositoryRequest {
             }
         }
 
+        if readonly == Some(true) {
+            return Err(
+                InputError::new("readonly", "a repository cannot be set to readonly").into(),
+            );
+        }
+
         Ok(Self {
             owner: OwnerName::try_new(owner).map_err(|e| InputError::new("owner name", e))?,
             repo: RepositoryName::try_new(repo)
                 .map_err(|e| InputError::new("repository name", e))?,
             description,
+            readonly,
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn rejects_setting_readonly_true() {
+        let result = UpdateRepositoryRequest::new("johndoe", "my-repo", None, Some(true));
+        assert!(matches!(result, Err(RepositoryError::Input(_))));
+    }
+
+    #[test]
+    fn accepts_promote_to_writable() {
+        let request =
+            UpdateRepositoryRequest::new("johndoe", "my-repo", None, Some(false)).unwrap();
+        assert_eq!(request.readonly, Some(false));
     }
 }

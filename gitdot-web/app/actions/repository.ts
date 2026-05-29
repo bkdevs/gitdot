@@ -9,7 +9,6 @@ import type {
 } from "gitdot-api";
 import {
   ApiError,
-  convertReadonlyRepository,
   createRepository,
   createRepositoryCommitFilter,
   deleteRepository,
@@ -140,28 +139,6 @@ export async function unstarRepositoryAction(
   } catch (e) {
     return {
       error: e instanceof ApiError ? e.message : "Failed to unstar repository",
-    };
-  }
-}
-
-export type ConvertReadonlyRepositoryActionResult =
-  | { repository: RepositoryResource }
-  | { error: string };
-
-export async function convertReadonlyRepositoryAction(
-  owner: string,
-  repo: string,
-): Promise<ConvertReadonlyRepositoryActionResult> {
-  try {
-    const repository = await convertReadonlyRepository(owner, repo);
-    if (!repository) {
-      return { error: "Failed to convert repository" };
-    }
-    refresh();
-    return { repository };
-  } catch (e) {
-    return {
-      error: e instanceof ApiError ? e.message : "Failed to convert repository",
     };
   }
 }

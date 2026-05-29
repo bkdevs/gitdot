@@ -1,4 +1,3 @@
-mod convert_readonly_repository;
 mod create_repository;
 mod create_repository_commit_filter;
 mod delete_repository;
@@ -24,7 +23,6 @@ use uuid::Uuid;
 
 use crate::model::{CommitFilter, Repository};
 
-pub use convert_readonly_repository::ConvertReadonlyRepositoryRequest;
 pub use create_repository::{CreateRepositoryRequest, GitignoreTemplate, LicenseTemplate};
 pub use create_repository_commit_filter::CreateRepositoryCommitFilterRequest;
 pub use delete_repository::DeleteRepositoryRequest;

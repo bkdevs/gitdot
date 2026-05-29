@@ -1,7 +1,6 @@
 import "server-only";
 
 import {
-  ConvertReadonlyRepositoryResponse,
   type CreateRepositoryCommitFilterRequest,
   CreateRepositoryCommitFilterResponse,
   type CreateRepositoryRequest,
@@ -264,15 +263,4 @@ export async function unstarRepository(
     {},
   );
   await handleEmptyResponse(response);
-}
-
-export async function convertReadonlyRepository(
-  owner: string,
-  repo: string,
-): Promise<ConvertReadonlyRepositoryResponse | null> {
-  const response = await authPost(
-    `${GITDOT_SERVER_URL}/repository/${owner}/${repo}/convert-readonly`,
-    {},
-  );
-  return await handleResponse(response, ConvertReadonlyRepositoryResponse);
 }

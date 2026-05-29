@@ -32,7 +32,8 @@ pub async fn update_repository(
         .verify_authorized_for_repository(auth_request)
         .await?;
 
-    let core_request = UpdateRepositoryRequest::new(&owner, &repo, request.description)?;
+    let core_request =
+        UpdateRepositoryRequest::new(&owner, &repo, request.description, request.readonly)?;
     state
         .repo_service
         .update_repository(core_request)

@@ -3,7 +3,7 @@
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { useEffect, useState, useTransition } from "react";
 import { toast } from "@/(main)/context/toaster";
-import { convertReadonlyRepositoryAction } from "@/actions/repository";
+import { updateRepositoryAction } from "@/actions/repository";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
 
 export function RepoPromoteDialog({
@@ -39,7 +39,9 @@ export function RepoPromoteDialog({
 
     setError(null);
     startTransition(async () => {
-      const result = await convertReadonlyRepositoryAction(owner, repo);
+      const result = await updateRepositoryAction(owner, repo, {
+        readonly: false,
+      });
       if ("error" in result) {
         setError(result.error);
         return;

@@ -1,4 +1,3 @@
-export * from "./convert-readonly-repository";
 export * from "./create-repository";
 export * from "./create-repository-commit-filter";
 export * from "./delete-repository";

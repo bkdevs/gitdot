@@ -58,12 +58,7 @@ pub trait RepositoryRepository: Send + Sync + Clone + 'static {
         &self,
         id: Uuid,
         description: Option<String>,
-    ) -> Result<Option<Repository>, DatabaseError>;
-
-    async fn disable_readonly(
-        &self,
-        owner: &str,
-        repo: &str,
+        readonly: Option<bool>,
     ) -> Result<Option<Repository>, DatabaseError>;
 
     async fn star(&self, id: Uuid, user_id: Uuid) -> Result<Option<RepositoryStar>, DatabaseError>;
@@ -357,12 +352,14 @@ impl RepositoryRepository for RepositoryRepositoryImpl {
         &self,
         id: Uuid,
         description: Option<String>,
+        readonly: Option<bool>,
     ) -> Result<Option<Repository>, DatabaseError> {
         let repository = sqlx::query_as::<_, Repository>(
             r#"
             WITH updated AS (
                 UPDATE core.repositories r
-                SET description = $2
+                SET description = COALESCE($2, r.description),
+                    readonly    = COALESCE($3, r.readonly)
                 WHERE r.id = $1
                 RETURNING r.*
             )
@@ -378,42 +375,7 @@ impl RepositoryRepository for RepositoryRepositoryImpl {
         )
         .bind(id)
         .bind(description)
-        .fetch_optional(&self.pool)
-        .await?;
-
-        Ok(repository)
-    }
-
-    async fn disable_readonly(
-        &self,
-        owner: &str,
-        repo: &str,
-    ) -> Result<Option<Repository>, DatabaseError> {
-        let repository = sqlx::query_as::<_, Repository>(
-            r#"
-            WITH updated AS (
-                UPDATE core.repositories r
-                SET readonly = false
-                WHERE r.name = $2
-                  AND r.owner_id IN (
-                    SELECT id FROM core.users         WHERE name = $1
-                    UNION ALL
-                    SELECT id FROM core.organizations WHERE name = $1
-                  )
-                RETURNING r.*
-            )
-            SELECT r.id, r.name, r.owner_id, COALESCE(u.name, o.name) AS owner_name,
-                   r.owner_type, r.visibility, r.description, r.stars, r.readonly, r.created_at,
-                   FALSE AS user_star
-            FROM updated r
-            LEFT JOIN core.users u
-              ON r.owner_id = u.id AND r.owner_type = 'user'
-            LEFT JOIN core.organizations o
-              ON r.owner_id = o.id AND r.owner_type = 'organization'
-            "#,
-        )
-        .bind(owner)
-        .bind(repo)
+        .bind(readonly)
         .fetch_optional(&self.pool)
         .await?;
 
@@ -983,14 +945,14 @@ mod tests {
             .unwrap();
 
         let updated = repo
-            .update(created.id, Some("new".to_string()))
+            .update(created.id, Some("new".to_string()), None)
             .await
             .unwrap()
             .expect("updated");
         assert_eq!(updated.description.as_deref(), Some("new"));
 
         assert!(
-            repo.update(Uuid::new_v4(), Some("x".to_string()))
+            repo.update(Uuid::new_v4(), Some("x".to_string()), None)
                 .await
                 .unwrap()
                 .is_none()
@@ -998,31 +960,32 @@ mod tests {
     }
 
     #[sqlx::test]
-    async fn disable_readonly_clears_flag(pool: PgPool) {
+    async fn update_clears_readonly_flag(pool: PgPool) {
         let repo = RepositoryRepositoryImpl::new(pool.clone());
         let alice = Uuid::new_v4();
         insert_user(&pool, alice, "alice").await;
-        repo.create(
-            "proj",
-            alice,
-            &RepositoryOwnerType::User,
-            &RepositoryVisibility::Public,
-            None,
-            true,
-            None,
-        )
-        .await
-        .unwrap();
+        let created = repo
+            .create(
+                "proj",
+                alice,
+                &RepositoryOwnerType::User,
+                &RepositoryVisibility::Public,
+                None,
+                true,
+                None,
+            )
+            .await
+            .unwrap();
 
         let updated = repo
-            .disable_readonly("alice", "proj")
+            .update(created.id, None, Some(false))
             .await
             .unwrap()
             .expect("updated");
         assert!(!updated.readonly);
 
         assert!(
-            repo.disable_readonly("alice", "missing")
+            repo.update(Uuid::new_v4(), None, Some(false))
                 .await
                 .unwrap()
                 .is_none()
