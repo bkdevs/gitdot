@@ -12,11 +12,9 @@ type Step = "email" | "code";
 export function UserAddEmailDialog({
   open,
   setOpen,
-  initialEmail,
 }: {
   open: boolean;
   setOpen: (open: boolean) => void;
-  initialEmail?: string;
 }) {
   const { refreshUser } = useUserContext();
   const [step, setStep] = useState<Step>("email");
@@ -29,14 +27,9 @@ export function UserAddEmailDialog({
     if (!open) return;
     setError(null);
     setCode("");
-    if (initialEmail) {
-      setEmail(initialEmail);
-      setStep("code");
-    } else {
-      setEmail("");
-      setStep("email");
-    }
-  }, [open, initialEmail]);
+    setEmail("");
+    setStep("email");
+  }, [open]);
 
   const blockClose = step === "code" && isPending;
 
