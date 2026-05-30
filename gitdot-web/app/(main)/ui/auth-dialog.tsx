@@ -8,7 +8,7 @@ import { useUserContext } from "@/(main)/context/user";
 import { loginWithGithub, sendCode, verifyCode } from "@/actions";
 import { useIsTyping } from "@/hooks/use-is-typing";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
-import { validateEmail } from "@/util";
+import { cn, validateEmail } from "@/util";
 
 type Step = "email" | "code";
 
@@ -139,7 +139,7 @@ function EmailForm({
             <button
               type="button"
               onClick={() => setShowSignup((v) => !v)}
-              className="text-xs text-muted-foreground hover:text-foreground transition-colors duration-200"
+              className="text-xs text-muted-foreground hover:text-foreground cursor-pointer transition-colors duration-200"
             >
               {showSignup
                 ? "Already have an account? Login."
@@ -182,7 +182,33 @@ function CodeForm({
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [countdown, setCountdown] = useState(30);
+  const [resent, setResent] = useState(false);
+  const [, startResend] = useTransition();
   const isValid = /^[a-zA-Z0-9]{6}$/.test(code);
+
+  useEffect(() => {
+    if (countdown <= 0) return;
+    const timer = setTimeout(() => setCountdown((c) => c - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [countdown]);
+
+  const handleResend = () => {
+    const formData = new FormData();
+    formData.append("email", email);
+    startResend(async () => {
+      await sendCode(null, formData);
+      setResent(true);
+      setCountdown(30);
+    });
+  };
+
+  const resendLabel =
+    countdown > 0
+      ? resent
+        ? "Code resent."
+        : `Resend code in ${countdown}s`
+      : "Resend code";
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -221,7 +247,23 @@ function CodeForm({
       />
       <div className="flex items-center justify-between h-8">
         <div className="flex items-center px-2">
-          {error && <p className="text-xs text-red-500">{error}</p>}
+          {error ? (
+            <p className="text-xs text-red-500">{error}</p>
+          ) : (
+            <button
+              type="button"
+              onClick={handleResend}
+              disabled={countdown > 0}
+              className={cn(
+                "text-xs transition-colors duration-200",
+                countdown > 0
+                  ? "text-muted-foreground cursor-not-allowed"
+                  : "text-muted-foreground hover:text-foreground underline cursor-pointer",
+              )}
+            >
+              {resendLabel}
+            </button>
+          )}
         </div>
         <div className="flex items-center h-full">
           <button

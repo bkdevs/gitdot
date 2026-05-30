@@ -15,7 +15,7 @@ use crate::{
     model::AuthProvider,
     repository::{PgSessionRepository, PgUserRepository, SessionRepository, UserRepository},
     util::{
-        auth::{NOREPLY_EMAIL, get_auth_email},
+        auth::{NOREPLY_EMAIL, get_code_email},
         crypto::hash_string,
     },
 };
@@ -238,7 +238,7 @@ where
             .create_auth_code(user.id, &code, expires_at)
             .await?;
 
-        let (subject, html) = get_auth_email(&code);
+        let (subject, html) = get_code_email(&code);
         self.email_client
             .send_email(NOREPLY_EMAIL, &email, &subject, &html)
             .await?;

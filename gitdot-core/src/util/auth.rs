@@ -55,16 +55,9 @@ pub fn is_offensive_name(name: &str) -> bool {
     name.is_inappropriate()
 }
 
-pub fn get_auth_email(code: &str) -> (String, String) {
+pub fn get_code_email(code: &str) -> (String, String) {
     (
         format!("Your gitdot code: {}", code),
-        CODE_TEMPLATE.replace("{{code}}", code),
-    )
-}
-
-pub fn get_verify_email_email(code: &str) -> (String, String) {
-    (
-        format!("Verify your email — code: {}", code),
         CODE_TEMPLATE.replace("{{code}}", code),
     )
 }

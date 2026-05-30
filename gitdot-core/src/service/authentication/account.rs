@@ -10,7 +10,7 @@ use crate::{
         UserRepository,
     },
     util::{
-        auth::{NOREPLY_EMAIL, get_verify_email_email},
+        auth::{NOREPLY_EMAIL, get_code_email},
         crypto::hash_string,
     },
 };
@@ -92,7 +92,7 @@ where
             .create_code(user_id, email, &code_hash, expires_at)
             .await?;
 
-        let (subject, html) = get_verify_email_email(&code);
+        let (subject, html) = get_code_email(&code);
         self.email_client
             .send_email(NOREPLY_EMAIL, email, &subject, &html)
             .await?;
