@@ -10,11 +10,12 @@ use crate::{error::DatabaseError, model::DeviceAuthorization};
 #[async_trait]
 pub trait DeviceRepository: Send + Sync + Clone + 'static {
     /// Inserts a new `pending` device authorization with the given hashed
-    /// device code, user code, client id, and expiry, and returns the created row.
+    /// device code, hashed user code, client id, and expiry, and returns the
+    /// created row.
     async fn create_device_authorization(
         &self,
         device_code_hash: &str,
-        user_code: &str,
+        user_code_hash: &str,
         client_id: &str,
         expires_at: DateTime<Utc>,
     ) -> Result<DeviceAuthorization, DatabaseError>;
@@ -26,11 +27,11 @@ pub trait DeviceRepository: Send + Sync + Clone + 'static {
         device_code_hash: &str,
     ) -> Result<Option<DeviceAuthorization>, DatabaseError>;
 
-    /// Returns the device authorization matching `user_code`, or `Ok(None)` if
-    /// none exists. Does not check expiry or status.
-    async fn get_device_authorization_by_user_code(
+    /// Returns the device authorization matching `user_code_hash`, or `Ok(None)`
+    /// if none exists. Does not check expiry or status.
+    async fn get_device_authorization_by_user_code_hash(
         &self,
-        user_code: &str,
+        user_code_hash: &str,
     ) -> Result<Option<DeviceAuthorization>, DatabaseError>;
 
     /// Sets `status = 'expired'` on the row with the given id. No-op (and still
@@ -42,7 +43,7 @@ pub trait DeviceRepository: Send + Sync + Clone + 'static {
     /// row, or `Ok(None)` if no `pending`/unexpired row matched the user code.
     async fn authorize_device(
         &self,
-        user_code: &str,
+        user_code_hash: &str,
         user_id: Uuid,
     ) -> Result<Option<DeviceAuthorization>, DatabaseError>;
 
@@ -51,7 +52,7 @@ pub trait DeviceRepository: Send + Sync + Clone + 'static {
     /// or `Ok(None)` if no `pending`/unexpired row matched the user code.
     async fn deny_device(
         &self,
-        user_code: &str,
+        user_code_hash: &str,
         user_id: Uuid,
     ) -> Result<Option<DeviceAuthorization>, DatabaseError>;
 }
@@ -73,19 +74,19 @@ impl DeviceRepository for PgDeviceRepository {
     async fn create_device_authorization(
         &self,
         device_code_hash: &str,
-        user_code: &str,
+        user_code_hash: &str,
         client_id: &str,
         expires_at: DateTime<Utc>,
     ) -> Result<DeviceAuthorization, DatabaseError> {
         let device_auth = sqlx::query_as::<_, DeviceAuthorization>(
             r#"
-            INSERT INTO auth.device_authorizations (device_code_hash, user_code, client_id, expires_at)
+            INSERT INTO auth.device_authorizations (device_code_hash, user_code_hash, client_id, expires_at)
             VALUES ($1, $2, $3, $4)
-            RETURNING id, device_code_hash, user_code, client_id, user_id, status, expires_at, created_at
+            RETURNING id, device_code_hash, user_code_hash, client_id, user_id, status, expires_at, created_at
             "#,
         )
         .bind(device_code_hash)
-        .bind(user_code)
+        .bind(user_code_hash)
         .bind(client_id)
         .bind(expires_at)
         .fetch_one(&self.pool)
@@ -100,7 +101,7 @@ impl DeviceRepository for PgDeviceRepository {
     ) -> Result<Option<DeviceAuthorization>, DatabaseError> {
         let device_auth = sqlx::query_as::<_, DeviceAuthorization>(
             r#"
-            SELECT id, device_code_hash, user_code, client_id, user_id, status, expires_at, created_at
+            SELECT id, device_code_hash, user_code_hash, client_id, user_id, status, expires_at, created_at
             FROM auth.device_authorizations
             WHERE device_code_hash = $1
             "#,
@@ -112,18 +113,18 @@ impl DeviceRepository for PgDeviceRepository {
         Ok(device_auth)
     }
 
-    async fn get_device_authorization_by_user_code(
+    async fn get_device_authorization_by_user_code_hash(
         &self,
-        user_code: &str,
+        user_code_hash: &str,
     ) -> Result<Option<DeviceAuthorization>, DatabaseError> {
         let device_auth = sqlx::query_as::<_, DeviceAuthorization>(
             r#"
-            SELECT id, device_code_hash, user_code, client_id, user_id, status, expires_at, created_at
+            SELECT id, device_code_hash, user_code_hash, client_id, user_id, status, expires_at, created_at
             FROM auth.device_authorizations
-            WHERE user_code = $1
+            WHERE user_code_hash = $1
             "#,
         )
-        .bind(user_code)
+        .bind(user_code_hash)
         .fetch_optional(&self.pool)
         .await?;
 
@@ -147,18 +148,18 @@ impl DeviceRepository for PgDeviceRepository {
 
     async fn authorize_device(
         &self,
-        user_code: &str,
+        user_code_hash: &str,
         user_id: Uuid,
     ) -> Result<Option<DeviceAuthorization>, DatabaseError> {
         let device_auth = sqlx::query_as::<_, DeviceAuthorization>(
             r#"
             UPDATE auth.device_authorizations
             SET status = 'authorized', user_id = $2
-            WHERE user_code = $1 AND status = 'pending' AND expires_at > NOW()
-            RETURNING id, device_code_hash, user_code, client_id, user_id, status, expires_at, created_at
+            WHERE user_code_hash = $1 AND status = 'pending' AND expires_at > NOW()
+            RETURNING id, device_code_hash, user_code_hash, client_id, user_id, status, expires_at, created_at
             "#,
         )
-        .bind(user_code)
+        .bind(user_code_hash)
         .bind(user_id)
         .fetch_optional(&self.pool)
         .await?;
@@ -168,18 +169,18 @@ impl DeviceRepository for PgDeviceRepository {
 
     async fn deny_device(
         &self,
-        user_code: &str,
+        user_code_hash: &str,
         user_id: Uuid,
     ) -> Result<Option<DeviceAuthorization>, DatabaseError> {
         let device_auth = sqlx::query_as::<_, DeviceAuthorization>(
             r#"
             UPDATE auth.device_authorizations
             SET status = 'denied', user_id = $2
-            WHERE user_code = $1 AND status = 'pending' AND expires_at > NOW()
-            RETURNING id, device_code_hash, user_code, client_id, user_id, status, expires_at, created_at
+            WHERE user_code_hash = $1 AND status = 'pending' AND expires_at > NOW()
+            RETURNING id, device_code_hash, user_code_hash, client_id, user_id, status, expires_at, created_at
             "#,
         )
-        .bind(user_code)
+        .bind(user_code_hash)
         .bind(user_id)
         .fetch_optional(&self.pool)
         .await?;
@@ -205,7 +206,7 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(created.device_code_hash, "dch");
-        assert_eq!(created.user_code, "USER-CODE");
+        assert_eq!(created.user_code_hash, "USER-CODE");
         assert_eq!(created.client_id, "cli");
         assert_eq!(created.status, DeviceAuthorizationStatus::Pending);
         assert!(created.user_id.is_none());
@@ -218,7 +219,7 @@ mod tests {
         assert_eq!(by_hash.id, created.id);
 
         let by_code = repo
-            .get_device_authorization_by_user_code("USER-CODE")
+            .get_device_authorization_by_user_code_hash("USER-CODE")
             .await
             .unwrap()
             .expect("found by user code");
@@ -231,7 +232,7 @@ mod tests {
                 .is_none()
         );
         assert!(
-            repo.get_device_authorization_by_user_code("NOPE")
+            repo.get_device_authorization_by_user_code_hash("NOPE")
                 .await
                 .unwrap()
                 .is_none()
@@ -249,7 +250,7 @@ mod tests {
         repo.expire_device_authorization(created.id).await.unwrap();
 
         let after = repo
-            .get_device_authorization_by_user_code("CODE")
+            .get_device_authorization_by_user_code_hash("CODE")
             .await
             .unwrap()
             .unwrap();

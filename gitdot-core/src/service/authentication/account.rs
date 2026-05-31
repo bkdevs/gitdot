@@ -84,8 +84,7 @@ where
             .invalidate_codes_for_email(user_id, email)
             .await?;
 
-        let code = self.token_client.generate_readable_code();
-        let code_hash = hash_string(&code);
+        let (code, code_hash) = self.token_client.generate_readable_code();
         let expires_at = Utc::now()
             + Duration::seconds(self.token_client.get_auth_code_expiry_in_seconds() as i64);
         self.email_verification_repo

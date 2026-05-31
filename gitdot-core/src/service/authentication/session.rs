@@ -231,8 +231,7 @@ where
             }
         };
 
-        let code = self.token_client.generate_readable_code();
-        let code_hash = hash_string(&code);
+        let (code, code_hash) = self.token_client.generate_readable_code();
         let expiry_secs = self.token_client.get_auth_code_expiry_in_seconds();
         let expires_at = Utc::now() + Duration::seconds(expiry_secs as i64);
         self.session_repo

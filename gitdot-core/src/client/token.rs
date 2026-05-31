@@ -41,8 +41,10 @@ pub trait TokenClient: Send + Sync + Clone + 'static {
     fn generate_high_entropic_code(&self) -> (String, String);
 
     /// Generates a short, human-readable code (6 uppercase chars from an
-    /// unambiguous alphabet) for device-flow user codes.
-    fn generate_readable_code(&self) -> String;
+    /// unambiguous alphabet) for device-flow user codes and email login codes,
+    /// returning `(raw_code, hashed_code)`. Show the raw code to the user;
+    /// persist only the hash.
+    fn generate_readable_code(&self) -> (String, String);
 
     // Expiry operations
 
@@ -130,12 +132,14 @@ impl TokenClient for TokenClientImpl {
         (raw_code, hashed_code)
     }
 
-    fn generate_readable_code(&self) -> String {
+    fn generate_readable_code(&self) -> (String, String) {
         let mut rng = rand::rng();
         let chars: Vec<char> = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789".chars().collect();
-        (0..6)
+        let raw_code: String = (0..6)
             .map(|_| chars[rng.random_range(0..chars.len())])
-            .collect()
+            .collect();
+        let hashed_code = hash_string(&raw_code);
+        (raw_code, hashed_code)
     }
 
     fn get_auth_code_expiry_in_seconds(&self) -> u64 {
@@ -326,5 +330,44 @@ mod tests {
         let replacement = if last == 'A' { 'B' } else { 'A' };
         token.push(replacement);
         assert!(!c.validate_token_format(&token));
+    }
+
+    #[test]
+    fn test_readable_code_uses_six_unambiguous_chars() {
+        let c = client();
+        let (raw, _) = c.generate_readable_code();
+        assert_eq!(raw.chars().count(), 6);
+
+        const READABLE_ALPHABET: &str = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+        assert!(
+            raw.chars().all(|ch| READABLE_ALPHABET.contains(ch)),
+            "raw code {raw:?} contains a char outside the unambiguous alphabet",
+        );
+        // The unambiguous alphabet excludes 0/O/1/I to avoid transcription errors.
+        assert!(!raw.contains(['0', 'O', '1', 'I']));
+    }
+
+    #[test]
+    fn test_readable_code_hash_matches_raw() {
+        let c = client();
+        let (raw, hashed) = c.generate_readable_code();
+        // The persisted hash is the SHA-256 hex of the raw code, never the code itself.
+        assert_eq!(hashed, hash_string(&raw));
+        assert_ne!(hashed, raw);
+        assert_eq!(hashed.len(), 64);
+        assert!(hashed.chars().all(|ch| ch.is_ascii_hexdigit()));
+    }
+
+    #[test]
+    fn test_readable_codes_are_random() {
+        let c = client();
+        // 32^6 space, so 100 draws colliding would be astronomically unlikely.
+        let codes: std::collections::HashSet<String> =
+            (0..100).map(|_| c.generate_readable_code().0).collect();
+        assert!(
+            codes.len() > 90,
+            "expected mostly-distinct codes, got {}",
+            codes.len()
+        );
     }
 }

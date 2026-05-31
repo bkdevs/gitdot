@@ -6,7 +6,7 @@ use uuid::Uuid;
 pub struct DeviceAuthorization {
     pub id: Uuid,
     pub device_code_hash: String,
-    pub user_code: String,
+    pub user_code_hash: String,
     pub client_id: String,
     pub user_id: Option<Uuid>,
     pub status: DeviceAuthorizationStatus,

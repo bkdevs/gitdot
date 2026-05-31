@@ -96,14 +96,14 @@ where
         request: DeviceCodeRequest,
     ) -> Result<DeviceCodeResponse, DeviceError> {
         let (device_code, device_code_hash) = self.token_client.generate_high_entropic_code();
-        let user_code = self.token_client.generate_readable_code();
+        let (user_code, user_code_hash) = self.token_client.generate_readable_code();
         let expiry_secs = self.token_client.get_device_code_expiry_in_seconds();
         let expires_at = Utc::now() + Duration::seconds(expiry_secs as i64);
 
         self.device_repo
             .create_device_authorization(
                 &device_code_hash,
-                &user_code,
+                &user_code_hash,
                 &request.client_id,
                 expires_at,
             )
@@ -185,10 +185,11 @@ where
     }
 
     async fn authorize_device(&self, request: AuthorizeDeviceRequest) -> Result<(), DeviceError> {
+        let user_code_hash = hash_string(request.user_code.as_ref());
         self.device_repo
-            .authorize_device(&request.user_code, request.user_id)
+            .authorize_device(&user_code_hash, request.user_id)
             .await?
-            .or_not_found("user_code", request.user_code.as_ref())?;
+            .or_not_found("user_code", &user_code_hash)?;
 
         Ok(())
     }
