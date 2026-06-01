@@ -27,8 +27,8 @@ export default function MarketingLayout({
   const pathname = usePathname();
 
   return (
-    <div className="grid grid-cols-[1fr_min(100%,48rem)_1fr] h-full overflow-hidden">
-      <div className="pl-4 pt-2 flex flex-col gap-1 items-start">
+    <div className="grid grid-cols-1 md:grid-cols-[1fr_min(100%,48rem)_1fr] h-full overflow-hidden">
+      <div className="hidden md:flex pl-4 pt-4 flex-col gap-1 items-start">
         {NAV_LINKS.map((link) => {
           const active = isActive(pathname, link.href);
           return (

@@ -46,7 +46,7 @@ export default async function Page({
   }
 
   return (
-    <div className="px-3 py-2 h-full overflow-y-auto scrollbar-none">
+    <div className="px-3 pt-4 pb-2 h-full overflow-y-auto scrollbar-none">
       <article
         className={`${league_spartan.className} blog-root w-full max-w-160 mx-auto overflow-hidden md:overflow-visible`}
       >

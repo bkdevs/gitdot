@@ -18,7 +18,7 @@ export default function Page() {
 
   return (
     <div
-      className={`${league_spartan.className} blog-root px-3 py-2 h-full overflow-y-auto scrollbar-none`}
+      className={`${league_spartan.className} blog-root px-3 pt-4 pb-2 h-full overflow-y-auto scrollbar-none`}
     >
       {posts.length === 0 ? (
         <p>No posts yet.</p>
