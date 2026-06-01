@@ -1,10 +1,27 @@
-use chrono::Utc;
+use chrono::{Duration, Utc};
 use uuid::Uuid;
 
-use crate::model::{
-    AuthProvider, Commit, CommitRepository, Organization, OrganizationMember, OrganizationRole,
-    Repository, RepositoryOwnerType, RepositoryVisibility, User,
+use crate::{
+    dto::GitHubEmail,
+    model::{
+        AuthProvider, Commit, CommitRepository, Organization, OrganizationMember, OrganizationRole,
+        Repository, RepositoryOwnerType, RepositoryVisibility, Session, User,
+    },
 };
+
+pub fn create_session(user_id: Uuid) -> Session {
+    Session {
+        id: Uuid::new_v4(),
+        user_id,
+        refresh_token_hash: "refresh-token-hash".to_string(),
+        refresh_token_family: Uuid::new_v4(),
+        user_agent: None,
+        ip_address: None,
+        created_at: Utc::now(),
+        expires_at: Utc::now() + Duration::days(30),
+        revoked_at: None,
+    }
+}
 
 pub fn create_user(name: &str) -> User {
     User {
@@ -90,5 +107,13 @@ pub fn create_commit(sha: &str) -> Commit {
             name: "repo".to_string(),
             visibility: "public".to_string(),
         },
+    }
+}
+
+pub fn create_github_email(email: &str, primary: bool, verified: bool) -> GitHubEmail {
+    GitHubEmail {
+        email: email.to_string(),
+        primary,
+        verified,
     }
 }

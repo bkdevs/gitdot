@@ -13,6 +13,18 @@ pub async fn insert_user(pool: &PgPool, id: Uuid, name: &str) {
         .unwrap();
 }
 
+pub async fn insert_secondary_email(pool: &PgPool, user_id: Uuid, email: &str) {
+    sqlx::query(
+        "INSERT INTO core.user_emails (user_id, email, is_primary, is_verified)
+         VALUES ($1, $2, FALSE, FALSE)",
+    )
+    .bind(user_id)
+    .bind(email)
+    .execute(pool)
+    .await
+    .unwrap();
+}
+
 pub async fn insert_org(pool: &PgPool, id: Uuid, name: &str) {
     sqlx::query("INSERT INTO core.organizations (id, name) VALUES ($1, $2)")
         .bind(id)

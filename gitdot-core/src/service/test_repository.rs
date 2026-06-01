@@ -1,13 +1,20 @@
+use std::sync::{Arc, Mutex};
+
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
+use ipnetwork::IpNetwork;
 use mockall::mock;
 use uuid::Uuid;
 
-use crate::model::{
-    Answer, AuthProvider, Comment, CommentSide, Commit, CommitDiff, Diff, DiffStatus, Organization,
-    OrganizationMember, OrganizationRole, Question, Repository, RepositoryOwnerType,
-    RepositoryStar, RepositoryVisibility, Review, ReviewComment, ReviewStatus, Reviewer, Revision,
-    User, UserEmail, UserOrganization, Verdict, VoteResult, VoteTarget,
+use crate::{
+    model::{
+        Answer, AuthCode, AuthProvider, Comment, CommentSide, Commit, CommitDiff, Diff, DiffStatus,
+        Organization, OrganizationMember, OrganizationRole, Question, Repository,
+        RepositoryOwnerType, RepositoryStar, RepositoryVisibility, Review, ReviewComment,
+        ReviewStatus, Reviewer, Revision, Session, User, UserEmail, UserOrganization, Verdict,
+        VoteResult, VoteTarget,
+    },
+    repository::AuthCodeVerification,
 };
 
 mock! {
@@ -145,5 +152,164 @@ mock! {
         async fn list_by_repository(&self, repo_id: Uuid, ref_name: &str, from: DateTime<Utc>, to: DateTime<Utc>, cursor: Option<crate::dto::Cursor>, limit: i64) -> Result<(Vec<Commit>, Option<crate::dto::Cursor>), crate::error::DatabaseError>;
         async fn list_by_user(&self, author_id: Uuid, viewer_id: Option<Uuid>, from: DateTime<Utc>, to: DateTime<Utc>, cursor: Option<crate::dto::Cursor>, limit: i64) -> Result<(Vec<(Commit, bool)>, Option<crate::dto::Cursor>), crate::error::DatabaseError>;
         async fn create_bulk(&self, author_ids: &[Option<Uuid>], git_author_names: &[String], git_author_emails: &[String], repo_ids: &[Uuid], ref_names: &[String], shas: &[String], parent_shas: &[String], messages: &[String], created_ats: &[DateTime<Utc>], diffs: &[Vec<CommitDiff>], review_numbers: &[Option<i32>], diff_positions: &[Option<i32>]) -> Result<Vec<Commit>, crate::error::DatabaseError>;
+    }
+}
+
+/// Hand-written because [`SessionRepository::create_session`] takes
+/// `Option<&str>`, which `mockall` + `async_trait` can't generate a mock for
+/// (the same limitation that forces [`super::test_client::MockGitClient`]).
+///
+/// Configure the two methods the service branches on with
+/// [`with_verification`](MockSessionRepository::with_verification) and
+/// [`with_session`](MockSessionRepository::with_session); the recorders
+/// (`revoked_sessions`, `revoked_families`, `created_sessions`, etc.) let tests
+/// assert which writes happened.
+#[derive(Clone)]
+pub struct MockSessionRepository {
+    verification: AuthCodeVerification,
+    session: Option<Session>,
+    invalidated_users: Arc<Mutex<Vec<Uuid>>>,
+    created_auth_codes: Arc<Mutex<usize>>,
+    created_sessions: Arc<Mutex<usize>>,
+    revoked_sessions: Arc<Mutex<Vec<Uuid>>>,
+    revoked_families: Arc<Mutex<Vec<Uuid>>>,
+}
+
+impl Default for MockSessionRepository {
+    fn default() -> Self {
+        Self {
+            verification: AuthCodeVerification::Success,
+            session: None,
+            invalidated_users: Arc::default(),
+            created_auth_codes: Arc::default(),
+            created_sessions: Arc::default(),
+            revoked_sessions: Arc::default(),
+            revoked_families: Arc::default(),
+        }
+    }
+}
+
+impl MockSessionRepository {
+    pub fn with_verification(mut self, verification: AuthCodeVerification) -> Self {
+        self.verification = verification;
+        self
+    }
+
+    pub fn with_session(mut self, session: Session) -> Self {
+        self.session = Some(session);
+        self
+    }
+
+    pub fn invalidated_users(&self) -> Vec<Uuid> {
+        self.invalidated_users.lock().unwrap().clone()
+    }
+
+    pub fn created_auth_codes(&self) -> usize {
+        *self.created_auth_codes.lock().unwrap()
+    }
+
+    pub fn created_sessions(&self) -> usize {
+        *self.created_sessions.lock().unwrap()
+    }
+
+    pub fn revoked_sessions(&self) -> Vec<Uuid> {
+        self.revoked_sessions.lock().unwrap().clone()
+    }
+
+    pub fn revoked_families(&self) -> Vec<Uuid> {
+        self.revoked_families.lock().unwrap().clone()
+    }
+}
+
+#[async_trait]
+impl crate::repository::SessionRepository for MockSessionRepository {
+    async fn create_auth_code(
+        &self,
+        user_id: Uuid,
+        code_hash: &str,
+        expires_at: DateTime<Utc>,
+    ) -> Result<AuthCode, crate::error::DatabaseError> {
+        *self.created_auth_codes.lock().unwrap() += 1;
+        Ok(AuthCode {
+            id: Uuid::new_v4(),
+            user_id,
+            code_hash: code_hash.to_string(),
+            attempt_count: 0,
+            created_at: Utc::now(),
+            expires_at,
+            used_at: None,
+        })
+    }
+
+    async fn get_auth_code(
+        &self,
+        _user_id: Uuid,
+        _code_hash: &str,
+    ) -> Result<Option<AuthCode>, crate::error::DatabaseError> {
+        Ok(None)
+    }
+
+    async fn mark_auth_code_used(&self, _id: Uuid) -> Result<(), crate::error::DatabaseError> {
+        Ok(())
+    }
+
+    async fn invalidate_auth_codes(
+        &self,
+        user_id: Uuid,
+    ) -> Result<(), crate::error::DatabaseError> {
+        self.invalidated_users.lock().unwrap().push(user_id);
+        Ok(())
+    }
+
+    async fn verify_and_consume_auth_code(
+        &self,
+        _user_id: Uuid,
+        _code_hash: &str,
+        _max_attempts: i16,
+    ) -> Result<AuthCodeVerification, crate::error::DatabaseError> {
+        Ok(self.verification)
+    }
+
+    async fn create_session(
+        &self,
+        user_id: Uuid,
+        refresh_token_hash: &str,
+        refresh_token_family: Uuid,
+        user_agent: Option<&str>,
+        ip_address: Option<IpNetwork>,
+        expires_at: DateTime<Utc>,
+    ) -> Result<Session, crate::error::DatabaseError> {
+        *self.created_sessions.lock().unwrap() += 1;
+        Ok(Session {
+            id: Uuid::new_v4(),
+            user_id,
+            refresh_token_hash: refresh_token_hash.to_string(),
+            refresh_token_family,
+            user_agent: user_agent.map(str::to_string),
+            ip_address,
+            created_at: Utc::now(),
+            expires_at,
+            revoked_at: None,
+        })
+    }
+
+    async fn get_session_by_refresh_hash(
+        &self,
+        _hash: &str,
+    ) -> Result<Option<Session>, crate::error::DatabaseError> {
+        Ok(self.session.clone())
+    }
+
+    async fn revoke_session(&self, id: Uuid) -> Result<(), crate::error::DatabaseError> {
+        self.revoked_sessions.lock().unwrap().push(id);
+        Ok(())
+    }
+
+    async fn revoke_sessions_by_family(
+        &self,
+        family: Uuid,
+    ) -> Result<(), crate::error::DatabaseError> {
+        self.revoked_families.lock().unwrap().push(family);
+        Ok(())
     }
 }

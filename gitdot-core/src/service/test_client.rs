@@ -1,19 +1,58 @@
-use std::sync::{Arc, Mutex};
+use std::{
+    collections::HashMap,
+    sync::{Arc, Mutex},
+    time::Duration,
+};
 
 use async_trait::async_trait;
 use bytes::Bytes;
 use chrono::{DateTime, Utc};
 use mockall::mock;
+use serde::{Serialize, de::DeserializeOwned};
+use uuid::Uuid;
 
 use crate::{
-    client::GitClient,
+    client::{GitClient, RedisClient, TokenClient},
     dto::{
         CommitDiffResponse, InitialCommitFile, RepositoryBlobResponse, RepositoryCommitResponse,
         RepositoryPathsResponse,
     },
-    error::GitError,
+    error::{GitError, RedisError, TokenError},
+    model::TokenType,
     util::git::GitHookType,
 };
+
+mock! {
+    pub EmailClient {}
+    impl Clone for EmailClient {
+        fn clone(&self) -> Self;
+    }
+    #[async_trait]
+    impl crate::client::EmailClient for EmailClient {
+        async fn send_email(&self, from: &str, to: &str, subject: &str, html: &str) -> Result<(), crate::error::EmailError>;
+    }
+}
+
+mock! {
+    pub GitHubClient {}
+    impl Clone for GitHubClient {
+        fn clone(&self) -> Self;
+    }
+    #[async_trait]
+    impl crate::client::GitHubClient for GitHubClient {
+        fn get_authorization_url(&self, state: &str) -> String;
+        async fn exchange_code(&self, code: &str) -> Result<String, crate::error::GitHubError>;
+        async fn get_user(&self, access_token: &str) -> Result<crate::dto::GitHubUser, crate::error::GitHubError>;
+        async fn get_user_emails(&self, access_token: &str) -> Result<Vec<crate::dto::GitHubEmail>, crate::error::GitHubError>;
+        async fn get_user_membership(&self, org_name: &str, user_name: &str, access_token: &str) -> Result<crate::dto::GitHubMembership, crate::error::GitHubError>;
+        fn get_github_app_install_url(&self, user_id: Uuid, action: crate::dto::GitHubAppInstallAction) -> Result<String, crate::error::GitHubError>;
+        fn verify_install_state(&self, token: &str) -> Result<crate::dto::InstallStatePayload, crate::error::GitHubError>;
+        async fn get_installation(&self, installation_id: u64) -> Result<octocrab::models::Installation, crate::error::GitHubError>;
+        async fn get_installation_access_token(&self, installation_id: u64) -> Result<String, crate::error::GitHubError>;
+        async fn list_installation_repositories(&self, installation_id: u64) -> Result<octocrab::models::InstallationRepositories, crate::error::GitHubError>;
+        fn verify_webhook_signature(&self, body: &[u8], signature_header: &str) -> Result<(), crate::error::GitHubError>;
+    }
+}
 
 mock! {
     pub ImageClient {}
@@ -230,5 +269,208 @@ impl GitClient for MockGitClient {
     }
     async fn empty_hooks(&self, _owner: &str, _repo: &str) -> Result<(), GitError> {
         unimplemented!("MockGitClient::empty_hooks is not stubbed")
+    }
+}
+
+/// Hand-written because [`RedisClient`]'s `get` / `set_with_ttl` /
+/// `set_nx_with_ttl` are generic methods, which `mockall` can't generate.
+/// Backed by an in-memory JSON map so `SET NX` claim-once semantics behave
+/// realistically for the refresh-token rotation tests. Build with
+/// [`failing`](MockRedisClient::failing) to make every operation error, or
+/// [`seed`](MockRedisClient::seed) to pre-populate a key.
+#[derive(Clone, Default)]
+pub struct MockRedisClient {
+    store: Arc<Mutex<HashMap<String, String>>>,
+    fail: bool,
+    phantom_nx_conflict: bool,
+}
+
+impl MockRedisClient {
+    pub fn failing() -> Self {
+        Self {
+            fail: true,
+            ..Default::default()
+        }
+    }
+
+    /// Simulates the Redis-eviction race the real client guards against: a
+    /// `SET NX` reports the key is already claimed, yet a follow-up `GET` finds
+    /// nothing (the replacement was evicted in between). The in-memory store
+    /// can't reproduce this atomically, so this flag forces it.
+    pub fn phantom_nx_conflict() -> Self {
+        Self {
+            phantom_nx_conflict: true,
+            ..Default::default()
+        }
+    }
+
+    pub fn seed<T: Serialize>(self, key: &str, value: &T) -> Self {
+        self.store
+            .lock()
+            .unwrap()
+            .insert(key.to_string(), serde_json::to_string(value).unwrap());
+        self
+    }
+
+    pub fn contains(&self, key: &str) -> bool {
+        self.store.lock().unwrap().contains_key(key)
+    }
+}
+
+/// Fabricates a [`RedisError`] for the failure-path tests without needing a live
+/// connection.
+fn redis_error() -> RedisError {
+    RedisError::Serialization(serde_json::from_str::<i32>("x").unwrap_err())
+}
+
+#[async_trait]
+impl RedisClient for MockRedisClient {
+    async fn get<T: DeserializeOwned + Send>(&self, key: &str) -> Result<Option<T>, RedisError> {
+        if self.fail {
+            return Err(redis_error());
+        }
+        if self.phantom_nx_conflict {
+            return Ok(None);
+        }
+        match self.store.lock().unwrap().get(key) {
+            Some(raw) => Ok(Some(serde_json::from_str(raw)?)),
+            None => Ok(None),
+        }
+    }
+
+    async fn set_with_ttl<T: Serialize + Send + Sync>(
+        &self,
+        key: &str,
+        value: &T,
+        _ttl: Duration,
+    ) -> Result<(), RedisError> {
+        if self.fail {
+            return Err(redis_error());
+        }
+        self.store
+            .lock()
+            .unwrap()
+            .insert(key.to_string(), serde_json::to_string(value)?);
+        Ok(())
+    }
+
+    async fn set_nx_with_ttl<T: Serialize + Send + Sync>(
+        &self,
+        key: &str,
+        value: &T,
+        _ttl: Duration,
+    ) -> Result<bool, RedisError> {
+        if self.fail {
+            return Err(redis_error());
+        }
+        if self.phantom_nx_conflict {
+            return Ok(false);
+        }
+        let mut store = self.store.lock().unwrap();
+        if store.contains_key(key) {
+            return Ok(false);
+        }
+        store.insert(key.to_string(), serde_json::to_string(value)?);
+        Ok(true)
+    }
+
+    async fn delete(&self, key: &str) -> Result<(), RedisError> {
+        if self.fail {
+            return Err(redis_error());
+        }
+        self.store.lock().unwrap().remove(key);
+        Ok(())
+    }
+
+    async fn ping(&self) -> Result<(), RedisError> {
+        Ok(())
+    }
+}
+
+/// Hand-written because [`TokenClient::generate_jwt`] is generic, which
+/// `mockall` can't generate. Returns fixed, predictable values so token
+/// assertions are deterministic. [`with_invalid_oauth_state`] flips
+/// `verify_oauth_state` to `Err`.
+#[derive(Clone)]
+pub struct MockTokenClient {
+    oauth_state_valid: bool,
+}
+
+impl Default for MockTokenClient {
+    fn default() -> Self {
+        Self {
+            oauth_state_valid: true,
+        }
+    }
+}
+
+impl MockTokenClient {
+    pub fn with_invalid_oauth_state(mut self) -> Self {
+        self.oauth_state_valid = false;
+        self
+    }
+}
+
+impl TokenClient for MockTokenClient {
+    fn generate_high_entropic_code(&self) -> (String, String) {
+        (
+            "refresh-token-raw".to_string(),
+            "refresh-token-hash".to_string(),
+        )
+    }
+
+    fn generate_readable_code(&self) -> (String, String) {
+        ("ABC234".to_string(), "auth-code-hash".to_string())
+    }
+
+    fn get_auth_code_expiry_in_seconds(&self) -> u64 {
+        600
+    }
+
+    fn get_access_token_expiry_in_seconds(&self) -> u64 {
+        3600
+    }
+
+    fn get_refresh_token_expiry_in_seconds(&self) -> u64 {
+        2_592_000
+    }
+
+    fn get_device_code_expiry_in_seconds(&self) -> u64 {
+        600
+    }
+
+    fn get_polling_interval_in_seconds(&self) -> u64 {
+        1
+    }
+
+    fn generate_access_token(&self, _token_type: &TokenType) -> (String, String) {
+        (
+            "access-token-raw".to_string(),
+            "access-token-hash".to_string(),
+        )
+    }
+
+    fn validate_token_format(&self, _token: &str) -> bool {
+        true
+    }
+
+    fn generate_oauth_state(&self) -> String {
+        "oauth-state".to_string()
+    }
+
+    fn verify_oauth_state(&self, _state: &str) -> Result<(), String> {
+        if self.oauth_state_valid {
+            Ok(())
+        } else {
+            Err("invalid state".to_string())
+        }
+    }
+
+    fn generate_jwt<T: Serialize + Send + Sync>(&self, _claims: &T) -> Result<String, TokenError> {
+        Ok("jwt".to_string())
+    }
+
+    fn generate_gitdot_jwt(&self, _user_id: Uuid, _username: &str) -> Result<String, TokenError> {
+        Ok("gitdot-jwt".to_string())
     }
 }

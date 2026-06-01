@@ -527,3 +527,683 @@ where
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use chrono::{Duration, Utc};
+
+    use super::{GraceEntry, SessionService, SessionServiceImpl};
+    use crate::{
+        dto::{
+            ExchangeGitHubCodeRequest, LogoutRequest, RefreshSessionRequest, SendAuthEmailRequest,
+            VerifyAuthCodeRequest,
+        },
+        error::SessionError,
+        repository::AuthCodeVerification,
+        service::{
+            test_client::{
+                MockEmailClient, MockGitHubClient, MockImageClient, MockR2Client, MockRedisClient,
+                MockTokenClient,
+            },
+            test_common::{create_github_email, create_session, create_user},
+            test_repository::{MockSessionRepository, MockUserRepository},
+        },
+        util::crypto::hash_string,
+    };
+
+    type Service = SessionServiceImpl<
+        MockSessionRepository,
+        MockUserRepository,
+        MockEmailClient,
+        MockGitHubClient,
+        MockTokenClient,
+        MockImageClient,
+        MockR2Client,
+        MockRedisClient,
+    >;
+
+    fn create_service(
+        session_repo: MockSessionRepository,
+        redis_client: MockRedisClient,
+        token_client: MockTokenClient,
+    ) -> Service {
+        SessionServiceImpl {
+            session_repo,
+            user_repo: MockUserRepository::new(),
+            email_client: MockEmailClient::new(),
+            github_client: MockGitHubClient::new(),
+            token_client,
+            image_client: MockImageClient::new(),
+            r2_client: MockR2Client::new(),
+            redis_client,
+        }
+    }
+
+    fn create_default_service() -> Service {
+        create_service(
+            MockSessionRepository::default(),
+            MockRedisClient::default(),
+            MockTokenClient::default(),
+        )
+    }
+
+    // Shared by both the `refresh_session` and `logout` tests.
+    const REFRESH_TOKEN: &str = "raw-refresh-token";
+
+    mod send_auth_email {
+        use super::*;
+
+        #[tokio::test]
+        async fn send_auth_email_within_cooldown_is_too_many_attempts() {
+            let email = "user@example.com";
+            let rate_limit_key = format!("auth_code_send:{}", hash_string(email));
+            // Pre-claimed key → the SET NX returns false → cooldown.
+            let redis = MockRedisClient::default().seed(&rate_limit_key, &true);
+            let service = create_service(
+                MockSessionRepository::default(),
+                redis,
+                MockTokenClient::default(),
+            );
+
+            let err = service
+                .send_auth_email(SendAuthEmailRequest::new(email).unwrap())
+                .await
+                .unwrap_err();
+
+            assert!(matches!(err, SessionError::TooManyAttempts));
+        }
+
+        #[tokio::test]
+        async fn send_auth_email_creates_user_when_none_exists() {
+            let mut service = create_default_service();
+            service
+                .user_repo
+                .expect_get_by_primary_email()
+                .returning(|_| Ok(None));
+            service
+                .user_repo
+                .expect_is_email_taken()
+                .returning(|_| Ok(false));
+            service
+                .user_repo
+                .expect_create()
+                .returning(|_, _, _| Ok(create_user("newbie")));
+            service
+                .image_client
+                .expect_generate_user_image()
+                .returning(|_| Ok(bytes::Bytes::new()));
+            service
+                .r2_client
+                .expect_upload_object()
+                .returning(|_, _| Ok(()));
+            service
+                .email_client
+                .expect_send_email()
+                .returning(|_, _, _, _| Ok(()));
+
+            service
+                .send_auth_email(SendAuthEmailRequest::new("user@example.com").unwrap())
+                .await
+                .unwrap();
+
+            assert_eq!(service.session_repo.created_auth_codes(), 1);
+        }
+
+        #[tokio::test]
+        async fn send_auth_email_for_secondary_email_silently_succeeds() {
+            let mut service = create_default_service();
+            service
+                .user_repo
+                .expect_get_by_primary_email()
+                .returning(|_| Ok(None));
+            // Email exists as someone else's secondary → no user created, no code.
+            service
+                .user_repo
+                .expect_is_email_taken()
+                .returning(|_| Ok(true));
+
+            service
+                .send_auth_email(SendAuthEmailRequest::new("user@example.com").unwrap())
+                .await
+                .unwrap();
+
+            assert_eq!(service.session_repo.created_auth_codes(), 0);
+        }
+
+        #[tokio::test]
+        async fn send_auth_email_for_existing_user_reissues_code() {
+            let user = create_user("alice");
+            let uid = user.id;
+            let mut service = create_default_service();
+            service
+                .user_repo
+                .expect_get_by_primary_email()
+                .returning(move |_| Ok(Some(user.clone())));
+            service
+                .email_client
+                .expect_send_email()
+                .returning(|_, _, _, _| Ok(()));
+
+            service
+                .send_auth_email(SendAuthEmailRequest::new("alice@example.com").unwrap())
+                .await
+                .unwrap();
+
+            assert_eq!(service.session_repo.created_auth_codes(), 1);
+            assert_eq!(service.session_repo.invalidated_users(), vec![uid]);
+        }
+
+        #[tokio::test]
+        async fn send_auth_email_proceeds_when_rate_limit_check_errors() {
+            let user = create_user("alice");
+            // A failing Redis must not block the send (fail-open on rate limiting).
+            let mut service = create_service(
+                MockSessionRepository::default(),
+                MockRedisClient::failing(),
+                MockTokenClient::default(),
+            );
+            service
+                .user_repo
+                .expect_get_by_primary_email()
+                .returning(move |_| Ok(Some(user.clone())));
+            service
+                .email_client
+                .expect_send_email()
+                .returning(|_, _, _, _| Ok(()));
+
+            service
+                .send_auth_email(SendAuthEmailRequest::new("alice@example.com").unwrap())
+                .await
+                .unwrap();
+
+            assert_eq!(service.session_repo.created_auth_codes(), 1);
+        }
+    }
+
+    mod verify_auth_code {
+        use super::*;
+
+        fn verify_request() -> VerifyAuthCodeRequest {
+            VerifyAuthCodeRequest::new("alice@example.com", "ABC234", None, None).unwrap()
+        }
+
+        #[tokio::test]
+        async fn verify_auth_code_unknown_user_is_unauthorized() {
+            let mut service = create_default_service();
+            service
+                .user_repo
+                .expect_get_by_primary_email()
+                .returning(|_| Ok(None));
+
+            let err = service
+                .verify_auth_code(verify_request())
+                .await
+                .unwrap_err();
+            assert!(matches!(err, SessionError::Unauthorized));
+        }
+
+        #[tokio::test]
+        async fn verify_auth_code_exhausted_attempts_is_too_many_attempts() {
+            let user = create_user("alice");
+            let mut service = create_service(
+                MockSessionRepository::default()
+                    .with_verification(AuthCodeVerification::AttemptsExhausted),
+                MockRedisClient::default(),
+                MockTokenClient::default(),
+            );
+            service
+                .user_repo
+                .expect_get_by_primary_email()
+                .returning(move |_| Ok(Some(user.clone())));
+
+            let err = service
+                .verify_auth_code(verify_request())
+                .await
+                .unwrap_err();
+            assert!(matches!(err, SessionError::TooManyAttempts));
+        }
+
+        #[tokio::test]
+        async fn verify_auth_code_invalid_code_is_unauthorized() {
+            let user = create_user("alice");
+            let mut service = create_service(
+                MockSessionRepository::default().with_verification(AuthCodeVerification::Invalid),
+                MockRedisClient::default(),
+                MockTokenClient::default(),
+            );
+            service
+                .user_repo
+                .expect_get_by_primary_email()
+                .returning(move |_| Ok(Some(user.clone())));
+
+            let err = service
+                .verify_auth_code(verify_request())
+                .await
+                .unwrap_err();
+            assert!(matches!(err, SessionError::Unauthorized));
+        }
+
+        #[tokio::test]
+        async fn verify_auth_code_no_active_code_is_unauthorized() {
+            let user = create_user("alice");
+            let mut service = create_service(
+                MockSessionRepository::default()
+                    .with_verification(AuthCodeVerification::NoActiveCode),
+                MockRedisClient::default(),
+                MockTokenClient::default(),
+            );
+            service
+                .user_repo
+                .expect_get_by_primary_email()
+                .returning(move |_| Ok(Some(user.clone())));
+
+            let err = service
+                .verify_auth_code(verify_request())
+                .await
+                .unwrap_err();
+            assert!(matches!(err, SessionError::Unauthorized));
+        }
+
+        #[tokio::test]
+        async fn verify_auth_code_success_issues_tokens() {
+            let user = create_user("alice");
+            let mut service = create_service(
+                MockSessionRepository::default().with_verification(AuthCodeVerification::Success),
+                MockRedisClient::default(),
+                MockTokenClient::default(),
+            );
+            service
+                .user_repo
+                .expect_get_by_primary_email()
+                .returning(move |_| Ok(Some(user.clone())));
+            service
+                .user_repo
+                .expect_verify_email()
+                .returning(|_| Ok(()));
+
+            let resp = service.verify_auth_code(verify_request()).await.unwrap();
+
+            assert_eq!(resp.access_token, "gitdot-jwt");
+            assert_eq!(resp.refresh_token, "refresh-token-raw");
+            // Previously-unverified email → flagged as a new sign-in.
+            assert!(resp.is_new);
+            assert_eq!(service.session_repo.created_sessions(), 1);
+        }
+    }
+
+    mod refresh_session {
+        use super::*;
+
+        fn refresh_request() -> RefreshSessionRequest {
+            RefreshSessionRequest::new(REFRESH_TOKEN.to_string(), None, None)
+        }
+
+        fn grace_key() -> String {
+            format!("refresh_grace:{}", hash_string(REFRESH_TOKEN))
+        }
+
+        #[tokio::test]
+        async fn refresh_session_unknown_token_is_not_found() {
+            // session_repo default returns no session.
+            let service = create_default_service();
+            let err = service
+                .refresh_session(refresh_request())
+                .await
+                .unwrap_err();
+            assert!(matches!(err, SessionError::NotFound(_)));
+        }
+
+        #[tokio::test]
+        async fn refresh_session_expired_token_is_token_expired() {
+            let mut session = create_session(create_user("alice").id);
+            session.expires_at = Utc::now() - Duration::hours(1);
+            let service = create_service(
+                MockSessionRepository::default().with_session(session),
+                MockRedisClient::default(),
+                MockTokenClient::default(),
+            );
+
+            let err = service
+                .refresh_session(refresh_request())
+                .await
+                .unwrap_err();
+            assert!(matches!(err, SessionError::TokenExpired(_)));
+        }
+
+        #[tokio::test]
+        async fn refresh_session_replay_within_grace_returns_cached_tokens() {
+            let user = create_user("alice");
+            let mut session = create_session(user.id);
+            session.revoked_at = Some(Utc::now()); // already rotated
+
+            let grace = GraceEntry {
+                refresh_token: "cached-refresh".to_string(),
+                expires_at: Utc::now() + Duration::days(30),
+            };
+            let mut service = create_service(
+                MockSessionRepository::default().with_session(session),
+                MockRedisClient::default().seed(&grace_key(), &grace),
+                MockTokenClient::default(),
+            );
+            service
+                .user_repo
+                .expect_get_by_id()
+                .returning(move |_| Ok(Some(user.clone())));
+
+            let resp = service.refresh_session(refresh_request()).await.unwrap();
+
+            assert_eq!(resp.refresh_token, "cached-refresh");
+            // Idempotent replay: no family revocation.
+            assert!(service.session_repo.revoked_families().is_empty());
+        }
+
+        #[tokio::test]
+        async fn refresh_session_replay_outside_grace_revokes_family() {
+            let user = create_user("alice");
+            let mut session = create_session(user.id);
+            session.revoked_at = Some(Utc::now());
+            let family = session.refresh_token_family;
+
+            // Revoked token, no grace entry in Redis → real reuse.
+            let mut service = create_service(
+                MockSessionRepository::default().with_session(session),
+                MockRedisClient::default(),
+                MockTokenClient::default(),
+            );
+            service
+                .user_repo
+                .expect_get_by_id()
+                .returning(move |_| Ok(Some(user.clone())));
+
+            let err = service
+                .refresh_session(refresh_request())
+                .await
+                .unwrap_err();
+
+            assert!(matches!(err, SessionError::TokenRevoked(_)));
+            assert_eq!(service.session_repo.revoked_families(), vec![family]);
+        }
+
+        #[tokio::test]
+        async fn refresh_session_happy_path_rotates_tokens() {
+            let user = create_user("alice");
+            let session = create_session(user.id);
+            let session_id = session.id;
+
+            let mut service = create_service(
+                MockSessionRepository::default().with_session(session),
+                MockRedisClient::default(),
+                MockTokenClient::default(),
+            );
+            service
+                .user_repo
+                .expect_get_by_id()
+                .returning(move |_| Ok(Some(user.clone())));
+
+            let resp = service.refresh_session(refresh_request()).await.unwrap();
+
+            assert_eq!(resp.refresh_token, "refresh-token-raw");
+            assert_eq!(service.session_repo.revoked_sessions(), vec![session_id]);
+            assert_eq!(service.session_repo.created_sessions(), 1);
+            // Replacement was cached under the grace key for replay tolerance.
+            assert!(service.redis_client.contains(&grace_key()));
+        }
+
+        #[tokio::test]
+        async fn refresh_session_lost_claim_replays_winners_tokens() {
+            let user = create_user("alice");
+            let session = create_session(user.id);
+
+            // Another worker already claimed the rotation (grace key present).
+            let winner = GraceEntry {
+                refresh_token: "winner-refresh".to_string(),
+                expires_at: Utc::now() + Duration::days(30),
+            };
+            let mut service = create_service(
+                MockSessionRepository::default().with_session(session),
+                MockRedisClient::default().seed(&grace_key(), &winner),
+                MockTokenClient::default(),
+            );
+            service
+                .user_repo
+                .expect_get_by_id()
+                .returning(move |_| Ok(Some(user.clone())));
+
+            let resp = service.refresh_session(refresh_request()).await.unwrap();
+
+            assert_eq!(resp.refresh_token, "winner-refresh");
+            // Lost the claim → did no writes itself.
+            assert_eq!(service.session_repo.created_sessions(), 0);
+            assert!(service.session_repo.revoked_sessions().is_empty());
+        }
+
+        #[tokio::test]
+        async fn refresh_session_lost_claim_with_vanished_cache_revokes_family() {
+            let user = create_user("alice");
+            let session = create_session(user.id);
+            let family = session.refresh_token_family;
+
+            let mut service = create_service(
+                MockSessionRepository::default().with_session(session),
+                MockRedisClient::phantom_nx_conflict(),
+                MockTokenClient::default(),
+            );
+            service
+                .user_repo
+                .expect_get_by_id()
+                .returning(move |_| Ok(Some(user.clone())));
+
+            let err = service
+                .refresh_session(refresh_request())
+                .await
+                .unwrap_err();
+
+            assert!(matches!(err, SessionError::TokenRevoked(_)));
+            assert_eq!(service.session_repo.revoked_families(), vec![family]);
+        }
+    }
+
+    mod logout {
+        use super::*;
+
+        #[tokio::test]
+        async fn logout_unknown_token_is_not_found() {
+            let service = create_default_service();
+            let err = service
+                .logout(LogoutRequest {
+                    refresh_token: REFRESH_TOKEN.to_string(),
+                })
+                .await
+                .unwrap_err();
+            assert!(matches!(err, SessionError::NotFound(_)));
+        }
+
+        #[tokio::test]
+        async fn logout_revokes_single_session() {
+            let session = create_session(create_user("alice").id);
+            let session_id = session.id;
+            let service = create_service(
+                MockSessionRepository::default().with_session(session),
+                MockRedisClient::default(),
+                MockTokenClient::default(),
+            );
+
+            service
+                .logout(LogoutRequest {
+                    refresh_token: REFRESH_TOKEN.to_string(),
+                })
+                .await
+                .unwrap();
+
+            assert_eq!(service.session_repo.revoked_sessions(), vec![session_id]);
+            // Only the one session, never the whole family.
+            assert!(service.session_repo.revoked_families().is_empty());
+        }
+    }
+
+    mod get_github_authorization_url {
+        use super::*;
+
+        #[tokio::test]
+        async fn get_github_authorization_url_embeds_state() {
+            let mut service = create_default_service();
+            service
+                .github_client
+                .expect_get_authorization_url()
+                .returning(|state| {
+                    format!("https://github.com/login/oauth/authorize?state={state}")
+                });
+
+            let resp = service.get_github_authorization_url();
+
+            assert_eq!(resp.state, "oauth-state");
+            assert!(resp.authorize_url.contains("oauth-state"));
+        }
+    }
+
+    mod exchange_github_code {
+        use super::*;
+
+        fn exchange_request() -> ExchangeGitHubCodeRequest {
+            ExchangeGitHubCodeRequest::new(
+                "gh-code".to_string(),
+                "gh-state".to_string(),
+                None,
+                None,
+            )
+        }
+
+        #[tokio::test]
+        async fn exchange_github_code_invalid_state_is_unauthorized() {
+            let service = create_service(
+                MockSessionRepository::default(),
+                MockRedisClient::default(),
+                MockTokenClient::default().with_invalid_oauth_state(),
+            );
+
+            let err = service
+                .exchange_github_code(exchange_request())
+                .await
+                .unwrap_err();
+            assert!(matches!(err, SessionError::Unauthorized));
+        }
+
+        #[tokio::test]
+        async fn exchange_github_code_without_verified_primary_is_github_error() {
+            let mut service = create_default_service();
+            service
+                .github_client
+                .expect_exchange_code()
+                .returning(|_| Ok("gh-token".to_string()));
+            service
+                .github_client
+                .expect_get_user_emails()
+                // Verified but not primary → no usable primary email.
+                .returning(|_| Ok(vec![create_github_email("alice@example.com", false, true)]));
+
+            let err = service
+                .exchange_github_code(exchange_request())
+                .await
+                .unwrap_err();
+            assert!(matches!(err, SessionError::GitHubError(_)));
+        }
+
+        #[tokio::test]
+        async fn exchange_github_code_secondary_email_is_unauthorized() {
+            let mut service = create_default_service();
+            service
+                .github_client
+                .expect_exchange_code()
+                .returning(|_| Ok("gh-token".to_string()));
+            service
+                .github_client
+                .expect_get_user_emails()
+                .returning(|_| Ok(vec![create_github_email("alice@example.com", true, true)]));
+            service
+                .user_repo
+                .expect_get_by_primary_email()
+                .returning(|_| Ok(None));
+            // Already verified as another account's secondary.
+            service
+                .user_repo
+                .expect_is_email_taken()
+                .returning(|_| Ok(true));
+
+            let err = service
+                .exchange_github_code(exchange_request())
+                .await
+                .unwrap_err();
+            assert!(matches!(err, SessionError::Unauthorized));
+        }
+
+        #[tokio::test]
+        async fn exchange_github_code_new_user_upserts_extra_emails() {
+            let mut service = create_default_service();
+            service
+                .github_client
+                .expect_exchange_code()
+                .returning(|_| Ok("gh-token".to_string()));
+            service
+                .github_client
+                .expect_get_user_emails()
+                .returning(|_| {
+                    Ok(vec![
+                        create_github_email("alice@example.com", true, true),
+                        create_github_email("alice.work@example.com", false, true),
+                    ])
+                });
+            service
+                .user_repo
+                .expect_get_by_primary_email()
+                .returning(|_| Ok(None));
+            service
+                .user_repo
+                .expect_is_email_taken()
+                .returning(|_| Ok(false));
+            service
+                .user_repo
+                .expect_create()
+                .returning(|_, _, _| Ok(create_user("alice")));
+            service
+                .user_repo
+                .expect_upsert_verified_emails()
+                .returning(|_, _| Ok(()));
+
+            let resp = service
+                .exchange_github_code(exchange_request())
+                .await
+                .unwrap();
+
+            assert!(resp.is_new);
+            assert_eq!(resp.access_token, "gitdot-jwt");
+            assert_eq!(resp.refresh_token, "refresh-token-raw");
+            assert_eq!(service.session_repo.created_sessions(), 1);
+        }
+
+        #[tokio::test]
+        async fn exchange_github_code_existing_user_signs_in() {
+            let user = create_user("alice");
+            let mut service = create_default_service();
+            service
+                .github_client
+                .expect_exchange_code()
+                .returning(|_| Ok("gh-token".to_string()));
+            service
+                .github_client
+                .expect_get_user_emails()
+                .returning(|_| Ok(vec![create_github_email("alice@example.com", true, true)]));
+            service
+                .user_repo
+                .expect_get_by_primary_email()
+                .returning(move |_| Ok(Some(user.clone())));
+
+            let resp = service
+                .exchange_github_code(exchange_request())
+                .await
+                .unwrap();
+
+            assert!(!resp.is_new);
+            assert_eq!(service.session_repo.created_sessions(), 1);
+        }
+    }
+}

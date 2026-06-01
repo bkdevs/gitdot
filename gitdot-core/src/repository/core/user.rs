@@ -680,21 +680,9 @@ mod tests {
 
     use super::{AuthProvider, PgUserRepository, UserRepository};
     use crate::repository::test_common::{
-        insert_commit, insert_org, insert_star, insert_user, insert_user_repo,
+        insert_commit, insert_org, insert_secondary_email, insert_star, insert_user,
+        insert_user_repo,
     };
-
-    /// Inserts a non-primary, unverified `core.user_emails` row directly.
-    async fn insert_secondary_email(pool: &PgPool, user_id: Uuid, email: &str) {
-        sqlx::query(
-            "INSERT INTO core.user_emails (user_id, email, is_primary, is_verified)
-             VALUES ($1, $2, FALSE, FALSE)",
-        )
-        .bind(user_id)
-        .bind(email)
-        .execute(pool)
-        .await
-        .unwrap();
-    }
 
     #[sqlx::test]
     async fn create_persists_user_with_primary_email(pool: PgPool) {
