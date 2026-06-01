@@ -46,20 +46,22 @@ export default async function Page({
   }
 
   return (
-    <article
-      className={`${league_spartan.className} blog-root overflow-hidden md:overflow-visible`}
-    >
-      <h1 className="text-2xl">{post.metadata.title}</h1>
-      <Link href="/weeks" className="text-sm hover:underline">
-        Week {post.metadata.week}: {post.metadata.date}
-      </Link>
-      <div className="pb-4" />
+    <div className="px-3 py-2 h-full overflow-y-auto scrollbar-none">
+      <article
+        className={`${league_spartan.className} blog-root w-full max-w-160 mx-auto overflow-hidden md:overflow-visible`}
+      >
+        <h1 className="text-2xl">{post.metadata.title}</h1>
+        <Link href="/weeks" className="text-sm hover:underline">
+          Week {post.metadata.week}: {post.metadata.date}
+        </Link>
+        <div className="pb-4" />
 
-      <MarkdownContent content={post.content} />
+        <MarkdownContent content={post.content} />
 
-      <div className="mt-8 flex justify-end">
-        <SubscribeButton />
-      </div>
-    </article>
+        <div className="mt-8 flex justify-end">
+          <SubscribeButton />
+        </div>
+      </article>
+    </div>
   );
 }

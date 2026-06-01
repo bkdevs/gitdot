@@ -8,7 +8,7 @@ const league_spartan = League_Spartan({
 export default function FAQ() {
   return (
     <div
-      className={`${league_spartan.className} blog-root flex flex-col gap-4`}
+      className={`${league_spartan.className} blog-root flex flex-col gap-4 px-3 py-2 h-full overflow-y-auto scrollbar-none`}
     >
       <div>
         <p className="font-semibold text-lg">1. What is gitdot?</p>

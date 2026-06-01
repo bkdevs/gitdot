@@ -17,7 +17,9 @@ export default function Page() {
   const posts = getAllPosts();
 
   return (
-    <div className={`${league_spartan.className} blog-root`}>
+    <div
+      className={`${league_spartan.className} blog-root px-3 py-2 h-full overflow-y-auto scrollbar-none`}
+    >
       {posts.length === 0 ? (
         <p>No posts yet.</p>
       ) : (

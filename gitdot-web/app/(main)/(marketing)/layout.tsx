@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import Link from "@/ui/link";
 import { cn } from "@/util";
@@ -11,9 +10,6 @@ const NAV_LINKS: { label: string; href: string }[] = [
   { label: "/weeks", href: "/weeks" },
   { label: "/decisions", href: "/decisions" },
   { label: "/releases", href: "/releases" },
-  { label: "/company", href: "/company" },
-  { label: "/terms", href: "/terms" },
-  { label: "/privacy", href: "/privacy" },
 ];
 
 function isActive(pathname: string, href: string) {
@@ -52,29 +48,7 @@ export default function MarketingLayout({
         })}
       </div>
 
-      <div className="px-3 py-2 flex flex-col h-full overflow-y-auto scrollbar-none">
-        {children}
-      </div>
-
-      <div className="justify-self-end pr-4 pt-1 flex flex-col items-start">
-        <Image
-          className="dark:invert"
-          src="/gitdot-long-black.svg"
-          alt="gitdot logo"
-          width={120}
-          height={57}
-        />
-        <span className="mt-1 text-xs font-mono text-muted-foreground">
-          Build something great.
-        </span>
-        <button
-          type="button"
-          onClick={() => window.dispatchEvent(new Event("toggleAuthDialog"))}
-          className="text-xs font-mono underline text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-        >
-          sign up
-        </button>
-      </div>
+      {children}
     </div>
   );
 }
