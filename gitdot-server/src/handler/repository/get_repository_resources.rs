@@ -67,10 +67,9 @@ pub async fn get_repository_resources(
         Ok(Some((paths, blobs)))
     };
     let commits = async {
-        let fetch_all = params.force_refresh
-            || params
-                .last_updated
-                .is_none_or(|lu| now - lu > chrono::Duration::hours(1));
+        let fetch_all = params
+            .last_updated
+            .is_none_or(|lu| now - lu > chrono::Duration::hours(1));
         let (from, to) = if fetch_all {
             (None, None)
         } else {
@@ -81,7 +80,7 @@ pub async fn get_repository_resources(
             .list_repository_commits(ListRepositoryCommitsRequest::new(
                 &owner,
                 &repo,
-                head_sha.clone(),
+                "HEAD".to_string(),
                 from,
                 to,
                 None,

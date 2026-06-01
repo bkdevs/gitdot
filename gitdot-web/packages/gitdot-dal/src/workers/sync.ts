@@ -8,6 +8,7 @@ export interface SyncRequest {
   id: string;
   owner: string;
   repo: string;
+  forceRefresh: boolean;
 }
 
 export interface SyncResponse {
@@ -26,10 +27,13 @@ self.onconnect = (event: MessageEvent) => {
   port.start();
 };
 
-async function process({ id, owner, repo }: SyncRequest, port: MessagePort) {
+async function process(
+  { id, owner, repo, forceRefresh }: SyncRequest,
+  port: MessagePort,
+) {
   const start = performance.now();
   const db = openIdb();
-  const metadata = await db.getMetadata(owner, repo);
+  const metadata = forceRefresh ? null : await db.getMetadata(owner, repo);
 
   const url = new URL("/api/repository/resources", self.location.origin);
   url.searchParams.set("owner", owner);
@@ -42,15 +46,15 @@ async function process({ id, owner, repo }: SyncRequest, port: MessagePort) {
   if (!response.ok) return;
   const result = GetRepositoryResourcesResponse.parse(await response.json());
 
-  await db.putMetadata(owner, repo, {
-    last_commit: result.last_commit,
-    last_updated: result.last_updated ?? new Date().toISOString(),
-  });
   if (result.paths) await db.putPaths(owner, repo, result.paths);
   if (result.blobs) await db.putBlobs(owner, repo, result.blobs);
   if (result.commits) {
     for (const c of result.commits.commits) await db.putCommit(owner, repo, c);
   }
+  await db.putMetadata(owner, repo, {
+    last_commit: result.last_commit,
+    last_updated: result.last_updated ?? new Date().toISOString(),
+  });
 
   console.log(
     `[gitdot-sync] ${owner}/${repo} ${(performance.now() - start).toFixed(2)}ms`,

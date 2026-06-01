@@ -19,8 +19,6 @@ pub struct GetRepositoryResourcesRequest {
     pub last_commit: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub last_updated: Option<DateTime<Utc>>,
-    #[serde(default)]
-    pub force_refresh: bool,
 }
 
 pub type GetRepositoryResourcesResponse = RepositoryResourcesResource;

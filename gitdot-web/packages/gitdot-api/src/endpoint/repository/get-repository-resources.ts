@@ -5,7 +5,6 @@ import type { Endpoint } from "../endpoint";
 export const GetRepositoryResourcesRequest = z.object({
   last_commit: z.string().optional(),
   last_updated: z.iso.datetime().optional(),
-  force_refresh: z.boolean().default(false),
 });
 export type GetRepositoryResourcesRequest = z.infer<
   typeof GetRepositoryResourcesRequest

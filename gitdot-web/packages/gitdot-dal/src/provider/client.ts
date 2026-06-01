@@ -7,7 +7,7 @@ import type {
   RepositoryPathsResource,
 } from "gitdot-api";
 import type { Root } from "hast";
-import { openIdb } from "../db";
+import { openIdb, type RepositoryMetadata } from "../db";
 import { fetchCommitBlobs } from "../diff/client";
 import type { DiffData, DiffEntry } from "../diff/types";
 import { createShikiWorker, createSyncWorker } from "../workers";
@@ -25,6 +25,7 @@ export class ClientProvider extends GitdotProvider {
   }
 
   private db = openIdb();
+  private metadatas = new Map<string, RepositoryMetadata>();
   private paths = new Map<string, RepositoryPathsResource>();
   private commits = new Map<string, RepositoryCommitResource[]>();
   private hasts = new Map<string, Root>();
@@ -67,22 +68,36 @@ export class ClientProvider extends GitdotProvider {
     };
   }
 
-  syncRepo(owner: string, repo: string): Promise<void> {
+  syncRepo(owner: string, repo: string, forceRefresh = false): Promise<void> {
     let resolve!: () => void;
     const done = new Promise<void>((r) => {
       resolve = r;
     });
     const id = crypto.randomUUID();
     this.syncRequests.set(id, resolve);
-    this.syncWorker?.port.postMessage({ id, owner, repo });
-    done.then(() => {
+    this.syncWorker?.port.postMessage({ id, owner, repo, forceRefresh });
+    done.then(async () => {
+      const metadata = await this.db.getMetadata(owner, repo);
+      if (metadata) this.metadatas.set(`${owner}/${repo}`, metadata);
       this.getPaths(owner, repo);
       this.getCommits(owner, repo);
     });
     return done;
   }
 
-  async getPaths(owner: string, repo: string) {
+  repoSynced(owner: string, repo: string): boolean {
+    const metadata = this.metadatas.get(`${owner}/${repo}`);
+    if (!metadata) return false;
+    return (
+      Date.now() - new Date(metadata.last_updated).getTime() < 5 * 60 * 1000
+    );
+  }
+
+  async getPaths(
+    owner: string,
+    repo: string,
+  ): Promise<RepositoryPathsResource | null> {
+    if (!this.repoSynced(owner, repo)) return null;
     const key = `${owner}/${repo}`;
     const cached = this.paths.get(key);
     if (cached) return cached;
@@ -95,6 +110,7 @@ export class ClientProvider extends GitdotProvider {
     owner: string,
     repo: string,
   ): Promise<RepositoryCommitResource[] | null> {
+    if (!this.repoSynced(owner, repo)) return null;
     const key = `${owner}/${repo}`;
     const cached = this.commits.get(key);
     if (cached) return cached;
@@ -107,7 +123,13 @@ export class ClientProvider extends GitdotProvider {
     return sorted;
   }
 
-  async getBlob(owner: string, repo: string, path: string, _ref?: string) {
+  async getBlob(
+    owner: string,
+    repo: string,
+    path: string,
+    _ref?: string,
+  ): Promise<RepositoryBlobResource | null> {
+    if (!this.repoSynced(owner, repo)) return null;
     return this.db.getBlob(owner, repo, path);
   }
 
@@ -117,6 +139,7 @@ export class ClientProvider extends GitdotProvider {
     path: string,
     _ref?: string,
   ): Promise<Root | null> {
+    if (!this.repoSynced(owner, repo)) return null;
     const key = `${owner}/${repo}/${path}`;
     const cached = this.hasts.get(key);
     if (cached) return cached;
@@ -138,7 +161,12 @@ export class ClientProvider extends GitdotProvider {
     return hast;
   }
 
-  async getCommit(owner: string, repo: string, sha: string) {
+  async getCommit(
+    owner: string,
+    repo: string,
+    sha: string,
+  ): Promise<RepositoryCommitResource | null> {
+    if (!this.repoSynced(owner, repo)) return null;
     const cached = this.commits.get(`${owner}/${repo}`);
     const hit = cached?.find((c) => c.sha === sha || c.sha.startsWith(sha));
     if (hit) return hit;

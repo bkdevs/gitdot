@@ -19,7 +19,6 @@ export async function GET(request: NextRequest) {
   const parsed = GetRepositoryResourcesRequest.safeParse({
     last_commit: searchParams.get("last_commit") ?? undefined,
     last_updated: searchParams.get("last_updated") ?? undefined,
-    force_refresh: searchParams.get("force_refresh") === "true",
   });
   const result = await getRepositoryResources(
     owner,
