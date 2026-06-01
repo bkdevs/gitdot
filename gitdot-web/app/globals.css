@@ -99,41 +99,42 @@
 }
 
 .dark {
-  --background: oklch(0.115 0 0); /* #050505 */
+  --background: oklch(0.218 0 0); /* #1a1a1a */
   --foreground: oklch(0.82 0 0);
-  --popover: oklch(0.155 0 0);
+  --popover: oklch(0.255 0 0); /* #232323 */
   --popover-foreground: oklch(0.82 0 0);
   --primary: oklch(0.4 0.08 255); /* muted slate-blue */
   --primary-foreground: oklch(0.92 0 0);
   --highlight: oklch(
     0.78 0 0
   ); /* prior dark --primary, kept for neutral highlights */
-  --highlight-foreground: oklch(0.115 0 0);
-  --secondary: oklch(0.185 0 0);
+  --highlight-foreground: oklch(0.218 0 0);
+  --secondary: oklch(0.285 0 0); /* #2a2a2a */
   --secondary-foreground: oklch(0.82 0 0);
-  --muted: oklch(0.185 0 0);
+  --muted: oklch(0.285 0 0);
   --muted-foreground: oklch(0.56 0 0);
-  --accent: oklch(0.185 0 0);
+  --accent: oklch(0.285 0 0);
   --accent-foreground: oklch(0.82 0 0);
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.551 0 0);
-  --sidebar: oklch(0.115 0 0); /* matches background */
+  --sidebar: oklch(0.218 0 0); /* matches background */
   --sidebar-foreground: oklch(0.82 0 0);
-  --sidebar-primary: oklch(0.155 0 0);
+  --sidebar-primary: oklch(0.255 0 0);
   --sidebar-primary-foreground: oklch(0.82 0 0);
-  --sidebar-accent: oklch(0.185 0 0);
+  --sidebar-accent: oklch(0.285 0 0);
   --sidebar-accent-foreground: oklch(0.82 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.551 0 0);
-  --diff-red: oklch(0.22 0.04 17.38);
-  --diff-green: oklch(0.22 0.04 155.826);
-  --diff-orange: oklch(0.22 0.04 62);
+  --diff-red: oklch(0.24 0.045 17.38);
+  --diff-green: oklch(0.24 0.045 155.826);
+  /* word-level highlight — brighter/warmer so it pops over the line backdrop */
+  --diff-orange: oklch(0.42 0.09 62);
   --upvote: oklch(72.75% 0.198 51.769);
   --downvote: oklch(0.929 0.013 255.508);
   --vote: oklch(0.504 0.02 256.788);
-  --commit-grid-empty: oklch(26.9% 0 0);
+  --commit-grid-empty: oklch(0.34 0 0); /* #383838 */
   --commit-grid-low: oklch(35% 0.08 152.535);
   --commit-grid-med: oklch(47% 0.13 150.069);
   --commit-grid-high: oklch(57% 0.16 149.214);

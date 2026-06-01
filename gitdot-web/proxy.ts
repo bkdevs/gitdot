@@ -12,7 +12,11 @@ export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const segments = pathname.split("/").filter(Boolean);
   if (user && (pathname === "/login" || pathname === "/signup")) {
-    response = NextResponse.redirect(new URL("/home", request.nextUrl));
+    const username = (user as { user_metadata?: { username?: string } })
+      .user_metadata?.username;
+    response = NextResponse.redirect(
+      new URL(username ? `/${username}` : "/", request.nextUrl),
+    );
   } else if (!user && pathname === "/oauth/device") {
     response = NextResponse.redirect(
       new URL("/login?redirect=/oauth/device", request.nextUrl),

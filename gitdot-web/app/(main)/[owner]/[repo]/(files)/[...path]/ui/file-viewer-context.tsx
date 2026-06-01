@@ -91,7 +91,13 @@ export function FileViewerProvider({
       ? `${window.location.pathname}?${params.toString()}`
       : window.location.pathname;
 
-    window.history.replaceState(null, "", newUrl);
+    // update the URL bar via History, as Next.js patches window.history.replaceState :(
+    History.prototype.replaceState.call(
+      window.history,
+      window.history.state,
+      "",
+      newUrl,
+    );
   }, []);
 
   const handleLineMouseDown = useCallback((lineNumber: number) => {
