@@ -56,7 +56,10 @@ export function highlightMarkdownCode(
       transformers: [
         {
           pre(node) {
-            addClassToHast(node, "rounded p-4 mb-4 overflow-x-auto");
+            addClassToHast(
+              node,
+              "markdown-shiki rounded p-4 mb-4 overflow-x-auto",
+            );
             node.properties.style = `${node.properties.style ?? ""}; font-family: ui-monospace, 'Cascadia Code', 'Fira Code', Menlo, Consolas, monospace; font-size: 0.875rem;`;
           },
         },

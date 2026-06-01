@@ -209,3 +209,15 @@ html.dark .shiki span {
   text-decoration: var(--shiki-dark-text-decoration) !important;
 }
 /* biome-ignore-end lint/complexity/noImportantStyles: end */
+
+/* biome-ignore-start lint/complexity/noImportantStyles: override shiki's page-matching theme bg so README/markdown code blocks read as a distinct surface (matches the non-highlighted <pre> + inline code) */
+.markdown-shiki.shiki {
+  background-color: rgb(0 0 0 / 0.05) !important;
+}
+html.dark .markdown-shiki.shiki {
+  background-color: rgb(255 255 255 / 0.1) !important;
+}
+html.dark .markdown-shiki.shiki span {
+  background-color: transparent !important;
+}
+/* biome-ignore-end lint/complexity/noImportantStyles: end */

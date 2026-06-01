@@ -2,7 +2,7 @@
 
 import type { UserResource } from "gitdot-api";
 import { ClientProvider } from "gitdot-dal/client";
-import { Save } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { UserImage } from "@/(main)/[owner]/ui/user/user-image";
@@ -61,11 +61,10 @@ export function UserSettingsProfile({ user }: { user: UserResource }) {
             type="button"
             onClick={handleSave}
             disabled={!dirty || saving}
-            className={`flex items-center gap-1.5 text-sm border-b transition-colors cursor-pointer disabled:cursor-not-allowed ${
-              saving ? "border-transparent" : "border-current"
-            } ${dirty ? "text-foreground" : "text-muted-foreground"}`}
+            className={`text-sm underline transition-colors cursor-pointer disabled:cursor-not-allowed ${
+              dirty ? "text-foreground" : "text-muted-foreground"
+            }`}
           >
-            <Save className="size-3.5 mb-px" />
             {saving ? "Saving..." : "Save"}
           </button>
         </div>
@@ -139,6 +138,7 @@ function ProfilePrimary({ user }: { user: UserResource }) {
               <div
                 className={`absolute -inset-0.5 rounded-full border border-transparent border-t-foreground/50 animate-spin transition-opacity duration-300${uploading ? "" : " opacity-0"}`}
               />
+              <Pencil className="absolute -bottom-1 -right-1 size-3 text-foreground" />
             </button>
           </TooltipTrigger>
           <TooltipContent>Upload photo</TooltipContent>
