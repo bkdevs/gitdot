@@ -101,6 +101,7 @@ mock! {
         async fn get(&self, user_name: &str) -> Result<Option<User>, crate::error::DatabaseError>;
         async fn update(&self, id: Uuid, name: Option<String>, location: Option<String>, readme: Option<String>, links: Option<Vec<String>>, display_name: Option<String>) -> Result<User, crate::error::DatabaseError>;
         async fn get_by_id(&self, id: Uuid) -> Result<Option<User>, crate::error::DatabaseError>;
+        async fn mark_user_as_deleted(&self, id: Uuid) -> Result<(), crate::error::DatabaseError>;
         async fn touch_image(&self, id: Uuid) -> Result<(), crate::error::DatabaseError>;
         async fn get_by_primary_email(&self, email: &str) -> Result<Option<User>, crate::error::DatabaseError>;
         async fn get_by_emails(&self, emails: &[String]) -> Result<Vec<(String, Uuid)>, crate::error::DatabaseError>;
@@ -173,6 +174,7 @@ pub struct MockSessionRepository {
     created_sessions: Arc<Mutex<usize>>,
     revoked_sessions: Arc<Mutex<Vec<Uuid>>>,
     revoked_families: Arc<Mutex<Vec<Uuid>>>,
+    revoked_users: Arc<Mutex<Vec<Uuid>>>,
 }
 
 impl Default for MockSessionRepository {
@@ -185,6 +187,7 @@ impl Default for MockSessionRepository {
             created_sessions: Arc::default(),
             revoked_sessions: Arc::default(),
             revoked_families: Arc::default(),
+            revoked_users: Arc::default(),
         }
     }
 }
@@ -218,6 +221,10 @@ impl MockSessionRepository {
 
     pub fn revoked_families(&self) -> Vec<Uuid> {
         self.revoked_families.lock().unwrap().clone()
+    }
+
+    pub fn revoked_users(&self) -> Vec<Uuid> {
+        self.revoked_users.lock().unwrap().clone()
     }
 }
 
@@ -310,6 +317,14 @@ impl crate::repository::SessionRepository for MockSessionRepository {
         family: Uuid,
     ) -> Result<(), crate::error::DatabaseError> {
         self.revoked_families.lock().unwrap().push(family);
+        Ok(())
+    }
+
+    async fn revoke_sessions_by_user(
+        &self,
+        user_id: Uuid,
+    ) -> Result<(), crate::error::DatabaseError> {
+        self.revoked_users.lock().unwrap().push(user_id);
         Ok(())
     }
 }

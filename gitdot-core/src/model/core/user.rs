@@ -18,6 +18,7 @@ pub struct User {
 
     pub created_at: DateTime<Utc>,
     pub image_updated_at: DateTime<Utc>,
+    pub deleted_at: Option<DateTime<Utc>>,
 
     #[sqlx(json)]
     pub emails: Vec<UserEmail>,

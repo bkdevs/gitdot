@@ -3,11 +3,11 @@ use chrono::{Duration, Utc};
 
 use crate::{
     client::{EmailClient, RedisClient, RedisClientImpl, SmtpClient, TokenClient, TokenClientImpl},
-    dto::{AddUserEmailRequest, UserEmailResponse, VerifyUserEmailRequest},
+    dto::{AddUserEmailRequest, DeleteAccountRequest, UserEmailResponse, VerifyUserEmailRequest},
     error::{AccountError, ConflictError},
     repository::{
         EmailCodeVerification, EmailVerificationRepository, PgEmailVerificationRepository,
-        PgUserRepository, UserRepository,
+        PgSessionRepository, PgUserRepository, SessionRepository, UserRepository,
     },
     util::{
         auth::{NOREPLY_EMAIL, get_code_email},
@@ -26,6 +26,17 @@ const EMAIL_VERIFY_SEND_COOLDOWN: std::time::Duration = std::time::Duration::fro
 /// time-limited, and scoped to the requesting user.
 #[async_trait]
 pub trait AccountService: Send + Sync + 'static {
+    // user account operations
+
+    /// Soft-deletes the caller's account: marks `core.users.deleted_at` (which
+    /// blocks future logins and refreshes) and revokes the user's active
+    /// sessions so existing refresh tokens stop rotating. Idempotent. The full
+    /// teardown of related data (repositories, sole-owner orgs, rows) is left
+    /// to a later sweep.
+    async fn delete_account(&self, request: DeleteAccountRequest) -> Result<(), AccountError>;
+
+    // user email management operations
+
     /// Emails a verification code for the address without persisting anything to
     /// `core.user_emails` — the row is only created once the code is verified.
     /// Any prior active codes for the address are invalidated, so calling this
@@ -43,15 +54,17 @@ pub trait AccountService: Send + Sync + 'static {
 }
 
 #[derive(Debug, Clone)]
-pub struct AccountServiceImpl<UR, ER, EC, TC, RD>
+pub struct AccountServiceImpl<UR, SR, ER, EC, TC, RD>
 where
     UR: UserRepository,
+    SR: SessionRepository,
     ER: EmailVerificationRepository,
     EC: EmailClient,
     TC: TokenClient,
     RD: RedisClient,
 {
     user_repo: UR,
+    session_repo: SR,
     email_verification_repo: ER,
     email_client: EC,
     token_client: TC,
@@ -61,6 +74,7 @@ where
 impl
     AccountServiceImpl<
         PgUserRepository,
+        PgSessionRepository,
         PgEmailVerificationRepository,
         SmtpClient,
         TokenClientImpl,
@@ -69,6 +83,7 @@ impl
 {
     pub fn new(
         user_repo: PgUserRepository,
+        session_repo: PgSessionRepository,
         email_verification_repo: PgEmailVerificationRepository,
         email_client: SmtpClient,
         token_client: TokenClientImpl,
@@ -76,6 +91,7 @@ impl
     ) -> Self {
         Self {
             user_repo,
+            session_repo,
             email_verification_repo,
             email_client,
             token_client,
@@ -84,9 +100,10 @@ impl
     }
 }
 
-impl<UR, ER, EC, TC, RD> AccountServiceImpl<UR, ER, EC, TC, RD>
+impl<UR, SR, ER, EC, TC, RD> AccountServiceImpl<UR, SR, ER, EC, TC, RD>
 where
     UR: UserRepository,
+    SR: SessionRepository,
     ER: EmailVerificationRepository,
     EC: EmailClient,
     TC: TokenClient,
@@ -140,14 +157,22 @@ where
 
 #[crate::instrument_all(level = "debug")]
 #[async_trait]
-impl<UR, ER, EC, TC, RD> AccountService for AccountServiceImpl<UR, ER, EC, TC, RD>
+impl<UR, SR, ER, EC, TC, RD> AccountService for AccountServiceImpl<UR, SR, ER, EC, TC, RD>
 where
     UR: UserRepository,
+    SR: SessionRepository,
     ER: EmailVerificationRepository,
     EC: EmailClient,
     TC: TokenClient,
     RD: RedisClient,
 {
+    async fn delete_account(&self, request: DeleteAccountRequest) -> Result<(), AccountError> {
+        let user_id = request.user_id;
+        self.user_repo.mark_user_as_deleted(user_id).await?;
+        self.session_repo.revoke_sessions_by_user(user_id).await?;
+        Ok(())
+    }
+
     async fn add_email(&self, request: AddUserEmailRequest) -> Result<(), AccountError> {
         let email = request.email.as_ref();
 
@@ -200,19 +225,22 @@ mod tests {
 
     use super::{AccountService, AccountServiceImpl};
     use crate::{
-        dto::{AddUserEmailRequest, VerifyUserEmailRequest},
+        dto::{AddUserEmailRequest, DeleteAccountRequest, VerifyUserEmailRequest},
         error::AccountError,
         repository::EmailCodeVerification,
         service::{
             test_client::{MockEmailClient, MockRedisClient, MockTokenClient},
             test_common::create_user_email,
-            test_repository::{MockEmailVerificationRepository, MockUserRepository},
+            test_repository::{
+                MockEmailVerificationRepository, MockSessionRepository, MockUserRepository,
+            },
         },
         util::crypto::hash_string,
     };
 
     type Service = AccountServiceImpl<
         MockUserRepository,
+        MockSessionRepository,
         MockEmailVerificationRepository,
         MockEmailClient,
         MockTokenClient,
@@ -229,6 +257,7 @@ mod tests {
             email_client: MockEmailClient::new(),
             token_client: MockTokenClient::default(),
             redis_client,
+            session_repo: MockSessionRepository::default(),
         }
     }
 
@@ -392,6 +421,31 @@ mod tests {
                 .await
                 .unwrap_err();
             assert!(matches!(err, AccountError::InvalidCode));
+        }
+    }
+
+    mod delete_account {
+        use super::*;
+
+        #[tokio::test]
+        async fn delete_account_soft_deletes_user_and_revokes_sessions() {
+            let user_id = Uuid::new_v4();
+            let mut service = create_service(
+                MockEmailVerificationRepository::default(),
+                MockRedisClient::default(),
+            );
+            service
+                .user_repo
+                .expect_mark_user_as_deleted()
+                .withf(move |id| *id == user_id)
+                .returning(|_| Ok(()));
+
+            service
+                .delete_account(DeleteAccountRequest::new(user_id))
+                .await
+                .unwrap();
+
+            assert_eq!(service.session_repo.revoked_users(), vec![user_id]);
         }
     }
 }

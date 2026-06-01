@@ -509,6 +509,7 @@ impl RepositoryRepository for PgRepositoryRepository {
             provider: AuthProvider,
             created_at: DateTime<Utc>,
             image_updated_at: DateTime<Utc>,
+            deleted_at: Option<DateTime<Utc>>,
             display_name: Option<String>,
             location: Option<String>,
             readme: Option<String>,
@@ -518,8 +519,8 @@ impl RepositoryRepository for PgRepositoryRepository {
 
         let rows = sqlx::query_as::<_, StarredUserRow>(
             r#"
-            SELECT u.id, u.name, u.provider, u.created_at, u.image_updated_at, u.display_name,
-                   u.location, u.readme, u.links,
+            SELECT u.id, u.name, u.provider, u.created_at, u.image_updated_at, u.deleted_at,
+                   u.display_name, u.location, u.readme, u.links,
                    s.created_at AS starred_at
             FROM core.stars s
             JOIN core.users u ON s.user_id = u.id
@@ -569,6 +570,7 @@ impl RepositoryRepository for PgRepositoryRepository {
                     links: r.links,
                     created_at: r.created_at,
                     image_updated_at: r.image_updated_at,
+                    deleted_at: r.deleted_at,
                     emails: emails_by_user.remove(&r.id).unwrap_or_default(),
                 };
                 (user, r.starred_at)

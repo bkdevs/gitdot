@@ -287,6 +287,11 @@ where
             return Err(SessionError::Unauthorized);
         };
 
+        // soft-deleted account cannot log in
+        if user.deleted_at.is_some() {
+            return Err(SessionError::Unauthorized);
+        }
+
         let code_hash = hash_string(request.code.as_ref());
         match self
             .session_repo
@@ -350,11 +355,17 @@ where
             .get_by_id(session.user_id)
             .await?
             .or_not_found("user", session.user_id)?;
+
+        // soft-deleted account cannot refresh its session into new tokens
+        if user.deleted_at.is_some() {
+            return Err(SessionError::Unauthorized);
+        }
+
         let access_token = self.token_client.generate_gitdot_jwt(user.id, &user.name)?;
         let access_token_expires_in = self.token_client.get_access_token_expiry_in_seconds();
         let cache_key = self.get_grace_key(&token_hash);
 
-        // Replay path: this token was already rotated. Only honor it inside the grace window.
+        // replay path: this token was already rotated. Only honor it inside the grace window.
         if session.revoked_at.is_some() {
             if let Some(grace) = self.redis_client.get::<GraceEntry>(&cache_key).await? {
                 let remaining = (grace.expires_at - Utc::now()).num_seconds().max(0) as u64;
@@ -374,7 +385,7 @@ where
             return Err(SessionError::TokenRevoked("session".into()));
         }
 
-        // Happy path: try to claim the rotation for this old token via SET NX.
+        // happy path: try to claim the rotation for this old token via SET NX.
         let (refresh_token, refresh_token_hash) = self.token_client.generate_high_entropic_code();
         let refresh_expiry_secs = self.token_client.get_refresh_token_expiry_in_seconds();
         let refresh_expiry = Utc::now() + Duration::seconds(refresh_expiry_secs as i64);
@@ -388,7 +399,7 @@ where
             .await?;
 
         if !claimed {
-            // Another worker won the rotation. Read its value and replay.
+            // another worker won the rotation. Read its value and replay.
             match self.redis_client.get::<GraceEntry>(&cache_key).await? {
                 Some(existing) => {
                     let remaining = (existing.expires_at - Utc::now()).num_seconds().max(0) as u64;
@@ -401,7 +412,7 @@ where
                     });
                 }
                 None => {
-                    // Cache vanished between NX-miss and GET — treat as reuse.
+                    // cache vanished between NX-miss and GET — treat as reuse.
                     self.session_repo
                         .revoke_sessions_by_family(session.refresh_token_family)
                         .await?;
@@ -410,7 +421,7 @@ where
             }
         }
 
-        // We won the claim — persist the rotation.
+        // we won the claim — persist the rotation.
         self.session_repo.revoke_session(session.id).await?;
         self.session_repo
             .create_session(
@@ -474,7 +485,13 @@ where
                 ))
             })?;
         let (user, is_new) = match self.user_repo.get_by_primary_email(&primary_email).await? {
-            Some(user) => (user, false),
+            Some(user) => {
+                // soft-deleted account cannot log back in via GitHub.
+                if user.deleted_at.is_some() {
+                    return Err(SessionError::Unauthorized);
+                }
+                (user, false)
+            }
             None => {
                 // if the email is taken as a secondary email, throw an unauthorized error in oauth
                 if self.user_repo.is_email_taken(&primary_email).await? {
@@ -829,6 +846,30 @@ mod tests {
             assert!(resp.is_new);
             assert_eq!(service.session_repo.created_sessions(), 1);
         }
+
+        #[tokio::test]
+        async fn verify_auth_code_deleted_account_is_unauthorized() {
+            let mut user = create_user("alice");
+            user.deleted_at = Some(Utc::now());
+            let mut service = create_service(
+                MockSessionRepository::default().with_verification(AuthCodeVerification::Success),
+                MockRedisClient::default(),
+                MockTokenClient::default(),
+            );
+            service
+                .user_repo
+                .expect_get_by_primary_email()
+                .returning(move |_| Ok(Some(user.clone())));
+
+            let err = service
+                .verify_auth_code(verify_request())
+                .await
+                .unwrap_err();
+
+            assert!(matches!(err, SessionError::Unauthorized));
+            // Blocked before the code is consumed or any session is issued.
+            assert_eq!(service.session_repo.created_sessions(), 0);
+        }
     }
 
     mod refresh_session {
@@ -1000,6 +1041,30 @@ mod tests {
 
             assert!(matches!(err, SessionError::TokenRevoked(_)));
             assert_eq!(service.session_repo.revoked_families(), vec![family]);
+        }
+
+        #[tokio::test]
+        async fn refresh_session_deleted_account_is_unauthorized() {
+            let mut user = create_user("alice");
+            user.deleted_at = Some(Utc::now());
+            // An otherwise-valid (active, unrevoked) session for the deleted user.
+            let session = create_session(user.id);
+            let mut service = create_service(
+                MockSessionRepository::default().with_session(session),
+                MockRedisClient::default(),
+                MockTokenClient::default(),
+            );
+            service
+                .user_repo
+                .expect_get_by_id()
+                .returning(move |_| Ok(Some(user.clone())));
+
+            let err = service
+                .refresh_session(refresh_request())
+                .await
+                .unwrap_err();
+
+            assert!(matches!(err, SessionError::Unauthorized));
         }
     }
 
@@ -1204,6 +1269,33 @@ mod tests {
 
             assert!(!resp.is_new);
             assert_eq!(service.session_repo.created_sessions(), 1);
+        }
+
+        #[tokio::test]
+        async fn exchange_github_code_deleted_account_is_unauthorized() {
+            let mut user = create_user("alice");
+            user.deleted_at = Some(Utc::now());
+            let mut service = create_default_service();
+            service
+                .github_client
+                .expect_exchange_code()
+                .returning(|_| Ok("gh-token".to_string()));
+            service
+                .github_client
+                .expect_get_user_emails()
+                .returning(|_| Ok(vec![create_github_email("alice@example.com", true, true)]));
+            service
+                .user_repo
+                .expect_get_by_primary_email()
+                .returning(move |_| Ok(Some(user.clone())));
+
+            let err = service
+                .exchange_github_code(exchange_request())
+                .await
+                .unwrap_err();
+
+            assert!(matches!(err, SessionError::Unauthorized));
+            assert_eq!(service.session_repo.created_sessions(), 0);
         }
     }
 }

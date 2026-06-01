@@ -84,7 +84,7 @@ impl AppState {
         };
 
         let session_service = Arc::new(SessionServiceImpl::new(
-            session_repo,
+            session_repo.clone(),
             user_repo.clone(),
             email_client.clone(),
             github_client,
@@ -102,6 +102,7 @@ impl AppState {
         let slack_service = Arc::new(SlackServiceImpl::new(slack_repo, slack_bot_client));
         let account_service = Arc::new(AccountServiceImpl::new(
             user_repo,
+            session_repo,
             email_verification_repo,
             email_client,
             token_client,

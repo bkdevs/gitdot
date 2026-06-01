@@ -87,7 +87,7 @@ fn create_router(state: AppState) -> Router {
         .layer(
             CorsLayer::new()
                 .allow_origin(AllowOrigin::list([web_origin]))
-                .allow_methods([http::Method::GET, http::Method::POST])
+                .allow_methods([http::Method::GET, http::Method::POST, http::Method::DELETE])
                 .allow_headers([http::header::CONTENT_TYPE, http::header::COOKIE])
                 .allow_credentials(true),
         )

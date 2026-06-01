@@ -34,6 +34,7 @@ pub fn create_user(name: &str) -> User {
         links: vec![],
         created_at: Utc::now(),
         image_updated_at: Utc::now(),
+        deleted_at: None,
         emails: vec![],
     }
 }

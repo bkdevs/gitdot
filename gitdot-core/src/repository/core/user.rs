@@ -13,7 +13,7 @@ use crate::{
 
 const USER_PROJECTION_QUERY: &str = r#"
 SELECT
-    u.id, u.name, u.provider, u.created_at, u.image_updated_at, u.display_name, u.location, u.readme, u.links,
+    u.id, u.name, u.provider, u.created_at, u.image_updated_at, u.deleted_at, u.display_name, u.location, u.readme, u.links,
     COALESCE(
         (SELECT json_agg(json_build_object(
             'id', e.id,
@@ -68,6 +68,12 @@ pub trait UserRepository: Send + Sync + Clone + 'static {
     /// Returns the [`User`] (with aggregated emails) whose `id` matches, or
     /// `Ok(None)` if no such user exists.
     async fn get_by_id(&self, id: Uuid) -> Result<Option<User>, DatabaseError>;
+
+    /// Soft-deletes the user by setting `core.users.deleted_at = NOW()`,
+    /// preserving any existing timestamp (idempotent). The row is left intact;
+    /// login and refresh are gated on `deleted_at` by the session service. A
+    /// no-op if no row matches.
+    async fn mark_user_as_deleted(&self, id: Uuid) -> Result<(), DatabaseError>;
 
     /// Sets `core.users.image_updated_at = now()` for the given `id`. A no-op if
     /// no row matches.
@@ -203,14 +209,14 @@ impl UserRepository for PgUserRepository {
             WITH new_user AS (
                 INSERT INTO core.users (name, provider, readme)
                 VALUES ($1, $2, $3)
-                RETURNING id, name, provider, created_at, image_updated_at, display_name, location, readme, links
+                RETURNING id, name, provider, created_at, image_updated_at, deleted_at, display_name, location, readme, links
             ),
             new_email AS (
                 INSERT INTO core.user_emails (user_id, email, is_primary, is_verified, verified_at)
                 SELECT id, $4, TRUE, $5, CASE WHEN $5 THEN NOW() ELSE NULL END FROM new_user
             )
             SELECT
-                u.id, u.name, u.provider, u.created_at, u.image_updated_at,
+                u.id, u.name, u.provider, u.created_at, u.image_updated_at, u.deleted_at,
                 u.display_name, u.location, u.readme, u.links,
                 COALESCE(
                     (SELECT json_agg(json_build_object(
@@ -292,7 +298,7 @@ impl UserRepository for PgUserRepository {
         builder
             .push(" WHERE id = ")
             .push_bind(id)
-            .push(" RETURNING id, name, provider, created_at, image_updated_at, display_name, location, readme, links) ")
+            .push(" RETURNING id, name, provider, created_at, image_updated_at, deleted_at, display_name, location, readme, links) ")
             .push(USER_PROJECTION_QUERY)
             .push(" FROM u");
 
@@ -316,6 +322,14 @@ impl UserRepository for PgUserRepository {
 
     async fn touch_image(&self, id: Uuid) -> Result<(), DatabaseError> {
         sqlx::query("UPDATE core.users SET image_updated_at = now() WHERE id = $1")
+            .bind(id)
+            .execute(&self.pool)
+            .await?;
+        Ok(())
+    }
+
+    async fn mark_user_as_deleted(&self, id: Uuid) -> Result<(), DatabaseError> {
+        sqlx::query("UPDATE core.users SET deleted_at = COALESCE(deleted_at, NOW()) WHERE id = $1")
             .bind(id)
             .execute(&self.pool)
             .await?;
@@ -729,6 +743,47 @@ mod tests {
 
         assert!(repo.get("no_such_user").await.unwrap().is_none());
         assert!(repo.get_by_id(Uuid::new_v4()).await.unwrap().is_none());
+    }
+
+    #[sqlx::test]
+    async fn mark_user_as_deleted_sets_and_preserves_timestamp(pool: PgPool) {
+        let repo = PgUserRepository::new(pool.clone());
+        let user = repo
+            .create("d@x.com", true, AuthProvider::Email)
+            .await
+            .unwrap();
+        // A fresh user is not deleted.
+        assert!(
+            repo.get_by_id(user.id)
+                .await
+                .unwrap()
+                .unwrap()
+                .deleted_at
+                .is_none()
+        );
+
+        repo.mark_user_as_deleted(user.id).await.unwrap();
+        let first = repo
+            .get_by_id(user.id)
+            .await
+            .unwrap()
+            .unwrap()
+            .deleted_at
+            .expect("deleted_at set");
+
+        // Idempotent: a second call preserves the original timestamp (COALESCE).
+        repo.mark_user_as_deleted(user.id).await.unwrap();
+        let second = repo
+            .get_by_id(user.id)
+            .await
+            .unwrap()
+            .unwrap()
+            .deleted_at
+            .expect("deleted_at still set");
+        assert_eq!(first, second);
+
+        // A missing id is a no-op, still Ok.
+        repo.mark_user_as_deleted(Uuid::new_v4()).await.unwrap();
     }
 
     #[sqlx::test]

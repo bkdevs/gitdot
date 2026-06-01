@@ -91,6 +91,12 @@ pub trait SessionRepository: Send + Sync + Clone + 'static {
     /// `revoked_at = NOW()` where `refresh_token_family` matches and `revoked_at
     /// IS NULL` (soft delete; already-revoked rows are left untouched).
     async fn revoke_sessions_by_family(&self, family: Uuid) -> Result<(), DatabaseError>;
+
+    /// Revokes every active session for `user_id` by setting `revoked_at =
+    /// NOW()` where `revoked_at IS NULL` (soft delete; already-revoked rows are
+    /// left untouched). Used when an account is deleted so existing refresh
+    /// tokens stop rotating.
+    async fn revoke_sessions_by_user(&self, user_id: Uuid) -> Result<(), DatabaseError>;
 }
 
 #[derive(Debug, Clone)]
@@ -298,6 +304,20 @@ impl SessionRepository for PgSessionRepository {
             "#,
         )
         .bind(family)
+        .execute(&self.pool)
+        .await?;
+
+        Ok(())
+    }
+
+    async fn revoke_sessions_by_user(&self, user_id: Uuid) -> Result<(), DatabaseError> {
+        sqlx::query(
+            r#"
+            UPDATE auth.sessions SET revoked_at = NOW()
+            WHERE user_id = $1 AND revoked_at IS NULL
+            "#,
+        )
+        .bind(user_id)
         .execute(&self.pool)
         .await?;
 
@@ -615,6 +635,56 @@ mod tests {
         // A session from a different family stays active.
         assert!(
             repo.get_session_by_refresh_hash("h3")
+                .await
+                .unwrap()
+                .unwrap()
+                .revoked_at
+                .is_none()
+        );
+    }
+
+    #[sqlx::test]
+    async fn revoke_sessions_by_user_revokes_only_that_users_active(pool: PgPool) {
+        let repo = PgSessionRepository::new(pool.clone());
+        let alice = Uuid::new_v4();
+        let bob = Uuid::new_v4();
+        insert_user(&pool, alice, "alice").await;
+        insert_user(&pool, bob, "bob").await;
+        let exp = Utc::now() + Duration::days(7);
+
+        // Alice has two sessions across different families; bob has one.
+        repo.create_session(alice, "a1", Uuid::new_v4(), None, None, exp)
+            .await
+            .unwrap();
+        repo.create_session(alice, "a2", Uuid::new_v4(), None, None, exp)
+            .await
+            .unwrap();
+        repo.create_session(bob, "b1", Uuid::new_v4(), None, None, exp)
+            .await
+            .unwrap();
+
+        repo.revoke_sessions_by_user(alice).await.unwrap();
+
+        // All of alice's sessions are revoked, regardless of family.
+        assert!(
+            repo.get_session_by_refresh_hash("a1")
+                .await
+                .unwrap()
+                .unwrap()
+                .revoked_at
+                .is_some()
+        );
+        assert!(
+            repo.get_session_by_refresh_hash("a2")
+                .await
+                .unwrap()
+                .unwrap()
+                .revoked_at
+                .is_some()
+        );
+        // Bob's session is untouched.
+        assert!(
+            repo.get_session_by_refresh_hash("b1")
                 .await
                 .unwrap()
                 .unwrap()
