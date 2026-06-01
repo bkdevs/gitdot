@@ -48,7 +48,7 @@ export default async function Page({
   return (
     <div className="px-3 pt-4 pb-2 h-full overflow-y-auto scrollbar-none">
       <article
-        className={`${league_spartan.className} blog-root w-full max-w-160 mx-auto overflow-hidden md:overflow-visible`}
+        className={`${league_spartan.className} blog-root w-full overflow-hidden md:overflow-visible`}
       >
         <h1 className="text-2xl">{post.metadata.title}</h1>
         <Link href="/weeks" className="text-sm hover:underline">

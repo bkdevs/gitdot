@@ -106,11 +106,11 @@ export function LayoutClient({
     <div className="grid grid-cols-1 md:grid-cols-[1fr_min(100%,48rem)_1fr] h-full overflow-hidden">
       <div className="hidden md:flex pl-4 pt-3 flex-col gap-1 items-start">
         <Image
-          className="dark:invert mb-1"
+          className="dark:invert"
           src="/gitdot-long-black.svg"
           alt="gitdot logo"
-          width={64}
-          height={30}
+          width={80}
+          height={38}
           priority
         />
         {NAV_LINKS.map((link) => {
@@ -127,15 +127,7 @@ export function LayoutClient({
             </Link>
           );
         })}
-        {user ? (
-          <Link
-            href={`/${user.name}`}
-            data-nav-item
-            className={navClassName(false)}
-          >
-            /profile
-          </Link>
-        ) : (
+        {!user && (
           <button
             type="button"
             data-nav-item
@@ -148,6 +140,40 @@ export function LayoutClient({
       </div>
 
       {children}
+
+      {pathname === "/" && (
+        <aside className="hidden lg:flex pt-4 pl-8 pr-4 flex-col gap-8">
+          <section className="flex flex-col gap-1">
+            <span className="text-sm font-mono text-muted-foreground">
+              # this week
+            </span>
+            <Link
+              href="/weeks/20"
+              className="text-sm font-medium text-foreground hover:underline"
+            >
+              Week 20: Build something great.
+            </Link>
+            <span className="text-xs text-muted-foreground">
+              May 24 – May 31, 2026
+            </span>
+          </section>
+
+          <section className="flex flex-col gap-1">
+            <span className="text-sm font-mono text-muted-foreground">
+              # next release
+            </span>
+            <Link
+              href="/releases"
+              className="text-sm font-medium text-foreground hover:underline"
+            >
+              v0.4: Reviews, finally.
+            </Link>
+            <span className="text-xs text-muted-foreground">
+              Est. mid-June 2026
+            </span>
+          </section>
+        </aside>
+      )}
     </div>
   );
 }
