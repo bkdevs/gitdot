@@ -29,6 +29,9 @@ const GRACE_WINDOW: std::time::Duration = std::time::Duration::from_secs(10 * 60
 // number of wrong login attempts allowed before the active code is invalidated
 const MAX_AUTH_CODE_ATTEMPTS: i16 = 5;
 
+// minimum time between login-code sends to a single email
+const AUTH_CODE_SEND_COOLDOWN: std::time::Duration = std::time::Duration::from_secs(30);
+
 #[derive(Debug, Serialize, Deserialize)]
 struct GraceEntry {
     refresh_token: String,
@@ -194,6 +197,10 @@ where
     RC: R2Client,
     RD: RedisClient,
 {
+    fn get_rate_limit_key(&self, email: &str) -> String {
+        format!("auth_code_send:{}", hash_string(&email))
+    }
+
     fn get_grace_key(&self, old_hash: &str) -> String {
         format!("refresh_grace:{old_hash}")
     }
@@ -215,6 +222,21 @@ where
 {
     async fn send_auth_email(&self, request: SendAuthEmailRequest) -> Result<(), SessionError> {
         let email = request.email.as_ref().to_string();
+
+        // rate-limit code sends per email
+        let rate_limit_key = self.get_rate_limit_key(&email);
+        match self
+            .redis_client
+            .set_nx_with_ttl(&rate_limit_key, &true, AUTH_CODE_SEND_COOLDOWN)
+            .await
+        {
+            Ok(true) => {}
+            Ok(false) => return Err(SessionError::TooManyAttempts),
+            Err(e) => {
+                tracing::warn!(error = %e, "auth code send rate-limit check failed; allowing send")
+            }
+        }
+
         let user = match self.user_repo.get_by_primary_email(&email).await? {
             Some(user) => user,
             None => {
