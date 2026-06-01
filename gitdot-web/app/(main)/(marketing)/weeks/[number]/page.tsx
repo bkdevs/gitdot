@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import MarkdownContent from "@/(main)/(marketing)/ui/markdown-content";
 import { SubscribeButton } from "@/(main)/ui/subscribe-button";
 import Link from "@/ui/link";
 import { leagueSpartan } from "../../fonts";
-import { getAllWeeks, getPostByWeek } from "../lib/posts";
-import MarkdownContent from "../ui/markdown-content";
+import { getAllWeeks, getPostByWeek } from "../util";
 
 export async function generateStaticParams() {
   const weeks = getAllWeeks();

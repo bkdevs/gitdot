@@ -11,16 +11,14 @@ import { cn } from "@/util";
 const NAV_LINKS: { label: string; href: string }[] = [
   { label: "/home", href: "/" },
   { label: "/faq", href: "/faq" },
-  { label: "/docs", href: "/docs" },
   { label: "/weeks", href: "/weeks" },
+  { label: "/designs", href: "/designs" },
   { label: "/releases", href: "/releases" },
 ];
 
 function isActive(pathname: string, href: string) {
   if (href === "/") return pathname === "/";
-  if (href === "/weeks")
-    return pathname === "/weeks" || pathname.startsWith("/weeks/");
-  return pathname === href;
+  return pathname === href || pathname.startsWith(`${href}/`);
 }
 
 function navClassName(active: boolean) {

@@ -7,8 +7,9 @@ import type {
 
 export * from "./diff/client";
 export * from "./diff/shiki";
+export { default as gitdotDark } from "./diff/themes/gitdot-dark";
 export { default as gitdotLight } from "./diff/themes/gitdot-light";
-export { default as vitesseDark } from "./diff/themes/vitesse-dark";
+export { default as gitdotMono } from "./diff/themes/gitdot-mono";
 export * from "./diff/types";
 export * from "./provider/client";
 export * from "./provider/types";

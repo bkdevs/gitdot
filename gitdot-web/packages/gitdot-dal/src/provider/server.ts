@@ -102,7 +102,7 @@ export class ServerProvider extends GitdotProvider {
     });
     if (!blob) return null;
     const lang = inferLanguage(path);
-    return renderHast(blob.content, lang, "vitesse");
+    return renderHast(blob.content, lang, "gitdot");
   }
 
   async getCommit(

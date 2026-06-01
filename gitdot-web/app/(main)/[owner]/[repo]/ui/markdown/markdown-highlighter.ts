@@ -14,14 +14,13 @@ import toml from "@shikijs/langs/toml";
 import tsx from "@shikijs/langs/tsx";
 import typescript from "@shikijs/langs/typescript";
 import yaml from "@shikijs/langs/yaml";
-import vitesseLight from "@shikijs/themes/vitesse-light";
-import { vitesseDark } from "gitdot-dal/client";
-import { addClassToHast, type ThemeRegistrationRaw } from "shiki";
+import { gitdotDark, gitdotLight } from "gitdot-dal/client";
+import { addClassToHast } from "shiki";
 import { createHighlighterCoreSync } from "shiki/core";
 import { createJavaScriptRegexEngine } from "shiki/engine/javascript";
 
 const highlighter = createHighlighterCoreSync({
-  themes: [vitesseLight as unknown as ThemeRegistrationRaw, vitesseDark],
+  themes: [gitdotLight, gitdotDark],
   langs: [
     bash,
     c,
@@ -51,7 +50,7 @@ export function highlightMarkdownCode(
   try {
     return highlighter.codeToHtml(code, {
       lang,
-      themes: { light: "vitesse-light", dark: "vitesse-dark" },
+      themes: { light: "gitdot-light", dark: "gitdot-dark" },
       defaultColor: "light",
       transformers: [
         {

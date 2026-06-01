@@ -15,20 +15,16 @@ async function getHighlighter(
   const highlighter = await getSingletonHighlighter();
   const loaded = highlighter.getLoadedThemes();
 
-  if (!loaded.includes("vitesse-light")) {
-    await highlighter.loadTheme(
-      (await import("@shikijs/themes/vitesse-light")).default,
-    );
-  }
-  if (!loaded.includes("vitesse-dark")) {
-    await highlighter.loadTheme(
-      (await import("./themes/vitesse-dark")).default,
-    );
-  }
   if (!loaded.includes("gitdot-light")) {
     await highlighter.loadTheme(
       (await import("./themes/gitdot-light")).default,
     );
+  }
+  if (!loaded.includes("gitdot-dark")) {
+    await highlighter.loadTheme((await import("./themes/gitdot-dark")).default);
+  }
+  if (!loaded.includes("gitdot-mono")) {
+    await highlighter.loadTheme((await import("./themes/gitdot-mono")).default);
   }
 
   if (lang && !highlighter.getLoadedLanguages().includes(lang)) {
@@ -45,14 +41,14 @@ async function getHighlighter(
 export async function renderHast(
   content: string,
   lang: BundledLanguage | undefined,
-  theme: "vitesse" | "gitdot",
+  theme: "gitdot" | "mono",
   transformers: ShikiTransformer[] = [],
 ) {
   const highlighter = await getHighlighter(lang);
-  if (theme === "vitesse") {
+  if (theme === "gitdot") {
     return highlighter.codeToHast(content, {
       lang: lang ?? "plaintext",
-      themes: { light: "vitesse-light", dark: "vitesse-dark" },
+      themes: { light: "gitdot-light", dark: "gitdot-dark" },
       defaultColor: "light",
       transformers,
     });
@@ -60,7 +56,7 @@ export async function renderHast(
 
   return highlighter.codeToHast(content, {
     lang: lang ?? "plaintext",
-    theme: "gitdot-light",
+    theme: "gitdot-mono",
     transformers,
   });
 }
@@ -111,7 +107,7 @@ async function renderPair(
       const spans = await renderSpans(
         content,
         lang,
-        "vitesse",
+        "gitdot",
         side,
         changedLines,
       );
@@ -124,8 +120,8 @@ async function renderPair(
     }
 
     const [leftSpans, rightSpans] = await Promise.all([
-      renderSpans(left, lang, "vitesse", "left", allRemovedLines),
-      renderSpans(right, lang, "vitesse", "right", allAddedLines),
+      renderSpans(left, lang, "gitdot", "left", allRemovedLines),
+      renderSpans(right, lang, "gitdot", "right", allAddedLines),
     ]);
     return {
       ...base,
@@ -139,7 +135,7 @@ async function renderPair(
   } else if (left === null) {
     const lineCount = right.split("\n").length;
     const allLines = new Set(Array.from({ length: lineCount }, (_, i) => i));
-    const spans = await renderSpans(right, lang, "vitesse", "right", allLines);
+    const spans = await renderSpans(right, lang, "gitdot", "right", allLines);
     return {
       ...base,
       spans: { kind: "created", spans },
@@ -159,7 +155,7 @@ async function renderPair(
 async function renderSpans(
   content: string,
   lang: BundledLanguage | undefined,
-  theme: "vitesse" | "gitdot",
+  theme: "gitdot" | "mono",
   side: "left" | "right",
   changedLines: Set<number>,
 ): Promise<Element[]> {

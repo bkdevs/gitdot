@@ -29,7 +29,7 @@ async function process(req: ShikiRequest, port: MessagePort) {
   const t = performance.now();
   if (req.kind === "blob") {
     const lang = inferLanguage(req.path);
-    const hast = await renderHast(req.content, lang, "vitesse");
+    const hast = await renderHast(req.content, lang, "gitdot");
     console.log(
       `[gitdot-shiki] blob ${req.path} (${lang ?? "plaintext"}, ${req.content.length}b) ${(performance.now() - t).toFixed(2)}ms`,
     );

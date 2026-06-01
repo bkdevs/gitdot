@@ -1,27 +1,40 @@
+import type { Metadata } from "next";
+import Link from "@/ui/link";
 import { leagueSpartan } from "../fonts";
+import { getAllReleases } from "./util";
 
-export default function Releases() {
+export const metadata: Metadata = {
+  title: "gitdot | releases",
+  description: "gitdot releases",
+};
+
+export default function Page() {
+  const releases = getAllReleases();
+
   return (
     <div
-      className={`${leagueSpartan.className} flex flex-col gap-4 px-3 py-2 h-full overflow-y-auto scrollbar-none`}
+      className={`${leagueSpartan.className} px-3 pt-3.5 pb-2 h-full overflow-y-auto scrollbar-none`}
     >
-      <h1 className="font-semibold text-lg">Releases</h1>
-      <p>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod
-        tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
-        veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
-        commodo consequat.
-      </p>
-      <p>
-        Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut
-        fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem
-        sequi nesciunt.
-      </p>
-      <p>
-        Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet,
-        consectetur, adipisci velit, sed quia non numquam eius modi tempora
-        incidunt ut labore et dolore magnam aliquam quaerat voluptatem.
-      </p>
+      {releases.length === 0 ? (
+        <p>No releases yet.</p>
+      ) : (
+        <div className="space-y-2">
+          {releases.map((release) => (
+            <article key={release.metadata.version}>
+              <div className="flex flex-row w-full items-baseline justify-between">
+                <Link
+                  href={`/releases/${release.metadata.version}`}
+                  data-page-item
+                  className="text-lg font-medium outline-none hover:underline focus:underline"
+                >
+                  {release.metadata.version}: {release.metadata.title}
+                </Link>
+                <p className="text-sm">{release.metadata.date}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -4,7 +4,7 @@ import matter from "gray-matter";
 
 const postsDirectory = path.join(
   process.cwd(),
-  "app/(main)/(marketing)/weeks/content/week",
+  "app/(main)/(marketing)/weeks/content",
 );
 
 export interface PostMetadata {
