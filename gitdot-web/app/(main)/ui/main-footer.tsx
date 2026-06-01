@@ -13,7 +13,6 @@ import { MainCommands } from "./main-commands";
 export function MainFooter() {
   const segments = useSelectedLayoutSegments();
   if (segments[2] === "reviews" && segments[3] !== undefined) return null;
-  if (segments[0] === "(marketing)") return null;
 
   return (
     <div className="relative shrink-0 flex w-full h-7 items-center border-t bg-sidebar text-sm font-mono">

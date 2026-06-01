@@ -29,7 +29,8 @@ export default function Page() {
               <div className="flex flex-row w-full items-baseline justify-between">
                 <Link
                   href={`/weeks/${post.metadata.week}`}
-                  className="text-lg font-medium hover:underline"
+                  data-page-item
+                  className="text-lg font-medium outline-none hover:underline focus:underline"
                 >
                   Week {post.metadata.week}: {post.metadata.title}
                 </Link>

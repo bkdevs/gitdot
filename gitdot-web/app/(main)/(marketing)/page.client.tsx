@@ -46,7 +46,8 @@ export function PageClient({
             <div className="flex items-baseline justify-between gap-4">
               <Link
                 href={`/${repo.owner}/${repo.name}`}
-                className="text-sm font-medium dark:font-normal underline decoration-transparent hover:decoration-current transition-colors duration-200 truncate"
+                data-page-item
+                className="text-sm font-medium dark:font-normal underline decoration-transparent outline-none hover:decoration-current focus:decoration-current transition-colors duration-200 truncate"
               >
                 <span className="font-normal text-muted-foreground">
                   {repo.owner}/

@@ -64,6 +64,12 @@ export function MainCommands() {
           name: "Home",
           description: "Go home",
           keys: ["h"],
+          execute: () => router.push("/"),
+        },
+        {
+          name: "User",
+          description: "Go to your profile",
+          keys: ["u"],
           execute: () => {
             if (user) router.push(`/${user.name}`);
           },
@@ -104,6 +110,11 @@ export function MainCommands() {
       {
         type: "cmd",
         label: "home",
+        execute: () => router.push("/"),
+      },
+      {
+        type: "cmd",
+        label: "profile",
         execute: () => router.push(`/${user.name}`),
       },
       {
@@ -259,7 +270,15 @@ export function MainCommands() {
         </div>
       )}
       <span className="flex flex-1 items-center px-2 text-sm">
-        <span className="flex items-center text-foreground">{pathLinks}</span>
+        <span className="flex items-center text-foreground">
+          {pathLinks.length > 0 ? (
+            pathLinks
+          ) : (
+            <Link className="hover:underline" href="/" prefetch={true}>
+              home
+            </Link>
+          )}
+        </span>
         <span
           className={`flex flex-1 items-center transition-colors duration-200 ${open ? "text-foreground cursor-default" : "text-muted-foreground hover:text-foreground cursor-pointer"}`}
           onClick={() => setOpen(true)}

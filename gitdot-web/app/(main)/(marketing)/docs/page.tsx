@@ -5,12 +5,12 @@ const league_spartan = League_Spartan({
   weight: ["400", "700"],
 });
 
-export default function Decisions() {
+export default function Docs() {
   return (
     <div
       className={`${league_spartan.className} blog-root flex flex-col gap-4 px-3 py-2 h-full overflow-y-auto scrollbar-none`}
     >
-      <h1 className="font-semibold text-lg">Decisions</h1>
+      <h1 className="font-semibold text-lg">Docs</h1>
       <p>
         Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod
         tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
