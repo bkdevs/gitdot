@@ -9,12 +9,12 @@ use uuid::Uuid;
 use crate::{
     model::{
         Answer, AuthCode, AuthProvider, Comment, CommentSide, Commit, CommitDiff, Diff, DiffStatus,
-        Organization, OrganizationMember, OrganizationRole, Question, Repository,
-        RepositoryOwnerType, RepositoryStar, RepositoryVisibility, Review, ReviewComment,
-        ReviewStatus, Reviewer, Revision, Session, User, UserEmail, UserOrganization, Verdict,
-        VoteResult, VoteTarget,
+        EmailVerificationCode, Organization, OrganizationMember, OrganizationRole, Question,
+        Repository, RepositoryOwnerType, RepositoryStar, RepositoryVisibility, Review,
+        ReviewComment, ReviewStatus, Reviewer, Revision, Session, User, UserEmail,
+        UserOrganization, Verdict, VoteResult, VoteTarget,
     },
-    repository::AuthCodeVerification,
+    repository::{AuthCodeVerification, EmailCodeVerification},
 };
 
 mock! {
@@ -311,5 +311,98 @@ impl crate::repository::SessionRepository for MockSessionRepository {
     ) -> Result<(), crate::error::DatabaseError> {
         self.revoked_families.lock().unwrap().push(family);
         Ok(())
+    }
+}
+
+/// Hand-written to mirror [`MockSessionRepository`]: the success variant of
+/// [`EmailCodeVerification`] carries a `UserEmail`, which `mockall`'s
+/// `.returning` ergonomics handle poorly, and a builder keeps the account-service
+/// tests readable.
+///
+/// Configure the verify outcome with
+/// [`with_verification`](MockEmailVerificationRepository::with_verification); the
+/// recorders (`created_codes`, `invalidated`) let tests assert which writes
+/// happened.
+#[derive(Clone)]
+pub struct MockEmailVerificationRepository {
+    verification: EmailCodeVerification,
+    created_codes: Arc<Mutex<usize>>,
+    invalidated: Arc<Mutex<Vec<(Uuid, String)>>>,
+}
+
+impl Default for MockEmailVerificationRepository {
+    fn default() -> Self {
+        Self {
+            verification: EmailCodeVerification::NoActiveCode,
+            created_codes: Arc::default(),
+            invalidated: Arc::default(),
+        }
+    }
+}
+
+impl MockEmailVerificationRepository {
+    pub fn with_verification(mut self, verification: EmailCodeVerification) -> Self {
+        self.verification = verification;
+        self
+    }
+
+    pub fn created_codes(&self) -> usize {
+        *self.created_codes.lock().unwrap()
+    }
+
+    pub fn invalidated(&self) -> Vec<(Uuid, String)> {
+        self.invalidated.lock().unwrap().clone()
+    }
+}
+
+#[async_trait]
+impl crate::repository::EmailVerificationRepository for MockEmailVerificationRepository {
+    async fn create_code(
+        &self,
+        user_id: Uuid,
+        email: &str,
+        code_hash: &str,
+        expires_at: DateTime<Utc>,
+    ) -> Result<EmailVerificationCode, crate::error::DatabaseError> {
+        *self.created_codes.lock().unwrap() += 1;
+        Ok(EmailVerificationCode {
+            id: Uuid::new_v4(),
+            user_id,
+            email: email.to_string(),
+            code_hash: code_hash.to_string(),
+            attempt_count: 0,
+            created_at: Utc::now(),
+            expires_at,
+            used_at: None,
+        })
+    }
+
+    async fn get_code_by_hash(
+        &self,
+        _code_hash: &str,
+    ) -> Result<Option<EmailVerificationCode>, crate::error::DatabaseError> {
+        Ok(None)
+    }
+
+    async fn invalidate_codes_for_email(
+        &self,
+        user_id: Uuid,
+        email: &str,
+    ) -> Result<(), crate::error::DatabaseError> {
+        self.invalidated
+            .lock()
+            .unwrap()
+            .push((user_id, email.to_string()));
+        Ok(())
+    }
+
+    async fn verify_and_consume_email_code(
+        &self,
+        _user_id: Uuid,
+        _email: &str,
+        _code_hash: &str,
+        _max_attempts: i16,
+    ) -> Result<EmailCodeVerification, crate::error::DatabaseError> {
+        Ok(self.verification.clone())
     }
 }

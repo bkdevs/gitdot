@@ -5,7 +5,7 @@ use crate::{
     dto::GitHubEmail,
     model::{
         AuthProvider, Commit, CommitRepository, Organization, OrganizationMember, OrganizationRole,
-        Repository, RepositoryOwnerType, RepositoryVisibility, Session, User,
+        Repository, RepositoryOwnerType, RepositoryVisibility, Session, User, UserEmail,
     },
 };
 
@@ -35,6 +35,17 @@ pub fn create_user(name: &str) -> User {
         created_at: Utc::now(),
         image_updated_at: Utc::now(),
         emails: vec![],
+    }
+}
+
+pub fn create_user_email(user_id: Uuid, email: &str) -> UserEmail {
+    UserEmail {
+        id: Uuid::new_v4(),
+        user_id,
+        email: email.to_string(),
+        is_primary: false,
+        is_verified: true,
+        created_at: Utc::now(),
     }
 }
 

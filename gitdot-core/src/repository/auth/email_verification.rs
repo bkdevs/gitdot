@@ -8,7 +8,7 @@ use crate::{
     model::{EmailVerificationCode, UserEmail},
 };
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum EmailCodeVerification {
     Success(UserEmail),
     Invalid,

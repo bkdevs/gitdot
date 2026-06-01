@@ -185,11 +185,213 @@ where
         };
 
         match outcome {
-            EmailCodeVerification::Success(row) => Ok(row.into()),
+            EmailCodeVerification::Success(user_email) => Ok(user_email.into()),
             EmailCodeVerification::AttemptsExhausted => Err(AccountError::TooManyAttempts),
             EmailCodeVerification::Invalid | EmailCodeVerification::NoActiveCode => {
                 Err(AccountError::InvalidCode)
             }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use uuid::Uuid;
+
+    use super::{AccountService, AccountServiceImpl};
+    use crate::{
+        dto::{AddUserEmailRequest, VerifyUserEmailRequest},
+        error::AccountError,
+        repository::EmailCodeVerification,
+        service::{
+            test_client::{MockEmailClient, MockRedisClient, MockTokenClient},
+            test_common::create_user_email,
+            test_repository::{MockEmailVerificationRepository, MockUserRepository},
+        },
+        util::crypto::hash_string,
+    };
+
+    type Service = AccountServiceImpl<
+        MockUserRepository,
+        MockEmailVerificationRepository,
+        MockEmailClient,
+        MockTokenClient,
+        MockRedisClient,
+    >;
+
+    fn create_service(
+        email_verification_repo: MockEmailVerificationRepository,
+        redis_client: MockRedisClient,
+    ) -> Service {
+        AccountServiceImpl {
+            user_repo: MockUserRepository::new(),
+            email_verification_repo,
+            email_client: MockEmailClient::new(),
+            token_client: MockTokenClient::default(),
+            redis_client,
+        }
+    }
+
+    mod add_email {
+        use super::*;
+
+        #[tokio::test]
+        async fn add_email_already_taken_is_conflict() {
+            let mut service = create_service(
+                MockEmailVerificationRepository::default(),
+                MockRedisClient::default(),
+            );
+            service
+                .user_repo
+                .expect_is_email_taken()
+                .returning(|_| Ok(true));
+
+            let err = service
+                .add_email(AddUserEmailRequest::new(Uuid::new_v4(), "user@example.com").unwrap())
+                .await
+                .unwrap_err();
+
+            assert!(matches!(err, AccountError::Conflict(_)));
+            assert_eq!(service.email_verification_repo.created_codes(), 0);
+        }
+
+        #[tokio::test]
+        async fn add_email_within_cooldown_is_too_many_attempts() {
+            let user_id = Uuid::new_v4();
+            let email = "user@example.com";
+            let rate_limit_key = format!(
+                "email_verify_send:{}",
+                hash_string(&format!("{user_id}:{email}"))
+            );
+            // Pre-claimed key → the SET NX returns false → cooldown.
+            let redis = MockRedisClient::default().seed(&rate_limit_key, &true);
+            let mut service = create_service(MockEmailVerificationRepository::default(), redis);
+            service
+                .user_repo
+                .expect_is_email_taken()
+                .returning(|_| Ok(false));
+
+            let err = service
+                .add_email(AddUserEmailRequest::new(user_id, email).unwrap())
+                .await
+                .unwrap_err();
+
+            assert!(matches!(err, AccountError::TooManyAttempts));
+            assert_eq!(service.email_verification_repo.created_codes(), 0);
+        }
+
+        #[tokio::test]
+        async fn add_email_sends_code_and_invalidates_prior() {
+            let user_id = Uuid::new_v4();
+            let email = "user@example.com";
+            let mut service = create_service(
+                MockEmailVerificationRepository::default(),
+                MockRedisClient::default(),
+            );
+            service
+                .user_repo
+                .expect_is_email_taken()
+                .returning(|_| Ok(false));
+            service
+                .email_client
+                .expect_send_email()
+                .returning(|_, _, _, _| Ok(()));
+
+            service
+                .add_email(AddUserEmailRequest::new(user_id, email).unwrap())
+                .await
+                .unwrap();
+
+            assert_eq!(service.email_verification_repo.created_codes(), 1);
+            assert_eq!(
+                service.email_verification_repo.invalidated(),
+                vec![(user_id, email.to_string())]
+            );
+        }
+
+        #[tokio::test]
+        async fn add_email_proceeds_when_rate_limit_check_errors() {
+            // A failing Redis must not block the send (fail-open on rate limiting).
+            let mut service = create_service(
+                MockEmailVerificationRepository::default(),
+                MockRedisClient::failing(),
+            );
+            service
+                .user_repo
+                .expect_is_email_taken()
+                .returning(|_| Ok(false));
+            service
+                .email_client
+                .expect_send_email()
+                .returning(|_, _, _, _| Ok(()));
+
+            service
+                .add_email(AddUserEmailRequest::new(Uuid::new_v4(), "user@example.com").unwrap())
+                .await
+                .unwrap();
+
+            assert_eq!(service.email_verification_repo.created_codes(), 1);
+        }
+    }
+
+    mod verify_email {
+        use super::*;
+
+        fn verify_request(user_id: Uuid) -> VerifyUserEmailRequest {
+            VerifyUserEmailRequest::new(user_id, "user@example.com", "ABC234").unwrap()
+        }
+
+        #[tokio::test]
+        async fn verify_email_success_returns_email() {
+            let user_id = Uuid::new_v4();
+            let repo = MockEmailVerificationRepository::default().with_verification(
+                EmailCodeVerification::Success(create_user_email(user_id, "user@example.com")),
+            );
+            let service = create_service(repo, MockRedisClient::default());
+
+            let result = service.verify_email(verify_request(user_id)).await.unwrap();
+
+            assert_eq!(result.email, "user@example.com");
+            assert!(result.is_verified);
+        }
+
+        #[tokio::test]
+        async fn verify_email_exhausted_attempts_is_too_many_attempts() {
+            let repo = MockEmailVerificationRepository::default()
+                .with_verification(EmailCodeVerification::AttemptsExhausted);
+            let service = create_service(repo, MockRedisClient::default());
+
+            let err = service
+                .verify_email(verify_request(Uuid::new_v4()))
+                .await
+                .unwrap_err();
+            assert!(matches!(err, AccountError::TooManyAttempts));
+        }
+
+        #[tokio::test]
+        async fn verify_email_invalid_is_invalid_code() {
+            let repo = MockEmailVerificationRepository::default()
+                .with_verification(EmailCodeVerification::Invalid);
+            let service = create_service(repo, MockRedisClient::default());
+
+            let err = service
+                .verify_email(verify_request(Uuid::new_v4()))
+                .await
+                .unwrap_err();
+            assert!(matches!(err, AccountError::InvalidCode));
+        }
+
+        #[tokio::test]
+        async fn verify_email_no_active_code_is_invalid_code() {
+            let repo = MockEmailVerificationRepository::default()
+                .with_verification(EmailCodeVerification::NoActiveCode);
+            let service = create_service(repo, MockRedisClient::default());
+
+            let err = service
+                .verify_email(verify_request(Uuid::new_v4()))
+                .await
+                .unwrap_err();
+            assert!(matches!(err, AccountError::InvalidCode));
         }
     }
 }
