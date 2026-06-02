@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
 import Link from "@/ui/link";
 import { Loading } from "@/ui/loading";
 import { fuzzyMatch } from "../../util";
+import { useRepoSynced } from "../use-repo-synced";
 
 export function RepoFileDialog({
   owner,
@@ -22,6 +23,7 @@ export function RepoFileDialog({
   pathsPromise: Promise<RepositoryPathsResource | null>;
 }) {
   const paths = use(pathsPromise);
+  const synced = useRepoSynced(owner, repo);
 
   const [hast, setHast] = useState<Root | null>(null);
   const [open, setOpen] = useState(false);
@@ -102,14 +104,20 @@ export function RepoFileDialog({
   }, [open]);
 
   useEffect(() => {
-    if (!selectedFile) {
+    if (!selectedFile || !synced) {
       setHast(null);
       return;
     }
+    let ignore = false;
     ClientProvider.instance
       .getHast(owner, repo, selectedFile.path)
-      .then(setHast);
-  }, [selectedFile?.path, owner, repo, selectedFile]);
+      .then((h) => {
+        if (!ignore) setHast(h);
+      });
+    return () => {
+      ignore = true;
+    };
+  }, [selectedFile, synced, owner, repo]);
 
   useEffect(() => {
     if (selectedIndex >= filteredFiles.length) {

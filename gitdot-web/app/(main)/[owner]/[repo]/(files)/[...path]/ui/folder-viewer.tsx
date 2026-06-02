@@ -4,6 +4,7 @@ import type { RepositoryPathsResource } from "gitdot-api";
 import { ClientProvider } from "gitdot-dal/client";
 import type { Root } from "hast";
 import { useParams } from "next/navigation";
+import { useRepoSynced } from "@/(main)/[owner]/[repo]/ui/use-repo-synced";
 import { FolderPathPreview } from "./folder-path-preview";
 import { FolderTree } from "./folder-tree";
 import { FolderViewerProvider } from "./folder-viewer-context";
@@ -16,6 +17,7 @@ export function FolderViewer({
   paths: RepositoryPathsResource | null;
 }) {
   const { owner, repo } = useParams<{ owner: string; repo: string }>();
+  const synced = useRepoSynced(owner, repo);
 
   const getHast = (p: string): Promise<Root | null> =>
     ClientProvider.instance.getHast(owner, repo, p);
@@ -33,6 +35,7 @@ export function FolderViewer({
           owner={owner}
           repo={repo}
           getHast={getHast}
+          synced={synced}
         />
       </div>
     </FolderViewerProvider>

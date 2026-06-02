@@ -15,11 +15,13 @@ export function FolderPathPreview({
   owner,
   repo,
   getHast,
+  synced,
 }: {
   paths: RepositoryPathsResource;
   owner: string;
   repo: string;
   getHast: (path: string) => Promise<Root | null>;
+  synced: boolean;
 }) {
   const { previewPath } = useFolderViewerContext();
   const entry = previewPath
@@ -37,7 +39,7 @@ export function FolderPathPreview({
       />
     );
   } else {
-    return <FilePreview path={previewPath} getHast={getHast} />;
+    return <FilePreview path={previewPath} getHast={getHast} synced={synced} />;
   }
 }
 
@@ -93,16 +95,28 @@ function FolderPreview({
 function FilePreview({
   path,
   getHast,
+  synced,
 }: {
   path: string;
   getHast: (path: string) => Promise<Root | null>;
+  synced: boolean;
 }) {
   const [hast, setHast] = useState<Root | null>(null);
 
   useEffect(() => {
+    if (!synced) {
+      setHast(null);
+      return;
+    }
+    let ignore = false;
     setHast(null);
-    getHast(path).then(setHast);
-  }, [path, getHast]);
+    getHast(path).then((h) => {
+      if (!ignore) setHast(h);
+    });
+    return () => {
+      ignore = true;
+    };
+  }, [path, getHast, synced]);
 
   return (
     <div className="flex-1 min-w-0 overflow-auto scrollbar-thin">

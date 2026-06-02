@@ -85,20 +85,6 @@ export class ClientProvider extends GitdotProvider {
     return done;
   }
 
-  private async pollSynced(
-    owner: string,
-    repo: string,
-    timeoutMs = 15_000,
-    intervalMs = 100,
-  ): Promise<boolean> {
-    const deadline = Date.now() + timeoutMs;
-    for (;;) {
-      if (this.repoSynced(owner, repo)) return true;
-      if (Date.now() >= deadline) return false;
-      await new Promise((r) => setTimeout(r, intervalMs));
-    }
-  }
-
   repoSynced(owner: string, repo: string): boolean {
     const metadata = this.metadatas.get(`${owner}/${repo}`);
     if (!metadata) return false;
@@ -120,7 +106,7 @@ export class ClientProvider extends GitdotProvider {
     owner: string,
     repo: string,
   ): Promise<RepositoryPathsResource | null> {
-    if (!(await this.pollSynced(owner, repo))) return null;
+    if (!this.repoSynced(owner, repo)) return null;
     const key = `${owner}/${repo}`;
     const cached = this.paths.get(key);
     if (cached) return cached;
@@ -133,7 +119,7 @@ export class ClientProvider extends GitdotProvider {
     owner: string,
     repo: string,
   ): Promise<RepositoryCommitResource[] | null> {
-    if (!(await this.pollSynced(owner, repo))) return null;
+    if (!this.repoSynced(owner, repo)) return null;
     const key = `${owner}/${repo}`;
     const cached = this.commits.get(key);
     if (cached) return cached;
@@ -152,7 +138,7 @@ export class ClientProvider extends GitdotProvider {
     path: string,
     _ref?: string,
   ): Promise<RepositoryBlobResource | null> {
-    if (!(await this.pollSynced(owner, repo))) return null;
+    if (!this.repoSynced(owner, repo)) return null;
     return this.db.getBlob(owner, repo, path);
   }
 
@@ -162,11 +148,10 @@ export class ClientProvider extends GitdotProvider {
     path: string,
     _ref?: string,
   ): Promise<Root | null> {
+    if (!this.repoSynced(owner, repo)) return null;
     const key = `${owner}/${repo}/${path}`;
     const cached = this.hasts.get(key);
     if (cached) return cached;
-
-    if (!(await this.pollSynced(owner, repo))) return null;
 
     const blob = await this.db.getBlob(owner, repo, path);
     if (!blob) return null;
@@ -190,7 +175,7 @@ export class ClientProvider extends GitdotProvider {
     repo: string,
     sha: string,
   ): Promise<RepositoryCommitResource | null> {
-    if (!(await this.pollSynced(owner, repo))) return null;
+    if (!this.repoSynced(owner, repo)) return null;
     const cached = this.commits.get(`${owner}/${repo}`);
     const hit = cached?.find((c) => c.sha === sha || c.sha.startsWith(sha));
     if (hit) return hit;
