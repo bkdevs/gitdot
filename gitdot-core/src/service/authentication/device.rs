@@ -194,3 +194,385 @@ where
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::sync::{Arc, Mutex};
+
+    use chrono::{Duration, Utc};
+    use uuid::Uuid;
+
+    use super::{DeviceService, DeviceServiceImpl};
+    use crate::{
+        dto::{AuthorizeDeviceRequest, DeviceCodeRequest, PollTokenRequest},
+        error::DeviceError,
+        model::{AccessToken, DeviceAuthorizationStatus, TokenType},
+        service::{
+            test_client::MockTokenClient,
+            test_common::{create_device_authorization, create_user, create_user_email},
+            test_repository::{MockDeviceRepository, MockTokenRepository, MockUserRepository},
+        },
+    };
+
+    type Service = DeviceServiceImpl<
+        MockDeviceRepository,
+        MockTokenRepository,
+        MockUserRepository,
+        MockTokenClient,
+    >;
+
+    fn create_service(
+        device_repo: MockDeviceRepository,
+        token_repo: MockTokenRepository,
+        user_repo: MockUserRepository,
+    ) -> Service {
+        DeviceServiceImpl {
+            device_repo,
+            token_repo,
+            user_repo,
+            token_client: MockTokenClient::default(),
+        }
+    }
+
+    fn poll_request() -> PollTokenRequest {
+        PollTokenRequest::new("device-code".to_string(), "gitdot-cli".to_string())
+    }
+
+    mod request_device_code {
+        use super::*;
+
+        #[tokio::test]
+        async fn returns_codes_and_persists() {
+            let mut device_repo = MockDeviceRepository::new();
+            device_repo
+                .expect_create_device_authorization()
+                .times(1)
+                .returning(|_, _, _, _| {
+                    Ok(create_device_authorization(
+                        DeviceAuthorizationStatus::Pending,
+                    ))
+                });
+
+            let service = create_service(
+                device_repo,
+                MockTokenRepository::new(),
+                MockUserRepository::new(),
+            );
+
+            let response = service
+                .request_device_code(DeviceCodeRequest::new(
+                    "gitdot-cli".to_string(),
+                    "https://gitdot.dev/device".to_string(),
+                ))
+                .await
+                .unwrap();
+
+            // Raw codes from the token client are returned in the clear; the
+            // verification URL is echoed; expiry/interval come from the client.
+            assert_eq!(response.device_code, "refresh-token-raw");
+            assert_eq!(response.user_code, "ABC234");
+            assert_eq!(response.verification_url, "https://gitdot.dev/device");
+            assert_eq!(response.expires_in, 600);
+            assert_eq!(response.interval, 1);
+        }
+
+        #[tokio::test]
+        async fn propagates_repo_error() {
+            let mut device_repo = MockDeviceRepository::new();
+            device_repo
+                .expect_create_device_authorization()
+                .returning(|_, _, _, _| {
+                    Err(crate::error::DatabaseError::Other(sqlx::Error::RowNotFound))
+                });
+
+            let service = create_service(
+                device_repo,
+                MockTokenRepository::new(),
+                MockUserRepository::new(),
+            );
+
+            let err = service
+                .request_device_code(DeviceCodeRequest::new(
+                    "gitdot-cli".to_string(),
+                    "https://gitdot.dev/device".to_string(),
+                ))
+                .await
+                .unwrap_err();
+
+            assert!(matches!(err, DeviceError::DatabaseError(_)));
+        }
+    }
+
+    mod poll_token {
+        use super::*;
+
+        #[tokio::test]
+        async fn unknown_device_code_is_not_found() {
+            let mut device_repo = MockDeviceRepository::new();
+            device_repo
+                .expect_get_device_authorization_by_device_code_hash()
+                .returning(|_| Ok(None));
+
+            let service = create_service(
+                device_repo,
+                MockTokenRepository::new(),
+                MockUserRepository::new(),
+            );
+
+            let err = service.poll_token(poll_request()).await.unwrap_err();
+            assert!(matches!(err, DeviceError::NotFound(_)));
+        }
+
+        #[tokio::test]
+        async fn pending_is_token_pending() {
+            let mut device_repo = MockDeviceRepository::new();
+            device_repo
+                .expect_get_device_authorization_by_device_code_hash()
+                .returning(|_| {
+                    Ok(Some(create_device_authorization(
+                        DeviceAuthorizationStatus::Pending,
+                    )))
+                });
+
+            // No `expect_expire_device_authorization`: an unexpired pending auth
+            // must not be touched (mockall panics on an unexpected call).
+            let service = create_service(
+                device_repo,
+                MockTokenRepository::new(),
+                MockUserRepository::new(),
+            );
+
+            let err = service.poll_token(poll_request()).await.unwrap_err();
+            assert!(matches!(err, DeviceError::TokenPending(_)));
+        }
+
+        #[tokio::test]
+        async fn pending_but_expired_marks_expired() {
+            let mut auth = create_device_authorization(DeviceAuthorizationStatus::Pending);
+            auth.expires_at = Utc::now() - Duration::minutes(1);
+
+            let mut device_repo = MockDeviceRepository::new();
+            device_repo
+                .expect_get_device_authorization_by_device_code_hash()
+                .returning(move |_| Ok(Some(auth.clone())));
+            device_repo
+                .expect_expire_device_authorization()
+                .times(1)
+                .returning(|_| Ok(()));
+
+            let service = create_service(
+                device_repo,
+                MockTokenRepository::new(),
+                MockUserRepository::new(),
+            );
+
+            let err = service.poll_token(poll_request()).await.unwrap_err();
+            assert!(matches!(err, DeviceError::TokenExpired(_)));
+        }
+
+        #[tokio::test]
+        async fn expired_status_is_token_expired() {
+            let mut device_repo = MockDeviceRepository::new();
+            device_repo
+                .expect_get_device_authorization_by_device_code_hash()
+                .returning(|_| {
+                    Ok(Some(create_device_authorization(
+                        DeviceAuthorizationStatus::Expired,
+                    )))
+                });
+
+            let service = create_service(
+                device_repo,
+                MockTokenRepository::new(),
+                MockUserRepository::new(),
+            );
+
+            let err = service.poll_token(poll_request()).await.unwrap_err();
+            assert!(matches!(err, DeviceError::TokenExpired(_)));
+        }
+
+        #[tokio::test]
+        async fn authorized_issues_token() {
+            let user = {
+                let mut user = create_user("alice");
+                let mut email = create_user_email(user.id, "alice@example.com");
+                email.is_primary = true;
+                user.emails = vec![email];
+                user
+            };
+            let user_id = user.id;
+
+            let mut auth = create_device_authorization(DeviceAuthorizationStatus::Authorized);
+            auth.user_id = Some(user_id);
+            let auth_id = auth.id;
+
+            let mut device_repo = MockDeviceRepository::new();
+            device_repo
+                .expect_get_device_authorization_by_device_code_hash()
+                .returning(move |_| Ok(Some(auth.clone())));
+            // The authorization is consumed: expired right after the token is issued.
+            device_repo
+                .expect_expire_device_authorization()
+                .withf(move |id| *id == auth_id)
+                .times(1)
+                .returning(|_| Ok(()));
+
+            let mut user_repo = MockUserRepository::new();
+            user_repo
+                .expect_get_by_id()
+                .returning(move |_| Ok(Some(user.clone())));
+
+            // Capture the token-creation args to assert the principal, client,
+            // and token type without relying on mockall reference-matcher quirks.
+            let created = Arc::new(Mutex::new(None));
+            let recorder = created.clone();
+            let mut token_repo = MockTokenRepository::new();
+            token_repo.expect_create_token().times(1).returning(
+                move |principal_id, client_id, token_hash, token_type| {
+                    *recorder.lock().unwrap() =
+                        Some((principal_id, client_id.to_string(), token_type.clone()));
+                    Ok(AccessToken {
+                        id: Uuid::new_v4(),
+                        principal_id,
+                        client_id: client_id.to_string(),
+                        token_hash: token_hash.to_string(),
+                        token_type,
+                        created_at: Utc::now(),
+                        last_used_at: None,
+                    })
+                },
+            );
+
+            let service = create_service(device_repo, token_repo, user_repo);
+            let response = service.poll_token(poll_request()).await.unwrap();
+
+            assert_eq!(response.access_token, "access-token-raw");
+            assert_eq!(response.user_name, "alice");
+            assert_eq!(response.user_email, "alice@example.com");
+
+            let (principal_id, client_id, token_type) = created.lock().unwrap().clone().unwrap();
+            assert_eq!(principal_id, user_id);
+            assert_eq!(client_id, "gitdot-cli");
+            assert_eq!(token_type, TokenType::Personal);
+        }
+
+        #[tokio::test]
+        async fn authorized_without_user_is_input_error() {
+            // Default authorized fixture has `user_id: None`.
+            let mut device_repo = MockDeviceRepository::new();
+            device_repo
+                .expect_get_device_authorization_by_device_code_hash()
+                .returning(|_| {
+                    Ok(Some(create_device_authorization(
+                        DeviceAuthorizationStatus::Authorized,
+                    )))
+                });
+
+            let service = create_service(
+                device_repo,
+                MockTokenRepository::new(),
+                MockUserRepository::new(),
+            );
+
+            let err = service.poll_token(poll_request()).await.unwrap_err();
+            assert!(matches!(err, DeviceError::Input(_)));
+        }
+
+        #[tokio::test]
+        async fn authorized_user_missing_is_not_found() {
+            let mut auth = create_device_authorization(DeviceAuthorizationStatus::Authorized);
+            auth.user_id = Some(Uuid::new_v4());
+
+            let mut device_repo = MockDeviceRepository::new();
+            device_repo
+                .expect_get_device_authorization_by_device_code_hash()
+                .returning(move |_| Ok(Some(auth.clone())));
+
+            let mut user_repo = MockUserRepository::new();
+            user_repo.expect_get_by_id().returning(|_| Ok(None));
+
+            let service = create_service(device_repo, MockTokenRepository::new(), user_repo);
+            let err = service.poll_token(poll_request()).await.unwrap_err();
+            assert!(matches!(err, DeviceError::NotFound(_)));
+        }
+
+        #[tokio::test]
+        async fn authorized_without_primary_email_is_not_found() {
+            // `create_user` has no emails, so there is no primary email.
+            let user = create_user("alice");
+            let mut auth = create_device_authorization(DeviceAuthorizationStatus::Authorized);
+            auth.user_id = Some(user.id);
+
+            let mut device_repo = MockDeviceRepository::new();
+            device_repo
+                .expect_get_device_authorization_by_device_code_hash()
+                .returning(move |_| Ok(Some(auth.clone())));
+
+            let mut user_repo = MockUserRepository::new();
+            user_repo
+                .expect_get_by_id()
+                .returning(move |_| Ok(Some(user.clone())));
+
+            let service = create_service(device_repo, MockTokenRepository::new(), user_repo);
+            let err = service.poll_token(poll_request()).await.unwrap_err();
+            assert!(matches!(err, DeviceError::NotFound(_)));
+        }
+    }
+
+    mod authorize_device {
+        use super::*;
+
+        #[tokio::test]
+        async fn success() {
+            let mut device_repo = MockDeviceRepository::new();
+            device_repo
+                .expect_authorize_device()
+                .times(1)
+                .returning(|_, _| {
+                    Ok(Some(create_device_authorization(
+                        DeviceAuthorizationStatus::Authorized,
+                    )))
+                });
+
+            let service = create_service(
+                device_repo,
+                MockTokenRepository::new(),
+                MockUserRepository::new(),
+            );
+
+            service
+                .authorize_device(AuthorizeDeviceRequest::new("ABC234", Uuid::new_v4()).unwrap())
+                .await
+                .unwrap();
+        }
+
+        #[tokio::test]
+        async fn no_match_is_not_found() {
+            let mut device_repo = MockDeviceRepository::new();
+            device_repo
+                .expect_authorize_device()
+                .returning(|_, _| Ok(None));
+
+            let service = create_service(
+                device_repo,
+                MockTokenRepository::new(),
+                MockUserRepository::new(),
+            );
+
+            let err = service
+                .authorize_device(AuthorizeDeviceRequest::new("ABC234", Uuid::new_v4()).unwrap())
+                .await
+                .unwrap_err();
+
+            assert!(matches!(err, DeviceError::NotFound(_)));
+        }
+
+        #[tokio::test]
+        async fn invalid_user_code_is_input_error() {
+            // The request constructor rejects malformed user codes before the
+            // service is ever called.
+            let err = AuthorizeDeviceRequest::new("bad", Uuid::new_v4()).unwrap_err();
+            assert!(matches!(err, DeviceError::Input(_)));
+        }
+    }
+}

@@ -8,11 +8,12 @@ use uuid::Uuid;
 
 use crate::{
     model::{
-        Answer, AuthCode, AuthProvider, Comment, CommentSide, Commit, CommitDiff, Diff, DiffStatus,
-        EmailVerificationCode, Organization, OrganizationMember, OrganizationRole, Question,
-        Repository, RepositoryOwnerType, RepositoryStar, RepositoryVisibility, Review,
-        ReviewComment, ReviewStatus, Reviewer, Revision, Session, User, UserEmail,
-        UserOrganization, Verdict, VoteResult, VoteTarget,
+        AccessToken, Answer, AuthCode, AuthProvider, Comment, CommentSide, Commit, CommitDiff,
+        DeviceAuthorization, Diff, DiffStatus, EmailVerificationCode, Organization,
+        OrganizationMember, OrganizationRole, Question, Repository, RepositoryOwnerType,
+        RepositoryStar, RepositoryVisibility, Review, ReviewComment, ReviewStatus, Reviewer,
+        Revision, Session, TokenType, User, UserEmail, UserOrganization, Verdict, VoteResult,
+        VoteTarget,
     },
     repository::{AuthCodeVerification, EmailCodeVerification},
 };
@@ -153,6 +154,37 @@ mock! {
         async fn list_by_repository(&self, repo_id: Uuid, ref_name: &str, from: DateTime<Utc>, to: DateTime<Utc>, cursor: Option<crate::dto::Cursor>, limit: i64) -> Result<(Vec<Commit>, Option<crate::dto::Cursor>), crate::error::DatabaseError>;
         async fn list_by_user(&self, author_id: Uuid, viewer_id: Option<Uuid>, from: DateTime<Utc>, to: DateTime<Utc>, cursor: Option<crate::dto::Cursor>, limit: i64) -> Result<(Vec<(Commit, bool)>, Option<crate::dto::Cursor>), crate::error::DatabaseError>;
         async fn create_bulk(&self, author_ids: &[Option<Uuid>], git_author_names: &[String], git_author_emails: &[String], repo_ids: &[Uuid], ref_names: &[String], shas: &[String], parent_shas: &[String], messages: &[String], created_ats: &[DateTime<Utc>], diffs: &[Vec<CommitDiff>], review_numbers: &[Option<i32>], diff_positions: &[Option<i32>]) -> Result<Vec<Commit>, crate::error::DatabaseError>;
+    }
+}
+
+mock! {
+    pub DeviceRepository {}
+    impl Clone for DeviceRepository {
+        fn clone(&self) -> Self;
+    }
+    #[async_trait]
+    impl crate::repository::DeviceRepository for DeviceRepository {
+        async fn create_device_authorization(&self, device_code_hash: &str, user_code_hash: &str, client_id: &str, expires_at: DateTime<Utc>) -> Result<DeviceAuthorization, crate::error::DatabaseError>;
+        async fn get_device_authorization_by_device_code_hash(&self, device_code_hash: &str) -> Result<Option<DeviceAuthorization>, crate::error::DatabaseError>;
+        async fn get_device_authorization_by_user_code_hash(&self, user_code_hash: &str) -> Result<Option<DeviceAuthorization>, crate::error::DatabaseError>;
+        async fn expire_device_authorization(&self, id: Uuid) -> Result<(), crate::error::DatabaseError>;
+        async fn authorize_device(&self, user_code_hash: &str, user_id: Uuid) -> Result<Option<DeviceAuthorization>, crate::error::DatabaseError>;
+        async fn deny_device(&self, user_code_hash: &str, user_id: Uuid) -> Result<Option<DeviceAuthorization>, crate::error::DatabaseError>;
+    }
+}
+
+mock! {
+    pub TokenRepository {}
+    impl Clone for TokenRepository {
+        fn clone(&self) -> Self;
+    }
+    #[async_trait]
+    impl crate::repository::TokenRepository for TokenRepository {
+        async fn create_token(&self, principal_id: Uuid, client_id: &str, token_hash: &str, token_type: TokenType) -> Result<AccessToken, crate::error::DatabaseError>;
+        async fn get_token_by_hash(&self, token_hash: &str) -> Result<Option<AccessToken>, crate::error::DatabaseError>;
+        async fn touch_token(&self, id: Uuid) -> Result<(), crate::error::DatabaseError>;
+        async fn delete_token(&self, id: Uuid) -> Result<(), crate::error::DatabaseError>;
+        async fn delete_token_by_principal(&self, principal_id: Uuid) -> Result<(), crate::error::DatabaseError>;
     }
 }
 

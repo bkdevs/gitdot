@@ -4,8 +4,9 @@ use uuid::Uuid;
 use crate::{
     dto::GitHubEmail,
     model::{
-        AuthProvider, Commit, CommitRepository, Organization, OrganizationMember, OrganizationRole,
-        Repository, RepositoryOwnerType, RepositoryVisibility, Session, User, UserEmail,
+        AuthProvider, Commit, CommitRepository, DeviceAuthorization, DeviceAuthorizationStatus,
+        Organization, OrganizationMember, OrganizationRole, Repository, RepositoryOwnerType,
+        RepositoryVisibility, Session, User, UserEmail,
     },
 };
 
@@ -119,6 +120,19 @@ pub fn create_commit(sha: &str) -> Commit {
             name: "repo".to_string(),
             visibility: "public".to_string(),
         },
+    }
+}
+
+pub fn create_device_authorization(status: DeviceAuthorizationStatus) -> DeviceAuthorization {
+    DeviceAuthorization {
+        id: Uuid::new_v4(),
+        device_code_hash: "device-code-hash".to_string(),
+        user_code_hash: "user-code-hash".to_string(),
+        client_id: "gitdot-cli".to_string(),
+        user_id: None,
+        status,
+        created_at: Utc::now(),
+        expires_at: Utc::now() + Duration::minutes(10),
     }
 }
 
