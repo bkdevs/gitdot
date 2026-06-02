@@ -124,7 +124,7 @@ export function MarkdownBody({
         ),
         a: ({ node, href, children, ...props }) => {
           const linkClass =
-            "text-sm underline underline-offset-4 decoration-1 hover:decoration-2 transition-all";
+            "text-sm cursor-pointer underline underline-offset-4 decoration-1 hover:decoration-2 transition-all";
           if (href === "#install-cli") {
             return (
               <InstallCliLink className={linkClass}>{children}</InstallCliLink>
