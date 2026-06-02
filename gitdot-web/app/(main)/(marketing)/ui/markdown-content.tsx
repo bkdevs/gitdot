@@ -1,6 +1,7 @@
 "use client";
 
 import ReactMarkdown from "react-markdown";
+import rehypeRaw from "rehype-raw";
 import remarkLineBreaks from "@/(main)/[owner]/[repo]/ui/markdown/remark-line-breaks";
 import { ImageContent } from "./image-content";
 import { VideoContent } from "./video-content";
@@ -9,6 +10,7 @@ export default function MarkdownContent({ content }: { content: string }) {
   return (
     <ReactMarkdown
       remarkPlugins={[remarkLineBreaks]}
+      rehypePlugins={[rehypeRaw]}
       components={{
         h1: ({ children }) => <h1 className="text-2xl mb-4">{children}</h1>,
         h2: ({ children }) => <h2 className="text-xl mb-3">{children}</h2>,
