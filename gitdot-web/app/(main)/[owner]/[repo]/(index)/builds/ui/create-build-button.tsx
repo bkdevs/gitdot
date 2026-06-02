@@ -13,7 +13,7 @@ export function CreateBuildButton({
   repo: string;
 }) {
   const [open, setOpen] = useState(false);
-  const { requireAuth } = useUserContext();
+  const { openAuthDialog } = useUserContext();
 
   return (
     <>
@@ -21,7 +21,7 @@ export function CreateBuildButton({
         type="button"
         className="flex flex-row h-full items-center px-2 border-border border-l bg-primary text-xs text-primary-foreground hover:bg-primary/80 outline-0! ring-0!"
         onClick={() => {
-          if (requireAuth()) return;
+          if (openAuthDialog()) return;
           setOpen(true);
         }}
       >

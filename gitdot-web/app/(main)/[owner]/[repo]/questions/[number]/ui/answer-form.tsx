@@ -14,13 +14,13 @@ export function AnswerForm({
   repo: string;
   number: number;
 }) {
-  const { requireAuth } = useUserContext();
+  const { openAuthDialog } = useUserContext();
   const [body, setBody] = useState("");
 
   const createAnswer = createAnswerAction.bind(null, owner, repo, number);
   const [state, formAction, isPending] = useActionState(
     async (_prevState: CreateAnswerActionResult | null, formData: FormData) => {
-      if (requireAuth()) return null;
+      if (openAuthDialog()) return null;
       return await createAnswer(formData);
     },
     null,

@@ -239,7 +239,7 @@ export type DeleteAccountActionResult = { success: true } | { error: string };
 export async function deleteAccountAction(): Promise<DeleteAccountActionResult> {
   try {
     await deleteAccount();
-  } catch (e) {
+  } catch (_e) {
     return { error: "Could not delete your account" };
   }
 

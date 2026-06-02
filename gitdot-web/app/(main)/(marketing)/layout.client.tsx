@@ -5,6 +5,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useCallback, useMemo } from "react";
 import { useShortcuts } from "@/(main)/context/shortcuts";
+import { useUserContext } from "@/(main)/context/user";
 import Link from "@/ui/link";
 import { cn } from "@/util";
 
@@ -38,6 +39,7 @@ export function LayoutClient({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const { openAuthDialog } = useUserContext();
 
   const cycle = useCallback((delta: number) => {
     const items = Array.from(
@@ -128,7 +130,7 @@ export function LayoutClient({
         {!user && (
           <button
             type="button"
-            onClick={() => window.dispatchEvent(new Event("toggleAuthDialog"))}
+            onClick={() => openAuthDialog("signup")}
             className={cn(navClassName(false), "cursor-pointer text-right")}
           >
             /signup

@@ -13,7 +13,7 @@ export function CommentInput({
   createComment: (formData: FormData) => Promise<CreateCommentActionResult>;
   addOptimisticComment: (body: string) => void;
 }) {
-  const { requireAuth } = useUserContext();
+  const { openAuthDialog } = useUserContext();
   const [showInput, setShowInput] = useState(false);
   const [body, setBody] = useState("");
   const formRef = useRef<HTMLFormElement>(null);
@@ -85,7 +85,7 @@ export function CommentInput({
           type="button"
           className="underline text-muted-foreground cursor-pointer h-5 border-b border-transparent"
           onClick={() => {
-            if (requireAuth()) return;
+            if (openAuthDialog()) return;
             setShowInput(true);
           }}
         >

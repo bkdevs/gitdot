@@ -139,7 +139,7 @@ function CommentVote({
   comment: CommentResource;
 }) {
   const { id, upvote, user_vote } = comment;
-  const { requireAuth } = useUserContext();
+  const { openAuthDialog } = useUserContext();
   const voteComment = voteAction.bind(null, owner, repo, number, id, "comment");
   const [optimistic, setOptimistic] = useOptimistic(
     { upvote, user_vote },
@@ -151,7 +151,7 @@ function CommentVote({
 
   const [, formAction] = useActionState(
     async (_prev: VoteActionResult | null, formData: FormData) => {
-      if (requireAuth()) return null;
+      if (openAuthDialog()) return null;
       const newValue = optimistic.user_vote === 1 ? 0 : 1;
       formData.set("value", String(newValue));
       setOptimistic(newValue);

@@ -22,7 +22,7 @@ export default async function Page() {
       <PageClient trending={trending ?? []} latest={latest ?? []} />
       <aside className="hidden lg:flex pt-4 pl-8 pr-4 flex-col gap-8">
         {thisWeek && (
-          <section className="group flex flex-col gap-0.5">
+          <section className="group flex flex-col gap-0.5 cursor-pointer">
             <span className="text-xs font-mono text-muted-foreground">
               # this week
             </span>
@@ -40,7 +40,7 @@ export default async function Page() {
         )}
 
         {nextRelease && (
-          <section className="group flex flex-col gap-0.5">
+          <section className="group flex flex-col gap-0.5 cursor-pointer">
             <span className="text-xs font-mono text-muted-foreground">
               # next release
             </span>

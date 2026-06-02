@@ -23,8 +23,7 @@ type Command = {
 };
 
 export function MainCommands() {
-  const { user } = useUserContext();
-  const { refreshUser } = useUserContext();
+  const { user, refreshUser, openAuthDialog } = useUserContext();
   const [open, setOpen] = useState(false);
   const [hovered, setHovered] = useState(false);
   const [input, setInput] = useState("");
@@ -91,7 +90,12 @@ export function MainCommands() {
         {
           type: "cmd",
           label: "login",
-          execute: () => window.dispatchEvent(new Event("toggleAuthDialog")),
+          execute: () => openAuthDialog("login"),
+        },
+        {
+          type: "cmd",
+          label: "signup",
+          execute: () => openAuthDialog("signup"),
         },
         {
           type: "cmd",
@@ -172,7 +176,15 @@ export function MainCommands() {
         },
       },
     ];
-  }, [user, router, refreshUser, resolvedTheme, setTheme, inRepo]);
+  }, [
+    user,
+    router,
+    refreshUser,
+    resolvedTheme,
+    setTheme,
+    inRepo,
+    openAuthDialog,
+  ]);
 
   const filteredCommands = useMemo(() => {
     const q = input.trim().toLowerCase();

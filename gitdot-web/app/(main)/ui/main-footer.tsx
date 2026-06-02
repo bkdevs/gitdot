@@ -76,6 +76,7 @@ function AuthStatusLoggedIn({ user }: { user: UserResource }) {
 }
 
 function AuthStatusGhost() {
+  const { openAuthDialog } = useUserContext();
   const text = "browsing as guest";
   const { typed, done } = useTypewriterDone(text);
 
@@ -92,9 +93,9 @@ function AuthStatusGhost() {
           "text-foreground font-medium hover:underline transition-opacity duration-300 cursor-pointer",
           done ? "opacity-100" : "opacity-0",
         )}
-        onClick={() => window.dispatchEvent(new Event("toggleAuthDialog"))}
+        onClick={() => openAuthDialog("signup")}
       >
-        (login)
+        (signup)
       </span>
     </div>
   );

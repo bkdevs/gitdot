@@ -11,14 +11,11 @@ import { Dialog, DialogContent, DialogTitle } from "@/ui/dialog";
 import { cn, validateEmail } from "@/util";
 
 type Step = "email" | "code";
+export type AuthScreen = "login" | "signup";
 
-export function AuthDialog({
-  open,
-  setOpen,
-}: {
-  open: boolean;
-  setOpen: (open: boolean) => void;
-}) {
+export function AuthDialog() {
+  const [open, setOpen] = useState(false);
+  const [screen, setScreen] = useState<AuthScreen>("login");
   const [email, setEmail] = useState("");
   const [step, setStep] = useState<Step>("email");
   const [error, setError] = useState<string | null>(null);
@@ -26,6 +23,16 @@ export function AuthDialog({
   const [githubPending, setGithubPending] = useState(false);
   const [isPending, startTransition] = useTransition();
   const isTyping = useIsTyping(email);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const screen = (e as CustomEvent<{ screen?: AuthScreen }>).detail?.screen;
+      setScreen(screen ?? "login");
+      setOpen(true);
+    };
+    window.addEventListener("openAuthDialog", handler);
+    return () => window.removeEventListener("openAuthDialog", handler);
+  }, []);
 
   useEffect(() => {
     if (open) {
@@ -88,6 +95,10 @@ export function AuthDialog({
             canSubmit={canSubmit}
             isPending={isPending}
             githubPending={githubPending}
+            showSignup={screen === "signup"}
+            toggleSignup={() =>
+              setScreen((s) => (s === "signup" ? "login" : "signup"))
+            }
             handleSubmit={handleSubmit}
             handleGithubLogin={handleGithubLogin}
           />
@@ -104,6 +115,8 @@ function EmailForm({
   canSubmit,
   isPending,
   githubPending,
+  showSignup,
+  toggleSignup,
   handleSubmit,
   handleGithubLogin,
 }: {
@@ -113,11 +126,11 @@ function EmailForm({
   canSubmit: boolean;
   isPending: boolean;
   githubPending: boolean;
+  showSignup: boolean;
+  toggleSignup: () => void;
   handleSubmit: (e: React.FormEvent) => void;
   handleGithubLogin: () => void;
 }) {
-  const [showSignup, setShowSignup] = useState(false);
-
   return (
     <form onSubmit={handleSubmit} className="flex flex-col text-sm" noValidate>
       <p className="px-2 py-2">{showSignup ? "Signup." : "Login."}</p>
@@ -138,7 +151,7 @@ function EmailForm({
           ) : (
             <button
               type="button"
-              onClick={() => setShowSignup((v) => !v)}
+              onClick={toggleSignup}
               className="text-xs text-muted-foreground hover:text-foreground cursor-pointer transition-colors duration-200"
             >
               {showSignup

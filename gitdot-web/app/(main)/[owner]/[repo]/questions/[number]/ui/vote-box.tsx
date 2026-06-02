@@ -35,11 +35,11 @@ export function VoteBox({
     }),
   );
 
-  const { requireAuth } = useUserContext();
+  const { openAuthDialog } = useUserContext();
   const vote = voteAction.bind(null, owner, repo, number, targetId, targetType);
   const [, formAction] = useActionState(
     async (_prev: VoteActionResult | null, formData: FormData) => {
-      if (requireAuth()) return null;
+      if (openAuthDialog()) return null;
 
       const clickedVote = Number(formData.get("clickedVote")) as 1 | -1;
       const newValue = optimistic.userVote === clickedVote ? 0 : clickedVote;

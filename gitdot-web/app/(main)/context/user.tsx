@@ -14,7 +14,7 @@ import {
   useState,
 } from "react";
 import { getCurrentUserAction, listInstallationsAction } from "@/actions";
-import { AuthDialog } from "../ui/auth-dialog";
+import { AuthDialog, type AuthScreen } from "../ui/auth-dialog";
 
 interface UserContext {
   user: UserResource | null | undefined;
@@ -22,7 +22,7 @@ interface UserContext {
   memberships: UserOrganizationResource[] | null | undefined;
   installations: GitHubInstallationResource[] | null | undefined;
   refreshUser: () => Promise<void>;
-  requireAuth: () => boolean;
+  openAuthDialog: (screen?: AuthScreen) => boolean;
 }
 
 const UserContext = createContext<UserContext | null>(null);
@@ -44,18 +44,18 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const [installations, setInstallations] = useState<
     GitHubInstallationResource[] | null | undefined
   >(undefined);
-  const [open, setOpen] = useState(false);
 
-  const requireAuth = useCallback(() => {
-    if (!user) setOpen(true);
-    return !user;
-  }, [user]);
-
-  useEffect(() => {
-    const handler = () => setOpen((prev) => !prev);
-    window.addEventListener("toggleAuthDialog", handler);
-    return () => window.removeEventListener("toggleAuthDialog", handler);
-  }, []);
+  const openAuthDialog = useCallback(
+    (screen: AuthScreen = "login") => {
+      if (!user) {
+        window.dispatchEvent(
+          new CustomEvent("openAuthDialog", { detail: { screen } }),
+        );
+      }
+      return !user;
+    },
+    [user],
+  );
 
   const refreshUser = useCallback(async () => {
     const current = await getCurrentUserAction();
@@ -96,11 +96,11 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         memberships,
         installations,
         refreshUser,
-        requireAuth,
+        openAuthDialog,
       }}
     >
       {children}
-      <AuthDialog open={open} setOpen={setOpen} />
+      <AuthDialog />
     </UserContext>
   );
 }

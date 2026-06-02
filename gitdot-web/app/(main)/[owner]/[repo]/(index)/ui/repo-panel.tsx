@@ -29,11 +29,11 @@ export function RepoPanel({
   isAdmin: boolean;
 }) {
   const open = useRightSidebar();
-  const { requireAuth } = useUserContext();
+  const { openAuthDialog } = useUserContext();
   const [starred, setStarred] = useState(repository.user_star);
 
   const toggleStar = async () => {
-    if (requireAuth()) return;
+    if (openAuthDialog()) return;
     const next = !starred;
     setStarred(next);
     const result = next
