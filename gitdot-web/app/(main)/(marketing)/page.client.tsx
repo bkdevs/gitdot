@@ -21,7 +21,7 @@ export function PageClient({
   };
 
   return (
-    <div className="flex flex-col gap-2 px-3 pt-4 pb-2 h-full overflow-y-auto scrollbar-none">
+    <div className="flex flex-col gap-1 px-3 pt-5 pb-2 h-full overflow-y-auto scrollbar-none">
       <div className="flex items-baseline gap-4">
         {(Object.keys(feeds) as FeedTab[]).map((key) => (
           <button

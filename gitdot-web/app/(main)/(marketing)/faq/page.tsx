@@ -3,7 +3,7 @@ import { leagueSpartan } from "../fonts";
 export default function FAQ() {
   return (
     <div
-      className={`${leagueSpartan.className} flex flex-col gap-4 px-3 py-3.5 h-full overflow-y-auto scrollbar-none select-none outline-none`}
+      className={`${leagueSpartan.className} flex flex-col gap-4 px-3 py-4.5 h-full overflow-y-auto scrollbar-none select-none outline-none`}
     >
       <div>
         <p className="font-semibold text-lg">1. What is gitdot?</p>
