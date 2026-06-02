@@ -62,7 +62,7 @@ function EmailForm({
         defaultValue=""
         autoFocus
         onChange={(e) => setEmail(e.target.value)}
-        className="border-border border-b mb-2 ring-0 outline-0 focus:border-black transition-colors duration-500"
+        className="border-border border-b mb-2 ring-0 outline-0 focus:border-foreground transition-colors duration-500"
       />
       <div className="flex flex-row w-full justify-between">
         <div className="flex items-center">
@@ -146,7 +146,7 @@ function VerifyCodeForm({
         defaultValue=""
         onChange={(e) => setCode(e.target.value)}
         maxLength={6}
-        className="border-border border-b mb-2 ring-0 outline-0 focus:border-black"
+        className="border-border border-b mb-2 ring-0 outline-0 focus:border-foreground"
         autoFocus
       />
       <div className="flex flex-row w-full justify-between">

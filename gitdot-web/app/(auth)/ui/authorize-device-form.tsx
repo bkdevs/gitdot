@@ -41,7 +41,7 @@ export default function AuthorizeDeviceForm() {
         value={userCode}
         maxLength={6}
         onChange={(e) => setUserCode(e.target.value)}
-        className="border-border border-b ring-0 outline-0 focus:border-black transition-colors duration-150"
+        className="border-border border-b ring-0 outline-0 focus:border-foreground transition-colors duration-150"
       />
 
       <div className="flex flex-row mt-2 w-full justify-end">

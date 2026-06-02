@@ -105,7 +105,7 @@ export default function ChooseUsernameForm() {
           autoComplete="off"
           spellCheck={false}
           disabled={isPending}
-          className="border-border border-b mb-2 ring-0 outline-0 focus:border-black transition-colors duration-1000"
+          className="border-border border-b mb-2 ring-0 outline-0 focus:border-foreground transition-colors duration-1000"
         />
         <div className="flex flex-row w-full justify-between items-baseline">
           <p className={cn("text-xs", footerColor)}>{footerMessage}</p>
