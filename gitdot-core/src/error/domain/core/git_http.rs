@@ -19,6 +19,9 @@ pub enum GitHttpError {
     #[error("Git http-backend failed with exit code {code}: {stderr}")]
     ProcessFailed { code: i32, stderr: String },
 
+    #[error("git http-backend timed out")]
+    Timeout,
+
     #[error("Invalid CGI response: {0}")]
     InvalidCgiResponse(String),
 }

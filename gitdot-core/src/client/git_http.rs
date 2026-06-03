@@ -1,17 +1,21 @@
-use std::process::Stdio;
+use std::{process::Stdio, time::Duration};
 
 use async_trait::async_trait;
 use futures::{StreamExt, stream};
 use tokio::{
     io::{AsyncRead, AsyncReadExt},
     process::Command,
+    time::timeout,
 };
+use tracing::warn;
 
 use crate::{
     dto::{GitHttpBody, GitHttpResponse},
     error::GitHttpError,
     util::git::REPO_SUFFIX,
 };
+
+const GIT_HTTP_BACKEND_TIMEOUT: Duration = Duration::from_secs(600);
 
 /// Implements the smart HTTP git protocol by shelling out to the
 /// `git http-backend` CGI against bare repos under `GIT_PROJECT_ROOT`.
@@ -181,12 +185,13 @@ impl GitHttpClient for GitHttpClientImpl {
             .stdin(Stdio::null())
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
+            .kill_on_drop(true)
             .spawn()
             .map_err(GitHttpError::SpawnError)?;
 
-        let output = child
-            .wait_with_output()
+        let output = timeout(GIT_HTTP_BACKEND_TIMEOUT, child.wait_with_output())
             .await
+            .map_err(|_| GitHttpError::Timeout)?
             .map_err(GitHttpError::ReadError)?;
 
         if !output.status.success() {
@@ -228,6 +233,7 @@ impl GitHttpClient for GitHttpClientImpl {
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
+            .kill_on_drop(true)
             .spawn()
             .map_err(GitHttpError::SpawnError)?;
 
@@ -247,9 +253,15 @@ impl GitHttpClient for GitHttpClientImpl {
             let _ = tokio::io::copy(&mut stderr, &mut buf).await;
         });
 
-        // Read stdout until CGI header separator is found
+        // Read stdout until CGI header separator is found. On timeout the
+        // returned error drops `child`, killing the process via `kill_on_drop`.
         let mut header_buf = Vec::with_capacity(4096);
-        let sep = Self::read_until_cgi_separator(&mut stdout, &mut header_buf).await?;
+        let sep = timeout(
+            GIT_HTTP_BACKEND_TIMEOUT,
+            Self::read_until_cgi_separator(&mut stdout, &mut header_buf),
+        )
+        .await
+        .map_err(|_| GitHttpError::Timeout)??;
 
         let (status_code, headers) = Self::parse_cgi_headers(&header_buf[..sep.0])?;
 
@@ -261,17 +273,22 @@ impl GitHttpClient for GitHttpClientImpl {
         // until the stream is fully consumed.
         let stdout_stream = stream::unfold((stdout, child), |(mut stdout, child)| async move {
             let mut buf = vec![0u8; 65536];
-            match stdout.read(&mut buf).await {
-                Ok(0) => {
+            match timeout(GIT_HTTP_BACKEND_TIMEOUT, stdout.read(&mut buf)).await {
+                Ok(Ok(0)) => {
                     // stdout closed — child process is done, drop child handle
                     drop(child);
                     None
                 }
-                Ok(n) => {
+                Ok(Ok(n)) => {
                     buf.truncate(n);
                     Some((Ok(buf), (stdout, child)))
                 }
-                Err(e) => Some((Err(e), (stdout, child))),
+                Ok(Err(e)) => Some((Err(e), (stdout, child))),
+                Err(_) => {
+                    warn!("git http-backend timed out while streaming, killing process");
+                    drop(child);
+                    None
+                }
             }
         });
 

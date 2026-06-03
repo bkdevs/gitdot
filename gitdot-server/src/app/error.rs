@@ -204,6 +204,7 @@ impl HttpStatus for GitHttpError {
     fn status_code(&self) -> StatusCode {
         match self {
             Self::Input(_) => StatusCode::BAD_REQUEST,
+            Self::Timeout => StatusCode::GATEWAY_TIMEOUT,
             _ => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
