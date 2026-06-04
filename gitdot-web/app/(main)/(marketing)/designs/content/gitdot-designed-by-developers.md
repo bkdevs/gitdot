@@ -15,8 +15,7 @@ Realms of subjectivity, where the “best answer” depends on one’s opinion, 
 Yet, there are few cohorts that care as much about as design as developers do.
 Developers are opinionated, picky people, and the choice of software they use is often more considered than the clothes they wear.
 
-I’m no exception to the rule.
-I care about design.
+I’m no exception to the rule. I care about design.
 
 The rational reason is that I think it counts: design can be and is a differentiator.
 The irrational reason is that I simply can’t not.
@@ -28,7 +27,6 @@ That is knowingly hard, but it is with sincerity that I approach it.
 Here’s how gitdot was designed.
 
 &nbsp;
-
 ## Principles
 
 Six months ago, I wrote down the following principles.
@@ -36,10 +34,8 @@ Six months ago, I wrote down the following principles.
 1. Remove what doesn’t add; make every pixel count
 1. Less is more, do few things and do them well
 
-And in each feature I designed since, I attempt to adhere.
-
-That wasn’t easy, as the temptation to start doing without thinking is always there, but I was stubborn as to its necessity.
-I knew that design without intention just leads to a mess of affectation.
+And in each feature I designed since, I attempted to adhere.
+That wasn’t easy, as the temptation to start doing without thinking is always there, but I was stubborn as to its necessity. I knew that design without intention just leads to a mess of affectation.
 
 It was my own ego that I wanted to remove.
 Engineering is an emotional endeavor — and often, the decisions we make are less an outcome of rationality, but our own sensibilities. Insecurity compels us to add more, anxiety makes our identity unclear, and disregard makes us reckless.
@@ -50,17 +46,12 @@ To give a few examples:
 1. I overcomplicated diffs. I spent days building an AST-based monochromatic differ blind to the fact that it barely worked
 
 Those decisions were wrong. 
-They were emotional ones.
-
 I wanted a differentiator, so I grasped for the things I knew developers liked (short urls, complicated algorithms). But at the same time, I lost confidence in intuiting customer needs so I chose my own preferences instead (i..e, I dislike file trees, so no file trees).
 
 It’s hard to say that I won’t make the same mistake again.
-I’m the type to get attached to ideas and I know.
-
-But — I do promise to adhere to the principles above.
+But I do promise to adhere to the principles above.
 
 &nbsp;
-
 ## Decisions
 
 ### 1. No loading animations
@@ -72,7 +63,7 @@ They’re riddled with frustrations: loading animations, flickering UIs, and lay
 These are all things we take for granted and we call them necessities, things we accept as the status quo of software.
 
 But I see them as deficiencies.
-I want to get rid of all of it.
+I want to get rid of it.
 I want gitdot to be instant — and for not a damn pixel on the page to flicker.
 
 That is quite hard.
@@ -127,11 +118,9 @@ To illustrate:
 <img src="/blog/designed-by-developers-github-2.png" alt="github 2" />
 </div>
 
-&nbsp;
-
 Two details define what you see above.
 
-<u>1) Beautiful URLs</u>
+**1\) Beautiful URLs**
 gitdot treats the browser’s address bar as its title.
 
 The URL is the title of the page and we don’t see a point in repeating in it.
@@ -148,19 +137,18 @@ But we’ve chosen to stick with it.
 We do believe, that as strange as it is, it is a better design.
 
 &nbsp;
-<u>2) Keyboard affordances</u>
+**2\) Keyboard affordances**
 gitdot assumes you have a keyboard.
 
 We treat the keyboard the same way that CLIs and IDEs do.
 The keyboard is more than a tool for text input, but a new mode of interaction entirely.
 
-h is short for home, u takes you to your profile page, r opens a dialog of recent repositories, p fuzzy searches files within a repository, j/k navigate between items on a page, tab/⇧+tab navigate between pages, and ;/:/⌘k open up the command bar in the footer.
+`h` is short for home, `u` takes you to your profile page, `r` opens a dialog of recent repositories, `p` fuzzy searches files within a repository, `j/k` navigates between items on a page, `tab/⇧+tab` navigates between pages, and `;/:/⌘k` open up the command bar in the footer.
 
 That isn’t to say we neglect the mouse.
 Most navigations are possible with mouse and keyboard, but there are preferred modes of interaction for each.
 
 If a user is searching for a file, it makes little sense that he use his mouse to click a search bar and then use his keyboard to type the query. If a user is new to a repository and simply browsing around, it is more intuitive that he simply click.
-
 
 &nbsp;
 
@@ -174,10 +162,7 @@ If you gate “free” content behind a signup wall, you will receive emails whi
 If you plaster your home page with a bunch of social proof, those easily influenced by others may choose you too.
 
 We disagree with them.
-Everything should be designed for a purpose, and if that purpose is to advance our own aims at the expense of the customer, we should get rid of it. It is our desire to build a product that people want to use, not one that they have to.
-
-And least of all, do I wish for a developer to be forced to stare at our logo in their everyday.
-
+Everything should be designed for a purpose, and if that purpose is to advance our own aims at the expense of the customer, we should get rid of it. And least of all, do I wish for a developer to be forced to stare at our logo in their everyday.
 
 &nbsp;
 

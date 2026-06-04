@@ -6,27 +6,26 @@ export default function FAQ() {
       className={`${leagueSpartan.className} flex flex-col gap-4 px-3 py-4.5 h-full overflow-y-auto scrollbar-none select-none outline-none`}
     >
       <div>
-        <p className="font-semibold text-lg">1. What is gitdot?</p>
+        <p className="font-bold text-lg">1. What is gitdot?</p>
         <p>
           A better GitHub. <br />
-          An opinionated tool for quality open-source software.
+          A home for great open-source software.
         </p>
       </div>
       <div>
-        <p className="font-semibold text-lg">2. Who is gitdot for?</p>
+        <p className="font-bold text-lg">2. Who is gitdot for?</p>
         <p>
-          Open-source maintainers. <br />
-          People who see code as more than a means to an end, but as a craft to
-          perfect. The software they build serves the world &mdash; but the
-          software they use doesn&apos;t serve them.
+          Developers. <br />
+          People who care. People who see code as more than a means to an end, but as a craft to perfect. <br />
+          People who build software <i>well</i> — not because it is the optimal thing to do, but because it is the <i>right</i> thing to do.
         </p>
       </div>
       <div>
-        <p className="font-semibold text-lg">
+        <p className="font-bold text-lg">
           3. What problem does gitdot solve?
         </p>
         <p>
-          A monopoly. <br />
+          Quality. <br />
           Open-source software only has one competitive platform: GitHub. And
           while GitHub <i>is</i> an impressive product, we also know that a lack
           of competition enables degradation over time. There&apos;s a few pain
@@ -35,7 +34,7 @@ export default function FAQ() {
         </p>
       </div>
       <div>
-        <p className="font-semibold text-lg">
+        <p className="font-bold text-lg">
           4. What features will gitdot have?
         </p>
         <ul className="mb-2">
@@ -57,7 +56,7 @@ export default function FAQ() {
         </p>
       </div>
       <div>
-        <p className="font-semibold text-lg">
+        <p className="font-bold text-lg">
           5. What features will gitdot not have?
         </p>
         <ul className="mb-2">
@@ -73,7 +72,7 @@ export default function FAQ() {
         </p>
       </div>
       <div>
-        <p className="font-semibold text-lg">6. When will gitdot be ready?</p>
+        <p className="font-bold text-lg">6. When will gitdot be ready?</p>
         <p>
           Jun 1st, 2026. <br />
           Every week, we will publish a developer log to detail not only our

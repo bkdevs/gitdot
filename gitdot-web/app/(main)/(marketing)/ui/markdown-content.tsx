@@ -24,9 +24,9 @@ export default function MarkdownContent({ content }: { content: string }) {
         p: ({ children }) => (
           <p className="mb-4 [&:has(+ul)]:mb-2 [&:has(+ol)]:mb-2">{children}</p>
         ),
-        ul: ({ children }) => <ul className="mb-2">{children}</ul>,
+        ul: ({ children }) => <ul className="mb-4">{children}</ul>,
         ol: ({ children }) => (
-          <ol className="mb-2 list-decimal ml-4">{children}</ol>
+          <ol className="mb-4 list-decimal ml-4">{children}</ol>
         ),
         li: ({ children }) => <li className="ml-4">{children}</li>,
         a: ({ children, href }) => (
