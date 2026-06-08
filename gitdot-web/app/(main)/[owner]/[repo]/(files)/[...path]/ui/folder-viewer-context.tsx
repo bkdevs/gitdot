@@ -41,7 +41,7 @@ export function FolderViewerProvider({
         pinnedPath,
         setPinnedPath,
         pinFiles,
-        previewPath: pinnedPath ?? hoveredPath,
+        previewPath: pinnedPath,
       }}
     >
       {children}
