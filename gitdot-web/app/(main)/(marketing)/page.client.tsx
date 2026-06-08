@@ -49,7 +49,7 @@ export function PageClient({
             className="group flex flex-col py-1 cursor-pointer outline-none"
           >
             <div className="flex items-baseline justify-between gap-4">
-              <span className="text-sm font-medium dark:font-normal underline decoration-transparent group-hover:decoration-current group-focus:decoration-current transition-colors duration-200 truncate">
+              <span className="text-sm font-medium dark:font-normal underline decoration-transparent group-hover:decoration-current group-focus:decoration-current truncate">
                 <span className="font-normal text-muted-foreground">
                   {repo.owner}/
                 </span>
