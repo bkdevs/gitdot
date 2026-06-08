@@ -136,7 +136,7 @@ export function LayoutClient({
       </Dialog>
 
       {/* desktop nav */}
-      <div className="grid grid-cols-1 md:grid-cols-[1fr_min(100%,48rem)_1fr] flex-1 min-h-0">
+      <div className="grid grid-cols-1 md:grid-cols-[1fr_min(100%,48rem)_1fr] min-h-full shrink-0">
         <div className="hidden md:flex pr-4 pt-4 flex-col items-end text-right sticky top-0 self-start">
           <Image
             className="dark:invert"
