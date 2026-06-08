@@ -112,10 +112,12 @@ export function LayoutClient({
           <button
             type="button"
             aria-label="Open menu"
-            className="mx-3 mt-4 size-2.5 shrink-0 rounded-full bg-foreground md:hidden"
-          />
+            className="px-3 pt-4 flex items-center justify-center shrink-0 w-fit md:hidden"
+          >
+            <span className="size-4 rounded-full bg-foreground" />
+          </button>
         </DialogTrigger>
-        <DialogContent className="max-w-xs! gap-1 p-4" animations>
+        <DialogContent className="max-w-xs! gap-1 p-4" showOverlay={false}>
           <DialogTitle className="sr-only">Menu</DialogTitle>
           {NAV_LINKS.map((link) => {
             const active = isActive(pathname, link.href);
