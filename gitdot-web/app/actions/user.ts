@@ -261,18 +261,25 @@ export async function validateUsername(
     return await delay(300, "Username cannot start with a hyphen");
   }
   if (username.endsWith("-")) {
-    return await delay(300, "Username cannot start with a hyphen");
+    return await delay(300, "Username cannot end with a hyphen");
   }
-  const invalidChars = username.match(/[^a-zA-Z0-9_-]/g);
+  const invalidChars = username.match(/[^a-zA-Z0-9-]/g);
   if (invalidChars) {
     return await delay(
       300,
       `Username cannot include '${[...new Set(invalidChars)].join("")}'`,
     );
   }
-  const usernameTaken = await hasUser(username);
-  if (usernameTaken) {
+  if (username.includes("--")) {
+    return await delay(300, "Username cannot contain consecutive hyphens");
+  }
+
+  const availability = await hasUser(username);
+  if (availability === "taken") {
     return "Username taken";
+  }
+  if (availability === "invalid") {
+    return "Username is not valid";
   }
 
   return null;

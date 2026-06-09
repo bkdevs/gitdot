@@ -97,9 +97,13 @@ export async function uploadUserImage(file: File): Promise<boolean> {
   return response.ok;
 }
 
-export async function hasUser(username: string): Promise<boolean> {
+export async function hasUser(
+  username: string,
+): Promise<"taken" | "available" | "invalid"> {
   const response = await authHead(`${GITDOT_SERVER_URL}/user/${username}`);
-  return response.ok;
+  if (response.ok) return "taken";
+  if (response.status === 404) return "available";
+  return "invalid";
 }
 
 export async function getUser(username: string): Promise<UserResource | null> {
