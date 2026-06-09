@@ -16,6 +16,9 @@ pub struct UserResource {
 
     pub created_at: DateTime<Utc>,
     pub image_updated_at: DateTime<Utc>,
+    pub followers: i64,
+    pub following: i64,
+    pub user_follow: bool,
 }
 
 #[derive(ApiResource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -40,6 +43,9 @@ pub struct CurrentUserResource {
 
     pub created_at: DateTime<Utc>,
     pub image_updated_at: DateTime<Utc>,
+    pub followers: i64,
+    pub following: i64,
+    pub user_follow: bool,
 }
 
 /// An organization as surfaced from a user's perspective. It contains basic org

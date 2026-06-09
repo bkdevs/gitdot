@@ -15,6 +15,8 @@ pub struct Organization {
 
     pub created_at: DateTime<Utc>,
     pub image_updated_at: DateTime<Utc>,
+    pub followers: i64,
+    pub user_follow: bool,
 
     #[sqlx(json(nullable))]
     pub members: Option<Vec<OrganizationMember>>,

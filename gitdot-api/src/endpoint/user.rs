@@ -1,3 +1,4 @@
+pub mod follow_user;
 pub mod get_current_user;
 pub mod get_user;
 pub mod has_user;
@@ -7,5 +8,6 @@ pub mod list_user_repositories;
 pub mod list_user_repositories_contributed;
 pub mod list_user_repositories_starred;
 pub mod list_user_reviews;
+pub mod unfollow_user;
 pub mod update_current_user;
 pub mod upload_user_image;

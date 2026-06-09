@@ -21,6 +21,9 @@ impl IntoApi for UserResponse {
             display_name: self.display_name,
             created_at: self.created_at,
             image_updated_at: self.image_updated_at,
+            followers: self.followers,
+            following: self.following,
+            user_follow: self.user_follow,
         }
     }
 }
@@ -51,6 +54,9 @@ impl IntoApi for GetCurrentUserResponse {
             display_name: self.display_name,
             created_at: self.created_at,
             image_updated_at: self.image_updated_at,
+            followers: self.followers,
+            following: self.following,
+            user_follow: self.user_follow,
         }
     }
 }

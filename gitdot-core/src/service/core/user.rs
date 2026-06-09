@@ -3,12 +3,12 @@ use async_trait::async_trait;
 use crate::{
     client::{Git2Client, GitClient, ImageClient, ImageClientImpl, R2Client, R2ClientImpl},
     dto::{
-        GetCurrentUserRequest, GetCurrentUserResponse, GetUserRequest, HasUserRequest,
-        ListUserCommitsRequest, ListUserContributedRepositoriesRequest,
+        FollowUserRequest, GetCurrentUserRequest, GetCurrentUserResponse, GetUserRequest,
+        HasUserRequest, ListUserCommitsRequest, ListUserContributedRepositoriesRequest,
         ListUserOrganizationsRequest, ListUserRepositoriesRequest, ListUserReviewsRequest,
         ListUserStarredRepositoriesRequest, MAX_PER_PAGE_LIMIT, Page, ReviewResponse,
-        UpdateCurrentUserImageRequest, UpdateCurrentUserRequest, UserCommitResponse,
-        UserOrganizationResponse, UserRepositoryResponse, UserResponse,
+        UnfollowUserRequest, UpdateCurrentUserImageRequest, UpdateCurrentUserRequest,
+        UserCommitResponse, UserOrganizationResponse, UserRepositoryResponse, UserResponse,
     },
     error::{ConflictError, NotFoundError, OptionNotFoundExt, UserError},
     repository::{
@@ -79,6 +79,10 @@ pub trait UserService: Send + Sync + 'static {
     /// # Errors
     /// - [`UserError::NotFound`] when no such user exists.
     async fn get_user(&self, request: GetUserRequest) -> Result<UserResponse, UserError>;
+
+    async fn follow_user(&self, request: FollowUserRequest) -> Result<(), UserError>;
+
+    async fn unfollow_user(&self, request: UnfollowUserRequest) -> Result<(), UserError>;
 
     /// Lists the repositories owned by `request.user_name`, paginated.
     ///
@@ -249,6 +253,9 @@ where
             display_name: user.display_name,
             created_at: user.created_at,
             image_updated_at: user.image_updated_at,
+            followers: user.followers,
+            following: user.following,
+            user_follow: user.user_follow,
         })
     }
 
@@ -359,6 +366,38 @@ where
             .await?
             .or_not_found("user", &user_name)?;
         Ok(user.into())
+    }
+
+    async fn follow_user(&self, request: FollowUserRequest) -> Result<(), UserError> {
+        let user_name = request.user_name.to_string();
+        match self
+            .user_repo
+            .follow(&user_name, request.follower_id)
+            .await?
+        {
+            Some(_) => Ok(()),
+            None => {
+                if self.user_repo.get(&user_name).await?.is_none() {
+                    return Err(NotFoundError::new("user", &user_name).into());
+                }
+                Err(ConflictError::new("user follow", &user_name).into())
+            }
+        }
+    }
+
+    async fn unfollow_user(&self, request: UnfollowUserRequest) -> Result<(), UserError> {
+        let user_name = request.user_name.to_string();
+        if self
+            .user_repo
+            .unfollow(&user_name, request.follower_id)
+            .await?
+        {
+            return Ok(());
+        }
+        if self.user_repo.get(&user_name).await?.is_none() {
+            return Err(NotFoundError::new("user", &user_name).into());
+        }
+        Err(ConflictError::new("user follow", &user_name).into())
     }
 
     async fn list_repositories(

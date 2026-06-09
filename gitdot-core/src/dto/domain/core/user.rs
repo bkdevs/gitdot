@@ -1,3 +1,4 @@
+mod follow_user;
 mod get_current_user;
 mod get_user;
 mod has_user;
@@ -7,6 +8,7 @@ mod list_user_repositories;
 mod list_user_repositories_contributed;
 mod list_user_repositories_starred;
 mod list_user_reviews;
+mod unfollow_user;
 mod update_current_user;
 mod update_current_user_image;
 
@@ -15,6 +17,7 @@ use uuid::Uuid;
 
 use crate::model::{OrganizationRole, Repository, User, UserEmail, UserOrganization};
 
+pub use follow_user::FollowUserRequest;
 pub use get_current_user::GetCurrentUserRequest;
 pub use get_user::GetUserRequest;
 pub use has_user::HasUserRequest;
@@ -24,6 +27,7 @@ pub use list_user_repositories::ListUserRepositoriesRequest;
 pub use list_user_repositories_contributed::ListUserContributedRepositoriesRequest;
 pub use list_user_repositories_starred::ListUserStarredRepositoriesRequest;
 pub use list_user_reviews::ListUserReviewsRequest;
+pub use unfollow_user::UnfollowUserRequest;
 pub use update_current_user::UpdateCurrentUserRequest;
 pub use update_current_user_image::UpdateCurrentUserImageRequest;
 
@@ -39,6 +43,9 @@ pub struct UserResponse {
 
     pub created_at: DateTime<Utc>,
     pub image_updated_at: DateTime<Utc>,
+    pub followers: i64,
+    pub following: i64,
+    pub user_follow: bool,
 }
 
 impl From<User> for UserResponse {
@@ -52,6 +59,9 @@ impl From<User> for UserResponse {
             display_name: user.display_name,
             created_at: user.created_at,
             image_updated_at: user.image_updated_at,
+            followers: user.followers,
+            following: user.following,
+            user_follow: user.user_follow,
         }
     }
 }
@@ -119,6 +129,9 @@ pub struct GetCurrentUserResponse {
 
     pub created_at: DateTime<Utc>,
     pub image_updated_at: DateTime<Utc>,
+    pub followers: i64,
+    pub following: i64,
+    pub user_follow: bool,
 }
 
 #[derive(Debug, Clone)]

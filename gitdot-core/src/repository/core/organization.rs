@@ -39,6 +39,10 @@ pub trait OrganizationRepository: Send + Sync + Clone + 'static {
     /// `(org_id, user_id)` pair.
     async fn is_member(&self, org_id: Uuid, user_id: Uuid) -> Result<bool, DatabaseError>;
 
+    async fn follow(&self, org_name: &str, user_id: Uuid) -> Result<Option<Uuid>, DatabaseError>;
+
+    async fn unfollow(&self, org_name: &str, user_id: Uuid) -> Result<bool, DatabaseError>;
+
     /// Inserts a membership resolving `user_name`/`org_name` to ids, with
     /// `ON CONFLICT (user_id, organization_id) DO NOTHING`. Returns the new
     /// member (joined to `core.users` for `user_name`), or `Ok(None)` when the
@@ -141,7 +145,7 @@ impl OrganizationRepository for PgOrganizationRepository {
         let mut tx = self.pool.begin().await?;
 
         let org = sqlx::query_as::<_, Organization>(
-            "INSERT INTO core.organizations (name, readme) VALUES ($1, $2) RETURNING id, name, created_at, image_updated_at, location, readme, links, display_name, NULL::json AS members",
+            "INSERT INTO core.organizations (name, readme) VALUES ($1, $2) RETURNING id, name, created_at, image_updated_at, location, readme, links, display_name, 0::bigint AS followers, false AS user_follow, NULL::json AS members",
         )
         .bind(org_name)
         .bind(readme)
@@ -166,6 +170,8 @@ impl OrganizationRepository for PgOrganizationRepository {
             r#"
             SELECT
                 o.id, o.name, o.created_at, o.image_updated_at, o.location, o.readme, o.links, o.display_name,
+                (SELECT COUNT(*)::bigint FROM core.organization_followers ofl WHERE ofl.organization_id = o.id) AS followers,
+                false AS user_follow,
                 COALESCE(
                     (
                         SELECT json_agg(
@@ -228,6 +234,43 @@ impl OrganizationRepository for PgOrganizationRepository {
         .await?;
 
         Ok(result)
+    }
+
+    async fn follow(&self, org_name: &str, user_id: Uuid) -> Result<Option<Uuid>, DatabaseError> {
+        let id = sqlx::query_scalar::<_, Uuid>(
+            r#"
+            INSERT INTO core.organization_followers (user_id, organization_id)
+            SELECT $2, o.id
+            FROM core.organizations o
+            WHERE o.name = $1
+            ON CONFLICT (user_id, organization_id) DO NOTHING
+            RETURNING id
+            "#,
+        )
+        .bind(org_name)
+        .bind(user_id)
+        .fetch_optional(&self.pool)
+        .await?;
+
+        Ok(id)
+    }
+
+    async fn unfollow(&self, org_name: &str, user_id: Uuid) -> Result<bool, DatabaseError> {
+        let result = sqlx::query(
+            r#"
+            DELETE FROM core.organization_followers ofl
+            USING core.organizations o
+            WHERE ofl.organization_id = o.id
+              AND o.name = $1
+              AND ofl.user_id = $2
+            "#,
+        )
+        .bind(org_name)
+        .bind(user_id)
+        .execute(&self.pool)
+        .await?;
+
+        Ok(result.rows_affected() > 0)
     }
 
     async fn add_member(
@@ -332,7 +375,7 @@ impl OrganizationRepository for PgOrganizationRepository {
         builder
             .push(" WHERE name = ")
             .push_bind(org_name)
-            .push(" RETURNING id, name, created_at, image_updated_at, location, readme, links, display_name, NULL::json AS members");
+            .push(" RETURNING id, name, created_at, image_updated_at, location, readme, links, display_name, 0::bigint AS followers, false AS user_follow, NULL::json AS members");
 
         Ok(builder
             .build_query_as::<Organization>()
@@ -381,7 +424,7 @@ impl OrganizationRepository for PgOrganizationRepository {
 
         let mut orgs = sqlx::query_as::<_, Organization>(
             r#"
-            SELECT id, name, created_at, image_updated_at, location, readme, links, display_name, NULL::json AS members
+            SELECT id, name, created_at, image_updated_at, location, readme, links, display_name, 0::bigint AS followers, false AS user_follow, NULL::json AS members
             FROM core.organizations
             WHERE ($1::timestamptz IS NULL OR (created_at, id) < ($1, $2))
             ORDER BY created_at DESC, id DESC
@@ -410,7 +453,7 @@ impl OrganizationRepository for PgOrganizationRepository {
     async fn list_by_user_id(&self, user_id: Uuid) -> Result<Vec<Organization>, DatabaseError> {
         let orgs = sqlx::query_as::<_, Organization>(
             r#"
-            SELECT o.id, o.name, o.created_at, o.image_updated_at, o.location, o.readme, o.links, o.display_name, NULL::json AS members
+            SELECT o.id, o.name, o.created_at, o.image_updated_at, o.location, o.readme, o.links, o.display_name, 0::bigint AS followers, false AS user_follow, NULL::json AS members
             FROM core.organizations o
             JOIN core.organization_members om ON o.id = om.organization_id
             WHERE om.user_id = $1

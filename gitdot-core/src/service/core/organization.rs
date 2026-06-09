@@ -3,9 +3,10 @@ use async_trait::async_trait;
 use crate::{
     client::{ImageClient, ImageClientImpl, R2Client, R2ClientImpl},
     dto::{
-        AddMemberRequest, CreateOrganizationRequest, GetOrganizationRequest,
-        ListOrganizationRepositoriesRequest, ListOrganizationsRequest, OrganizationMemberResponse,
-        OrganizationResponse, Page, RepositoryResponse, UpdateOrganizationImageRequest,
+        AddMemberRequest, CreateOrganizationRequest, FollowOrganizationRequest,
+        GetOrganizationRequest, ListOrganizationRepositoriesRequest, ListOrganizationsRequest,
+        OrganizationMemberResponse, OrganizationResponse, Page, RepositoryResponse,
+        UnfollowOrganizationRequest, UpdateOrganizationImageRequest,
         UpdateOrganizationMemberRequest, UpdateOrganizationRequest,
     },
     error::{ConflictError, NotFoundError, OptionNotFoundExt, OrganizationError},
@@ -67,6 +68,16 @@ pub trait OrganizationService: Send + Sync + 'static {
     async fn update_organization_image(
         &self,
         request: UpdateOrganizationImageRequest,
+    ) -> Result<(), OrganizationError>;
+
+    async fn follow_organization(
+        &self,
+        request: FollowOrganizationRequest,
+    ) -> Result<(), OrganizationError>;
+
+    async fn unfollow_organization(
+        &self,
+        request: UnfollowOrganizationRequest,
     ) -> Result<(), OrganizationError>;
 
     /// Adds the user `request.user_name` to the organization `request.org_name`
@@ -246,6 +257,36 @@ where
         self.org_repo.touch_image(org_id).await?;
 
         Ok(())
+    }
+
+    async fn follow_organization(
+        &self,
+        request: FollowOrganizationRequest,
+    ) -> Result<(), OrganizationError> {
+        let org_name = request.org_name.to_string();
+        match self.org_repo.follow(&org_name, request.user_id).await? {
+            Some(_) => Ok(()),
+            None => {
+                if self.org_repo.get(&org_name).await?.is_none() {
+                    return Err(NotFoundError::new("organization", &org_name).into());
+                }
+                Err(ConflictError::new("organization follow", &org_name).into())
+            }
+        }
+    }
+
+    async fn unfollow_organization(
+        &self,
+        request: UnfollowOrganizationRequest,
+    ) -> Result<(), OrganizationError> {
+        let org_name = request.org_name.to_string();
+        if self.org_repo.unfollow(&org_name, request.user_id).await? {
+            return Ok(());
+        }
+        if self.org_repo.get(&org_name).await?.is_none() {
+            return Err(NotFoundError::new("organization", &org_name).into());
+        }
+        Err(ConflictError::new("organization follow", &org_name).into())
     }
 
     async fn add_member(
