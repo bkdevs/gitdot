@@ -35,21 +35,21 @@ pub struct Page<T> {
 
 #[nutype(
     sanitize(trim, lowercase),
-    validate(predicate = is_valid_slug),
+    validate(predicate = is_valid_owner_slug),
     derive(Debug, Clone, PartialEq, Eq, AsRef, Deref)
 )]
 pub(crate) struct OwnerName(String);
 
 #[nutype(
     sanitize(trim, lowercase),
-    validate(predicate = is_valid_slug),
+    validate(predicate = is_valid_repo_slug),
     derive(Debug, Clone, PartialEq, Eq, AsRef, Deref)
 )]
 pub(crate) struct RunnerName(String);
 
 #[nutype(
     sanitize(trim, lowercase, with = strip_git_suffix),
-    validate(predicate = is_valid_slug),
+    validate(predicate = is_valid_repo_slug),
     derive(Debug, Clone, PartialEq, Eq, AsRef, Deref)
 )]
 pub(crate) struct RepositoryName(String);
@@ -93,14 +93,26 @@ pub(crate) fn normalize_string_list(values: Option<Vec<String>>) -> Option<Vec<S
     })
 }
 
-fn is_valid_slug(s: &str) -> bool {
-    !s.is_empty()
-        && s.len() > 1
-        && s.len() <= 32
-        && s.chars()
-            .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-' || c == '_')
-        && !s.starts_with('-')
-        && !s.ends_with('-')
+fn is_valid_owner_slug(s: &str) -> bool {
+    is_valid_slug(s, false)
+}
+
+fn is_valid_repo_slug(s: &str) -> bool {
+    is_valid_slug(s, true)
+}
+
+fn is_valid_slug(s: &str, allow_underscore: bool) -> bool {
+    let is_sep = |c: char| c == '-' || (allow_underscore && c == '_');
+    let is_allowed = |c: char| c.is_ascii_lowercase() || c.is_ascii_digit() || is_sep(c);
+
+    (2..=32).contains(&s.len())
+        && s.chars().all(is_allowed)
+        && !s.starts_with(is_sep)
+        && !s.ends_with(is_sep)
+        && !s
+            .chars()
+            .zip(s.chars().skip(1))
+            .any(|(a, b)| is_sep(a) && is_sep(b))
 }
 
 fn strip_git_suffix(s: String) -> String {
@@ -151,9 +163,15 @@ mod tests {
         }
 
         #[test]
-        fn valid_with_underscore() {
-            let owner = OwnerName::try_new("john_doe").unwrap();
-            assert_eq!(owner.as_ref(), "john_doe");
+        fn rejects_underscore() {
+            assert!(OwnerName::try_new("john_doe").is_err());
+            assert!(OwnerName::try_new("_johndoe").is_err());
+            assert!(OwnerName::try_new("johndoe_").is_err());
+        }
+
+        #[test]
+        fn rejects_consecutive_separators() {
+            assert!(OwnerName::try_new("john--doe").is_err());
         }
 
         #[test]
@@ -234,6 +252,20 @@ mod tests {
         fn valid_with_underscore() {
             let repo = RepositoryName::try_new("my_repo").unwrap();
             assert_eq!(repo.as_ref(), "my_repo");
+        }
+
+        #[test]
+        fn rejects_edge_underscore() {
+            assert!(RepositoryName::try_new("_myrepo").is_err());
+            assert!(RepositoryName::try_new("myrepo_").is_err());
+            assert!(RepositoryName::try_new("__").is_err());
+        }
+
+        #[test]
+        fn rejects_consecutive_separators() {
+            assert!(RepositoryName::try_new("my__repo").is_err());
+            assert!(RepositoryName::try_new("my--repo").is_err());
+            assert!(RepositoryName::try_new("my-_repo").is_err());
         }
 
         #[test]

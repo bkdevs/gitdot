@@ -22,6 +22,7 @@ use crate::{
         PgRepositoryRepository, PgUserRepository, RepositoryRepository, UserRepository,
     },
     util::{
+        auth::is_offensive_name,
         cursor,
         git::{
             DEFAULT_BRANCH, GitHookType, POST_RECEIVE_SCRIPT, PRE_RECEIVE_SCRIPT,
@@ -392,6 +393,11 @@ where
         request: CreateRepositoryRequest,
     ) -> Result<RepositoryResponse, RepositoryError> {
         let repo_name = request.name.to_string();
+        if is_offensive_name(&repo_name) {
+            return Err(
+                ConflictError::new("repository", format!("{repo_name} is not allowed")).into(),
+            );
+        }
         if self
             .git_client
             .repo_exists(&request.owner_name, &repo_name)

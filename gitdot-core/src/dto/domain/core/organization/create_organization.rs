@@ -49,11 +49,11 @@ mod tests {
     }
 
     #[test]
-    fn valid_with_underscore() {
+    fn rejects_underscore() {
         let owner_id = Uuid::new_v4();
-        let request = CreateOrganizationRequest::new("my_org", owner_id, None).unwrap();
+        let result = CreateOrganizationRequest::new("my_org", owner_id, None);
 
-        assert_eq!(request.org_name.as_ref(), "my_org");
+        assert!(matches!(result, Err(OrganizationError::Input(_))));
     }
 
     #[test]
