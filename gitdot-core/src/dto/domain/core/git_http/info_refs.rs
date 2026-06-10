@@ -14,8 +14,7 @@ impl InfoRefsRequest {
     pub fn new(owner: &str, repo: &str, service: &str) -> Result<Self, GitHttpError> {
         Ok(Self {
             owner: OwnerName::parse(owner, "owner name")?,
-            repo: RepositoryName::try_new(repo)
-                .map_err(|e| InputError::new("repository name", e))?,
+            repo: RepositoryName::parse(repo, "repository name")?,
             service: GitService::try_new(service.to_string())
                 .map_err(|e| InputError::new("service", e))?,
         })

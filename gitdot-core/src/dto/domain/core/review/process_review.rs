@@ -28,8 +28,7 @@ impl ProcessReviewRequest {
 
         Ok(Self {
             owner: OwnerName::parse(owner, "owner name")?,
-            repo: RepositoryName::try_new(repo)
-                .map_err(|e| InputError::new("repository name", e))?,
+            repo: RepositoryName::parse(repo, "repository name")?,
             target_branch,
             review_number,
             new_sha,

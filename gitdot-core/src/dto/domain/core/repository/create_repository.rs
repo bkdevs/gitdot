@@ -39,8 +39,7 @@ impl CreateRepositoryRequest {
         let gitignore = gitignore.map(GitignoreTemplate::try_from).transpose()?;
         let license = license.map(LicenseTemplate::try_from).transpose()?;
         Ok(Self {
-            name: RepositoryName::try_new(repo_name)
-                .map_err(|e| InputError::new("repository name", e))?,
+            name: RepositoryName::parse(repo_name, "repository name")?,
             user_id,
             owner_name: OwnerName::parse(owner_name, "owner name")?,
             owner_type: owner_type.try_into()?,

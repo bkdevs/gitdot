@@ -29,8 +29,7 @@ impl CreateRepositoryCommitFilterRequest {
         Ok(Self {
             user_id,
             owner: OwnerName::parse(owner, "owner name")?,
-            repo: RepositoryName::try_new(repo)
-                .map_err(|e| InputError::new("repository name", e))?,
+            repo: RepositoryName::parse(repo, "repository name")?,
             name: FilterName::try_new(name).map_err(|e| InputError::new("filter name", e))?,
             authors: normalize_string_list(authors),
             tags: normalize_string_list(tags),

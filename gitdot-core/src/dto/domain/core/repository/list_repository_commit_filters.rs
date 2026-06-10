@@ -2,7 +2,7 @@ use uuid::Uuid;
 
 use crate::{
     dto::{Cursor, DEFAULT_PER_PAGE_LIMIT, MAX_PER_PAGE_LIMIT, OwnerName, RepositoryName},
-    error::{InputError, RepositoryError},
+    error::RepositoryError,
     util::cursor,
 };
 
@@ -24,8 +24,7 @@ impl ListRepositoryCommitFiltersRequest {
         limit: Option<u32>,
     ) -> Result<Self, RepositoryError> {
         let owner = OwnerName::parse(owner, "owner name")?;
-        let repo =
-            RepositoryName::try_new(repo).map_err(|e| InputError::new("repository name", e))?;
+        let repo = RepositoryName::parse(repo, "repository name")?;
         let cursor = cursor.map(cursor::decode).transpose()?;
         Ok(Self {
             user_id,

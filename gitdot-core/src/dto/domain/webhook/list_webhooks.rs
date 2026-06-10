@@ -1,6 +1,6 @@
 use crate::{
     dto::common::{Cursor, DEFAULT_PER_PAGE_LIMIT, MAX_PER_PAGE_LIMIT, OwnerName, RepositoryName},
-    error::{InputError, WebhookError},
+    error::WebhookError,
     util::cursor,
 };
 
@@ -20,8 +20,7 @@ impl ListWebhooksRequest {
         limit: Option<u32>,
     ) -> Result<Self, WebhookError> {
         let owner_name = OwnerName::parse(owner, "owner name")?;
-        let repo_name =
-            RepositoryName::try_new(repo).map_err(|e| InputError::new("repository name", e))?;
+        let repo_name = RepositoryName::parse(repo, "repository name")?;
         let cursor = cursor.map(cursor::decode).transpose()?;
         Ok(Self {
             owner_name,

@@ -1,6 +1,6 @@
 use crate::{
     dto::{OwnerName, RepositoryName},
-    error::{InputError, QuestionError},
+    error::QuestionError,
 };
 
 #[derive(Debug, Clone)]
@@ -22,7 +22,7 @@ impl UpdateQuestionRequest {
     ) -> Result<Self, QuestionError> {
         Ok(Self {
             owner: OwnerName::parse(owner, "owner name")?,
-            repo: RepositoryName::try_new(repo).map_err(|e| InputError::new("owner name", e))?,
+            repo: RepositoryName::parse(repo, "repository name")?,
             number,
             title,
             body,

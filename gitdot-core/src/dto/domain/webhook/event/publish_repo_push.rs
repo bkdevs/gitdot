@@ -4,7 +4,7 @@ use uuid::Uuid;
 
 use crate::{
     dto::{OwnerName, RepositoryName},
-    error::{InputError, WebhookError},
+    error::WebhookError,
 };
 
 #[derive(Debug, Clone)]
@@ -28,8 +28,7 @@ impl PublishRepoPushRequest {
     ) -> Result<Self, WebhookError> {
         Ok(Self {
             owner: OwnerName::parse(owner, "owner name")?,
-            repo: RepositoryName::try_new(repo)
-                .map_err(|e| InputError::new("repository name", e))?,
+            repo: RepositoryName::parse(repo, "repository name")?,
             ref_name,
             old_sha,
             new_sha,

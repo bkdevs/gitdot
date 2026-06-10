@@ -1,6 +1,6 @@
 use crate::{
     dto::common::{OwnerName, RepositoryName},
-    error::{BuildError, InputError},
+    error::BuildError,
 };
 
 #[derive(Debug, Clone)]
@@ -20,8 +20,7 @@ impl CreateBuildRequest {
     ) -> Result<Self, BuildError> {
         Ok(Self {
             repo_owner: OwnerName::parse(repo_owner, "owner name")?,
-            repo_name: RepositoryName::try_new(repo_name)
-                .map_err(|e| InputError::new("repository name", e))?,
+            repo_name: RepositoryName::parse(repo_name, "repository name")?,
             ref_name,
             commit_sha,
         })

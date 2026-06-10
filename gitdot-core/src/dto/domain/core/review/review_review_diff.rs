@@ -116,8 +116,7 @@ impl ReviewReviewDiffRequest {
 
         Ok(Self {
             owner: OwnerName::parse(owner, "owner name")?,
-            repo: RepositoryName::try_new(repo)
-                .map_err(|e| InputError::new("repository name", e))?,
+            repo: RepositoryName::parse(repo, "repository name")?,
             number,
             position,
             reviewer_id,

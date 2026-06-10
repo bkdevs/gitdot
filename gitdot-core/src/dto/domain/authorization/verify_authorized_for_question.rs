@@ -2,7 +2,7 @@ use uuid::Uuid;
 
 use crate::{
     dto::{OwnerName, RepositoryName},
-    error::{AuthorizationError, InputError},
+    error::AuthorizationError,
 };
 
 #[derive(Debug, Clone)]
@@ -23,8 +23,7 @@ impl QuestionAuthorizationRequest {
         Ok(Self {
             user_id: user_id,
             owner: OwnerName::parse(owner_name, "owner name")?,
-            repo: RepositoryName::try_new(repo_name)
-                .map_err(|e| InputError::new("repository name", e))?,
+            repo: RepositoryName::parse(repo_name, "repository name")?,
             number,
         })
     }

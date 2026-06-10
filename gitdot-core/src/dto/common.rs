@@ -1,6 +1,7 @@
 //! Define common structs and constants that can be shared across domains.
 
 mod owner;
+mod repository;
 
 use chrono::{DateTime, Utc};
 use email_address::EmailAddress;
@@ -9,6 +10,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 pub use owner::OwnerName;
+pub use repository::RepositoryName;
 
 /// TODO: decrease to smaller value
 pub const DEFAULT_PER_PAGE_LIMIT: u32 = 10_000;
@@ -43,13 +45,6 @@ pub struct Page<T> {
     derive(Debug, Clone, PartialEq, Eq, AsRef, Deref)
 )]
 pub(crate) struct RunnerName(String);
-
-#[nutype(
-    sanitize(trim, lowercase, with = strip_git_suffix),
-    validate(predicate = is_valid_repo_slug),
-    derive(Debug, Clone, PartialEq, Eq, AsRef, Deref)
-)]
-pub(crate) struct RepositoryName(String);
 
 #[nutype(
     sanitize(trim),
@@ -132,10 +127,6 @@ fn validate_slug(s: &str, allow_underscore: bool) -> Result<(), &'static str> {
     Ok(())
 }
 
-fn strip_git_suffix(s: String) -> String {
-    s.strip_suffix(".git").map(|s| s.to_string()).unwrap_or(s)
-}
-
 fn is_valid_url(s: &str) -> bool {
     url::Url::parse(s).is_ok()
 }
@@ -157,106 +148,6 @@ fn is_valid_user_code(s: &str) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    mod repository_name {
-        use super::*;
-
-        #[test]
-        fn valid_lowercase() {
-            let repo = RepositoryName::try_new("myrepo").unwrap();
-            assert_eq!(repo.as_ref(), "myrepo");
-        }
-
-        #[test]
-        fn valid_with_numbers() {
-            let repo = RepositoryName::try_new("repo123").unwrap();
-            assert_eq!(repo.as_ref(), "repo123");
-        }
-
-        #[test]
-        fn valid_with_hyphen() {
-            let repo = RepositoryName::try_new("my-repo").unwrap();
-            assert_eq!(repo.as_ref(), "my-repo");
-        }
-
-        #[test]
-        fn valid_with_underscore() {
-            let repo = RepositoryName::try_new("my_repo").unwrap();
-            assert_eq!(repo.as_ref(), "my_repo");
-        }
-
-        #[test]
-        fn rejects_edge_underscore() {
-            assert!(RepositoryName::try_new("_myrepo").is_err());
-            assert!(RepositoryName::try_new("myrepo_").is_err());
-            assert!(RepositoryName::try_new("__").is_err());
-        }
-
-        #[test]
-        fn rejects_consecutive_separators() {
-            assert!(RepositoryName::try_new("my__repo").is_err());
-            assert!(RepositoryName::try_new("my--repo").is_err());
-            assert!(RepositoryName::try_new("my-_repo").is_err());
-        }
-
-        #[test]
-        fn sanitizes_uppercase_to_lowercase() {
-            let repo = RepositoryName::try_new("MyRepo").unwrap();
-            assert_eq!(repo.as_ref(), "myrepo");
-        }
-
-        #[test]
-        fn sanitizes_whitespace() {
-            let repo = RepositoryName::try_new("  myrepo  ").unwrap();
-            assert_eq!(repo.as_ref(), "myrepo");
-        }
-
-        #[test]
-        fn rejects_empty_string() {
-            assert!(RepositoryName::try_new("").is_err());
-        }
-
-        #[test]
-        fn rejects_whitespace_only() {
-            assert!(RepositoryName::try_new("   ").is_err());
-        }
-
-        #[test]
-        fn rejects_special_characters() {
-            assert!(RepositoryName::try_new("my@repo").is_err());
-            assert!(RepositoryName::try_new("my.repo").is_err());
-            assert!(RepositoryName::try_new("my/repo").is_err());
-            assert!(RepositoryName::try_new("my repo").is_err());
-        }
-
-        #[test]
-        fn rejects_starting_with_hyphen() {
-            assert!(RepositoryName::try_new("-myrepo").is_err());
-        }
-
-        #[test]
-        fn rejects_ending_with_hyphen() {
-            assert!(RepositoryName::try_new("myrepo-").is_err());
-        }
-
-        #[test]
-        fn rejects_too_long() {
-            let long_name = "a".repeat(33);
-            assert!(RepositoryName::try_new(&long_name).is_err());
-        }
-
-        #[test]
-        fn accepts_max_length() {
-            let max_name = "a".repeat(32);
-            assert!(RepositoryName::try_new(&max_name).is_ok());
-        }
-
-        #[test]
-        fn strips_git_suffix() {
-            let repo = RepositoryName::try_new("myrepo.git").unwrap();
-            assert_eq!(repo.as_ref(), "myrepo");
-        }
-    }
 
     mod email {
         use super::*;

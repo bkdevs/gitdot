@@ -2,7 +2,7 @@ use uuid::Uuid;
 
 use crate::{
     dto::{OwnerName, RepositoryName},
-    error::{InputError, RepositoryError},
+    error::RepositoryError,
 };
 
 #[derive(Debug, Clone)]
@@ -16,8 +16,7 @@ impl DeleteRepositoryCommitFilterRequest {
     pub fn new(owner: &str, repo: &str, filter_id: Uuid) -> Result<Self, RepositoryError> {
         Ok(Self {
             owner: OwnerName::parse(owner, "owner name")?,
-            repo: RepositoryName::try_new(repo)
-                .map_err(|e| InputError::new("repository name", e))?,
+            repo: RepositoryName::parse(repo, "repository name")?,
             filter_id,
         })
     }

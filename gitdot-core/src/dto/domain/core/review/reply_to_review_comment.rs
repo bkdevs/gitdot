@@ -2,7 +2,7 @@ use uuid::Uuid;
 
 use crate::{
     dto::common::{OwnerName, RepositoryName},
-    error::{InputError, ReviewError},
+    error::ReviewError,
 };
 
 #[derive(Debug, Clone)]
@@ -26,8 +26,7 @@ impl ReplyToReviewCommentRequest {
     ) -> Result<Self, ReviewError> {
         Ok(Self {
             owner: OwnerName::parse(owner, "owner name")?,
-            repo: RepositoryName::try_new(repo)
-                .map_err(|e| InputError::new("repository name", e))?,
+            repo: RepositoryName::parse(repo, "repository name")?,
             number,
             comment_id,
             user_id,

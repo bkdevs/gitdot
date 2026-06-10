@@ -26,8 +26,7 @@ impl ReceivePackRequest {
         Ok(Self {
             pusher_id,
             owner: OwnerName::parse(owner, "owner name")?,
-            repo: RepositoryName::try_new(repo)
-                .map_err(|e| InputError::new("repository name", e))?,
+            repo: RepositoryName::parse(repo, "repository name")?,
             content_type: GitContentType::try_new(content_type.to_string())
                 .map_err(|e| InputError::new("content type", e))?,
             body,

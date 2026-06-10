@@ -36,8 +36,7 @@ impl CreateGitHubMigrationRequest {
         let repositories = repositories
             .into_iter()
             .map(|(name, id)| {
-                let name = RepositoryName::try_new(&name)
-                    .map_err(|e| InputError::new("repository name", e))?;
+                let name = RepositoryName::parse(&name, "repository name")?;
                 Ok(GitHubMigrationRepository { name, id })
             })
             .collect::<Result<Vec<_>, MigrationError>>()?;

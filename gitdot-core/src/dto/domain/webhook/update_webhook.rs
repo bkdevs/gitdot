@@ -43,8 +43,7 @@ impl UpdateWebhookRequest {
 
         Ok(Self {
             owner_name: OwnerName::parse(owner, "owner name")?,
-            repo_name: RepositoryName::try_new(repo)
-                .map_err(|e| InputError::new("repository name", e))?,
+            repo_name: RepositoryName::parse(repo, "repository name")?,
             webhook_id,
             url,
             secret,

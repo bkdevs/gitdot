@@ -1,6 +1,6 @@
 use crate::{
     dto::common::{Cursor, DEFAULT_PER_PAGE_LIMIT, MAX_PER_PAGE_LIMIT, OwnerName, RepositoryName},
-    error::{BuildError, InputError},
+    error::BuildError,
     util::cursor,
 };
 
@@ -20,8 +20,7 @@ impl ListBuildsRequest {
         limit: Option<u32>,
     ) -> Result<Self, BuildError> {
         let repo_owner = OwnerName::parse(repo_owner, "owner name")?;
-        let repo_name = RepositoryName::try_new(repo_name)
-            .map_err(|e| InputError::new("repository name", e))?;
+        let repo_name = RepositoryName::parse(repo_name, "repository name")?;
         let cursor = cursor.map(cursor::decode).transpose()?;
         Ok(Self {
             repo_owner,

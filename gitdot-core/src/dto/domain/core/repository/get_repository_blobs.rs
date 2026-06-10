@@ -1,6 +1,6 @@
 use crate::{
     dto::{OwnerName, RepositoryBlobResponse, RepositoryName},
-    error::{InputError, RepositoryError},
+    error::RepositoryError,
 };
 
 #[derive(Debug, Clone)]
@@ -22,8 +22,7 @@ impl GetRepositoryBlobsRequest {
             return Err(RepositoryError::TooManyPaths);
         }
         Ok(Self {
-            name: RepositoryName::try_new(repo_name)
-                .map_err(|e| InputError::new("repository name", e))?,
+            name: RepositoryName::parse(repo_name, "repository name")?,
             owner_name: OwnerName::parse(owner_name, "owner name")?,
             refs,
             paths,

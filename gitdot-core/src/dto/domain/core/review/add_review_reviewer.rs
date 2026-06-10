@@ -1,6 +1,6 @@
 use crate::{
     dto::common::{OwnerName, RepositoryName},
-    error::{InputError, ReviewError},
+    error::ReviewError,
 };
 
 #[derive(Debug, Clone)]
@@ -15,8 +15,7 @@ impl AddReviewReviewerReqeuest {
     pub fn new(owner: &str, repo: &str, number: i32, user_name: &str) -> Result<Self, ReviewError> {
         Ok(Self {
             owner: OwnerName::parse(owner, "owner name")?,
-            repo: RepositoryName::try_new(repo)
-                .map_err(|e| InputError::new("repository name", e))?,
+            repo: RepositoryName::parse(repo, "repository name")?,
             number,
             user_name: OwnerName::parse(user_name, "owner name")?,
         })

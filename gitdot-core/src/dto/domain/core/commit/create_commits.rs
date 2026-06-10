@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::{
     dto::{OwnerName, RepositoryName},
-    error::{CommitError, InputError},
+    error::CommitError,
 };
 
 #[derive(Debug, Clone)]
@@ -28,8 +28,7 @@ impl CreateCommitsRequest {
     ) -> Result<Self, CommitError> {
         Ok(Self {
             owner: OwnerName::parse(owner, "owner name")?,
-            repo: RepositoryName::try_new(repo)
-                .map_err(|e| InputError::new("repository name", e))?,
+            repo: RepositoryName::parse(repo, "repository name")?,
             old_sha,
             new_sha,
             ref_name,

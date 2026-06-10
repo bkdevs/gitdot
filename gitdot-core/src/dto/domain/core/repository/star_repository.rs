@@ -2,7 +2,7 @@ use uuid::Uuid;
 
 use crate::{
     dto::{OwnerName, RepositoryName},
-    error::{InputError, RepositoryError},
+    error::RepositoryError,
 };
 
 #[derive(Debug, Clone)]
@@ -17,8 +17,7 @@ impl StarRepositoryRequest {
         Ok(Self {
             user_id,
             owner: OwnerName::parse(owner, "owner name")?,
-            repo: RepositoryName::try_new(repo)
-                .map_err(|e| InputError::new("repository name", e))?,
+            repo: RepositoryName::parse(repo, "repository name")?,
         })
     }
 }

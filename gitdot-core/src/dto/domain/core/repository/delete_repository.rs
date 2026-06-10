@@ -1,6 +1,6 @@
 use crate::{
     dto::{OwnerName, RepositoryName},
-    error::{InputError, RepositoryError},
+    error::RepositoryError,
 };
 
 #[derive(Debug, Clone)]
@@ -13,8 +13,7 @@ impl DeleteRepositoryRequest {
     pub fn new(owner: &str, repo: &str) -> Result<Self, RepositoryError> {
         Ok(Self {
             owner: OwnerName::parse(owner, "owner name")?,
-            repo: RepositoryName::try_new(repo)
-                .map_err(|e| InputError::new("repository name", e))?,
+            repo: RepositoryName::parse(repo, "repository name")?,
         })
     }
 }

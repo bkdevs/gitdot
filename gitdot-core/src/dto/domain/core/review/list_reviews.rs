@@ -2,7 +2,7 @@ use uuid::Uuid;
 
 use crate::{
     dto::common::{Cursor, DEFAULT_PER_PAGE_LIMIT, MAX_PER_PAGE_LIMIT, OwnerName, RepositoryName},
-    error::{InputError, ReviewError},
+    error::ReviewError,
     util::cursor,
 };
 
@@ -24,8 +24,7 @@ impl ListReviewsRequest {
         limit: Option<u32>,
     ) -> Result<Self, ReviewError> {
         let owner = OwnerName::parse(owner, "owner name")?;
-        let repo =
-            RepositoryName::try_new(repo).map_err(|e| InputError::new("repository name", e))?;
+        let repo = RepositoryName::parse(repo, "repository name")?;
         let cursor = cursor.map(cursor::decode).transpose()?;
         Ok(Self {
             owner,
