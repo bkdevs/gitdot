@@ -28,7 +28,7 @@ impl ListMembersRequest {
             })
             .transpose()?;
         let org_name =
-            OwnerName::try_new(org_name).map_err(|e| InputError::new("organization name", e))?;
+            OwnerName::parse(org_name, "organization name")?;
         let cursor = cursor.map(cursor::decode).transpose()?;
 
         Ok(Self {

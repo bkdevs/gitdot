@@ -2,7 +2,7 @@ use uuid::Uuid;
 
 use crate::{
     dto::{Cursor, DEFAULT_PER_PAGE_LIMIT, MAX_PER_PAGE_LIMIT, OwnerName},
-    error::{InputError, OrganizationError},
+    error::OrganizationError,
     util::cursor,
 };
 
@@ -21,8 +21,7 @@ impl ListOrganizationRepositoriesRequest {
         limit: Option<u32>,
         viewer_id: Option<Uuid>,
     ) -> Result<Self, OrganizationError> {
-        let org_name =
-            OwnerName::try_new(org_name).map_err(|e| InputError::new("organization name", e))?;
+        let org_name = OwnerName::parse(org_name, "organization name")?;
         let cursor = cursor.map(cursor::decode).transpose()?;
         Ok(Self {
             org_name,

@@ -26,10 +26,8 @@ impl AddMemberRequest {
         };
 
         Ok(Self {
-            org_name: OwnerName::try_new(org_name)
-                .map_err(|e| InputError::new("organization name", e))?,
-            user_name: OwnerName::try_new(user_name)
-                .map_err(|e| InputError::new("user name", e))?,
+            org_name: OwnerName::parse(org_name, "organization name")?,
+            user_name: OwnerName::parse(user_name, "user name")?,
             role,
             role_description,
         })

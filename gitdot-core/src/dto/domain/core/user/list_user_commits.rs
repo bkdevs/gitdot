@@ -29,8 +29,7 @@ impl ListUserCommitsRequest {
         if to.is_some() && from.is_none() {
             return Err(InputError::new("date range", "`to` requires `from` to be set").into());
         }
-        let user_name =
-            OwnerName::try_new(user_name).map_err(|e| InputError::new("user name", e))?;
+        let user_name = OwnerName::parse(user_name, "user name")?;
         let cursor = cursor.map(cursor::decode).transpose()?;
         Ok(Self {
             user_name,

@@ -20,7 +20,7 @@ impl UploadPackRequest {
         body: Box<dyn AsyncRead + Unpin + Send>,
     ) -> Result<Self, GitHttpError> {
         Ok(Self {
-            owner: OwnerName::try_new(owner).map_err(|e| InputError::new("owner name", e))?,
+            owner: OwnerName::parse(owner, "owner name")?,
             repo: RepositoryName::try_new(repo)
                 .map_err(|e| InputError::new("repository name", e))?,
             content_type: GitContentType::try_new(content_type.to_string())

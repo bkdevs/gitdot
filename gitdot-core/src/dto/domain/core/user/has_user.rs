@@ -1,7 +1,4 @@
-use crate::{
-    dto::OwnerName,
-    error::{InputError, UserError},
-};
+use crate::{dto::OwnerName, error::UserError};
 
 #[derive(Debug, Clone)]
 pub struct HasUserRequest {
@@ -11,7 +8,7 @@ pub struct HasUserRequest {
 impl HasUserRequest {
     pub fn new(name: &str) -> Result<Self, UserError> {
         Ok(Self {
-            name: OwnerName::try_new(name).map_err(|e| InputError::new("user name", e))?,
+            name: OwnerName::parse(name, "user name")?,
         })
     }
 }

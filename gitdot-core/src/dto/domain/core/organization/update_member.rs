@@ -1,9 +1,6 @@
 use uuid::Uuid;
 
-use crate::{
-    dto::OwnerName,
-    error::{InputError, OrganizationError},
-};
+use crate::{dto::OwnerName, error::OrganizationError};
 
 #[derive(Debug, Clone)]
 pub struct UpdateOrganizationMemberRequest {
@@ -19,8 +16,7 @@ impl UpdateOrganizationMemberRequest {
         role_description: Option<String>,
     ) -> Result<Self, OrganizationError> {
         Ok(Self {
-            org_name: OwnerName::try_new(org_name)
-                .map_err(|e| InputError::new("organization name", e))?,
+            org_name: OwnerName::parse(org_name, "organization name")?,
             member_id,
             role_description,
         })

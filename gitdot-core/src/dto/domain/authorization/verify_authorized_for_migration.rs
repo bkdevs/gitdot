@@ -21,8 +21,7 @@ impl MigrationAuthorizationRequest {
     ) -> Result<Self, AuthorizationError> {
         Ok(Self {
             user_id,
-            owner_name: OwnerName::try_new(owner_name)
-                .map_err(|e| InputError::new("owner name", e))?,
+            owner_name: OwnerName::parse(owner_name, "owner name")?,
             owner_type: RepositoryOwnerType::try_from(owner_type)
                 .map_err(|e| InputError::new("owner type", e))?,
         })

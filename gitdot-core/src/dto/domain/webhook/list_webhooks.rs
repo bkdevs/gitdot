@@ -19,7 +19,7 @@ impl ListWebhooksRequest {
         cursor: Option<&str>,
         limit: Option<u32>,
     ) -> Result<Self, WebhookError> {
-        let owner_name = OwnerName::try_new(owner).map_err(|e| InputError::new("owner name", e))?;
+        let owner_name = OwnerName::parse(owner, "owner name")?;
         let repo_name =
             RepositoryName::try_new(repo).map_err(|e| InputError::new("repository name", e))?;
         let cursor = cursor.map(cursor::decode).transpose()?;

@@ -12,8 +12,7 @@ pub struct CreateRunnerTokenRequest {
 impl CreateRunnerTokenRequest {
     pub fn new(owner_name: &str, name: &str) -> Result<Self, RunnerError> {
         Ok(Self {
-            owner_name: OwnerName::try_new(owner_name)
-                .map_err(|e| InputError::new("owner name", e))?,
+            owner_name: OwnerName::parse(owner_name, "owner name")?,
             runner_name: RunnerName::try_new(name)
                 .map_err(|e| InputError::new("runner name", e))?,
         })

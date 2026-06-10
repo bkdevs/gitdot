@@ -1,9 +1,6 @@
 use uuid::Uuid;
 
-use crate::{
-    dto::OwnerName,
-    error::{InputError, UserError},
-};
+use crate::{dto::OwnerName, error::UserError};
 
 #[derive(Debug, Clone)]
 pub struct UpdateCurrentUserRequest {
@@ -26,9 +23,7 @@ impl UpdateCurrentUserRequest {
     ) -> Result<Self, UserError> {
         Ok(Self {
             user_id,
-            name: name
-                .map(|n| OwnerName::try_new(n).map_err(|e| InputError::new("user name", e)))
-                .transpose()?,
+            name: name.map(|n| OwnerName::parse(n, "user name")).transpose()?,
             location,
             readme,
             links,

@@ -23,7 +23,7 @@ impl ListRepositoryCommitFiltersRequest {
         cursor: Option<&str>,
         limit: Option<u32>,
     ) -> Result<Self, RepositoryError> {
-        let owner = OwnerName::try_new(owner).map_err(|e| InputError::new("owner name", e))?;
+        let owner = OwnerName::parse(owner, "owner name")?;
         let repo =
             RepositoryName::try_new(repo).map_err(|e| InputError::new("repository name", e))?;
         let cursor = cursor.map(cursor::decode).transpose()?;

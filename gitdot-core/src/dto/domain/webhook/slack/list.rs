@@ -14,7 +14,7 @@ pub struct ListSlackWebhooksRequest {
 impl ListSlackWebhooksRequest {
     pub fn new(owner: &str, repo: &str, event: WebhookEventType) -> Result<Self, WebhookError> {
         Ok(Self {
-            owner_name: OwnerName::try_new(owner).map_err(|e| InputError::new("owner name", e))?,
+            owner_name: OwnerName::parse(owner, "owner name")?,
             repo_name: RepositoryName::try_new(repo)
                 .map_err(|e| InputError::new("repository name", e))?,
             event,

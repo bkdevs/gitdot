@@ -30,7 +30,7 @@ impl ListRepositoryCommitsRequest {
         if to.is_some() && from.is_none() {
             return Err(InputError::new("date range", "`to` requires `from` to be set").into());
         }
-        let owner = OwnerName::try_new(owner).map_err(|e| InputError::new("owner name", e))?;
+        let owner = OwnerName::parse(owner, "owner name")?;
         let repo =
             RepositoryName::try_new(repo).map_err(|e| InputError::new("repository name", e))?;
         let cursor = cursor.map(cursor::decode).transpose()?;

@@ -42,8 +42,7 @@ impl CreateRepositoryRequest {
             name: RepositoryName::try_new(repo_name)
                 .map_err(|e| InputError::new("repository name", e))?,
             user_id,
-            owner_name: OwnerName::try_new(owner_name)
-                .map_err(|e| InputError::new("owner name", e))?,
+            owner_name: OwnerName::parse(owner_name, "owner name")?,
             owner_type: owner_type.try_into()?,
             visibility: visibility.try_into()?,
             description,

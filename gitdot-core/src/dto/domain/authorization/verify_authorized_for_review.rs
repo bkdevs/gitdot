@@ -22,7 +22,7 @@ impl ReviewAuthorizationRequest {
     ) -> Result<Self, AuthorizationError> {
         Ok(Self {
             user_id,
-            owner: OwnerName::try_new(owner_name).map_err(|e| InputError::new("owner name", e))?,
+            owner: OwnerName::parse(owner_name, "owner name")?,
             repo: RepositoryName::try_new(repo_name)
                 .map_err(|e| InputError::new("repository name", e))?,
             number,

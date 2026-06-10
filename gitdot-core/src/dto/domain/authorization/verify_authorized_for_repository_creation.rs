@@ -17,7 +17,7 @@ impl RepositoryCreationAuthorizationRequest {
     pub fn new(user_id: Uuid, owner: &str, owner_type: &str) -> Result<Self, AuthorizationError> {
         Ok(Self {
             user_id,
-            owner: OwnerName::try_new(owner).map_err(|e| InputError::new("owner name", e))?,
+            owner: OwnerName::parse(owner, "owner name")?,
             owner_type: RepositoryOwnerType::try_from(owner_type)
                 .map_err(|e| InputError::new("owner type", e))?,
         })

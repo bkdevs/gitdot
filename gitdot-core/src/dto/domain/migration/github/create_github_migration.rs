@@ -47,8 +47,7 @@ impl CreateGitHubMigrationRequest {
             origin: origin.to_string(),
             origin_type: RepositoryOwnerType::try_from(origin_type)
                 .map_err(|e| InputError::new("origin type", e))?,
-            destination: OwnerName::try_new(destination)
-                .map_err(|e| InputError::new("destination", e))?,
+            destination: OwnerName::parse(destination, "destination")?,
             destination_type: RepositoryOwnerType::try_from(destination_type)
                 .map_err(|e| InputError::new("destination type", e))?,
             repositories,

@@ -19,12 +19,11 @@ impl RemoveReviewReviewerRequest {
         reviewer_name: &str,
     ) -> Result<Self, ReviewError> {
         Ok(Self {
-            owner: OwnerName::try_new(owner).map_err(|e| InputError::new("owner name", e))?,
+            owner: OwnerName::parse(owner, "owner name")?,
             repo: RepositoryName::try_new(repo)
                 .map_err(|e| InputError::new("repository name", e))?,
             number,
-            reviewer_name: OwnerName::try_new(reviewer_name)
-                .map_err(|e| InputError::new("owner name", e))?,
+            reviewer_name: OwnerName::parse(reviewer_name, "owner name")?,
         })
     }
 }

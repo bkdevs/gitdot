@@ -24,8 +24,7 @@ impl GetRepositoryBlobsRequest {
         Ok(Self {
             name: RepositoryName::try_new(repo_name)
                 .map_err(|e| InputError::new("repository name", e))?,
-            owner_name: OwnerName::try_new(owner_name)
-                .map_err(|e| InputError::new("owner name", e))?,
+            owner_name: OwnerName::parse(owner_name, "owner name")?,
             refs,
             paths,
         })

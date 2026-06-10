@@ -14,12 +14,11 @@ pub struct AddReviewReviewerReqeuest {
 impl AddReviewReviewerReqeuest {
     pub fn new(owner: &str, repo: &str, number: i32, user_name: &str) -> Result<Self, ReviewError> {
         Ok(Self {
-            owner: OwnerName::try_new(owner).map_err(|e| InputError::new("owner name", e))?,
+            owner: OwnerName::parse(owner, "owner name")?,
             repo: RepositoryName::try_new(repo)
                 .map_err(|e| InputError::new("repository name", e))?,
             number,
-            user_name: OwnerName::try_new(user_name)
-                .map_err(|e| InputError::new("owner name", e))?,
+            user_name: OwnerName::parse(user_name, "owner name")?,
         })
     }
 }

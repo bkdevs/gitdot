@@ -13,7 +13,7 @@ pub struct GetRepositoryCommitRequest {
 impl GetRepositoryCommitRequest {
     pub fn new(owner: &str, repo: &str, sha: String) -> Result<Self, CommitError> {
         Ok(Self {
-            owner: OwnerName::try_new(owner).map_err(|e| InputError::new("owner name", e))?,
+            owner: OwnerName::parse(owner, "owner name")?,
             repo: RepositoryName::try_new(repo)
                 .map_err(|e| InputError::new("repository name", e))?,
             sha,

@@ -19,8 +19,7 @@ impl ListBuildsRequest {
         cursor: Option<&str>,
         limit: Option<u32>,
     ) -> Result<Self, BuildError> {
-        let repo_owner =
-            OwnerName::try_new(repo_owner).map_err(|e| InputError::new("owner name", e))?;
+        let repo_owner = OwnerName::parse(repo_owner, "owner name")?;
         let repo_name = RepositoryName::try_new(repo_name)
             .map_err(|e| InputError::new("repository name", e))?;
         let cursor = cursor.map(cursor::decode).transpose()?;

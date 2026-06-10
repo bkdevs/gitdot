@@ -24,7 +24,7 @@ impl CreateAnswerRequest {
     ) -> Result<Self, QuestionError> {
         Ok(Self {
             author_id,
-            owner: OwnerName::try_new(owner).map_err(|e| InputError::new("owner name", e))?,
+            owner: OwnerName::parse(owner, "owner name")?,
             repo: RepositoryName::try_new(repo).map_err(|e| InputError::new("owner name", e))?,
             number,
             body,

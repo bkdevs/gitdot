@@ -1,6 +1,6 @@
 use crate::{
     dto::{Cursor, DEFAULT_PER_PAGE_LIMIT, MAX_PER_PAGE_LIMIT, OwnerName},
-    error::{InputError, RunnerError},
+    error::RunnerError,
     util::cursor,
 };
 
@@ -17,8 +17,7 @@ impl ListRunnersRequest {
         cursor: Option<&str>,
         limit: Option<u32>,
     ) -> Result<Self, RunnerError> {
-        let owner_name =
-            OwnerName::try_new(owner_name).map_err(|e| InputError::new("owner name", e))?;
+        let owner_name = OwnerName::parse(owner_name, "owner name")?;
         let cursor = cursor.map(cursor::decode).transpose()?;
         Ok(Self {
             owner_name,

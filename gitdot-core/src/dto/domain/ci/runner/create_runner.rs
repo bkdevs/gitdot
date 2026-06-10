@@ -24,8 +24,7 @@ impl CreateRunnerRequest {
         Ok(Self {
             name: RunnerName::try_new(name).map_err(|e| InputError::new("runner name", e))?,
             user_id,
-            owner_name: OwnerName::try_new(owner_name)
-                .map_err(|e| InputError::new("owner name", e))?,
+            owner_name: OwnerName::parse(owner_name, "owner name")?,
             owner_type: owner_type.try_into()?,
         })
     }

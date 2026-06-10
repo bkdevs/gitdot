@@ -1,10 +1,14 @@
 //! Define common structs and constants that can be shared across domains.
 
+mod owner;
+
 use chrono::{DateTime, Utc};
 use email_address::EmailAddress;
 use nutype::nutype;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+
+pub use owner::OwnerName;
 
 /// TODO: decrease to smaller value
 pub const DEFAULT_PER_PAGE_LIMIT: u32 = 10_000;
@@ -32,13 +36,6 @@ pub struct Page<T> {
     pub data: Vec<T>,
     pub next_cursor: Option<String>,
 }
-
-#[nutype(
-    sanitize(trim, lowercase),
-    validate(predicate = is_valid_owner_slug),
-    derive(Debug, Clone, PartialEq, Eq, AsRef, Deref)
-)]
-pub(crate) struct OwnerName(String);
 
 #[nutype(
     sanitize(trim, lowercase),
@@ -93,26 +90,46 @@ pub(crate) fn normalize_string_list(values: Option<Vec<String>>) -> Option<Vec<S
     })
 }
 
-fn is_valid_owner_slug(s: &str) -> bool {
-    is_valid_slug(s, false)
-}
-
 fn is_valid_repo_slug(s: &str) -> bool {
-    is_valid_slug(s, true)
+    validate_slug(s, true).is_ok()
 }
 
-fn is_valid_slug(s: &str, allow_underscore: bool) -> bool {
+fn validate_slug(s: &str, allow_underscore: bool) -> Result<(), &'static str> {
     let is_sep = |c: char| c == '-' || (allow_underscore && c == '_');
-    let is_allowed = |c: char| c.is_ascii_lowercase() || c.is_ascii_digit() || is_sep(c);
 
-    (2..=32).contains(&s.len())
-        && s.chars().all(is_allowed)
-        && !s.starts_with(is_sep)
-        && !s.ends_with(is_sep)
-        && !s
-            .chars()
-            .zip(s.chars().skip(1))
-            .any(|(a, b)| is_sep(a) && is_sep(b))
+    if s.len() < 2 {
+        return Err("must be at least 2 characters");
+    }
+    if s.len() > 32 {
+        return Err("must be at most 32 characters");
+    }
+    if s.chars()
+        .any(|c| !(c.is_ascii_lowercase() || c.is_ascii_digit() || is_sep(c)))
+    {
+        return Err(if allow_underscore {
+            "can only contain lowercase letters, numbers, hyphens, and underscores"
+        } else {
+            "can only contain lowercase letters, numbers, and hyphens"
+        });
+    }
+    if s.starts_with(is_sep) || s.ends_with(is_sep) {
+        return Err(if allow_underscore {
+            "cannot start or end with a hyphen or underscore"
+        } else {
+            "cannot start or end with a hyphen"
+        });
+    }
+    if s.chars()
+        .zip(s.chars().skip(1))
+        .any(|(a, b)| is_sep(a) && is_sep(b))
+    {
+        return Err(if allow_underscore {
+            "cannot contain consecutive hyphens or underscores"
+        } else {
+            "cannot contain consecutive hyphens"
+        });
+    }
+    Ok(())
 }
 
 fn strip_git_suffix(s: String) -> String {
@@ -140,92 +157,6 @@ fn is_valid_user_code(s: &str) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    mod owner_name {
-        use super::*;
-
-        #[test]
-        fn valid_lowercase() {
-            let owner = OwnerName::try_new("johndoe").unwrap();
-            assert_eq!(owner.as_ref(), "johndoe");
-        }
-
-        #[test]
-        fn valid_with_numbers() {
-            let owner = OwnerName::try_new("user123").unwrap();
-            assert_eq!(owner.as_ref(), "user123");
-        }
-
-        #[test]
-        fn valid_with_hyphen() {
-            let owner = OwnerName::try_new("john-doe").unwrap();
-            assert_eq!(owner.as_ref(), "john-doe");
-        }
-
-        #[test]
-        fn rejects_underscore() {
-            assert!(OwnerName::try_new("john_doe").is_err());
-            assert!(OwnerName::try_new("_johndoe").is_err());
-            assert!(OwnerName::try_new("johndoe_").is_err());
-        }
-
-        #[test]
-        fn rejects_consecutive_separators() {
-            assert!(OwnerName::try_new("john--doe").is_err());
-        }
-
-        #[test]
-        fn sanitizes_uppercase_to_lowercase() {
-            let owner = OwnerName::try_new("JohnDoe").unwrap();
-            assert_eq!(owner.as_ref(), "johndoe");
-        }
-
-        #[test]
-        fn sanitizes_whitespace() {
-            let owner = OwnerName::try_new("  johndoe  ").unwrap();
-            assert_eq!(owner.as_ref(), "johndoe");
-        }
-
-        #[test]
-        fn rejects_empty_string() {
-            assert!(OwnerName::try_new("").is_err());
-        }
-
-        #[test]
-        fn rejects_whitespace_only() {
-            assert!(OwnerName::try_new("   ").is_err());
-        }
-
-        #[test]
-        fn rejects_special_characters() {
-            assert!(OwnerName::try_new("john@doe").is_err());
-            assert!(OwnerName::try_new("john.doe").is_err());
-            assert!(OwnerName::try_new("john/doe").is_err());
-            assert!(OwnerName::try_new("john doe").is_err());
-        }
-
-        #[test]
-        fn rejects_starting_with_hyphen() {
-            assert!(OwnerName::try_new("-johndoe").is_err());
-        }
-
-        #[test]
-        fn rejects_ending_with_hyphen() {
-            assert!(OwnerName::try_new("johndoe-").is_err());
-        }
-
-        #[test]
-        fn rejects_too_long() {
-            let long_name = "a".repeat(33);
-            assert!(OwnerName::try_new(&long_name).is_err());
-        }
-
-        #[test]
-        fn accepts_max_length() {
-            let max_name = "a".repeat(32);
-            assert!(OwnerName::try_new(&max_name).is_ok());
-        }
-    }
 
     mod repository_name {
         use super::*;

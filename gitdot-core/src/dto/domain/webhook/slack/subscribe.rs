@@ -26,7 +26,7 @@ impl SubscribeSlackWebhookRequest {
     ) -> Result<Self, WebhookError> {
         Ok(Self {
             user_id,
-            owner_name: OwnerName::try_new(owner).map_err(|e| InputError::new("owner name", e))?,
+            owner_name: OwnerName::parse(owner, "owner name")?,
             repo_name: RepositoryName::try_new(repo)
                 .map_err(|e| InputError::new("repository name", e))?,
             slack_user_id,

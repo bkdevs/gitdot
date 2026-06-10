@@ -37,7 +37,7 @@ impl CreateWebhookRequest {
             .collect::<Result<Vec<_>, _>>()?;
 
         Ok(Self {
-            owner_name: OwnerName::try_new(owner).map_err(|e| InputError::new("owner name", e))?,
+            owner_name: OwnerName::parse(owner, "owner name")?,
             repo_name: RepositoryName::try_new(repo)
                 .map_err(|e| InputError::new("repository name", e))?,
             url: WebhookUrl::try_new(url).map_err(|e| InputError::new("url", e))?,

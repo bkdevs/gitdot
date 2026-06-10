@@ -19,8 +19,7 @@ impl CreateBuildRequest {
         commit_sha: String,
     ) -> Result<Self, BuildError> {
         Ok(Self {
-            repo_owner: OwnerName::try_new(repo_owner)
-                .map_err(|e| InputError::new("owner name", e))?,
+            repo_owner: OwnerName::parse(repo_owner, "owner name")?,
             repo_name: RepositoryName::try_new(repo_name)
                 .map_err(|e| InputError::new("repository name", e))?,
             ref_name,
