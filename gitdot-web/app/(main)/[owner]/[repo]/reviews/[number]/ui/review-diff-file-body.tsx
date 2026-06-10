@@ -7,7 +7,8 @@ import { DiffCreated } from "@/(main)/[owner]/[repo]/commits/[sha]/ui/diff-creat
 import { DiffSplit } from "@/(main)/[owner]/[repo]/commits/[sha]/ui/diff-split";
 import { DiffUnified } from "@/(main)/[owner]/[repo]/commits/[sha]/ui/diff-unified";
 import { DiffUnilateral } from "@/(main)/[owner]/[repo]/commits/[sha]/ui/diff-unilateral";
-import { preferSplit } from "@/(main)/[owner]/[repo]/util";
+import { preferSplit, splitMaxLineLength } from "@/(main)/[owner]/[repo]/util";
+import { useElementWidth } from "@/hooks/use-element-width";
 import { cn } from "@/util";
 import { useReviewContext } from "../context";
 import { useCommentSelection } from "./hooks/use-comment-selection";
@@ -45,6 +46,7 @@ export function ReviewDiffFileBody({
     activeComment,
     diffSpans,
   );
+  const containerWidth = useElementWidth(containerRef);
 
   const newComment = useCallback(
     (body: string) =>
@@ -68,6 +70,7 @@ export function ReviewDiffFileBody({
           diffSpans.leftSpans,
           diffSpans.rightSpans,
           diffSpans.hunks,
+          splitMaxLineLength(containerWidth),
         )));
 
   return (
