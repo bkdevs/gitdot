@@ -2,7 +2,7 @@ use uuid::Uuid;
 
 use crate::{
     dto::{OwnerName, common::RunnerName},
-    error::{InputError, RunnerError},
+    error::RunnerError,
     model::RunnerOwnerType,
 };
 
@@ -22,7 +22,7 @@ impl CreateRunnerRequest {
         owner_type: &str,
     ) -> Result<Self, RunnerError> {
         Ok(Self {
-            name: RunnerName::try_new(name).map_err(|e| InputError::new("runner name", e))?,
+            name: RunnerName::parse(name, "runner name")?,
             user_id,
             owner_name: OwnerName::parse(owner_name, "owner name")?,
             owner_type: owner_type.try_into()?,

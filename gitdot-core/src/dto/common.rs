@@ -1,19 +1,24 @@
 //! Define common structs and constants that can be shared across domains.
 
 mod email;
+mod filter;
 mod owner;
 mod repository;
+mod runner;
 mod url;
+mod user_code;
 
 use chrono::{DateTime, Utc};
-use nutype::nutype;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 pub use email::Email;
+pub use filter::FilterName;
 pub use owner::OwnerName;
 pub use repository::RepositoryName;
+pub use runner::RunnerName;
 pub use url::Url;
+pub use user_code::UserCode;
 
 /// TODO: decrease to smaller value
 pub const DEFAULT_PER_PAGE_LIMIT: u32 = 10_000;
@@ -42,26 +47,6 @@ pub struct Page<T> {
     pub next_cursor: Option<String>,
 }
 
-#[nutype(
-    sanitize(trim, lowercase),
-    validate(predicate = is_valid_repo_slug),
-    derive(Debug, Clone, PartialEq, Eq, AsRef, Deref)
-)]
-pub(crate) struct RunnerName(String);
-
-#[nutype(
-    sanitize(trim),
-    validate(predicate = is_valid_filter_name),
-    derive(Debug, Clone, PartialEq, Eq, AsRef, Deref)
-)]
-pub(crate) struct FilterName(String);
-
-#[nutype(
-    validate(predicate = is_valid_user_code),
-    derive(Debug, Clone, PartialEq, Eq, AsRef, Deref)
-)]
-pub(crate) struct UserCode(String);
-
 /// Trims each entry of an optional string list and drops the now-empty ones,
 /// preserving `None`. Used by request DTOs to clean up user-supplied lists
 /// (e.g. commit-filter authors/tags/paths) before persistence.
@@ -72,10 +57,6 @@ pub(crate) fn normalize_string_list(values: Option<Vec<String>>) -> Option<Vec<S
             .filter(|s| !s.is_empty())
             .collect()
     })
-}
-
-fn is_valid_repo_slug(s: &str) -> bool {
-    validate_slug(s, true).is_ok()
 }
 
 fn validate_slug(s: &str, allow_underscore: bool) -> Result<(), &'static str> {
@@ -116,56 +97,9 @@ fn validate_slug(s: &str, allow_underscore: bool) -> Result<(), &'static str> {
     Ok(())
 }
 
-fn is_valid_filter_name(s: &str) -> bool {
-    !s.is_empty() && s.len() <= 100
-}
-
-fn is_valid_user_code(s: &str) -> bool {
-    s.len() == 6
-        && s.chars()
-            .all(|c| c.is_ascii_uppercase() || ('2'..='9').contains(&c))
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    mod user_code {
-        use super::*;
-
-        #[test]
-        fn valid_code() {
-            let code = UserCode::try_new("ABC234").unwrap();
-            assert_eq!(code.as_ref(), "ABC234");
-        }
-
-        #[test]
-        fn rejects_too_short() {
-            assert!(UserCode::try_new("ABC23").is_err());
-        }
-
-        #[test]
-        fn rejects_too_long() {
-            assert!(UserCode::try_new("ABC2345").is_err());
-        }
-
-        #[test]
-        fn rejects_invalid_characters() {
-            assert!(UserCode::try_new("ABC230").is_err());
-            assert!(UserCode::try_new("ABC231").is_err());
-        }
-
-        #[test]
-        fn accepts_all_uppercase_letters() {
-            assert!(UserCode::try_new("ABCDIO").is_ok());
-        }
-
-        #[test]
-        fn rejects_special_characters() {
-            assert!(UserCode::try_new("ABC-23").is_err());
-            assert!(UserCode::try_new("ABC@23").is_err());
-        }
-    }
 
     mod normalize_string_list {
         use super::*;

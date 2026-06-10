@@ -2,7 +2,7 @@ use uuid::Uuid;
 
 use crate::{
     dto::{Email, UserCode},
-    error::{AccountError, InputError},
+    error::AccountError,
 };
 
 #[derive(Debug, Clone)]
@@ -17,7 +17,7 @@ impl VerifyUserEmailRequest {
         Ok(Self {
             user_id,
             email: Email::parse(email, "email")?,
-            code: UserCode::try_new(code).map_err(|e| InputError::new("code", e.to_string()))?,
+            code: UserCode::parse(code, "code")?,
         })
     }
 }

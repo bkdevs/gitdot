@@ -2,7 +2,7 @@ use ipnetwork::IpNetwork;
 
 use crate::{
     dto::{Email, UserCode},
-    error::{InputError, SessionError},
+    error::SessionError,
 };
 
 #[derive(Debug, Clone)]
@@ -22,7 +22,7 @@ impl VerifyAuthCodeRequest {
     ) -> Result<Self, SessionError> {
         Ok(Self {
             email: Email::parse(email, "email")?,
-            code: UserCode::try_new(code).map_err(|e| InputError::new("code", e.to_string()))?,
+            code: UserCode::parse(code, "code")?,
             user_agent,
             ip_address: ip_address.and_then(|ip| ip.parse().ok()),
         })
