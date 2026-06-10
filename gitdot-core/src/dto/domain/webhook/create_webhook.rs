@@ -1,5 +1,5 @@
 use crate::{
-    dto::common::{OwnerName, RepositoryName, WebhookUrl},
+    dto::common::{OwnerName, RepositoryName, Url},
     error::{InputError, WebhookError},
     model::WebhookEventType,
 };
@@ -8,7 +8,7 @@ use crate::{
 pub struct CreateWebhookRequest {
     pub owner_name: OwnerName,
     pub repo_name: RepositoryName,
-    pub url: WebhookUrl,
+    pub url: Url,
     pub secret: String,
     pub events: Vec<WebhookEventType>,
 }
@@ -39,7 +39,7 @@ impl CreateWebhookRequest {
         Ok(Self {
             owner_name: OwnerName::parse(owner, "owner name")?,
             repo_name: RepositoryName::parse(repo, "repository name")?,
-            url: WebhookUrl::try_new(url).map_err(|e| InputError::new("url", e))?,
+            url: Url::parse(url, "url")?,
             secret,
             events,
         })

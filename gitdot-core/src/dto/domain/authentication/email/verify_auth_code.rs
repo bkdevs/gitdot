@@ -21,7 +21,7 @@ impl VerifyAuthCodeRequest {
         ip_address: Option<&str>,
     ) -> Result<Self, SessionError> {
         Ok(Self {
-            email: Email::try_new(email).map_err(|e| InputError::new("email", e))?,
+            email: Email::parse(email, "email")?,
             code: UserCode::try_new(code).map_err(|e| InputError::new("code", e.to_string()))?,
             user_agent,
             ip_address: ip_address.and_then(|ip| ip.parse().ok()),

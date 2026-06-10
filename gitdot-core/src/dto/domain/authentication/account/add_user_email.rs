@@ -1,9 +1,6 @@
 use uuid::Uuid;
 
-use crate::{
-    dto::Email,
-    error::{AccountError, InputError},
-};
+use crate::{dto::Email, error::AccountError};
 
 #[derive(Debug, Clone)]
 pub struct AddUserEmailRequest {
@@ -15,7 +12,7 @@ impl AddUserEmailRequest {
     pub fn new(user_id: Uuid, email: &str) -> Result<Self, AccountError> {
         Ok(Self {
             user_id,
-            email: Email::try_new(email).map_err(|e| InputError::new("email", e))?,
+            email: Email::parse(email, "email")?,
         })
     }
 }

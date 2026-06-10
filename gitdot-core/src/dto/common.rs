@@ -1,16 +1,19 @@
 //! Define common structs and constants that can be shared across domains.
 
+mod email;
 mod owner;
 mod repository;
+mod url;
 
 use chrono::{DateTime, Utc};
-use email_address::EmailAddress;
 use nutype::nutype;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+pub use email::Email;
 pub use owner::OwnerName;
 pub use repository::RepositoryName;
+pub use url::Url;
 
 /// TODO: decrease to smaller value
 pub const DEFAULT_PER_PAGE_LIMIT: u32 = 10_000;
@@ -45,20 +48,6 @@ pub struct Page<T> {
     derive(Debug, Clone, PartialEq, Eq, AsRef, Deref)
 )]
 pub(crate) struct RunnerName(String);
-
-#[nutype(
-    sanitize(trim),
-    validate(predicate = is_valid_url),
-    derive(Debug, Clone, PartialEq, Eq, AsRef, Deref)
-)]
-pub(crate) struct WebhookUrl(String);
-
-#[nutype(
-    sanitize(trim, lowercase),
-    validate(predicate = is_valid_email),
-    derive(Debug, Clone, PartialEq, Eq, AsRef, Deref)
-)]
-pub(crate) struct Email(String);
 
 #[nutype(
     sanitize(trim),
@@ -127,14 +116,6 @@ fn validate_slug(s: &str, allow_underscore: bool) -> Result<(), &'static str> {
     Ok(())
 }
 
-fn is_valid_url(s: &str) -> bool {
-    url::Url::parse(s).is_ok()
-}
-
-fn is_valid_email(s: &str) -> bool {
-    EmailAddress::is_valid(s)
-}
-
 fn is_valid_filter_name(s: &str) -> bool {
     !s.is_empty() && s.len() <= 100
 }
@@ -148,172 +129,6 @@ fn is_valid_user_code(s: &str) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    mod email {
-        use super::*;
-
-        #[test]
-        fn valid_simple() {
-            let e = Email::try_new("foo@example.com").unwrap();
-            assert_eq!(e.as_ref(), "foo@example.com");
-        }
-
-        #[test]
-        fn valid_with_plus() {
-            let e = Email::try_new("foo+tag@example.com").unwrap();
-            assert_eq!(e.as_ref(), "foo+tag@example.com");
-        }
-
-        #[test]
-        fn valid_with_dot_in_local() {
-            let e = Email::try_new("first.last@example.com").unwrap();
-            assert_eq!(e.as_ref(), "first.last@example.com");
-        }
-
-        #[test]
-        fn valid_with_subdomain() {
-            let e = Email::try_new("u@mail.eng.example.com").unwrap();
-            assert_eq!(e.as_ref(), "u@mail.eng.example.com");
-        }
-
-        #[test]
-        fn valid_with_hyphen_in_domain() {
-            let e = Email::try_new("u@my-host.example.com").unwrap();
-            assert_eq!(e.as_ref(), "u@my-host.example.com");
-        }
-
-        #[test]
-        fn valid_with_special_chars_in_local() {
-            assert!(Email::try_new("a!#$%&'*+-/=?^_`{|}~b@example.com").is_ok());
-        }
-
-        #[test]
-        fn sanitizes_uppercase_to_lowercase() {
-            let e = Email::try_new("FoO@Example.COM").unwrap();
-            assert_eq!(e.as_ref(), "foo@example.com");
-        }
-
-        #[test]
-        fn sanitizes_surrounding_whitespace() {
-            let e = Email::try_new("  foo@example.com  ").unwrap();
-            assert_eq!(e.as_ref(), "foo@example.com");
-        }
-
-        #[test]
-        fn rejects_empty() {
-            assert!(Email::try_new("").is_err());
-        }
-
-        #[test]
-        fn rejects_whitespace_only() {
-            assert!(Email::try_new("   ").is_err());
-        }
-
-        #[test]
-        fn rejects_missing_at() {
-            assert!(Email::try_new("fooexample.com").is_err());
-        }
-
-        #[test]
-        fn rejects_multiple_at() {
-            assert!(Email::try_new("foo@bar@example.com").is_err());
-        }
-
-        #[test]
-        fn rejects_missing_local() {
-            assert!(Email::try_new("@example.com").is_err());
-        }
-
-        #[test]
-        fn rejects_missing_domain() {
-            assert!(Email::try_new("foo@").is_err());
-        }
-
-        #[test]
-        fn accepts_domain_without_dot() {
-            // RFC-permissive: bare hostnames like `localhost` are legal mail
-            // destinations, so the crate accepts them.
-            assert!(Email::try_new("foo@localhost").is_ok());
-        }
-
-        #[test]
-        fn rejects_leading_dot_in_local() {
-            assert!(Email::try_new(".foo@example.com").is_err());
-        }
-
-        #[test]
-        fn rejects_trailing_dot_in_local() {
-            assert!(Email::try_new("foo.@example.com").is_err());
-        }
-
-        #[test]
-        fn rejects_consecutive_dots_in_local() {
-            assert!(Email::try_new("foo..bar@example.com").is_err());
-        }
-
-        #[test]
-        fn rejects_leading_dot_in_domain() {
-            assert!(Email::try_new("foo@.example.com").is_err());
-        }
-
-        #[test]
-        fn rejects_trailing_dot_in_domain() {
-            assert!(Email::try_new("foo@example.com.").is_err());
-        }
-
-        #[test]
-        fn rejects_label_starting_with_hyphen() {
-            assert!(Email::try_new("foo@-example.com").is_err());
-        }
-
-        #[test]
-        fn rejects_label_ending_with_hyphen() {
-            assert!(Email::try_new("foo@example-.com").is_err());
-        }
-
-        #[test]
-        fn accepts_underscore_in_domain() {
-            // RFC 5322 permits underscores in the domain part even though
-            // RFC 1035 hostnames do not.
-            assert!(Email::try_new("foo@bad_host.com").is_ok());
-        }
-
-        #[test]
-        fn rejects_space_in_address() {
-            assert!(Email::try_new("foo bar@example.com").is_err());
-            assert!(Email::try_new("foo@example .com").is_err());
-        }
-
-        #[test]
-        fn accepts_tld_one_char() {
-            // The RFC doesn't actually forbid single-char TLDs.
-            assert!(Email::try_new("foo@example.x").is_ok());
-        }
-
-        #[test]
-        fn accepts_numeric_tld() {
-            // Numeric TLDs are unusual but RFC-legal.
-            assert!(Email::try_new("foo@example.123").is_ok());
-        }
-
-        #[test]
-        fn rejects_local_too_long() {
-            let local = "a".repeat(65);
-            assert!(Email::try_new(format!("{local}@example.com").as_str()).is_err());
-        }
-
-        #[test]
-        fn accepts_local_max_length() {
-            let local = "a".repeat(64);
-            assert!(Email::try_new(format!("{local}@example.com").as_str()).is_ok());
-        }
-
-        #[test]
-        fn rejects_label_too_long() {
-            let label = "a".repeat(64);
-            assert!(Email::try_new(format!("foo@{label}.com").as_str()).is_err());
-        }
-    }
 
     mod user_code {
         use super::*;
@@ -349,43 +164,6 @@ mod tests {
         fn rejects_special_characters() {
             assert!(UserCode::try_new("ABC-23").is_err());
             assert!(UserCode::try_new("ABC@23").is_err());
-        }
-    }
-
-    mod webhook_url {
-        use super::*;
-
-        #[test]
-        fn valid_https() {
-            let url = WebhookUrl::try_new("https://example.com/webhook").unwrap();
-            assert_eq!(url.as_ref(), "https://example.com/webhook");
-        }
-
-        #[test]
-        fn valid_http() {
-            let url = WebhookUrl::try_new("http://localhost:8080/hook").unwrap();
-            assert_eq!(url.as_ref(), "http://localhost:8080/hook");
-        }
-
-        #[test]
-        fn sanitizes_whitespace() {
-            let url = WebhookUrl::try_new("  https://example.com  ").unwrap();
-            assert_eq!(url.as_ref(), "https://example.com");
-        }
-
-        #[test]
-        fn rejects_empty_string() {
-            assert!(WebhookUrl::try_new("").is_err());
-        }
-
-        #[test]
-        fn rejects_not_a_url() {
-            assert!(WebhookUrl::try_new("not-a-url").is_err());
-        }
-
-        #[test]
-        fn rejects_missing_scheme() {
-            assert!(WebhookUrl::try_new("example.com/webhook").is_err());
         }
     }
 

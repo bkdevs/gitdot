@@ -1,7 +1,7 @@
 use uuid::Uuid;
 
 use crate::{
-    dto::common::{OwnerName, RepositoryName, WebhookUrl},
+    dto::common::{OwnerName, RepositoryName, Url},
     error::{InputError, WebhookError},
     model::WebhookEventType,
 };
@@ -11,7 +11,7 @@ pub struct UpdateWebhookRequest {
     pub owner_name: OwnerName,
     pub repo_name: RepositoryName,
     pub webhook_id: Uuid,
-    pub url: Option<WebhookUrl>,
+    pub url: Option<Url>,
     pub secret: Option<String>,
     pub events: Option<Vec<WebhookEventType>>,
 }
@@ -25,10 +25,7 @@ impl UpdateWebhookRequest {
         secret: Option<String>,
         events: Option<Vec<String>>,
     ) -> Result<Self, WebhookError> {
-        let url = url
-            .map(WebhookUrl::try_new)
-            .transpose()
-            .map_err(|e| InputError::new("url", e))?;
+        let url = url.map(|u| Url::parse(u, "url")).transpose()?;
 
         let events = events
             .map(|evts| {
