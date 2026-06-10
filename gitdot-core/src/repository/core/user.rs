@@ -201,7 +201,7 @@ impl UserRepository for PgUserRepository {
             let name = {
                 let mut rng = rand::rng();
                 let bytes: [u8; 4] = rng.random();
-                format!("user_{}", hex::encode(bytes))
+                format!("user-{}", hex::encode(bytes))
             };
 
             let result = sqlx::query_as::<_, User>(
@@ -706,7 +706,7 @@ mod tests {
             .create("alice@example.com", true, AuthProvider::Email)
             .await
             .unwrap();
-        assert!(user.name.starts_with("user_"));
+        assert!(user.name.starts_with("user-"));
         assert_eq!(user.provider, AuthProvider::Email);
 
         // `create` inserts the email in a data-modifying CTE whose rows aren't
