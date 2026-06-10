@@ -57,18 +57,15 @@ function ActivityList({
       (e) => e.type === "starred" && e.user.id === currentUser.id,
     );
     const others = serverEvents.filter((e) => e !== userStarEvent);
-    return [
-      ...(starred
-        ? [
-            {
-              type: "starred" as const,
-              user: currentUser,
-              at: userStarEvent?.at ?? new Date().toISOString(),
-            },
-          ]
-        : []),
-      ...others,
-    ];
+    if (!starred) return others;
+    const userEvent = {
+      type: "starred" as const,
+      user: currentUser,
+      at: userStarEvent?.at ?? new Date().toISOString(),
+    };
+    return [...others, userEvent].sort(
+      (a, b) => new Date(b.at).getTime() - new Date(a.at).getTime(),
+    );
   }, [serverEvents, starred, currentUser]);
 
   if (events.length === 0) {
