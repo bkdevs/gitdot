@@ -2,6 +2,7 @@
 
 mod email;
 mod filter;
+mod git;
 mod owner;
 mod repository;
 mod runner;
@@ -14,6 +15,7 @@ use uuid::Uuid;
 
 pub use email::Email;
 pub use filter::FilterName;
+pub use git::{GitContentType, GitService};
 pub use owner::OwnerName;
 pub use repository::RepositoryName;
 pub use runner::RunnerName;

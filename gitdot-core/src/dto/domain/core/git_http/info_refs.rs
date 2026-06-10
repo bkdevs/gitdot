@@ -1,6 +1,6 @@
 use crate::{
     dto::{GitService, OwnerName, RepositoryName},
-    error::{GitHttpError, InputError},
+    error::GitHttpError,
 };
 
 #[derive(Debug, Clone)]
@@ -15,8 +15,7 @@ impl InfoRefsRequest {
         Ok(Self {
             owner: OwnerName::parse(owner, "owner name")?,
             repo: RepositoryName::parse(repo, "repository name")?,
-            service: GitService::try_new(service.to_string())
-                .map_err(|e| InputError::new("service", e))?,
+            service: GitService::parse(service, "service")?,
         })
     }
 }
