@@ -1,7 +1,8 @@
 "use client";
 
 import type { DiffSpans } from "gitdot-dal/client";
-import { preferSplit } from "@/(main)/[owner]/[repo]/util";
+import { preferSplit, splitMaxLineLength } from "@/(main)/[owner]/[repo]/util";
+import { useElementWidth } from "@/hooks/use-element-width";
 import { cn } from "@/util";
 import { DiffCreated } from "./diff-created";
 import { DiffSplit } from "./diff-split";
@@ -20,12 +21,18 @@ export function DiffBody({
 }) {
   const { containerRef, handleMouseDown, handleMouseMove, handleMouseUp } =
     useDiffSelection();
+  const containerWidth = useElementWidth(containerRef);
 
   const useSplit =
     spans.kind === "split" &&
     (layout === "split" ||
       (layout === "heuristic" &&
-        preferSplit(spans.leftSpans, spans.rightSpans, spans.hunks)));
+        preferSplit(
+          spans.leftSpans,
+          spans.rightSpans,
+          spans.hunks,
+          splitMaxLineLength(containerWidth),
+        )));
 
   return (
     <div
