@@ -1,8 +1,10 @@
 mod add_member;
 mod create_organization;
+mod follow_organization;
 mod get_organization;
 mod list_organization_repositories;
 mod list_organizations;
+mod unfollow_organization;
 mod update_member;
 mod update_organization;
 mod update_organization_image;
@@ -14,9 +16,11 @@ use crate::model::{Organization, OrganizationMember, OrganizationRole};
 
 pub use add_member::AddMemberRequest;
 pub use create_organization::CreateOrganizationRequest;
+pub use follow_organization::FollowOrganizationRequest;
 pub use get_organization::GetOrganizationRequest;
 pub use list_organization_repositories::ListOrganizationRepositoriesRequest;
 pub use list_organizations::ListOrganizationsRequest;
+pub use unfollow_organization::UnfollowOrganizationRequest;
 pub use update_member::UpdateOrganizationMemberRequest;
 pub use update_organization::UpdateOrganizationRequest;
 pub use update_organization_image::UpdateOrganizationImageRequest;
@@ -33,6 +37,8 @@ pub struct OrganizationResponse {
 
     pub created_at: DateTime<Utc>,
     pub image_updated_at: DateTime<Utc>,
+    pub followers: i64,
+    pub user_follow: bool,
 
     pub members: Option<Vec<OrganizationMemberResponse>>,
 }
@@ -48,6 +54,8 @@ impl From<Organization> for OrganizationResponse {
             links: org.links,
             created_at: org.created_at,
             image_updated_at: org.image_updated_at,
+            followers: org.followers,
+            user_follow: org.user_follow,
             members: org
                 .members
                 .map(|members| members.into_iter().map(Into::into).collect()),

@@ -37,6 +37,9 @@ pub fn create_user(name: &str) -> User {
         created_at: Utc::now(),
         image_updated_at: Utc::now(),
         deleted_at: None,
+        followers: 0,
+        following: 0,
+        user_follow: false,
         emails: vec![],
     }
 }
@@ -82,6 +85,8 @@ pub fn create_organization(name: &str) -> Organization {
         links: vec![],
         created_at: Utc::now(),
         image_updated_at: Utc::now(),
+        followers: 0,
+        user_follow: false,
         members: None,
     }
 }

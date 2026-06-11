@@ -1,3 +1,4 @@
+mod follow_user;
 mod get_current_user;
 mod get_user;
 mod has_user;
@@ -7,6 +8,7 @@ mod list_user_repositories;
 mod list_user_repositories_contributed;
 mod list_user_repositories_starred;
 mod list_user_reviews;
+mod unfollow_user;
 mod update_current_user;
 mod upload_user_image;
 
@@ -18,6 +20,7 @@ use axum::{
 
 use crate::app::AppState;
 
+use follow_user::follow_user;
 use get_current_user::get_current_user;
 use get_user::get_user;
 use has_user::has_user;
@@ -27,6 +30,7 @@ use list_user_repositories::list_user_repositories;
 use list_user_repositories_contributed::list_user_contributed_repositories;
 use list_user_repositories_starred::list_user_starred_repositories;
 use list_user_reviews::list_user_reviews;
+use unfollow_user::unfollow_user;
 use update_current_user::update_current_user;
 use upload_user_image::upload_user_image;
 
@@ -38,6 +42,10 @@ pub fn create_user_router() -> Router<AppState> {
             post(upload_user_image).layer(DefaultBodyLimit::max(5 * 1024 * 1024)),
         )
         .route("/user/{user_name}", get(get_user).head(has_user))
+        .route(
+            "/user/{user_name}/follow",
+            post(follow_user).delete(unfollow_user),
+        )
         .route(
             "/user/{user_name}/repositories",
             get(list_user_repositories),

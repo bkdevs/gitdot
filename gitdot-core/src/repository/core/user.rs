@@ -14,6 +14,9 @@ use crate::{
 const USER_PROJECTION_QUERY: &str = r#"
 SELECT
     u.id, u.name, u.provider, u.created_at, u.image_updated_at, u.deleted_at, u.display_name, u.location, u.readme, u.links,
+    (SELECT COUNT(*)::bigint FROM core.user_followers uf WHERE uf.following_id = u.id) AS followers,
+    (SELECT COUNT(*)::bigint FROM core.user_followers uf WHERE uf.follower_id = u.id) AS following,
+    false AS user_follow,
     COALESCE(
         (SELECT json_agg(json_build_object(
             'id', e.id,
@@ -68,6 +71,14 @@ pub trait UserRepository: Send + Sync + Clone + 'static {
     /// Returns the [`User`] (with aggregated emails) whose `id` matches, or
     /// `Ok(None)` if no such user exists.
     async fn get_by_id(&self, id: Uuid) -> Result<Option<User>, DatabaseError>;
+
+    async fn follow(
+        &self,
+        user_name: &str,
+        follower_id: Uuid,
+    ) -> Result<Option<Uuid>, DatabaseError>;
+
+    async fn unfollow(&self, user_name: &str, follower_id: Uuid) -> Result<bool, DatabaseError>;
 
     /// Soft-deletes the user by setting `core.users.deleted_at = NOW()`,
     /// preserving any existing timestamp (idempotent). The row is left intact;
@@ -318,6 +329,47 @@ impl UserRepository for PgUserRepository {
         .await?;
 
         Ok(user)
+    }
+
+    async fn follow(
+        &self,
+        user_name: &str,
+        follower_id: Uuid,
+    ) -> Result<Option<Uuid>, DatabaseError> {
+        let id = sqlx::query_scalar::<_, Uuid>(
+            r#"
+            INSERT INTO core.user_followers (follower_id, following_id)
+            SELECT $2, u.id
+            FROM core.users u
+            WHERE u.name = $1
+            ON CONFLICT (follower_id, following_id) DO NOTHING
+            RETURNING id
+            "#,
+        )
+        .bind(user_name)
+        .bind(follower_id)
+        .fetch_optional(&self.pool)
+        .await?;
+
+        Ok(id)
+    }
+
+    async fn unfollow(&self, user_name: &str, follower_id: Uuid) -> Result<bool, DatabaseError> {
+        let result = sqlx::query(
+            r#"
+            DELETE FROM core.user_followers uf
+            USING core.users u
+            WHERE uf.following_id = u.id
+              AND u.name = $1
+              AND uf.follower_id = $2
+            "#,
+        )
+        .bind(user_name)
+        .bind(follower_id)
+        .execute(&self.pool)
+        .await?;
+
+        Ok(result.rows_affected() > 0)
     }
 
     async fn touch_image(&self, id: Uuid) -> Result<(), DatabaseError> {

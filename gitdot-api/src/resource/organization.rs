@@ -14,6 +14,8 @@ pub struct OrganizationResource {
 
     pub created_at: DateTime<Utc>,
     pub image_updated_at: DateTime<Utc>,
+    pub followers: i64,
+    pub user_follow: bool,
 
     pub members: Option<Vec<OrganizationMemberResource>>,
 }

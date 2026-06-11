@@ -32,6 +32,8 @@ mock! {
         async fn get_id(&self, org_name: &str) -> Result<Option<Uuid>, crate::error::DatabaseError>;
         async fn touch_image(&self, org_id: Uuid) -> Result<(), crate::error::DatabaseError>;
         async fn is_member(&self, org_id: Uuid, user_id: Uuid) -> Result<bool, crate::error::DatabaseError>;
+        async fn follow(&self, org_name: &str, user_id: Uuid) -> Result<Option<Uuid>, crate::error::DatabaseError>;
+        async fn unfollow(&self, org_name: &str, user_id: Uuid) -> Result<bool, crate::error::DatabaseError>;
         async fn add_member(&self, org_name: &str, user_name: &str, role: OrganizationRole, role_description: Option<String>) -> Result<Option<OrganizationMember>, crate::error::DatabaseError>;
         async fn get_member_role(&self, org_name: &str, user_id: Uuid) -> Result<Option<OrganizationRole>, crate::error::DatabaseError>;
         async fn get_member(&self, org_name: &str, member_id: Uuid) -> Result<Option<OrganizationMember>, crate::error::DatabaseError>;
@@ -104,6 +106,8 @@ mock! {
         async fn get(&self, user_name: &str) -> Result<Option<User>, crate::error::DatabaseError>;
         async fn update(&self, id: Uuid, name: Option<String>, location: Option<String>, readme: Option<String>, links: Option<Vec<String>>, display_name: Option<String>) -> Result<User, crate::error::DatabaseError>;
         async fn get_by_id(&self, id: Uuid) -> Result<Option<User>, crate::error::DatabaseError>;
+        async fn follow(&self, user_name: &str, follower_id: Uuid) -> Result<Option<Uuid>, crate::error::DatabaseError>;
+        async fn unfollow(&self, user_name: &str, follower_id: Uuid) -> Result<bool, crate::error::DatabaseError>;
         async fn mark_user_as_deleted(&self, id: Uuid) -> Result<(), crate::error::DatabaseError>;
         async fn touch_image(&self, id: Uuid) -> Result<(), crate::error::DatabaseError>;
         async fn get_by_primary_email(&self, email: &str) -> Result<Option<User>, crate::error::DatabaseError>;

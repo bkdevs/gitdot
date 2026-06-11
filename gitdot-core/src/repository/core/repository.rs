@@ -571,6 +571,9 @@ impl RepositoryRepository for PgRepositoryRepository {
                     created_at: r.created_at,
                     image_updated_at: r.image_updated_at,
                     deleted_at: r.deleted_at,
+                    followers: 0,
+                    following: 0,
+                    user_follow: false,
                     emails: emails_by_user.remove(&r.id).unwrap_or_default(),
                 };
                 (user, r.starred_at)

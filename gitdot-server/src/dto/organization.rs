@@ -18,6 +18,8 @@ impl IntoApi for OrganizationResponse {
             links: self.links,
             created_at: self.created_at,
             image_updated_at: self.image_updated_at,
+            followers: self.followers,
+            user_follow: self.user_follow,
             members: self.members.into_api(),
         }
     }
