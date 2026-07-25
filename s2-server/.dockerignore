@@ -1,9 +1,0 @@
-target/
-.env
-.git/
-*.md
-Dockerfile
-.dockerignore
-gitdot-web/
-node_modules/
-.next/

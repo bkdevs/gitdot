@@ -1,1 +1,0 @@
-ALTER TABLE core.users ADD COLUMN location VARCHAR(255);

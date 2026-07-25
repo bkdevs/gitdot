@@ -1,1 +1,0 @@
-ALTER TABLE tasks DROP COLUMN s2_uri;

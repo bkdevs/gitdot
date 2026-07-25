@@ -1,2 +1,0 @@
-ALTER TABLE core.users ADD COLUMN IF NOT EXISTS settings JSONB;
-ALTER TABLE core.repositories ADD COLUMN IF NOT EXISTS settings JSONB;

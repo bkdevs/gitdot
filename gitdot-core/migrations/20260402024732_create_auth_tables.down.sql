@@ -1,4 +1,0 @@
-DROP TABLE IF EXISTS auth.tokens CASCADE;
-DROP TABLE IF EXISTS auth.device_authorizations CASCADE;
-DROP TABLE IF EXISTS auth.sessions CASCADE;
-DROP TABLE IF EXISTS auth.auth_codes CASCADE;

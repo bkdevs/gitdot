@@ -1,1 +1,0 @@
-ALTER TABLE revisions ADD COLUMN parent_hash VARCHAR(40) NOT NULL DEFAULT '';

@@ -1,1 +1,0 @@
-ALTER TABLE tasks DROP COLUMN IF EXISTS dag_id;

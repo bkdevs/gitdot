@@ -1,1 +1,0 @@
-ALTER TABLE builds DROP COLUMN IF EXISTS ref_name;

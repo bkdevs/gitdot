@@ -1,1 +1,0 @@
-ALTER TABLE core.diffs ALTER COLUMN message TYPE VARCHAR(255);

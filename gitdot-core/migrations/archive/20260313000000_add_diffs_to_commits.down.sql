@@ -1,1 +1,0 @@
-ALTER TABLE commits DROP COLUMN diffs;

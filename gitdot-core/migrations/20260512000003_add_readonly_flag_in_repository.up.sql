@@ -1,2 +1,0 @@
-ALTER TABLE core.repositories
-ADD COLUMN readonly BOOLEAN NOT NULL DEFAULT FALSE;

@@ -1,2 +1,0 @@
-ALTER TABLE core.users DROP COLUMN links;
-ALTER TABLE core.users ADD COLUMN links TEXT[] NOT NULL DEFAULT '{}';

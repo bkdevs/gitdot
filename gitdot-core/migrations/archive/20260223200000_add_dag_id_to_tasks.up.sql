@@ -1,1 +1,0 @@
-ALTER TABLE tasks ADD COLUMN dag_id UUID NOT NULL REFERENCES dags(id);
